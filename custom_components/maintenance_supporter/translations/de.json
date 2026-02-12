@@ -1,0 +1,748 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wartungshelfer",
+        "description": "Richten Sie Ihr Wartungsmanagementsystem ein.",
+        "menu_options": {
+          "create_object": "Wartungsobjekt erstellen",
+          "create_from_template": "Aus Vorlage erstellen",
+          "global_setup": "Globale Einstellungen"
+        }
+      },
+      "create_from_template": {
+        "title": "Vorlagenkategorie auswählen",
+        "description": "Wählen Sie eine Kategorie, um vordefinierte Wartungsvorlagen zu durchsuchen.",
+        "data": {
+          "template_category": "Kategorie"
+        }
+      },
+      "template_select": {
+        "title": "Vorlage auswählen",
+        "description": "Wählen Sie eine Wartungsvorlage als Ausgangspunkt.",
+        "data": {
+          "template_id": "Vorlage"
+        }
+      },
+      "template_customize": {
+        "title": "Vorlage anpassen",
+        "description": "Passen Sie die Vorlage '{template_name}' an. Sie enthält {task_count} Aufgaben: {task_list}.",
+        "data": {
+          "name": "Objektname",
+          "area_id": "Bereich",
+          "manufacturer": "Hersteller",
+          "model": "Modell"
+        },
+        "data_description": {
+          "name": "Ein Name für dieses Wartungsobjekt.",
+          "area_id": "Der Bereich, in dem sich dieses Objekt befindet.",
+          "manufacturer": "Der Hersteller des Objekts.",
+          "model": "Die Modellbezeichnung oder -nummer."
+        }
+      },
+      "global_setup": {
+        "title": "Globale Einstellungen",
+        "description": "Konfigurieren Sie die globalen Wartungseinstellungen.",
+        "data": {
+          "default_warning_days": "Standard-Warnzeit (Tage vor Fälligkeit)",
+          "notifications_enabled": "Benachrichtigungen aktivieren",
+          "notify_service": "Benachrichtigungsdienst"
+        },
+        "data_description": {
+          "default_warning_days": "Anzahl der Tage vor Fälligkeit einer Wartungsaufgabe, ab der eine Warnung angezeigt wird.",
+          "notifications_enabled": "Benachrichtigungen senden, wenn Wartungsaufgaben fällig werden.",
+          "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Wartungsobjekt erstellen",
+        "description": "Definieren Sie ein Gerät oder eine Anlage für die Wartungsverwaltung.",
+        "data": {
+          "name": "Objektname",
+          "area_id": "Bereich",
+          "manufacturer": "Hersteller",
+          "model": "Modell",
+          "installation_date": "Installationsdatum"
+        },
+        "data_description": {
+          "name": "Ein eindeutiger Name für dieses Wartungsobjekt (z.B. 'Poolpumpe', 'Auto').",
+          "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
+          "manufacturer": "Der Hersteller des Objekts.",
+          "model": "Die Modellbezeichnung oder -nummer.",
+          "installation_date": "Wann dieses Objekt installiert oder gekauft wurde."
+        }
+      },
+      "task_menu": {
+        "title": "Wartungsaufgaben",
+        "description": "Wartungsaufgaben für {object_name} hinzufügen. Derzeit {task_count} Aufgabe(n) definiert.",
+        "menu_options": {
+          "add_task": "Wartungsaufgabe hinzufügen",
+          "finish": "Einrichtung abschließen"
+        }
+      },
+      "add_task": {
+        "title": "Wartungsaufgabe hinzufügen",
+        "description": "Definieren Sie eine Wartungsaufgabe für {object_name}.",
+        "data": {
+          "name": "Aufgabenname",
+          "type": "Wartungstyp",
+          "schedule_type": "Planungsart"
+        },
+        "data_description": {
+          "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
+          "type": "Die Kategorie der Wartungsarbeit.",
+          "schedule_type": "Wie diese Aufgabe geplant werden soll."
+        }
+      },
+      "time_based": {
+        "title": "Zeitbasierter Plan",
+        "description": "Konfigurieren Sie das Zeitintervall für diese Wartungsaufgabe.",
+        "data": {
+          "interval_days": "Intervall (Tage)",
+          "last_performed": "Zuletzt durchgeführt",
+          "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
+          "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn noch nie durchgeführt.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+        }
+      },
+      "sensor_select": {
+        "title": "Trigger-Sensor auswählen",
+        "description": "Wählen Sie eine Home Assistant Entität zur Überwachung für diese Wartungsaufgabe.",
+        "data": {
+          "trigger_entity": "Zu überwachende Entität"
+        },
+        "data_description": {
+          "trigger_entity": "Wählen Sie die Sensorentität, die diese Wartungsaufgabe auslösen soll."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Attribut auswählen",
+        "description": "Wählen Sie, welcher Wert von {entity_id} überwacht werden soll. Aktueller Zustand: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Zu überwachender Wert"
+        },
+        "data_description": {
+          "trigger_attribute": "Wählen Sie den Entitätszustand oder ein bestimmtes Attribut zur Überwachung."
+        }
+      },
+      "trigger_type": {
+        "title": "Trigger-Typ",
+        "description": "Wie soll der Sensorwert die Wartung auslösen?",
+        "data": {
+          "trigger_type": "Trigger-Typ"
+        },
+        "data_description": {
+          "trigger_type": "Schwellwert: löst aus, wenn der Wert Grenzen überschreitet. Zähler: löst nach Erreichen eines Zielwerts aus. Zustandswechsel: löst nach einer Anzahl von Zustandsübergängen aus."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Schwellwert-Konfiguration",
+        "description": "Schwellwerte für **{entity_id}** ({attribute}) festlegen.\nAktuell: **{current_value} {unit}** | Ø: {average} | Bereich: {minimum}–{maximum} ({data_period} Tage)\nVorschlag über: {suggested_above} | Vorschlag unter: {suggested_below}",
+        "data": {
+          "trigger_above": "Auslösen wenn über",
+          "trigger_below": "Auslösen wenn unter",
+          "trigger_for_minutes": "Für mindestens (Minuten)",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellwert überschreitet.",
+          "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellwert fällt.",
+          "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Anzahl Minuten überschreiten, bevor ausgelöst wird.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Trigger.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+        }
+      },
+      "trigger_counter": {
+        "title": "Zähler-Konfiguration",
+        "description": "Zählerziel für {entity_id} ({attribute}) festlegen. Aktuell: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Zielwert",
+          "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_target_value": "Wartung auslösen, wenn dieser akkumulierte Wert erreicht ist.",
+          "trigger_delta_mode": "Wenn aktiviert, wird die Differenz ab einer Basislinie gezählt statt des absoluten Werts.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Trigger.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Zustandswechsel-Konfiguration",
+        "description": "Zustandsübergänge von {entity_id} zählen.",
+        "data": {
+          "trigger_from_state": "Von Zustand (optional)",
+          "trigger_to_state": "Zu Zustand (optional)",
+          "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung der Wartung.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandswechsel-Trigger.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+        }
+      },
+      "manual": {
+        "title": "Manueller Plan",
+        "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
+        "data": {
+          "warning_days": "Warntage vor Fälligkeit",
+          "notes": "Notizen"
+        },
+        "data_description": {
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Ein Wartungsobjekt mit diesem Namen existiert bereits.",
+      "no_tasks": "Mindestens eine Wartungsaufgabe ist erforderlich.",
+      "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
+      "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
+      "invalid_threshold": "Mindestens ein Schwellwert (über oder unter) muss gesetzt werden.",
+      "invalid_interval": "Das Intervall muss eine positive Zahl sein."
+    },
+    "abort": {
+      "already_configured": "Dieses Wartungsobjekt ist bereits konfiguriert.",
+      "global_already_exists": "Globale Einstellungen sind bereits konfiguriert.",
+      "template_not_found": "Die ausgewählte Vorlage wurde nicht gefunden.",
+      "missing_data": "Erforderliche Daten wurden nicht angegeben."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Wartungsoptionen",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Aufgaben verwalten",
+          "add_task": "Neue Aufgabe hinzufügen",
+          "object_settings": "Objekteinstellungen"
+        }
+      },
+      "global_init": {
+        "title": "Globale Einstellungen",
+        "description": "Globale Wartungseinstellungen konfigurieren.",
+        "menu_options": {
+          "general_settings": "Allgemeine Einstellungen",
+          "budget_settings": "Budgeteinstellungen",
+          "manage_groups": "Gruppen verwalten",
+          "notification_settings": "Benachrichtigungseinstellungen",
+          "notification_actions": "Interaktive Aktionen",
+          "done": "Fertig"
+        }
+      },
+      "general_settings": {
+        "title": "Allgemeine Einstellungen",
+        "description": "Grundeinstellungen für den Wartungshelfer konfigurieren.",
+        "data": {
+          "default_warning_days": "Standard-Warnzeit (Tage vor Fälligkeit)",
+          "notifications_enabled": "Benachrichtigungen aktivieren",
+          "notify_service": "Benachrichtigungsdienst",
+          "panel_enabled": "Sidebar-Panel anzeigen"
+        },
+        "data_description": {
+          "notifications_enabled": "Benachrichtigungen senden, wenn Wartungsaufgaben bald fällig oder überfällig sind.",
+          "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
+          "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen."
+        }
+      },
+      "notification_settings": {
+        "title": "Benachrichtigungseinstellungen",
+        "description": "Konfigurieren Sie, wann und wie oft Benachrichtigungen für jeden Status gesendet werden.",
+        "data": {
+          "notify_due_soon_enabled": "Benachrichtigen wenn bald fällig",
+          "notify_due_soon_interval_hours": "Erinnerungsintervall bald fällig (Stunden)",
+          "notify_overdue_enabled": "Benachrichtigen wenn überfällig",
+          "notify_overdue_interval_hours": "Erinnerungsintervall überfällig (Stunden)",
+          "notify_triggered_enabled": "Benachrichtigen wenn ausgelöst",
+          "notify_triggered_interval_hours": "Erinnerungsintervall ausgelöst (Stunden)",
+          "quiet_hours_enabled": "Ruhezeit aktivieren",
+          "quiet_hours_start": "Ruhezeit Beginn",
+          "quiet_hours_end": "Ruhezeit Ende",
+          "max_notifications_per_day": "Max. Benachrichtigungen pro Tag",
+          "notification_bundling_enabled": "Benachrichtigungen bündeln",
+          "notification_bundle_threshold": "Bündelungsschwelle"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Wie oft die Erinnerung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
+          "notify_overdue_interval_hours": "Wie oft die Überfällig-Erinnerung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
+          "notify_triggered_interval_hours": "Wie oft die Trigger-Benachrichtigung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
+          "quiet_hours_enabled": "Benachrichtigungen während der Ruhezeit unterdrücken.",
+          "max_notifications_per_day": "Maximale Anzahl Benachrichtigungen pro Tag. 0 = unbegrenzt.",
+          "notification_bundling_enabled": "Eine zusammengefasste Benachrichtigung senden, wenn mehrere Aufgaben Aufmerksamkeit erfordern.",
+          "notification_bundle_threshold": "Mindestanzahl an Aufgaben, um eine gebündelte Benachrichtigung auszulösen."
+        }
+      },
+      "notification_actions": {
+        "title": "Interaktive Aktionen",
+        "description": "Aktionsbuttons auf mobilen Benachrichtigungen konfigurieren (erfordert Companion App).",
+        "data": {
+          "action_complete_enabled": "'Erledigt'-Button anzeigen",
+          "action_skip_enabled": "'Überspringen'-Button anzeigen",
+          "action_snooze_enabled": "'Später erinnern'-Button anzeigen",
+          "snooze_duration_hours": "Schlummerdauer (Stunden)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Fügt einen Button hinzu, um die Aufgabe direkt aus der Benachrichtigung als erledigt zu markieren.",
+          "action_skip_enabled": "Fügt einen Button hinzu, um den aktuellen Wartungszyklus aus der Benachrichtigung zu überspringen.",
+          "action_snooze_enabled": "Fügt einen Button hinzu, um die Benachrichtigungserinnerung zu verschieben.",
+          "snooze_duration_hours": "Wie lange die Erinnerung verschoben werden soll, wenn Schlummern gedrückt wird."
+        }
+      },
+      "budget_settings": {
+        "title": "Budgeteinstellungen",
+        "description": "Legen Sie monatliche und jährliche Wartungsbudgets zur Ausgabenverfolgung fest.",
+        "data": {
+          "budget_monthly": "Monatsbudget",
+          "budget_yearly": "Jahresbudget",
+          "budget_alerts_enabled": "Budgetwarnungen aktivieren",
+          "budget_alert_threshold": "Warnschwelle (%)"
+        },
+        "data_description": {
+          "budget_monthly": "Maximale monatliche Wartungsausgaben. 0 zum Deaktivieren.",
+          "budget_yearly": "Maximale jährliche Wartungsausgaben. 0 zum Deaktivieren.",
+          "budget_alerts_enabled": "Benachrichtigung senden, wenn die Ausgaben die Warnschwelle überschreiten.",
+          "budget_alert_threshold": "Prozentsatz des Budgets, bei dem eine Warnung gesendet wird."
+        }
+      },
+      "manage_groups": {
+        "title": "Gruppen verwalten",
+        "description": "Wählen Sie eine Gruppe zum Verwalten oder erstellen Sie eine neue.",
+        "data": {
+          "selected_group": "Gruppe auswählen"
+        }
+      },
+      "add_group": {
+        "title": "Gruppe hinzufügen",
+        "description": "Erstellen Sie eine neue Wartungsgruppe, um zusammengehörige Aufgaben zu organisieren.",
+        "data": {
+          "group_name": "Gruppenname",
+          "group_description": "Beschreibung"
+        },
+        "data_description": {
+          "group_name": "Ein Name für diese Gruppe (z.B. 'Frühjahrswartung').",
+          "group_description": "Optionale Beschreibung für diese Gruppe."
+        }
+      },
+      "manage_tasks": {
+        "title": "Aufgaben verwalten",
+        "description": "Wählen Sie eine Aufgabe zum Bearbeiten oder Entfernen.",
+        "data": {
+          "selected_task": "Aufgabe auswählen"
+        }
+      },
+      "task_action": {
+        "title": "Aufgabenaktionen",
+        "description": "Aufgabe: {task_name} — Wählen Sie eine Aktion.",
+        "menu_options": {
+          "edit_task": "Aufgabe bearbeiten",
+          "edit_checklist": "Checkliste bearbeiten",
+          "adaptive_scheduling": "Adaptive Planung",
+          "delete_task": "Aufgabe löschen",
+          "manage_tasks": "Zurück"
+        }
+      },
+      "edit_task": {
+        "title": "Aufgabe bearbeiten",
+        "data": {
+          "name": "Aufgabenname",
+          "type": "Wartungstyp",
+          "interval_days": "Intervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        }
+      },
+      "edit_checklist": {
+        "title": "Checkliste bearbeiten",
+        "description": "Definieren Sie Checklisten-Schritte für '{task_name}'. Geben Sie einen Schritt pro Zeile ein.",
+        "data": {
+          "checklist_text": "Checklisten-Schritte"
+        },
+        "data_description": {
+          "checklist_text": "Geben Sie jeden Checklisten-Schritt in einer separaten Zeile ein. Diese Schritte werden beim Abschließen der Aufgabe angezeigt."
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptive Planung",
+        "description": "Konfigurieren Sie die intelligente Intervallanpassung für '{task_name}'. Das System lernt aus Ihrem Abschluss-Feedback, um bessere Intervalle vorzuschlagen.",
+        "data": {
+          "adaptive_enabled": "Adaptive Planung aktivieren",
+          "ewa_alpha": "Lernrate (Alpha)",
+          "min_interval_days": "Minimales Intervall (Tage)",
+          "max_interval_days": "Maximales Intervall (Tage)",
+          "seasonal_enabled": "Saisonale Anpassung aktivieren",
+          "sensor_prediction_enabled": "Sensorbasierte Vorhersagen aktivieren",
+          "environmental_entity": "Umgebungssensor (optional)"
+        },
+        "data_description": {
+          "adaptive_enabled": "Wenn aktiviert, lernt das System aus Ihrem Feedback und schlägt optimale Wartungsintervalle vor.",
+          "ewa_alpha": "Wie schnell sich der Algorithmus an neue Daten anpasst. Höher = reaktionsschneller, niedriger = stabiler.",
+          "min_interval_days": "Das kürzeste Intervall, das das System jemals empfehlen wird.",
+          "max_interval_days": "Das längste Intervall, das das System jemals empfehlen wird.",
+          "seasonal_enabled": "Empfehlungen basierend auf saisonalen Mustern aus Ihrer Wartungshistorie anpassen.",
+          "sensor_prediction_enabled": "Sensortrends analysieren, um vorherzusagen, wann Schwellwerte erreicht werden, und bei Bedarf frühere Wartung vorschlagen.",
+          "environmental_entity": "Einen Temperatur-, Feuchtigkeits- oder Drucksensor verknüpfen, um Umgebungsbedingungen mit Wartungsintervallen zu korrelieren."
+        }
+      },
+      "delete_task": {
+        "title": "Aufgabe löschen",
+        "description": "Sind Sie sicher, dass Sie die Aufgabe '{task_name}' löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+        "data": {
+          "confirm": "Löschung bestätigen"
+        }
+      },
+      "add_task": {
+        "title": "Wartungsaufgabe hinzufügen",
+        "data": {
+          "name": "Aufgabenname",
+          "type": "Wartungstyp",
+          "schedule_type": "Planungsart"
+        }
+      },
+      "opt_time_based": {
+        "title": "Zeitbasierter Plan",
+        "data": {
+          "interval_days": "Intervall (Tage)",
+          "last_performed": "Zuletzt durchgeführt",
+          "warning_days": "Warntage vor Fälligkeit"
+        }
+      },
+      "opt_manual": {
+        "title": "Manueller Plan",
+        "data": {
+          "warning_days": "Warntage vor Fälligkeit",
+          "notes": "Notizen"
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Trigger-Sensor auswählen",
+        "data": {
+          "trigger_entity": "Zu überwachende Entität"
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Attribut auswählen",
+        "description": "Wählen Sie, welcher Wert von {entity_id} überwacht werden soll. Aktueller Zustand: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Zu überwachender Wert"
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Trigger-Typ",
+        "data": {
+          "trigger_type": "Trigger-Typ"
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Schwellwert-Konfiguration",
+        "description": "Schwellwerte für **{entity_id}** ({attribute}) festlegen.\nAktuell: **{current_value} {unit}** | Ø: {average} | Bereich: {minimum}–{maximum} ({data_period} Tage)\nVorschlag über: {suggested_above} | Vorschlag unter: {suggested_below}",
+        "data": {
+          "trigger_above": "Auslösen wenn über",
+          "trigger_below": "Auslösen wenn unter",
+          "trigger_for_minutes": "Für mindestens (Minuten)",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Zähler-Konfiguration",
+        "description": "Zählerziel für {entity_id} ({attribute}) festlegen. Aktuell: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Zielwert",
+          "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Zustandswechsel-Konfiguration",
+        "description": "Zustandsübergänge von {entity_id} zählen.",
+        "data": {
+          "trigger_from_state": "Von Zustand (optional)",
+          "trigger_to_state": "Zu Zustand (optional)",
+          "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        }
+      },
+      "object_settings": {
+        "title": "Objekteinstellungen",
+        "data": {
+          "name": "Objektname",
+          "manufacturer": "Hersteller",
+          "model": "Modell"
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Reinigung",
+        "inspection": "Inspektion",
+        "replacement": "Austausch",
+        "calibration": "Kalibrierung",
+        "service": "Service",
+        "custom": "Benutzerdefiniert"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Zeitbasiert",
+        "sensor_based": "Sensorbasiert",
+        "manual": "Manuell"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Schwellwert",
+        "counter": "Zähler",
+        "state_change": "Zustandswechsel"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Bald fällig",
+          "overdue": "Überfällig",
+          "triggered": "Ausgelöst"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Wartungstyp",
+            "state": {
+              "cleaning": "Reinigung",
+              "inspection": "Inspektion",
+              "replacement": "Austausch",
+              "calibration": "Kalibrierung",
+              "service": "Service",
+              "custom": "Benutzerdefiniert"
+            }
+          },
+          "schedule_type": {
+            "name": "Planungsart",
+            "state": {
+              "time_based": "Zeitbasiert",
+              "sensor_based": "Sensorbasiert",
+              "manual": "Manuell"
+            }
+          },
+          "interval_days": { "name": "Intervall (Tage)" },
+          "warning_days": { "name": "Warntage" },
+          "last_performed": { "name": "Zuletzt durchgeführt" },
+          "next_due": { "name": "Nächste Fälligkeit" },
+          "days_until_due": { "name": "Tage bis fällig" },
+          "parent_object": { "name": "Übergeordnetes Objekt" },
+          "times_performed": { "name": "Durchführungen" },
+          "total_cost": { "name": "Gesamtkosten" },
+          "average_duration": { "name": "Durchschn. Dauer (Min.)" },
+          "notes": { "name": "Notizen" },
+          "documentation_url": { "name": "Dokumentations-URL" },
+          "trigger_entity": { "name": "Trigger-Entität" },
+          "trigger_attribute": { "name": "Trigger-Attribut" },
+          "trigger_type": {
+            "name": "Trigger-Typ",
+            "state": {
+              "threshold": "Schwellwert",
+              "counter": "Zähler",
+              "state_change": "Zustandswechsel"
+            }
+          },
+          "trigger_active": { "name": "Trigger aktiv" },
+          "trigger_current_value": { "name": "Aktueller Trigger-Wert" },
+          "trigger_entity_state": {
+            "name": "Trigger-Entität Status",
+            "state": {
+              "available": "Verfügbar",
+              "unavailable": "Nicht verfügbar",
+              "missing": "Fehlend",
+              "startup": "Startphase"
+            }
+          },
+          "trigger_above": { "name": "Trigger oberhalb" },
+          "trigger_below": { "name": "Trigger unterhalb" },
+          "trigger_for_minutes": { "name": "Trigger für (Minuten)" },
+          "trigger_target_value": { "name": "Trigger-Zielwert" },
+          "trigger_delta_mode": { "name": "Trigger-Delta-Modus" },
+          "trigger_baseline_value": { "name": "Trigger-Basiswert" },
+          "trigger_current_delta": { "name": "Aktuelles Trigger-Delta" },
+          "trigger_from_state": { "name": "Trigger von Status" },
+          "trigger_to_state": { "name": "Trigger zu Status" },
+          "trigger_target_changes": { "name": "Trigger-Zieländerungen" },
+          "trigger_change_count": { "name": "Trigger-Änderungszähler" },
+          "last_entry": { "name": "Letzter Eintrag" },
+          "suggested_interval": { "name": "Empfohlenes Intervall" },
+          "interval_confidence": {
+            "name": "Intervall-Konfidenz",
+            "state": {
+              "low": "Niedrig",
+              "medium": "Mittel",
+              "high": "Hoch"
+            }
+          },
+          "adaptive_scheduling_enabled": { "name": "Adaptive Planung aktiviert" },
+          "seasonal_factor": { "name": "Saisonfaktor" },
+          "seasonal_reason": {
+            "name": "Saisonale Quelle",
+            "state": {
+              "learned": "Gelernt",
+              "manual": "Manuell"
+            }
+          },
+          "degradation_rate": { "name": "Degradationsrate" },
+          "degradation_trend": {
+            "name": "Degradationstrend",
+            "state": {
+              "rising": "Steigend",
+              "falling": "Fallend",
+              "stable": "Stabil",
+              "insufficient_data": "Unzureichende Daten"
+            }
+          },
+          "days_until_threshold": { "name": "Tage bis Schwellwert" },
+          "threshold_prediction_confidence": {
+            "name": "Vorhersagekonfidenz",
+            "state": {
+              "low": "Niedrig",
+              "medium": "Mittel",
+              "high": "Hoch"
+            }
+          },
+          "environmental_factor": { "name": "Umgebungsfaktor" },
+          "environmental_entity": { "name": "Umgebungssensor" },
+          "weibull_beta": { "name": "Weibull-Form (β)" },
+          "weibull_eta": { "name": "Weibull-Skala (η)" },
+          "weibull_r_squared": { "name": "Weibull R²" },
+          "weibull_beta_interpretation": {
+            "name": "Ausfallmuster",
+            "state": {
+              "early_failures": "Frühausfälle",
+              "random_failures": "Zufällige Ausfälle",
+              "wear_out": "Verschleiß",
+              "highly_predictable": "Hochvorhersagbar"
+            }
+          },
+          "confidence_interval_low": { "name": "Konfidenzintervall (unten)" },
+          "confidence_interval_high": { "name": "Konfidenzintervall (oben)" }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Wartungsplan"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Wartung abschließen",
+      "description": "Eine Wartungsaufgabe als erledigt markieren.",
+      "fields": {
+        "entity_id": {
+          "name": "Entität",
+          "description": "Die Wartungssensor-Entität, die abgeschlossen werden soll."
+        },
+        "notes": {
+          "name": "Notizen",
+          "description": "Optionale Notizen zur durchgeführten Wartung."
+        },
+        "cost": {
+          "name": "Kosten",
+          "description": "Kosten der durchgeführten Wartung."
+        },
+        "duration": {
+          "name": "Dauer",
+          "description": "Dauer der Wartung in Minuten."
+        }
+      }
+    },
+    "reset": {
+      "name": "Wartung zurücksetzen",
+      "description": "Das Datum der letzten Durchführung einer Wartungsaufgabe zurücksetzen.",
+      "fields": {
+        "entity_id": {
+          "name": "Entität",
+          "description": "Die Wartungssensor-Entität, die zurückgesetzt werden soll."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "Das Datum, das als letzte Durchführung gesetzt werden soll. Standard ist heute."
+        }
+      }
+    },
+    "skip": {
+      "name": "Wartung überspringen",
+      "description": "Den aktuellen Wartungszyklus überspringen.",
+      "fields": {
+        "entity_id": {
+          "name": "Entität",
+          "description": "Die Wartungssensor-Entität, die übersprungen werden soll."
+        },
+        "reason": {
+          "name": "Grund",
+          "description": "Optionaler Grund für das Überspringen der Wartung."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Daten exportieren",
+      "description": "Alle Wartungsdaten als JSON oder YAML exportieren.",
+      "fields": {
+        "format": {
+          "name": "Format",
+          "description": "Ausgabeformat für die exportierten Daten (json oder yaml)."
+        },
+        "include_history": {
+          "name": "Historie einbeziehen",
+          "description": "Ob Aufgabenhistorie-Einträge im Export enthalten sein sollen."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Trigger-Sensor nicht gefunden: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Fehlende Trigger-Entität",
+            "description": "Die Sensorentität `{entity_id}`, die als Trigger für Aufgabe \"{task_name}\" am Objekt \"{object_name}\" konfiguriert ist, ist nicht mehr verfügbar.\n\nWählen Sie, wie dieses Problem gelöst werden soll:",
+            "menu_options": {
+              "replace_entity": "Durch eine andere Entität ersetzen",
+              "remove_trigger": "Sensor-Trigger entfernen",
+              "dismiss": "Ignorieren (erscheint erneut)"
+            }
+          },
+          "replace_entity": {
+            "title": "Trigger-Entität ersetzen",
+            "description": "Wählen Sie eine neue Entität als Ersatz für `{entity_id}` als Trigger für Aufgabe \"{task_name}\" an \"{object_name}\".",
+            "data": {
+              "new_entity_id": "Neue Trigger-Entität"
+            },
+            "data_description": {
+              "new_entity_id": "Wählen Sie die neue Sensorentität als Trigger."
+            }
+          },
+          "remove_trigger": {
+            "title": "Sensor-Trigger entfernen",
+            "description": "Dies entfernt den Sensor-Trigger von Aufgabe \"{task_name}\" an \"{object_name}\" und konvertiert den Zeitplan zu zeitbasiert oder manuell. Die Wartungshistorie bleibt erhalten.\n\nBisherige Trigger-Entität: `{entity_id}`"
+          }
+        }
+      },
+      "description": "Die Sensorentität `{entity_id}`, die als Trigger für Aufgabe \"{task_name}\" am Objekt \"{object_name}\" konfiguriert ist, ist nicht mehr verfügbar. Bitte aktualisieren Sie die Trigger-Konfiguration oder entfernen Sie sie."
+    }
+  }
+}

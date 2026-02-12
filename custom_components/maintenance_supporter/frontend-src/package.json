@@ -1,0 +1,14 @@
+{
+  "name": "maintenance-supporter-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "lit": "^3.2.0",
+    "typescript": "^5.6.0"
+  }
+}

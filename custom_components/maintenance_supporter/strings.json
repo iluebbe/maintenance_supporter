@@ -1,0 +1,756 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Set up your maintenance management system.",
+        "menu_options": {
+          "create_object": "Create Maintenance Object",
+          "create_from_template": "Create from Template",
+          "global_setup": "Global Settings"
+        }
+      },
+      "create_from_template": {
+        "title": "Select Template Category",
+        "description": "Choose a category to browse predefined maintenance templates.",
+        "data": {
+          "template_category": "Category"
+        }
+      },
+      "template_select": {
+        "title": "Select Template",
+        "description": "Choose a maintenance template to use as a starting point.",
+        "data": {
+          "template_id": "Template"
+        }
+      },
+      "template_customize": {
+        "title": "Customize Template",
+        "description": "Customize the '{template_name}' template. It includes {task_count} tasks: {task_list}.",
+        "data": {
+          "name": "Object name",
+          "area_id": "Area",
+          "manufacturer": "Manufacturer",
+          "model": "Model"
+        },
+        "data_description": {
+          "name": "A name for this maintenance object.",
+          "area_id": "The area where this object is located.",
+          "manufacturer": "The manufacturer of the object.",
+          "model": "The model name or number."
+        }
+      },
+      "global_setup": {
+        "title": "Global Settings",
+        "description": "Configure global maintenance settings.",
+        "data": {
+          "default_warning_days": "Default warning days before due",
+          "notifications_enabled": "Enable notifications",
+          "notify_service": "Notification service"
+        },
+        "data_description": {
+          "default_warning_days": "Number of days before a maintenance task is due to show a warning.",
+          "notifications_enabled": "Send notifications when maintenance tasks become due.",
+          "notify_service": "The notification service to use (e.g., notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Create Maintenance Object",
+        "description": "Define a device or asset to manage maintenance for.",
+        "data": {
+          "name": "Object name",
+          "area_id": "Area",
+          "manufacturer": "Manufacturer",
+          "model": "Model",
+          "installation_date": "Installation date"
+        },
+        "data_description": {
+          "name": "A unique name for this maintenance object (e.g., 'Pool Pump', 'Car').",
+          "area_id": "The area in your home where this object is located.",
+          "manufacturer": "The manufacturer of the object.",
+          "model": "The model name or number.",
+          "installation_date": "When this object was installed or purchased."
+        }
+      },
+      "task_menu": {
+        "title": "Maintenance Tasks",
+        "description": "Add maintenance tasks for {object_name}. Currently {task_count} task(s) defined.",
+        "menu_options": {
+          "add_task": "Add Maintenance Task",
+          "finish": "Finish Setup"
+        }
+      },
+      "add_task": {
+        "title": "Add Maintenance Task",
+        "description": "Define a maintenance task for {object_name}.",
+        "data": {
+          "name": "Task name",
+          "type": "Maintenance type",
+          "schedule_type": "Schedule type"
+        },
+        "data_description": {
+          "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
+          "type": "The category of maintenance work.",
+          "schedule_type": "How this task should be scheduled."
+        }
+      },
+      "time_based": {
+        "title": "Time-based Schedule",
+        "description": "Configure the time interval for this maintenance task.",
+        "data": {
+          "interval_days": "Interval (days)",
+          "last_performed": "Last performed",
+          "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "interval_days": "Number of days between maintenance runs.",
+          "last_performed": "When this maintenance was last performed. Leave empty if never done.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
+      "sensor_select": {
+        "title": "Select Trigger Sensor",
+        "description": "Choose a Home Assistant entity to monitor for this maintenance task.",
+        "data": {
+          "trigger_entity": "Entity to monitor"
+        },
+        "data_description": {
+          "trigger_entity": "Select the sensor entity that should trigger this maintenance task."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Select Attribute",
+        "description": "Choose which value to monitor from {entity_id}. Current state: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Value to monitor"
+        },
+        "data_description": {
+          "trigger_attribute": "Select the entity state or a specific attribute to monitor."
+        }
+      },
+      "trigger_type": {
+        "title": "Trigger Type",
+        "description": "How should the sensor value trigger maintenance?",
+        "data": {
+          "trigger_type": "Trigger type"
+        },
+        "data_description": {
+          "trigger_type": "Threshold: triggers when value exceeds limits. Counter: triggers after accumulating a target value. State Change: triggers after a number of state transitions."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Threshold Configuration",
+        "description": "Set threshold values for **{entity_id}** ({attribute}).\nCurrent: **{current_value} {unit}** | Avg: {average} | Range: {minimum}–{maximum} ({data_period}d)\nSuggested above: {suggested_above} | Suggested below: {suggested_below}",
+        "data": {
+          "trigger_above": "Trigger when above",
+          "trigger_below": "Trigger when below",
+          "trigger_for_minutes": "For at least (minutes)",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_above": "Trigger maintenance when value exceeds this threshold.",
+          "trigger_below": "Trigger maintenance when value falls below this threshold.",
+          "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
+          "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
+      "trigger_counter": {
+        "title": "Counter Configuration",
+        "description": "Set counter target for {entity_id} ({attribute}). Current: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Target value",
+          "trigger_delta_mode": "Delta mode (count changes, not absolute)",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
+          "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
+          "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
+      "trigger_state_change": {
+        "title": "State Change Configuration",
+        "description": "Count state transitions of {entity_id}.",
+        "data": {
+          "trigger_from_state": "From state (optional)",
+          "trigger_to_state": "To state (optional)",
+          "trigger_target_changes": "Number of changes to trigger",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
+          "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
+          "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
+          "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
+      "manual": {
+        "title": "Manual Schedule",
+        "description": "This task has no automatic schedule. You can mark it as due manually.",
+        "data": {
+          "warning_days": "Warning days before due",
+          "notes": "Notes"
+        },
+        "data_description": {
+          "warning_days": "Number of days before due date to show a warning.",
+          "notes": "Additional notes or instructions for this task."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "A maintenance object with this name already exists.",
+      "no_tasks": "At least one maintenance task is required.",
+      "invalid_entity": "The selected entity does not exist or has no numeric data.",
+      "invalid_attribute": "The selected attribute is not available on this entity.",
+      "invalid_threshold": "At least one threshold (above or below) must be set.",
+      "invalid_interval": "Interval must be a positive number."
+    },
+    "abort": {
+      "already_configured": "This maintenance object is already configured.",
+      "global_already_exists": "Global settings already configured.",
+      "template_not_found": "The selected template was not found.",
+      "missing_data": "Required data was not provided."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Maintenance Options",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Manage Tasks",
+          "add_task": "Add New Task",
+          "object_settings": "Object Settings"
+        }
+      },
+      "global_init": {
+        "title": "Global Settings",
+        "description": "Configure global maintenance settings.",
+        "menu_options": {
+          "general_settings": "General Settings",
+          "budget_settings": "Budget Settings",
+          "manage_groups": "Manage Groups",
+          "notification_settings": "Notification Settings",
+          "notification_actions": "Interactive Actions",
+          "done": "Done"
+        }
+      },
+      "general_settings": {
+        "title": "General Settings",
+        "description": "Configure basic settings for Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Default warning days before due",
+          "notifications_enabled": "Enable notifications",
+          "notify_service": "Notification service",
+          "panel_enabled": "Show sidebar panel"
+        },
+        "data_description": {
+          "notifications_enabled": "Send notifications when maintenance tasks become due or are overdue.",
+          "notify_service": "The notification service to use (e.g., notify.mobile_app_phone).",
+          "panel_enabled": "Show a Maintenance Supporter panel in the sidebar."
+        }
+      },
+      "notification_settings": {
+        "title": "Notification Settings",
+        "description": "Configure when and how often notifications are sent for each status.",
+        "data": {
+          "notify_due_soon_enabled": "Notify when due soon",
+          "notify_due_soon_interval_hours": "Due soon reminder interval (hours)",
+          "notify_overdue_enabled": "Notify when overdue",
+          "notify_overdue_interval_hours": "Overdue reminder interval (hours)",
+          "notify_triggered_enabled": "Notify when triggered",
+          "notify_triggered_interval_hours": "Triggered reminder interval (hours)",
+          "quiet_hours_enabled": "Enable quiet hours",
+          "quiet_hours_start": "Quiet hours start",
+          "quiet_hours_end": "Quiet hours end",
+          "max_notifications_per_day": "Max notifications per day",
+          "notification_bundling_enabled": "Bundle notifications",
+          "notification_bundle_threshold": "Bundle threshold"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "How often to repeat the due-soon reminder. Set to 0 for a single notification.",
+          "notify_overdue_interval_hours": "How often to repeat the overdue reminder. Set to 0 for a single notification.",
+          "notify_triggered_interval_hours": "How often to repeat the triggered notification. Set to 0 for a single notification.",
+          "quiet_hours_enabled": "Suppress notifications during quiet hours.",
+          "max_notifications_per_day": "Maximum number of notifications per day. Set to 0 for unlimited.",
+          "notification_bundling_enabled": "Send a single summary notification when multiple tasks need attention.",
+          "notification_bundle_threshold": "Minimum number of tasks to trigger a bundled notification."
+        }
+      },
+      "budget_settings": {
+        "title": "Budget Settings",
+        "description": "Set monthly and yearly maintenance budgets to track spending.",
+        "data": {
+          "budget_monthly": "Monthly budget",
+          "budget_yearly": "Yearly budget",
+          "budget_alerts_enabled": "Enable budget alerts",
+          "budget_alert_threshold": "Alert threshold (%)"
+        },
+        "data_description": {
+          "budget_monthly": "Maximum monthly maintenance spending. Set to 0 to disable.",
+          "budget_yearly": "Maximum yearly maintenance spending. Set to 0 to disable.",
+          "budget_alerts_enabled": "Send a notification when spending exceeds the alert threshold.",
+          "budget_alert_threshold": "Percentage of budget at which to send an alert."
+        }
+      },
+      "notification_actions": {
+        "title": "Interactive Actions",
+        "description": "Configure action buttons shown on mobile notifications (requires Companion App).",
+        "data": {
+          "action_complete_enabled": "Show 'Complete' button",
+          "action_skip_enabled": "Show 'Skip' button",
+          "action_snooze_enabled": "Show 'Snooze' button",
+          "snooze_duration_hours": "Snooze duration (hours)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Adds a button to mark the task as completed directly from the notification.",
+          "action_skip_enabled": "Adds a button to skip the current maintenance cycle from the notification.",
+          "action_snooze_enabled": "Adds a button to postpone the notification reminder.",
+          "snooze_duration_hours": "How long to postpone notifications when snooze is pressed."
+        }
+      },
+      "manage_groups": {
+        "title": "Manage Groups",
+        "description": "Select a group to manage or create a new one.",
+        "data": {
+          "selected_group": "Select group"
+        }
+      },
+      "add_group": {
+        "title": "Add Group",
+        "description": "Create a new maintenance group to organize related tasks.",
+        "data": {
+          "group_name": "Group name",
+          "group_description": "Description"
+        },
+        "data_description": {
+          "group_name": "A name for this group (e.g., 'Spring Maintenance').",
+          "group_description": "Optional description for this group."
+        }
+      },
+      "manage_tasks": {
+        "title": "Manage Tasks",
+        "description": "Select a task to edit or remove.",
+        "data": {
+          "selected_task": "Select task"
+        }
+      },
+      "task_action": {
+        "title": "Task Actions",
+        "description": "Task: {task_name} — Choose an action.",
+        "menu_options": {
+          "edit_task": "Edit Task",
+          "edit_checklist": "Edit Checklist",
+          "adaptive_scheduling": "Adaptive Scheduling",
+          "delete_task": "Delete Task",
+          "manage_tasks": "Back"
+        }
+      },
+      "edit_task": {
+        "title": "Edit Task",
+        "data": {
+          "name": "Task name",
+          "type": "Maintenance type",
+          "interval_days": "Interval (days)",
+          "warning_days": "Warning days before due"
+        }
+      },
+      "edit_checklist": {
+        "title": "Edit Checklist",
+        "description": "Define checklist steps for '{task_name}'. Enter one step per line.",
+        "data": {
+          "checklist_text": "Checklist steps"
+        },
+        "data_description": {
+          "checklist_text": "Enter each checklist step on a separate line. These steps will be shown when completing the task."
+        }
+      },
+      "delete_task": {
+        "title": "Delete Task",
+        "description": "Are you sure you want to delete the task '{task_name}'? This cannot be undone.",
+        "data": {
+          "confirm": "Confirm deletion"
+        }
+      },
+      "add_task": {
+        "title": "Add Maintenance Task",
+        "data": {
+          "name": "Task name",
+          "type": "Maintenance type",
+          "schedule_type": "Schedule type"
+        }
+      },
+      "opt_time_based": {
+        "title": "Time-based Schedule",
+        "data": {
+          "interval_days": "Interval (days)",
+          "last_performed": "Last performed",
+          "warning_days": "Warning days before due"
+        }
+      },
+      "opt_manual": {
+        "title": "Manual Schedule",
+        "data": {
+          "warning_days": "Warning days before due",
+          "notes": "Notes"
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Select Trigger Sensor",
+        "data": {
+          "trigger_entity": "Entity to monitor"
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Select Attribute",
+        "description": "Choose which value to monitor from {entity_id}. Current state: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Value to monitor"
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Trigger Type",
+        "data": {
+          "trigger_type": "Trigger type"
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Threshold Configuration",
+        "description": "Set threshold values for **{entity_id}** ({attribute}).\nCurrent: **{current_value} {unit}** | Avg: {average} | Range: {minimum}–{maximum} ({data_period}d)\nSuggested above: {suggested_above} | Suggested below: {suggested_below}",
+        "data": {
+          "trigger_above": "Trigger when above",
+          "trigger_below": "Trigger when below",
+          "trigger_for_minutes": "For at least (minutes)",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Counter Configuration",
+        "description": "Set counter target for {entity_id} ({attribute}). Current: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Target value",
+          "trigger_delta_mode": "Delta mode (count changes, not absolute)",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "State Change Configuration",
+        "description": "Count state transitions of {entity_id}.",
+        "data": {
+          "trigger_from_state": "From state (optional)",
+          "trigger_to_state": "To state (optional)",
+          "trigger_target_changes": "Number of changes to trigger",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptive Scheduling",
+        "description": "Configure smart interval adaptation for '{task_name}'. The system learns from your completion feedback to suggest better intervals.",
+        "data": {
+          "adaptive_enabled": "Enable adaptive scheduling",
+          "ewa_alpha": "Learning rate (alpha)",
+          "min_interval_days": "Minimum interval (days)",
+          "max_interval_days": "Maximum interval (days)",
+          "seasonal_enabled": "Enable seasonal awareness",
+          "sensor_prediction_enabled": "Enable sensor-driven predictions",
+          "environmental_entity": "Environmental sensor (optional)"
+        },
+        "data_description": {
+          "adaptive_enabled": "When enabled, the system will learn from your feedback and suggest optimal maintenance intervals.",
+          "ewa_alpha": "How quickly the algorithm adapts to new data. Higher = more responsive, lower = more stable.",
+          "min_interval_days": "The shortest interval the system will ever recommend.",
+          "max_interval_days": "The longest interval the system will ever recommend.",
+          "seasonal_enabled": "Adjust recommendations based on seasonal patterns learned from your maintenance history.",
+          "sensor_prediction_enabled": "Analyze sensor trends to predict when thresholds will be reached and suggest earlier maintenance if needed.",
+          "environmental_entity": "Link a temperature, humidity or pressure sensor to correlate environmental conditions with maintenance intervals."
+        }
+      },
+      "object_settings": {
+        "title": "Object Settings",
+        "data": {
+          "name": "Object name",
+          "manufacturer": "Manufacturer",
+          "model": "Model"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Due Soon",
+          "overdue": "Overdue",
+          "triggered": "Triggered"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Maintenance type",
+            "state": {
+              "cleaning": "Cleaning",
+              "inspection": "Inspection",
+              "replacement": "Replacement",
+              "calibration": "Calibration",
+              "service": "Service",
+              "custom": "Custom"
+            }
+          },
+          "schedule_type": {
+            "name": "Schedule type",
+            "state": {
+              "time_based": "Time-based",
+              "sensor_based": "Sensor-based",
+              "manual": "Manual"
+            }
+          },
+          "interval_days": { "name": "Interval (days)" },
+          "warning_days": { "name": "Warning days" },
+          "last_performed": { "name": "Last performed" },
+          "next_due": { "name": "Next due" },
+          "days_until_due": { "name": "Days until due" },
+          "parent_object": { "name": "Parent object" },
+          "times_performed": { "name": "Times performed" },
+          "total_cost": { "name": "Total cost" },
+          "average_duration": { "name": "Average duration (min)" },
+          "notes": { "name": "Notes" },
+          "documentation_url": { "name": "Documentation URL" },
+          "trigger_entity": { "name": "Trigger entity" },
+          "trigger_attribute": { "name": "Trigger attribute" },
+          "trigger_type": {
+            "name": "Trigger type",
+            "state": {
+              "threshold": "Threshold",
+              "counter": "Counter",
+              "state_change": "State change"
+            }
+          },
+          "trigger_active": { "name": "Trigger active" },
+          "trigger_current_value": { "name": "Trigger current value" },
+          "trigger_entity_state": {
+            "name": "Trigger entity state",
+            "state": {
+              "available": "Available",
+              "unavailable": "Unavailable",
+              "missing": "Missing",
+              "startup": "Startup"
+            }
+          },
+          "trigger_above": { "name": "Trigger above" },
+          "trigger_below": { "name": "Trigger below" },
+          "trigger_for_minutes": { "name": "Trigger for (minutes)" },
+          "trigger_target_value": { "name": "Trigger target value" },
+          "trigger_delta_mode": { "name": "Trigger delta mode" },
+          "trigger_baseline_value": { "name": "Trigger baseline value" },
+          "trigger_current_delta": { "name": "Trigger current delta" },
+          "trigger_from_state": { "name": "Trigger from state" },
+          "trigger_to_state": { "name": "Trigger to state" },
+          "trigger_target_changes": { "name": "Trigger target changes" },
+          "trigger_change_count": { "name": "Trigger change count" },
+          "last_entry": { "name": "Last entry" },
+          "suggested_interval": { "name": "Suggested interval" },
+          "interval_confidence": {
+            "name": "Interval confidence",
+            "state": {
+              "low": "Low",
+              "medium": "Medium",
+              "high": "High"
+            }
+          },
+          "adaptive_scheduling_enabled": { "name": "Adaptive scheduling enabled" },
+          "seasonal_factor": { "name": "Seasonal factor" },
+          "seasonal_reason": {
+            "name": "Seasonal reason",
+            "state": {
+              "learned": "Learned",
+              "manual": "Manual"
+            }
+          },
+          "degradation_rate": { "name": "Degradation rate" },
+          "degradation_trend": {
+            "name": "Degradation trend",
+            "state": {
+              "rising": "Rising",
+              "falling": "Falling",
+              "stable": "Stable",
+              "insufficient_data": "Insufficient data"
+            }
+          },
+          "days_until_threshold": { "name": "Days until threshold" },
+          "threshold_prediction_confidence": {
+            "name": "Prediction confidence",
+            "state": {
+              "low": "Low",
+              "medium": "Medium",
+              "high": "High"
+            }
+          },
+          "environmental_factor": { "name": "Environmental factor" },
+          "environmental_entity": { "name": "Environmental entity" },
+          "weibull_beta": { "name": "Weibull shape (β)" },
+          "weibull_eta": { "name": "Weibull scale (η)" },
+          "weibull_r_squared": { "name": "Weibull R²" },
+          "weibull_beta_interpretation": {
+            "name": "Failure pattern",
+            "state": {
+              "early_failures": "Early failures",
+              "random_failures": "Random failures",
+              "wear_out": "Wear-out",
+              "highly_predictable": "Highly predictable"
+            }
+          },
+          "confidence_interval_low": { "name": "Confidence interval (low)" },
+          "confidence_interval_high": { "name": "Confidence interval (high)" }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Maintenance Schedule"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Complete Maintenance",
+      "description": "Mark a maintenance task as completed.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "The maintenance sensor entity to complete."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Optional notes about the maintenance performed."
+        },
+        "cost": {
+          "name": "Cost",
+          "description": "Cost of the maintenance performed."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Duration of the maintenance in minutes."
+        }
+      }
+    },
+    "reset": {
+      "name": "Reset Maintenance",
+      "description": "Reset the last performed date of a maintenance task.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "The maintenance sensor entity to reset."
+        },
+        "date": {
+          "name": "Date",
+          "description": "The date to set as last performed. Defaults to today."
+        }
+      }
+    },
+    "skip": {
+      "name": "Skip Maintenance",
+      "description": "Skip the current maintenance cycle.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "The maintenance sensor entity to skip."
+        },
+        "reason": {
+          "name": "Reason",
+          "description": "Optional reason for skipping the maintenance."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Export Data",
+      "description": "Export all maintenance data as JSON or YAML.",
+      "fields": {
+        "format": {
+          "name": "Format",
+          "description": "Output format for the exported data (json or yaml)."
+        },
+        "include_history": {
+          "name": "Include History",
+          "description": "Whether to include task history entries in the export."
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Cleaning",
+        "inspection": "Inspection",
+        "replacement": "Replacement",
+        "calibration": "Calibration",
+        "service": "Service",
+        "custom": "Custom"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Time-based",
+        "sensor_based": "Sensor-based",
+        "manual": "Manual"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Threshold",
+        "counter": "Counter",
+        "state_change": "State Change"
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Trigger sensor not found: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Missing trigger entity",
+            "description": "The sensor entity `{entity_id}` configured as trigger for task \"{task_name}\" on object \"{object_name}\" is no longer available.\n\nChoose how to resolve this issue:",
+            "menu_options": {
+              "replace_entity": "Replace with a different entity",
+              "remove_trigger": "Remove the sensor trigger",
+              "dismiss": "Dismiss (will reappear)"
+            }
+          },
+          "replace_entity": {
+            "title": "Replace trigger entity",
+            "description": "Select a new entity to replace `{entity_id}` as trigger for task \"{task_name}\" on \"{object_name}\".",
+            "data": {
+              "new_entity_id": "New trigger entity"
+            },
+            "data_description": {
+              "new_entity_id": "Select the new sensor entity to use as trigger."
+            }
+          },
+          "remove_trigger": {
+            "title": "Remove sensor trigger",
+            "description": "This will remove the sensor trigger from task \"{task_name}\" on \"{object_name}\" and convert the schedule to time-based or manual. The maintenance history will be preserved.\n\nPrevious trigger entity: `{entity_id}`"
+          }
+        }
+      },
+      "description": "The sensor entity `{entity_id}` configured as trigger for task \"{task_name}\" on object \"{object_name}\" is no longer available. Please update the trigger configuration or remove it."
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "No maintenance coordinator found for entity {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "No maintenance task found for entity {entity_id}."
+    }
+  }
+}

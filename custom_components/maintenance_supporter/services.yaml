@@ -1,0 +1,90 @@
+complete:
+  name: Complete Maintenance
+  description: Mark a maintenance task as completed.
+  fields:
+    entity_id:
+      name: Entity
+      description: The maintenance sensor entity to complete.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+    notes:
+      name: Notes
+      description: Optional notes about the maintenance performed.
+      selector:
+        text:
+    cost:
+      name: Cost
+      description: Cost of the maintenance performed.
+      selector:
+        number:
+          min: 0
+          step: 0.01
+          mode: box
+    duration:
+      name: Duration (minutes)
+      description: Duration of the maintenance in minutes.
+      selector:
+        number:
+          min: 0
+          max: 1440
+          step: 1
+          mode: box
+
+reset:
+  name: Reset Maintenance
+  description: Reset the last performed date of a maintenance task.
+  fields:
+    entity_id:
+      name: Entity
+      description: The maintenance sensor entity to reset.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+    date:
+      name: Date
+      description: The date to set as last performed. Defaults to today.
+      selector:
+        date:
+
+skip:
+  name: Skip Maintenance
+  description: Skip the current maintenance cycle.
+  fields:
+    entity_id:
+      name: Entity
+      description: The maintenance sensor entity to skip.
+      required: true
+      selector:
+        entity:
+          domain: sensor
+          integration: maintenance_supporter
+    reason:
+      name: Reason
+      description: Optional reason for skipping.
+      selector:
+        text:
+
+export_data:
+  name: Export Data
+  description: Export all maintenance data as JSON or YAML.
+  fields:
+    format:
+      name: Format
+      description: Output format for the exported data.
+      default: "json"
+      selector:
+        select:
+          options:
+            - "json"
+            - "yaml"
+    include_history:
+      name: Include History
+      description: Whether to include task history entries in the export.
+      default: true
+      selector:
+        boolean:

@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "default": "mdi:wrench",
+        "state": {
+          "ok": "mdi:check-circle",
+          "due_soon": "mdi:alert-circle",
+          "overdue": "mdi:alert-octagon",
+          "triggered": "mdi:bell-alert"
+        }
+      }
+    }
+  }
+}
