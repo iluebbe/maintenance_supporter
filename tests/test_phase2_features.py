@@ -19,6 +19,8 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_ADVANCED_BUDGET,
+    CONF_ADVANCED_GROUPS,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_MONTHLY,
@@ -522,8 +524,12 @@ class TestBudgetTracking:
         hass: HomeAssistant,
         global_config_entry: MockConfigEntry,
     ) -> None:
-        """Test that budget_settings appears in global options menu."""
+        """Test that budget_settings appears in global options menu when enabled."""
         await setup_integration(hass, global_config_entry)
+        hass.config_entries.async_update_entry(
+            global_config_entry,
+            options={**global_config_entry.options, CONF_ADVANCED_BUDGET: True},
+        )
 
         result = await hass.config_entries.options.async_init(
             global_config_entry.entry_id
@@ -538,6 +544,10 @@ class TestBudgetTracking:
     ) -> None:
         """Test that budget settings form can be submitted."""
         await setup_integration(hass, global_config_entry)
+        hass.config_entries.async_update_entry(
+            global_config_entry,
+            options={**global_config_entry.options, CONF_ADVANCED_BUDGET: True},
+        )
 
         result = await hass.config_entries.options.async_init(
             global_config_entry.entry_id
@@ -736,8 +746,12 @@ class TestMaintenanceGroups:
         hass: HomeAssistant,
         global_config_entry: MockConfigEntry,
     ) -> None:
-        """Test that manage_groups appears in global options menu."""
+        """Test that manage_groups appears in global options menu when enabled."""
         await setup_integration(hass, global_config_entry)
+        hass.config_entries.async_update_entry(
+            global_config_entry,
+            options={**global_config_entry.options, CONF_ADVANCED_GROUPS: True},
+        )
 
         result = await hass.config_entries.options.async_init(
             global_config_entry.entry_id
@@ -752,6 +766,10 @@ class TestMaintenanceGroups:
     ) -> None:
         """Test that manage_groups goes to add_group when no groups exist."""
         await setup_integration(hass, global_config_entry)
+        hass.config_entries.async_update_entry(
+            global_config_entry,
+            options={**global_config_entry.options, CONF_ADVANCED_GROUPS: True},
+        )
 
         result = await hass.config_entries.options.async_init(
             global_config_entry.entry_id
@@ -771,6 +789,10 @@ class TestMaintenanceGroups:
     ) -> None:
         """Test adding a group through the options flow."""
         await setup_integration(hass, global_config_entry)
+        hass.config_entries.async_update_entry(
+            global_config_entry,
+            options={**global_config_entry.options, CONF_ADVANCED_GROUPS: True},
+        )
 
         result = await hass.config_entries.options.async_init(
             global_config_entry.entry_id

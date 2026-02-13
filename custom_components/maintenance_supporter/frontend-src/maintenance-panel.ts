@@ -10,6 +10,7 @@ import type {
   MaintenanceGroup,
   StatisticsResponse,
   BudgetStatus,
+  AdvancedFeatures,
   TaskRow,
   HistoryEntry,
   TriggerEntityInfo,
@@ -54,6 +55,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
+  @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false };
 
   private _statsService: StatisticsService | null = null;
 
@@ -91,16 +93,18 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _loadData(): Promise<void> {
-    const [objResult, statsResult, budgetResult, groupsResult] = await Promise.all([
+    const [objResult, statsResult, budgetResult, groupsResult, settingsResult] = await Promise.all([
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" }),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/budget_status" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/groups" }).catch(() => null),
+      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/settings" }).catch(() => null),
     ]);
     this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
     this._stats = statsResult as StatisticsResponse;
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
+    if (settingsResult) this._features = (settingsResult as { features: AdvancedFeatures }).features;
 
     // Fetch mini-sparkline data for overview (non-blocking)
     this._fetchMiniStatsForOverview();
@@ -134,7 +138,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           const obj = this._getObject(entryId);
           const task = obj?.tasks.find((t) => t.id === taskId);
           if (task) {
-            this._openCompleteDialog(entryId, taskId, task.name, task.checklist, !!task.adaptive_config?.enabled);
+            this._openCompleteDialog(entryId, taskId, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled);
           }
         });
       }
@@ -479,7 +483,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           `
         : nothing}
 
-      ${this._renderBudgetBar()}
+      ${this._features.budget ? this._renderBudgetBar() : nothing}
 
       <div class="filter-bar">
         <select
@@ -514,7 +518,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             </div>
           `}
 
-      ${this._renderGroupsSection()}
+      ${this._features.groups ? this._renderGroupsSection() : nothing}
     `;
   }
 
@@ -847,7 +851,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
 
         <div class="action-buttons" style="margin-bottom: 16px;">
-          <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, task.checklist, !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
+          <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
           <ha-button appearance="plain" @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
           <ha-button appearance="plain" @click=${() => this._resetTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("reset", L)}</ha-button>
           <ha-button appearance="plain" @click=${() => {
@@ -863,8 +867,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="info-grid">
           <div class="info-item"><span class="label">${t("type", L)}</span><span>${t(task.type, L)}</span></div>
           <div class="info-item"><span class="label">${t("schedule", L)}</span><span>${t(task.schedule_type, L)}</span></div>
-          ${task.interval_days ? html`<div class="info-item"><span class="label">${t("interval", L)}</span><span>${task.interval_days} ${t("days", L)}${task.suggested_interval && task.suggested_interval !== task.interval_days ? html`<span class="suggestion-badge"><span class="confidence-dot ${task.interval_confidence || "low"}"></span>${task.suggested_interval}${t("days", L).charAt(0)}${task.interval_analysis?.confidence_interval_low != null && task.interval_analysis?.confidence_interval_high != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""} ${t("recommended", L)}</span>` : nothing}${task.seasonal_factor != null && task.seasonal_factor !== 1.0 ? html`<span class="seasonal-factor-tag ${task.seasonal_factor < 1.0 ? "short" : "long"}">${t("seasonal_factor_short", L)}: ${task.seasonal_factor.toFixed(1)}x</span>` : nothing}</span></div>` : nothing}
-          ${task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
+          ${task.interval_days ? html`<div class="info-item"><span class="label">${t("interval", L)}</span><span>${task.interval_days} ${t("days", L)}${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`<span class="suggestion-badge"><span class="confidence-dot ${task.interval_confidence || "low"}"></span>${task.suggested_interval}${t("days", L).charAt(0)}${task.interval_analysis?.confidence_interval_low != null && task.interval_analysis?.confidence_interval_high != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""} ${t("recommended", L)}</span>` : nothing}${this._features.seasonal && task.seasonal_factor != null && task.seasonal_factor !== 1.0 ? html`<span class="seasonal-factor-tag ${task.seasonal_factor < 1.0 ? "short" : "long"}">${t("seasonal_factor_short", L)}: ${task.seasonal_factor.toFixed(1)}x</span>` : nothing}</span></div>` : nothing}
+          ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
             <div class="info-item suggestion-actions">
               <ha-button appearance="filled" @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, task.suggested_interval!)}>${t("apply_suggestion", L)} (${task.suggested_interval}${t("days", L).charAt(0)})</ha-button>
               <ha-button appearance="plain" @click=${() => this._dismissSuggestion()}>${t("dismiss_suggestion", L)}</ha-button>
@@ -881,13 +885,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
         ${this._renderHistoryChart(task)}
 
-        ${this._renderSeasonalChart(task)}
+        ${this._features.seasonal ? this._renderSeasonalChart(task) : nothing}
 
-        ${this._renderWeibullSection(task)}
+        ${this._features.adaptive ? this._renderWeibullSection(task) : nothing}
 
-        ${this._renderPredictionSection(task)}
+        ${this._features.predictions ? this._renderPredictionSection(task) : nothing}
 
-        ${this._renderTriggerSection(task)}
+        ${this._features.predictions ? this._renderTriggerSection(task) : nothing}
 
         ${task.notes ? html`<h3>${t("notes", L)}</h3><p>${task.notes}</p>` : nothing}
         ${task.documentation_url ? html`<p><a href="${task.documentation_url}" target="_blank" rel="noopener">${t("documentation", L)}</a></p>` : nothing}
@@ -1147,7 +1151,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="weibull-chart">
-        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${t("chart_weibull", L)}">
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${t("chart_weibull", this._lang)}">
           <!-- Grid lines -->
           ${yTicks.map(tick => {
             const y = PAD_T + chartH - tick * chartH;
@@ -1297,7 +1301,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               ${task.threshold_prediction_confidence ? html`<span class="confidence-dot ${task.threshold_prediction_confidence}"></span>` : nothing}
             </div>
           ` : nothing}
-          ${hasEnv ? html`
+          ${hasEnv && this._features.environmental ? html`
             <div class="prediction-item">
               <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
               <span class="prediction-label">${t("environmental_adjustment", L)}</span>

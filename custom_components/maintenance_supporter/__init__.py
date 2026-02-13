@@ -20,7 +20,19 @@ from homeassistant.helpers import (
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_BUDGET,
+    CONF_ADVANCED_CHECKLISTS,
+    CONF_ADVANCED_ENVIRONMENTAL,
+    CONF_ADVANCED_GROUPS,
+    CONF_ADVANCED_PREDICTIONS,
+    CONF_ADVANCED_SEASONAL,
+    CONF_BUDGET_MONTHLY,
+    CONF_BUDGET_YEARLY,
+    CONF_GROUPS,
+    CONF_NOTIFICATIONS_ENABLED,
     CONF_PANEL_ENABLED,
+    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     PLATFORMS,
@@ -248,6 +260,50 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+def _detect_advanced_feature_usage(
+    hass: HomeAssistant, global_options: dict[str, Any]
+) -> dict[str, bool]:
+    """Scan existing entries to detect which advanced features are in use."""
+    adaptive = False
+    predictions = False
+    seasonal = False
+    environmental = False
+    checklists = False
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        tasks = entry.data.get(CONF_TASKS, {})
+        for task_data in tasks.values():
+            ac = task_data.get("adaptive_config") or {}
+            if ac.get("enabled"):
+                adaptive = True
+            if ac.get("sensor_prediction_enabled"):
+                predictions = True
+            if ac.get("seasonal_enabled"):
+                seasonal = True
+            if ac.get("environmental_entity"):
+                environmental = True
+            if task_data.get("checklist"):
+                checklists = True
+
+    budget = (
+        global_options.get(CONF_BUDGET_MONTHLY, 0) > 0
+        or global_options.get(CONF_BUDGET_YEARLY, 0) > 0
+    )
+    groups = bool(global_options.get(CONF_GROUPS, {}))
+
+    return {
+        CONF_ADVANCED_ADAPTIVE: adaptive,
+        CONF_ADVANCED_PREDICTIONS: predictions,
+        CONF_ADVANCED_SEASONAL: seasonal,
+        CONF_ADVANCED_ENVIRONMENTAL: environmental,
+        CONF_ADVANCED_BUDGET: budget,
+        CONF_ADVANCED_GROUPS: groups,
+        CONF_ADVANCED_CHECKLISTS: checklists,
+    }
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry
 ) -> bool:
@@ -257,6 +313,14 @@ async def async_setup_entry(
     if is_global:
         # Global entry: no coordinator needed, just store reference
         entry.runtime_data = MaintenanceSupporterData()
+
+        # One-time migration: auto-enable advanced feature flags for existing users
+        options = dict(entry.options or entry.data)
+        if CONF_ADVANCED_ADAPTIVE not in options:
+            flags = _detect_advanced_feature_usage(hass, options)
+            options.update(flags)
+            hass.config_entries.async_update_entry(entry, options=options)
+            _LOGGER.info("Migrated advanced feature flags: %s", flags)
 
         # Register panel if enabled in options
         if entry.options.get(CONF_PANEL_ENABLED, False):

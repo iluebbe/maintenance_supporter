@@ -21,6 +21,8 @@ from .const import (
     CONF_ADAPTIVE_EWA_ALPHA,
     CONF_ADAPTIVE_MAX_INTERVAL,
     CONF_ADAPTIVE_MIN_INTERVAL,
+    CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_CHECKLISTS,
     CONF_ENVIRONMENTAL_ENTITY,
     CONF_SENSOR_PREDICTION_ENABLED,
     CONF_OBJECT,
@@ -39,6 +41,8 @@ from .const import (
     DEFAULT_ADAPTIVE_MIN_INTERVAL,
     DEFAULT_INTERVAL_DAYS,
     DEFAULT_WARNING_DAYS,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
 )
@@ -162,6 +166,13 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             ),
         )
 
+    def _get_global_options(self) -> dict[str, Any]:
+        """Get global options from the global config entry."""
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            if entry.unique_id == GLOBAL_UNIQUE_ID:
+                return dict(entry.options or entry.data)
+        return {}
+
     async def async_step_task_action(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -170,15 +181,17 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         task = tasks_data.get(self._selected_task_id or "", {})
         task_name = task.get("name", "Unknown")
 
+        global_opts = self._get_global_options()
+        menu = ["edit_task"]
+        if global_opts.get(CONF_ADVANCED_CHECKLISTS, False):
+            menu.append("edit_checklist")
+        if global_opts.get(CONF_ADVANCED_ADAPTIVE, False):
+            menu.append("adaptive_scheduling")
+        menu.extend(["delete_task", "manage_tasks"])
+
         return self.async_show_menu(
             step_id="task_action",
-            menu_options=[
-                "edit_task",
-                "edit_checklist",
-                "adaptive_scheduling",
-                "delete_task",
-                "manage_tasks",
-            ],
+            menu_options=menu,
             description_placeholders={"task_name": task_name},
         )
 

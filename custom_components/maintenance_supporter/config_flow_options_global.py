@@ -18,6 +18,13 @@ from .const import (
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
+    CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_BUDGET,
+    CONF_ADVANCED_CHECKLISTS,
+    CONF_ADVANCED_ENVIRONMENTAL,
+    CONF_ADVANCED_GROUPS,
+    CONF_ADVANCED_PREDICTIONS,
+    CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_MONTHLY,
@@ -68,7 +75,11 @@ class GlobalOptionsFlow(OptionsFlow):
     def _menu_options(self) -> list[str]:
         """Build dynamic menu options."""
         current = self._current
-        options = ["general_settings", "budget_settings", "manage_groups"]
+        options = ["general_settings", "advanced_features"]
+        if current.get(CONF_ADVANCED_BUDGET, False):
+            options.append("budget_settings")
+        if current.get(CONF_ADVANCED_GROUPS, False):
+            options.append("manage_groups")
         if current.get(CONF_NOTIFICATIONS_ENABLED, False):
             options.extend(["notification_settings", "notification_actions"])
         options.append("done")
@@ -104,6 +115,53 @@ class GlobalOptionsFlow(OptionsFlow):
         """Finish and close the options flow."""
         return self.async_create_entry(
             title="", data=self._current
+        )
+
+    # --- Advanced Features ---
+
+    async def async_step_advanced_features(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Toggle visibility of advanced feature sections."""
+        if user_input is not None:
+            return self._save_and_return(user_input)
+
+        current = self._current
+
+        return self.async_show_form(
+            step_id="advanced_features",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_ADVANCED_ADAPTIVE,
+                        default=current.get(CONF_ADVANCED_ADAPTIVE, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_PREDICTIONS,
+                        default=current.get(CONF_ADVANCED_PREDICTIONS, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_SEASONAL,
+                        default=current.get(CONF_ADVANCED_SEASONAL, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_ENVIRONMENTAL,
+                        default=current.get(CONF_ADVANCED_ENVIRONMENTAL, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_BUDGET,
+                        default=current.get(CONF_ADVANCED_BUDGET, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_GROUPS,
+                        default=current.get(CONF_ADVANCED_GROUPS, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_CHECKLISTS,
+                        default=current.get(CONF_ADVANCED_CHECKLISTS, False),
+                    ): selector.BooleanSelector(),
+                }
+            ),
         )
 
     # --- General Settings ---

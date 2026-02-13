@@ -17,6 +17,13 @@ if TYPE_CHECKING:
 
 from .helpers.qr_generator import build_qr_url, generate_qr_svg_data_uri
 from .const import (
+    CONF_ADVANCED_ADAPTIVE,
+    CONF_ADVANCED_BUDGET,
+    CONF_ADVANCED_CHECKLISTS,
+    CONF_ADVANCED_ENVIRONMENTAL,
+    CONF_ADVANCED_GROUPS,
+    CONF_ADVANCED_PREDICTIONS,
+    CONF_ADVANCED_SEASONAL,
     CONF_OBJECT,
     CONF_OBJECT_AREA,
     CONF_OBJECT_INSTALLATION_DATE,
@@ -64,6 +71,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_seasonal_overrides)
     websocket_api.async_register_command(hass, ws_set_environmental_entity)
     websocket_api.async_register_command(hass, ws_generate_qr)
+    websocket_api.async_register_command(hass, ws_get_settings)
 
 
 # ---------------------------------------------------------------------------
@@ -179,6 +187,44 @@ def _build_object_response(hass: HomeAssistant, entry, coordinator_data: dict | 
         },
         "tasks": tasks,
     }
+
+
+# ---------------------------------------------------------------------------
+# Settings
+# ---------------------------------------------------------------------------
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/settings"}
+)
+@websocket_api.async_response
+async def ws_get_settings(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Return global settings including advanced feature flags."""
+    global_entry = _get_global_entry(hass)
+    if global_entry is None:
+        connection.send_result(msg["id"], {"features": {}})
+        return
+
+    options = global_entry.options or global_entry.data
+
+    connection.send_result(
+        msg["id"],
+        {
+            "features": {
+                "adaptive": options.get(CONF_ADVANCED_ADAPTIVE, False),
+                "predictions": options.get(CONF_ADVANCED_PREDICTIONS, False),
+                "seasonal": options.get(CONF_ADVANCED_SEASONAL, False),
+                "environmental": options.get(CONF_ADVANCED_ENVIRONMENTAL, False),
+                "budget": options.get(CONF_ADVANCED_BUDGET, False),
+                "groups": options.get(CONF_ADVANCED_GROUPS, False),
+                "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
+            },
+        },
+    )
 
 
 # ---------------------------------------------------------------------------

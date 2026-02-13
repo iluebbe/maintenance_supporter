@@ -234,11 +234,34 @@
         "description": "Configure global maintenance settings.",
         "menu_options": {
           "general_settings": "General Settings",
+          "advanced_features": "Advanced Features",
           "budget_settings": "Budget Settings",
           "manage_groups": "Manage Groups",
           "notification_settings": "Notification Settings",
           "notification_actions": "Interactive Actions",
           "done": "Done"
+        }
+      },
+      "advanced_features": {
+        "title": "Advanced Features",
+        "description": "Choose which advanced features to show in the UI. Disabling a feature hides it from the interface but does not delete any data.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptive Scheduling",
+          "advanced_predictions_visible": "Sensor Predictions",
+          "advanced_seasonal_visible": "Seasonal Adjustments",
+          "advanced_environmental_visible": "Environmental Correlation",
+          "advanced_budget_visible": "Budget Tracking",
+          "advanced_groups_visible": "Groups",
+          "advanced_checklists_visible": "Checklists"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Show EWA, Weibull analysis, and interval suggestions for tasks.",
+          "advanced_predictions_visible": "Show sensor degradation analysis and threshold prediction charts.",
+          "advanced_seasonal_visible": "Show seasonal factor charts and monthly adjustment data.",
+          "advanced_environmental_visible": "Show environmental correlation (temperature, humidity) adjustments.",
+          "advanced_budget_visible": "Show monthly/yearly budget tracking and alerts.",
+          "advanced_groups_visible": "Show maintenance group management.",
+          "advanced_checklists_visible": "Show task checklists for step-by-step completion."
         }
       },
       "general_settings": {

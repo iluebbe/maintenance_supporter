@@ -173,6 +173,16 @@ export interface BudgetStatus {
   alert_threshold_pct: number;
 }
 
+export interface AdvancedFeatures {
+  adaptive: boolean;
+  predictions: boolean;
+  seasonal: boolean;
+  environmental: boolean;
+  budget: boolean;
+  groups: boolean;
+  checklists: boolean;
+}
+
 /** A single point in a recorder statistics time series. */
 export interface StatisticsPoint {
   ts: number;       // epoch ms

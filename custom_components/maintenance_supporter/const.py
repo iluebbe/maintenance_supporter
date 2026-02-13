@@ -53,6 +53,15 @@ CONF_NOTIFICATIONS_ENABLED = "notifications_enabled"
 CONF_NOTIFY_SERVICE = "notify_service"
 CONF_PANEL_ENABLED = "panel_enabled"
 
+# --- Config Keys: Advanced Feature Visibility ---
+CONF_ADVANCED_ADAPTIVE = "advanced_adaptive_visible"
+CONF_ADVANCED_PREDICTIONS = "advanced_predictions_visible"
+CONF_ADVANCED_SEASONAL = "advanced_seasonal_visible"
+CONF_ADVANCED_ENVIRONMENTAL = "advanced_environmental_visible"
+CONF_ADVANCED_BUDGET = "advanced_budget_visible"
+CONF_ADVANCED_GROUPS = "advanced_groups_visible"
+CONF_ADVANCED_CHECKLISTS = "advanced_checklists_visible"
+
 # --- Config Keys: Notification Per-Status ---
 CONF_NOTIFY_DUE_SOON_ENABLED = "notify_due_soon_enabled"
 CONF_NOTIFY_DUE_SOON_INTERVAL = "notify_due_soon_interval_hours"
