@@ -1030,7 +1030,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!hasAnyAdvanced) {
       return html`
         <div class="tab-content analysis-tab">
-          <p class="empty">${t("no_advanced_features", L)}</p>
+          <div class="analysis-empty-state">
+            <ha-icon icon="mdi:chart-line" class="empty-icon"></ha-icon>
+            <p class="empty">${t("no_advanced_features", L)}</p>
+            <p class="empty-hint">${t("no_advanced_features_hint", L)}</p>
+          </div>
         </div>
       `;
     }
@@ -1047,9 +1051,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!hasAnyData) {
       const isManual = task.schedule_type === "manual";
       const dataPoints = task.interval_analysis?.data_points ?? 0;
+      const pct = Math.min(100, Math.max(0, (dataPoints / 5) * 100));
       return html`
         <div class="tab-content analysis-tab">
           <div class="analysis-empty-state">
+            <ha-icon icon="mdi:chart-line" class="empty-icon"></ha-icon>
             <p class="empty">${t("analysis_not_enough_data", L)}</p>
             <p class="empty-hint">
               ${isManual
@@ -1057,7 +1063,10 @@ export class MaintenanceSupporterPanel extends LitElement {
                 : t("analysis_not_enough_data_hint", L)}
             </p>
             ${!isManual && dataPoints > 0 ? html`
-              <p class="empty-hint">${dataPoints} / 5</p>
+              <div class="analysis-progress">
+                <div class="analysis-progress-bar" style="width:${pct}%"></div>
+              </div>
+              <p class="empty-hint">${dataPoints} / 5 ${t("completions", L)}</p>
             ` : nothing}
           </div>
         </div>
@@ -2199,7 +2208,21 @@ export class MaintenanceSupporterPanel extends LitElement {
       .empty { color: var(--secondary-text-color); font-style: italic; }
       .analysis-empty-state { text-align: center; padding: 24px 16px; }
       .analysis-empty-state .empty { font-size: 15px; margin-bottom: 8px; }
+      .analysis-empty-state .empty-icon {
+        --mdc-icon-size: 48px;
+        color: var(--secondary-text-color);
+        opacity: 0.4;
+        display: block;
+        margin: 0 auto 12px;
+      }
       .empty-hint { color: var(--secondary-text-color); font-size: 13px; margin: 4px 0; }
+      .analysis-progress {
+        width: 120px; margin: 12px auto 4px; height: 6px;
+        background: var(--divider-color, #e0e0e0); border-radius: 3px; overflow: hidden;
+      }
+      .analysis-progress-bar {
+        height: 100%; background: var(--primary-color); border-radius: 3px;
+      }
 
       .info-grid {
         display: grid;
