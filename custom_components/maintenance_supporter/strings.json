@@ -764,8 +764,7 @@
             "description": "This will remove the sensor trigger from task \"{task_name}\" on \"{object_name}\" and convert the schedule to time-based or manual. The maintenance history will be preserved.\n\nPrevious trigger entity: `{entity_id}`"
           }
         }
-      },
-      "description": "The sensor entity `{entity_id}` configured as trigger for task \"{task_name}\" on object \"{object_name}\" is no longer available. Please update the trigger configuration or remove it."
+      }
     }
   },
   "exceptions": {

@@ -764,8 +764,7 @@
             "description": "Dies entfernt den Sensor-Trigger von Aufgabe \"{task_name}\" an \"{object_name}\" und konvertiert den Zeitplan zu zeitbasiert oder manuell. Die Wartungshistorie bleibt erhalten.\n\nBisherige Trigger-Entität: `{entity_id}`"
           }
         }
-      },
-      "description": "Die Sensorentität `{entity_id}`, die als Trigger für Aufgabe \"{task_name}\" am Objekt \"{object_name}\" konfiguriert ist, ist nicht mehr verfügbar. Bitte aktualisieren Sie die Trigger-Konfiguration oder entfernen Sie sie."
+      }
     }
   }
 }
