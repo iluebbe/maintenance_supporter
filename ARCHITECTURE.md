@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.1.0 | **~16,000 lines** across 48 source files | **0 external Python dependencies**
+**Version:** 0.1.0 | **~18,000 lines** across 49 source files | **0 external Python dependencies**
 
 ---
 
@@ -76,15 +76,15 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                 (390 lines)  Integration setup, services, lifecycle
-├── const.py                    (250 lines)  Constants, enums, defaults
-├── coordinator.py              (783 lines)  DataUpdateCoordinator per object
+├── __init__.py                 (454 lines)  Integration setup, services, lifecycle
+├── const.py                    (262 lines)  Constants, enums, defaults
+├── coordinator.py              (786 lines)  DataUpdateCoordinator per object
 │
 ├── config_flow.py              (669 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py       (62 lines)  Shared config flow utilities
 ├── config_flow_options.py       (11 lines)  Options dispatcher
-├── config_flow_options_global.py(445 lines)  Global settings (notifications, budgets, panel)
-├── config_flow_options_task.py (703 lines)  Per-object task management
+├── config_flow_options_global.py(503 lines)  Global settings (notifications, budgets, panel)
+├── config_flow_options_task.py (716 lines)  Per-object task management
 ├── config_flow_trigger.py      (451 lines)  TriggerConfigMixin for trigger UI
 │
 ├── sensor.py                   (314 lines)  MaintenanceSensor (enum, per task)
@@ -98,37 +98,37 @@ custom_components/maintenance_supporter/
 │       ├── counter.py           (95 lines)  Accumulated value trigger
 │       └── state_change.py     (186 lines)  State transition counter
 │
-├── websocket.py              (1,401 lines)  18+ WS commands (CRUD, stats, subscribe)
+├── websocket.py              (1,581 lines)  18+ WS commands (CRUD, stats, subscribe)
 ├── panel.py                     (66 lines)  Sidebar panel registration
 ├── frontend/
 │   ├── __init__.py              (36 lines)  Lovelace card registration
 │   ├── maintenance-panel.js              Built panel (esbuild output)
 │   └── maintenance-card.js               Built card (esbuild output)
-├── frontend-src/             (4,843 lines)  TypeScript sources
-│   ├── maintenance-panel.ts  (1,784 lines)  Panel: overview, object detail, task detail
+├── frontend-src/             (6,723 lines)  TypeScript sources
+│   ├── maintenance-panel.ts  (2,747 lines)  Panel: overview, object detail, task detail
 │   ├── maintenance-card.ts     (262 lines)  Lovelace card
 │   ├── maintenance-card-editor.ts (80 lines)
 │   ├── statistics-service.ts   (132 lines)  WS statistics cache
-│   ├── styles.ts             (1,362 lines)  CSS, i18n, shared helpers
-│   ├── types.ts                (252 lines)  TypeScript interfaces
-│   └── components/           (1,223 lines)
+│   ├── styles.ts             (2,218 lines)  CSS, i18n (6 languages), shared helpers
+│   ├── types.ts                (273 lines)  TypeScript interfaces
+│   └── components/           (1,011 lines)
 │       ├── complete-dialog.ts  (225 lines)  Mark task complete
-│       ├── task-dialog.ts      (383 lines)  Add/edit task
+│       ├── task-dialog.ts      (421 lines)  Add/edit task
 │       ├── object-dialog.ts    (118 lines)  Add/edit object
-│       └── qr-dialog.ts       (245 lines)  QR code generation
+│       └── qr-dialog.ts       (247 lines)  QR code generation
 │
-├── helpers/                  (3,579 lines)
+├── helpers/                  (3,236 lines)
 │   ├── interval_analyzer.py    (732 lines)  EWA + Weibull + seasonal analysis
 │   ├── sensor_predictor.py     (625 lines)  Degradation + environmental correlation
-│   ├── notification_manager.py (539 lines)  Multi-channel notification system
+│   ├── notification_manager.py (618 lines)  Multi-channel notification system
 │   ├── entity_analyzer.py      (202 lines)  Entity discovery + recorder stats
 │   ├── csv_handler.py          (155 lines)  CSV import/export
 │   ├── threshold_calculator.py (131 lines)  Threshold suggestion engine
 │   ├── qr_generator.py          (73 lines)  QR code URL builder + SVG generator
 │   └── qrcodegen.py            (700 lines)  Vendored QR library (Nayuki, MIT)
 │
-├── models/                     (409 lines)
-│   ├── maintenance_task.py     (272 lines)  Task: schedule, triggers, history, status
+├── models/                     (420 lines)
+│   ├── maintenance_task.py     (283 lines)  Task: schedule, triggers, history, status
 │   ├── maintenance_object.py    (52 lines)  Object: name, area, manufacturer, model
 │   └── maintenance_type.py      (85 lines)  Predefined maintenance categories
 │
@@ -141,7 +141,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                           Service definitions
 ├── strings.json                            Localization keys
 ├── icons.json                              State-based icon mappings
-└── translations/{en,de}.json               English + German
+└── translations/{en,de}.json               English + German (backend config flow)
 ```
 
 ---
@@ -243,7 +243,7 @@ Three-layer interval prediction:
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Two bundles:** `maintenance-panel.js` (~112KB) and `maintenance-card.js` (~62KB)
+**Two bundles:** `maintenance-panel.js` (~173KB) and `maintenance-card.js` (~88KB)
 
 ### Panel Views
 1. **Overview**: Statistics dashboard, group list, budget status, sparklines
@@ -345,7 +345,7 @@ All write commands fire events for subscription updates.
 - **New platform**: Add entity module, register in `const.PLATFORMS`
 - **New WS command**: Add handler in `websocket.py`, register in `async_register_commands()`
 - **New template**: Add `ObjectTemplate` to `templates.py`
-- **New language**: Add `translations/{lang}.json`
+- **New language**: Add `translations/{lang}.json` for backend + dictionary in `styles.ts` for frontend (currently: DE, EN, NL, FR, IT, ES)
 
 ---
 
@@ -358,7 +358,7 @@ Three services in `compose.yaml`:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  ha-dev (:8123)         │  ha-fresh (:8124)    │  playwright │
-│  HA 2026.2.1            │  HA 2026.2.1 stock   │  v1.57.0    │
+│  HA 2026.2.2            │  HA 2026.2.2 stock   │  v1.57.0    │
 │  + libfaketime          │  read-only mounts    │  run-server │
 │  custom_components r/w  │  profile: testing    │  :3000      │
 │  config-dev/ volume     │  config-fresh/       │             │
@@ -378,7 +378,7 @@ The integration's scheduling and predictions are time-dependent. `libfaketime` a
 
 **Build** (`Dockerfile.ha-faketime`):
 1. Alpine stage compiles `libfaketime.so.1` from source
-2. Copies into HA 2026.2.1 image at `/usr/local/lib/faketime/`
+2. Copies into HA 2026.2.2 image at `/usr/local/lib/faketime/`
 3. Replaces HA's s6 run script with `ha-run-faketime.sh`
 
 **Run script** (`ha-run-faketime.sh`):
