@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -31,6 +33,39 @@ from custom_components.maintenance_supporter.const import (
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations for all tests."""
     yield
+
+
+@pytest.fixture(autouse=True)
+async def setup_ha_dependencies(hass: HomeAssistant):
+    """Set up HA dependency integrations required by our manifest.
+
+    manifest.json declares: dependencies: ["repairs", "http", "panel_custom", "lovelace"]
+    Without setting these up first, HA raises DependencyError in CI.
+    """
+    await async_setup_component(hass, "http", {"http": {}})
+    await async_setup_component(hass, "lovelace", {})
+    await async_setup_component(hass, "panel_custom", {})
+    await async_setup_component(hass, "repairs", {})
+    await hass.async_block_till_done()
+    yield
+
+
+@pytest.fixture(autouse=True)
+def reset_global_registration_flags():
+    """Reset module-level registration flags between tests.
+
+    panel.py and frontend/__init__.py use global flags (_PANEL_REGISTERED,
+    _CARD_REGISTERED) to prevent duplicate registration.  These persist
+    across tests because the modules stay loaded in the interpreter.
+    """
+    import custom_components.maintenance_supporter.frontend as frontend_mod
+    import custom_components.maintenance_supporter.panel as panel_mod
+
+    panel_mod._PANEL_REGISTERED = False
+    frontend_mod._CARD_REGISTERED = False
+    yield
+    panel_mod._PANEL_REGISTERED = False
+    frontend_mod._CARD_REGISTERED = False
 
 
 # ─── Constants for testing ──────────────────────────────────────────────
