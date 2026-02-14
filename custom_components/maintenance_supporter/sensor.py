@@ -185,6 +185,31 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                     and hasattr(self._trigger, "change_count")
                     else trigger_config.get("trigger_change_count", 0)
                 )
+            elif trigger_config.get("type") == "runtime":
+                attrs["trigger_runtime_hours"] = trigger_config.get(
+                    "trigger_runtime_hours"
+                )
+                if (
+                    self._trigger is not None
+                    and hasattr(self._trigger, "accumulated_hours")
+                ):
+                    attrs["trigger_accumulated_hours"] = round(
+                        self._trigger.current_runtime_hours, 2
+                    )
+                    attrs["trigger_remaining_hours"] = round(
+                        self._trigger.remaining_hours, 2
+                    )
+                else:
+                    acc_sec = trigger_config.get(
+                        "trigger_accumulated_seconds", 0.0
+                    )
+                    target = trigger_config.get("trigger_runtime_hours", 100.0)
+                    attrs["trigger_accumulated_hours"] = round(
+                        acc_sec / 3600.0, 2
+                    )
+                    attrs["trigger_remaining_hours"] = round(
+                        max(0.0, target - acc_sec / 3600.0), 2
+                    )
 
         # Last history entry
         last_entry = task.get("_last_entry")

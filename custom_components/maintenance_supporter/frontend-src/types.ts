@@ -12,7 +12,7 @@ export interface MaintenanceObject {
 export interface TriggerConfig {
   entity_id?: string;
   attribute?: string | null;
-  type?: string; // "threshold" | "counter" | "state_change"
+  type?: string; // "threshold" | "counter" | "state_change" | "runtime"
   trigger_above?: number | null;
   trigger_below?: number | null;
   trigger_for_minutes?: number;
@@ -22,6 +22,7 @@ export interface TriggerConfig {
   trigger_from_state?: string | null;
   trigger_to_state?: string | null;
   trigger_target_changes?: number;
+  trigger_runtime_hours?: number;
 }
 
 export interface TriggerEntityInfo {

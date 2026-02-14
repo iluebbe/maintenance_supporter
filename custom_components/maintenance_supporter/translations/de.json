@@ -190,6 +190,20 @@
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
         }
       },
+      "trigger_runtime": {
+        "title": "Laufzeit-Konfiguration",
+        "description": "Akkumulierte Laufzeit von {entity_id} erfassen. Wartung wird fällig, wenn die Gesamtlaufzeit die Zielstunden erreicht.",
+        "data": {
+          "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Trigger.",
+          "warning_days": "Anzahl Tage vor Fälligkeit für Warnung."
+        }
+      },
       "manual": {
         "title": "Manueller Plan",
         "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
@@ -497,6 +511,15 @@
           "warning_days": "Warntage vor Fälligkeit"
         }
       },
+      "opt_trigger_runtime": {
+        "title": "Laufzeit-Konfiguration",
+        "description": "Akkumulierte Laufzeit von {entity_id} erfassen.",
+        "data": {
+          "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
+          "interval_days": "Sicherheitsintervall (Tage)",
+          "warning_days": "Warntage vor Fälligkeit"
+        }
+      },
       "object_settings": {
         "title": "Objekteinstellungen",
         "data": {
@@ -529,7 +552,8 @@
       "options": {
         "threshold": "Schwellwert",
         "counter": "Zähler",
-        "state_change": "Zustandswechsel"
+        "state_change": "Zustandswechsel",
+        "runtime": "Laufzeit"
       }
     }
   },
@@ -581,7 +605,8 @@
             "state": {
               "threshold": "Schwellwert",
               "counter": "Zähler",
-              "state_change": "Zustandswechsel"
+              "state_change": "Zustandswechsel",
+              "runtime": "Laufzeit"
             }
           },
           "trigger_active": { "name": "Trigger aktiv" },
@@ -606,6 +631,9 @@
           "trigger_to_state": { "name": "Trigger zu Status" },
           "trigger_target_changes": { "name": "Trigger-Zieländerungen" },
           "trigger_change_count": { "name": "Trigger-Änderungszähler" },
+          "trigger_runtime_hours": { "name": "Ziel-Laufzeit (Stunden)" },
+          "trigger_accumulated_hours": { "name": "Akkumulierte Laufzeit (Stunden)" },
+          "trigger_remaining_hours": { "name": "Verbleibende Laufzeit (Stunden)" },
           "last_entry": { "name": "Letzter Eintrag" },
           "suggested_interval": { "name": "Empfohlenes Intervall" },
           "interval_confidence": {

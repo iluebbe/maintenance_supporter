@@ -132,6 +132,7 @@ CONF_TRIGGER_BASELINE_VALUE = "trigger_baseline_value"
 CONF_TRIGGER_FROM_STATE = "trigger_from_state"
 CONF_TRIGGER_TO_STATE = "trigger_to_state"
 CONF_TRIGGER_TARGET_CHANGES = "trigger_target_changes"
+CONF_TRIGGER_RUNTIME_HOURS = "trigger_runtime_hours"
 
 # --- Config Keys: Adaptive Scheduling ---
 CONF_ADAPTIVE_CONFIG = "adaptive_config"
@@ -228,6 +229,7 @@ class TriggerType(StrEnum):
     THRESHOLD = "threshold"
     COUNTER = "counter"
     STATE_CHANGE = "state_change"
+    RUNTIME = "runtime"
 
 
 class HistoryEntryType(StrEnum):

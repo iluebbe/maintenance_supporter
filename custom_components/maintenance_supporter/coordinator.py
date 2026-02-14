@@ -348,6 +348,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # The fallback cannot evaluate them, so we leave _trigger_active as-is
             pass
 
+        elif trigger_type == "runtime":
+            # Runtime triggers are event-driven with a self-timer for periodic
+            # persistence.  The fallback cannot meaningfully evaluate them
+            # (no numeric entity value), so we leave _trigger_active as-is.
+            pass
+
     async def _async_check_for_issues(
         self, tasks: dict[str, MaintenanceTask]
     ) -> None:

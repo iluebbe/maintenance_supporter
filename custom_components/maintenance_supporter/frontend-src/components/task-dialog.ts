@@ -8,7 +8,7 @@ import { UserService } from "../user-service";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "manual"];
-const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change"];
+const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 
 @customElement("maintenance-task-dialog")
 export class MaintenanceTaskDialog extends LitElement {
@@ -39,6 +39,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerFromState = "";
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
+  @state() private _triggerRuntimeHours = "";
 
   // User assignment
   @state() private _responsibleUserId: string | null = null;
@@ -82,6 +83,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerFromState = tc.trigger_from_state || "";
       this._triggerToState = tc.trigger_to_state || "";
       this._triggerTargetChanges = tc.trigger_target_changes?.toString() || "";
+      this._triggerRuntimeHours = tc.trigger_runtime_hours?.toString() || "";
     } else {
       this._resetTriggerFields();
     }
@@ -114,6 +116,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerFromState = "";
     this._triggerToState = "";
     this._triggerTargetChanges = "";
+    this._triggerRuntimeHours = "";
   }
 
   private async _loadUsers(): Promise<void> {
@@ -171,6 +174,8 @@ export class MaintenanceTaskDialog extends LitElement {
           if (this._triggerFromState) triggerConfig.trigger_from_state = this._triggerFromState;
           if (this._triggerToState) triggerConfig.trigger_to_state = this._triggerToState;
           if (this._triggerTargetChanges) triggerConfig.trigger_target_changes = parseInt(this._triggerTargetChanges, 10);
+        } else if (this._triggerType === "runtime") {
+          if (this._triggerRuntimeHours) triggerConfig.trigger_runtime_hours = parseFloat(this._triggerRuntimeHours);
         }
 
         data.trigger_config = triggerConfig;
@@ -287,6 +292,17 @@ export class MaintenanceTaskDialog extends LitElement {
           type="number"
           .value=${this._triggerTargetChanges}
           @input=${(e: Event) => (this._triggerTargetChanges = (e.target as HTMLInputElement).value)}
+        ></ha-textfield>
+      `;
+    }
+    if (this._triggerType === "runtime") {
+      return html`
+        <ha-textfield
+          label="${t("runtime_hours", L)}"
+          type="number"
+          step="1"
+          .value=${this._triggerRuntimeHours}
+          @input=${(e: Event) => (this._triggerRuntimeHours = (e.target as HTMLInputElement).value)}
         ></ha-textfield>
       `;
     }

@@ -715,6 +715,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (val == null) return nothing;
       pct = Math.min(100, Math.max(0, (val / target) * 100));
       label = `${Math.round(val)} / ${target}`;
+    } else if (triggerType === "runtime") {
+      const target = tc.trigger_runtime_hours || 100;
+      const val = row.trigger_current_value ?? null;
+      if (val == null) return nothing;
+      pct = Math.min(100, Math.max(0, (val / target) * 100));
+      label = `${val.toFixed(1)}h / ${target}h`;
     } else {
       return nothing;
     }
@@ -1786,6 +1792,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           ` : nothing}
           ${triggerType === "state_change" ? html`
             ${tc.trigger_target_changes != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("target_changes", L)}: ${tc.trigger_target_changes}</span>` : nothing}
+          ` : nothing}
+          ${triggerType === "runtime" ? html`
+            ${tc.trigger_runtime_hours != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("runtime_hours", L)}: ${tc.trigger_runtime_hours}h</span>` : nothing}
           ` : nothing}
           ${info?.min != null ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("min", L)}: ${info.min} ${unit}</span>` : nothing}
           ${info?.max != null ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("max", L)}: ${info.max} ${unit}</span>` : nothing}

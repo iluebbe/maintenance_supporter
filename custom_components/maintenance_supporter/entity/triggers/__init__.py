@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from ...const import TriggerType
 from .base_trigger import BaseTrigger
 from .counter import CounterTrigger
+from .runtime import RuntimeTrigger
 from .state_change import StateChangeTrigger
 from .threshold import ThresholdTrigger
 
@@ -28,6 +29,8 @@ def create_trigger(
         return CounterTrigger(hass, entity, trigger_config)
     if trigger_type == TriggerType.STATE_CHANGE:
         return StateChangeTrigger(hass, entity, trigger_config)
+    if trigger_type == TriggerType.RUNTIME:
+        return RuntimeTrigger(hass, entity, trigger_config)
 
     raise ValueError(f"Unknown trigger type: {trigger_type}")
 
@@ -35,6 +38,7 @@ def create_trigger(
 __all__ = [
     "BaseTrigger",
     "CounterTrigger",
+    "RuntimeTrigger",
     "StateChangeTrigger",
     "ThresholdTrigger",
     "create_trigger",

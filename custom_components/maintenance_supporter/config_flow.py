@@ -510,6 +510,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             threshold_step=self.async_step_trigger_threshold,
             counter_step=self.async_step_trigger_counter,
             state_change_step=self.async_step_trigger_state_change,
+            runtime_step=self.async_step_trigger_runtime,
         )
 
     async def async_step_trigger_threshold(
@@ -539,6 +540,16 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         return await self._trigger_state_change_config(
             user_input,
             step_id="trigger_state_change",
+            on_complete=self._save_task_and_return,
+        )
+
+    async def async_step_trigger_runtime(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure runtime trigger."""
+        return await self._trigger_runtime_config(
+            user_input,
+            step_id="trigger_runtime",
             on_complete=self._save_task_and_return,
         )
 

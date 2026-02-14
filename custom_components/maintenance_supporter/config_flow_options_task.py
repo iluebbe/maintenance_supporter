@@ -512,6 +512,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             threshold_step=self.async_step_opt_trigger_threshold,
             counter_step=self.async_step_opt_trigger_counter,
             state_change_step=self.async_step_opt_trigger_state_change,
+            runtime_step=self.async_step_opt_trigger_runtime,
         )
 
     async def async_step_opt_trigger_threshold(
@@ -541,6 +542,16 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         return await self._trigger_state_change_config(
             user_input,
             step_id="opt_trigger_state_change",
+            on_complete=self._save_new_task,
+        )
+
+    async def async_step_opt_trigger_runtime(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure runtime trigger."""
+        return await self._trigger_runtime_config(
+            user_input,
+            step_id="opt_trigger_runtime",
             on_complete=self._save_new_task,
         )
 

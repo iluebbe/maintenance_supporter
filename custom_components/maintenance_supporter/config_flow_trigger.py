@@ -38,6 +38,7 @@ from .const import (
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_FOR_MINUTES,
     CONF_TRIGGER_FROM_STATE,
+    CONF_TRIGGER_RUNTIME_HOURS,
     CONF_TRIGGER_TARGET_CHANGES,
     CONF_TRIGGER_TARGET_VALUE,
     CONF_TRIGGER_TO_STATE,
@@ -78,7 +79,7 @@ class TriggerConfigMixin:
                 {
                     vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(
-                            domain=["sensor", "binary_sensor", "number", "input_number"],
+                            domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
                         )
                     ),
                 }
@@ -143,7 +144,7 @@ class TriggerConfigMixin:
                     {
                         vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
                             selector.EntitySelectorConfig(
-                                domain=["sensor", "binary_sensor", "number", "input_number"],
+                                domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
                             )
                         ),
                     }
@@ -183,6 +184,7 @@ class TriggerConfigMixin:
         threshold_step: Callable[[], Awaitable[ConfigFlowResult]],
         counter_step: Callable[[], Awaitable[ConfigFlowResult]],
         state_change_step: Callable[[], Awaitable[ConfigFlowResult]],
+        runtime_step: Callable[[], Awaitable[ConfigFlowResult]],
     ) -> ConfigFlowResult:
         """Core logic for trigger type selection."""
         if user_input is not None:
@@ -193,6 +195,8 @@ class TriggerConfigMixin:
                 return await threshold_step()
             if trigger_type == TriggerType.COUNTER:
                 return await counter_step()
+            if trigger_type == TriggerType.RUNTIME:
+                return await runtime_step()
             return await state_change_step()
 
         trigger_options = [t.value for t in TriggerType]
@@ -426,6 +430,63 @@ class TriggerConfigMixin:
                             max=10000,
                             step=1,
                             mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1,
+                            max=3650,
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                }
+            ),
+            description_placeholders={
+                "entity_id": self._trigger_entity_id or "",
+            },
+        )
+
+    async def _trigger_runtime_config(
+        self,
+        user_input: dict[str, Any] | None,
+        *,
+        step_id: str,
+        on_complete: Callable[[], ConfigFlowResult],
+    ) -> ConfigFlowResult:
+        """Core logic for runtime trigger configuration."""
+        if user_input is not None:
+            tc = self._current_task["trigger_config"]
+            tc[CONF_TRIGGER_RUNTIME_HOURS] = user_input[CONF_TRIGGER_RUNTIME_HOURS]
+
+            self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.SENSOR_BASED
+            interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
+            if interval and interval > 0:
+                self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
+            self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
+                CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+            )
+
+            return on_complete()
+
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_TRIGGER_RUNTIME_HOURS): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            mode=selector.NumberSelectorMode.BOX,
+                            step=1,
+                            min=1,
+                            max=100000,
+                            unit_of_measurement="h",
                         )
                     ),
                     vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(

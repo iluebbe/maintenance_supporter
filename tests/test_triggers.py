@@ -1,4 +1,4 @@
-"""Tests for trigger behavior (threshold, counter, state_change)."""
+"""Tests for trigger behavior (threshold, counter, state_change, runtime)."""
 
 from __future__ import annotations
 
@@ -24,6 +24,9 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.entity.triggers import create_trigger
 from custom_components.maintenance_supporter.entity.triggers.counter import (
     CounterTrigger,
+)
+from custom_components.maintenance_supporter.entity.triggers.runtime import (
+    RuntimeTrigger,
 )
 from custom_components.maintenance_supporter.entity.triggers.state_change import (
     StateChangeTrigger,
@@ -435,7 +438,264 @@ class TestStateChangeTrigger:
         await trigger.async_teardown()
 
 
-# ─── 7.4 Trigger Factory ────────────────────────────────────────────────
+# ─── 7.4 Runtime Trigger ───────────────────────────────────────────────
+
+
+class TestRuntimeTrigger:
+    """Tests for RuntimeTrigger."""
+
+    async def test_evaluate_threshold(self, hass: HomeAssistant) -> None:
+        """Test basic evaluate logic."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.machine",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 10.0,
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+
+        assert trigger.evaluate(0.0) is False
+        assert trigger.evaluate(9.9) is False
+        assert trigger.evaluate(10.0) is True
+        assert trigger.evaluate(100.0) is True
+
+    async def test_accumulation_on_off(self, hass: HomeAssistant) -> None:
+        """Test runtime accumulates when entity transitions ON→OFF."""
+        set_sensor_state(hass, "input_boolean.washer", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.washer",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100.0,
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        await trigger.async_setup()
+
+        # Initially OFF → no runtime
+        assert trigger.accumulated_hours == 0.0
+        assert trigger._on_since_dt is None
+
+        # Turn ON
+        t_on = dt_util.utcnow()
+        with patch(
+            "custom_components.maintenance_supporter.entity.triggers.runtime.dt_util.utcnow",
+            return_value=t_on,
+        ):
+            hass.states.async_set("input_boolean.washer", "on")
+            await hass.async_block_till_done()
+
+        assert trigger._on_since_dt is not None
+
+        # Turn OFF 2 hours later
+        t_off = t_on + timedelta(hours=2)
+        with patch(
+            "custom_components.maintenance_supporter.entity.triggers.runtime.dt_util.utcnow",
+            return_value=t_off,
+        ):
+            hass.states.async_set("input_boolean.washer", "off")
+            await hass.async_block_till_done()
+
+        assert trigger._on_since_dt is None
+        assert 1.99 < trigger.accumulated_hours < 2.01
+
+        # Persistence was called
+        coord = entity.coordinator
+        assert coord.async_persist_trigger_runtime.call_count >= 2
+
+        await trigger.async_teardown()
+
+    async def test_trigger_fires_at_threshold(self, hass: HomeAssistant) -> None:
+        """Test trigger activates when accumulated hours reach threshold."""
+        set_sensor_state(hass, "input_boolean.pump", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.pump",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 1.0,
+            "trigger_accumulated_seconds": 3500.0,  # ~0.97 hours
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        await trigger.async_setup()
+
+        # Not triggered yet (0.97h < 1.0h)
+        assert trigger._triggered is False
+
+        # Turn ON
+        t_on = dt_util.utcnow()
+        with patch(
+            "custom_components.maintenance_supporter.entity.triggers.runtime.dt_util.utcnow",
+            return_value=t_on,
+        ):
+            hass.states.async_set("input_boolean.pump", "on")
+            await hass.async_block_till_done()
+
+        # Turn OFF 5 minutes later (accumulated ~1.05h total)
+        t_off = t_on + timedelta(minutes=5)
+        with patch(
+            "custom_components.maintenance_supporter.entity.triggers.runtime.dt_util.utcnow",
+            return_value=t_off,
+        ):
+            hass.states.async_set("input_boolean.pump", "off")
+            await hass.async_block_till_done()
+
+        # Should now be triggered
+        assert trigger._triggered is True
+        entity.async_update_trigger_state.assert_called_with(
+            is_triggered=True, current_value=pytest.approx(1.0139, abs=0.01)
+        )
+
+        await trigger.async_teardown()
+
+    async def test_reset_clears_accumulation(self, hass: HomeAssistant) -> None:
+        """Test reset clears accumulated hours."""
+        set_sensor_state(hass, "input_boolean.heater", "on")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.heater",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100.0,
+            "trigger_accumulated_seconds": 7200.0,  # 2 hours
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        await trigger.async_setup()
+
+        assert trigger.accumulated_hours == 2.0
+
+        # Reset
+        trigger.reset()
+        await hass.async_block_till_done()
+
+        assert trigger.accumulated_hours == 0.0
+        # Should still be tracking since entity is ON
+        assert trigger._on_since_dt is not None
+
+        await trigger.async_teardown()
+
+    async def test_unavailable_pauses_accumulation(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test runtime pauses when entity becomes unavailable."""
+        set_sensor_state(hass, "switch.pump", "on")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "switch.pump",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 50.0,
+        }
+
+        t0 = dt_util.utcnow()
+        with patch(
+            "custom_components.maintenance_supporter.entity.triggers.runtime.dt_util.utcnow",
+            return_value=t0,
+        ):
+            trigger = RuntimeTrigger(hass, entity, config)
+            await trigger.async_setup()
+
+        # Entity is ON, tracking started
+        assert trigger._on_since_dt is not None
+
+        # 1 hour later, becomes unavailable
+        t1 = t0 + timedelta(hours=1)
+        with patch(
+            "custom_components.maintenance_supporter.entity.triggers.runtime.dt_util.utcnow",
+            return_value=t1,
+        ):
+            hass.states.async_set("switch.pump", "unavailable")
+            await hass.async_block_till_done()
+
+        # Runtime persisted at ~1 hour, tracking stopped
+        assert 0.99 < trigger.accumulated_hours < 1.01
+        assert trigger._on_since_dt is None
+
+        # Comes back as OFF
+        hass.states.async_set("switch.pump", "off")
+        await hass.async_block_till_done()
+        assert 0.99 < trigger.accumulated_hours < 1.01
+
+        await trigger.async_teardown()
+
+    async def test_restart_recovery(self, hass: HomeAssistant) -> None:
+        """Test accumulated runtime is restored from config after HA restart."""
+        on_since_time = dt_util.utcnow() - timedelta(hours=1)
+        set_sensor_state(hass, "switch.heater", "on")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "switch.heater",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100.0,
+            "trigger_accumulated_seconds": 3600.0,  # 1 hour before restart
+            "trigger_on_since": on_since_time.isoformat(),
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        await trigger.async_setup()
+
+        # Should restore accumulated hours
+        assert trigger.accumulated_hours == 1.0
+        # Should restore on_since (entity is still ON)
+        assert trigger._on_since_dt is not None
+
+        # Current runtime includes ongoing session
+        current = trigger.current_runtime_hours
+        assert current >= 1.0
+
+        await trigger.async_teardown()
+
+    async def test_properties(self, hass: HomeAssistant) -> None:
+        """Test accumulated_hours, current_runtime_hours, remaining_hours."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.test",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100.0,
+            "trigger_accumulated_seconds": 36000.0,  # 10 hours
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+
+        assert trigger.accumulated_hours == 10.0
+        assert trigger.remaining_hours == 90.0
+
+    async def test_is_on_states(self, hass: HomeAssistant) -> None:
+        """Test _is_on recognizes various on-states."""
+        assert RuntimeTrigger._is_on("on") is True
+        assert RuntimeTrigger._is_on("On") is True
+        assert RuntimeTrigger._is_on("ON") is True
+        assert RuntimeTrigger._is_on("true") is True
+        assert RuntimeTrigger._is_on("True") is True
+        assert RuntimeTrigger._is_on("1") is True
+        assert RuntimeTrigger._is_on("off") is False
+        assert RuntimeTrigger._is_on("false") is False
+        assert RuntimeTrigger._is_on("0") is False
+        assert RuntimeTrigger._is_on("unavailable") is False
+
+    async def test_setup_and_teardown(self, hass: HomeAssistant) -> None:
+        """Test trigger setup registers listener and teardown removes it."""
+        set_sensor_state(hass, "input_boolean.test_setup", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.test_setup",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100.0,
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+
+        await trigger.async_setup()
+        assert trigger._unsub_listener is not None
+        assert trigger._unsub_periodic is not None
+
+        await trigger.async_teardown()
+        assert trigger._unsub_listener is None
+        assert trigger._unsub_periodic is None
+
+
+# ─── 7.5 Trigger Factory ────────────────────────────────────────────────
 
 
 class TestTriggerFactory:
@@ -473,6 +733,17 @@ class TestTriggerFactory:
         }
         trigger = create_trigger(hass, entity, config)
         assert isinstance(trigger, StateChangeTrigger)
+
+    def test_creates_runtime(self, hass: HomeAssistant) -> None:
+        """Test factory creates RuntimeTrigger."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.machine",
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 500,
+        }
+        trigger = create_trigger(hass, entity, config)
+        assert isinstance(trigger, RuntimeTrigger)
 
     def test_unknown_type_raises(self, hass: HomeAssistant) -> None:
         """Test factory raises on unknown type."""

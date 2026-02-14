@@ -190,6 +190,20 @@
           "warning_days": "Number of days before due date to show a warning."
         }
       },
+      "trigger_runtime": {
+        "title": "Runtime Configuration",
+        "description": "Track accumulated runtime of {entity_id}. Maintenance triggers when total on-time reaches the target hours.",
+        "data": {
+          "trigger_runtime_hours": "Target runtime (hours)",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
+          "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
       "manual": {
         "title": "Manual Schedule",
         "description": "This task has no automatic schedule. You can mark it as due manually.",
@@ -475,6 +489,15 @@
           "warning_days": "Warning days before due"
         }
       },
+      "opt_trigger_runtime": {
+        "title": "Runtime Configuration",
+        "description": "Track accumulated runtime of {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Target runtime (hours)",
+          "interval_days": "Safety interval (days)",
+          "warning_days": "Warning days before due"
+        }
+      },
       "adaptive_scheduling": {
         "title": "Adaptive Scheduling",
         "description": "Configure smart interval adaptation for {task_name}. The system learns from your completion feedback to suggest better intervals.",
@@ -555,7 +578,8 @@
             "state": {
               "threshold": "Threshold",
               "counter": "Counter",
-              "state_change": "State change"
+              "state_change": "State change",
+              "runtime": "Runtime"
             }
           },
           "trigger_active": { "name": "Trigger active" },
@@ -580,6 +604,9 @@
           "trigger_to_state": { "name": "Trigger to state" },
           "trigger_target_changes": { "name": "Trigger target changes" },
           "trigger_change_count": { "name": "Trigger change count" },
+          "trigger_runtime_hours": { "name": "Target runtime (hours)" },
+          "trigger_accumulated_hours": { "name": "Accumulated runtime (hours)" },
+          "trigger_remaining_hours": { "name": "Remaining runtime (hours)" },
           "last_entry": { "name": "Last entry" },
           "suggested_interval": { "name": "Suggested interval" },
           "interval_confidence": {
@@ -731,7 +758,8 @@
       "options": {
         "threshold": "Threshold",
         "counter": "Counter",
-        "state_change": "State Change"
+        "state_change": "State Change",
+        "runtime": "Runtime"
       }
     }
   },
