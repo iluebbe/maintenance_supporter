@@ -43,14 +43,14 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 
 ### Data Management
 - Export/import via JSON, YAML, CSV
-- QR code generation for mobile quick-actions
+- QR code generation for mobile quick-actions (print, download SVG)
 - Complete maintenance history with cost and duration tracking
 
 ### Frontend
-- **Sidebar panel** with objects overview, task details, history, and statistics
+- **Sidebar panel** with dashboard overview, object details, task history, and analytics
 - **Lovelace card** for dashboard integration
 - **Calendar** integration with status-emoji events
-- Bilingual UI: English and German
+- Localized UI: English, German, Dutch, French, Italian, Spanish
 
 ## Installation
 
