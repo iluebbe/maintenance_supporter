@@ -541,10 +541,10 @@ class TestRuntimeTrigger:
             hass.states.async_set("input_boolean.pump", "off")
             await hass.async_block_till_done()
 
-        # Should now be triggered
+        # Should now be triggered (3500 + 300 = 3800 seconds = 1.0556 hours)
         assert trigger._triggered is True
         entity.async_update_trigger_state.assert_called_with(
-            is_triggered=True, current_value=pytest.approx(1.0139, abs=0.01)
+            is_triggered=True, current_value=pytest.approx(1.0556, abs=0.01)
         )
 
         await trigger.async_teardown()
