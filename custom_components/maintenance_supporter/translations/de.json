@@ -26,7 +26,7 @@
       },
       "template_customize": {
         "title": "Vorlage anpassen",
-        "description": "Passen Sie die Vorlage '{template_name}' an. Sie enthält {task_count} Aufgaben: {task_list}.",
+        "description": "Passen Sie die Vorlage {template_name} an. Sie enthält {task_count} Aufgaben: {task_list}.",
         "data": {
           "name": "Objektname",
           "area_id": "Bereich",

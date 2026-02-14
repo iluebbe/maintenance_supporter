@@ -5,6 +5,7 @@
   "codeowners": ["@iluebbe"],
   "config_flow": true,
   "dependencies": ["repairs", "http", "panel_custom", "lovelace"],
+  "after_dependencies": ["recorder"],
   "documentation": "https://github.com/iluebbe/maintenance_supporter",
   "issue_tracker": "https://github.com/iluebbe/maintenance_supporter/issues",
   "integration_type": "hub",

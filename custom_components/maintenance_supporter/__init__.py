@@ -49,6 +49,7 @@ from .websocket import async_register_commands
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 NOTIFICATION_MANAGER_KEY = "_notification_manager"
 
 
