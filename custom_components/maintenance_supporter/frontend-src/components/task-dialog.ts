@@ -2,8 +2,9 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { HomeAssistant, MaintenanceTask, TriggerConfig } from "../types";
+import type { HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
 import { t } from "../styles";
+import { UserService } from "../user-service";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "manual"];
@@ -39,18 +40,24 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
 
+  // User assignment
+  @state() private _responsibleUserId: string | null = null;
+  @state() private _availableUsers: HAUser[] = [];
+  private _userService: UserService | null = null;
+
   private get _lang(): string {
     return this.hass?.language ?? navigator.language.split("-")[0] ?? "en";
   }
 
-  public openCreate(entryId: string): void {
+  public async openCreate(entryId: string): Promise<void> {
     this._entryId = entryId;
     this._taskId = null;
     this._resetFields();
+    await this._loadUsers();
     this._open = true;
   }
 
-  public openEdit(entryId: string, task: MaintenanceTask): void {
+  public async openEdit(entryId: string, task: MaintenanceTask): Promise<void> {
     this._entryId = entryId;
     this._taskId = task.id;
     this._name = task.name;
@@ -60,6 +67,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._warningDays = task.warning_days.toString();
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
+    this._responsibleUserId = task.responsible_user_id || null;
 
     if (task.trigger_config) {
       const tc = task.trigger_config;
@@ -78,6 +86,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._resetTriggerFields();
     }
 
+    await this._loadUsers();
     this._open = true;
   }
 
@@ -89,6 +98,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._warningDays = "7";
     this._notes = "";
     this._documentationUrl = "";
+    this._responsibleUserId = null;
     this._resetTriggerFields();
   }
 
@@ -104,6 +114,18 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerFromState = "";
     this._triggerToState = "";
     this._triggerTargetChanges = "";
+  }
+
+  private async _loadUsers(): Promise<void> {
+    if (!this._userService) {
+      this._userService = new UserService(this.hass);
+    }
+    try {
+      this._availableUsers = await this._userService.getUsers();
+    } catch (error) {
+      console.error("Failed to load users:", error);
+      this._availableUsers = [];
+    }
   }
 
   private async _save(): Promise<void> {
@@ -129,6 +151,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
       if (this._notes) data.notes = this._notes;
       if (this._documentationUrl) data.documentation_url = this._documentationUrl;
+      if (this._responsibleUserId) data.responsible_user_id = this._responsibleUserId;
 
       if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
         const triggerConfig: TriggerConfig = {
@@ -321,6 +344,21 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
+          <div class="select-row">
+            <label>${t("responsible_user", L)}</label>
+            <select
+              .value=${this._responsibleUserId || ""}
+              @change=${(e: Event) => {
+                const val = (e.target as HTMLSelectElement).value;
+                this._responsibleUserId = val || null;
+              }}
+            >
+              <option value="">${t("no_user_assigned", L)}</option>
+              ${this._availableUsers.map(
+                (user) => html`<option value=${user.id}>${user.name}</option>`
+              )}
+            </select>
+          </div>
           ${this._renderTriggerFields()}
           <ha-textfield
             label="${t("notes_optional", L)}"

@@ -17,10 +17,10 @@ _LOGGER = logging.getLogger(__name__)
 _PANEL_REGISTERED = False
 
 
-def _file_hash(path: Path) -> str:
+async def _async_file_hash(hass: HomeAssistant, path: Path) -> str:
     """Return a short hash of a file for cache busting."""
     try:
-        content = path.read_bytes()
+        content = await hass.async_add_executor_job(path.read_bytes)
         return hashlib.md5(content).hexdigest()[:8]  # noqa: S324
     except OSError:
         return "0"
@@ -33,7 +33,7 @@ async def async_register_panel(hass: HomeAssistant) -> None:
         return
 
     panel_path = Path(__file__).parent / "frontend" / "maintenance-panel.js"
-    version = _file_hash(panel_path)
+    version = await _async_file_hash(hass, panel_path)
     versioned_url = f"{PANEL_URL}_{version}"
 
     await hass.http.async_register_static_paths(

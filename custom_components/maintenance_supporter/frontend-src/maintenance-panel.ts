@@ -16,10 +16,14 @@ import type {
   TriggerEntityInfo,
   TriggerConfig,
   StatisticsPoint,
+  HAUser,
 } from "./types";
 import { StatisticsService } from "./statistics-service";
-import { MaintenanceObjectDialog } from "./components/object-dialog";
-import { MaintenanceTaskDialog } from "./components/task-dialog";
+import { UserService } from "./user-service";
+import "./components/object-dialog";
+import type { MaintenanceObjectDialog } from "./components/object-dialog";
+import "./components/task-dialog";
+import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import { MaintenanceCompleteDialog } from "./components/complete-dialog";
 import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
@@ -32,7 +36,7 @@ const MINI_SPARKLINE_H = 20;
 const DETAIL_SPARKLINE_W = 300;
 const DETAIL_SPARKLINE_H = 140;
 const COST_CHART_W = 300;
-const COST_CHART_H = 120;
+const COST_CHART_H = 200; // Increased from 120px for better readability
 const MAX_MINI_POINTS = 30;
 const MAX_HOVER_TARGETS = 27;
 
@@ -48,6 +52,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _selectedEntryId: string | null = null;
   @state() private _selectedTaskId: string | null = null;
   @state() private _filterStatus = "";
+  @state() private _filterUser: string | null = null;
   @state() private _unsub: (() => void) | null = null;
   @state() private _sparklineTooltip: { x: number; y: number; text: string } | null = null;
   @state() private _historyFilter: string | null = null;
@@ -57,7 +62,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false };
 
+  // Dashboard redesign state
+  @state() private _activeTab: "overview" | "analysis" | "history" = "overview";
+  @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
+  @state() private _historyTimeRange: 3 | 6 | 12 | 0 = 12; // months, 0 = all
+  @state() private _historySearch = "";
+
   private _statsService: StatisticsService | null = null;
+  private _userService: UserService | null = null;
 
   private get _lang(): string {
     return this.hass?.language || "de";
@@ -88,6 +100,13 @@ export class MaintenanceSupporterPanel extends LitElement {
         this._fetchMiniStatsForOverview();
       } else {
         this._statsService.updateHass(this.hass);
+      }
+
+      // Initialize user service
+      if (!this._userService) {
+        this._userService = new UserService(this.hass);
+        // Pre-load users for badges
+        this._userService.getUsers();
       }
     }
   }
@@ -206,6 +225,15 @@ export class MaintenanceSupporterPanel extends LitElement {
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
         if (this._filterStatus && task.status !== this._filterStatus) continue;
+
+        // User filter
+        if (this._filterUser) {
+          const userId = this._filterUser === "current_user"
+            ? this._userService?.getCurrentUserId()
+            : this._filterUser;
+          if (task.responsible_user_id !== userId) continue;
+        }
+
         rows.push({
           entry_id: obj.entry_id,
           task_id: task.id,
@@ -494,6 +522,16 @@ export class MaintenanceSupporterPanel extends LitElement {
           <option value="due_soon">${t("due_soon", L)}</option>
           <option value="triggered">${t("triggered", L)}</option>
           <option value="ok">${t("ok", L)}</option>
+        </select>
+        <select
+          .value=${this._filterUser || ""}
+          @change=${(e: Event) => {
+            const val = (e.target as HTMLSelectElement).value;
+            this._filterUser = val || null;
+          }}
+        >
+          <option value="">${t("all_users", L)}</option>
+          <option value="current_user">${t("my_tasks", L)}</option>
         </select>
         <ha-button
           @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
@@ -819,6 +857,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="task-row">
                 <span class="status-badge ${task.status}">${t(task.status, L)}</span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
+                ${this._renderUserBadge(task)}
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
@@ -837,6 +876,436 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  /**
+   * Render compact task header with status chip and action buttons.
+   */
+  private _renderTaskHeader(task: MaintenanceTask) {
+    const L = this._lang;
+    const obj = this._getObject(this._selectedEntryId!);
+    const objName = obj?.object.name || "";
+
+    // Determine status chip
+    let statusClass = "ok";
+    let statusText = "OK";
+    if (task.days_until_due !== null && task.days_until_due !== undefined) {
+      if (task.days_until_due < 0) {
+        statusClass = "overdue";
+        statusText = t("overdue", L);
+      } else if (task.days_until_due <= task.warning_days) {
+        statusClass = "warning";
+        statusText = t("due_soon", L);
+      }
+    }
+
+    return html`
+      <div class="task-header">
+        <div class="task-header-title">
+          <span class="task-name-breadcrumb" @click=${() => this._view = "task"}>${task.name}</span>
+          <span class="breadcrumb-separator">·</span>
+          <span class="object-name-breadcrumb" @click=${() => this._showObject(this._selectedEntryId!)}>${objName}</span>
+          <span class="status-chip ${statusClass}">${statusText}</span>
+          ${this._renderUserBadge(task)}
+        </div>
+        <div class="task-header-actions">
+          <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
+          <ha-button appearance="plain" @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
+          <ha-button appearance="plain" class="more-menu-btn">
+            ⋯
+            <div class="dropdown-menu">
+              <div class="menu-item" @click=${() => {
+                const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
+                dlg?.openEdit(this._selectedEntryId!, task);
+              }}>${t("edit", L)}</div>
+              <div class="menu-item" @click=${() => this._resetTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("reset", L)}</div>
+              <div class="menu-item" @click=${() => {
+                const objData = this._getObject(this._selectedEntryId!)?.object;
+                this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name);
+              }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</div>
+              <div class="menu-item danger" @click=${() => this._deleteTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("delete", L)}</div>
+            </div>
+          </ha-button>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render user badge for a task (if responsible user is assigned).
+   */
+  private _renderUserBadge(task: MaintenanceTask) {
+    if (!task.responsible_user_id || !this._userService) {
+      return nothing;
+    }
+
+    const userName = this._userService.getUserName(task.responsible_user_id);
+    if (!userName) return nothing;
+
+    return html`
+      <span class="user-badge">
+        <ha-icon icon="mdi:account"></ha-icon>
+        ${userName}
+      </span>
+    `;
+  }
+
+  /**
+   * Render tab bar for navigation.
+   */
+  private _renderTabBar() {
+    const L = this._lang;
+    return html`
+      <div class="tab-bar">
+        <div class="tab ${this._activeTab === "overview" ? "active" : ""}" @click=${() => this._activeTab = "overview"}>
+          ${t("overview", L)}
+        </div>
+        <div class="tab ${this._activeTab === "analysis" ? "active" : ""}" @click=${() => this._activeTab = "analysis"}>
+          ${t("analysis", L)}
+        </div>
+        <div class="tab ${this._activeTab === "history" ? "active" : ""}" @click=${() => this._activeTab = "history"}>
+          ${t("history", L)}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render tab content based on active tab.
+   */
+  private _renderTabContent(task: MaintenanceTask) {
+    switch (this._activeTab) {
+      case "overview":
+        return this._renderOverviewTab(task);
+      case "analysis":
+        return this._renderAnalysisTab(task);
+      case "history":
+        return this._renderHistoryTab(task);
+      default:
+        return nothing;
+    }
+  }
+
+  /**
+   * Render Overview Tab content.
+   */
+  private _renderOverviewTab(task: MaintenanceTask) {
+    const L = this._lang;
+
+    // Check if we have left column content
+    const hasRecommendation = this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days;
+    const hasSeasonal = this._features.seasonal && task.seasonal_factor && task.seasonal_factor !== 1.0;
+    const hasLeftColumn = hasRecommendation || hasSeasonal;
+
+    return html`
+      <div class="tab-content overview-tab">
+        ${this._renderKPIBar(task)}
+        <div class="two-column-layout ${hasLeftColumn ? '' : 'single-column'}">
+          ${hasLeftColumn ? html`
+            <div class="left-column">
+              ${this._renderRecommendationCard(task)}
+              ${this._renderSeasonalCardCompact(task)}
+            </div>
+          ` : nothing}
+          <div class="right-column">
+            ${this._renderCostDurationCard(task)}
+          </div>
+        </div>
+        ${this._renderRecentActivities(task)}
+      </div>
+    `;
+  }
+
+  /**
+   * Render Analysis Tab content.
+   */
+  private _renderAnalysisTab(task: MaintenanceTask) {
+    const L = this._lang;
+    const hasAnyAdvanced = this._features.adaptive || this._features.seasonal;
+
+    if (!hasAnyAdvanced) {
+      return html`
+        <div class="tab-content analysis-tab">
+          <p class="empty">${t("no_advanced_features", L)}</p>
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="tab-content analysis-tab">
+        ${this._features.adaptive ? this._renderWeibullCardExpanded(task) : nothing}
+        ${this._features.seasonal ? this._renderSeasonalCardExpanded(task) : nothing}
+      </div>
+    `;
+  }
+
+  /**
+   * Render History Tab content.
+   */
+  private _renderHistoryTab(task: MaintenanceTask) {
+    const L = this._lang;
+    return html`
+      <div class="tab-content history-tab">
+        ${this._renderHistoryFilters(task)}
+        ${this._renderHistoryList(task)}
+      </div>
+    `;
+  }
+
+  /**
+   * Render KPI bar with 7 cards.
+   */
+  private _renderKPIBar(task: MaintenanceTask) {
+    const L = this._lang;
+    const avgCost = task.times_performed > 0 ? task.total_cost / task.times_performed : 0;
+    const daysClass = task.days_until_due !== null && task.days_until_due !== undefined
+      ? (task.days_until_due < 0 ? "overdue" : (task.days_until_due <= task.warning_days ? "warning" : ""))
+      : "";
+
+    return html`
+      <div class="kpi-bar">
+        <div class="kpi-card">
+          <div class="kpi-label">${t("next_due", L)}</div>
+          <div class="kpi-value">${task.next_due ? formatDate(task.next_due, L) : "—"}</div>
+        </div>
+        <div class="kpi-card ${daysClass}">
+          <div class="kpi-label">${t("days_until_due", L)}</div>
+          <div class="kpi-value-large">${task.days_until_due !== null && task.days_until_due !== undefined ? task.days_until_due : "—"}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">${t("interval", L)}</div>
+          <div class="kpi-value">${task.interval_days} ${t("days", L)}</div>
+          ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
+            <div class="kpi-subtext">${t("recommended", L)}: ${task.suggested_interval}${task.interval_analysis?.confidence_interval_low != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""}</div>
+          ` : nothing}
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">${t("warning", L)}</div>
+          <div class="kpi-value">${task.warning_days} ${t("days", L)}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">${t("last_performed", L)}</div>
+          <div class="kpi-value">${task.last_performed ? formatDate(task.last_performed, L) : "—"}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">${t("avg_cost", L)}</div>
+          <div class="kpi-value">${avgCost.toFixed(0)} €</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">${t("avg_duration", L)}</div>
+          <div class="kpi-value">${task.average_duration ? task.average_duration.toFixed(0) : "—"} min</div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Placeholder methods for components to be implemented.
+   */
+  private _renderRecommendationCard(task: MaintenanceTask) {
+    const L = this._lang;
+
+    // Only show if adaptive is enabled and there's a suggestion
+    if (!this._features.adaptive || !task.suggested_interval || task.suggested_interval === task.interval_days) {
+      return nothing;
+    }
+
+    const current = task.interval_days;
+    const suggested = task.suggested_interval;
+    const confidence = task.interval_confidence || "medium";
+
+    return html`
+      <div class="recommendation-card">
+        <h4>${t("suggested_interval", L)}</h4>
+        <div class="interval-comparison">
+          <div class="interval-bar">
+            <div class="interval-label">${t("current", L) || "Aktuell"}: ${current} ${t("days", L)}</div>
+            <div class="interval-visual current" style="width: ${Math.min(current / suggested * 100, 100)}%"></div>
+          </div>
+          <div class="interval-bar">
+            <div class="interval-label">${t("recommended", L)}: ${suggested} ${t("days", L)}
+              <span class="confidence-badge ${confidence}">${t(`confidence_${confidence}`, L)}</span>
+            </div>
+            <div class="interval-visual suggested" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="recommendation-actions">
+          <ha-button appearance="filled" @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, suggested)}>
+            ${t("apply_suggestion", L)}
+          </ha-button>
+          <ha-button appearance="plain" @click=${() => this._dismissSuggestion()}>
+            ${t("dismiss_suggestion", L)}
+          </ha-button>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderSeasonalCardCompact(task: MaintenanceTask) {
+    const L = this._lang;
+
+    // Only show if seasonal is enabled and data exists
+    if (!this._features.seasonal || !task.seasonal_factor || task.seasonal_factor === 1.0) {
+      return nothing;
+    }
+
+    const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    const currentMonth = new Date().getMonth();
+
+    // Generate mock seasonal data (in real implementation, this would come from task data)
+    const seasonalData = months.map((_, i) => {
+      const base = task.seasonal_factor || 1.0;
+      const variation = Math.sin((i - 6) * Math.PI / 6) * 0.3;
+      return Math.max(0.7, Math.min(1.3, base + variation));
+    });
+
+    return html`
+      <div class="seasonal-card-compact">
+        <h4>${t("seasonal_awareness", L)}</h4>
+        <div class="seasonal-mini-chart">
+          ${seasonalData.map((factor, i) => {
+            const height = factor * 40;
+            const colorClass = factor < 0.9 ? 'low' : factor > 1.1 ? 'high' : 'normal';
+            const isCurrentMonth = i === currentMonth;
+            return html`
+              <div class="seasonal-bar ${colorClass} ${isCurrentMonth ? 'current' : ''}"
+                   style="height: ${height}px"
+                   title="${months[i]}: ${factor.toFixed(2)}x">
+              </div>
+            `;
+          })}
+        </div>
+        <div class="seasonal-legend">
+          <span class="legend-item"><span class="dot low"></span> ${t("shorter", L) || "Kürzer"}</span>
+          <span class="legend-item"><span class="dot normal"></span> ${t("normal", L) || "Normal"}</span>
+          <span class="legend-item"><span class="dot high"></span> ${t("longer", L) || "Länger"}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderCostDurationCard(task: MaintenanceTask) {
+    const L = this._lang;
+
+    return html`
+      <div class="cost-duration-card">
+        <div class="card-header">
+          <h3>${t("cost_duration_chart", L)}</h3>
+          <div class="toggle-buttons">
+            <button
+              class="toggle-btn ${this._costDurationToggle === 'cost' ? 'active' : ''}"
+              @click=${() => this._costDurationToggle = 'cost'}>
+              ${t("cost", L)}
+            </button>
+            <button
+              class="toggle-btn ${this._costDurationToggle === 'both' ? 'active' : ''}"
+              @click=${() => this._costDurationToggle = 'both'}>
+              ${t("both", L)}
+            </button>
+            <button
+              class="toggle-btn ${this._costDurationToggle === 'duration' ? 'active' : ''}"
+              @click=${() => this._costDurationToggle = 'duration'}>
+              ${t("duration", L)}
+            </button>
+          </div>
+        </div>
+        ${this._renderHistoryChart(task)}
+      </div>
+    `;
+  }
+
+  private _renderRecentActivities(task: MaintenanceTask) {
+    const L = this._lang;
+    const recent = task.history.slice(0, 3);
+
+    if (recent.length === 0) {
+      return nothing;
+    }
+
+    const getIcon = (type: string) => {
+      switch (type) {
+        case "completed": return "✓";
+        case "triggered": return "⊗";
+        case "skipped": return "↷";
+        case "reset": return "↺";
+        default: return "·";
+      }
+    };
+
+    return html`
+      <div class="recent-activities">
+        <h3>${t("recent_activities", L)}</h3>
+        ${recent.map(entry => html`
+          <div class="activity-item">
+            <span class="activity-icon">${getIcon(entry.type)}</span>
+            <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
+            <span class="activity-note">${entry.notes || "—"}</span>
+            ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}€</span>` : nothing}
+            ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
+          </div>
+        `)}
+        <div class="activity-show-all">
+          <ha-button appearance="plain" @click=${() => this._activeTab = "history"}>${t("show_all", L)} →</ha-button>
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderWeibullCardExpanded(task: MaintenanceTask) {
+    // Use existing Weibull section
+    return this._renderWeibullSection(task);
+  }
+
+  private _renderSeasonalCardExpanded(task: MaintenanceTask) {
+    // Use existing seasonal chart
+    return this._renderSeasonalChart(task);
+  }
+
+  private _renderHistoryFilters(task: MaintenanceTask) {
+    const L = this._lang;
+    return html`
+      <div class="history-filters-new">
+        <div class="filter-chips">
+          ${(["completed", "skipped", "reset", "triggered"] as const).map((type) => {
+            const count = task.history.filter((h) => h.type === type).length;
+            if (count === 0) return nothing;
+            return html`
+              <span class="filter-chip ${this._historyFilter === type ? "active" : ""}"
+                @click=${() => { this._historyFilter = this._historyFilter === type ? null : type; }}>
+                ${t(type, L)} (${count})
+              </span>
+            `;
+          })}
+          ${this._historyFilter ? html`<span class="filter-chip clear" @click=${() => { this._historyFilter = null; }}>${t("show_all", L)}</span>` : nothing}
+        </div>
+        <div class="filter-controls">
+          <input type="text" class="search-input" placeholder="${t("search_notes", L)}..." .value=${this._historySearch} @input=${(e: Event) => this._historySearch = (e.target as HTMLInputElement).value} />
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderHistoryList(task: MaintenanceTask) {
+    const L = this._lang;
+    let filtered = this._historyFilter
+      ? task.history.filter((h) => h.type === this._historyFilter)
+      : task.history;
+
+    // Apply search filter
+    if (this._historySearch) {
+      const search = this._historySearch.toLowerCase();
+      filtered = filtered.filter(h => h.notes?.toLowerCase().includes(search));
+    }
+
+    if (filtered.length === 0) {
+      return html`<p class="empty">${t("no_history", L)}</p>`;
+    }
+
+    return html`
+      <div class="history-timeline">
+        ${[...filtered].reverse().map((entry: HistoryEntry) => this._renderHistoryEntry(entry))}
+      </div>
+    `;
+  }
+
   private _renderTaskDetail() {
     if (!this._selectedEntryId || !this._selectedTaskId) return nothing;
     const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
@@ -845,79 +1314,9 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="detail-section">
-        <div class="detail-header">
-          <h2>${task.name}</h2>
-          <span class="status-badge ${task.status}">${t(task.status, L)}</span>
-        </div>
-
-        <div class="action-buttons" style="margin-bottom: 16px;">
-          <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
-          <ha-button appearance="plain" @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
-          <ha-button appearance="plain" @click=${() => this._resetTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("reset", L)}</ha-button>
-          <ha-button appearance="plain" @click=${() => {
-            const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
-            dlg?.openEdit(this._selectedEntryId!, task);
-          }}>${t("edit", L)}</ha-button>
-          <ha-button variant="danger" appearance="plain" @click=${() => this._deleteTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("delete", L)}</ha-button>
-          <ha-button appearance="plain" @click=${() => { const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
-        </div>
-
-        ${this._renderDaysProgress(task)}
-
-        <div class="info-grid">
-          <div class="info-item"><span class="label">${t("type", L)}</span><span>${t(task.type, L)}</span></div>
-          <div class="info-item"><span class="label">${t("schedule", L)}</span><span>${t(task.schedule_type, L)}</span></div>
-          ${task.interval_days ? html`<div class="info-item"><span class="label">${t("interval", L)}</span><span>${task.interval_days} ${t("days", L)}${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`<span class="suggestion-badge"><span class="confidence-dot ${task.interval_confidence || "low"}"></span>${task.suggested_interval}${t("days", L).charAt(0)}${task.interval_analysis?.confidence_interval_low != null && task.interval_analysis?.confidence_interval_high != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""} ${t("recommended", L)}</span>` : nothing}${this._features.seasonal && task.seasonal_factor != null && task.seasonal_factor !== 1.0 ? html`<span class="seasonal-factor-tag ${task.seasonal_factor < 1.0 ? "short" : "long"}">${t("seasonal_factor_short", L)}: ${task.seasonal_factor.toFixed(1)}x</span>` : nothing}</span></div>` : nothing}
-          ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
-            <div class="info-item suggestion-actions">
-              <ha-button appearance="filled" @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, task.suggested_interval!)}>${t("apply_suggestion", L)} (${task.suggested_interval}${t("days", L).charAt(0)})</ha-button>
-              <ha-button appearance="plain" @click=${() => this._dismissSuggestion()}>${t("dismiss_suggestion", L)}</ha-button>
-            </div>
-          ` : nothing}
-          <div class="info-item"><span class="label">${t("warning", L)}</span><span>${task.warning_days} ${t("days", L)}</span></div>
-          ${task.last_performed ? html`<div class="info-item"><span class="label">${t("last_performed", L)}</span><span>${formatDate(task.last_performed, L)}</span></div>` : nothing}
-          ${task.next_due ? html`<div class="info-item"><span class="label">${t("next_due", L)}</span><span>${formatDate(task.next_due, L)}</span></div>` : nothing}
-          ${task.days_until_due !== null && task.days_until_due !== undefined ? html`<div class="info-item"><span class="label">${t("days_until_due", L)}</span><span>${formatDueDays(task.days_until_due, L)}</span></div>` : nothing}
-          <div class="info-item"><span class="label">${t("times_performed", L)}</span><span>${task.times_performed}</span></div>
-          <div class="info-item"><span class="label">${t("total_cost", L)}</span><span>${task.total_cost.toFixed(2)} €</span></div>
-          ${task.average_duration ? html`<div class="info-item"><span class="label">${t("avg_duration", L)}</span><span>${task.average_duration.toFixed(0)} min</span></div>` : nothing}
-        </div>
-
-        ${this._renderHistoryChart(task)}
-
-        ${this._features.seasonal ? this._renderSeasonalChart(task) : nothing}
-
-        ${this._features.adaptive ? this._renderWeibullSection(task) : nothing}
-
-        ${this._features.predictions ? this._renderPredictionSection(task) : nothing}
-
-        ${this._features.predictions ? this._renderTriggerSection(task) : nothing}
-
-        ${task.notes ? html`<h3>${t("notes", L)}</h3><p>${task.notes}</p>` : nothing}
-        ${task.documentation_url ? html`<p><a href="${task.documentation_url}" target="_blank" rel="noopener">${t("documentation", L)}</a></p>` : nothing}
-
-        <h3>${t("history", L)} (${task.history.length})</h3>
-        <div class="history-filters">
-          ${(["completed", "skipped", "reset", "triggered"] as const).map((type) => {
-            const count = task.history.filter((h) => h.type === type).length;
-            if (count === 0) return nothing;
-            return html`<span class="filter-chip ${this._historyFilter === type ? "active" : ""}"
-              @click=${() => { this._historyFilter = this._historyFilter === type ? null : type; }}>
-              ${t(type, L)} (${count})
-            </span>`;
-          })}
-          ${this._historyFilter ? html`<span class="filter-chip clear" @click=${() => { this._historyFilter = null; }}>${t("show_all", L)}</span>` : nothing}
-        </div>
-        ${(() => {
-          const filtered = this._historyFilter
-            ? task.history.filter((h) => h.type === this._historyFilter)
-            : task.history;
-          return filtered.length === 0
-            ? html`<p class="empty">${t("no_history", L)}</p>`
-            : html`<div class="history-timeline">
-                ${[...filtered].reverse().map((entry: HistoryEntry) => this._renderHistoryEntry(entry))}
-              </div>`;
-        })()}
+        ${this._renderTaskHeader(task)}
+        ${this._renderTabBar()}
+        ${this._renderTabContent(task)}
       </div>
     `;
   }
@@ -954,7 +1353,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     const durY = (v: number) => PAD_T + chartH - (v / maxDur) * chartH;
 
     return html`
-      <h3>${t("cost_duration_chart", this._lang)}</h3>
       <div class="sparkline-container">
         <svg class="history-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${t("chart_history", this._lang)}">
           <!-- Cost bars -->
@@ -1780,6 +2178,535 @@ export class MaintenanceSupporterPanel extends LitElement {
         font-size: 12px;
         color: var(--secondary-text-color);
         margin-bottom: 2px;
+      }
+
+      /* Dashboard redesign styles */
+
+      .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        margin-bottom: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .task-header-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .task-name-breadcrumb,
+      .object-name-breadcrumb {
+        cursor: pointer;
+        color: var(--primary-text-color);
+        text-decoration: none;
+      }
+
+      .task-name-breadcrumb:hover,
+      .object-name-breadcrumb:hover {
+        text-decoration: underline;
+      }
+
+      .breadcrumb-separator {
+        color: var(--secondary-text-color);
+        margin: 0 4px;
+      }
+
+      .status-chip {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+      }
+
+      .status-chip.ok {
+        background: #4caf50;
+        color: white;
+      }
+
+      .status-chip.warning {
+        background: #ff9800;
+        color: white;
+      }
+
+      .status-chip.overdue {
+        background: #f44336;
+        color: white;
+      }
+
+      .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        margin-left: 8px;
+        background: var(--primary-color);
+        color: var(--text-primary-color);
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .user-badge ha-icon {
+        --mdc-icon-size: 14px;
+      }
+
+      .task-header-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .more-menu-btn {
+        position: relative;
+      }
+
+      .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--card-background-color, #fff);
+        border: 1px solid var(--divider-color);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        min-width: 160px;
+      }
+
+      .more-menu-btn:hover .dropdown-menu {
+        display: block;
+      }
+
+      .menu-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--divider-color);
+      }
+
+      .menu-item:last-child {
+        border-bottom: none;
+      }
+
+      .menu-item:hover {
+        background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
+      }
+
+      .menu-item.danger {
+        color: #f44336;
+      }
+
+      .tab-bar {
+        display: flex;
+        gap: 4px;
+        border-bottom: 2px solid var(--divider-color);
+        margin-bottom: 16px;
+      }
+
+      .tab {
+        padding: 12px 24px;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--secondary-text-color);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+      }
+
+      .tab:hover {
+        color: var(--primary-text-color);
+      }
+
+      .tab.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+      }
+
+      .tab-content {
+        padding: 16px 0;
+      }
+
+      .kpi-bar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .kpi-card {
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        padding: 16px 12px;
+        text-align: center;
+        border: 1px solid var(--divider-color);
+      }
+
+      .kpi-card.warning {
+        border-color: #ff9800;
+        background: rgba(255, 152, 0, 0.1);
+      }
+
+      .kpi-card.overdue {
+        border-color: #f44336;
+        background: rgba(244, 67, 54, 0.1);
+      }
+
+      .kpi-label {
+        font-size: 11px;
+        color: var(--secondary-text-color);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+
+      .kpi-value {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+      }
+
+      .kpi-value-large {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--primary-text-color);
+      }
+
+      .kpi-subtext {
+        font-size: 10px;
+        color: var(--secondary-text-color);
+        margin-top: 4px;
+      }
+
+      .two-column-layout {
+        display: grid;
+        grid-template-columns: 40% 60%;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .two-column-layout.single-column {
+        grid-template-columns: 1fr;
+      }
+
+      .left-column,
+      .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .recent-activities {
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid var(--divider-color);
+      }
+
+      .recent-activities h3 {
+        margin: 0 0 12px 0;
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--divider-color);
+      }
+
+      .activity-item:last-of-type {
+        border-bottom: none;
+      }
+
+      .activity-icon {
+        font-size: 18px;
+        width: 24px;
+        text-align: center;
+      }
+
+      .activity-date {
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        min-width: 120px;
+      }
+
+      .activity-note {
+        flex: 1;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .activity-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 12px;
+      }
+
+      .activity-show-all {
+        margin-top: 12px;
+        text-align: center;
+      }
+
+      .history-filters-new {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+
+      .filter-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .filter-controls {
+        display: flex;
+        gap: 8px;
+      }
+
+      .search-input {
+        padding: 8px 12px;
+        border: 1px solid var(--divider-color);
+        border-radius: 4px;
+        background: var(--card-background-color, #fff);
+        color: var(--primary-text-color);
+        font-size: 14px;
+        min-width: 200px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+
+      /* Recommendation Card */
+      .recommendation-card {
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid var(--divider-color);
+      }
+
+      .recommendation-card h4 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+      }
+
+      .interval-comparison {
+        margin-bottom: 16px;
+      }
+
+      .interval-bar {
+        margin-bottom: 12px;
+      }
+
+      .interval-label {
+        font-size: 12px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .interval-visual {
+        height: 24px;
+        border-radius: 4px;
+        transition: width 0.3s;
+      }
+
+      .interval-visual.current {
+        background: var(--secondary-text-color);
+        opacity: 0.5;
+      }
+
+      .interval-visual.suggested {
+        background: var(--primary-color);
+      }
+
+      .confidence-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: var(--divider-color);
+      }
+
+      .confidence-badge.high {
+        background: #4caf50;
+        color: white;
+      }
+
+      .confidence-badge.medium {
+        background: #ff9800;
+        color: white;
+      }
+
+      .confidence-badge.low {
+        background: var(--secondary-text-color);
+        color: white;
+      }
+
+      .recommendation-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      /* Seasonal Card Compact */
+      .seasonal-card-compact {
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid var(--divider-color);
+      }
+
+      .seasonal-card-compact h4 {
+        margin: 0 0 12px 0;
+        font-size: 14px;
+      }
+
+      .seasonal-mini-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 60px;
+        margin-bottom: 12px;
+      }
+
+      .seasonal-bar {
+        flex: 1;
+        border-radius: 2px 2px 0 0;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .seasonal-bar.low {
+        background: #2196f3;
+      }
+
+      .seasonal-bar.normal {
+        background: var(--secondary-text-color);
+        opacity: 0.5;
+      }
+
+      .seasonal-bar.high {
+        background: #ff9800;
+      }
+
+      .seasonal-bar.current {
+        border: 2px solid var(--primary-color);
+        box-sizing: border-box;
+      }
+
+      .seasonal-legend {
+        display: flex;
+        gap: 12px;
+        font-size: 11px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .legend-item .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .legend-item .dot.low {
+        background: #2196f3;
+      }
+
+      .legend-item .dot.normal {
+        background: var(--secondary-text-color);
+        opacity: 0.5;
+      }
+
+      .legend-item .dot.high {
+        background: #ff9800;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .kpi-bar {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .two-column-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .task-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .task-header-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+
+      /* Cost/Duration Card with Toggle */
+      .cost-duration-card {
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid var(--divider-color);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .card-header h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .toggle-buttons {
+        display: flex;
+        gap: 4px;
+        background: var(--divider-color);
+        border-radius: 4px;
+        padding: 2px;
+      }
+
+      .toggle-btn {
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        color: var(--primary-text-color);
+        cursor: pointer;
+        border-radius: 3px;
+        font-size: 13px;
+        transition: all 0.2s;
+      }
+
+      .toggle-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .toggle-btn.active {
+        background: var(--primary-color);
+        color: white;
       }
 
       /* ha-button handles variant="danger" natively */

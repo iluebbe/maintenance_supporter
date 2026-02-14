@@ -97,6 +97,44 @@ def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     return text
 
 
+async def _get_user_notify_services(
+    hass: HomeAssistant, user_id: str
+) -> list[str]:
+    """Find all notify services for a user via device registry.
+
+    Discovery strategy:
+    1. Check device registry for mobile_app devices linked to user
+    2. Find corresponding notify.mobile_app_* services
+    3. Return list of service names
+    """
+    from homeassistant.helpers import device_registry as dr
+
+    device_reg = dr.async_get(hass)
+    devices = dr.async_entries_for_user(device_reg, user_id)
+
+    services = []
+    for device in devices:
+        # Mobile app devices have integration = "mobile_app"
+        if device.integration != "mobile_app":
+            continue
+
+        # Service name follows pattern: notify.mobile_app_{device_name_slug}
+        # Extract device name slug from device identifiers
+        for identifier in device.identifiers:
+            if identifier[0] == "mobile_app":
+                device_id = identifier[1]
+                service_name = f"notify.mobile_app_{device_id}"
+
+                # Verify service exists
+                if hass.services.has_service("notify", f"mobile_app_{device_id}"):
+                    services.append(service_name)
+                    _LOGGER.debug(
+                        "Found notify service %s for user %s", service_name, user_id
+                    )
+
+    return services
+
+
 # Per-status config mapping
 _STATUS_ENABLED_KEYS: dict[str, str] = {
     MaintenanceStatus.DUE_SOON: CONF_NOTIFY_DUE_SOON_ENABLED,
@@ -237,9 +275,10 @@ class NotificationManager:
         days_until_due: int | None = None,
         next_due: str | None = None,
         entity_id: str | None = None,
+        responsible_user_id: str | None = None,
     ) -> None:
         """Handle status change / repeat check and send notification if appropriate."""
-        if not self.enabled or not self.notify_service:
+        if not self.enabled:
             return
 
         # Only notify for certain statuses
@@ -285,13 +324,42 @@ class NotificationManager:
             new_status, lang, task_name, object_name, days_until_due, next_due
         )
 
-        # Send notification
-        success = await self._async_send_notification(
-            title=title,
-            message=message,
-            entry_id=entry_id,
-            task_id=task_id,
-        )
+        # Determine target services: user-specific or global
+        target_services = []
+        if responsible_user_id:
+            user_services = await _get_user_notify_services(self.hass, responsible_user_id)
+            if user_services:
+                target_services = user_services
+                _LOGGER.debug(
+                    "Sending notification to user %s services: %s",
+                    responsible_user_id,
+                    user_services,
+                )
+            else:
+                _LOGGER.debug(
+                    "User %s has no notification services, falling back to global",
+                    responsible_user_id,
+                )
+
+        # Fallback to global service
+        if not target_services and self.notify_service:
+            target_services = [self.notify_service]
+
+        if not target_services:
+            _LOGGER.warning("No notification services available")
+            return
+
+        # Send to all target services
+        success = False
+        for service in target_services:
+            if await self._async_send_notification_to_service(
+                service=service,
+                title=title,
+                message=message,
+                entry_id=entry_id,
+                task_id=task_id,
+            ):
+                success = True
 
         if not success:
             return
@@ -349,16 +417,25 @@ class NotificationManager:
 
         return title, message
 
-    async def _async_send_notification(
+    async def _async_send_notification_to_service(
         self,
+        service: str,
         title: str,
         message: str,
         entry_id: str,
         task_id: str,
     ) -> bool:
-        """Send notification via configured service, optionally with action buttons.
+        """Send notification via specific service, optionally with action buttons.
 
-        Returns True if the notification was sent successfully, False otherwise.
+        Args:
+            service: Full service name like "notify.mobile_app_device"
+            title: Notification title
+            message: Notification message
+            entry_id: Config entry ID for action buttons
+            task_id: Task ID for action buttons
+
+        Returns:
+            True if the notification was sent successfully, False otherwise.
         """
         options = self._global_options
         lang = self._lang
@@ -389,7 +466,7 @@ class NotificationManager:
             }
 
         try:
-            service_parts = self.notify_service.split(".")
+            service_parts = service.split(".")
             if len(service_parts) == 2:
                 await self.hass.services.async_call(
                     service_parts[0],
@@ -398,10 +475,10 @@ class NotificationManager:
                     blocking=False,
                 )
                 return True
-            _LOGGER.warning("Invalid notify service format: %s", self.notify_service)
+            _LOGGER.warning("Invalid notify service format: %s", service)
             return False
         except (HomeAssistantError, ValueError, TypeError):
-            _LOGGER.exception("Failed to send notification")
+            _LOGGER.exception("Failed to send notification to %s", service)
             return False
 
     async def async_send_bundled(

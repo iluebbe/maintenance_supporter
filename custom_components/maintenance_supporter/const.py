@@ -115,6 +115,9 @@ CONF_TASK_SCHEDULE_TYPE = "schedule_type"
 CONF_TASK_NOTES = "notes"
 CONF_TASK_DOCUMENTATION_URL = "documentation_url"
 
+# --- Config Keys: User Assignment ---
+CONF_RESPONSIBLE_USER_ID = "responsible_user_id"
+
 # --- Config Keys: Trigger ---
 CONF_TRIGGER_CONFIG = "trigger_config"
 CONF_TRIGGER_TYPE = "trigger_type"

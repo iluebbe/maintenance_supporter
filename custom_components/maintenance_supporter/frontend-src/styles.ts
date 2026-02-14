@@ -95,6 +95,7 @@ const DE: Translations = {
   documentation: "Dokumentation",
   cost: "Kosten",
   duration: "Dauer",
+  both: "Beides",
   trigger_val: "Trigger-Wert",
   complete_title: "Erledigt: ",
   checklist: "Checkliste",
@@ -142,6 +143,11 @@ const DE: Translations = {
   from_state_optional: "Von Zustand (optional)",
   to_state_optional: "Zu Zustand (optional)",
   documentation_url_optional: "Dokumentation URL (optional)",
+  // User assignment
+  responsible_user: "Verantwortlicher Benutzer",
+  no_user_assigned: "(Kein Benutzer zugewiesen)",
+  all_users: "Alle Benutzer",
+  my_tasks: "Meine Aufgaben",
   budget_monthly: "Monatsbudget",
   budget_yearly: "Jahresbudget",
   export_csv: "CSV Export",
@@ -224,6 +230,17 @@ const DE: Translations = {
   qr_action: "Aktion beim Scannen",
   qr_action_view: "Wartungsinfo anzeigen",
   qr_action_complete: "Wartung als erledigt markieren",
+  // Dashboard redesign
+  overview: "Übersicht",
+  analysis: "Analyse",
+  recent_activities: "Letzte Aktivitäten",
+  search_notes: "Notizen durchsuchen",
+  avg_cost: "Ø Kosten",
+  no_advanced_features: "Keine erweiterten Funktionen aktiviert",
+  current: "Aktuell",
+  shorter: "Kürzer",
+  longer: "Länger",
+  normal: "Normal",
 };
 
 const EN: Translations = {
@@ -287,6 +304,7 @@ const EN: Translations = {
   documentation: "Documentation",
   cost: "Cost",
   duration: "Duration",
+  both: "Both",
   trigger_val: "Trigger value",
   complete_title: "Complete: ",
   checklist: "Checklist",
@@ -334,6 +352,11 @@ const EN: Translations = {
   from_state_optional: "From state (optional)",
   to_state_optional: "To state (optional)",
   documentation_url_optional: "Documentation URL (optional)",
+  // User assignment
+  responsible_user: "Responsible User",
+  no_user_assigned: "(No user assigned)",
+  all_users: "All Users",
+  my_tasks: "My Tasks",
   budget_monthly: "Monthly budget",
   budget_yearly: "Yearly budget",
   export_csv: "CSV Export",
@@ -416,6 +439,17 @@ const EN: Translations = {
   qr_action: "Action on scan",
   qr_action_view: "View maintenance info",
   qr_action_complete: "Mark maintenance as complete",
+  // Dashboard redesign
+  overview: "Overview",
+  analysis: "Analysis",
+  recent_activities: "Recent Activities",
+  search_notes: "Search notes",
+  avg_cost: "Avg Cost",
+  no_advanced_features: "No advanced features enabled",
+  current: "Current",
+  shorter: "Shorter",
+  longer: "Longer",
+  normal: "Normal",
 };
 
 const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN };
@@ -614,7 +648,7 @@ export const sharedStyles = css`
   /* Cost/Duration history chart */
   .history-chart {
     width: 100%;
-    height: 120px;
+    height: 200px;
     display: block;
   }
 

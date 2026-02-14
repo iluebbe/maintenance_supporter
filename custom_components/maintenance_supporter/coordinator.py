@@ -532,6 +532,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     new_status=new_status,
                     days_until_due=task_result.get("_days_until_due"),
                     next_due=task_result.get("_next_due"),
+                    responsible_user_id=task_result.get("responsible_user_id"),
                 )
 
     async def _async_check_budget(
@@ -628,6 +629,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         duration: int | None = None,
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
+        completed_by: str | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
         tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
@@ -649,6 +651,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task.complete(
             notes=notes, cost=cost, duration=duration,
             checklist_state=checklist_state, feedback=feedback,
+            completed_by=completed_by,
         )
 
         # Update adaptive scheduling if enabled

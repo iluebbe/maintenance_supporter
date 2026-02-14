@@ -42,6 +42,7 @@ export interface HistoryEntry {
   trigger_value?: number | null;
   checklist_state?: Record<string, boolean> | null;
   feedback?: string | null;
+  completed_by?: string | null;
 }
 
 export interface AdaptiveConfig {
@@ -126,6 +127,8 @@ export interface MaintenanceTask {
   environmental_entity?: string | null;
   environmental_correlation?: number | null;
   sensor_prediction_urgency?: boolean;
+  // User assignment
+  responsible_user_id?: string | null;
 }
 
 export interface MaintenanceObjectResponse {
@@ -259,4 +262,12 @@ export interface HomeAssistant {
   language: string;
   locale?: { language: string; number_format?: string };
   localize(key: string, ...args: unknown[]): string;
+  user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
+}
+
+export interface HAUser {
+  id: string;
+  name: string;
+  is_admin: boolean;
+  is_owner: boolean;
 }

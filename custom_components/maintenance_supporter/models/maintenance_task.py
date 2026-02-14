@@ -46,6 +46,9 @@ class MaintenanceTask:
     notes: str | None = None
     documentation_url: str | None = None
 
+    # --- User Assignment ---
+    responsible_user_id: str | None = None  # HA user UUID
+
     # --- Checklist ---
     checklist: list[str] = field(default_factory=list)
 
@@ -148,6 +151,7 @@ class MaintenanceTask:
         duration: int | None = None,
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
+        completed_by: str | None = None,
     ) -> None:
         """Mark this task as completed."""
         now = dt_util.now()
@@ -162,6 +166,7 @@ class MaintenanceTask:
             duration=duration,
             checklist_state=checklist_state,
             feedback=feedback,
+            completed_by=completed_by,
         )
 
     def reset(self, reset_date: date | None = None) -> None:
@@ -195,6 +200,7 @@ class MaintenanceTask:
         trigger_value: float | None = None,
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
+        completed_by: str | None = None,
     ) -> None:
         """Add an entry to the maintenance history."""
         entry: dict[str, Any] = {
@@ -213,6 +219,8 @@ class MaintenanceTask:
             entry["checklist_state"] = checklist_state
         if feedback is not None:
             entry["feedback"] = feedback
+        if completed_by is not None:
+            entry["completed_by"] = completed_by
 
         self.history.append(entry)
 
@@ -244,6 +252,8 @@ class MaintenanceTask:
             data["notes"] = self.notes
         if self.documentation_url is not None:
             data["documentation_url"] = self.documentation_url
+        if self.responsible_user_id is not None:
+            data["responsible_user_id"] = self.responsible_user_id
         if self.checklist:
             data["checklist"] = self.checklist
         if self.adaptive_config is not None:
@@ -266,6 +276,7 @@ class MaintenanceTask:
             trigger_config=data.get("trigger_config"),
             notes=data.get("notes"),
             documentation_url=data.get("documentation_url"),
+            responsible_user_id=data.get("responsible_user_id"),
             checklist=data.get("checklist", []),
             adaptive_config=data.get("adaptive_config"),
             history=data.get("history", []),
