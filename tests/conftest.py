@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.loader import Integration
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -36,18 +37,35 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 
 
 @pytest.fixture(autouse=True)
-async def setup_ha_dependencies(hass: HomeAssistant):
-    """Set up HA dependency integrations required by our manifest.
+async def mock_dependencies(hass: HomeAssistant):
+    """Mock the HA dependency integrations required by our manifest.
 
     manifest.json declares: dependencies: ["repairs", "http", "panel_custom", "lovelace"]
-    Without setting these up first, HA raises DependencyError in CI.
+    In CI, panel_custom and lovelace can't be fully set up (they need
+    a running frontend server).  We mark them as loaded and mock the
+    specific APIs our code calls.
     """
+    # Set up http (this one works in tests and provides hass.http)
     await async_setup_component(hass, "http", {"http": {}})
-    await async_setup_component(hass, "lovelace", {})
-    await async_setup_component(hass, "panel_custom", {})
-    await async_setup_component(hass, "repairs", {})
     await hass.async_block_till_done()
-    yield
+
+    # Mark the remaining dependencies as loaded so HA doesn't raise
+    # DependencyError when setting up our integration
+    hass.config.components.add("lovelace")
+    hass.config.components.add("panel_custom")
+    hass.config.components.add("repairs")
+    hass.config.components.add("frontend")
+
+    # Mock hass.http.async_register_static_paths (no real server in CI)
+    if hasattr(hass, "http") and hass.http is not None:
+        hass.http.async_register_static_paths = AsyncMock()
+
+    # Mock panel_custom.async_register_panel (called in panel.py)
+    with patch(
+        "homeassistant.components.panel_custom.async_register_panel",
+        new_callable=AsyncMock,
+    ):
+        yield
 
 
 @pytest.fixture(autouse=True)
