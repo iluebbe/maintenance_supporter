@@ -386,7 +386,7 @@
       },
       "edit_checklist": {
         "title": "Edit Checklist",
-        "description": "Define checklist steps for '{task_name}'. Enter one step per line.",
+        "description": "Define checklist steps for {task_name}. Enter one step per line.",
         "data": {
           "checklist_text": "Checklist steps"
         },
@@ -396,7 +396,7 @@
       },
       "delete_task": {
         "title": "Delete Task",
-        "description": "Are you sure you want to delete the task '{task_name}'? This cannot be undone.",
+        "description": "Are you sure you want to delete the task {task_name}? This cannot be undone.",
         "data": {
           "confirm": "Confirm deletion"
         }
@@ -477,7 +477,7 @@
       },
       "adaptive_scheduling": {
         "title": "Adaptive Scheduling",
-        "description": "Configure smart interval adaptation for '{task_name}'. The system learns from your completion feedback to suggest better intervals.",
+        "description": "Configure smart interval adaptation for {task_name}. The system learns from your completion feedback to suggest better intervals.",
         "data": {
           "adaptive_enabled": "Enable adaptive scheduling",
           "ewa_alpha": "Learning rate (alpha)",

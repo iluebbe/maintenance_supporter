@@ -386,7 +386,7 @@
       },
       "edit_checklist": {
         "title": "Checkliste bearbeiten",
-        "description": "Definieren Sie Checklisten-Schritte für '{task_name}'. Geben Sie einen Schritt pro Zeile ein.",
+        "description": "Definieren Sie Checklisten-Schritte für {task_name}. Geben Sie einen Schritt pro Zeile ein.",
         "data": {
           "checklist_text": "Checklisten-Schritte"
         },
@@ -396,7 +396,7 @@
       },
       "adaptive_scheduling": {
         "title": "Adaptive Planung",
-        "description": "Konfigurieren Sie die intelligente Intervallanpassung für '{task_name}'. Das System lernt aus Ihrem Abschluss-Feedback, um bessere Intervalle vorzuschlagen.",
+        "description": "Konfigurieren Sie die intelligente Intervallanpassung für {task_name}. Das System lernt aus Ihrem Abschluss-Feedback, um bessere Intervalle vorzuschlagen.",
         "data": {
           "adaptive_enabled": "Adaptive Planung aktivieren",
           "ewa_alpha": "Lernrate (Alpha)",
@@ -418,7 +418,7 @@
       },
       "delete_task": {
         "title": "Aufgabe löschen",
-        "description": "Sind Sie sicher, dass Sie die Aufgabe '{task_name}' löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+        "description": "Sind Sie sicher, dass Sie die Aufgabe {task_name} löschen möchten? Dies kann nicht rückgängig gemacht werden.",
         "data": {
           "confirm": "Löschung bestätigen"
         }
