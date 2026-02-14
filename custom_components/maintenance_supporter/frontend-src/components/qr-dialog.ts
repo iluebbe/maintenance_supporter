@@ -1,7 +1,7 @@
 /** Dialog for generating, printing, and downloading QR codes. */
 
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import { t } from "../styles";
 
@@ -16,7 +16,6 @@ interface QrResult {
   };
 }
 
-@customElement("maintenance-qr-dialog")
 export class MaintenanceQrDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property() public lang = "de";
@@ -243,3 +242,6 @@ ${subtitle ? `<div class="sub">${subtitle}</div>` : ""}
   `;
 }
 
+if (!customElements.get("maintenance-qr-dialog")) {
+  customElements.define("maintenance-qr-dialog", MaintenanceQrDialog);
+}

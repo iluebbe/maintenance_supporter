@@ -1029,6 +1029,35 @@ export class MaintenanceSupporterPanel extends LitElement {
       `;
     }
 
+    // Check if the sub-renderers would actually produce content
+    const hasWeibullData = this._features.adaptive
+      && task.interval_analysis?.weibull_beta != null
+      && task.interval_analysis?.weibull_eta != null;
+    const hasSeasonalData = this._features.seasonal
+      && (task.seasonal_factors?.length === 12
+        || task.interval_analysis?.seasonal_factors?.length === 12);
+    const hasAnyData = hasWeibullData || hasSeasonalData;
+
+    if (!hasAnyData) {
+      const isManual = task.schedule_type === "manual";
+      const dataPoints = task.interval_analysis?.data_points ?? 0;
+      return html`
+        <div class="tab-content analysis-tab">
+          <div class="analysis-empty-state">
+            <p class="empty">${t("analysis_not_enough_data", L)}</p>
+            <p class="empty-hint">
+              ${isManual
+                ? t("analysis_manual_task_hint", L)
+                : t("analysis_not_enough_data_hint", L)}
+            </p>
+            ${!isManual && dataPoints > 0 ? html`
+              <p class="empty-hint">${dataPoints} / 5</p>
+            ` : nothing}
+          </div>
+        </div>
+      `;
+    }
+
     return html`
       <div class="tab-content analysis-tab">
         ${this._features.adaptive ? this._renderWeibullCardExpanded(task) : nothing}
@@ -2159,6 +2188,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       h3 { margin: 16px 0 8px; font-size: 16px; font-weight: 500; }
       .meta { color: var(--secondary-text-color); margin: 4px 0; }
       .empty { color: var(--secondary-text-color); font-style: italic; }
+      .analysis-empty-state { text-align: center; padding: 24px 16px; }
+      .analysis-empty-state .empty { font-size: 15px; margin-bottom: 8px; }
+      .empty-hint { color: var(--secondary-text-color); font-size: 13px; margin: 4px 0; }
 
       .info-grid {
         display: grid;

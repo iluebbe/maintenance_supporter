@@ -100,37 +100,39 @@ def _notif_t(key: str, lang: str, **kwargs: str) -> str:
 async def _get_user_notify_services(
     hass: HomeAssistant, user_id: str
 ) -> list[str]:
-    """Find all notify services for a user via device registry.
+    """Find all notify services for a user via mobile_app config entries.
 
     Discovery strategy:
-    1. Check device registry for mobile_app devices linked to user
-    2. Find corresponding notify.mobile_app_* services
-    3. Return list of service names
+    1. Find mobile_app config entries whose data contains matching user_id
+    2. Look up associated devices in the device registry
+    3. Find corresponding notify.mobile_app_* services
+    4. Return list of service names
     """
     from homeassistant.helpers import device_registry as dr
 
     device_reg = dr.async_get(hass)
-    devices = dr.async_entries_for_user(device_reg, user_id)
-
     services = []
-    for device in devices:
-        # Mobile app devices have integration = "mobile_app"
-        if device.integration != "mobile_app":
+
+    # Find mobile_app config entries for this user
+    for entry in hass.config_entries.async_entries("mobile_app"):
+        if entry.data.get("user_id") != user_id:
             continue
 
-        # Service name follows pattern: notify.mobile_app_{device_name_slug}
-        # Extract device name slug from device identifiers
-        for identifier in device.identifiers:
-            if identifier[0] == "mobile_app":
-                device_id = identifier[1]
-                service_name = f"notify.mobile_app_{device_id}"
+        # Get devices linked to this config entry
+        devices = dr.async_entries_for_config_entry(device_reg, entry.entry_id)
+        for device in devices:
+            for identifier in device.identifiers:
+                if identifier[0] == "mobile_app":
+                    device_id = identifier[1]
+                    service_name = f"notify.mobile_app_{device_id}"
 
-                # Verify service exists
-                if hass.services.has_service("notify", f"mobile_app_{device_id}"):
-                    services.append(service_name)
-                    _LOGGER.debug(
-                        "Found notify service %s for user %s", service_name, user_id
-                    )
+                    if hass.services.has_service("notify", f"mobile_app_{device_id}"):
+                        services.append(service_name)
+                        _LOGGER.debug(
+                            "Found notify service %s for user %s",
+                            service_name,
+                            user_id,
+                        )
 
     return services
 
