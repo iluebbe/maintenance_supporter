@@ -1,0 +1,798 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Onderhoud Supporter",
+        "description": "Stel uw onderhoudbeheersysteem in.",
+        "menu_options": {
+          "create_object": "Onderhoudsobject aanmaken",
+          "create_from_template": "Aanmaken vanuit sjabloon",
+          "global_setup": "Algemene instellingen"
+        }
+      },
+      "create_from_template": {
+        "title": "Selecteer sjablooncategorie",
+        "description": "Kies een categorie om voorgedefinieerde onderhoudssjablonen te bekijken.",
+        "data": {
+          "template_category": "Categorie"
+        }
+      },
+      "template_select": {
+        "title": "Selecteer sjabloon",
+        "description": "Kies een onderhoudssjabloon als uitgangspunt.",
+        "data": {
+          "template_id": "Sjabloon"
+        }
+      },
+      "template_customize": {
+        "title": "Sjabloon aanpassen",
+        "description": "Pas het sjabloon {template_name} aan. Het bevat {task_count} taken: {task_list}.",
+        "data": {
+          "name": "Objectnaam",
+          "area_id": "Ruimte",
+          "manufacturer": "Fabrikant",
+          "model": "Model"
+        },
+        "data_description": {
+          "name": "Een naam voor dit onderhoudsobject.",
+          "area_id": "De ruimte waar dit object zich bevindt.",
+          "manufacturer": "De fabrikant van het object.",
+          "model": "De modelnaam of het nummer."
+        }
+      },
+      "global_setup": {
+        "title": "Algemene instellingen",
+        "description": "Configureer algemene onderhoudsinstellingen.",
+        "data": {
+          "default_warning_days": "Standaard waarschuwingsdagen voor deadline",
+          "notifications_enabled": "Meldingen inschakelen",
+          "notify_service": "Meldingsservice"
+        },
+        "data_description": {
+          "default_warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "notifications_enabled": "Meldingen verzenden wanneer onderhoudstaken verlopen.",
+          "notify_service": "De te gebruiken meldingsservice (bijv. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Onderhoudsobject aanmaken",
+        "description": "Definieer een apparaat of object waarvoor onderhoud beheerd wordt.",
+        "data": {
+          "name": "Objectnaam",
+          "area_id": "Ruimte",
+          "manufacturer": "Fabrikant",
+          "model": "Model",
+          "installation_date": "Installatiedatum"
+        },
+        "data_description": {
+          "name": "Een unieke naam voor dit onderhoudsobject (bijv. 'Zwembadpomp', 'Auto').",
+          "area_id": "De ruimte in uw huis waar dit object zich bevindt.",
+          "manufacturer": "De fabrikant van het object.",
+          "model": "De modelnaam of het nummer.",
+          "installation_date": "Wanneer dit object is geïnstalleerd of gekocht."
+        }
+      },
+      "task_menu": {
+        "title": "Onderhoudstaken",
+        "description": "Voeg onderhoudstaken toe voor {object_name}. Momenteel {task_count} taak/taken gedefinieerd.",
+        "menu_options": {
+          "add_task": "Onderhoudstaak toevoegen",
+          "finish": "Installatie afronden"
+        }
+      },
+      "add_task": {
+        "title": "Onderhoudstaak toevoegen",
+        "description": "Definieer een onderhoudstaak voor {object_name}.",
+        "data": {
+          "name": "Taaknaam",
+          "type": "Onderhoudstype",
+          "schedule_type": "Planningstype"
+        },
+        "data_description": {
+          "name": "Een beschrijvende naam voor deze taak (bijv. 'Filter reinigen', 'Olie verversen').",
+          "type": "De categorie van het onderhoud.",
+          "schedule_type": "Hoe deze taak gepland moet worden."
+        }
+      },
+      "time_based": {
+        "title": "Tijdgebaseerd schema",
+        "description": "Configureer het tijdsinterval voor deze onderhoudstaak.",
+        "data": {
+          "interval_days": "Interval (dagen)",
+          "last_performed": "Laatst uitgevoerd",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
+          "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit gedaan.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+        }
+      },
+      "sensor_select": {
+        "title": "Selecteer triggersensor",
+        "description": "Kies een Home Assistant-entiteit om te monitoren voor deze onderhoudstaak.",
+        "data": {
+          "trigger_entity": "Te monitoren entiteit"
+        },
+        "data_description": {
+          "trigger_entity": "Selecteer de sensorentiteit die deze onderhoudstaak moet activeren."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Selecteer attribuut",
+        "description": "Kies welke waarde gemonitord moet worden van {entity_id}. Huidige status: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Te monitoren waarde"
+        },
+        "data_description": {
+          "trigger_attribute": "Selecteer de entiteitstatus of een specifiek attribuut om te monitoren."
+        }
+      },
+      "trigger_type": {
+        "title": "Triggertype",
+        "description": "Hoe moet de sensorwaarde onderhoud activeren?",
+        "data": {
+          "trigger_type": "Triggertype"
+        },
+        "data_description": {
+          "trigger_type": "Drempel: activeert wanneer waarde limieten overschrijdt. Teller: activeert na het bereiken van een doelwaarde. Statuswijziging: activeert na een aantal statusovergangen."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Drempelconfiguratie",
+        "description": "Stel drempelwaarden in voor **{entity_id}** ({attribute}).\nHuidige waarde: **{current_value} {unit}** | Gem.: {average} | Bereik: {minimum}–{maximum} ({data_period}d)\nVoorgesteld boven: {suggested_above} | Voorgesteld onder: {suggested_below}",
+        "data": {
+          "trigger_above": "Activeren bij waarde boven",
+          "trigger_below": "Activeren bij waarde onder",
+          "trigger_for_minutes": "Gedurende minimaal (minuten)",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
+          "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel daalt.",
+          "trigger_for_minutes": "De waarde moet gedurende dit aantal minuten de drempel overschrijden voordat activering plaatsvindt.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+        }
+      },
+      "trigger_counter": {
+        "title": "Tellerconfiguratie",
+        "description": "Stel tellerdoel in voor {entity_id} ({attribute}). Huidige waarde: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Doelwaarde",
+          "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_target_value": "Onderhoud activeren wanneer deze opgetelde waarde bereikt is.",
+          "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Statuswijzigingsconfiguratie",
+        "description": "Tel statusovergangen van {entity_id}.",
+        "data": {
+          "trigger_from_state": "Van status (optioneel)",
+          "trigger_to_state": "Naar status (optioneel)",
+          "trigger_target_changes": "Aantal wijzigingen voor activering",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke status.",
+          "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor elke status.",
+          "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Looptijdconfiguratie",
+        "description": "Volg de totale looptijd van {entity_id}. Onderhoud wordt geactiveerd wanneer de totale inschakeltijd het doel bereikt.",
+        "data": {
+          "trigger_runtime_hours": "Doellooptijd (uren)",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren totale looptijd.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+        }
+      },
+      "manual": {
+        "title": "Handmatig schema",
+        "description": "Deze taak heeft geen automatisch schema. U kunt deze handmatig als verlopen markeren.",
+        "data": {
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "notes": "Notities"
+        },
+        "data_description": {
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "notes": "Aanvullende notities of instructies voor deze taak."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Een onderhoudsobject met deze naam bestaat al.",
+      "no_tasks": "Er is minimaal één onderhoudstaak vereist.",
+      "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
+      "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
+      "invalid_threshold": "Er moet minimaal één drempel (boven of onder) worden ingesteld.",
+      "invalid_interval": "Het interval moet een positief getal zijn."
+    },
+    "abort": {
+      "already_configured": "Dit onderhoudsobject is al geconfigureerd.",
+      "global_already_exists": "Algemene instellingen zijn al geconfigureerd.",
+      "template_not_found": "Het geselecteerde sjabloon is niet gevonden.",
+      "missing_data": "Vereiste gegevens zijn niet opgegeven."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Onderhoudsopties",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Taken beheren",
+          "add_task": "Nieuwe taak toevoegen",
+          "object_settings": "Objectinstellingen"
+        }
+      },
+      "global_init": {
+        "title": "Algemene instellingen",
+        "description": "Configureer algemene onderhoudsinstellingen.",
+        "menu_options": {
+          "general_settings": "Algemene instellingen",
+          "advanced_features": "Geavanceerde functies",
+          "budget_settings": "Budgetinstellingen",
+          "manage_groups": "Groepen beheren",
+          "notification_settings": "Meldingsinstellingen",
+          "notification_actions": "Interactieve acties",
+          "done": "Gereed"
+        }
+      },
+      "advanced_features": {
+        "title": "Geavanceerde functies",
+        "description": "Kies welke geavanceerde functies in de interface worden getoond. Het uitschakelen van een functie verbergt deze, maar verwijdert geen gegevens.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptieve planning",
+          "advanced_predictions_visible": "Sensorvoorspellingen",
+          "advanced_seasonal_visible": "Seizoensaanpassingen",
+          "advanced_environmental_visible": "Omgevingscorrelatie",
+          "advanced_budget_visible": "Budgetbeheer",
+          "advanced_groups_visible": "Groepen",
+          "advanced_checklists_visible": "Checklists"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Toon EWA-, Weibull-analyse en intervalsuggesties voor taken.",
+          "advanced_predictions_visible": "Toon sensordegradatie-analyse en drempelvoorspellingsgrafieken.",
+          "advanced_seasonal_visible": "Toon seizoensfactorgrafieken en maandelijkse aanpassingsgegevens.",
+          "advanced_environmental_visible": "Toon omgevingscorrelatie (temperatuur, vochtigheid) aanpassingen.",
+          "advanced_budget_visible": "Toon maandelijks/jaarlijks budgetbeheer en waarschuwingen.",
+          "advanced_groups_visible": "Toon onderhoudsgroepbeheer.",
+          "advanced_checklists_visible": "Toon taakchecklists voor stapsgewijze voltooiing."
+        }
+      },
+      "general_settings": {
+        "title": "Algemene instellingen",
+        "description": "Configureer basisinstellingen voor Onderhoud Supporter.",
+        "data": {
+          "default_warning_days": "Standaard waarschuwingsdagen voor deadline",
+          "notifications_enabled": "Meldingen inschakelen",
+          "notify_service": "Meldingsservice",
+          "panel_enabled": "Zijbalkpaneel tonen"
+        },
+        "data_description": {
+          "notifications_enabled": "Meldingen verzenden wanneer onderhoudstaken verlopen of achterstallig zijn.",
+          "notify_service": "De te gebruiken meldingsservice (bijv. notify.mobile_app_phone).",
+          "panel_enabled": "Een Onderhoud Supporter-paneel in de zijbalk tonen."
+        }
+      },
+      "notification_settings": {
+        "title": "Meldingsinstellingen",
+        "description": "Configureer wanneer en hoe vaak meldingen worden verzonden voor elke status.",
+        "data": {
+          "notify_due_soon_enabled": "Melden wanneer bijna verlopen",
+          "notify_due_soon_interval_hours": "Herinneringsinterval bijna verlopen (uren)",
+          "notify_overdue_enabled": "Melden wanneer achterstallig",
+          "notify_overdue_interval_hours": "Herinneringsinterval achterstallig (uren)",
+          "notify_triggered_enabled": "Melden wanneer geactiveerd",
+          "notify_triggered_interval_hours": "Herinneringsinterval geactiveerd (uren)",
+          "quiet_hours_enabled": "Stille uren inschakelen",
+          "quiet_hours_start": "Begin stille uren",
+          "quiet_hours_end": "Einde stille uren",
+          "max_notifications_per_day": "Max. meldingen per dag",
+          "notification_bundling_enabled": "Meldingen bundelen",
+          "notification_bundle_threshold": "Bundeldrempel"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Hoe vaak de herinnering voor bijna verlopen wordt herhaald. Stel in op 0 voor een enkele melding.",
+          "notify_overdue_interval_hours": "Hoe vaak de herinnering voor achterstallig wordt herhaald. Stel in op 0 voor een enkele melding.",
+          "notify_triggered_interval_hours": "Hoe vaak de melding voor geactiveerd wordt herhaald. Stel in op 0 voor een enkele melding.",
+          "quiet_hours_enabled": "Meldingen onderdrukken tijdens stille uren.",
+          "max_notifications_per_day": "Maximaal aantal meldingen per dag. Stel in op 0 voor onbeperkt.",
+          "notification_bundling_enabled": "Een enkele samenvattingsmelding verzenden wanneer meerdere taken aandacht vereisen.",
+          "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren."
+        }
+      },
+      "notification_actions": {
+        "title": "Interactieve acties",
+        "description": "Configureer actieknoppen op mobiele meldingen (vereist Companion App).",
+        "data": {
+          "action_complete_enabled": "Knop 'Voltooien' tonen",
+          "action_skip_enabled": "Knop 'Overslaan' tonen",
+          "action_snooze_enabled": "Knop 'Uitstellen' tonen",
+          "snooze_duration_hours": "Uitstelduur (uren)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Voegt een knop toe om de taak direct vanuit de melding als voltooid te markeren.",
+          "action_skip_enabled": "Voegt een knop toe om de huidige onderhoudscyclus vanuit de melding over te slaan.",
+          "action_snooze_enabled": "Voegt een knop toe om de herinnering uit te stellen.",
+          "snooze_duration_hours": "Hoe lang meldingen worden uitgesteld wanneer op uitstellen wordt gedrukt."
+        }
+      },
+      "budget_settings": {
+        "title": "Budgetinstellingen",
+        "description": "Stel maandelijkse en jaarlijkse onderhoudsbudgetten in om uitgaven bij te houden.",
+        "data": {
+          "budget_monthly": "Maandelijks budget",
+          "budget_yearly": "Jaarlijks budget",
+          "budget_alerts_enabled": "Budgetwaarschuwingen inschakelen",
+          "budget_alert_threshold": "Waarschuwingsdrempel (%)"
+        },
+        "data_description": {
+          "budget_monthly": "Maximale maandelijkse onderhoudsuitgaven. Stel in op 0 om uit te schakelen.",
+          "budget_yearly": "Maximale jaarlijkse onderhoudsuitgaven. Stel in op 0 om uit te schakelen.",
+          "budget_alerts_enabled": "Een melding verzenden wanneer uitgaven de waarschuwingsdrempel overschrijden.",
+          "budget_alert_threshold": "Percentage van het budget waarbij een waarschuwing wordt verzonden."
+        }
+      },
+      "manage_groups": {
+        "title": "Groepen beheren",
+        "description": "Selecteer een groep om te beheren of maak een nieuwe aan.",
+        "data": {
+          "selected_group": "Selecteer groep"
+        }
+      },
+      "add_group": {
+        "title": "Groep toevoegen",
+        "description": "Maak een nieuwe onderhoudsgroep aan om gerelateerde taken te organiseren.",
+        "data": {
+          "group_name": "Groepsnaam",
+          "group_description": "Beschrijving"
+        },
+        "data_description": {
+          "group_name": "Een naam voor deze groep (bijv. 'Voorjaarsonderhoud').",
+          "group_description": "Optionele beschrijving voor deze groep."
+        }
+      },
+      "manage_tasks": {
+        "title": "Taken beheren",
+        "description": "Selecteer een taak om te bewerken of te verwijderen.",
+        "data": {
+          "selected_task": "Selecteer taak"
+        }
+      },
+      "task_action": {
+        "title": "Taakacties",
+        "description": "Taak: {task_name} — Kies een actie.",
+        "menu_options": {
+          "edit_task": "Taak bewerken",
+          "edit_checklist": "Checklist bewerken",
+          "adaptive_scheduling": "Adaptieve planning",
+          "delete_task": "Taak verwijderen",
+          "manage_tasks": "Terug"
+        }
+      },
+      "edit_task": {
+        "title": "Taak bewerken",
+        "data": {
+          "name": "Taaknaam",
+          "type": "Onderhoudstype",
+          "interval_days": "Interval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        }
+      },
+      "edit_checklist": {
+        "title": "Checklist bewerken",
+        "description": "Definieer checkliststappen voor {task_name}. Voer één stap per regel in.",
+        "data": {
+          "checklist_text": "Checkliststappen"
+        },
+        "data_description": {
+          "checklist_text": "Voer elke checkliststap op een aparte regel in. Deze stappen worden getoond bij het voltooien van de taak."
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptieve planning",
+        "description": "Configureer slimme intervalaanpassing voor {task_name}. Het systeem leert van uw feedback om betere intervallen voor te stellen.",
+        "data": {
+          "adaptive_enabled": "Adaptieve planning inschakelen",
+          "ewa_alpha": "Leersnelheid (alpha)",
+          "min_interval_days": "Minimaal interval (dagen)",
+          "max_interval_days": "Maximaal interval (dagen)",
+          "seasonal_enabled": "Seizoensbewustzijn inschakelen",
+          "sensor_prediction_enabled": "Sensorgestuurde voorspellingen inschakelen",
+          "environmental_entity": "Omgevingssensor (optioneel)"
+        },
+        "data_description": {
+          "adaptive_enabled": "Wanneer ingeschakeld, leert het systeem van uw feedback en stelt het optimale onderhoudsintervallen voor.",
+          "ewa_alpha": "Hoe snel het algoritme zich aanpast aan nieuwe gegevens. Hoger = responsiever, lager = stabieler.",
+          "min_interval_days": "Het kortste interval dat het systeem ooit zal aanbevelen.",
+          "max_interval_days": "Het langste interval dat het systeem ooit zal aanbevelen.",
+          "seasonal_enabled": "Aanbevelingen aanpassen op basis van seizoenspatronen uit uw onderhoudsgeschiedenis.",
+          "sensor_prediction_enabled": "Sensortrends analyseren om te voorspellen wanneer drempels bereikt worden en eerder onderhoud voor te stellen indien nodig.",
+          "environmental_entity": "Koppel een temperatuur-, vochtigheids- of druksensor om omgevingsomstandigheden te correleren met onderhoudsintervallen."
+        }
+      },
+      "delete_task": {
+        "title": "Taak verwijderen",
+        "description": "Weet u zeker dat u de taak {task_name} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+        "data": {
+          "confirm": "Verwijdering bevestigen"
+        }
+      },
+      "add_task": {
+        "title": "Onderhoudstaak toevoegen",
+        "data": {
+          "name": "Taaknaam",
+          "type": "Onderhoudstype",
+          "schedule_type": "Planningstype"
+        }
+      },
+      "opt_time_based": {
+        "title": "Tijdgebaseerd schema",
+        "data": {
+          "interval_days": "Interval (dagen)",
+          "last_performed": "Laatst uitgevoerd",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        }
+      },
+      "opt_manual": {
+        "title": "Handmatig schema",
+        "data": {
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "notes": "Notities"
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Selecteer triggersensor",
+        "data": {
+          "trigger_entity": "Te monitoren entiteit"
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Selecteer attribuut",
+        "description": "Kies welke waarde gemonitord moet worden van {entity_id}. Huidige status: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Te monitoren waarde"
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Triggertype",
+        "data": {
+          "trigger_type": "Triggertype"
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Drempelconfiguratie",
+        "description": "Stel drempelwaarden in voor **{entity_id}** ({attribute}).\nHuidige waarde: **{current_value} {unit}** | Gem.: {average} | Bereik: {minimum}–{maximum} ({data_period}d)\nVoorgesteld boven: {suggested_above} | Voorgesteld onder: {suggested_below}",
+        "data": {
+          "trigger_above": "Activeren bij waarde boven",
+          "trigger_below": "Activeren bij waarde onder",
+          "trigger_for_minutes": "Gedurende minimaal (minuten)",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Tellerconfiguratie",
+        "description": "Stel tellerdoel in voor {entity_id} ({attribute}). Huidige waarde: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Doelwaarde",
+          "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Statuswijzigingsconfiguratie",
+        "description": "Tel statusovergangen van {entity_id}.",
+        "data": {
+          "trigger_from_state": "Van status (optioneel)",
+          "trigger_to_state": "Naar status (optioneel)",
+          "trigger_target_changes": "Aantal wijzigingen voor activering",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Looptijdconfiguratie",
+        "description": "Volg de totale looptijd van {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Doellooptijd (uren)",
+          "interval_days": "Veiligheidsinterval (dagen)",
+          "warning_days": "Waarschuwingsdagen voor deadline"
+        }
+      },
+      "object_settings": {
+        "title": "Objectinstellingen",
+        "data": {
+          "name": "Objectnaam",
+          "manufacturer": "Fabrikant",
+          "model": "Model"
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Reiniging",
+        "inspection": "Inspectie",
+        "replacement": "Vervanging",
+        "calibration": "Kalibratie",
+        "service": "Service",
+        "custom": "Aangepast"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Tijdgebaseerd",
+        "sensor_based": "Sensorgebaseerd",
+        "manual": "Handmatig"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Drempel",
+        "counter": "Teller",
+        "state_change": "Statuswijziging",
+        "runtime": "Looptijd"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Bijna verlopen",
+          "overdue": "Achterstallig",
+          "triggered": "Geactiveerd"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Onderhoudstype",
+            "state": {
+              "cleaning": "Reiniging",
+              "inspection": "Inspectie",
+              "replacement": "Vervanging",
+              "calibration": "Kalibratie",
+              "service": "Service",
+              "custom": "Aangepast"
+            }
+          },
+          "schedule_type": {
+            "name": "Planningstype",
+            "state": {
+              "time_based": "Tijdgebaseerd",
+              "sensor_based": "Sensorgebaseerd",
+              "manual": "Handmatig"
+            }
+          },
+          "interval_days": { "name": "Interval (dagen)" },
+          "warning_days": { "name": "Waarschuwingsdagen" },
+          "last_performed": { "name": "Laatst uitgevoerd" },
+          "next_due": { "name": "Volgende deadline" },
+          "days_until_due": { "name": "Dagen tot deadline" },
+          "parent_object": { "name": "Bovenliggend object" },
+          "times_performed": { "name": "Aantal keer uitgevoerd" },
+          "total_cost": { "name": "Totale kosten" },
+          "average_duration": { "name": "Gemiddelde duur (min)" },
+          "notes": { "name": "Notities" },
+          "documentation_url": { "name": "Documentatie-URL" },
+          "trigger_entity": { "name": "Triggerentiteit" },
+          "trigger_attribute": { "name": "Triggerattribuut" },
+          "trigger_type": {
+            "name": "Triggertype",
+            "state": {
+              "threshold": "Drempel",
+              "counter": "Teller",
+              "state_change": "Statuswijziging",
+              "runtime": "Looptijd"
+            }
+          },
+          "trigger_active": { "name": "Trigger actief" },
+          "trigger_current_value": { "name": "Huidige triggerwaarde" },
+          "trigger_entity_state": {
+            "name": "Triggerentiteitstatus",
+            "state": {
+              "available": "Beschikbaar",
+              "unavailable": "Niet beschikbaar",
+              "missing": "Ontbreekt",
+              "startup": "Opstarten"
+            }
+          },
+          "trigger_above": { "name": "Trigger boven" },
+          "trigger_below": { "name": "Trigger onder" },
+          "trigger_for_minutes": { "name": "Trigger gedurende (minuten)" },
+          "trigger_target_value": { "name": "Triggerdoelwaarde" },
+          "trigger_delta_mode": { "name": "Trigger deltamodus" },
+          "trigger_baseline_value": { "name": "Trigger basiswaarde" },
+          "trigger_current_delta": { "name": "Trigger huidig verschil" },
+          "trigger_from_state": { "name": "Trigger van status" },
+          "trigger_to_state": { "name": "Trigger naar status" },
+          "trigger_target_changes": { "name": "Trigger doelwijzigingen" },
+          "trigger_change_count": { "name": "Trigger wijzigingsteller" },
+          "trigger_runtime_hours": { "name": "Doellooptijd (uren)" },
+          "trigger_accumulated_hours": { "name": "Opgebouwde looptijd (uren)" },
+          "trigger_remaining_hours": { "name": "Resterende looptijd (uren)" },
+          "last_entry": { "name": "Laatste invoer" },
+          "suggested_interval": { "name": "Voorgesteld interval" },
+          "interval_confidence": {
+            "name": "Intervalbetrouwbaarheid",
+            "state": {
+              "low": "Laag",
+              "medium": "Gemiddeld",
+              "high": "Hoog"
+            }
+          },
+          "adaptive_scheduling_enabled": { "name": "Adaptieve planning ingeschakeld" },
+          "seasonal_factor": { "name": "Seizoensfactor" },
+          "seasonal_reason": {
+            "name": "Seizoensreden",
+            "state": {
+              "learned": "Geleerd",
+              "manual": "Handmatig"
+            }
+          },
+          "degradation_rate": { "name": "Degradatiesnelheid" },
+          "degradation_trend": {
+            "name": "Degradatietrend",
+            "state": {
+              "rising": "Stijgend",
+              "falling": "Dalend",
+              "stable": "Stabiel",
+              "insufficient_data": "Onvoldoende gegevens"
+            }
+          },
+          "days_until_threshold": { "name": "Dagen tot drempel" },
+          "threshold_prediction_confidence": {
+            "name": "Voorspellingsbetrouwbaarheid",
+            "state": {
+              "low": "Laag",
+              "medium": "Gemiddeld",
+              "high": "Hoog"
+            }
+          },
+          "environmental_factor": { "name": "Omgevingsfactor" },
+          "environmental_entity": { "name": "Omgevingsentiteit" },
+          "weibull_beta": { "name": "Weibull-vorm (\u03b2)" },
+          "weibull_eta": { "name": "Weibull-schaal (\u03b7)" },
+          "weibull_r_squared": { "name": "Weibull R\u00b2" },
+          "weibull_beta_interpretation": {
+            "name": "Storingspatroon",
+            "state": {
+              "early_failures": "Vroege storingen",
+              "random_failures": "Willekeurige storingen",
+              "wear_out": "Slijtage",
+              "highly_predictable": "Zeer voorspelbaar"
+            }
+          },
+          "confidence_interval_low": { "name": "Betrouwbaarheidsinterval (laag)" },
+          "confidence_interval_high": { "name": "Betrouwbaarheidsinterval (hoog)" }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Onderhoudsschema"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Onderhoud voltooien",
+      "description": "Markeer een onderhoudstaak als voltooid.",
+      "fields": {
+        "entity_id": {
+          "name": "Entiteit",
+          "description": "De onderhoudssensorentiteit om te voltooien."
+        },
+        "notes": {
+          "name": "Notities",
+          "description": "Optionele notities over het uitgevoerde onderhoud."
+        },
+        "cost": {
+          "name": "Kosten",
+          "description": "Kosten van het uitgevoerde onderhoud."
+        },
+        "duration": {
+          "name": "Duur",
+          "description": "Duur van het onderhoud in minuten."
+        }
+      }
+    },
+    "reset": {
+      "name": "Onderhoud resetten",
+      "description": "Reset de laatst uitgevoerde datum van een onderhoudstaak.",
+      "fields": {
+        "entity_id": {
+          "name": "Entiteit",
+          "description": "De onderhoudssensorentiteit om te resetten."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "De datum die als laatst uitgevoerd wordt ingesteld. Standaard vandaag."
+        }
+      }
+    },
+    "skip": {
+      "name": "Onderhoud overslaan",
+      "description": "Sla de huidige onderhoudscyclus over.",
+      "fields": {
+        "entity_id": {
+          "name": "Entiteit",
+          "description": "De onderhoudssensorentiteit om over te slaan."
+        },
+        "reason": {
+          "name": "Reden",
+          "description": "Optionele reden voor het overslaan van het onderhoud."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Gegevens exporteren",
+      "description": "Exporteer alle onderhoudsgegevens als JSON of YAML.",
+      "fields": {
+        "format": {
+          "name": "Formaat",
+          "description": "Uitvoerformaat voor de geëxporteerde gegevens (json of yaml)."
+        },
+        "include_history": {
+          "name": "Geschiedenis opnemen",
+          "description": "Of taakgeschiedenisvermeldingen in de export moeten worden opgenomen."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Triggersensor niet gevonden: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Ontbrekende triggerentiteit",
+            "description": "De sensorentiteit `{entity_id}` die geconfigureerd is als trigger voor taak \"{task_name}\" op object \"{object_name}\" is niet meer beschikbaar.\n\nKies hoe u dit probleem wilt oplossen:",
+            "menu_options": {
+              "replace_entity": "Vervangen door een andere entiteit",
+              "remove_trigger": "Sensortrigger verwijderen",
+              "dismiss": "Negeren (verschijnt opnieuw)"
+            }
+          },
+          "replace_entity": {
+            "title": "Triggerentiteit vervangen",
+            "description": "Selecteer een nieuwe entiteit om `{entity_id}` te vervangen als trigger voor taak \"{task_name}\" op \"{object_name}\".",
+            "data": {
+              "new_entity_id": "Nieuwe triggerentiteit"
+            },
+            "data_description": {
+              "new_entity_id": "Selecteer de nieuwe sensorentiteit om als trigger te gebruiken."
+            }
+          },
+          "remove_trigger": {
+            "title": "Sensortrigger verwijderen",
+            "description": "Dit verwijdert de sensortrigger van taak \"{task_name}\" op \"{object_name}\" en converteert het schema naar tijdgebaseerd of handmatig. De onderhoudsgeschiedenis blijft behouden.\n\nVorige triggerentiteit: `{entity_id}`"
+          }
+        }
+      }
+    }
+  }
+}

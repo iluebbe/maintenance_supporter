@@ -1,0 +1,798 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Configurez votre système de gestion de maintenance.",
+        "menu_options": {
+          "create_object": "Créer un objet de maintenance",
+          "create_from_template": "Créer à partir d'un modèle",
+          "global_setup": "Paramètres globaux"
+        }
+      },
+      "create_from_template": {
+        "title": "Sélectionner la catégorie de modèle",
+        "description": "Choisissez une catégorie pour parcourir les modèles de maintenance prédéfinis.",
+        "data": {
+          "template_category": "Catégorie"
+        }
+      },
+      "template_select": {
+        "title": "Sélectionner un modèle",
+        "description": "Choisissez un modèle de maintenance comme point de départ.",
+        "data": {
+          "template_id": "Modèle"
+        }
+      },
+      "template_customize": {
+        "title": "Personnaliser le modèle",
+        "description": "Personnalisez le modèle {template_name}. Il comprend {task_count} tâches : {task_list}.",
+        "data": {
+          "name": "Nom de l'objet",
+          "area_id": "Zone",
+          "manufacturer": "Fabricant",
+          "model": "Modèle"
+        },
+        "data_description": {
+          "name": "Un nom pour cet objet de maintenance.",
+          "area_id": "La zone où se trouve cet objet.",
+          "manufacturer": "Le fabricant de l'objet.",
+          "model": "Le nom ou numéro de modèle."
+        }
+      },
+      "global_setup": {
+        "title": "Paramètres globaux",
+        "description": "Configurez les paramètres globaux de maintenance.",
+        "data": {
+          "default_warning_days": "Jours d'avertissement par défaut",
+          "notifications_enabled": "Activer les notifications",
+          "notify_service": "Service de notification"
+        },
+        "data_description": {
+          "default_warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement.",
+          "notifications_enabled": "Envoyer des notifications lorsque les tâches de maintenance arrivent à échéance.",
+          "notify_service": "Le service de notification à utiliser (ex. : notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Créer un objet de maintenance",
+        "description": "Définissez un appareil ou un équipement pour gérer sa maintenance.",
+        "data": {
+          "name": "Nom de l'objet",
+          "area_id": "Zone",
+          "manufacturer": "Fabricant",
+          "model": "Modèle",
+          "installation_date": "Date d'installation"
+        },
+        "data_description": {
+          "name": "Un nom unique pour cet objet de maintenance (ex. : 'Pompe piscine', 'Voiture').",
+          "area_id": "La zone de votre domicile où se trouve cet objet.",
+          "manufacturer": "Le fabricant de l'objet.",
+          "model": "Le nom ou numéro de modèle.",
+          "installation_date": "Date d'installation ou d'achat de cet objet."
+        }
+      },
+      "task_menu": {
+        "title": "Tâches de maintenance",
+        "description": "Ajoutez des tâches de maintenance pour {object_name}. Actuellement {task_count} tâche(s) définie(s).",
+        "menu_options": {
+          "add_task": "Ajouter une tâche de maintenance",
+          "finish": "Terminer la configuration"
+        }
+      },
+      "add_task": {
+        "title": "Ajouter une tâche de maintenance",
+        "description": "Définissez une tâche de maintenance pour {object_name}.",
+        "data": {
+          "name": "Nom de la tâche",
+          "type": "Type de maintenance",
+          "schedule_type": "Type de planification"
+        },
+        "data_description": {
+          "name": "Un nom descriptif pour cette tâche (ex. : 'Nettoyage filtre', 'Vidange').",
+          "type": "La catégorie de travail de maintenance.",
+          "schedule_type": "Comment cette tâche doit être planifiée."
+        }
+      },
+      "time_based": {
+        "title": "Planification temporelle",
+        "description": "Configurez l'intervalle de temps pour cette tâche de maintenance.",
+        "data": {
+          "interval_days": "Intervalle (jours)",
+          "last_performed": "Dernière exécution",
+          "warning_days": "Jours d'avertissement avant échéance"
+        },
+        "data_description": {
+          "interval_days": "Nombre de jours entre les cycles de maintenance.",
+          "last_performed": "Date de la dernière maintenance effectuée. Laissez vide si jamais effectuée.",
+          "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
+        }
+      },
+      "sensor_select": {
+        "title": "Sélectionner le capteur déclencheur",
+        "description": "Choisissez une entité Home Assistant à surveiller pour cette tâche de maintenance.",
+        "data": {
+          "trigger_entity": "Entité à surveiller"
+        },
+        "data_description": {
+          "trigger_entity": "Sélectionnez l'entité capteur qui doit déclencher cette tâche de maintenance."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Sélectionner l'attribut",
+        "description": "Choisissez quelle valeur surveiller de {entity_id}. État actuel : {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Valeur à surveiller"
+        },
+        "data_description": {
+          "trigger_attribute": "Sélectionnez l'état de l'entité ou un attribut spécifique à surveiller."
+        }
+      },
+      "trigger_type": {
+        "title": "Type de déclencheur",
+        "description": "Comment la valeur du capteur doit-elle déclencher la maintenance ?",
+        "data": {
+          "trigger_type": "Type de déclencheur"
+        },
+        "data_description": {
+          "trigger_type": "Seuil : se déclenche quand la valeur dépasse les limites. Compteur : se déclenche après avoir accumulé une valeur cible. Changement d'état : se déclenche après un nombre de transitions d'état."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Configuration du seuil",
+        "description": "Définissez les seuils pour **{entity_id}** ({attribute}).\nActuel : **{current_value} {unit}** | Moy. : {average} | Plage : {minimum}–{maximum} ({data_period}j)\nSeuil haut suggéré : {suggested_above} | Seuil bas suggéré : {suggested_below}",
+        "data": {
+          "trigger_above": "Déclencher au-dessus de",
+          "trigger_below": "Déclencher en-dessous de",
+          "trigger_for_minutes": "Pendant au moins (minutes)",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        },
+        "data_description": {
+          "trigger_above": "Déclencher la maintenance lorsque la valeur dépasse ce seuil.",
+          "trigger_below": "Déclencher la maintenance lorsque la valeur passe en-dessous de ce seuil.",
+          "trigger_for_minutes": "La valeur doit dépasser le seuil pendant ce nombre de minutes avant le déclenchement.",
+          "interval_days": "Intervalle de sécurité temporel optionnel en plus du déclencheur capteur.",
+          "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
+        }
+      },
+      "trigger_counter": {
+        "title": "Configuration du compteur",
+        "description": "Définissez la valeur cible du compteur pour {entity_id} ({attribute}). Actuel : {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Valeur cible",
+          "trigger_delta_mode": "Mode delta (compter les changements, pas la valeur absolue)",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        },
+        "data_description": {
+          "trigger_target_value": "Déclencher la maintenance lorsque cette valeur accumulée est atteinte.",
+          "trigger_delta_mode": "Si activé, compte la différence par rapport à une base plutôt que la valeur absolue.",
+          "interval_days": "Intervalle de sécurité temporel optionnel en plus du déclencheur compteur.",
+          "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Configuration du changement d'état",
+        "description": "Comptez les transitions d'état de {entity_id}.",
+        "data": {
+          "trigger_from_state": "Depuis l'état (optionnel)",
+          "trigger_to_state": "Vers l'état (optionnel)",
+          "trigger_target_changes": "Nombre de changements pour déclencher",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        },
+        "data_description": {
+          "trigger_from_state": "Compter uniquement les transitions depuis cet état. Laissez vide pour tous.",
+          "trigger_to_state": "Compter uniquement les transitions vers cet état. Laissez vide pour tous.",
+          "trigger_target_changes": "Nombre de changements d'état correspondants avant de déclencher la maintenance.",
+          "interval_days": "Intervalle de sécurité temporel optionnel en plus du déclencheur de changement d'état.",
+          "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Configuration du temps de fonctionnement",
+        "description": "Suivez le temps de fonctionnement cumulé de {entity_id}. La maintenance se déclenche lorsque le temps total de fonctionnement atteint les heures cibles.",
+        "data": {
+          "trigger_runtime_hours": "Temps de fonctionnement cible (heures)",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Déclencher la maintenance après ce nombre d'heures de fonctionnement cumulé.",
+          "interval_days": "Intervalle de sécurité temporel optionnel en plus du déclencheur de temps de fonctionnement.",
+          "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
+        }
+      },
+      "manual": {
+        "title": "Planification manuelle",
+        "description": "Cette tâche n'a pas de planification automatique. Vous pouvez la marquer comme due manuellement.",
+        "data": {
+          "warning_days": "Jours d'avertissement avant échéance",
+          "notes": "Notes"
+        },
+        "data_description": {
+          "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement.",
+          "notes": "Notes ou instructions supplémentaires pour cette tâche."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Un objet de maintenance avec ce nom existe déjà.",
+      "no_tasks": "Au moins une tâche de maintenance est requise.",
+      "invalid_entity": "L'entité sélectionnée n'existe pas ou n'a pas de données numériques.",
+      "invalid_attribute": "L'attribut sélectionné n'est pas disponible sur cette entité.",
+      "invalid_threshold": "Au moins un seuil (haut ou bas) doit être défini.",
+      "invalid_interval": "L'intervalle doit être un nombre positif."
+    },
+    "abort": {
+      "already_configured": "Cet objet de maintenance est déjà configuré.",
+      "global_already_exists": "Les paramètres globaux sont déjà configurés.",
+      "template_not_found": "Le modèle sélectionné n'a pas été trouvé.",
+      "missing_data": "Les données requises n'ont pas été fournies."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options de maintenance",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Gérer les tâches",
+          "add_task": "Ajouter une nouvelle tâche",
+          "object_settings": "Paramètres de l'objet"
+        }
+      },
+      "global_init": {
+        "title": "Paramètres globaux",
+        "description": "Configurez les paramètres globaux de maintenance.",
+        "menu_options": {
+          "general_settings": "Paramètres généraux",
+          "advanced_features": "Fonctionnalités avancées",
+          "budget_settings": "Paramètres de budget",
+          "manage_groups": "Gérer les groupes",
+          "notification_settings": "Paramètres de notification",
+          "notification_actions": "Actions interactives",
+          "done": "Terminé"
+        }
+      },
+      "advanced_features": {
+        "title": "Fonctionnalités avancées",
+        "description": "Choisissez les fonctionnalités avancées à afficher dans l'interface. Désactiver une fonctionnalité la masque de l'interface mais ne supprime aucune donnée.",
+        "data": {
+          "advanced_adaptive_visible": "Planification adaptative",
+          "advanced_predictions_visible": "Prédictions capteur",
+          "advanced_seasonal_visible": "Ajustements saisonniers",
+          "advanced_environmental_visible": "Corrélation environnementale",
+          "advanced_budget_visible": "Suivi du budget",
+          "advanced_groups_visible": "Groupes",
+          "advanced_checklists_visible": "Listes de contrôle"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Afficher l'analyse EWA, Weibull et les suggestions d'intervalle pour les tâches.",
+          "advanced_predictions_visible": "Afficher l'analyse de dégradation capteur et les graphiques de prédiction de seuil.",
+          "advanced_seasonal_visible": "Afficher les graphiques de facteurs saisonniers et les données d'ajustement mensuel.",
+          "advanced_environmental_visible": "Afficher les ajustements de corrélation environnementale (température, humidité).",
+          "advanced_budget_visible": "Afficher le suivi de budget mensuel/annuel et les alertes.",
+          "advanced_groups_visible": "Afficher la gestion des groupes de maintenance.",
+          "advanced_checklists_visible": "Afficher les listes de contrôle pour la réalisation étape par étape des tâches."
+        }
+      },
+      "general_settings": {
+        "title": "Paramètres généraux",
+        "description": "Configurez les paramètres de base de Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Jours d'avertissement par défaut",
+          "notifications_enabled": "Activer les notifications",
+          "notify_service": "Service de notification",
+          "panel_enabled": "Afficher le panneau dans la barre latérale"
+        },
+        "data_description": {
+          "notifications_enabled": "Envoyer des notifications lorsque les tâches de maintenance arrivent à échéance ou sont en retard.",
+          "notify_service": "Le service de notification à utiliser (ex. : notify.mobile_app_phone).",
+          "panel_enabled": "Afficher un panneau Maintenance Supporter dans la barre latérale."
+        }
+      },
+      "notification_settings": {
+        "title": "Paramètres de notification",
+        "description": "Configurez quand et à quelle fréquence les notifications sont envoyées pour chaque statut.",
+        "data": {
+          "notify_due_soon_enabled": "Notifier quand bientôt dû",
+          "notify_due_soon_interval_hours": "Intervalle de rappel bientôt dû (heures)",
+          "notify_overdue_enabled": "Notifier quand en retard",
+          "notify_overdue_interval_hours": "Intervalle de rappel en retard (heures)",
+          "notify_triggered_enabled": "Notifier quand déclenché",
+          "notify_triggered_interval_hours": "Intervalle de rappel déclenché (heures)",
+          "quiet_hours_enabled": "Activer les heures calmes",
+          "quiet_hours_start": "Début des heures calmes",
+          "quiet_hours_end": "Fin des heures calmes",
+          "max_notifications_per_day": "Notifications max par jour",
+          "notification_bundling_enabled": "Regrouper les notifications",
+          "notification_bundle_threshold": "Seuil de regroupement"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Fréquence de répétition du rappel bientôt dû. Définir à 0 pour une seule notification.",
+          "notify_overdue_interval_hours": "Fréquence de répétition du rappel en retard. Définir à 0 pour une seule notification.",
+          "notify_triggered_interval_hours": "Fréquence de répétition de la notification déclenchée. Définir à 0 pour une seule notification.",
+          "quiet_hours_enabled": "Supprimer les notifications pendant les heures calmes.",
+          "max_notifications_per_day": "Nombre maximum de notifications par jour. Définir à 0 pour illimité.",
+          "notification_bundling_enabled": "Envoyer une notification résumée lorsque plusieurs tâches nécessitent attention.",
+          "notification_bundle_threshold": "Nombre minimum de tâches pour déclencher une notification groupée."
+        }
+      },
+      "notification_actions": {
+        "title": "Actions interactives",
+        "description": "Configurez les boutons d'action affichés sur les notifications mobiles (nécessite l'application Companion).",
+        "data": {
+          "action_complete_enabled": "Afficher le bouton 'Terminer'",
+          "action_skip_enabled": "Afficher le bouton 'Passer'",
+          "action_snooze_enabled": "Afficher le bouton 'Reporter'",
+          "snooze_duration_hours": "Durée du report (heures)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Ajoute un bouton pour marquer la tâche comme terminée directement depuis la notification.",
+          "action_skip_enabled": "Ajoute un bouton pour passer le cycle de maintenance actuel depuis la notification.",
+          "action_snooze_enabled": "Ajoute un bouton pour reporter le rappel de notification.",
+          "snooze_duration_hours": "Durée du report des notifications lorsque le bouton reporter est pressé."
+        }
+      },
+      "budget_settings": {
+        "title": "Paramètres de budget",
+        "description": "Définissez des budgets de maintenance mensuels et annuels pour suivre les dépenses.",
+        "data": {
+          "budget_monthly": "Budget mensuel",
+          "budget_yearly": "Budget annuel",
+          "budget_alerts_enabled": "Activer les alertes de budget",
+          "budget_alert_threshold": "Seuil d'alerte (%)"
+        },
+        "data_description": {
+          "budget_monthly": "Dépenses de maintenance mensuelles maximales. Définir à 0 pour désactiver.",
+          "budget_yearly": "Dépenses de maintenance annuelles maximales. Définir à 0 pour désactiver.",
+          "budget_alerts_enabled": "Envoyer une notification lorsque les dépenses dépassent le seuil d'alerte.",
+          "budget_alert_threshold": "Pourcentage du budget auquel envoyer une alerte."
+        }
+      },
+      "manage_groups": {
+        "title": "Gérer les groupes",
+        "description": "Sélectionnez un groupe à gérer ou créez-en un nouveau.",
+        "data": {
+          "selected_group": "Sélectionner un groupe"
+        }
+      },
+      "add_group": {
+        "title": "Ajouter un groupe",
+        "description": "Créez un nouveau groupe de maintenance pour organiser les tâches associées.",
+        "data": {
+          "group_name": "Nom du groupe",
+          "group_description": "Description"
+        },
+        "data_description": {
+          "group_name": "Un nom pour ce groupe (ex. : 'Maintenance de printemps').",
+          "group_description": "Description optionnelle pour ce groupe."
+        }
+      },
+      "manage_tasks": {
+        "title": "Gérer les tâches",
+        "description": "Sélectionnez une tâche à modifier ou supprimer.",
+        "data": {
+          "selected_task": "Sélectionner une tâche"
+        }
+      },
+      "task_action": {
+        "title": "Actions de tâche",
+        "description": "Tâche : {task_name} — Choisissez une action.",
+        "menu_options": {
+          "edit_task": "Modifier la tâche",
+          "edit_checklist": "Modifier la liste de contrôle",
+          "adaptive_scheduling": "Planification adaptative",
+          "delete_task": "Supprimer la tâche",
+          "manage_tasks": "Retour"
+        }
+      },
+      "edit_task": {
+        "title": "Modifier la tâche",
+        "data": {
+          "name": "Nom de la tâche",
+          "type": "Type de maintenance",
+          "interval_days": "Intervalle (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        }
+      },
+      "edit_checklist": {
+        "title": "Modifier la liste de contrôle",
+        "description": "Définissez les étapes de la liste de contrôle pour {task_name}. Saisissez une étape par ligne.",
+        "data": {
+          "checklist_text": "Étapes de la liste de contrôle"
+        },
+        "data_description": {
+          "checklist_text": "Saisissez chaque étape sur une ligne séparée. Ces étapes seront affichées lors de la réalisation de la tâche."
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Planification adaptative",
+        "description": "Configurez l'adaptation intelligente des intervalles pour {task_name}. Le système apprend de vos retours de réalisation pour suggérer de meilleurs intervalles.",
+        "data": {
+          "adaptive_enabled": "Activer la planification adaptative",
+          "ewa_alpha": "Taux d'apprentissage (alpha)",
+          "min_interval_days": "Intervalle minimum (jours)",
+          "max_interval_days": "Intervalle maximum (jours)",
+          "seasonal_enabled": "Activer la sensibilité saisonnière",
+          "sensor_prediction_enabled": "Activer les prédictions capteur",
+          "environmental_entity": "Capteur environnemental (optionnel)"
+        },
+        "data_description": {
+          "adaptive_enabled": "Lorsqu'activé, le système apprend de vos retours et suggère des intervalles de maintenance optimaux.",
+          "ewa_alpha": "Vitesse d'adaptation de l'algorithme aux nouvelles données. Plus élevé = plus réactif, plus bas = plus stable.",
+          "min_interval_days": "L'intervalle le plus court que le système recommandera.",
+          "max_interval_days": "L'intervalle le plus long que le système recommandera.",
+          "seasonal_enabled": "Ajuster les recommandations selon les tendances saisonnières apprises de votre historique de maintenance.",
+          "sensor_prediction_enabled": "Analyser les tendances capteur pour prédire quand les seuils seront atteints et suggérer une maintenance anticipée si nécessaire.",
+          "environmental_entity": "Associez un capteur de température, d'humidité ou de pression pour corréler les conditions environnementales avec les intervalles de maintenance."
+        }
+      },
+      "delete_task": {
+        "title": "Supprimer la tâche",
+        "description": "Êtes-vous sûr de vouloir supprimer la tâche {task_name} ? Cette action est irréversible.",
+        "data": {
+          "confirm": "Confirmer la suppression"
+        }
+      },
+      "add_task": {
+        "title": "Ajouter une tâche de maintenance",
+        "data": {
+          "name": "Nom de la tâche",
+          "type": "Type de maintenance",
+          "schedule_type": "Type de planification"
+        }
+      },
+      "opt_time_based": {
+        "title": "Planification temporelle",
+        "data": {
+          "interval_days": "Intervalle (jours)",
+          "last_performed": "Dernière exécution",
+          "warning_days": "Jours d'avertissement avant échéance"
+        }
+      },
+      "opt_manual": {
+        "title": "Planification manuelle",
+        "data": {
+          "warning_days": "Jours d'avertissement avant échéance",
+          "notes": "Notes"
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Sélectionner le capteur déclencheur",
+        "data": {
+          "trigger_entity": "Entité à surveiller"
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Sélectionner l'attribut",
+        "description": "Choisissez quelle valeur surveiller de {entity_id}. État actuel : {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Valeur à surveiller"
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Type de déclencheur",
+        "data": {
+          "trigger_type": "Type de déclencheur"
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Configuration du seuil",
+        "description": "Définissez les seuils pour **{entity_id}** ({attribute}).\nActuel : **{current_value} {unit}** | Moy. : {average} | Plage : {minimum}–{maximum} ({data_period}j)\nSeuil haut suggéré : {suggested_above} | Seuil bas suggéré : {suggested_below}",
+        "data": {
+          "trigger_above": "Déclencher au-dessus de",
+          "trigger_below": "Déclencher en-dessous de",
+          "trigger_for_minutes": "Pendant au moins (minutes)",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Configuration du compteur",
+        "description": "Définissez la valeur cible du compteur pour {entity_id} ({attribute}). Actuel : {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Valeur cible",
+          "trigger_delta_mode": "Mode delta (compter les changements, pas la valeur absolue)",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Configuration du changement d'état",
+        "description": "Comptez les transitions d'état de {entity_id}.",
+        "data": {
+          "trigger_from_state": "Depuis l'état (optionnel)",
+          "trigger_to_state": "Vers l'état (optionnel)",
+          "trigger_target_changes": "Nombre de changements pour déclencher",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Configuration du temps de fonctionnement",
+        "description": "Suivez le temps de fonctionnement cumulé de {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Temps de fonctionnement cible (heures)",
+          "interval_days": "Intervalle de sécurité (jours)",
+          "warning_days": "Jours d'avertissement avant échéance"
+        }
+      },
+      "object_settings": {
+        "title": "Paramètres de l'objet",
+        "data": {
+          "name": "Nom de l'objet",
+          "manufacturer": "Fabricant",
+          "model": "Modèle"
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Nettoyage",
+        "inspection": "Inspection",
+        "replacement": "Remplacement",
+        "calibration": "Calibration",
+        "service": "Service",
+        "custom": "Personnalisé"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Temporel",
+        "sensor_based": "Basé sur capteur",
+        "manual": "Manuel"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Seuil",
+        "counter": "Compteur",
+        "state_change": "Changement d'état",
+        "runtime": "Temps de fonctionnement"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Bientôt dû",
+          "overdue": "En retard",
+          "triggered": "Déclenché"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Type de maintenance",
+            "state": {
+              "cleaning": "Nettoyage",
+              "inspection": "Inspection",
+              "replacement": "Remplacement",
+              "calibration": "Calibration",
+              "service": "Service",
+              "custom": "Personnalisé"
+            }
+          },
+          "schedule_type": {
+            "name": "Type de planification",
+            "state": {
+              "time_based": "Temporel",
+              "sensor_based": "Basé sur capteur",
+              "manual": "Manuel"
+            }
+          },
+          "interval_days": { "name": "Intervalle (jours)" },
+          "warning_days": { "name": "Jours d'avertissement" },
+          "last_performed": { "name": "Dernière exécution" },
+          "next_due": { "name": "Prochaine échéance" },
+          "days_until_due": { "name": "Jours avant échéance" },
+          "parent_object": { "name": "Objet parent" },
+          "times_performed": { "name": "Nombre d'exécutions" },
+          "total_cost": { "name": "Coût total" },
+          "average_duration": { "name": "Durée moyenne (min)" },
+          "notes": { "name": "Notes" },
+          "documentation_url": { "name": "URL de documentation" },
+          "trigger_entity": { "name": "Entité déclencheur" },
+          "trigger_attribute": { "name": "Attribut déclencheur" },
+          "trigger_type": {
+            "name": "Type de déclencheur",
+            "state": {
+              "threshold": "Seuil",
+              "counter": "Compteur",
+              "state_change": "Changement d'état",
+              "runtime": "Temps de fonctionnement"
+            }
+          },
+          "trigger_active": { "name": "Déclencheur actif" },
+          "trigger_current_value": { "name": "Valeur actuelle du déclencheur" },
+          "trigger_entity_state": {
+            "name": "État de l'entité déclencheur",
+            "state": {
+              "available": "Disponible",
+              "unavailable": "Indisponible",
+              "missing": "Manquant",
+              "startup": "Démarrage"
+            }
+          },
+          "trigger_above": { "name": "Déclencheur au-dessus" },
+          "trigger_below": { "name": "Déclencheur en-dessous" },
+          "trigger_for_minutes": { "name": "Déclencheur pendant (minutes)" },
+          "trigger_target_value": { "name": "Valeur cible du déclencheur" },
+          "trigger_delta_mode": { "name": "Mode delta du déclencheur" },
+          "trigger_baseline_value": { "name": "Valeur de référence du déclencheur" },
+          "trigger_current_delta": { "name": "Delta actuel du déclencheur" },
+          "trigger_from_state": { "name": "Déclencheur depuis état" },
+          "trigger_to_state": { "name": "Déclencheur vers état" },
+          "trigger_target_changes": { "name": "Changements cibles du déclencheur" },
+          "trigger_change_count": { "name": "Compteur de changements du déclencheur" },
+          "trigger_runtime_hours": { "name": "Temps de fonctionnement cible (heures)" },
+          "trigger_accumulated_hours": { "name": "Temps de fonctionnement cumulé (heures)" },
+          "trigger_remaining_hours": { "name": "Temps de fonctionnement restant (heures)" },
+          "last_entry": { "name": "Dernière entrée" },
+          "suggested_interval": { "name": "Intervalle suggéré" },
+          "interval_confidence": {
+            "name": "Confiance de l'intervalle",
+            "state": {
+              "low": "Faible",
+              "medium": "Moyenne",
+              "high": "Élevée"
+            }
+          },
+          "adaptive_scheduling_enabled": { "name": "Planification adaptative activée" },
+          "seasonal_factor": { "name": "Facteur saisonnier" },
+          "seasonal_reason": {
+            "name": "Raison saisonnière",
+            "state": {
+              "learned": "Appris",
+              "manual": "Manuel"
+            }
+          },
+          "degradation_rate": { "name": "Taux de dégradation" },
+          "degradation_trend": {
+            "name": "Tendance de dégradation",
+            "state": {
+              "rising": "En hausse",
+              "falling": "En baisse",
+              "stable": "Stable",
+              "insufficient_data": "Données insuffisantes"
+            }
+          },
+          "days_until_threshold": { "name": "Jours avant seuil" },
+          "threshold_prediction_confidence": {
+            "name": "Confiance de prédiction",
+            "state": {
+              "low": "Faible",
+              "medium": "Moyenne",
+              "high": "Élevée"
+            }
+          },
+          "environmental_factor": { "name": "Facteur environnemental" },
+          "environmental_entity": { "name": "Entité environnementale" },
+          "weibull_beta": { "name": "Forme Weibull (β)" },
+          "weibull_eta": { "name": "Échelle Weibull (η)" },
+          "weibull_r_squared": { "name": "R² Weibull" },
+          "weibull_beta_interpretation": {
+            "name": "Type de défaillance",
+            "state": {
+              "early_failures": "Défaillances précoces",
+              "random_failures": "Défaillances aléatoires",
+              "wear_out": "Usure",
+              "highly_predictable": "Très prévisible"
+            }
+          },
+          "confidence_interval_low": { "name": "Intervalle de confiance (bas)" },
+          "confidence_interval_high": { "name": "Intervalle de confiance (haut)" }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Calendrier de maintenance"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Terminer la maintenance",
+      "description": "Marquer une tâche de maintenance comme terminée.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "L'entité capteur de maintenance à terminer."
+        },
+        "notes": {
+          "name": "Notes",
+          "description": "Notes optionnelles sur la maintenance effectuée."
+        },
+        "cost": {
+          "name": "Coût",
+          "description": "Coût de la maintenance effectuée."
+        },
+        "duration": {
+          "name": "Durée",
+          "description": "Durée de la maintenance en minutes."
+        }
+      }
+    },
+    "reset": {
+      "name": "Réinitialiser la maintenance",
+      "description": "Réinitialiser la date de dernière exécution d'une tâche de maintenance.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "L'entité capteur de maintenance à réinitialiser."
+        },
+        "date": {
+          "name": "Date",
+          "description": "La date à définir comme dernière exécution. Par défaut aujourd'hui."
+        }
+      }
+    },
+    "skip": {
+      "name": "Passer la maintenance",
+      "description": "Passer le cycle de maintenance actuel.",
+      "fields": {
+        "entity_id": {
+          "name": "Entité",
+          "description": "L'entité capteur de maintenance à passer."
+        },
+        "reason": {
+          "name": "Raison",
+          "description": "Raison optionnelle pour passer la maintenance."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Exporter les données",
+      "description": "Exporter toutes les données de maintenance en JSON ou YAML.",
+      "fields": {
+        "format": {
+          "name": "Format",
+          "description": "Format de sortie pour les données exportées (json ou yaml)."
+        },
+        "include_history": {
+          "name": "Inclure l'historique",
+          "description": "Inclure ou non les entrées d'historique des tâches dans l'exportation."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Capteur déclencheur introuvable : {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Entité déclencheur manquante",
+            "description": "L'entité capteur `{entity_id}` configurée comme déclencheur pour la tâche « {task_name} » sur l'objet « {object_name} » n'est plus disponible.\n\nChoisissez comment résoudre ce problème :",
+            "menu_options": {
+              "replace_entity": "Remplacer par une autre entité",
+              "remove_trigger": "Supprimer le déclencheur capteur",
+              "dismiss": "Ignorer (réapparaîtra)"
+            }
+          },
+          "replace_entity": {
+            "title": "Remplacer l'entité déclencheur",
+            "description": "Sélectionnez une nouvelle entité pour remplacer `{entity_id}` comme déclencheur pour la tâche « {task_name} » sur « {object_name} ».",
+            "data": {
+              "new_entity_id": "Nouvelle entité déclencheur"
+            },
+            "data_description": {
+              "new_entity_id": "Sélectionnez la nouvelle entité capteur à utiliser comme déclencheur."
+            }
+          },
+          "remove_trigger": {
+            "title": "Supprimer le déclencheur capteur",
+            "description": "Cela supprimera le déclencheur capteur de la tâche « {task_name} » sur « {object_name} » et convertira la planification en temporelle ou manuelle. L'historique de maintenance sera conservé.\n\nEntité déclencheur précédente : `{entity_id}`"
+          }
+        }
+      }
+    }
+  }
+}
