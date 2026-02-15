@@ -144,10 +144,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             self._template_category = user_input["template_category"]
             return await self.async_step_template_select()
 
+        lang = (getattr(self.hass.config, "language", None) or "en")[:2].lower()
         options = [
             selector.SelectOptionDict(
                 value=cat_id,
-                label=f"{cat['name_en']} / {cat['name_de']}",
+                label=cat.get(f"name_{lang}", cat["name_en"]),
             )
             for cat_id, cat in TEMPLATE_CATEGORIES.items()
         ]

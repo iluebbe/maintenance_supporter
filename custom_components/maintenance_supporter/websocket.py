@@ -921,9 +921,7 @@ async def ws_get_templates(
     result = {
         "categories": {
             cat_id: {
-                "icon": cat["icon"],
-                "name_en": cat["name_en"],
-                "name_de": cat["name_de"],
+                k: v for k, v in cat.items()
             }
             for cat_id, cat in TEMPLATE_CATEGORIES.items()
         },
