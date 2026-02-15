@@ -223,7 +223,9 @@
       "invalid_entity": "La entidad seleccionada no existe o no tiene datos numéricos.",
       "invalid_attribute": "El atributo seleccionado no está disponible en esta entidad.",
       "invalid_threshold": "Se debe establecer al menos un umbral (superior o inferior).",
-      "invalid_interval": "El intervalo debe ser un número positivo."
+      "invalid_interval": "El intervalo debe ser un número positivo.",
+      "invalid_notify_service": "Formato del servicio de notificación no válido. Use 'notify.nombre_servicio' (ej.: notify.mobile_app_phone).",
+      "notify_service_not_found": "Este servicio de notificación no se encontró en Home Assistant. Verifique el nombre del servicio."
     },
     "abort": {
       "already_configured": "Este objeto de mantenimiento ya está configurado.",
@@ -253,6 +255,7 @@
           "manage_groups": "Gestionar grupos",
           "notification_settings": "Configuración de notificaciones",
           "notification_actions": "Acciones interactivas",
+          "test_notification": "Enviar notificación de prueba",
           "done": "Listo"
         }
       },
@@ -351,6 +354,10 @@
           "budget_alerts_enabled": "Enviar una notificación cuando los gastos superen el umbral de alerta.",
           "budget_alert_threshold": "Porcentaje del presupuesto en el que enviar una alerta."
         }
+      },
+      "test_notification": {
+        "title": "Notificación de prueba",
+        "description": "{result}"
       },
       "manage_groups": {
         "title": "Gestionar grupos",

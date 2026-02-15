@@ -750,3 +750,62 @@ def test_format_threshold_placeholders_output() -> None:
     assert "average" in result
     assert "suggested_above" in result
     assert "suggested_below" in result
+
+
+# ─── Notify Service Validation ──────────────────────────────────────────
+
+
+async def test_global_setup_auto_fixes_notify_service(hass: HomeAssistant) -> None:
+    """Test that entering a service name without 'notify.' prefix is auto-fixed."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["step_id"] == "global_setup"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "all_devices_ingmar",
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_NOTIFY_SERVICE] == "notify.all_devices_ingmar"
+
+
+async def test_global_setup_valid_notify_service(hass: HomeAssistant) -> None:
+    """Test that a correctly formatted notify service passes through unchanged."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.mobile_app_phone",
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_NOTIFY_SERVICE] == "notify.mobile_app_phone"
+
+
+async def test_global_setup_invalid_notify_service(hass: HomeAssistant) -> None:
+    """Test that an invalid notify service format shows an error."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "a.b.c",
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "global_setup"
+    assert result["errors"][CONF_NOTIFY_SERVICE] == "invalid_notify_service"

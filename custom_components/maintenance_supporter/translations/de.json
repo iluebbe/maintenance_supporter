@@ -223,7 +223,9 @@
       "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
       "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
       "invalid_threshold": "Mindestens ein Schwellwert (über oder unter) muss gesetzt werden.",
-      "invalid_interval": "Das Intervall muss eine positive Zahl sein."
+      "invalid_interval": "Das Intervall muss eine positive Zahl sein.",
+      "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
+      "notify_service_not_found": "Dieser Benachrichtigungsdienst wurde in Home Assistant nicht gefunden. Bitte prüfen Sie den Dienstnamen."
     },
     "abort": {
       "already_configured": "Dieses Wartungsobjekt ist bereits konfiguriert.",
@@ -253,6 +255,7 @@
           "manage_groups": "Gruppen verwalten",
           "notification_settings": "Benachrichtigungseinstellungen",
           "notification_actions": "Interaktive Aktionen",
+          "test_notification": "Testbenachrichtigung senden",
           "done": "Fertig"
         }
       },
@@ -351,6 +354,10 @@
           "budget_alerts_enabled": "Benachrichtigung senden, wenn die Ausgaben die Warnschwelle überschreiten.",
           "budget_alert_threshold": "Prozentsatz des Budgets, bei dem eine Warnung gesendet wird."
         }
+      },
+      "test_notification": {
+        "title": "Testbenachrichtigung",
+        "description": "{result}"
       },
       "manage_groups": {
         "title": "Gruppen verwalten",

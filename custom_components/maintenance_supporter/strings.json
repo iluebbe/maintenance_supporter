@@ -223,7 +223,9 @@
       "invalid_entity": "The selected entity does not exist or has no numeric data.",
       "invalid_attribute": "The selected attribute is not available on this entity.",
       "invalid_threshold": "At least one threshold (above or below) must be set.",
-      "invalid_interval": "Interval must be a positive number."
+      "invalid_interval": "Interval must be a positive number.",
+      "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
+      "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name."
     },
     "abort": {
       "already_configured": "This maintenance object is already configured.",
@@ -253,6 +255,7 @@
           "manage_groups": "Manage Groups",
           "notification_settings": "Notification Settings",
           "notification_actions": "Interactive Actions",
+          "test_notification": "Send Test Notification",
           "done": "Done"
         }
       },
@@ -351,6 +354,10 @@
           "action_snooze_enabled": "Adds a button to postpone the notification reminder.",
           "snooze_duration_hours": "How long to postpone notifications when snooze is pressed."
         }
+      },
+      "test_notification": {
+        "title": "Test Notification",
+        "description": "{result}"
       },
       "manage_groups": {
         "title": "Manage Groups",

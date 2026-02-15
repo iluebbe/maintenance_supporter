@@ -223,7 +223,9 @@
       "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
       "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
       "invalid_threshold": "Er moet minimaal één drempel (boven of onder) worden ingesteld.",
-      "invalid_interval": "Het interval moet een positief getal zijn."
+      "invalid_interval": "Het interval moet een positief getal zijn.",
+      "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
+      "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam."
     },
     "abort": {
       "already_configured": "Dit onderhoudsobject is al geconfigureerd.",
@@ -253,6 +255,7 @@
           "manage_groups": "Groepen beheren",
           "notification_settings": "Meldingsinstellingen",
           "notification_actions": "Interactieve acties",
+          "test_notification": "Testmelding verzenden",
           "done": "Gereed"
         }
       },
@@ -351,6 +354,10 @@
           "budget_alerts_enabled": "Een melding verzenden wanneer uitgaven de waarschuwingsdrempel overschrijden.",
           "budget_alert_threshold": "Percentage van het budget waarbij een waarschuwing wordt verzonden."
         }
+      },
+      "test_notification": {
+        "title": "Testmelding",
+        "description": "{result}"
       },
       "manage_groups": {
         "title": "Groepen beheren",

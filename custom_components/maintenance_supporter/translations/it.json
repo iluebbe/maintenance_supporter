@@ -223,7 +223,9 @@
       "invalid_entity": "L'entità selezionata non esiste o non ha dati numerici.",
       "invalid_attribute": "L'attributo selezionato non è disponibile per questa entità.",
       "invalid_threshold": "Almeno una soglia (superiore o inferiore) deve essere impostata.",
-      "invalid_interval": "L'intervallo deve essere un numero positivo."
+      "invalid_interval": "L'intervallo deve essere un numero positivo.",
+      "invalid_notify_service": "Formato del servizio di notifica non valido. Usa 'notify.nome_servizio' (es.: notify.mobile_app_phone).",
+      "notify_service_not_found": "Questo servizio di notifica non è stato trovato in Home Assistant. Verifica il nome del servizio."
     },
     "abort": {
       "already_configured": "Questo oggetto di manutenzione è già configurato.",
@@ -253,6 +255,7 @@
           "manage_groups": "Gestisci gruppi",
           "notification_settings": "Impostazioni notifiche",
           "notification_actions": "Azioni interattive",
+          "test_notification": "Invia notifica di test",
           "done": "Fatto"
         }
       },
@@ -351,6 +354,10 @@
           "budget_alerts_enabled": "Inviare una notifica quando le spese superano la soglia di avviso.",
           "budget_alert_threshold": "Percentuale del budget alla quale inviare un avviso."
         }
+      },
+      "test_notification": {
+        "title": "Notifica di test",
+        "description": "{result}"
       },
       "manage_groups": {
         "title": "Gestisci gruppi",

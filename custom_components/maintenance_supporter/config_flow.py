@@ -17,6 +17,7 @@ from homeassistant.config_entries import (
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
+from .config_flow_options_global import validate_notify_service
 from .config_flow_trigger import TriggerConfigMixin
 from .templates import TEMPLATE_CATEGORIES, TEMPLATES, get_template_by_id, get_templates_by_category
 from .const import (
@@ -84,21 +85,30 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Set up global configuration."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            await self.async_set_unique_id(GLOBAL_UNIQUE_ID)
-            self._abort_if_unique_id_configured()
-            return self.async_create_entry(
-                title="Maintenance Supporter",
-                data={
-                    CONF_DEFAULT_WARNING_DAYS: user_input.get(
-                        CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS
-                    ),
-                    CONF_NOTIFICATIONS_ENABLED: user_input.get(
-                        CONF_NOTIFICATIONS_ENABLED, False
-                    ),
-                    CONF_NOTIFY_SERVICE: user_input.get(CONF_NOTIFY_SERVICE, ""),
-                },
-            )
+            # Validate notify service format (no hass check — services may not be loaded yet)
+            raw_service = user_input.get(CONF_NOTIFY_SERVICE, "")
+            normalized, error = validate_notify_service(raw_service)
+            if error:
+                errors[CONF_NOTIFY_SERVICE] = error
+
+            if not errors:
+                await self.async_set_unique_id(GLOBAL_UNIQUE_ID)
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(
+                    title="Maintenance Supporter",
+                    data={
+                        CONF_DEFAULT_WARNING_DAYS: user_input.get(
+                            CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                        ),
+                        CONF_NOTIFICATIONS_ENABLED: user_input.get(
+                            CONF_NOTIFICATIONS_ENABLED, False
+                        ),
+                        CONF_NOTIFY_SERVICE: normalized,
+                    },
+                )
 
         return self.async_show_form(
             step_id="global_setup",
@@ -123,6 +133,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     ),
                 }
             ),
+            errors=errors,
         )
 
     async def async_step_create_from_template(

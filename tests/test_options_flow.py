@@ -73,6 +73,9 @@ async def test_global_options_update(
     """Test updating global options via general_settings."""
     await setup_integration(hass, global_config_entry)
 
+    # Register mock notify service so validation passes
+    hass.services.async_register("notify", "my_phone", lambda *a: None)
+
     # Step 1: Init shows menu
     result = await hass.config_entries.options.async_init(
         global_config_entry.entry_id
@@ -540,5 +543,162 @@ async def test_options_manual_task_via_options(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
 
-    updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
-    assert len(updated_tasks) == initial_task_count + 1
+    updated_tasks_manual = object_config_entry.data.get(CONF_TASKS, {})
+    assert len(updated_tasks_manual) == initial_task_count + 1
+
+
+# ─── Notify Service Validation (Options Flow) ──────────────────────────
+
+
+async def test_general_settings_auto_fixes_notify_service(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Test that entering a service without 'notify.' prefix is auto-fixed."""
+    await setup_integration(hass, global_config_entry)
+
+    # Register the service so it passes the existence check
+    hass.services.async_register("notify", "my_phone", lambda *a: None)
+
+    result = await hass.config_entries.options.async_init(
+        global_config_entry.entry_id
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "general_settings"},
+    )
+    assert result["step_id"] == "general_settings"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "my_phone",
+            CONF_PANEL_ENABLED: False,
+        },
+    )
+    # Should return to menu (save succeeded) — not show form with errors
+    assert result["type"] == FlowResultType.MENU
+    assert global_config_entry.options[CONF_NOTIFY_SERVICE] == "notify.my_phone"
+
+
+async def test_general_settings_notify_service_not_found(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Test that a well-formatted but non-existent service shows an error."""
+    await setup_integration(hass, global_config_entry)
+
+    result = await hass.config_entries.options.async_init(
+        global_config_entry.entry_id
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "general_settings"},
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.nonexistent_device",
+            CONF_PANEL_ENABLED: False,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "general_settings"
+    assert result["errors"][CONF_NOTIFY_SERVICE] == "notify_service_not_found"
+
+
+# ─── Test Notification ──────────────────────────────────────────────────
+
+
+async def test_test_notification_visible_when_enabled(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Test that test_notification menu option appears when notifications enabled."""
+    await setup_integration(hass, global_config_entry)
+
+    hass.config_entries.async_update_entry(
+        global_config_entry,
+        options={CONF_NOTIFICATIONS_ENABLED: True, CONF_NOTIFY_SERVICE: "notify.test"},
+    )
+
+    result = await hass.config_entries.options.async_init(
+        global_config_entry.entry_id
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert "test_notification" in result["menu_options"]
+
+
+async def test_test_notification_success(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Test sending a test notification successfully."""
+    await setup_integration(hass, global_config_entry)
+
+    hass.services.async_register("notify", "test_device", lambda *a: None)
+    hass.config_entries.async_update_entry(
+        global_config_entry,
+        options={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test_device",
+        },
+    )
+
+    result = await hass.config_entries.options.async_init(
+        global_config_entry.entry_id
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "test_notification"},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "test_notification"
+    assert "result" in result["description_placeholders"]
+    # Should contain success indicator
+    result_text = result["description_placeholders"]["result"]
+    assert "✅" in result_text or "success" in result_text.lower()
+
+
+async def test_test_notification_returns_to_menu(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Test that submitting the test result form returns to menu."""
+    await setup_integration(hass, global_config_entry)
+
+    hass.services.async_register("notify", "test_device", lambda *a: None)
+    hass.config_entries.async_update_entry(
+        global_config_entry,
+        options={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test_device",
+        },
+    )
+
+    result = await hass.config_entries.options.async_init(
+        global_config_entry.entry_id
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "test_notification"},
+    )
+    assert result["step_id"] == "test_notification"
+
+    # Submit the empty result form → should return to menu
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "global_init"

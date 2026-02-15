@@ -6,12 +6,15 @@ Split from config_flow_options.py for better maintainability.
 
 from __future__ import annotations
 
+import logging
+import re
 from typing import Any
 from uuid import uuid4
 
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import selector
 
 from .const import (
@@ -52,6 +55,89 @@ from .const import (
 )
 
 
+_LOGGER = logging.getLogger(__name__)
+
+_VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
+
+
+def validate_notify_service(
+    raw: str, hass: HomeAssistant | None = None
+) -> tuple[str, str | None]:
+    """Normalize and validate a notify service string.
+
+    Returns (normalized_value, error_key | None).
+    """
+    value = raw.strip()
+    if not value:
+        return ("", None)
+
+    # Auto-fix: prepend "notify." if missing
+    if "." not in value:
+        value = f"notify.{value}"
+
+    parts = value.split(".")
+    if (
+        len(parts) != 2
+        or parts[0] != "notify"
+        or not parts[1]
+        or not _VALID_SERVICE_PART.match(parts[1])
+    ):
+        return (value, "invalid_notify_service")
+
+    # Check service existence (only when hass available, i.e. options flow)
+    if hass is not None and not hass.services.has_service(parts[0], parts[1]):
+        return (value, "notify_service_not_found")
+
+    return (value, None)
+
+
+_TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
+    "de": {
+        "success": "✅ Testbenachrichtigung erfolgreich gesendet! Prüfen Sie Ihr Gerät.",
+        "no_service": "⚠️ Kein Benachrichtigungsdienst konfiguriert. Bitte zuerst unter Allgemeine Einstellungen einen Dienst einrichten.",
+        "invalid_service": "❌ Das Format des Benachrichtigungsdienstes ist ungültig. Verwenden Sie 'notify.dienstname'.",
+        "failed": "❌ Testbenachrichtigung konnte nicht gesendet werden. Bitte prüfen Sie Ihre Konfiguration.",
+    },
+    "nl": {
+        "success": "✅ Testmelding succesvol verzonden! Controleer uw apparaat.",
+        "no_service": "⚠️ Geen meldingsservice geconfigureerd. Stel eerst een service in onder Algemene instellingen.",
+        "invalid_service": "❌ Het formaat van de meldingsservice is ongeldig. Gebruik 'notify.servicenaam'.",
+        "failed": "❌ Testmelding kon niet worden verzonden. Controleer uw configuratie.",
+    },
+    "fr": {
+        "success": "✅ Notification de test envoyée avec succès ! Vérifiez votre appareil.",
+        "no_service": "⚠️ Aucun service de notification configuré. Veuillez d'abord configurer un service dans les paramètres généraux.",
+        "invalid_service": "❌ Le format du service de notification est invalide. Utilisez 'notify.nom_du_service'.",
+        "failed": "❌ Impossible d'envoyer la notification de test. Veuillez vérifier votre configuration.",
+    },
+    "it": {
+        "success": "✅ Notifica di test inviata con successo! Controlla il tuo dispositivo.",
+        "no_service": "⚠️ Nessun servizio di notifica configurato. Configura prima un servizio nelle impostazioni generali.",
+        "invalid_service": "❌ Il formato del servizio di notifica non è valido. Usa 'notify.nome_servizio'.",
+        "failed": "❌ Impossibile inviare la notifica di test. Verifica la tua configurazione.",
+    },
+    "es": {
+        "success": "✅ Notificación de prueba enviada con éxito. Revise su dispositivo.",
+        "no_service": "⚠️ No hay servicio de notificación configurado. Configure primero un servicio en la configuración general.",
+        "invalid_service": "❌ El formato del servicio de notificación no es válido. Use 'notify.nombre_servicio'.",
+        "failed": "❌ No se pudo enviar la notificación de prueba. Verifique su configuración.",
+    },
+    "en": {
+        "success": "✅ Test notification sent successfully! Check your device.",
+        "no_service": "⚠️ No notification service configured. Please configure a service in General Settings first.",
+        "invalid_service": "❌ The notification service format is invalid. Use 'notify.service_name'.",
+        "failed": "❌ Failed to send the test notification. Please verify your service configuration.",
+    },
+}
+
+
+def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
+    """Get localized test notification result text."""
+    lang = (getattr(hass.config, "language", None) or "en")[:2].lower()
+    texts = _TEST_NOTIFICATION_RESULTS.get(lang, _TEST_NOTIFICATION_RESULTS["en"])
+    return texts.get(key, texts.get("failed", key))
+
+
 class GlobalOptionsFlow(OptionsFlow):
     """Handle global options with menu-based navigation."""
 
@@ -81,7 +167,11 @@ class GlobalOptionsFlow(OptionsFlow):
         if current.get(CONF_ADVANCED_GROUPS, False):
             options.append("manage_groups")
         if current.get(CONF_NOTIFICATIONS_ENABLED, False):
-            options.extend(["notification_settings", "notification_actions"])
+            options.extend([
+                "notification_settings",
+                "notification_actions",
+                "test_notification",
+            ])
         options.append("done")
         return options
 
@@ -170,8 +260,18 @@ class GlobalOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """General settings: warning days, notifications toggle, service, panel."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            return self._save_and_return(user_input)
+            raw_service = user_input.get(CONF_NOTIFY_SERVICE, "")
+            normalized, error = validate_notify_service(raw_service, hass=self.hass)
+            if error:
+                errors[CONF_NOTIFY_SERVICE] = error
+            else:
+                user_input[CONF_NOTIFY_SERVICE] = normalized
+
+            if not errors:
+                return self._save_and_return(user_input)
 
         current = self._current
 
@@ -203,6 +303,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.BooleanSelector(),
                 }
             ),
+            errors=errors,
         )
 
     # --- Notification Settings ---
@@ -339,6 +440,58 @@ class GlobalOptionsFlow(OptionsFlow):
                     ),
                 }
             ),
+        )
+
+    # --- Test Notification ---
+
+    async def async_step_test_notification(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Send a test notification and show the result."""
+        if user_input is not None:
+            # User acknowledged the result — return to menu
+            return self.async_show_menu(
+                step_id="global_init",
+                menu_options=self._menu_options(),
+            )
+
+        # First call: send the test notification
+        current = self._current
+        notify_service = current.get(CONF_NOTIFY_SERVICE, "")
+
+        if not notify_service:
+            result_key = "no_service"
+        else:
+            normalized, error = validate_notify_service(
+                notify_service, hass=self.hass
+            )
+            if error:
+                result_key = "invalid_service"
+            else:
+                try:
+                    parts = normalized.split(".")
+                    await self.hass.services.async_call(
+                        parts[0],
+                        parts[1],
+                        {
+                            "title": "Maintenance Supporter",
+                            "message": "🔧 Test notification — your notification setup is working!",
+                        },
+                        blocking=True,
+                    )
+                    result_key = "success"
+                except Exception:
+                    _LOGGER.debug(
+                        "Test notification failed for %s", notify_service, exc_info=True
+                    )
+                    result_key = "failed"
+
+        result_text = _get_test_result_text(self.hass, result_key)
+
+        return self.async_show_form(
+            step_id="test_notification",
+            data_schema=vol.Schema({}),
+            description_placeholders={"result": result_text},
         )
 
     # --- Budget Settings ---
