@@ -468,8 +468,8 @@ class NotificationManager:
                 lang,
                 task=task_name,
                 object=object_name,
-                days=str(days_until_due or "?"),
-                due=next_due or "?",
+                days=str(days_until_due) if days_until_due is not None else "?",
+                due=next_due if next_due is not None else "?",
             )
         elif status == MaintenanceStatus.OVERDUE:
             title = _notif_t("overdue_title", lang)
