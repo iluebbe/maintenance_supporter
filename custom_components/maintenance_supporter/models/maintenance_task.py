@@ -67,8 +67,11 @@ class MaintenanceTask:
     @property
     def next_due(self) -> date | None:
         """Calculate the next due date based on last_performed and interval."""
-        if self.interval_days is None or self.last_performed is None:
+        if self.interval_days is None:
             return None
+        if self.last_performed is None:
+            # Never performed but has interval → due today
+            return dt_util.now().date()
         try:
             last = date.fromisoformat(self.last_performed)
             return last + timedelta(days=self.interval_days)
@@ -80,9 +83,6 @@ class MaintenanceTask:
         """Calculate days until the task is due. Negative means overdue."""
         due = self.next_due
         if due is None:
-            # If never performed but has interval, it's immediately due
-            if self.interval_days is not None and self.last_performed is None:
-                return 0
             return None
         return (due - dt_util.now().date()).days
 

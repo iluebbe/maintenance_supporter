@@ -168,11 +168,11 @@ class TestNextDue:
         assert task.next_due == date(2024, 7, 1)
 
     def test_no_last_performed(self) -> None:
-        """Test next_due with no last_performed."""
+        """Test next_due with no last_performed returns today (immediately due)."""
         task = MaintenanceTask.from_dict(
             build_task_data(interval_days=30, last_performed=None)
         )
-        assert task.next_due is None
+        assert task.next_due == dt_util.now().date()
 
 
 # ─── 6.4 Integration Status via Coordinator ─────────────────────────────
