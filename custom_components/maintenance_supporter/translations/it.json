@@ -411,7 +411,11 @@
           "notes": "Note",
           "documentation_url": "URL documentazione",
           "last_performed": "Ultima esecuzione",
-          "responsible_user_id": "ID utente responsabile"
+          "responsible_user_id": "Utente responsabile"
+        },
+        "data_description": {
+          "enabled": "Quando disabilitato, la pianificazione e i trigger vengono sospesi. L'attività non viene eliminata.",
+          "responsible_user_id": "L'utente Home Assistant responsabile di questa attività."
         }
       },
       "edit_checklist": {
@@ -455,9 +459,17 @@
       },
       "remove_trigger": {
         "title": "Rimuovi trigger",
-        "description": "Rimuovere il trigger del sensore dall'attività {task_name}? La pianificazione tornerà a essere temporale.",
+        "description": "Rimuovere il trigger da **{task_name}**?\n\n**Entità:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configurazione:** {config_details}\n\nLa pianificazione tornerà a essere temporale.",
         "data": {
           "confirm": "Conferma rimozione"
+        }
+      },
+      "trigger_summary": {
+        "title": "Trigger attuale",
+        "description": "Trigger per **{task_name}**:\n\n**Entità:** {entity_ids}\n**Stato attuale:** {current_states}\n**Tipo:** {trigger_type} (attributo: {attribute})\n**Configurazione:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Modifica trigger",
+          "task_action": "Indietro"
         }
       },
       "add_task": {

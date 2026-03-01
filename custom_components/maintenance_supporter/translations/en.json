@@ -411,7 +411,11 @@
           "notes": "Notes",
           "documentation_url": "Documentation URL",
           "last_performed": "Last performed",
-          "responsible_user_id": "Responsible user ID"
+          "responsible_user_id": "Responsible user"
+        },
+        "data_description": {
+          "enabled": "When disabled, scheduling and triggers are paused. The task is not deleted.",
+          "responsible_user_id": "The Home Assistant user responsible for this task."
         }
       },
       "edit_checklist": {
@@ -455,9 +459,17 @@
       },
       "remove_trigger": {
         "title": "Remove Trigger",
-        "description": "Remove the sensor trigger from task {task_name}? The schedule will revert to time-based.",
+        "description": "Remove trigger from **{task_name}**?\n\n**Entity:** {entity_ids}\n**Type:** {trigger_type}\n**Config:** {config_details}\n\nThe schedule will revert to time-based.",
         "data": {
           "confirm": "Confirm removal"
+        }
+      },
+      "trigger_summary": {
+        "title": "Current Trigger",
+        "description": "Trigger for **{task_name}**:\n\n**Entity:** {entity_ids}\n**Current state:** {current_states}\n**Type:** {trigger_type} (attribute: {attribute})\n**Config:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Edit Trigger",
+          "task_action": "Back"
         }
       },
       "add_task": {

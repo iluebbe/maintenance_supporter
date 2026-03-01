@@ -4,10 +4,12 @@ Tests cover:
 - GlobalOptionsFlow: menu, general_settings update
 - MaintenanceOptionsFlow: menu, manage_tasks, task_action, add_task (time-based),
   add_task (sensor threshold/counter/state_change via TriggerConfigMixin),
-  object_settings update
+  object_settings update, trigger_summary, remove_trigger info
 """
 
 from __future__ import annotations
+
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -831,6 +833,26 @@ async def test_remove_trigger_cancel(
     assert task["schedule_type"] == ScheduleType.SENSOR_BASED
 
 
+# ─── Helpers for auth mock ─────────────────────────────────────────────
+
+
+def _mock_auth_users(hass: HomeAssistant) -> None:
+    """Mock hass.auth.async_get_users to return test users."""
+    user1 = MagicMock()
+    user1.id = "abc123user"
+    user1.name = "Test User"
+    user1.is_active = True
+    user1.system_generated = False
+
+    user2 = MagicMock()
+    user2.id = "system_user"
+    user2.name = "System"
+    user2.is_active = True
+    user2.system_generated = True  # Should be filtered out
+
+    hass.auth.async_get_users = AsyncMock(return_value=[user1, user2])
+
+
 # ─── 4.8 Edit Task with New Fields ────────────────────────────────────
 
 
@@ -840,6 +862,8 @@ async def test_edit_task_new_fields(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test editing a task with enabled, notes, documentation_url, last_performed, responsible_user_id."""
+    _mock_auth_users(hass)
+
     result, task_id = await _navigate_to_task_action(
         hass, global_config_entry, object_config_entry
     )
@@ -891,6 +915,8 @@ async def test_edit_task_partial_new_fields(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test editing a task with only some new fields leaves others unchanged."""
+    _mock_auth_users(hass)
+
     result, task_id = await _navigate_to_task_action(
         hass, global_config_entry, object_config_entry
     )
@@ -991,3 +1017,188 @@ async def test_object_settings_without_new_fields(
 
     obj = object_config_entry.data.get(CONF_OBJECT, {})
     assert obj["name"] == "Updated Pump"
+
+
+# ─── 4.10 Trigger Summary UX ──────────────────────────────────────────
+
+
+async def _add_trigger_to_task(
+    hass: HomeAssistant,
+    global_entry: ConfigEntry,
+    object_entry: ConfigEntry,
+) -> str:
+    """Helper: add a threshold trigger to the first task, return task_id."""
+    hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
+
+    result, task_id = await _navigate_to_task_action(
+        hass, global_entry, object_entry
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.test"]},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 50.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    return task_id
+
+
+async def test_trigger_summary_shows_config(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that edit_trigger on a task with trigger_config shows trigger_summary."""
+    task_id = await _add_trigger_to_task(
+        hass, global_config_entry, object_config_entry
+    )
+
+    # Navigate to task_action again
+    result, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+
+    # Select edit_trigger — should route to trigger_summary
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "trigger_summary"
+    assert "edit_trigger_proceed" in result["menu_options"]
+    assert "task_action" in result["menu_options"]
+
+    # Verify description_placeholders contain trigger info
+    placeholders = result["description_placeholders"]
+    assert "sensor.test" in placeholders["entity_ids"]
+    assert placeholders["trigger_type"] == TriggerType.THRESHOLD
+    assert "above: 50.0" in placeholders["config_details"]
+
+
+async def test_trigger_summary_back(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that selecting 'Back' from trigger_summary returns to task_action."""
+    await _add_trigger_to_task(
+        hass, global_config_entry, object_config_entry
+    )
+
+    result, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    assert result["step_id"] == "trigger_summary"
+
+    # Select "Back" (task_action)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "task_action"},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+
+async def test_remove_trigger_shows_entity_info(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that remove_trigger description_placeholders contain entity/type/config info."""
+    await _add_trigger_to_task(
+        hass, global_config_entry, object_config_entry
+    )
+
+    result, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    assert "remove_trigger" in result["menu_options"]
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
+    )
+    assert result["step_id"] == "remove_trigger"
+
+    placeholders = result["description_placeholders"]
+    assert "sensor.test" in placeholders["entity_ids"]
+    assert placeholders["trigger_type"] == TriggerType.THRESHOLD
+    assert "above: 50.0" in placeholders["config_details"]
+    assert "task_name" in placeholders
+
+
+async def test_edit_task_user_dropdown_and_unassign(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that responsible_user_id uses a dropdown and empty string unassigns."""
+    _mock_auth_users(hass)
+
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    # Assign user first
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: True,
+            CONF_RESPONSIBLE_USER_ID: "abc123user",
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert object_config_entry.data[CONF_TASKS][task_id][CONF_RESPONSIBLE_USER_ID] == "abc123user"
+
+    # Now unassign by submitting empty string
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: True,
+            CONF_RESPONSIBLE_USER_ID: "",
+        },
+    )
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert CONF_RESPONSIBLE_USER_ID not in object_config_entry.data[CONF_TASKS][task_id]

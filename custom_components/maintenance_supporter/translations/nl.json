@@ -411,7 +411,11 @@
           "notes": "Notities",
           "documentation_url": "Documentatie-URL",
           "last_performed": "Laatst uitgevoerd",
-          "responsible_user_id": "Verantwoordelijke gebruikers-ID"
+          "responsible_user_id": "Verantwoordelijke gebruiker"
+        },
+        "data_description": {
+          "enabled": "Wanneer uitgeschakeld, worden planning en triggers gepauzeerd. De taak wordt niet verwijderd.",
+          "responsible_user_id": "De Home Assistant gebruiker die verantwoordelijk is voor deze taak."
         }
       },
       "edit_checklist": {
@@ -455,9 +459,17 @@
       },
       "remove_trigger": {
         "title": "Trigger verwijderen",
-        "description": "De sensortrigger van taak {task_name} verwijderen? Het schema wordt teruggezet naar tijdgebaseerd.",
+        "description": "Trigger verwijderen van **{task_name}**?\n\n**Entiteit:** {entity_ids}\n**Type:** {trigger_type}\n**Configuratie:** {config_details}\n\nHet schema wordt teruggezet naar tijdgebaseerd.",
         "data": {
           "confirm": "Verwijdering bevestigen"
+        }
+      },
+      "trigger_summary": {
+        "title": "Huidige trigger",
+        "description": "Trigger voor **{task_name}**:\n\n**Entiteit:** {entity_ids}\n**Huidige status:** {current_states}\n**Type:** {trigger_type} (attribuut: {attribute})\n**Configuratie:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Trigger bewerken",
+          "task_action": "Terug"
         }
       },
       "add_task": {

@@ -411,7 +411,11 @@
           "notes": "Notizen",
           "documentation_url": "Dokumentations-URL",
           "last_performed": "Zuletzt durchgeführt",
-          "responsible_user_id": "Verantwortliche Benutzer-ID"
+          "responsible_user_id": "Verantwortlicher Benutzer"
+        },
+        "data_description": {
+          "enabled": "Bei Deaktivierung werden Zeitplanung und Trigger pausiert. Die Aufgabe wird nicht gelöscht.",
+          "responsible_user_id": "Der für diese Aufgabe verantwortliche Home Assistant Benutzer."
         }
       },
       "edit_checklist": {
@@ -455,9 +459,17 @@
       },
       "remove_trigger": {
         "title": "Trigger entfernen",
-        "description": "Den Sensor-Trigger von Aufgabe {task_name} entfernen? Der Zeitplan wird auf zeitbasiert zurückgesetzt.",
+        "description": "Trigger von **{task_name}** entfernen?\n\n**Entität:** {entity_ids}\n**Typ:** {trigger_type}\n**Konfiguration:** {config_details}\n\nDer Zeitplan wird auf zeitbasiert zurückgesetzt.",
         "data": {
           "confirm": "Entfernung bestätigen"
+        }
+      },
+      "trigger_summary": {
+        "title": "Aktueller Trigger",
+        "description": "Trigger für **{task_name}**:\n\n**Entität:** {entity_ids}\n**Aktueller Zustand:** {current_states}\n**Typ:** {trigger_type} (Attribut: {attribute})\n**Konfiguration:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Trigger bearbeiten",
+          "task_action": "Zurück"
         }
       },
       "add_task": {

@@ -411,7 +411,11 @@
           "notes": "Notas",
           "documentation_url": "URL de documentación",
           "last_performed": "Última ejecución",
-          "responsible_user_id": "ID de usuario responsable"
+          "responsible_user_id": "Usuario responsable"
+        },
+        "data_description": {
+          "enabled": "Cuando está deshabilitado, la programación y los triggers se pausan. La tarea no se elimina.",
+          "responsible_user_id": "El usuario de Home Assistant responsable de esta tarea."
         }
       },
       "edit_checklist": {
@@ -455,9 +459,17 @@
       },
       "remove_trigger": {
         "title": "Eliminar trigger",
-        "description": "¿Eliminar el trigger del sensor de la tarea {task_name}? La programación volverá a ser temporal.",
+        "description": "¿Eliminar trigger de **{task_name}**?\n\n**Entidad:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configuración:** {config_details}\n\nLa programación volverá a ser temporal.",
         "data": {
           "confirm": "Confirmar eliminación"
+        }
+      },
+      "trigger_summary": {
+        "title": "Trigger actual",
+        "description": "Trigger para **{task_name}**:\n\n**Entidad:** {entity_ids}\n**Estado actual:** {current_states}\n**Tipo:** {trigger_type} (atributo: {attribute})\n**Configuración:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Editar trigger",
+          "task_action": "Volver"
         }
       },
       "add_task": {

@@ -411,7 +411,11 @@
           "notes": "Notes",
           "documentation_url": "URL de documentation",
           "last_performed": "Dernière exécution",
-          "responsible_user_id": "ID utilisateur responsable"
+          "responsible_user_id": "Utilisateur responsable"
+        },
+        "data_description": {
+          "enabled": "Lorsque désactivé, la planification et les déclencheurs sont suspendus. La tâche n'est pas supprimée.",
+          "responsible_user_id": "L'utilisateur Home Assistant responsable de cette tâche."
         }
       },
       "edit_checklist": {
@@ -455,9 +459,17 @@
       },
       "remove_trigger": {
         "title": "Supprimer le déclencheur",
-        "description": "Supprimer le déclencheur capteur de la tâche {task_name} ? La planification reviendra en mode temporel.",
+        "description": "Supprimer le déclencheur de **{task_name}** ?\n\n**Entité :** {entity_ids}\n**Type :** {trigger_type}\n**Configuration :** {config_details}\n\nLa planification reviendra en mode temporel.",
         "data": {
           "confirm": "Confirmer la suppression"
+        }
+      },
+      "trigger_summary": {
+        "title": "Déclencheur actuel",
+        "description": "Déclencheur pour **{task_name}** :\n\n**Entité :** {entity_ids}\n**État actuel :** {current_states}\n**Type :** {trigger_type} (attribut : {attribute})\n**Configuration :** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Modifier le déclencheur",
+          "task_action": "Retour"
         }
       },
       "add_task": {
