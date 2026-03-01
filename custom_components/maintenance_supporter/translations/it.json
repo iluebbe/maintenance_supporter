@@ -244,7 +244,8 @@
         "menu_options": {
           "manage_tasks": "Gestisci attività",
           "add_task": "Aggiungi nuova attività",
-          "object_settings": "Impostazioni oggetto"
+          "object_settings": "Impostazioni oggetto",
+          "done": "Fatto"
         }
       },
       "global_init": {
@@ -293,6 +294,7 @@
           "panel_enabled": "Mostra pannello nella barra laterale"
         },
         "data_description": {
+          "default_warning_days": "Numero di giorni prima della scadenza di un'attività di manutenzione per mostrare un avviso.",
           "notifications_enabled": "Invia notifiche quando le attività di manutenzione sono in scadenza o in ritardo.",
           "notify_service": "Il servizio di notifica da utilizzare (es.: notify.mobile_app_phone).",
           "panel_enabled": "Mostra un pannello Maintenance Supporter nella barra laterale."
@@ -402,6 +404,7 @@
       },
       "edit_task": {
         "title": "Modifica attività",
+        "description": "Modifica impostazioni per **{task_name}**.",
         "data": {
           "name": "Nome attività",
           "type": "Tipo di manutenzione",
@@ -414,7 +417,14 @@
           "responsible_user_id": "Utente responsabile"
         },
         "data_description": {
+          "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
+          "type": "La categoria del lavoro di manutenzione.",
+          "interval_days": "Numero di giorni tra le esecuzioni di manutenzione.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "enabled": "Quando disabilitato, la pianificazione e i trigger vengono sospesi. L'attività non viene eliminata.",
+          "notes": "Note aggiuntive o istruzioni per questa attività.",
+          "documentation_url": "Link alla documentazione esterna o al manuale per questa attività.",
+          "last_performed": "Quando questa manutenzione è stata eseguita l'ultima volta. Lasciare vuoto se mai eseguita.",
           "responsible_user_id": "L'utente Home Assistant responsabile di questa attività."
         }
       },
@@ -474,31 +484,52 @@
       },
       "add_task": {
         "title": "Aggiungi attività di manutenzione",
+        "description": "Definire una nuova attività di manutenzione per questo oggetto.",
         "data": {
           "name": "Nome attività",
           "type": "Tipo di manutenzione",
           "schedule_type": "Tipo di pianificazione"
+        },
+        "data_description": {
+          "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
+          "type": "La categoria del lavoro di manutenzione.",
+          "schedule_type": "Come deve essere pianificata questa attività."
         }
       },
       "opt_time_based": {
         "title": "Pianificazione temporale",
+        "description": "Configurare l'intervallo di tempo per questa attività.",
         "data": {
           "interval_days": "Intervallo (giorni)",
           "last_performed": "Ultima esecuzione",
           "warning_days": "Giorni di avviso prima della scadenza"
+        },
+        "data_description": {
+          "interval_days": "Numero di giorni tra le esecuzioni di manutenzione.",
+          "last_performed": "Quando questa manutenzione è stata eseguita l'ultima volta. Lasciare vuoto se mai eseguita.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
       "opt_manual": {
         "title": "Pianificazione manuale",
+        "description": "Questa attività non ha una pianificazione automatica. Puoi segnarla come da fare manualmente.",
         "data": {
           "warning_days": "Giorni di avviso prima della scadenza",
           "notes": "Note"
+        },
+        "data_description": {
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "notes": "Note aggiuntive o istruzioni per questa attività."
         }
       },
       "opt_sensor_select": {
         "title": "Seleziona sensore trigger",
+        "description": "Scegliere un'entità Home Assistant da monitorare.",
         "data": {
           "trigger_entity": "Entità da monitorare"
+        },
+        "data_description": {
+          "trigger_entity": "Selezionare l'entità sensore che deve attivare questa attività di manutenzione."
         }
       },
       "opt_sensor_attribute": {
@@ -506,12 +537,19 @@
         "description": "Scegli quale valore monitorare da {entity_id}. Stato attuale: {current_state} {unit}",
         "data": {
           "trigger_attribute": "Valore da monitorare"
+        },
+        "data_description": {
+          "trigger_attribute": "Selezionare lo stato dell'entità o un attributo specifico da monitorare."
         }
       },
       "opt_trigger_type": {
         "title": "Tipo di trigger",
+        "description": "Come deve il valore del sensore attivare la manutenzione?",
         "data": {
           "trigger_type": "Tipo di trigger"
+        },
+        "data_description": {
+          "trigger_type": "Soglia: si attiva quando il valore supera i limiti. Contatore: si attiva dopo aver accumulato un valore obiettivo. Cambio di stato: si attiva dopo un numero di transizioni di stato."
         }
       },
       "opt_trigger_threshold": {
@@ -523,6 +561,13 @@
           "trigger_for_minutes": "Per almeno (minuti)",
           "interval_days": "Intervallo di sicurezza (giorni)",
           "warning_days": "Giorni di avviso prima della scadenza"
+        },
+        "data_description": {
+          "trigger_above": "Attivare la manutenzione quando il valore supera questa soglia.",
+          "trigger_below": "Attivare la manutenzione quando il valore scende sotto questa soglia.",
+          "trigger_for_minutes": "Il valore deve superare la soglia per questo numero di minuti prima dell'attivazione.",
+          "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del sensore.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
       "opt_trigger_counter": {
@@ -533,6 +578,12 @@
           "trigger_delta_mode": "Modalità delta (conta le variazioni, non il valore assoluto)",
           "interval_days": "Intervallo di sicurezza (giorni)",
           "warning_days": "Giorni di avviso prima della scadenza"
+        },
+        "data_description": {
+          "trigger_target_value": "Attivare la manutenzione quando questo valore accumulato viene raggiunto.",
+          "trigger_delta_mode": "Se abilitato, conta la differenza da un valore di base invece del valore assoluto.",
+          "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del contatore.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
       "opt_trigger_state_change": {
@@ -544,6 +595,13 @@
           "trigger_target_changes": "Numero di cambiamenti per attivare",
           "interval_days": "Intervallo di sicurezza (giorni)",
           "warning_days": "Giorni di avviso prima della scadenza"
+        },
+        "data_description": {
+          "trigger_from_state": "Contare solo le transizioni da questo stato. Lasciare vuoto per qualsiasi.",
+          "trigger_to_state": "Contare solo le transizioni verso questo stato. Lasciare vuoto per qualsiasi.",
+          "trigger_target_changes": "Numero di cambiamenti di stato corrispondenti prima di attivare la manutenzione.",
+          "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger di cambio stato.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
       "opt_trigger_runtime": {
@@ -554,16 +612,30 @@
           "trigger_on_states": "Stati attivi (separati da virgole)",
           "interval_days": "Intervallo di sicurezza (giorni)",
           "warning_days": "Giorni di avviso prima della scadenza"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Attivare la manutenzione dopo questo numero di ore di tempo di esecuzione accumulato.",
+          "trigger_on_states": "Quali stati del sensore contano come 'attivo'. Lasciare vuoto per predefinito: on, 1, true. Esempio: in_use, running",
+          "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del tempo di esecuzione.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
       "object_settings": {
         "title": "Impostazioni oggetto",
+        "description": "Modifica dettagli dell'oggetto.",
         "data": {
           "name": "Nome oggetto",
           "manufacturer": "Produttore",
           "model": "Modello",
           "area_id": "Area",
           "installation_date": "Data di installazione"
+        },
+        "data_description": {
+          "name": "Un nome unico per questo oggetto di manutenzione (es. 'Pompa piscina', 'Auto').",
+          "manufacturer": "Il produttore dell'oggetto.",
+          "model": "Il nome o numero del modello.",
+          "area_id": "L'area della tua casa dove si trova questo oggetto.",
+          "installation_date": "Quando questo oggetto è stato installato o acquistato."
         }
       }
     }

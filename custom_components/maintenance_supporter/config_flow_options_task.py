@@ -115,7 +115,18 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self._update_config_entry(new_data)
         self._current_task = {}
 
-        return self.async_create_entry(title="", data=self.config_entry.options)
+        return self._show_init_menu()
+
+    def _show_init_menu(self) -> ConfigFlowResult:
+        """Show the init menu (sync helper for callbacks)."""
+        obj_data = self.config_entry.data.get(CONF_OBJECT, {})
+        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
+        object_info = f"{obj_data.get('name', 'Unknown')} — {len(tasks_data)} task(s)"
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["manage_tasks", "add_task", "object_settings", "done"],
+            description_placeholders={"object_info": object_info},
+        )
 
     # --- Main Menu ---
 
@@ -123,16 +134,13 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Show main options menu."""
-        obj_data = self.config_entry.data.get(CONF_OBJECT, {})
-        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
+        return self._show_init_menu()
 
-        object_info = f"{obj_data.get('name', 'Unknown')} — {len(tasks_data)} task(s)"
-
-        return self.async_show_menu(
-            step_id="init",
-            menu_options=["manage_tasks", "add_task", "object_settings"],
-            description_placeholders={"object_info": object_info},
-        )
+    async def async_step_done(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Close the options flow."""
+        return self.async_create_entry(title="", data=self.config_entry.options)
 
     # --- Manage Tasks: List → Select → Action ---
 
@@ -147,7 +155,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             if selected and selected in tasks_data:
                 self._selected_task_id = selected
                 return await self.async_step_task_action()
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_init_menu()
 
         task_options = [
             selector.SelectOptionDict(
@@ -158,7 +166,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         ]
 
         if not task_options:
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_init_menu()
 
         return self.async_show_form(
             step_id="manage_tasks",
@@ -181,13 +189,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 return dict(entry.options or entry.data)
         return {}
 
-    async def async_step_task_action(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Show actions for selected task."""
+    def _build_task_action_menu(self) -> list[str]:
+        """Build the task_action menu options list."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
-        task_name = task.get("name", "Unknown")
 
         global_opts = self._get_global_options()
         menu = ["edit_task", "edit_trigger"]
@@ -198,12 +203,23 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         if global_opts.get(CONF_ADVANCED_ADAPTIVE, False):
             menu.append("adaptive_scheduling")
         menu.extend(["delete_task", "manage_tasks"])
+        return menu
 
+    def _show_task_action_menu(self) -> ConfigFlowResult:
+        """Show the task_action menu (sync helper for callbacks)."""
+        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
+        task = tasks_data.get(self._selected_task_id or "", {})
         return self.async_show_menu(
             step_id="task_action",
-            menu_options=menu,
-            description_placeholders={"task_name": task_name},
+            menu_options=self._build_task_action_menu(),
+            description_placeholders={"task_name": task.get("name", "Unknown")},
         )
+
+    async def async_step_task_action(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show actions for selected task."""
+        return self._show_task_action_menu()
 
     async def async_step_edit_task(
         self, user_input: dict[str, Any] | None = None
@@ -245,7 +261,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             new_data[CONF_TASKS] = new_tasks
             self._update_config_entry(new_data)
 
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_task_action_menu()
 
         type_options = [t.value for t in MaintenanceTypeEnum]
 
@@ -357,39 +373,50 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self._trigger_on_complete = self._save_edited_trigger
         return await self.async_step_opt_sensor_select()
 
-    async def async_step_trigger_summary(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Show current trigger configuration summary before editing."""
-        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
-        task = tasks_data.get(self._selected_task_id or "", {})
-        tc = task.get("trigger_config", {})
+    @staticmethod
+    def _condition_summary(cond: dict[str, Any]) -> str:
+        """Build a short summary string for a single trigger condition."""
+        ctype = cond.get("type", "?")
+        parts: list[str] = []
+        if ctype == TriggerType.THRESHOLD:
+            if cond.get("trigger_above") is not None:
+                parts.append(f"above: {cond['trigger_above']}")
+            if cond.get("trigger_below") is not None:
+                parts.append(f"below: {cond['trigger_below']}")
+            if cond.get("trigger_for_minutes"):
+                parts.append(f"for: {cond['trigger_for_minutes']}min")
+        elif ctype == TriggerType.COUNTER:
+            if cond.get("trigger_target_value") is not None:
+                parts.append(f"target: {cond['trigger_target_value']}")
+            if cond.get("trigger_delta_mode"):
+                parts.append("delta mode")
+        elif ctype == TriggerType.STATE_CHANGE:
+            if cond.get("trigger_target_changes") is not None:
+                parts.append(f"changes: {cond['trigger_target_changes']}")
+            if cond.get("trigger_from_state"):
+                parts.append(f"from: {cond['trigger_from_state']}")
+            if cond.get("trigger_to_state"):
+                parts.append(f"to: {cond['trigger_to_state']}")
+        elif ctype == TriggerType.RUNTIME:
+            if cond.get("trigger_runtime_hours") is not None:
+                parts.append(f"hours: {cond['trigger_runtime_hours']}")
+        return ", ".join(parts) if parts else "—"
 
-        # Entity info
-        entity_ids = tc.get("entity_id", "")
-        if isinstance(entity_ids, list):
-            entity_ids_str = ", ".join(entity_ids)
-        else:
-            entity_ids_str = entity_ids
+    @staticmethod
+    def _get_entity_ids_str(tc: dict[str, Any]) -> str:
+        """Get display string for entity IDs from trigger config."""
+        entity_ids = tc.get("entity_ids", [])
+        if not entity_ids:
+            eid = tc.get("entity_id", "")
+            entity_ids = [eid] if isinstance(eid, str) and eid else (
+                eid if isinstance(eid, list) else []
+            )
+        return ", ".join(entity_ids) if entity_ids else "—"
 
-        # Current state values
-        state_parts: list[str] = []
-        eid_list = tc.get("entity_id", [])
-        if isinstance(eid_list, str):
-            eid_list = [eid_list]
-        for eid in eid_list[:3]:  # Limit to 3 entities for display
-            state = self.hass.states.get(eid)
-            if state:
-                state_parts.append(f"{eid}: {state.state}")
-            else:
-                state_parts.append(f"{eid}: unavailable")
-        current_states = ", ".join(state_parts) if state_parts else "—"
-
-        # Trigger type + attribute
+    @staticmethod
+    def _build_trigger_config_parts(tc: dict[str, Any]) -> list[str]:
+        """Build config detail parts for a trigger config (shared by summary & remove)."""
         trigger_type = tc.get("type", "unknown")
-        attribute = tc.get("trigger_attribute", "state")
-
-        # Config details
         config_parts: list[str] = []
         if trigger_type == TriggerType.THRESHOLD:
             if tc.get("trigger_above") is not None:
@@ -415,11 +442,47 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 config_parts.append(f"hours: {tc['trigger_runtime_hours']}")
         elif trigger_type == TriggerType.COMPOUND:
             conditions = tc.get("conditions", [])
-            config_parts.append(
-                f"{tc.get('compound_logic', 'AND')}, "
-                f"{len(conditions)} condition(s)"
-            )
-        config_details = ", ".join(config_parts) if config_parts else "—"
+            logic = tc.get("compound_logic", "AND")
+            config_parts.append(f"logic: {logic}")
+            for i, cond in enumerate(conditions, 1):
+                ctype = cond.get("type", "?")
+                c_eids = cond.get("entity_ids", [])
+                if not c_eids:
+                    c_eid = cond.get("entity_id", "?")
+                    c_eids = [c_eid] if isinstance(c_eid, str) else c_eid
+                c_entities = ", ".join(c_eids[:2])
+                c_detail = MaintenanceOptionsFlow._condition_summary(cond)
+                config_parts.append(f"#{i} {ctype}: {c_entities} ({c_detail})")
+        return config_parts
+
+    async def async_step_trigger_summary(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show current trigger configuration summary before editing."""
+        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
+        task = tasks_data.get(self._selected_task_id or "", {})
+        tc = task.get("trigger_config", {})
+
+        entity_ids_str = self._get_entity_ids_str(tc)
+
+        # Current state values
+        state_parts: list[str] = []
+        eid_list = tc.get("entity_ids", tc.get("entity_id", []))
+        if isinstance(eid_list, str):
+            eid_list = [eid_list]
+        for eid in eid_list[:3]:
+            state = self.hass.states.get(eid)
+            if state:
+                state_parts.append(f"{eid}: {state.state}")
+            else:
+                state_parts.append(f"{eid}: unavailable")
+        current_states = ", ".join(state_parts) if state_parts else "—"
+
+        trigger_type = tc.get("type", "unknown")
+        attribute = tc.get("trigger_attribute", "state")
+
+        config_parts = self._build_trigger_config_parts(tc)
+        config_details = "\n".join(config_parts) if config_parts else "—"
 
         return self.async_show_menu(
             step_id="trigger_summary",
@@ -466,7 +529,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self._update_config_entry(new_data)
         self._current_task = {}
 
-        return self.async_create_entry(title="", data=self.config_entry.options)
+        return self._show_task_action_menu()
 
     async def async_step_remove_trigger(
         self, user_input: dict[str, Any] | None = None
@@ -489,38 +552,15 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 new_data[CONF_TASKS] = new_tasks
                 self._update_config_entry(new_data)
 
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_task_action_menu()
 
         # Build rich description from trigger_config
         tc = task.get("trigger_config", {})
-        entity_ids = tc.get("entity_id", "")
-        if isinstance(entity_ids, list):
-            entity_ids = ", ".join(entity_ids)
+        entity_ids_str = self._get_entity_ids_str(tc)
         trigger_type = tc.get("type", "unknown")
 
-        # Build type-specific config summary
-        config_parts: list[str] = []
-        if trigger_type == TriggerType.THRESHOLD:
-            if tc.get("trigger_above") is not None:
-                config_parts.append(f"above: {tc['trigger_above']}")
-            if tc.get("trigger_below") is not None:
-                config_parts.append(f"below: {tc['trigger_below']}")
-        elif trigger_type == TriggerType.COUNTER:
-            if tc.get("trigger_target_value") is not None:
-                config_parts.append(f"target: {tc['trigger_target_value']}")
-        elif trigger_type == TriggerType.STATE_CHANGE:
-            if tc.get("trigger_target_changes") is not None:
-                config_parts.append(f"changes: {tc['trigger_target_changes']}")
-        elif trigger_type == TriggerType.RUNTIME:
-            if tc.get("trigger_runtime_hours") is not None:
-                config_parts.append(f"hours: {tc['trigger_runtime_hours']}")
-        elif trigger_type == TriggerType.COMPOUND:
-            conditions = tc.get("conditions", [])
-            config_parts.append(
-                f"{tc.get('compound_logic', 'AND')}, "
-                f"{len(conditions)} condition(s)"
-            )
-        config_details = ", ".join(config_parts) if config_parts else "—"
+        config_parts = self._build_trigger_config_parts(tc)
+        config_details = "\n".join(config_parts) if config_parts else "—"
 
         return self.async_show_form(
             step_id="remove_trigger",
@@ -531,7 +571,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             ),
             description_placeholders={
                 "task_name": task.get("name", ""),
-                "entity_ids": entity_ids,
+                "entity_ids": entity_ids_str,
                 "trigger_type": trigger_type,
                 "config_details": config_details,
             },
@@ -557,7 +597,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             new_data[CONF_TASKS] = new_tasks
             self._update_config_entry(new_data)
 
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_task_action_menu()
 
         current_checklist = task.get("checklist", [])
         default_text = "\n".join(current_checklist)
@@ -605,8 +645,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 new_data[CONF_OBJECT] = obj
 
                 self._update_config_entry(new_data)
+                return self._show_init_menu()
 
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_task_action_menu()
 
         return self.async_show_form(
             step_id="delete_task",
@@ -968,7 +1009,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             new_data[CONF_TASKS] = new_tasks
             self._update_config_entry(new_data)
 
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_task_action_menu()
 
         env_entity = current_adaptive.get("environmental_entity")
         env_key = (
@@ -1069,7 +1110,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 title=obj[CONF_OBJECT_NAME],
             )
 
-            return self.async_create_entry(title="", data=self.config_entry.options)
+            return self._show_init_menu()
 
         obj = self.config_entry.data.get(CONF_OBJECT, {})
 

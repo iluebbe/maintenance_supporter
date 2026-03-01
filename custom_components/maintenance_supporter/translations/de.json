@@ -244,7 +244,8 @@
         "menu_options": {
           "manage_tasks": "Aufgaben verwalten",
           "add_task": "Neue Aufgabe hinzufügen",
-          "object_settings": "Objekteinstellungen"
+          "object_settings": "Objekteinstellungen",
+          "done": "Fertig"
         }
       },
       "global_init": {
@@ -293,6 +294,7 @@
           "panel_enabled": "Sidebar-Panel anzeigen"
         },
         "data_description": {
+          "default_warning_days": "Anzahl der Tage vor Fälligkeit einer Wartungsaufgabe für eine Warnung.",
           "notifications_enabled": "Benachrichtigungen senden, wenn Wartungsaufgaben bald fällig oder überfällig sind.",
           "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
           "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen."
@@ -402,6 +404,7 @@
       },
       "edit_task": {
         "title": "Aufgabe bearbeiten",
+        "description": "Einstellungen für **{task_name}** bearbeiten.",
         "data": {
           "name": "Aufgabenname",
           "type": "Wartungstyp",
@@ -414,8 +417,15 @@
           "responsible_user_id": "Verantwortlicher Benutzer"
         },
         "data_description": {
-          "enabled": "Bei Deaktivierung werden Zeitplanung und Trigger pausiert. Die Aufgabe wird nicht gelöscht.",
-          "responsible_user_id": "Der für diese Aufgabe verantwortliche Home Assistant Benutzer."
+          "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
+          "type": "Die Kategorie der Wartungsarbeit.",
+          "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
+          "enabled": "Wenn deaktiviert, werden Planung und Auslöser pausiert. Die Aufgabe wird nicht gelöscht.",
+          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe.",
+          "documentation_url": "Link zu externer Dokumentation oder Handbuch für diese Aufgabe.",
+          "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
+          "responsible_user_id": "Der Home Assistant Benutzer, der für diese Aufgabe verantwortlich ist."
         }
       },
       "edit_checklist": {
@@ -474,31 +484,52 @@
       },
       "add_task": {
         "title": "Wartungsaufgabe hinzufügen",
+        "description": "Definieren Sie eine neue Wartungsaufgabe für dieses Objekt.",
         "data": {
           "name": "Aufgabenname",
           "type": "Wartungstyp",
           "schedule_type": "Planungsart"
+        },
+        "data_description": {
+          "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
+          "type": "Die Kategorie der Wartungsarbeit.",
+          "schedule_type": "Wie diese Aufgabe geplant werden soll."
         }
       },
       "opt_time_based": {
         "title": "Zeitbasierter Plan",
+        "description": "Konfigurieren Sie das Zeitintervall für diese Aufgabe.",
         "data": {
           "interval_days": "Intervall (Tage)",
           "last_performed": "Zuletzt durchgeführt",
           "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
+          "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
       "opt_manual": {
         "title": "Manueller Plan",
+        "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
         "data": {
           "warning_days": "Warntage vor Fälligkeit",
           "notes": "Notizen"
+        },
+        "data_description": {
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
+          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe."
         }
       },
       "opt_sensor_select": {
         "title": "Trigger-Sensor auswählen",
+        "description": "Wählen Sie eine Home Assistant Entität zur Überwachung.",
         "data": {
           "trigger_entity": "Zu überwachende Entität"
+        },
+        "data_description": {
+          "trigger_entity": "Wählen Sie die Sensor-Entität, die diese Wartungsaufgabe auslösen soll."
         }
       },
       "opt_sensor_attribute": {
@@ -506,12 +537,19 @@
         "description": "Wählen Sie, welcher Wert von {entity_id} überwacht werden soll. Aktueller Zustand: {current_state} {unit}",
         "data": {
           "trigger_attribute": "Zu überwachender Wert"
+        },
+        "data_description": {
+          "trigger_attribute": "Wählen Sie den Entitätsstatus oder ein bestimmtes Attribut zur Überwachung."
         }
       },
       "opt_trigger_type": {
         "title": "Trigger-Typ",
+        "description": "Wie soll der Sensorwert die Wartung auslösen?",
         "data": {
           "trigger_type": "Trigger-Typ"
+        },
+        "data_description": {
+          "trigger_type": "Schwellenwert: löst aus, wenn der Wert Grenzen überschreitet. Zähler: löst nach Erreichen eines Zielwerts aus. Zustandsänderung: löst nach einer Anzahl von Zustandsübergängen aus."
         }
       },
       "opt_trigger_threshold": {
@@ -523,6 +561,13 @@
           "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall (Tage)",
           "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellenwert überschreitet.",
+          "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellenwert fällt.",
+          "trigger_for_minutes": "Der Wert muss den Schwellenwert für diese Anzahl von Minuten überschreiten.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Auslöser.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
       "opt_trigger_counter": {
@@ -533,6 +578,12 @@
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
           "interval_days": "Sicherheitsintervall (Tage)",
           "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_target_value": "Wartung auslösen, wenn dieser kumulierte Wert erreicht ist.",
+          "trigger_delta_mode": "Wenn aktiviert, zählt die Differenz von einer Basislinie statt des absoluten Werts.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Auslöser.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
       "opt_trigger_state_change": {
@@ -544,6 +595,13 @@
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
           "interval_days": "Sicherheitsintervall (Tage)",
           "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_target_changes": "Anzahl der übereinstimmenden Zustandsänderungen vor Auslösung der Wartung.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandsänderungs-Auslöser.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
       "opt_trigger_runtime": {
@@ -554,16 +612,30 @@
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall (Tage)",
           "warning_days": "Warntage vor Fälligkeit"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl von Stunden kumulierter Laufzeit.",
+          "trigger_on_states": "Welche Sensorzustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Auslöser.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
       "object_settings": {
         "title": "Objekteinstellungen",
+        "description": "Objektdetails bearbeiten.",
         "data": {
           "name": "Objektname",
           "manufacturer": "Hersteller",
           "model": "Modell",
           "area_id": "Bereich",
           "installation_date": "Installationsdatum"
+        },
+        "data_description": {
+          "name": "Ein eindeutiger Name für dieses Wartungsobjekt (z.B. 'Poolpumpe', 'Auto').",
+          "manufacturer": "Der Hersteller des Objekts.",
+          "model": "Die Modellbezeichnung oder -nummer.",
+          "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
+          "installation_date": "Wann dieses Objekt installiert oder gekauft wurde."
         }
       }
     }

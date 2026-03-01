@@ -244,7 +244,8 @@
         "menu_options": {
           "manage_tasks": "Manage Tasks",
           "add_task": "Add New Task",
-          "object_settings": "Object Settings"
+          "object_settings": "Object Settings",
+          "done": "Done"
         }
       },
       "global_init": {
@@ -293,6 +294,7 @@
           "panel_enabled": "Show sidebar panel"
         },
         "data_description": {
+          "default_warning_days": "Number of days before a maintenance task is due to show a warning.",
           "notifications_enabled": "Send notifications when maintenance tasks become due or are overdue.",
           "notify_service": "The notification service to use (e.g., notify.mobile_app_phone).",
           "panel_enabled": "Show a Maintenance Supporter panel in the sidebar."
@@ -402,6 +404,7 @@
       },
       "edit_task": {
         "title": "Edit Task",
+        "description": "Edit settings for **{task_name}**.",
         "data": {
           "name": "Task name",
           "type": "Maintenance type",
@@ -414,7 +417,14 @@
           "responsible_user_id": "Responsible user"
         },
         "data_description": {
+          "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
+          "type": "The category of maintenance work.",
+          "interval_days": "Number of days between maintenance runs.",
+          "warning_days": "Number of days before due date to show a warning.",
           "enabled": "When disabled, scheduling and triggers are paused. The task is not deleted.",
+          "notes": "Additional notes or instructions for this task.",
+          "documentation_url": "Link to external documentation or manual for this task.",
+          "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "responsible_user_id": "The Home Assistant user responsible for this task."
         }
       },
@@ -452,31 +462,52 @@
       },
       "add_task": {
         "title": "Add Maintenance Task",
+        "description": "Define a new maintenance task for this object.",
         "data": {
           "name": "Task name",
           "type": "Maintenance type",
           "schedule_type": "Schedule type"
+        },
+        "data_description": {
+          "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
+          "type": "The category of maintenance work.",
+          "schedule_type": "How this task should be scheduled."
         }
       },
       "opt_time_based": {
         "title": "Time-based Schedule",
+        "description": "Configure the time interval for this task.",
         "data": {
           "interval_days": "Interval (days)",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "interval_days": "Number of days between maintenance runs.",
+          "last_performed": "When this maintenance was last performed. Leave empty if never done.",
+          "warning_days": "Number of days before due date to show a warning."
         }
       },
       "opt_manual": {
         "title": "Manual Schedule",
+        "description": "This task has no automatic schedule. You can mark it as due manually.",
         "data": {
           "warning_days": "Warning days before due",
           "notes": "Notes"
+        },
+        "data_description": {
+          "warning_days": "Number of days before due date to show a warning.",
+          "notes": "Additional notes or instructions for this task."
         }
       },
       "opt_sensor_select": {
         "title": "Select Trigger Sensor",
+        "description": "Choose a Home Assistant entity to monitor.",
         "data": {
           "trigger_entity": "Entity to monitor"
+        },
+        "data_description": {
+          "trigger_entity": "Select the sensor entity that should trigger this maintenance task."
         }
       },
       "opt_sensor_attribute": {
@@ -484,12 +515,19 @@
         "description": "Choose which value to monitor from {entity_id}. Current state: {current_state} {unit}",
         "data": {
           "trigger_attribute": "Value to monitor"
+        },
+        "data_description": {
+          "trigger_attribute": "Select the entity state or a specific attribute to monitor."
         }
       },
       "opt_trigger_type": {
         "title": "Trigger Type",
+        "description": "How should the sensor value trigger maintenance?",
         "data": {
           "trigger_type": "Trigger type"
+        },
+        "data_description": {
+          "trigger_type": "Threshold: triggers when value exceeds limits. Counter: triggers after accumulating a target value. State Change: triggers after a number of state transitions."
         }
       },
       "opt_trigger_threshold": {
@@ -501,6 +539,13 @@
           "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval (days)",
           "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_above": "Trigger maintenance when value exceeds this threshold.",
+          "trigger_below": "Trigger maintenance when value falls below this threshold.",
+          "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
+          "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "warning_days": "Number of days before due date to show a warning."
         }
       },
       "opt_trigger_counter": {
@@ -511,6 +556,12 @@
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
           "interval_days": "Safety interval (days)",
           "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
+          "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
+          "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
+          "warning_days": "Number of days before due date to show a warning."
         }
       },
       "opt_trigger_state_change": {
@@ -522,6 +573,13 @@
           "trigger_target_changes": "Number of changes to trigger",
           "interval_days": "Safety interval (days)",
           "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
+          "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
+          "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
+          "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
+          "warning_days": "Number of days before due date to show a warning."
         }
       },
       "opt_trigger_runtime": {
@@ -532,6 +590,12 @@
           "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval (days)",
           "warning_days": "Warning days before due"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
+          "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
+          "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
+          "warning_days": "Number of days before due date to show a warning."
         }
       },
       "adaptive_scheduling": {
@@ -558,12 +622,20 @@
       },
       "object_settings": {
         "title": "Object Settings",
+        "description": "Edit object details.",
         "data": {
           "name": "Object name",
           "manufacturer": "Manufacturer",
           "model": "Model",
           "area_id": "Area",
           "installation_date": "Installation date"
+        },
+        "data_description": {
+          "name": "A unique name for this maintenance object (e.g., 'Pool Pump', 'Car').",
+          "manufacturer": "The manufacturer of the object.",
+          "model": "The model name or number.",
+          "area_id": "The area in your home where this object is located.",
+          "installation_date": "When this object was installed or purchased."
         }
       }
     }

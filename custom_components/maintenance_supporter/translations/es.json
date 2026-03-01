@@ -244,7 +244,8 @@
         "menu_options": {
           "manage_tasks": "Gestionar tareas",
           "add_task": "Agregar nueva tarea",
-          "object_settings": "Configuración del objeto"
+          "object_settings": "Configuración del objeto",
+          "done": "Listo"
         }
       },
       "global_init": {
@@ -293,6 +294,7 @@
           "panel_enabled": "Mostrar panel en la barra lateral"
         },
         "data_description": {
+          "default_warning_days": "Número de días antes de que venza una tarea de mantenimiento para mostrar una advertencia.",
           "notifications_enabled": "Enviar notificaciones cuando las tareas de mantenimiento están próximas a vencer o vencidas.",
           "notify_service": "El servicio de notificación a utilizar (ej.: notify.mobile_app_phone).",
           "panel_enabled": "Mostrar un panel de Maintenance Supporter en la barra lateral."
@@ -402,6 +404,7 @@
       },
       "edit_task": {
         "title": "Editar tarea",
+        "description": "Editar configuración de **{task_name}**.",
         "data": {
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
@@ -414,7 +417,14 @@
           "responsible_user_id": "Usuario responsable"
         },
         "data_description": {
-          "enabled": "Cuando está deshabilitado, la programación y los triggers se pausan. La tarea no se elimina.",
+          "name": "Un nombre descriptivo para esta tarea (ej. 'Limpieza de filtro', 'Cambio de aceite').",
+          "type": "La categoría del trabajo de mantenimiento.",
+          "interval_days": "Número de días entre ejecuciones de mantenimiento.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
+          "enabled": "Cuando está desactivado, la programación y los disparadores se pausan. La tarea no se elimina.",
+          "notes": "Notas adicionales o instrucciones para esta tarea.",
+          "documentation_url": "Enlace a documentación externa o manual para esta tarea.",
+          "last_performed": "Cuándo se realizó este mantenimiento por última vez. Dejar vacío si nunca se realizó.",
           "responsible_user_id": "El usuario de Home Assistant responsable de esta tarea."
         }
       },
@@ -474,31 +484,52 @@
       },
       "add_task": {
         "title": "Agregar tarea de mantenimiento",
+        "description": "Definir una nueva tarea de mantenimiento para este objeto.",
         "data": {
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
           "schedule_type": "Tipo de programación"
+        },
+        "data_description": {
+          "name": "Un nombre descriptivo para esta tarea (ej. 'Limpieza de filtro', 'Cambio de aceite').",
+          "type": "La categoría del trabajo de mantenimiento.",
+          "schedule_type": "Cómo debe programarse esta tarea."
         }
       },
       "opt_time_based": {
         "title": "Programación temporal",
+        "description": "Configurar el intervalo de tiempo para esta tarea.",
         "data": {
           "interval_days": "Intervalo (días)",
           "last_performed": "Última ejecución",
           "warning_days": "Días de aviso antes del vencimiento"
+        },
+        "data_description": {
+          "interval_days": "Número de días entre ejecuciones de mantenimiento.",
+          "last_performed": "Cuándo se realizó este mantenimiento por última vez. Dejar vacío si nunca se realizó.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
       "opt_manual": {
         "title": "Programación manual",
+        "description": "Esta tarea no tiene programación automática. Puede marcarla como pendiente manualmente.",
         "data": {
           "warning_days": "Días de aviso antes del vencimiento",
           "notes": "Notas"
+        },
+        "data_description": {
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
+          "notes": "Notas adicionales o instrucciones para esta tarea."
         }
       },
       "opt_sensor_select": {
         "title": "Seleccionar sensor disparador",
+        "description": "Elegir una entidad de Home Assistant para monitorear.",
         "data": {
           "trigger_entity": "Entidad a monitorear"
+        },
+        "data_description": {
+          "trigger_entity": "Seleccione la entidad de sensor que debe activar esta tarea de mantenimiento."
         }
       },
       "opt_sensor_attribute": {
@@ -506,12 +537,19 @@
         "description": "Elija qué valor monitorear de {entity_id}. Estado actual: {current_state} {unit}",
         "data": {
           "trigger_attribute": "Valor a monitorear"
+        },
+        "data_description": {
+          "trigger_attribute": "Seleccione el estado de la entidad o un atributo específico para monitorear."
         }
       },
       "opt_trigger_type": {
         "title": "Tipo de disparador",
+        "description": "¿Cómo debe el valor del sensor activar el mantenimiento?",
         "data": {
           "trigger_type": "Tipo de disparador"
+        },
+        "data_description": {
+          "trigger_type": "Umbral: se activa cuando el valor excede los límites. Contador: se activa después de acumular un valor objetivo. Cambio de estado: se activa después de un número de transiciones de estado."
         }
       },
       "opt_trigger_threshold": {
@@ -523,6 +561,13 @@
           "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad (días)",
           "warning_days": "Días de aviso antes del vencimiento"
+        },
+        "data_description": {
+          "trigger_above": "Activar mantenimiento cuando el valor exceda este umbral.",
+          "trigger_below": "Activar mantenimiento cuando el valor caiga por debajo de este umbral.",
+          "trigger_for_minutes": "El valor debe exceder el umbral durante estos minutos antes de activarse.",
+          "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador del sensor.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
       "opt_trigger_counter": {
@@ -533,6 +578,12 @@
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
           "interval_days": "Intervalo de seguridad (días)",
           "warning_days": "Días de aviso antes del vencimiento"
+        },
+        "data_description": {
+          "trigger_target_value": "Activar mantenimiento cuando se alcance este valor acumulado.",
+          "trigger_delta_mode": "Si está activado, cuenta la diferencia desde una línea base en lugar del valor absoluto.",
+          "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador del contador.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
       "opt_trigger_state_change": {
@@ -544,6 +595,13 @@
           "trigger_target_changes": "Número de cambios para activar",
           "interval_days": "Intervalo de seguridad (días)",
           "warning_days": "Días de aviso antes del vencimiento"
+        },
+        "data_description": {
+          "trigger_from_state": "Solo contar transiciones desde este estado. Dejar vacío para cualquiera.",
+          "trigger_to_state": "Solo contar transiciones hacia este estado. Dejar vacío para cualquiera.",
+          "trigger_target_changes": "Número de cambios de estado coincidentes antes de activar el mantenimiento.",
+          "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de cambio de estado.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
       "opt_trigger_runtime": {
@@ -554,16 +612,30 @@
           "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad (días)",
           "warning_days": "Días de aviso antes del vencimiento"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Activar mantenimiento después de estas horas de tiempo de ejecución acumulado.",
+          "trigger_on_states": "Qué estados del sensor cuentan como 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
+          "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de tiempo de ejecución.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
       "object_settings": {
         "title": "Configuración del objeto",
+        "description": "Editar detalles del objeto.",
         "data": {
           "name": "Nombre del objeto",
           "manufacturer": "Fabricante",
           "model": "Modelo",
           "area_id": "Área",
           "installation_date": "Fecha de instalación"
+        },
+        "data_description": {
+          "name": "Un nombre único para este objeto de mantenimiento (ej. 'Bomba de piscina', 'Coche').",
+          "manufacturer": "El fabricante del objeto.",
+          "model": "El nombre o número de modelo.",
+          "area_id": "El área en su hogar donde se encuentra este objeto.",
+          "installation_date": "Cuándo se instaló o compró este objeto."
         }
       }
     }

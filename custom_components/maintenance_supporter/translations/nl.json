@@ -244,7 +244,8 @@
         "menu_options": {
           "manage_tasks": "Taken beheren",
           "add_task": "Nieuwe taak toevoegen",
-          "object_settings": "Objectinstellingen"
+          "object_settings": "Objectinstellingen",
+          "done": "Klaar"
         }
       },
       "global_init": {
@@ -293,6 +294,7 @@
           "panel_enabled": "Zijbalkpaneel tonen"
         },
         "data_description": {
+          "default_warning_days": "Aantal dagen voor de vervaldatum van een onderhoudstaak om een waarschuwing te tonen.",
           "notifications_enabled": "Meldingen verzenden wanneer onderhoudstaken verlopen of achterstallig zijn.",
           "notify_service": "De te gebruiken meldingsservice (bijv. notify.mobile_app_phone).",
           "panel_enabled": "Een Onderhoud Supporter-paneel in de zijbalk tonen."
@@ -402,6 +404,7 @@
       },
       "edit_task": {
         "title": "Taak bewerken",
+        "description": "Instellingen bewerken voor **{task_name}**.",
         "data": {
           "name": "Taaknaam",
           "type": "Onderhoudstype",
@@ -414,7 +417,14 @@
           "responsible_user_id": "Verantwoordelijke gebruiker"
         },
         "data_description": {
+          "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
+          "type": "De categorie van het onderhoudwerk.",
+          "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
           "enabled": "Wanneer uitgeschakeld, worden planning en triggers gepauzeerd. De taak wordt niet verwijderd.",
+          "notes": "Aanvullende notities of instructies voor deze taak.",
+          "documentation_url": "Link naar externe documentatie of handleiding voor deze taak.",
+          "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
           "responsible_user_id": "De Home Assistant gebruiker die verantwoordelijk is voor deze taak."
         }
       },
@@ -474,31 +484,52 @@
       },
       "add_task": {
         "title": "Onderhoudstaak toevoegen",
+        "description": "Definieer een nieuwe onderhoudstaak voor dit object.",
         "data": {
           "name": "Taaknaam",
           "type": "Onderhoudstype",
           "schedule_type": "Planningstype"
+        },
+        "data_description": {
+          "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
+          "type": "De categorie van het onderhoudwerk.",
+          "schedule_type": "Hoe deze taak moet worden gepland."
         }
       },
       "opt_time_based": {
         "title": "Tijdgebaseerd schema",
+        "description": "Configureer het tijdsinterval voor deze taak.",
         "data": {
           "interval_days": "Interval (dagen)",
           "last_performed": "Laatst uitgevoerd",
           "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
+          "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
       "opt_manual": {
         "title": "Handmatig schema",
+        "description": "Deze taak heeft geen automatische planning. U kunt deze handmatig als te doen markeren.",
         "data": {
           "warning_days": "Waarschuwingsdagen voor deadline",
           "notes": "Notities"
+        },
+        "data_description": {
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
+          "notes": "Aanvullende notities of instructies voor deze taak."
         }
       },
       "opt_sensor_select": {
         "title": "Selecteer triggersensor",
+        "description": "Kies een Home Assistant entiteit om te monitoren.",
         "data": {
           "trigger_entity": "Te monitoren entiteit"
+        },
+        "data_description": {
+          "trigger_entity": "Selecteer de sensorentiteit die deze onderhoudstaak moet activeren."
         }
       },
       "opt_sensor_attribute": {
@@ -506,12 +537,19 @@
         "description": "Kies welke waarde gemonitord moet worden van {entity_id}. Huidige status: {current_state} {unit}",
         "data": {
           "trigger_attribute": "Te monitoren waarde"
+        },
+        "data_description": {
+          "trigger_attribute": "Selecteer de entiteitsstatus of een specifiek attribuut om te monitoren."
         }
       },
       "opt_trigger_type": {
         "title": "Triggertype",
+        "description": "Hoe moet de sensorwaarde het onderhoud activeren?",
         "data": {
           "trigger_type": "Triggertype"
+        },
+        "data_description": {
+          "trigger_type": "Drempelwaarde: activeert wanneer de waarde de limieten overschrijdt. Teller: activeert na het bereiken van een doelwaarde. Statuswijziging: activeert na een aantal statusovergangen."
         }
       },
       "opt_trigger_threshold": {
@@ -523,6 +561,13 @@
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval (dagen)",
           "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
+          "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel komt.",
+          "trigger_for_minutes": "De waarde moet de drempel gedurende dit aantal minuten overschrijden voor activering.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
       "opt_trigger_counter": {
@@ -533,6 +578,12 @@
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
           "interval_days": "Veiligheidsinterval (dagen)",
           "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_target_value": "Onderhoud activeren wanneer deze gecumuleerde waarde is bereikt.",
+          "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
       "opt_trigger_state_change": {
@@ -544,6 +595,13 @@
           "trigger_target_changes": "Aantal wijzigingen voor activering",
           "interval_days": "Veiligheidsinterval (dagen)",
           "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor alle.",
+          "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor alle.",
+          "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
       "opt_trigger_runtime": {
@@ -554,16 +612,30 @@
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval (dagen)",
           "warning_days": "Waarschuwingsdagen voor deadline"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren gecumuleerde looptijd.",
+          "trigger_on_states": "Welke sensorstatussen tellen als 'actief'. Laat leeg voor standaard: on, 1, true. Voorbeeld: in_use, running",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
       "object_settings": {
         "title": "Objectinstellingen",
+        "description": "Objectdetails bewerken.",
         "data": {
           "name": "Objectnaam",
           "manufacturer": "Fabrikant",
           "model": "Model",
           "area_id": "Gebied",
           "installation_date": "Installatiedatum"
+        },
+        "data_description": {
+          "name": "Een unieke naam voor dit onderhoudsobject (bijv. 'Zwembadpomp', 'Auto').",
+          "manufacturer": "De fabrikant van het object.",
+          "model": "De modelnaam of het nummer.",
+          "area_id": "Het gebied in uw huis waar dit object zich bevindt.",
+          "installation_date": "Wanneer dit object is geïnstalleerd of gekocht."
         }
       }
     }

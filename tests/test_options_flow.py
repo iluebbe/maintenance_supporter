@@ -137,6 +137,7 @@ async def test_maintenance_options_init_shows_menu(
     assert "manage_tasks" in result["menu_options"]
     assert "add_task" in result["menu_options"]
     assert "object_settings" in result["menu_options"]
+    assert "done" in result["menu_options"]
 
 
 # ─── 4.3 Manage Tasks ───────────────────────────────────────────────────
@@ -234,7 +235,9 @@ async def test_add_task_via_options(
             CONF_TASK_WARNING_DAYS: 14,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    # After saving, flow returns to init menu (back navigation)
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     # Verify task was added to config entry data
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
@@ -275,7 +278,8 @@ async def test_object_settings_update(
             "model": "26652",
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     # Verify object was updated
     obj = object_config_entry.data.get(CONF_OBJECT, {})
@@ -368,7 +372,8 @@ async def test_add_sensor_threshold_task_via_options(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     # Verify task was added
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
@@ -427,7 +432,8 @@ async def test_add_sensor_counter_task_via_options(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
     assert len(updated_tasks) == initial_task_count + 1
@@ -485,7 +491,8 @@ async def test_add_sensor_state_change_task_via_options(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
     assert len(updated_tasks) == initial_task_count + 1
@@ -550,7 +557,8 @@ async def test_options_manual_task_via_options(
         result["flow_id"],
         user_input={CONF_TASK_WARNING_DAYS: 5},
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
     assert len(updated_tasks) == initial_task_count + 1
@@ -655,7 +663,8 @@ async def test_edit_trigger_full_flow(
             CONF_TASK_WARNING_DAYS: 3,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
 
     # Verify trigger was saved on the existing task (not a new one)
     tasks = object_config_entry.data.get(CONF_TASKS, {})
@@ -705,7 +714,8 @@ async def test_remove_trigger_shown_only_when_trigger_exists(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
 
     # Now navigate again — remove_trigger should appear
     result2, _ = await _navigate_to_task_action(
@@ -750,7 +760,8 @@ async def test_remove_trigger_flow(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
     assert "trigger_config" in object_config_entry.data[CONF_TASKS][task_id]
 
     # Now remove the trigger
@@ -767,7 +778,8 @@ async def test_remove_trigger_flow(
         result2["flow_id"],
         user_input={"confirm": True},
     )
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["type"] == FlowResultType.MENU
+    assert result2["step_id"] == "task_action"
 
     # Verify trigger removed and schedule reverted
     task = object_config_entry.data[CONF_TASKS][task_id]
@@ -811,7 +823,8 @@ async def test_remove_trigger_cancel(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
 
     # Try to remove but don't confirm
     result2, _ = await _navigate_to_task_action(
@@ -825,7 +838,8 @@ async def test_remove_trigger_cancel(
         result2["flow_id"],
         user_input={"confirm": False},
     )
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["type"] == FlowResultType.MENU
+    assert result2["step_id"] == "task_action"
 
     # Trigger should still be there
     task = object_config_entry.data[CONF_TASKS][task_id]
@@ -898,7 +912,8 @@ async def test_edit_task_new_fields(
             CONF_RESPONSIBLE_USER_ID: "abc123user",
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
 
     # Verify all new fields were saved
     task = object_config_entry.data[CONF_TASKS][task_id]
@@ -937,7 +952,8 @@ async def test_edit_task_partial_new_fields(
             CONF_TASK_ENABLED: True,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
 
     task = object_config_entry.data[CONF_TASKS][task_id]
     assert task[CONF_TASK_ENABLED] is True
@@ -981,7 +997,8 @@ async def test_object_settings_with_area_and_install_date(
             CONF_OBJECT_INSTALLATION_DATE: "2024-06-15",
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     # Verify new fields were saved
     obj = object_config_entry.data.get(CONF_OBJECT, {})
@@ -1013,7 +1030,8 @@ async def test_object_settings_without_new_fields(
             "model": "",
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
 
     obj = object_config_entry.data.get(CONF_OBJECT, {})
     assert obj["name"] == "Updated Pump"
@@ -1057,7 +1075,8 @@ async def _add_trigger_to_task(
             CONF_TASK_WARNING_DAYS: 7,
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
     return task_id
 
 
@@ -1178,7 +1197,8 @@ async def test_edit_task_user_dropdown_and_unassign(
             CONF_RESPONSIBLE_USER_ID: "abc123user",
         },
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
     assert object_config_entry.data[CONF_TASKS][task_id][CONF_RESPONSIBLE_USER_ID] == "abc123user"
 
     # Now unassign by submitting empty string
@@ -1200,5 +1220,257 @@ async def test_edit_task_user_dropdown_and_unassign(
             CONF_RESPONSIBLE_USER_ID: "",
         },
     )
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["type"] == FlowResultType.MENU
+    assert result2["step_id"] == "task_action"
     assert CONF_RESPONSIBLE_USER_ID not in object_config_entry.data[CONF_TASKS][task_id]
+
+
+# ─── 4.11 Back Navigation ─────────────────────────────────────────────
+
+
+async def test_edit_task_returns_to_task_action(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that submitting edit_task returns to task_action menu."""
+    _mock_auth_users(hass)
+
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    assert result["step_id"] == "edit_task"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: True,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+    assert "edit_task" in result["menu_options"]
+
+
+async def test_delete_task_cancel_returns_to_task_action(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that cancelling delete_task returns to task_action menu."""
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "delete_task"},
+    )
+    assert result["step_id"] == "delete_task"
+
+    # Cancel deletion
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"confirm": False},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+    # Task should still exist
+    assert task_id in object_config_entry.data[CONF_TASKS]
+
+
+async def test_delete_task_confirm_returns_to_init(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that confirming delete_task returns to init menu."""
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "delete_task"},
+    )
+    assert result["step_id"] == "delete_task"
+
+    # Confirm deletion
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"confirm": True},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
+
+    # Task should be gone
+    assert task_id not in object_config_entry.data.get(CONF_TASKS, {})
+
+
+async def test_done_closes_flow(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that selecting 'Done' from init menu closes the flow."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    result = await hass.config_entries.options.async_init(
+        object_config_entry.entry_id
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert "done" in result["menu_options"]
+
+    # Select "Done"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "done"},
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+
+# ─── 4.12 Compound Trigger Display ────────────────────────────────────
+
+
+async def test_compound_trigger_summary_shows_conditions(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that trigger_summary shows per-condition details for compound triggers."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    # Manually inject a compound trigger config
+    tasks = object_config_entry.data.get(CONF_TASKS, {})
+    task_id = next(iter(tasks))
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    task = dict(new_tasks[task_id])
+    task["trigger_config"] = {
+        "type": TriggerType.COMPOUND,
+        "compound_logic": "AND",
+        "entity_id": "sensor.temp",
+        "entity_ids": ["sensor.temp", "sensor.humidity"],
+        "trigger_attribute": "state",
+        "conditions": [
+            {
+                "type": TriggerType.THRESHOLD,
+                "entity_id": "sensor.temp",
+                "entity_ids": ["sensor.temp"],
+                "trigger_above": 30.0,
+            },
+            {
+                "type": TriggerType.COUNTER,
+                "entity_id": "sensor.humidity",
+                "entity_ids": ["sensor.humidity"],
+                "trigger_target_value": 100,
+            },
+        ],
+    }
+    task["schedule_type"] = ScheduleType.SENSOR_BASED
+    new_tasks[task_id] = task
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(
+        object_config_entry, data=new_data
+    )
+
+    hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.humidity", "60", {"unit_of_measurement": "%"})
+
+    result, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "trigger_summary"
+
+    placeholders = result["description_placeholders"]
+    assert "sensor.temp" in placeholders["entity_ids"]
+    assert "sensor.humidity" in placeholders["entity_ids"]
+    assert placeholders["trigger_type"] == TriggerType.COMPOUND
+
+    # Verify per-condition details are shown
+    details = placeholders["config_details"]
+    assert "logic: AND" in details
+    assert "#1" in details
+    assert "above: 30.0" in details
+    assert "#2" in details
+    assert "target: 100" in details
+
+
+async def test_compound_remove_trigger_shows_conditions(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that remove_trigger shows per-condition details for compound triggers."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    # Manually inject a compound trigger config
+    tasks = object_config_entry.data.get(CONF_TASKS, {})
+    task_id = next(iter(tasks))
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    task = dict(new_tasks[task_id])
+    task["trigger_config"] = {
+        "type": TriggerType.COMPOUND,
+        "compound_logic": "OR",
+        "entity_id": "sensor.temp",
+        "entity_ids": ["sensor.temp"],
+        "trigger_attribute": "state",
+        "conditions": [
+            {
+                "type": TriggerType.THRESHOLD,
+                "entity_id": "sensor.temp",
+                "entity_ids": ["sensor.temp"],
+                "trigger_below": 5.0,
+            },
+            {
+                "type": TriggerType.STATE_CHANGE,
+                "entity_id": "sensor.temp",
+                "entity_ids": ["sensor.temp"],
+                "trigger_target_changes": 50,
+                "trigger_from_state": "on",
+            },
+        ],
+    }
+    task["schedule_type"] = ScheduleType.SENSOR_BASED
+    new_tasks[task_id] = task
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(
+        object_config_entry, data=new_data
+    )
+
+    result, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    assert "remove_trigger" in result["menu_options"]
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
+    )
+    assert result["step_id"] == "remove_trigger"
+
+    placeholders = result["description_placeholders"]
+    details = placeholders["config_details"]
+    assert "logic: OR" in details
+    assert "#1" in details
+    assert "below: 5.0" in details
+    assert "#2" in details
+    assert "changes: 50" in details
+    assert "from: on" in details
