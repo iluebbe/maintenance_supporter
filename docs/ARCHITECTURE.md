@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.0 | **~21,000 lines** across 51 source files | **0 external Python dependencies**
+**Version:** 0.3.0 | **~21,000 lines** across 51 source files (40 Python + 11 TypeScript) | **0 external Python dependencies**
 
 ---
 
@@ -23,7 +23,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          | - predictions     |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (20+ commands)    |    +--------+----------+    |  Calendar Entity  |
+| (32 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -87,12 +87,12 @@ custom_components/maintenance_supporter/
 ├── config_flow.py              (779 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py       (62 lines)  Shared config flow utilities
 ├── config_flow_options.py       (11 lines)  Options dispatcher
-├── config_flow_options_global.py(503 lines)  Global settings (notifications, budgets, panel)
+├── config_flow_options_global.py(663 lines)  Global settings (notifications, budgets, panel)
 ├── config_flow_options_task.py (818 lines)  Per-object task management
 ├── config_flow_trigger.py    (1,003 lines)  TriggerConfigMixin for trigger UI
 │
 ├── sensor.py                   (461 lines)  MaintenanceSensor (enum, per task)
-├── calendar.py                 (277 lines)  MaintenanceCalendar (global, all tasks)
+├── calendar.py                 (337 lines)  MaintenanceCalendar (global, all tasks)
 ├── entity/
 │   ├── entity_base.py           (55 lines)  CoordinatorEntity base class
 │   └── triggers/
@@ -104,7 +104,15 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py          (325 lines)  Accumulated operating hours trigger
 │       └── compound.py         (306 lines)  AND/OR compound trigger
 │
-├── websocket.py              (1,841 lines)  20+ WS commands (CRUD, stats, subscribe)
+├── websocket/                              32 WS commands, split by domain
+│   ├── __init__.py           (254 lines)  Shared helpers + registration
+│   ├── objects.py            (179 lines)  Object CRUD (5 handlers)
+│   ├── tasks.py              (552 lines)  Task CRUD + validation + actions (7 handlers)
+│   ├── groups.py             (163 lines)  Group CRUD (4 handlers)
+│   ├── analysis.py           (261 lines)  Adaptive scheduling (4 handlers)
+│   ├── users.py              (138 lines)  User management (3 handlers)
+│   ├── io.py                 (198 lines)  Export/import/CSV/QR/templates (5 handlers)
+│   └── dashboard.py          (221 lines)  Subscribe, statistics, settings, budget (4 handlers)
 ├── panel.py                     (66 lines)  Sidebar panel registration
 ├── frontend/
 │   ├── __init__.py              (36 lines)  Lovelace card registration
@@ -134,13 +142,13 @@ custom_components/maintenance_supporter/
 │   ├── qr_generator.py          (73 lines)  QR code URL builder + SVG generator
 │   └── qrcodegen.py            (700 lines)  Vendored QR library (Nayuki, MIT)
 │
-├── models/                     (432 lines)
+├── models/                     (420 lines)
 │   ├── maintenance_task.py     (283 lines)  Task: schedule, triggers, history, status
 │   ├── maintenance_object.py    (52 lines)  Object: name, area, manufacturer, model
 │   └── maintenance_type.py      (85 lines)  Predefined maintenance categories
 │
-├── templates.py                (210 lines)  20+ object templates (car, pool, HVAC, ...)
-├── repairs.py                  (235 lines)  Missing trigger entity repair flow
+├── templates.py                (226 lines)  20+ object templates (car, pool, HVAC, ...)
+├── repairs.py                  (274 lines)  Missing trigger entity repair flow
 ├── diagnostics.py              (206 lines)  Integration diagnostics with PII redaction
 ├── export.py                   (115 lines)  JSON/YAML data export
 │
@@ -289,7 +297,7 @@ Three-layer interval prediction:
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Two bundles:** `maintenance-panel.js` (~177KB) and `maintenance-card.js` (~90KB)
+**Two bundles:** `maintenance-panel.js` (~172KB) and `maintenance-card.js` (~87KB)
 
 ### Panel Views
 1. **Overview**: Statistics dashboard, group list, budget status, sparklines, user filter
@@ -325,14 +333,15 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-20+ commands organized by function:
+32 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
-| **Read** | `objects`, `object`, `statistics`, `subscribe`, `templates`, `budget_status`, `groups`, `tasks/by_user` |
+| **Read** | `objects`, `object`, `statistics`, `subscribe`, `templates`, `budget_status`, `groups`, `settings`, `tasks/by_user` |
 | **Object CRUD** | `object/create`, `object/update`, `object/delete` |
-| **Task CRUD** | `task/create`, `task/update`, `task/delete` |
+| **Task CRUD** | `task/create`, `task/update`, `task/delete`, `tasks/list` |
 | **Task Actions** | `task/complete`, `task/skip`, `task/reset` |
+| **Group CRUD** | `group/create`, `group/update`, `group/delete` |
 | **User Assignment** | `task/assign_user`, `users/list` |
 | **Analysis** | `analyze_interval`, `apply_suggestion`, `seasonal_overrides`, `set_environmental_entity` |
 | **Import/Export** | `export_data`, `export_csv`, `import_csv` |
@@ -383,6 +392,7 @@ All write commands fire events for subscription updates.
 | `test_edge_cases.py` | Boundary conditions, error handling |
 | `test_phase2_features.py` | Checklist, groups, budgets |
 | `test_qr_generation.py` | QR URL building, SVG generation |
+| `test_issue_fixes.py` | Entity validation, state handling, WS API fixes |
 
 ---
 
@@ -391,7 +401,7 @@ All write commands fire events for subscription updates.
 - **New trigger type**: Subclass `BaseTrigger`, implement `_evaluate_and_update()`, register in factory
 - **New helper**: Add module to `helpers/`, integrate in coordinator
 - **New platform**: Add entity module, register in `const.PLATFORMS`
-- **New WS command**: Add handler in `websocket.py`, register in `async_register_commands()`
+- **New WS command**: Add handler in the appropriate `websocket/*.py` module, import and register in `websocket/__init__.py`
 - **New template**: Add `ObjectTemplate` to `templates.py`
 - **New language**: Add `translations/{lang}.json` for backend + dictionary in `styles.ts` for frontend (currently: DE, EN, NL, FR, IT, ES)
 

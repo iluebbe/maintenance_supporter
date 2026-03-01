@@ -24,12 +24,18 @@ from .const import (
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_CHECKLISTS,
     CONF_ENVIRONMENTAL_ENTITY,
-    CONF_SENSOR_PREDICTION_ENABLED,
     CONF_OBJECT,
+    CONF_OBJECT_AREA,
+    CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_RESPONSIBLE_USER_ID,
+    CONF_SENSOR_PREDICTION_ENABLED,
+    CONF_TASK_DOCUMENTATION_URL,
+    CONF_TASK_ENABLED,
     CONF_TASK_INTERVAL_DAYS,
+    CONF_TASK_LAST_PERFORMED,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
     CONF_TASK_SCHEDULE_TYPE,
@@ -57,6 +63,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self._selected_task_id: str | None = None
         self._trigger_entity_id: str | None = None
         self._trigger_entity_state: Any = None
+        self._trigger_on_complete = self._save_new_task
 
     # --- Helpers ---
 
@@ -182,7 +189,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         task_name = task.get("name", "Unknown")
 
         global_opts = self._get_global_options()
-        menu = ["edit_task"]
+        menu = ["edit_task", "edit_trigger"]
+        if task.get("trigger_config"):
+            menu.append("remove_trigger")
         if global_opts.get(CONF_ADVANCED_CHECKLISTS, False):
             menu.append("edit_checklist")
         if global_opts.get(CONF_ADVANCED_ADAPTIVE, False):
@@ -214,6 +223,19 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             updated_task["warning_days"] = int(
                 user_input.get(CONF_TASK_WARNING_DAYS, updated_task.get("warning_days", DEFAULT_WARNING_DAYS))
             )
+            updated_task[CONF_TASK_ENABLED] = user_input.get(
+                CONF_TASK_ENABLED, updated_task.get(CONF_TASK_ENABLED, True)
+            )
+            if user_input.get(CONF_TASK_NOTES):
+                updated_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
+            if user_input.get(CONF_TASK_DOCUMENTATION_URL):
+                updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
+            if user_input.get(CONF_TASK_LAST_PERFORMED):
+                updated_task[CONF_TASK_LAST_PERFORMED] = str(
+                    user_input[CONF_TASK_LAST_PERFORMED]
+                )
+            if user_input.get(CONF_RESPONSIBLE_USER_ID):
+                updated_task[CONF_RESPONSIBLE_USER_ID] = user_input[CONF_RESPONSIBLE_USER_ID]
 
             new_tasks[self._selected_task_id or ""] = updated_task
             new_data[CONF_TASKS] = new_tasks
@@ -222,6 +244,28 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             return self.async_create_entry(title="", data=self.config_entry.options)
 
         type_options = [t.value for t in MaintenanceTypeEnum]
+
+        # Build optional keys with defaults only when the task has a value
+        last_performed_key = (
+            vol.Optional(CONF_TASK_LAST_PERFORMED, default=task.get(CONF_TASK_LAST_PERFORMED))
+            if task.get(CONF_TASK_LAST_PERFORMED)
+            else vol.Optional(CONF_TASK_LAST_PERFORMED)
+        )
+        notes_key = (
+            vol.Optional(CONF_TASK_NOTES, default=task.get(CONF_TASK_NOTES))
+            if task.get(CONF_TASK_NOTES)
+            else vol.Optional(CONF_TASK_NOTES)
+        )
+        doc_url_key = (
+            vol.Optional(CONF_TASK_DOCUMENTATION_URL, default=task.get(CONF_TASK_DOCUMENTATION_URL))
+            if task.get(CONF_TASK_DOCUMENTATION_URL)
+            else vol.Optional(CONF_TASK_DOCUMENTATION_URL)
+        )
+        user_id_key = (
+            vol.Optional(CONF_RESPONSIBLE_USER_ID, default=task.get(CONF_RESPONSIBLE_USER_ID))
+            if task.get(CONF_RESPONSIBLE_USER_ID)
+            else vol.Optional(CONF_RESPONSIBLE_USER_ID)
+        )
 
         return self.async_show_form(
             step_id="edit_task",
@@ -257,6 +301,91 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
+                    vol.Optional(
+                        CONF_TASK_ENABLED,
+                        default=task.get(CONF_TASK_ENABLED, True),
+                    ): selector.BooleanSelector(),
+                    notes_key: selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT, multiline=True
+                        )
+                    ),
+                    doc_url_key: selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
+                    ),
+                    last_performed_key: selector.DateSelector(),
+                    user_id_key: selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                }
+            ),
+            description_placeholders={
+                "task_name": task.get("name", ""),
+            },
+        )
+
+    async def async_step_edit_trigger(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Edit the trigger configuration for an existing task."""
+        self._current_task = {}
+        self._trigger_on_complete = self._save_edited_trigger
+        return await self.async_step_opt_sensor_select()
+
+    def _save_edited_trigger(self) -> ConfigFlowResult:
+        """Save edited trigger configuration to an existing task."""
+        new_data = dict(self.config_entry.data)
+        new_tasks = dict(new_data.get(CONF_TASKS, {}))
+        updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
+
+        if "trigger_config" in self._current_task:
+            updated_task["trigger_config"] = self._current_task["trigger_config"]
+        if CONF_TASK_SCHEDULE_TYPE in self._current_task:
+            updated_task["schedule_type"] = self._current_task[CONF_TASK_SCHEDULE_TYPE]
+        if CONF_TASK_INTERVAL_DAYS in self._current_task:
+            updated_task["interval_days"] = int(
+                self._current_task[CONF_TASK_INTERVAL_DAYS]
+            )
+        if CONF_TASK_WARNING_DAYS in self._current_task:
+            updated_task["warning_days"] = int(
+                self._current_task[CONF_TASK_WARNING_DAYS]
+            )
+
+        new_tasks[self._selected_task_id or ""] = updated_task
+        new_data[CONF_TASKS] = new_tasks
+        self._update_config_entry(new_data)
+        self._current_task = {}
+
+        return self.async_create_entry(title="", data=self.config_entry.options)
+
+    async def async_step_remove_trigger(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm and remove trigger configuration from a task."""
+        tasks_data = self.config_entry.data.get(CONF_TASKS, {})
+        task = tasks_data.get(self._selected_task_id or "", {})
+
+        if user_input is not None:
+            if user_input.get("confirm"):
+                new_data = dict(self.config_entry.data)
+                new_tasks = dict(new_data.get(CONF_TASKS, {}))
+                updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
+
+                updated_task.pop("trigger_config", None)
+                if updated_task.get("schedule_type") == ScheduleType.SENSOR_BASED:
+                    updated_task["schedule_type"] = ScheduleType.TIME_BASED
+
+                new_tasks[self._selected_task_id or ""] = updated_task
+                new_data[CONF_TASKS] = new_tasks
+                self._update_config_entry(new_data)
+
+            return self.async_create_entry(title="", data=self.config_entry.options)
+
+        return self.async_show_form(
+            step_id="remove_trigger",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("confirm", default=False): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -359,6 +488,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 CONF_TASK_TYPE: user_input.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CLEANING),
                 CONF_TASK_SCHEDULE_TYPE: user_input[CONF_TASK_SCHEDULE_TYPE],
             }
+
+            self._trigger_on_complete = self._save_new_task
 
             schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
             if schedule == ScheduleType.TIME_BASED:
@@ -523,7 +654,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         return await self._trigger_threshold_config(
             user_input,
             step_id="opt_trigger_threshold",
-            on_complete=self._save_new_task,
+            on_complete=self._trigger_on_complete,
         )
 
     async def async_step_opt_trigger_counter(
@@ -533,7 +664,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         return await self._trigger_counter_config(
             user_input,
             step_id="opt_trigger_counter",
-            on_complete=self._save_new_task,
+            on_complete=self._trigger_on_complete,
         )
 
     async def async_step_opt_trigger_state_change(
@@ -543,7 +674,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         return await self._trigger_state_change_config(
             user_input,
             step_id="opt_trigger_state_change",
-            on_complete=self._save_new_task,
+            on_complete=self._trigger_on_complete,
         )
 
     async def async_step_opt_trigger_runtime(
@@ -553,7 +684,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         return await self._trigger_runtime_config(
             user_input,
             step_id="opt_trigger_runtime",
-            on_complete=self._save_new_task,
+            on_complete=self._trigger_on_complete,
         )
 
     # --- Compound Trigger Steps ---
@@ -639,7 +770,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             user_input,
             step_id="compound_review",
             add_condition_step=self.async_step_opt_compound_condition_entity,
-            on_complete=self._save_new_task,
+            on_complete=self._trigger_on_complete,
         )
 
     # --- Adaptive Scheduling ---
@@ -781,6 +912,11 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             obj[CONF_OBJECT_NAME] = user_input.get(CONF_OBJECT_NAME, obj.get("name"))
             obj[CONF_OBJECT_MANUFACTURER] = user_input.get(CONF_OBJECT_MANUFACTURER)
             obj[CONF_OBJECT_MODEL] = user_input.get(CONF_OBJECT_MODEL)
+            obj[CONF_OBJECT_AREA] = user_input.get(CONF_OBJECT_AREA)
+            if user_input.get(CONF_OBJECT_INSTALLATION_DATE):
+                obj[CONF_OBJECT_INSTALLATION_DATE] = str(
+                    user_input[CONF_OBJECT_INSTALLATION_DATE]
+                )
             new_data[CONF_OBJECT] = obj
 
             self.hass.config_entries.async_update_entry(
@@ -792,6 +928,18 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             return self.async_create_entry(title="", data=self.config_entry.options)
 
         obj = self.config_entry.data.get(CONF_OBJECT, {})
+
+        # Build optional keys with defaults only when the object has a value
+        area_key = (
+            vol.Optional(CONF_OBJECT_AREA, default=obj.get(CONF_OBJECT_AREA))
+            if obj.get(CONF_OBJECT_AREA)
+            else vol.Optional(CONF_OBJECT_AREA)
+        )
+        install_date_key = (
+            vol.Optional(CONF_OBJECT_INSTALLATION_DATE, default=obj.get(CONF_OBJECT_INSTALLATION_DATE))
+            if obj.get(CONF_OBJECT_INSTALLATION_DATE)
+            else vol.Optional(CONF_OBJECT_INSTALLATION_DATE)
+        )
 
         return self.async_show_form(
             step_id="object_settings",
@@ -813,6 +961,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
+                    area_key: selector.AreaSelector(),
+                    install_date_key: selector.DateSelector(),
                 }
             ),
         )

@@ -6,7 +6,9 @@ services:
     container_name: ha-dev
     volumes:
       - ./config-dev:/config
-      - ./custom_components:/config/custom_components
+      - ../custom_components:/config/custom_components
+      - ../tests:/config/tests:ro
+      - ../pytest.ini:/config/pytest.ini:ro
       - ./faketime.txt:/config/faketime.txt:ro
     ports:
       - "${HA_DEV_PORT:-8123}:8123"
@@ -34,7 +36,7 @@ services:
     profiles: ["testing"]
     volumes:
       - ./config-fresh:/config
-      - ./custom_components:/config/custom_components:ro
+      - ../custom_components:/config/custom_components:ro
     ports:
       - "${HA_FRESH_PORT:-8124}:8123"
     environment:

@@ -392,6 +392,8 @@
         "description": "Taak: {task_name} — Kies een actie.",
         "menu_options": {
           "edit_task": "Taak bewerken",
+          "edit_trigger": "Trigger bewerken",
+          "remove_trigger": "Trigger verwijderen",
           "edit_checklist": "Checklist bewerken",
           "adaptive_scheduling": "Adaptieve planning",
           "delete_task": "Taak verwijderen",
@@ -404,7 +406,12 @@
           "name": "Taaknaam",
           "type": "Onderhoudstype",
           "interval_days": "Interval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "enabled": "Ingeschakeld",
+          "notes": "Notities",
+          "documentation_url": "Documentatie-URL",
+          "last_performed": "Laatst uitgevoerd",
+          "responsible_user_id": "Verantwoordelijke gebruikers-ID"
         }
       },
       "edit_checklist": {
@@ -442,6 +449,13 @@
       "delete_task": {
         "title": "Taak verwijderen",
         "description": "Weet u zeker dat u de taak {task_name} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+        "data": {
+          "confirm": "Verwijdering bevestigen"
+        }
+      },
+      "remove_trigger": {
+        "title": "Trigger verwijderen",
+        "description": "De sensortrigger van taak {task_name} verwijderen? Het schema wordt teruggezet naar tijdgebaseerd.",
         "data": {
           "confirm": "Verwijdering bevestigen"
         }
@@ -535,7 +549,9 @@
         "data": {
           "name": "Objectnaam",
           "manufacturer": "Fabrikant",
-          "model": "Model"
+          "model": "Model",
+          "area_id": "Gebied",
+          "installation_date": "Installatiedatum"
         }
       }
     }

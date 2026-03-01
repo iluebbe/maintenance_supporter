@@ -392,6 +392,8 @@
         "description": "Task: {task_name} — Choose an action.",
         "menu_options": {
           "edit_task": "Edit Task",
+          "edit_trigger": "Edit Trigger",
+          "remove_trigger": "Remove Trigger",
           "edit_checklist": "Edit Checklist",
           "adaptive_scheduling": "Adaptive Scheduling",
           "delete_task": "Delete Task",
@@ -404,7 +406,12 @@
           "name": "Task name",
           "type": "Maintenance type",
           "interval_days": "Interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "enabled": "Enabled",
+          "notes": "Notes",
+          "documentation_url": "Documentation URL",
+          "last_performed": "Last performed",
+          "responsible_user_id": "Responsible user ID"
         }
       },
       "edit_checklist": {
@@ -422,6 +429,13 @@
         "description": "Are you sure you want to delete the task {task_name}? This cannot be undone.",
         "data": {
           "confirm": "Confirm deletion"
+        }
+      },
+      "remove_trigger": {
+        "title": "Remove Trigger",
+        "description": "Remove the sensor trigger from task {task_name}? The schedule will revert to time-based.",
+        "data": {
+          "confirm": "Confirm removal"
         }
       },
       "add_task": {
@@ -535,7 +549,9 @@
         "data": {
           "name": "Object name",
           "manufacturer": "Manufacturer",
-          "model": "Model"
+          "model": "Model",
+          "area_id": "Area",
+          "installation_date": "Installation date"
         }
       }
     }

@@ -392,6 +392,8 @@
         "description": "Tarea: {task_name} — Elija una acción.",
         "menu_options": {
           "edit_task": "Editar tarea",
+          "edit_trigger": "Editar trigger",
+          "remove_trigger": "Eliminar trigger",
           "edit_checklist": "Editar lista de verificación",
           "adaptive_scheduling": "Programación adaptativa",
           "delete_task": "Eliminar tarea",
@@ -404,7 +406,12 @@
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
           "interval_days": "Intervalo (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "enabled": "Habilitado",
+          "notes": "Notas",
+          "documentation_url": "URL de documentación",
+          "last_performed": "Última ejecución",
+          "responsible_user_id": "ID de usuario responsable"
         }
       },
       "edit_checklist": {
@@ -442,6 +449,13 @@
       "delete_task": {
         "title": "Eliminar tarea",
         "description": "¿Está seguro de que desea eliminar la tarea {task_name}? Esta acción es irreversible.",
+        "data": {
+          "confirm": "Confirmar eliminación"
+        }
+      },
+      "remove_trigger": {
+        "title": "Eliminar trigger",
+        "description": "¿Eliminar el trigger del sensor de la tarea {task_name}? La programación volverá a ser temporal.",
         "data": {
           "confirm": "Confirmar eliminación"
         }
@@ -535,7 +549,9 @@
         "data": {
           "name": "Nombre del objeto",
           "manufacturer": "Fabricante",
-          "model": "Modelo"
+          "model": "Modelo",
+          "area_id": "Área",
+          "installation_date": "Fecha de instalación"
         }
       }
     }

@@ -392,6 +392,8 @@
         "description": "Attività: {task_name} — Scegli un'azione.",
         "menu_options": {
           "edit_task": "Modifica attività",
+          "edit_trigger": "Modifica trigger",
+          "remove_trigger": "Rimuovi trigger",
           "edit_checklist": "Modifica lista di controllo",
           "adaptive_scheduling": "Pianificazione adattiva",
           "delete_task": "Elimina attività",
@@ -404,7 +406,12 @@
           "name": "Nome attività",
           "type": "Tipo di manutenzione",
           "interval_days": "Intervallo (giorni)",
-          "warning_days": "Giorni di avviso prima della scadenza"
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "enabled": "Abilitato",
+          "notes": "Note",
+          "documentation_url": "URL documentazione",
+          "last_performed": "Ultima esecuzione",
+          "responsible_user_id": "ID utente responsabile"
         }
       },
       "edit_checklist": {
@@ -444,6 +451,13 @@
         "description": "Sei sicuro di voler eliminare l'attività {task_name}? Questa azione è irreversibile.",
         "data": {
           "confirm": "Conferma eliminazione"
+        }
+      },
+      "remove_trigger": {
+        "title": "Rimuovi trigger",
+        "description": "Rimuovere il trigger del sensore dall'attività {task_name}? La pianificazione tornerà a essere temporale.",
+        "data": {
+          "confirm": "Conferma rimozione"
         }
       },
       "add_task": {
@@ -535,7 +549,9 @@
         "data": {
           "name": "Nome oggetto",
           "manufacturer": "Produttore",
-          "model": "Modello"
+          "model": "Modello",
+          "area_id": "Area",
+          "installation_date": "Data di installazione"
         }
       }
     }

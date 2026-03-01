@@ -20,9 +20,16 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
+    CONF_OBJECT_AREA,
+    CONF_OBJECT_INSTALLATION_DATE,
     CONF_PANEL_ENABLED,
+    CONF_RESPONSIBLE_USER_ID,
+    CONF_TASK_DOCUMENTATION_URL,
+    CONF_TASK_ENABLED,
     CONF_TASK_INTERVAL_DAYS,
+    CONF_TASK_LAST_PERFORMED,
     CONF_TASK_NAME,
+    CONF_TASK_NOTES,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -545,3 +552,442 @@ async def test_options_manual_task_via_options(
 
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
     assert len(updated_tasks) == initial_task_count + 1
+
+
+# ─── 4.7 Edit Trigger on Existing Task ────────────────────────────────
+
+
+async def _navigate_to_task_action(
+    hass: HomeAssistant,
+    global_entry: ConfigEntry,
+    object_entry: ConfigEntry,
+    *,
+    skip_setup: bool = False,
+) -> tuple[dict, str]:
+    """Helper to navigate to task_action for the first task."""
+    if not skip_setup:
+        await setup_integration(hass, global_entry, object_entry)
+
+    result = await hass.config_entries.options.async_init(
+        object_entry.entry_id
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
+    )
+    tasks = object_entry.data.get(CONF_TASKS, {})
+    task_id = next(iter(tasks))
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"selected_task": task_id},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+    return result, task_id
+
+
+async def test_task_action_shows_edit_trigger(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that task_action menu includes edit_trigger."""
+    result, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    assert "edit_trigger" in result["menu_options"]
+    # No trigger_config on default fixture → remove_trigger should NOT appear
+    assert "remove_trigger" not in result["menu_options"]
+
+
+async def test_edit_trigger_full_flow(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test editing a trigger on an existing task (full sensor-based flow)."""
+    hass.states.async_set(
+        "sensor.water_temp", "25.3",
+        {"unit_of_measurement": "°C"},
+    )
+
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    # Select edit_trigger from menu
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    assert result["step_id"] == "opt_sensor_select"
+
+    # Select entity
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.water_temp"]},
+    )
+    assert result["step_id"] == "opt_sensor_attribute"
+
+    # Select attribute (state value)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    assert result["step_id"] == "opt_trigger_type"
+
+    # Select trigger type
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    assert result["step_id"] == "opt_trigger_threshold"
+
+    # Configure threshold
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 30.0,
+            CONF_TRIGGER_FOR_MINUTES: 5,
+            CONF_TASK_WARNING_DAYS: 3,
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    # Verify trigger was saved on the existing task (not a new one)
+    tasks = object_config_entry.data.get(CONF_TASKS, {})
+    assert len(tasks) == 1  # no new task created
+    task = tasks[task_id]
+    assert task["trigger_config"]["entity_id"] == "sensor.water_temp"
+    assert task["trigger_config"][CONF_TRIGGER_ABOVE] == 30.0
+    assert task["schedule_type"] == ScheduleType.SENSOR_BASED
+
+
+async def test_remove_trigger_shown_only_when_trigger_exists(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test remove_trigger only appears when task has a trigger_config."""
+    # First add a trigger to the task
+    hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
+
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    assert "remove_trigger" not in result["menu_options"]
+
+    # Add trigger via edit_trigger
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.test"]},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 50.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    # Now navigate again — remove_trigger should appear
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    assert "remove_trigger" in result2["menu_options"]
+
+
+async def test_remove_trigger_flow(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test removing a trigger reverts schedule to time_based."""
+    hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
+
+    # Add a trigger first
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.test"]},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 50.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert "trigger_config" in object_config_entry.data[CONF_TASKS][task_id]
+
+    # Now remove the trigger
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "remove_trigger"},
+    )
+    assert result2["step_id"] == "remove_trigger"
+
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        user_input={"confirm": True},
+    )
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+
+    # Verify trigger removed and schedule reverted
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert "trigger_config" not in task
+    assert task["schedule_type"] == ScheduleType.TIME_BASED
+
+
+async def test_remove_trigger_cancel(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test cancelling remove_trigger does not change the task."""
+    hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
+
+    # Add a trigger first
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.test"]},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 50.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    # Try to remove but don't confirm
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "remove_trigger"},
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        user_input={"confirm": False},
+    )
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+
+    # Trigger should still be there
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert "trigger_config" in task
+    assert task["schedule_type"] == ScheduleType.SENSOR_BASED
+
+
+# ─── 4.8 Edit Task with New Fields ────────────────────────────────────
+
+
+async def test_edit_task_new_fields(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test editing a task with enabled, notes, documentation_url, last_performed, responsible_user_id."""
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    # Select edit_task from menu
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+    assert result["step_id"] == "edit_task"
+
+    # Verify new fields are present in the schema
+    schema_keys = [str(k) for k in result["data_schema"].schema]
+    assert CONF_TASK_ENABLED in schema_keys
+    assert CONF_TASK_NOTES in schema_keys
+    assert CONF_TASK_DOCUMENTATION_URL in schema_keys
+    assert CONF_TASK_LAST_PERFORMED in schema_keys
+    assert CONF_RESPONSIBLE_USER_ID in schema_keys
+
+    # Submit with all new fields populated
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: False,
+            CONF_TASK_NOTES: "Use warm water",
+            CONF_TASK_DOCUMENTATION_URL: "https://example.com/docs",
+            CONF_TASK_LAST_PERFORMED: "2026-01-15",
+            CONF_RESPONSIBLE_USER_ID: "abc123user",
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    # Verify all new fields were saved
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert task[CONF_TASK_ENABLED] is False
+    assert task[CONF_TASK_NOTES] == "Use warm water"
+    assert task[CONF_TASK_DOCUMENTATION_URL] == "https://example.com/docs"
+    assert task[CONF_TASK_LAST_PERFORMED] == "2026-01-15"
+    assert task[CONF_RESPONSIBLE_USER_ID] == "abc123user"
+
+
+async def test_edit_task_partial_new_fields(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test editing a task with only some new fields leaves others unchanged."""
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
+    )
+
+    # Submit with only enabled changed, other new fields empty
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Filter Cleaning",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 30,
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: True,
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert task[CONF_TASK_ENABLED] is True
+    # Fields not submitted should not be present
+    assert CONF_TASK_NOTES not in task or task.get(CONF_TASK_NOTES) is None or task.get(CONF_TASK_NOTES) == ""
+    assert CONF_RESPONSIBLE_USER_ID not in task or task.get(CONF_RESPONSIBLE_USER_ID) is None
+
+
+# ─── 4.9 Object Settings with New Fields ──────────────────────────────
+
+
+async def test_object_settings_with_area_and_install_date(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test updating object settings with area_id and installation_date."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    result = await hass.config_entries.options.async_init(
+        object_config_entry.entry_id
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "object_settings"},
+    )
+    assert result["step_id"] == "object_settings"
+
+    # Verify new fields are present in the schema
+    schema_keys = [str(k) for k in result["data_schema"].schema]
+    assert CONF_OBJECT_AREA in schema_keys
+    assert CONF_OBJECT_INSTALLATION_DATE in schema_keys
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            "name": "Pool Pump",
+            "manufacturer": "Intex",
+            "model": "26652",
+            CONF_OBJECT_AREA: "garage",
+            CONF_OBJECT_INSTALLATION_DATE: "2024-06-15",
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    # Verify new fields were saved
+    obj = object_config_entry.data.get(CONF_OBJECT, {})
+    assert obj[CONF_OBJECT_AREA] == "garage"
+    assert obj[CONF_OBJECT_INSTALLATION_DATE] == "2024-06-15"
+
+
+async def test_object_settings_without_new_fields(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test updating object settings without area_id/installation_date still works."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    result = await hass.config_entries.options.async_init(
+        object_config_entry.entry_id
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "object_settings"},
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            "name": "Updated Pump",
+            "manufacturer": "",
+            "model": "",
+        },
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    obj = object_config_entry.data.get(CONF_OBJECT, {})
+    assert obj["name"] == "Updated Pump"

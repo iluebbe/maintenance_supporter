@@ -392,6 +392,8 @@
         "description": "Tâche : {task_name} — Choisissez une action.",
         "menu_options": {
           "edit_task": "Modifier la tâche",
+          "edit_trigger": "Modifier le déclencheur",
+          "remove_trigger": "Supprimer le déclencheur",
           "edit_checklist": "Modifier la liste de contrôle",
           "adaptive_scheduling": "Planification adaptative",
           "delete_task": "Supprimer la tâche",
@@ -404,7 +406,12 @@
           "name": "Nom de la tâche",
           "type": "Type de maintenance",
           "interval_days": "Intervalle (jours)",
-          "warning_days": "Jours d'avertissement avant échéance"
+          "warning_days": "Jours d'avertissement avant échéance",
+          "enabled": "Activé",
+          "notes": "Notes",
+          "documentation_url": "URL de documentation",
+          "last_performed": "Dernière exécution",
+          "responsible_user_id": "ID utilisateur responsable"
         }
       },
       "edit_checklist": {
@@ -442,6 +449,13 @@
       "delete_task": {
         "title": "Supprimer la tâche",
         "description": "Êtes-vous sûr de vouloir supprimer la tâche {task_name} ? Cette action est irréversible.",
+        "data": {
+          "confirm": "Confirmer la suppression"
+        }
+      },
+      "remove_trigger": {
+        "title": "Supprimer le déclencheur",
+        "description": "Supprimer le déclencheur capteur de la tâche {task_name} ? La planification reviendra en mode temporel.",
         "data": {
           "confirm": "Confirmer la suppression"
         }
@@ -535,7 +549,9 @@
         "data": {
           "name": "Nom de l'objet",
           "manufacturer": "Fabricant",
-          "model": "Modèle"
+          "model": "Modèle",
+          "area_id": "Zone",
+          "installation_date": "Date d'installation"
         }
       }
     }

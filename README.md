@@ -61,7 +61,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Localized UI: English, German, Dutch, French, Italian, Spanish
 
 ### WebSocket API
-- 20+ commands for full CRUD operations on objects, tasks, and triggers
+- 32 commands for full CRUD operations on objects, tasks, triggers, and groups
 - Real-time subscription for live updates
 - User assignment and listing
 - Statistics, budget status, and interval analysis
