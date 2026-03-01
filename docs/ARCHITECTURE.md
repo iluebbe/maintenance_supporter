@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.0 | **~21,000 lines** across 51 source files (40 Python + 11 TypeScript) | **0 external Python dependencies**
+**Version:** 0.3.1 | **~21,000 lines** across 51 source files (40 Python + 11 TypeScript) | **0 external Python dependencies**
 
 ---
 
@@ -88,7 +88,7 @@ custom_components/maintenance_supporter/
 ├── config_flow_helpers.py       (62 lines)  Shared config flow utilities
 ├── config_flow_options.py       (11 lines)  Options dispatcher
 ├── config_flow_options_global.py(663 lines)  Global settings (notifications, budgets, panel)
-├── config_flow_options_task.py (818 lines)  Per-object task management
+├── config_flow_options_task.py (968 lines)  Per-object task management
 ├── config_flow_trigger.py    (1,003 lines)  TriggerConfigMixin for trigger UI
 │
 ├── sensor.py                   (461 lines)  MaintenanceSensor (enum, per task)
@@ -106,7 +106,7 @@ custom_components/maintenance_supporter/
 │
 ├── websocket/                              32 WS commands, split by domain
 │   ├── __init__.py           (254 lines)  Shared helpers + registration
-│   ├── objects.py            (179 lines)  Object CRUD (5 handlers)
+│   ├── objects.py            (185 lines)  Object CRUD (5 handlers)
 │   ├── tasks.py              (552 lines)  Task CRUD + validation + actions (7 handlers)
 │   ├── groups.py             (163 lines)  Group CRUD (4 handlers)
 │   ├── analysis.py           (261 lines)  Adaptive scheduling (4 handlers)
@@ -373,7 +373,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-397 tests across 16 test files:
+406 tests across 16 test files:
 
 | Test File | Scope |
 |-----------|-------|
