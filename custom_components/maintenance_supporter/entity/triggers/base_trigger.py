@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
@@ -37,6 +37,7 @@ class BaseTrigger(ABC):
         self._triggered = False
         self._current_value: float | None = None
         self._unsub_listener: CALLBACK_TYPE | None = None
+        self._unsub_retry: CALLBACK_TYPE | None = None
         self._logged_unavailable = False  # Log-once pattern for unavailable
 
     @property
@@ -69,15 +70,25 @@ class BaseTrigger(ABC):
             )
             return
 
-        # Validate that we can get a value
-        value = self._get_numeric_value(state)
-        if value is not None:
-            self._current_value = value
-
         # Register state change listener
         self._unsub_listener = async_track_state_change_event(
             self.hass, [self.entity_id], self._handle_state_change_event
         )
+
+        # If state is unknown/unavailable, schedule a retry
+        if state.state in ("unavailable", "unknown"):
+            _LOGGER.info(
+                "Trigger entity %s is '%s' — will retry evaluation in 30s",
+                self.entity_id,
+                state.state,
+            )
+            self._schedule_retry()
+            return
+
+        # Validate that we can get a value
+        value = self._get_numeric_value(state)
+        if value is not None:
+            self._current_value = value
 
         # Initial evaluation
         if value is not None:
@@ -91,8 +102,45 @@ class BaseTrigger(ABC):
             self._current_value,
         )
 
+    def _schedule_retry(self) -> None:
+        """Schedule a retry of the initial evaluation after 30 seconds."""
+        self._cancel_retry()
+
+        @callback
+        def _retry_initial_evaluation(_now) -> None:
+            """Re-check entity state after a delay."""
+            self._unsub_retry = None
+            state = self.hass.states.get(self.entity_id)
+            if state is None or state.state in ("unavailable", "unknown"):
+                _LOGGER.debug(
+                    "Trigger entity %s still %s after retry",
+                    self.entity_id,
+                    state.state if state else "missing",
+                )
+                return
+            value = self._get_numeric_value(state)
+            if value is not None:
+                self._current_value = value
+                self._evaluate_and_update(value)
+                _LOGGER.info(
+                    "Trigger entity %s recovered after retry (value=%s)",
+                    self.entity_id,
+                    value,
+                )
+
+        self._unsub_retry = async_call_later(
+            self.hass, 30, _retry_initial_evaluation
+        )
+
+    def _cancel_retry(self) -> None:
+        """Cancel pending retry timer."""
+        if self._unsub_retry is not None:
+            self._unsub_retry()
+            self._unsub_retry = None
+
     async def async_teardown(self) -> None:
         """Remove the trigger listener."""
+        self._cancel_retry()
         if self._unsub_listener is not None:
             self._unsub_listener()
             self._unsub_listener = None

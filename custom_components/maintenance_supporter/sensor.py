@@ -86,6 +86,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             obj_data.get("name", "unknown").lower().replace(" ", "_").replace("-", "_")
         )
         self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}"
+
+        # Use custom entity_slug as the friendly name if provided
+        entity_slug = task_data.get("entity_slug")
+        if entity_slug:
+            self._attr_name = entity_slug
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
 
     @property

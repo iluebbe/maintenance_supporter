@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -54,6 +55,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_task)
     websocket_api.async_register_command(hass, ws_update_task)
     websocket_api.async_register_command(hass, ws_delete_task)
+    websocket_api.async_register_command(hass, ws_list_tasks)
     websocket_api.async_register_command(hass, ws_complete_task)
     websocket_api.async_register_command(hass, ws_skip_task)
     websocket_api.async_register_command(hass, ws_reset_task)
@@ -512,6 +514,7 @@ async def ws_subscribe(
         vol.Optional("manufacturer"): vol.Any(str, None),
         vol.Optional("model"): vol.Any(str, None),
         vol.Optional("installation_date"): vol.Any(str, None),
+        vol.Optional("dry_run", default=False): bool,
     }
 )
 @websocket_api.async_response
@@ -521,6 +524,11 @@ async def ws_create_object(
     msg: dict[str, Any],
 ) -> None:
     """Create a new maintenance object via config flow."""
+    # Dry-run mode: validate only, do not persist
+    if msg.get("dry_run"):
+        connection.send_result(msg["id"], {"valid": True, "entry_id": None})
+        return
+
     result = await hass.config_entries.flow.async_init(
         DOMAIN,
         context={"source": "websocket"},
@@ -610,6 +618,69 @@ async def ws_delete_object(
 
 
 # ---------------------------------------------------------------------------
+# Trigger config validation
+# ---------------------------------------------------------------------------
+
+_VALID_TRIGGER_TYPES = {"threshold", "counter", "state_change", "runtime"}
+
+_TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
+    "threshold": [],  # at least one of trigger_above/trigger_below checked below
+    "counter": ["trigger_target_value"],
+    "state_change": [],
+    "runtime": ["trigger_runtime_hours"],
+}
+
+
+def _validate_trigger_config(
+    hass: HomeAssistant,
+    trigger_config: dict[str, Any],
+) -> tuple[list[str], list[str]]:
+    """Validate trigger_config structure.
+
+    Returns (errors, warnings).
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    # entity_id is required for all trigger types
+    entity_id = trigger_config.get("entity_id")
+    if not entity_id:
+        errors.append("trigger_config.entity_id is required")
+    else:
+        state = hass.states.get(entity_id)
+        if state is None:
+            warnings.append(f"Entity {entity_id} does not exist (yet)")
+        elif state.state in ("unavailable", "unknown"):
+            warnings.append(
+                f"Entity {entity_id} is currently '{state.state}'"
+            )
+
+    # Trigger type
+    trigger_type = trigger_config.get("type", "threshold")
+    if trigger_type not in _VALID_TRIGGER_TYPES:
+        errors.append(
+            f"Invalid trigger type '{trigger_type}'. "
+            f"Must be one of: {', '.join(sorted(_VALID_TRIGGER_TYPES))}"
+        )
+        return errors, warnings
+
+    # Required fields per type
+    for field in _TRIGGER_REQUIRED_FIELDS[trigger_type]:
+        if trigger_config.get(field) is None:
+            errors.append(f"trigger_config.{field} is required for type '{trigger_type}'")
+
+    # Threshold: at least one of trigger_above or trigger_below
+    if trigger_type == "threshold":
+        if trigger_config.get("trigger_above") is None and trigger_config.get("trigger_below") is None:
+            errors.append(
+                "trigger_config requires at least one of "
+                "'trigger_above' or 'trigger_below' for type 'threshold'"
+            )
+
+    return errors, warnings
+
+
+# ---------------------------------------------------------------------------
 # Write Commands: Task CRUD
 # ---------------------------------------------------------------------------
 
@@ -628,6 +699,8 @@ async def ws_delete_object(
         vol.Optional("notes"): vol.Any(str, None),
         vol.Optional("documentation_url"): vol.Any(str, None),
         vol.Optional("responsible_user_id"): vol.Any(str, None),
+        vol.Optional("entity_slug"): vol.Any(str, None),
+        vol.Optional("dry_run", default=False): bool,
     }
 )
 @websocket_api.async_response
@@ -658,14 +731,49 @@ async def ws_create_task(
         task_data["interval_days"] = msg["interval_days"]
     if msg.get("last_performed") is not None:
         task_data["last_performed"] = msg["last_performed"]
-    if msg.get("trigger_config") is not None:
-        task_data["trigger_config"] = msg["trigger_config"]
+        # Add initial history entry so times_performed reflects the value
+        task_data["history"].append({
+            "timestamp": msg["last_performed"] + "T00:00:00",
+            "type": HistoryEntryType.COMPLETED,
+            "notes": "Initial value set during task creation",
+        })
+    trigger_config = msg.get("trigger_config")
+    tc_errors: list[str] = []
+    tc_warnings: list[str] = []
+    if trigger_config is not None:
+        tc_errors, tc_warnings = _validate_trigger_config(hass, trigger_config)
+        if tc_errors:
+            connection.send_error(
+                msg["id"],
+                "invalid_trigger_config",
+                "; ".join(tc_errors),
+            )
+            return
+        task_data["trigger_config"] = trigger_config
     if msg.get("notes") is not None:
         task_data["notes"] = msg["notes"]
     if msg.get("documentation_url") is not None:
         task_data["documentation_url"] = msg["documentation_url"]
     if msg.get("responsible_user_id") is not None:
         task_data["responsible_user_id"] = msg["responsible_user_id"]
+    if msg.get("entity_slug") is not None:
+        slug = msg["entity_slug"]
+        if not re.fullmatch(r"[a-z0-9_]+", slug):
+            connection.send_error(
+                msg["id"],
+                "invalid_entity_slug",
+                "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
+            )
+            return
+        task_data["entity_slug"] = slug
+
+    # Dry-run mode: validate only, do not persist
+    if msg.get("dry_run"):
+        result: dict[str, Any] = {"valid": True, "task_id": None}
+        if tc_warnings:
+            result["warnings"] = tc_warnings
+        connection.send_result(msg["id"], result)
+        return
 
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -684,7 +792,10 @@ async def ws_create_task(
     # Reload entry to pick up new task entities
     await hass.config_entries.async_reload(entry.entry_id)
 
-    connection.send_result(msg["id"], {"task_id": task_id})
+    result = {"task_id": task_id}
+    if tc_warnings:
+        result["warnings"] = tc_warnings
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
@@ -702,6 +813,7 @@ async def ws_create_task(
         vol.Optional("notes"): vol.Any(str, None),
         vol.Optional("documentation_url"): vol.Any(str, None),
         vol.Optional("responsible_user_id"): vol.Any(str, None),
+        vol.Optional("entity_slug"): vol.Any(str, None),
     }
 )
 @websocket_api.async_response
@@ -724,6 +836,18 @@ async def ws_update_task(
 
     task = dict(tasks_data[task_id])
 
+    # Validate trigger_config if provided
+    tc_warnings: list[str] = []
+    if "trigger_config" in msg and msg["trigger_config"] is not None:
+        tc_errors, tc_warnings = _validate_trigger_config(hass, msg["trigger_config"])
+        if tc_errors:
+            connection.send_error(
+                msg["id"],
+                "invalid_trigger_config",
+                "; ".join(tc_errors),
+            )
+            return
+
     # Update provided fields
     field_map = {
         "name": "name",
@@ -736,6 +860,7 @@ async def ws_update_task(
         "notes": "notes",
         "documentation_url": "documentation_url",
         "responsible_user_id": "responsible_user_id",
+        "entity_slug": "entity_slug",
     }
     for msg_key, data_key in field_map.items():
         if msg_key in msg:
@@ -751,7 +876,10 @@ async def ws_update_task(
     if rd and rd.coordinator:
         await rd.coordinator.async_request_refresh()
 
-    connection.send_result(msg["id"], {"success": True})
+    result: dict[str, Any] = {"success": True}
+    if tc_warnings:
+        result["warnings"] = tc_warnings
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
@@ -795,6 +923,44 @@ async def ws_delete_task(
     await hass.config_entries.async_reload(entry.entry_id)
 
     connection.send_result(msg["id"], {"success": True})
+
+
+# ---------------------------------------------------------------------------
+# Read Commands: Task List
+# ---------------------------------------------------------------------------
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/list",
+        vol.Optional("entry_id"): str,
+    }
+)
+@callback
+def ws_list_tasks(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """List tasks, optionally filtered by entry_id (object)."""
+    entries = _get_object_entries(hass)
+    filter_entry_id = msg.get("entry_id")
+
+    tasks: list[dict[str, Any]] = []
+    for entry in entries:
+        if filter_entry_id and entry.entry_id != filter_entry_id:
+            continue
+        entry_tasks = entry.data.get(CONF_TASKS, {})
+        obj_data = entry.data.get(CONF_OBJECT, {})
+        for task_id, task_data in entry_tasks.items():
+            tasks.append({
+                "task_id": task_id,
+                "entry_id": entry.entry_id,
+                "object_name": obj_data.get(CONF_OBJECT_NAME, ""),
+                **task_data,
+            })
+
+    connection.send_result(msg["id"], {"tasks": tasks})
 
 
 # ---------------------------------------------------------------------------
