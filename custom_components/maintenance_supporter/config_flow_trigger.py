@@ -38,6 +38,7 @@ from .const import (
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_FOR_MINUTES,
     CONF_TRIGGER_FROM_STATE,
+    CONF_TRIGGER_ON_STATES,
     CONF_TRIGGER_RUNTIME_HOURS,
     CONF_TRIGGER_TARGET_CHANGES,
     CONF_TRIGGER_TARGET_VALUE,
@@ -466,6 +467,17 @@ class TriggerConfigMixin:
             tc = self._current_task["trigger_config"]
             tc[CONF_TRIGGER_RUNTIME_HOURS] = user_input[CONF_TRIGGER_RUNTIME_HOURS]
 
+            # Parse comma-separated ON states
+            raw_states = user_input.get(CONF_TRIGGER_ON_STATES, "")
+            if raw_states and raw_states.strip():
+                tc[CONF_TRIGGER_ON_STATES] = [
+                    s.strip().lower()
+                    for s in raw_states.split(",")
+                    if s.strip()
+                ]
+            else:
+                tc.pop(CONF_TRIGGER_ON_STATES, None)
+
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.SENSOR_BASED
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
             if interval and interval > 0:
@@ -475,6 +487,11 @@ class TriggerConfigMixin:
             )
 
             return on_complete()
+
+        # Pre-fill existing custom states for editing
+        current_tc = self._current_task.get("trigger_config", {})
+        existing_states = current_tc.get(CONF_TRIGGER_ON_STATES)
+        default_states = ", ".join(existing_states) if existing_states else ""
 
         return self.async_show_form(
             step_id=step_id,
@@ -487,6 +504,13 @@ class TriggerConfigMixin:
                             min=1,
                             max=100000,
                             unit_of_measurement="h",
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_TRIGGER_ON_STATES, default=default_states
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
                         )
                     ),
                     vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(

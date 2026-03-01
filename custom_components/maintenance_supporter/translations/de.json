@@ -195,11 +195,13 @@
         "description": "Akkumulierte Laufzeit von {entity_id} erfassen. Wartung wird fällig, wenn die Gesamtlaufzeit die Zielstunden erreicht.",
         "data": {
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
+          "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall (Tage)",
           "warning_days": "Warntage vor Fälligkeit"
         },
         "data_description": {
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
+          "trigger_on_states": "Welche Sensor-Zustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Trigger.",
           "warning_days": "Anzahl Tage vor Fälligkeit für Warnung."
         }
@@ -523,6 +525,7 @@
         "description": "Akkumulierte Laufzeit von {entity_id} erfassen.",
         "data": {
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
+          "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall (Tage)",
           "warning_days": "Warntage vor Fälligkeit"
         }

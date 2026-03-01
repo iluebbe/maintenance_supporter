@@ -195,11 +195,13 @@
         "description": "Registre el tiempo de funcionamiento acumulado de {entity_id}. El mantenimiento se activa cuando el tiempo total de funcionamiento alcanza las horas objetivo.",
         "data": {
           "trigger_runtime_hours": "Tiempo de funcionamiento objetivo (horas)",
+          "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad (días)",
           "warning_days": "Días de aviso antes del vencimiento"
         },
         "data_description": {
           "trigger_runtime_hours": "Activar mantenimiento después de este número de horas de funcionamiento acumulado.",
+          "trigger_on_states": "Qué estados del sensor se consideran 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de tiempo de funcionamiento.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso."
         }
@@ -523,6 +525,7 @@
         "description": "Registre el tiempo de funcionamiento acumulado de {entity_id}.",
         "data": {
           "trigger_runtime_hours": "Tiempo de funcionamiento objetivo (horas)",
+          "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad (días)",
           "warning_days": "Días de aviso antes del vencimiento"
         }

@@ -1,4 +1,4 @@
-"""Tests for GitHub issue fixes (#1-#6)."""
+"""Tests for GitHub issue fixes (#1-#7)."""
 
 from __future__ import annotations
 
@@ -19,6 +19,9 @@ from custom_components.maintenance_supporter.const import (
 )
 from custom_components.maintenance_supporter.entity.triggers.base_trigger import (
     BaseTrigger,
+)
+from custom_components.maintenance_supporter.entity.triggers.runtime import (
+    RuntimeTrigger,
 )
 from custom_components.maintenance_supporter.entity.triggers.threshold import (
     ThresholdTrigger,
@@ -283,3 +286,109 @@ class TestTriggerConfigValidation:
             "trigger_runtime_hours": 100.0,
         })
         assert errors == []
+
+    def test_runtime_with_valid_on_states(self, hass: HomeAssistant) -> None:
+        """Valid trigger_on_states list should pass validation."""
+        set_sensor_state(hass, "sensor.test", "in_use")
+        errors, warnings = _validate_trigger_config(hass, {
+            "entity_id": "sensor.test",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+            "trigger_on_states": ["in_use", "running"],
+        })
+        assert errors == []
+
+    def test_runtime_with_invalid_on_states(self, hass: HomeAssistant) -> None:
+        """Non-list trigger_on_states should produce an error."""
+        set_sensor_state(hass, "sensor.test", "on")
+        errors, warnings = _validate_trigger_config(hass, {
+            "entity_id": "sensor.test",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+            "trigger_on_states": "in_use",  # string, not list
+        })
+        assert any("trigger_on_states" in e for e in errors)
+
+    def test_runtime_with_empty_on_states(self, hass: HomeAssistant) -> None:
+        """Empty trigger_on_states list should produce an error."""
+        set_sensor_state(hass, "sensor.test", "on")
+        errors, warnings = _validate_trigger_config(hass, {
+            "entity_id": "sensor.test",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+            "trigger_on_states": [],
+        })
+        assert any("trigger_on_states" in e for e in errors)
+
+
+# ─── Issue #7: Runtime Trigger custom ON states ─────────────────────────
+
+
+class TestRuntimeTriggerCustomOnStates:
+    """Issue #7: RuntimeTrigger should support configurable ON states."""
+
+    def test_custom_on_states_recognized(self, hass: HomeAssistant) -> None:
+        """Custom states like 'in_use' should be recognized as ON."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.dishwasher",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+            "trigger_on_states": ["in_use", "running"],
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+
+        assert trigger._is_on("in_use") is True
+        assert trigger._is_on("running") is True
+        assert trigger._is_on("IN_USE") is True  # case insensitive
+        assert trigger._is_on("on") is False  # not in custom list
+        assert trigger._is_on("off") is False
+
+    def test_default_on_states_when_not_configured(self, hass: HomeAssistant) -> None:
+        """Without trigger_on_states, default states should be used."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+
+        assert trigger._is_on("on") is True
+        assert trigger._is_on("1") is True
+        assert trigger._is_on("true") is True
+        assert trigger._is_on("in_use") is False
+        assert trigger._is_on("off") is False
+
+    def test_custom_states_case_insensitive(self, hass: HomeAssistant) -> None:
+        """Custom states should be matched case-insensitively."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+            "trigger_on_states": ["Heat", "COOL"],
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+
+        assert trigger._is_on("heat") is True
+        assert trigger._is_on("Heat") is True
+        assert trigger._is_on("HEAT") is True
+        assert trigger._is_on("cool") is True
+        assert trigger._is_on("COOL") is True
+
+    def test_empty_or_invalid_on_states_falls_back_to_default(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Invalid trigger_on_states should fall back to defaults."""
+        entity = _make_mock_entity(hass)
+        # Non-list value
+        config = {
+            "entity_id": "sensor.test",
+            "type": "runtime",
+            "trigger_runtime_hours": 100.0,
+            "trigger_on_states": "not_a_list",
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        assert trigger._is_on("on") is True  # falls back to default
+        assert trigger._is_on("not_a_list") is False

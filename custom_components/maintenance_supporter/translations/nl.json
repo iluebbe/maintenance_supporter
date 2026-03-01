@@ -195,11 +195,13 @@
         "description": "Volg de totale looptijd van {entity_id}. Onderhoud wordt geactiveerd wanneer de totale inschakeltijd het doel bereikt.",
         "data": {
           "trigger_runtime_hours": "Doellooptijd (uren)",
+          "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval (dagen)",
           "warning_days": "Waarschuwingsdagen voor deadline"
         },
         "data_description": {
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren totale looptijd.",
+          "trigger_on_states": "Welke sensorstatussen als 'actief' gelden. Leeg laten voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
         }
@@ -523,6 +525,7 @@
         "description": "Volg de totale looptijd van {entity_id}.",
         "data": {
           "trigger_runtime_hours": "Doellooptijd (uren)",
+          "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval (dagen)",
           "warning_days": "Waarschuwingsdagen voor deadline"
         }

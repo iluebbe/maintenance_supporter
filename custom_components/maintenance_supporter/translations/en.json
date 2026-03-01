@@ -195,11 +195,13 @@
         "description": "Track accumulated runtime of {entity_id}. Maintenance triggers when total on-time reaches the target hours.",
         "data": {
           "trigger_runtime_hours": "Target runtime (hours)",
+          "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval (days)",
           "warning_days": "Warning days before due"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
+          "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
           "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
           "warning_days": "Number of days before due date to show a warning."
         }
@@ -523,6 +525,7 @@
         "description": "Track accumulated runtime of {entity_id}.",
         "data": {
           "trigger_runtime_hours": "Target runtime (hours)",
+          "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval (days)",
           "warning_days": "Warning days before due"
         }

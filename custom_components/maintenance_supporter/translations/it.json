@@ -195,11 +195,13 @@
         "description": "Monitora il tempo di funzionamento cumulato di {entity_id}. La manutenzione si attiva quando il tempo totale di funzionamento raggiunge le ore target.",
         "data": {
           "trigger_runtime_hours": "Tempo di funzionamento target (ore)",
+          "trigger_on_states": "Stati attivi (separati da virgole)",
           "interval_days": "Intervallo di sicurezza (giorni)",
           "warning_days": "Giorni di avviso prima della scadenza"
         },
         "data_description": {
           "trigger_runtime_hours": "Attiva la manutenzione dopo questo numero di ore di funzionamento cumulato.",
+          "trigger_on_states": "Quali stati del sensore contano come 'attivo'. Lasciare vuoto per predefinito: on, 1, true. Esempio: in_use, running",
           "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger di tempo di funzionamento.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
@@ -523,6 +525,7 @@
         "description": "Monitora il tempo di funzionamento cumulato di {entity_id}.",
         "data": {
           "trigger_runtime_hours": "Tempo di funzionamento target (ore)",
+          "trigger_on_states": "Stati attivi (separati da virgole)",
           "interval_days": "Intervallo di sicurezza (giorni)",
           "warning_days": "Giorni di avviso prima della scadenza"
         }

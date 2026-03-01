@@ -133,6 +133,7 @@ CONF_TRIGGER_FROM_STATE = "trigger_from_state"
 CONF_TRIGGER_TO_STATE = "trigger_to_state"
 CONF_TRIGGER_TARGET_CHANGES = "trigger_target_changes"
 CONF_TRIGGER_RUNTIME_HOURS = "trigger_runtime_hours"
+CONF_TRIGGER_ON_STATES = "trigger_on_states"
 
 # --- Config Keys: Adaptive Scheduling ---
 CONF_ADAPTIVE_CONFIG = "adaptive_config"

@@ -677,6 +677,23 @@ def _validate_trigger_config(
                 "'trigger_above' or 'trigger_below' for type 'threshold'"
             )
 
+    # Runtime: validate trigger_on_states if provided
+    if trigger_type == "runtime":
+        on_states = trigger_config.get("trigger_on_states")
+        if on_states is not None:
+            if not isinstance(on_states, list) or not all(
+                isinstance(s, str) and s.strip() for s in on_states
+            ):
+                errors.append(
+                    "trigger_config.trigger_on_states must be a list of "
+                    "non-empty strings"
+                )
+            elif len(on_states) == 0:
+                errors.append(
+                    "trigger_config.trigger_on_states must not be empty "
+                    "when provided"
+                )
+
     return errors, warnings
 
 

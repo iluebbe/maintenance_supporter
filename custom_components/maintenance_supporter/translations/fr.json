@@ -195,11 +195,13 @@
         "description": "Suivez le temps de fonctionnement cumulé de {entity_id}. La maintenance se déclenche lorsque le temps total de fonctionnement atteint les heures cibles.",
         "data": {
           "trigger_runtime_hours": "Temps de fonctionnement cible (heures)",
+          "trigger_on_states": "États actifs (séparés par des virgules)",
           "interval_days": "Intervalle de sécurité (jours)",
           "warning_days": "Jours d'avertissement avant échéance"
         },
         "data_description": {
           "trigger_runtime_hours": "Déclencher la maintenance après ce nombre d'heures de fonctionnement cumulé.",
+          "trigger_on_states": "Quels états du capteur comptent comme 'actif'. Laisser vide pour défaut : on, 1, true. Exemple : in_use, running",
           "interval_days": "Intervalle de sécurité temporel optionnel en plus du déclencheur de temps de fonctionnement.",
           "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
         }
@@ -523,6 +525,7 @@
         "description": "Suivez le temps de fonctionnement cumulé de {entity_id}.",
         "data": {
           "trigger_runtime_hours": "Temps de fonctionnement cible (heures)",
+          "trigger_on_states": "États actifs (séparés par des virgules)",
           "interval_days": "Intervalle de sécurité (jours)",
           "warning_days": "Jours d'avertissement avant échéance"
         }

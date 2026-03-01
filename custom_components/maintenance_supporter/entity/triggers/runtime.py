@@ -22,7 +22,7 @@ from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
 
-_ON_STATES = frozenset({"on", "1", "true"})
+_DEFAULT_ON_STATES = frozenset({"on", "1", "true"})
 
 # Persist accumulated runtime every 5 minutes to minimise data loss on crash
 _PERSIST_INTERVAL = timedelta(minutes=5)
@@ -60,6 +60,15 @@ class RuntimeTrigger(BaseTrigger):
             if parsed:
                 self._on_since = on_since_str
                 self._on_since_dt = parsed
+
+        # Custom ON states (default: on, 1, true)
+        custom_on = trigger_config.get("trigger_on_states")
+        if custom_on and isinstance(custom_on, list):
+            self._on_states: frozenset[str] = frozenset(
+                s.lower().strip() for s in custom_on if isinstance(s, str) and s.strip()
+            )
+        else:
+            self._on_states = _DEFAULT_ON_STATES
 
         self._unsub_periodic: Any | None = None
 
@@ -226,10 +235,9 @@ class RuntimeTrigger(BaseTrigger):
         self._current_value = current_hours
         self._evaluate_and_update(current_hours)
 
-    @staticmethod
-    def _is_on(state_value: str) -> bool:
+    def _is_on(self, state_value: str) -> bool:
         """Check if state represents 'on'."""
-        return state_value.lower() in _ON_STATES
+        return state_value.lower() in self._on_states
 
     def _accumulate_elapsed(self) -> None:
         """Add elapsed time since _on_since to accumulated total."""
