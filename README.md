@@ -3,7 +3,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
 
-A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history.
+A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
 
 ## Features
 
@@ -12,29 +12,34 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Six task types: cleaning, inspection, replacement, calibration, service, custom
 - Three scheduling modes: **time-based** (interval in days), **sensor-based** (triggered by entity state), **manual**
 - Task status tracking: OK, Due Soon, Overdue, Triggered
-- Assign tasks to Home Assistant users
+- Assign tasks to responsible Home Assistant users with per-user notification routing
 - Checklists for multi-step procedures
 - Task grouping for logical organization
 
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit (with optional duration)
-- **Counter**: trigger when a counter reaches a target value (absolute or delta mode)
-- **State change**: trigger after a number of state transitions (e.g., door open/close cycles)
-- Automatic entity availability tracking with repair issues for missing sensors
+- **Counter**: trigger when accumulated value reaches a target (absolute or delta mode)
+- **State change**: trigger after a number of state transitions (e.g., on/off cycles)
+- **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime)
+- Automatic entity availability tracking with grace periods
+- Repair issues for missing or unavailable trigger entities (replace / remove / dismiss)
 
 ### Adaptive Scheduling
-- Learns from your maintenance history using Exponential Weighted Averaging
-- Weibull reliability analysis (after 5+ completions)
-- Seasonal awareness with hemisphere detection and monthly factors
+- Learns from your maintenance history using Exponential Weighted Averaging (EWA)
+- Weibull reliability analysis for failure prediction (after 5+ completions)
+- Seasonal awareness with hemisphere detection and per-month multipliers
 - Environmental correlation with external sensors (temperature, humidity, etc.)
 - Sensor degradation rate analysis and threshold prediction
+- User feedback loop (needed / not needed / not sure) to improve recommendations
 
 ### Notifications
 - Configurable notification service (any `notify.*` service)
+- Per-user notifications for tasks with a responsible user assigned
 - Rate limiting per status level (due soon, overdue, triggered)
 - Quiet hours support
-- Notification bundling (group multiple due tasks)
-- Mobile actionable notifications: Complete, Skip, Snooze
+- Notification bundling (group multiple due tasks into one message)
+- Daily notification limits
+- Mobile actionable notifications via Companion App: Complete, Skip, Snooze
 
 ### Budget Tracking
 - Monthly and yearly maintenance budgets
@@ -44,13 +49,23 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Data Management
 - Export/import via JSON, YAML, CSV
 - QR code generation for mobile quick-actions (print, download SVG)
-- Complete maintenance history with cost and duration tracking
+- Complete maintenance history with cost, duration, and feedback tracking
+- Integration diagnostics with PII redaction
 
 ### Frontend
 - **Sidebar panel** with dashboard overview, object details, task history, and analytics
 - **Lovelace card** for dashboard integration
 - **Calendar** integration with status-emoji events
+- Real-time updates via WebSocket subscription (no polling)
+- User filter to show only your assigned tasks
 - Localized UI: English, German, Dutch, French, Italian, Spanish
+
+### WebSocket API
+- 20+ commands for full CRUD operations on objects, tasks, and triggers
+- Real-time subscription for live updates
+- User assignment and listing
+- Statistics, budget status, and interval analysis
+- See [Architecture](docs/ARCHITECTURE.md) for the complete command reference
 
 ## Installation
 

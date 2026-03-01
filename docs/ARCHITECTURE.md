@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.2.0 | **~19,500 lines** across 50 source files | **0 external Python dependencies**
+**Version:** 0.2.4 | **~23,000 lines** across 50+ source files | **0 external Python dependencies**
 
 ---
 
@@ -330,7 +330,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-335 tests across 16 test files:
+362 tests across 17 test files:
 
 | Test File | Scope |
 |-----------|-------|
@@ -349,6 +349,7 @@ All write commands fire events for subscription updates.
 | `test_edge_cases.py` | Boundary conditions, error handling |
 | `test_phase2_features.py` | Checklist, groups, budgets |
 | `test_qr_generation.py` | QR URL building, SVG generation |
+| `test_issue_fixes.py` | GitHub issue regression tests (#1-#7) |
 
 ---
 
