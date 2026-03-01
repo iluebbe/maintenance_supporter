@@ -834,5 +834,13 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Kein Wartungskoordinator für Entität {entity_id} gefunden."
+    },
+    "no_task_for_entity": {
+      "message": "Keine Wartungsaufgabe für Entität {entity_id} gefunden."
+    }
   }
 }

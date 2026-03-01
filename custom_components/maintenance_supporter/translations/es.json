@@ -834,5 +834,13 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "No se encontró coordinador de mantenimiento para la entidad {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "No se encontró tarea de mantenimiento para la entidad {entity_id}."
+    }
   }
 }

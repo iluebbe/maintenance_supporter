@@ -834,5 +834,13 @@
         }
       }
     }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Geen onderhoudscoördinator gevonden voor entiteit {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "Geen onderhoudstaak gevonden voor entiteit {entity_id}."
+    }
   }
 }
