@@ -117,7 +117,11 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
     # --- Helpers ---
 
     async def _replace_trigger_entity(self, new_entity_id: str) -> None:
-        """Replace the trigger entity in config entry data and reload."""
+        """Replace the trigger entity in config entry data and reload.
+
+        For multi-entity triggers, replaces the specific missing entity
+        within the entity_ids list.
+        """
         issue_data = self.data or {}
         entry_id = issue_data.get("entry_id")
         task_id = issue_data.get("task_id")
@@ -136,8 +140,22 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         task_dict = dict(tasks_data.get(task_id, {}))
         trigger_config = dict(task_dict.get("trigger_config", {}))
 
-        # Update entity_id
-        trigger_config["entity_id"] = new_entity_id
+        # Update entity_ids list if present
+        entity_ids = trigger_config.get("entity_ids", [])
+        if entity_ids and old_entity_id in entity_ids:
+            entity_ids = [
+                new_entity_id if eid == old_entity_id else eid
+                for eid in entity_ids
+            ]
+            trigger_config["entity_ids"] = entity_ids
+
+        # Update entity_id (for backwards compat / single-entity)
+        if trigger_config.get("entity_id") == old_entity_id:
+            trigger_config["entity_id"] = new_entity_id
+        # Also update entity_id if it's the first in entity_ids
+        if entity_ids:
+            trigger_config["entity_id"] = entity_ids[0]
+
         # Reset runtime values that are specific to the old entity
         trigger_config.pop("trigger_baseline_value", None)
         trigger_config.pop("trigger_change_count", None)
@@ -168,10 +186,16 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         )
 
     async def _remove_trigger(self) -> None:
-        """Remove the sensor trigger and convert to time_based or manual."""
+        """Remove the missing entity from the trigger.
+
+        For multi-entity triggers, removes only the specific entity from the
+        entity_ids list.  If only one entity remains (or was the only one),
+        removes the entire trigger and converts to time_based or manual.
+        """
         issue_data = self.data or {}
         entry_id = issue_data.get("entry_id")
         task_id = issue_data.get("task_id")
+        missing_entity_id = issue_data.get("entity_id", "")
 
         if not entry_id or not task_id:
             _LOGGER.error("Repair flow missing entry_id or task_id in issue data")
@@ -184,45 +208,60 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
         task_dict = dict(tasks_data.get(task_id, {}))
-        old_entity_id = task_dict.get("trigger_config", {}).get("entity_id", "")
+        trigger_config = dict(task_dict.get("trigger_config", {}))
 
-        # Keep interval_days from trigger_config if it has a safety interval
-        safety_interval = task_dict.get("trigger_config", {}).get("interval_days")
+        entity_ids = trigger_config.get("entity_ids", [])
+        remaining = [eid for eid in entity_ids if eid != missing_entity_id]
 
-        # Remove trigger config
-        task_dict.pop("trigger_config", None)
+        if remaining:
+            # Multi-entity: just remove the missing entity, keep trigger alive
+            trigger_config["entity_ids"] = remaining
+            trigger_config["entity_id"] = remaining[0]
+            task_dict["trigger_config"] = trigger_config
 
-        # Convert schedule type: use time_based if there's an interval, else manual
-        if safety_interval or task_dict.get("interval_days"):
-            task_dict["schedule_type"] = ScheduleType.TIME_BASED
-            if safety_interval and not task_dict.get("interval_days"):
-                task_dict["interval_days"] = safety_interval
+            from .models.maintenance_task import MaintenanceTask
+
+            task = MaintenanceTask.from_dict(task_dict)
+            task.add_history_entry(
+                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                notes=f"Entity {missing_entity_id} removed from multi-entity trigger. "
+                f"Remaining: {', '.join(remaining)}",
+            )
+            tasks_data[task_id] = task.to_dict()
         else:
-            task_dict["schedule_type"] = ScheduleType.MANUAL
+            # Single entity or all removed: remove the entire trigger
+            old_entity_id = trigger_config.get("entity_id", missing_entity_id)
+            safety_interval = trigger_config.get("interval_days")
 
-        # Add history entry
-        from .models.maintenance_task import MaintenanceTask
+            task_dict.pop("trigger_config", None)
 
-        task = MaintenanceTask.from_dict(task_dict)
-        task.add_history_entry(
-            entry_type=HistoryEntryType.TRIGGER_REMOVED,
-            notes=f"Sensor trigger removed (entity was: {old_entity_id}). "
-            f"Schedule converted to {task.schedule_type}.",
-        )
-        tasks_data[task_id] = task.to_dict()
+            if safety_interval or task_dict.get("interval_days"):
+                task_dict["schedule_type"] = ScheduleType.TIME_BASED
+                if safety_interval and not task_dict.get("interval_days"):
+                    task_dict["interval_days"] = safety_interval
+            else:
+                task_dict["schedule_type"] = ScheduleType.MANUAL
+
+            from .models.maintenance_task import MaintenanceTask
+
+            task = MaintenanceTask.from_dict(task_dict)
+            task.add_history_entry(
+                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                notes=f"Sensor trigger removed (entity was: {old_entity_id}). "
+                f"Schedule converted to {task.schedule_type}.",
+            )
+            tasks_data[task_id] = task.to_dict()
 
         new_data = dict(entry.data)
         new_data[CONF_TASKS] = tasks_data
         self.hass.config_entries.async_update_entry(entry, data=new_data)
 
-        # Reload entry so the trigger is torn down properly
         await self.hass.config_entries.async_reload(entry_id)
 
         _LOGGER.info(
-            "Trigger removed for task '%s' (was: %s), converted to %s",
+            "Trigger entity %s removed for task '%s'",
+            missing_entity_id,
             issue_data.get("task_name"),
-            old_entity_id,
-            task.schedule_type,
         )
 
 

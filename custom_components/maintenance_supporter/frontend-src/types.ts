@@ -11,6 +11,8 @@ export interface MaintenanceObject {
 
 export interface TriggerConfig {
   entity_id?: string;
+  entity_ids?: string[];
+  entity_logic?: "any" | "all";
   attribute?: string | null;
   type?: string; // "threshold" | "counter" | "state_change" | "runtime"
   trigger_above?: number | null;
@@ -96,6 +98,7 @@ export interface MaintenanceTask {
   checklist?: string[];
   trigger_config?: TriggerConfig | null;
   trigger_entity_info?: TriggerEntityInfo | null;
+  trigger_entity_infos?: TriggerEntityInfo[] | null;
   history: HistoryEntry[];
   // Computed
   status: string; // "ok" | "due_soon" | "overdue" | "triggered"

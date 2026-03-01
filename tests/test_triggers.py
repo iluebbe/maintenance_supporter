@@ -21,7 +21,15 @@ from custom_components.maintenance_supporter.const import (
     ScheduleType,
     TriggerType,
 )
-from custom_components.maintenance_supporter.entity.triggers import create_trigger
+from custom_components.maintenance_supporter.entity.triggers import (
+    _migrate_flat_to_per_entity,
+    create_trigger,
+    create_triggers,
+    normalize_entity_ids,
+)
+from custom_components.maintenance_supporter.entity.triggers.compound import (
+    CompoundTrigger,
+)
 from custom_components.maintenance_supporter.entity.triggers.counter import (
     CounterTrigger,
 )
@@ -411,7 +419,7 @@ class TestStateChangeTrigger:
         # Should be triggered because count >= target
         assert trigger._triggered is True
         entity.async_update_trigger_state.assert_called_with(
-            is_triggered=True, current_value=3.0
+            is_triggered=True, current_value=3.0, trigger_entity_id="sensor.test"
         )
 
         await trigger.async_teardown()
@@ -544,7 +552,8 @@ class TestRuntimeTrigger:
         # Should now be triggered (3500 + 300 = 3800 seconds = 1.0556 hours)
         assert trigger._triggered is True
         entity.async_update_trigger_state.assert_called_with(
-            is_triggered=True, current_value=pytest.approx(1.0556, abs=0.01)
+            is_triggered=True, current_value=pytest.approx(1.0556, abs=0.01),
+            trigger_entity_id="input_boolean.pump",
         )
 
         await trigger.async_teardown()
@@ -663,16 +672,25 @@ class TestRuntimeTrigger:
 
     async def test_is_on_states(self, hass: HomeAssistant) -> None:
         """Test _is_on recognizes various on-states."""
-        assert RuntimeTrigger._is_on("on") is True
-        assert RuntimeTrigger._is_on("On") is True
-        assert RuntimeTrigger._is_on("ON") is True
-        assert RuntimeTrigger._is_on("true") is True
-        assert RuntimeTrigger._is_on("True") is True
-        assert RuntimeTrigger._is_on("1") is True
-        assert RuntimeTrigger._is_on("off") is False
-        assert RuntimeTrigger._is_on("false") is False
-        assert RuntimeTrigger._is_on("0") is False
-        assert RuntimeTrigger._is_on("unavailable") is False
+        set_sensor_state(hass, "input_boolean.test_on", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "input_boolean.test_on",
+            "attribute": None,
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100.0,
+        }
+        trigger = RuntimeTrigger(hass, entity, config)
+        assert trigger._is_on("on") is True
+        assert trigger._is_on("On") is True
+        assert trigger._is_on("ON") is True
+        assert trigger._is_on("true") is True
+        assert trigger._is_on("True") is True
+        assert trigger._is_on("1") is True
+        assert trigger._is_on("off") is False
+        assert trigger._is_on("false") is False
+        assert trigger._is_on("0") is False
+        assert trigger._is_on("unavailable") is False
 
     async def test_setup_and_teardown(self, hass: HomeAssistant) -> None:
         """Test trigger setup registers listener and teardown removes it."""
@@ -1364,3 +1382,948 @@ async def test_coordinator_fallback_threshold_with_for_minutes_skips_activation(
     assert state is not None
     # Should NOT be triggered (timer handling is event-driven only)
     assert state.state != MaintenanceStatus.TRIGGERED
+
+
+# ─── 7.6 normalize_entity_ids ──────────────────────────────────────────
+
+
+class TestNormalizeEntityIds:
+    """Tests for normalize_entity_ids helper."""
+
+    def test_single_entity_id(self) -> None:
+        """Test legacy entity_id string is normalized to a list."""
+        config = {"entity_id": "sensor.pressure", "type": "threshold"}
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.pressure"]
+
+    def test_entity_ids_list(self) -> None:
+        """Test entity_ids list is returned as-is."""
+        config = {
+            "entity_ids": ["sensor.a", "sensor.b"],
+            "entity_id": "sensor.a",
+            "type": "threshold",
+        }
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.a", "sensor.b"]
+
+    def test_entity_ids_takes_precedence(self) -> None:
+        """Test entity_ids list takes precedence over entity_id."""
+        config = {
+            "entity_ids": ["sensor.x"],
+            "entity_id": "sensor.y",
+            "type": "threshold",
+        }
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.x"]
+
+    def test_empty_config(self) -> None:
+        """Test empty config returns empty list."""
+        assert normalize_entity_ids({}) == []
+        assert normalize_entity_ids({"entity_ids": []}) == []
+
+    def test_empty_entity_ids_falls_back_to_entity_id(self) -> None:
+        """Test empty entity_ids falls back to entity_id."""
+        config = {"entity_ids": [], "entity_id": "sensor.fallback"}
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.fallback"]
+
+
+# ─── 7.7 create_triggers ──────────────────────────────────────────────
+
+
+class TestCreateTriggers:
+    """Tests for create_triggers factory."""
+
+    async def test_single_entity_creates_one_trigger(self, hass: HomeAssistant) -> None:
+        """Test single entity_id creates one trigger."""
+        set_sensor_state(hass, "sensor.pressure", "1.0")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.pressure",
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 1.5,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 1
+        assert isinstance(triggers[0], ThresholdTrigger)
+
+    async def test_multi_entity_threshold_creates_multiple(self, hass: HomeAssistant) -> None:
+        """Test multiple entity_ids creates one trigger per entity."""
+        set_sensor_state(hass, "sensor.a", "1.0")
+        set_sensor_state(hass, "sensor.b", "2.0")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.a", "sensor.b"],
+            "entity_id": "sensor.a",
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 1.5,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert triggers[0].entity_id == "sensor.a"
+        assert triggers[1].entity_id == "sensor.b"
+
+    async def test_multi_entity_counter_creates_multiple(self, hass: HomeAssistant) -> None:
+        """Test counter with multiple entity_ids creates one trigger per entity (Phase 2)."""
+        set_sensor_state(hass, "sensor.a", "100")
+        set_sensor_state(hass, "sensor.b", "200")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.a", "sensor.b"],
+            "entity_id": "sensor.a",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 500,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert all(isinstance(t, CounterTrigger) for t in triggers)
+        assert triggers[0].entity_id == "sensor.a"
+        assert triggers[1].entity_id == "sensor.b"
+
+    async def test_no_entity_raises(self, hass: HomeAssistant) -> None:
+        """Test missing entity_ids raises ValueError."""
+        entity = _make_mock_entity(hass)
+        config = {"type": TriggerType.THRESHOLD, "trigger_above": 1.5}
+        with pytest.raises(ValueError, match="No entity_id"):
+            create_triggers(hass, entity, config)
+
+
+# ─── 7.8 Multi-Entity Threshold Aggregation ──────────────────────────
+
+
+class TestMultiEntityThreshold:
+    """Tests for multi-entity threshold trigger aggregation."""
+
+    async def test_any_logic_one_triggers(self, hass: HomeAssistant) -> None:
+        """Test 'any' logic: one entity exceeding triggers the sensor."""
+        set_sensor_state(hass, "sensor.a", "1.0")
+        set_sensor_state(hass, "sensor.b", "1.0")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.a", "sensor.b"],
+            "entity_id": "sensor.a",
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 1.5,
+            "entity_logic": "any",
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+
+        # Set up triggers
+        for t in triggers:
+            await t.async_setup()
+
+        # Both below threshold — no trigger
+        entity.async_update_trigger_state.assert_not_called()
+
+        # sensor.a exceeds threshold
+        set_sensor_state(hass, "sensor.a", "2.0")
+        await hass.async_block_till_done()
+
+        # Should have been called with trigger activation
+        entity.async_update_trigger_state.assert_called()
+        last_call = entity.async_update_trigger_state.call_args
+        assert last_call.kwargs.get("is_triggered") is True
+        assert last_call.kwargs.get("trigger_entity_id") == "sensor.a"
+
+        # Teardown
+        for t in triggers:
+            await t.async_teardown()
+
+    async def test_any_logic_none_triggered(self, hass: HomeAssistant) -> None:
+        """Test 'any' logic: no entities exceeding does not trigger."""
+        set_sensor_state(hass, "sensor.a", "1.0")
+        set_sensor_state(hass, "sensor.b", "1.0")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.a", "sensor.b"],
+            "entity_id": "sensor.a",
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 1.5,
+            "entity_logic": "any",
+        }
+        triggers = create_triggers(hass, entity, config)
+        for t in triggers:
+            await t.async_setup()
+
+        # Update with a still-below-threshold value
+        set_sensor_state(hass, "sensor.a", "1.3")
+        await hass.async_block_till_done()
+
+        # No trigger activation calls (initial value 1.0 was below, 1.3 still below)
+        for call in entity.async_update_trigger_state.call_args_list:
+            assert call.kwargs.get("is_triggered") is not True
+
+        for t in triggers:
+            await t.async_teardown()
+
+    async def test_all_logic_both_must_trigger(self, hass: HomeAssistant) -> None:
+        """Test 'all' logic: both entities must exceed threshold.
+
+        Note: With create_triggers, each trigger independently calls
+        async_update_trigger_state. The aggregation happens in sensor.py.
+        Here we verify that each trigger correctly reports its own state.
+        """
+        set_sensor_state(hass, "sensor.a", "1.0")
+        set_sensor_state(hass, "sensor.b", "1.0")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.a", "sensor.b"],
+            "entity_id": "sensor.a",
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 1.5,
+            "entity_logic": "all",
+        }
+        triggers = create_triggers(hass, entity, config)
+        for t in triggers:
+            await t.async_setup()
+
+        # sensor.a exceeds threshold
+        set_sensor_state(hass, "sensor.a", "2.0")
+        await hass.async_block_till_done()
+
+        # Find the call from sensor.a
+        a_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.a"
+        ]
+        assert len(a_calls) >= 1
+        assert a_calls[-1].kwargs["is_triggered"] is True
+
+        # sensor.b also exceeds
+        set_sensor_state(hass, "sensor.b", "2.0")
+        await hass.async_block_till_done()
+
+        b_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.b"
+        ]
+        assert len(b_calls) >= 1
+        assert b_calls[-1].kwargs["is_triggered"] is True
+
+        for t in triggers:
+            await t.async_teardown()
+
+    async def test_trigger_entity_id_passed_in_callback(self, hass: HomeAssistant) -> None:
+        """Test that trigger_entity_id is correctly passed in callbacks."""
+        set_sensor_state(hass, "sensor.test", "1.0")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 1.5,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 1
+        await triggers[0].async_setup()
+
+        # Trigger the threshold
+        set_sensor_state(hass, "sensor.test", "2.0")
+        await hass.async_block_till_done()
+
+        entity.async_update_trigger_state.assert_called()
+        last_call = entity.async_update_trigger_state.call_args
+        assert last_call.kwargs.get("trigger_entity_id") == "sensor.test"
+
+        await triggers[0].async_teardown()
+
+
+# ─── Phase 2A: Multi-Entity Counter ────────────────────────────────────
+
+
+class TestMultiEntityCounter:
+    """Tests for multi-entity counter triggers."""
+
+    async def test_counter_creates_multiple_triggers(self, hass: HomeAssistant) -> None:
+        """Test that multi-entity counter creates one trigger per entity."""
+        set_sensor_state(hass, "sensor.fuel_1", "100")
+        set_sensor_state(hass, "sensor.fuel_2", "200")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.fuel_1", "sensor.fuel_2"],
+            "entity_id": "sensor.fuel_1",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 500,
+            "trigger_delta_mode": False,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert isinstance(triggers[0], CounterTrigger)
+        assert isinstance(triggers[1], CounterTrigger)
+        assert triggers[0].entity_id == "sensor.fuel_1"
+        assert triggers[1].entity_id == "sensor.fuel_2"
+
+    async def test_counter_any_logic(self, hass: HomeAssistant) -> None:
+        """Test counter with any-logic: one entity reaching target triggers."""
+        set_sensor_state(hass, "sensor.c1", "400")
+        set_sensor_state(hass, "sensor.c2", "100")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.c1", "sensor.c2"],
+            "entity_id": "sensor.c1",
+            "entity_logic": "any",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 500,
+            "trigger_delta_mode": False,
+        }
+        triggers = create_triggers(hass, entity, config)
+        for t in triggers:
+            await t.async_setup()
+
+        # Neither at target yet
+        entity.async_update_trigger_state.reset_mock()
+
+        # Push c1 above target
+        set_sensor_state(hass, "sensor.c1", "600")
+        await hass.async_block_till_done()
+
+        c1_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.c1"
+        ]
+        assert len(c1_calls) >= 1
+        assert c1_calls[-1].kwargs["is_triggered"] is True
+
+        for t in triggers:
+            await t.async_teardown()
+
+    async def test_counter_all_logic(self, hass: HomeAssistant) -> None:
+        """Test counter with all-logic: all entities must reach target."""
+        set_sensor_state(hass, "sensor.c1", "400")
+        set_sensor_state(hass, "sensor.c2", "400")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.c1", "sensor.c2"],
+            "entity_id": "sensor.c1",
+            "entity_logic": "all",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 500,
+            "trigger_delta_mode": False,
+        }
+        triggers = create_triggers(hass, entity, config)
+        for t in triggers:
+            await t.async_setup()
+
+        entity.async_update_trigger_state.reset_mock()
+
+        # Push c1 above target but not c2
+        set_sensor_state(hass, "sensor.c1", "600")
+        await hass.async_block_till_done()
+
+        c1_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.c1"
+        ]
+        assert len(c1_calls) >= 1
+        assert c1_calls[-1].kwargs["is_triggered"] is True
+
+        # Push c2 above target too
+        set_sensor_state(hass, "sensor.c2", "700")
+        await hass.async_block_till_done()
+
+        c2_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.c2"
+        ]
+        assert len(c2_calls) >= 1
+        assert c2_calls[-1].kwargs["is_triggered"] is True
+
+        for t in triggers:
+            await t.async_teardown()
+
+    async def test_counter_per_entity_baseline_persistence(self, hass: HomeAssistant) -> None:
+        """Test that per-entity baseline is injected from _trigger_state."""
+        set_sensor_state(hass, "sensor.f1", "150")
+        set_sensor_state(hass, "sensor.f2", "280")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.f1", "sensor.f2"],
+            "entity_id": "sensor.f1",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 100,
+            "trigger_delta_mode": True,
+            "_trigger_state": {
+                "sensor.f1": {"baseline_value": 100},
+                "sensor.f2": {"baseline_value": 200},
+            },
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        # Check that per-entity baselines were injected
+        assert triggers[0]._baseline_value == 100
+        assert triggers[1]._baseline_value == 200
+
+    async def test_counter_delta_mode_multi_entity(self, hass: HomeAssistant) -> None:
+        """Test delta mode with multiple entities and per-entity baselines."""
+        set_sensor_state(hass, "sensor.d1", "150")
+        set_sensor_state(hass, "sensor.d2", "250")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.d1", "sensor.d2"],
+            "entity_id": "sensor.d1",
+            "entity_logic": "any",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 100,
+            "trigger_delta_mode": True,
+            "_trigger_state": {
+                "sensor.d1": {"baseline_value": 100},
+                "sensor.d2": {"baseline_value": 200},
+            },
+        }
+        triggers = create_triggers(hass, entity, config)
+        for t in triggers:
+            await t.async_setup()
+
+        # d1: delta = 150 - 100 = 50 (not triggered)
+        # d2: delta = 250 - 200 = 50 (not triggered)
+        entity.async_update_trigger_state.reset_mock()
+
+        # Push d1 to delta >= 100
+        set_sensor_state(hass, "sensor.d1", "210")
+        await hass.async_block_till_done()
+
+        d1_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.d1"
+        ]
+        assert len(d1_calls) >= 1
+        assert d1_calls[-1].kwargs["is_triggered"] is True
+
+        for t in triggers:
+            await t.async_teardown()
+
+
+# ─── Phase 2A: Multi-Entity Runtime ────────────────────────────────────
+
+
+class TestMultiEntityRuntime:
+    """Tests for multi-entity runtime triggers."""
+
+    async def test_runtime_creates_multiple_triggers(self, hass: HomeAssistant) -> None:
+        """Test that multi-entity runtime creates one trigger per entity."""
+        set_sensor_state(hass, "switch.pump_1", "off")
+        set_sensor_state(hass, "switch.pump_2", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["switch.pump_1", "switch.pump_2"],
+            "entity_id": "switch.pump_1",
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert isinstance(triggers[0], RuntimeTrigger)
+        assert isinstance(triggers[1], RuntimeTrigger)
+        assert triggers[0].entity_id == "switch.pump_1"
+        assert triggers[1].entity_id == "switch.pump_2"
+
+    async def test_runtime_per_entity_accumulated(self, hass: HomeAssistant) -> None:
+        """Test that per-entity accumulated_seconds is injected from _trigger_state."""
+        set_sensor_state(hass, "switch.p1", "off")
+        set_sensor_state(hass, "switch.p2", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["switch.p1", "switch.p2"],
+            "entity_id": "switch.p1",
+            "type": TriggerType.RUNTIME,
+            "trigger_runtime_hours": 100,
+            "_trigger_state": {
+                "switch.p1": {"accumulated_seconds": 180000.0, "on_since": None},
+                "switch.p2": {"accumulated_seconds": 108000.0, "on_since": None},
+            },
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert triggers[0]._accumulated_seconds == 180000.0
+        assert triggers[1]._accumulated_seconds == 108000.0
+
+
+# ─── Phase 2A: Multi-Entity StateChange ────────────────────────────────
+
+
+class TestMultiEntityStateChange:
+    """Tests for multi-entity state change triggers."""
+
+    async def test_state_change_creates_multiple_triggers(self, hass: HomeAssistant) -> None:
+        """Test that multi-entity state_change creates one trigger per entity."""
+        set_sensor_state(hass, "binary_sensor.door_1", "off")
+        set_sensor_state(hass, "binary_sensor.door_2", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["binary_sensor.door_1", "binary_sensor.door_2"],
+            "entity_id": "binary_sensor.door_1",
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_target_changes": 3,
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert isinstance(triggers[0], StateChangeTrigger)
+        assert isinstance(triggers[1], StateChangeTrigger)
+        assert triggers[0].entity_id == "binary_sensor.door_1"
+        assert triggers[1].entity_id == "binary_sensor.door_2"
+
+    async def test_state_change_per_entity_count(self, hass: HomeAssistant) -> None:
+        """Test that per-entity change_count is injected from _trigger_state."""
+        set_sensor_state(hass, "sensor.s1", "a")
+        set_sensor_state(hass, "sensor.s2", "a")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.s1", "sensor.s2"],
+            "entity_id": "sensor.s1",
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_target_changes": 5,
+            "_trigger_state": {
+                "sensor.s1": {"change_count": 2},
+                "sensor.s2": {"change_count": 4},
+            },
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 2
+        assert triggers[0]._change_count == 2
+        assert triggers[1]._change_count == 4
+
+    async def test_state_change_any_logic(self, hass: HomeAssistant) -> None:
+        """Test state_change with any-logic: one entity reaching target triggers."""
+        set_sensor_state(hass, "sensor.sc1", "a")
+        set_sensor_state(hass, "sensor.sc2", "a")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_ids": ["sensor.sc1", "sensor.sc2"],
+            "entity_id": "sensor.sc1",
+            "entity_logic": "any",
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_target_changes": 2,
+            "_trigger_state": {
+                "sensor.sc1": {"change_count": 1},
+                "sensor.sc2": {"change_count": 0},
+            },
+        }
+        triggers = create_triggers(hass, entity, config)
+        for t in triggers:
+            await t.async_setup()
+
+        entity.async_update_trigger_state.reset_mock()
+
+        # Transition sc1 once more (count becomes 2 = target)
+        set_sensor_state(hass, "sensor.sc1", "b")
+        await hass.async_block_till_done()
+
+        sc1_calls = [
+            c for c in entity.async_update_trigger_state.call_args_list
+            if c.kwargs.get("trigger_entity_id") == "sensor.sc1"
+        ]
+        assert len(sc1_calls) >= 1
+        assert sc1_calls[-1].kwargs["is_triggered"] is True
+
+        for t in triggers:
+            await t.async_teardown()
+
+
+# ─── Phase 2A: Migration Tests ─────────────────────────────────────────
+
+
+class TestMigration:
+    """Tests for flat-to-per-entity state migration."""
+
+    def test_flat_counter_baseline_migrated(self) -> None:
+        """Test migration of flat trigger_baseline_value to _trigger_state."""
+        config = {
+            "type": TriggerType.COUNTER,
+            "trigger_baseline_value": 42.5,
+        }
+        result = _migrate_flat_to_per_entity(config, "sensor.fuel")
+        assert result == {"sensor.fuel": {"baseline_value": 42.5}}
+
+    def test_flat_runtime_seconds_migrated(self) -> None:
+        """Test migration of flat trigger_accumulated_seconds to _trigger_state."""
+        config = {
+            "type": TriggerType.RUNTIME,
+            "trigger_accumulated_seconds": 3600.0,
+            "trigger_on_since": "2026-01-01T00:00:00Z",
+        }
+        result = _migrate_flat_to_per_entity(config, "switch.pump")
+        assert result == {
+            "switch.pump": {
+                "accumulated_seconds": 3600.0,
+                "on_since": "2026-01-01T00:00:00Z",
+            }
+        }
+
+    def test_flat_state_change_count_migrated(self) -> None:
+        """Test migration of flat trigger_change_count to _trigger_state."""
+        config = {
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_change_count": 7,
+        }
+        result = _migrate_flat_to_per_entity(config, "sensor.door")
+        assert result == {"sensor.door": {"change_count": 7}}
+
+    def test_single_entity_no_migration(self) -> None:
+        """Test that threshold type produces empty migration."""
+        config = {
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 30,
+        }
+        result = _migrate_flat_to_per_entity(config, "sensor.temp")
+        assert result == {}
+
+    def test_no_flat_keys_produces_empty(self) -> None:
+        """Test that missing flat keys produce empty _trigger_state."""
+        config = {
+            "type": TriggerType.COUNTER,
+        }
+        result = _migrate_flat_to_per_entity(config, "sensor.x")
+        assert result == {}
+
+
+# --- Compound Trigger Tests ---
+
+
+class TestCompoundTrigger:
+    """Tests for CompoundTrigger (AND/OR logic across conditions)."""
+
+    async def test_compound_and_both_trigger(self, hass: HomeAssistant) -> None:
+        """Test AND compound: triggers only when all conditions are met."""
+        set_sensor_state(hass, "sensor.temp", "25")
+        set_sensor_state(hass, "sensor.counter_val", "100")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.temp",
+                    "entity_ids": ["sensor.temp"],
+                    "trigger_above": 30,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.counter_val",
+                    "entity_ids": ["sensor.counter_val"],
+                    "trigger_above": 50,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 1
+        assert isinstance(triggers[0], CompoundTrigger)
+
+        trigger = triggers[0]
+        await trigger.async_setup()
+
+        # Initially neither condition is met (temp=25 < 30, counter=100 > 50 so cond 1 IS met)
+        # Actually counter=100 > 50, so condition 1 IS met at setup
+        # But temp=25 < 30, so condition 0 is NOT met
+        assert trigger.condition_states[1] is True
+        assert trigger.condition_states[0] is False
+        assert trigger._triggered is False  # AND requires both
+
+        # Trigger condition 0 (temp > 30): NOW AND is satisfied
+        hass.states.async_set("sensor.temp", "35")
+        await hass.async_block_till_done()
+        assert trigger.condition_states[0] is True
+        assert trigger._triggered is True
+
+        await trigger.async_teardown()
+
+    async def test_compound_and_one_not_enough(self, hass: HomeAssistant) -> None:
+        """Test AND compound: one condition met is not enough."""
+        set_sensor_state(hass, "sensor.a", "10")
+        set_sensor_state(hass, "sensor.b", "10")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 20,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        trigger = triggers[0]
+        await trigger.async_setup()
+
+        # Only trigger first condition
+        hass.states.async_set("sensor.a", "25")
+        await hass.async_block_till_done()
+        assert trigger.condition_states[0] is True
+        assert trigger.condition_states[1] is False
+        assert trigger._triggered is False
+
+        await trigger.async_teardown()
+
+    async def test_compound_or_one_sufficient(self, hass: HomeAssistant) -> None:
+        """Test OR compound: one condition triggers the compound."""
+        set_sensor_state(hass, "sensor.a", "10")
+        set_sensor_state(hass, "sensor.b", "10")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "OR",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 20,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        trigger = triggers[0]
+        await trigger.async_setup()
+
+        # Trigger just one
+        hass.states.async_set("sensor.a", "25")
+        await hass.async_block_till_done()
+        assert trigger.condition_states[0] is True
+        assert trigger._triggered is True
+
+        await trigger.async_teardown()
+
+    async def test_compound_or_none_not_triggered(self, hass: HomeAssistant) -> None:
+        """Test OR compound: no conditions met means not triggered."""
+        set_sensor_state(hass, "sensor.a", "10")
+        set_sensor_state(hass, "sensor.b", "10")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "OR",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 20,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        trigger = triggers[0]
+        await trigger.async_setup()
+        assert trigger._triggered is False
+
+        await trigger.async_teardown()
+
+    async def test_compound_reset_all_sub_triggers(self, hass: HomeAssistant) -> None:
+        """Test that reset clears all condition states."""
+        set_sensor_state(hass, "sensor.a", "25")
+        set_sensor_state(hass, "sensor.b", "10")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "OR",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 20,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        trigger = triggers[0]
+        await trigger.async_setup()
+
+        # Condition 0 should be triggered (a=25 > 20)
+        assert trigger.condition_states[0] is True
+        assert trigger._triggered is True
+
+        # Reset
+        trigger.reset()
+        assert trigger._triggered is False
+        assert all(s is False for s in trigger.condition_states)
+
+        await trigger.async_teardown()
+
+    async def test_compound_teardown_cleans_all(self, hass: HomeAssistant) -> None:
+        """Test that teardown cleans up all sub-triggers."""
+        set_sensor_state(hass, "sensor.a", "10")
+        set_sensor_state(hass, "sensor.b", "10")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 20,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        trigger = triggers[0]
+        await trigger.async_setup()
+
+        assert len(trigger._sub_triggers) == 2
+
+        await trigger.async_teardown()
+        assert trigger._sub_triggers == []
+        assert trigger._sub_entities == []
+
+    async def test_compound_deactivation(self, hass: HomeAssistant) -> None:
+        """Test compound deactivates when conditions no longer met."""
+        set_sensor_state(hass, "sensor.a", "25")
+        set_sensor_state(hass, "sensor.b", "25")
+        entity = _make_mock_entity(hass)
+
+        config = {
+            "type": TriggerType.COMPOUND,
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 20,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        triggers = create_triggers(hass, entity, config)
+        trigger = triggers[0]
+        await trigger.async_setup()
+
+        assert trigger._triggered is True
+
+        # Drop one condition below threshold
+        hass.states.async_set("sensor.a", "15")
+        await hass.async_block_till_done()
+        assert trigger.condition_states[0] is False
+        assert trigger._triggered is False
+
+        await trigger.async_teardown()
+
+
+class TestCompoundValidation:
+    """Tests for compound trigger validation in websocket."""
+
+    def test_nested_compound_rejected(self) -> None:
+        """Test that nested compound triggers are rejected."""
+        from custom_components.maintenance_supporter.websocket import (
+            _validate_compound_trigger,
+        )
+
+        mock_hass = MagicMock()
+        config = {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "compound",
+                    "compound_logic": "OR",
+                    "conditions": [
+                        {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+                        {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 20},
+                    ],
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.c",
+                    "entity_ids": ["sensor.c"],
+                    "trigger_above": 30,
+                },
+            ],
+        }
+        errors, warnings = _validate_compound_trigger(mock_hass, config)
+        assert any("nested compound" in e.lower() for e in errors)
+
+    def test_too_few_conditions_rejected(self) -> None:
+        """Test that fewer than 2 conditions are rejected."""
+        from custom_components.maintenance_supporter.websocket import (
+            _validate_compound_trigger,
+        )
+
+        mock_hass = MagicMock()
+        config = {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 10,
+                },
+            ],
+        }
+        errors, warnings = _validate_compound_trigger(mock_hass, config)
+        assert any("at least 2" in e for e in errors)
+
+    def test_valid_compound_passes(self) -> None:
+        """Test that a valid compound config passes validation."""
+        from custom_components.maintenance_supporter.websocket import (
+            _validate_compound_trigger,
+        )
+
+        mock_hass = MagicMock()
+        mock_hass.states.get.return_value = MagicMock(state="25")
+        config = {
+            "type": "compound",
+            "compound_logic": "OR",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.a",
+                    "entity_ids": ["sensor.a"],
+                    "trigger_above": 10,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.b",
+                    "entity_ids": ["sensor.b"],
+                    "trigger_above": 20,
+                },
+            ],
+        }
+        errors, warnings = _validate_compound_trigger(mock_hass, config)
+        assert errors == []

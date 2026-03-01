@@ -563,7 +563,20 @@
         "threshold": "Drempel",
         "counter": "Teller",
         "state_change": "Statuswijziging",
-        "runtime": "Looptijd"
+        "runtime": "Looptijd",
+        "compound": "Samengesteld (Meerdere Voorwaarden)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "EN (alle voorwaarden moeten activeren)",
+        "OR": "OF (elke voorwaarde activeert)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Elke entiteit triggert",
+        "all": "Alle entiteiten moeten triggeren"
       }
     }
   },
@@ -616,7 +629,8 @@
               "threshold": "Drempel",
               "counter": "Teller",
               "state_change": "Statuswijziging",
-              "runtime": "Looptijd"
+              "runtime": "Looptijd",
+              "compound": "Samengesteld"
             }
           },
           "trigger_active": { "name": "Trigger actief" },

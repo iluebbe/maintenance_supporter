@@ -86,7 +86,8 @@ class CounterTrigger(BaseTrigger):
         if self._baseline_value is not None:
             await self._coordinator.async_persist_trigger_runtime(
                 self._task_id,
-                {"trigger_baseline_value": self._baseline_value},
+                {"baseline_value": self._baseline_value},
+                entity_id=self.entity_id,
             )
 
     def reset(self) -> None:

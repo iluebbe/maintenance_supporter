@@ -513,6 +513,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             counter_step=self.async_step_opt_trigger_counter,
             state_change_step=self.async_step_opt_trigger_state_change,
             runtime_step=self.async_step_opt_trigger_runtime,
+            compound_step=self.async_step_opt_compound_logic,
         )
 
     async def async_step_opt_trigger_threshold(
@@ -552,6 +553,92 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         return await self._trigger_runtime_config(
             user_input,
             step_id="opt_trigger_runtime",
+            on_complete=self._save_new_task,
+        )
+
+    # --- Compound Trigger Steps ---
+
+    async def async_step_opt_compound_logic(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Select compound trigger logic."""
+        return await self._trigger_compound_logic(
+            user_input,
+            step_id="compound_logic",
+            next_step=self.async_step_opt_compound_condition_entity,
+        )
+
+    async def async_step_opt_compound_condition_entity(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Select entity for compound condition."""
+        return await self._trigger_compound_condition_entity(
+            user_input,
+            step_id="compound_condition_entity",
+            next_step=self.async_step_opt_compound_condition_type,
+        )
+
+    async def async_step_opt_compound_condition_type(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Select trigger type for compound condition."""
+        return await self._trigger_compound_condition_type(
+            user_input,
+            step_id="compound_condition_type",
+            threshold_step=self.async_step_opt_compound_condition_threshold,
+            counter_step=self.async_step_opt_compound_condition_counter,
+            state_change_step=self.async_step_opt_compound_condition_state_change,
+            runtime_step=self.async_step_opt_compound_condition_runtime,
+        )
+
+    async def async_step_opt_compound_condition_threshold(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure threshold for compound condition."""
+        return await self._trigger_compound_condition_config(
+            user_input, "threshold",
+            step_id="compound_condition_threshold",
+            on_complete=self.async_step_opt_compound_review,
+        )
+
+    async def async_step_opt_compound_condition_counter(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure counter for compound condition."""
+        return await self._trigger_compound_condition_config(
+            user_input, "counter",
+            step_id="compound_condition_counter",
+            on_complete=self.async_step_opt_compound_review,
+        )
+
+    async def async_step_opt_compound_condition_state_change(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure state_change for compound condition."""
+        return await self._trigger_compound_condition_config(
+            user_input, "state_change",
+            step_id="compound_condition_state_change",
+            on_complete=self.async_step_opt_compound_review,
+        )
+
+    async def async_step_opt_compound_condition_runtime(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure runtime for compound condition."""
+        return await self._trigger_compound_condition_config(
+            user_input, "runtime",
+            step_id="compound_condition_runtime",
+            on_complete=self.async_step_opt_compound_review,
+        )
+
+    async def async_step_opt_compound_review(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Review compound trigger conditions."""
+        return await self._trigger_compound_review(
+            user_input,
+            step_id="compound_review",
+            add_condition_step=self.async_step_opt_compound_condition_entity,
             on_complete=self._save_new_task,
         )
 

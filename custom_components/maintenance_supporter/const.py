@@ -122,6 +122,12 @@ CONF_RESPONSIBLE_USER_ID = "responsible_user_id"
 CONF_TRIGGER_CONFIG = "trigger_config"
 CONF_TRIGGER_TYPE = "trigger_type"
 CONF_TRIGGER_ENTITY = "trigger_entity"
+CONF_TRIGGER_ENTITY_IDS = "entity_ids"
+CONF_TRIGGER_ENTITY_LOGIC = "entity_logic"
+CONF_TRIGGER_STATE = "_trigger_state"
+CONF_COMPOUND_LOGIC = "compound_logic"
+CONF_COMPOUND_CONDITIONS = "conditions"
+DEFAULT_ENTITY_LOGIC = "any"
 CONF_TRIGGER_ATTRIBUTE = "trigger_attribute"
 CONF_TRIGGER_ABOVE = "trigger_above"
 CONF_TRIGGER_BELOW = "trigger_below"
@@ -231,6 +237,7 @@ class TriggerType(StrEnum):
     COUNTER = "counter"
     STATE_CHANGE = "state_change"
     RUNTIME = "runtime"
+    COMPOUND = "compound"
 
 
 class HistoryEntryType(StrEnum):

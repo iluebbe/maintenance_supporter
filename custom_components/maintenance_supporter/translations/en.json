@@ -563,7 +563,20 @@
         "threshold": "Threshold",
         "counter": "Counter",
         "state_change": "State Change",
-        "runtime": "Runtime"
+        "runtime": "Runtime",
+        "compound": "Compound (Multiple Conditions)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "AND (all conditions must trigger)",
+        "OR": "OR (any condition triggers)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Any entity triggers",
+        "all": "All entities must trigger"
       }
     }
   },
@@ -616,7 +629,8 @@
               "threshold": "Threshold",
               "counter": "Counter",
               "state_change": "State change",
-              "runtime": "Runtime"
+              "runtime": "Runtime",
+              "compound": "Compound"
             }
           },
           "trigger_active": { "name": "Trigger active" },

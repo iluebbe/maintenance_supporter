@@ -29,6 +29,8 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // Trigger fields
   @state() private _triggerEntityId = "";
+  @state() private _triggerEntityIds: string[] = [];
+  @state() private _triggerEntityLogic: "any" | "all" = "any";
   @state() private _triggerAttribute = "";
   @state() private _triggerType = "threshold";
   @state() private _triggerAbove = "";
@@ -73,6 +75,8 @@ export class MaintenanceTaskDialog extends LitElement {
     if (task.trigger_config) {
       const tc = task.trigger_config;
       this._triggerEntityId = tc.entity_id || "";
+      this._triggerEntityIds = tc.entity_ids || (tc.entity_id ? [tc.entity_id] : []);
+      this._triggerEntityLogic = tc.entity_logic || "any";
       this._triggerAttribute = tc.attribute || "";
       this._triggerType = tc.type || "threshold";
       this._triggerAbove = tc.trigger_above?.toString() || "";
@@ -106,6 +110,8 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private _resetTriggerFields(): void {
     this._triggerEntityId = "";
+    this._triggerEntityIds = [];
+    this._triggerEntityLogic = "any";
     this._triggerAttribute = "";
     this._triggerType = "threshold";
     this._triggerAbove = "";
@@ -157,11 +163,20 @@ export class MaintenanceTaskDialog extends LitElement {
       if (this._responsibleUserId) data.responsible_user_id = this._responsibleUserId;
 
       if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
+        const entityIds = this._triggerEntityIds.length > 0
+          ? this._triggerEntityIds
+          : [this._triggerEntityId];
         const triggerConfig: TriggerConfig = {
-          entity_id: this._triggerEntityId,
+          entity_id: entityIds[0],
+          entity_ids: entityIds,
           type: this._triggerType,
         };
         if (this._triggerAttribute) triggerConfig.attribute = this._triggerAttribute;
+
+        // Multi-entity: store entity_logic for all trigger types
+        if (entityIds.length > 1) {
+          triggerConfig.entity_logic = this._triggerEntityLogic;
+        }
 
         if (this._triggerType === "threshold") {
           if (this._triggerAbove) triggerConfig.trigger_above = parseFloat(this._triggerAbove);
@@ -200,10 +215,27 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
       <h3>${t("trigger_configuration", L)}</h3>
       <ha-textfield
-        label="${t("entity_id", L)}"
-        .value=${this._triggerEntityId}
-        @input=${(e: Event) => (this._triggerEntityId = (e.target as HTMLInputElement).value)}
+        label="${t("entity_id", L)} (${t("comma_separated", L)})"
+        .value=${this._triggerEntityIds.length > 0 ? this._triggerEntityIds.join(", ") : this._triggerEntityId}
+        @input=${(e: Event) => {
+          const raw = (e.target as HTMLInputElement).value;
+          const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+          this._triggerEntityId = ids[0] || "";
+          this._triggerEntityIds = ids;
+        }}
       ></ha-textfield>
+      ${this._triggerEntityIds.length > 1 ? html`
+        <div class="select-row">
+          <label>${t("entity_logic", L)}</label>
+          <select
+            .value=${this._triggerEntityLogic}
+            @change=${(e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all")}
+          >
+            <option value="any">${t("entity_logic_any", L)}</option>
+            <option value="all">${t("entity_logic_all", L)}</option>
+          </select>
+        </div>
+      ` : nothing}
       <ha-textfield
         label="${t("attribute_optional", L)}"
         .value=${this._triggerAttribute}

@@ -102,23 +102,38 @@ def _build_task_summary(
     hass: HomeAssistant, task_id: str, task_data: dict, coordinator_task: dict | None
 ) -> dict:
     """Build a task summary dict for WS responses."""
+    from .entity.triggers import normalize_entity_ids
+
     ct = coordinator_task or {}
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")
     trigger_entity_info: dict | None = None
-    if trigger_config and trigger_config.get("entity_id"):
-        entity_id = trigger_config["entity_id"]
-        state_obj = hass.states.get(entity_id)
-        if state_obj is not None:
-            trigger_entity_info = {
-                "entity_id": entity_id,
-                "friendly_name": state_obj.attributes.get("friendly_name", entity_id),
-                "unit_of_measurement": state_obj.attributes.get("unit_of_measurement"),
-                "min": state_obj.attributes.get("min"),
-                "max": state_obj.attributes.get("max"),
-                "step": state_obj.attributes.get("step"),
-            }
+    trigger_entity_infos: list[dict] | None = None
+
+    if trigger_config:
+        entity_ids = normalize_entity_ids(trigger_config)
+
+        # Build info for all entities
+        infos: list[dict] = []
+        for eid in entity_ids:
+            state_obj = hass.states.get(eid)
+            if state_obj is not None:
+                infos.append({
+                    "entity_id": eid,
+                    "friendly_name": state_obj.attributes.get("friendly_name", eid),
+                    "unit_of_measurement": state_obj.attributes.get("unit_of_measurement"),
+                    "min": state_obj.attributes.get("min"),
+                    "max": state_obj.attributes.get("max"),
+                    "step": state_obj.attributes.get("step"),
+                })
+
+        # Backwards compat: trigger_entity_info is the first entity
+        if infos:
+            trigger_entity_info = infos[0]
+        # Multi-entity: include all
+        if len(infos) > 1:
+            trigger_entity_infos = infos
 
     return {
         "id": task_id,
@@ -134,6 +149,7 @@ def _build_task_summary(
         "responsible_user_id": task_data.get("responsible_user_id"),
         "trigger_config": trigger_config,
         "trigger_entity_info": trigger_entity_info,
+        "trigger_entity_infos": trigger_entity_infos,
         "checklist": task_data.get("checklist", []),
         "history": task_data.get("history", []),
         # Computed fields from coordinator
@@ -621,13 +637,14 @@ async def ws_delete_object(
 # Trigger config validation
 # ---------------------------------------------------------------------------
 
-_VALID_TRIGGER_TYPES = {"threshold", "counter", "state_change", "runtime"}
+_VALID_TRIGGER_TYPES = {"threshold", "counter", "state_change", "runtime", "compound"}
 
 _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
     "threshold": [],  # at least one of trigger_above/trigger_below checked below
     "counter": ["trigger_target_value"],
     "state_change": [],
     "runtime": ["trigger_runtime_hours"],
+    "compound": [],  # conditions validated separately
 }
 
 
@@ -638,22 +655,12 @@ def _validate_trigger_config(
     """Validate trigger_config structure.
 
     Returns (errors, warnings).
+    Accepts both ``entity_id`` (str) and ``entity_ids`` (list[str]).
     """
+    from .entity.triggers import normalize_entity_ids
+
     errors: list[str] = []
     warnings: list[str] = []
-
-    # entity_id is required for all trigger types
-    entity_id = trigger_config.get("entity_id")
-    if not entity_id:
-        errors.append("trigger_config.entity_id is required")
-    else:
-        state = hass.states.get(entity_id)
-        if state is None:
-            warnings.append(f"Entity {entity_id} does not exist (yet)")
-        elif state.state in ("unavailable", "unknown"):
-            warnings.append(
-                f"Entity {entity_id} is currently '{state.state}'"
-            )
 
     # Trigger type
     trigger_type = trigger_config.get("type", "threshold")
@@ -663,6 +670,37 @@ def _validate_trigger_config(
             f"Must be one of: {', '.join(sorted(_VALID_TRIGGER_TYPES))}"
         )
         return errors, warnings
+
+    # --- Compound triggers ---
+    if trigger_type == "compound":
+        return _validate_compound_trigger(hass, trigger_config)
+
+    # --- Non-compound: entity validation ---
+    entity_ids = normalize_entity_ids(trigger_config)
+    if not entity_ids:
+        errors.append("trigger_config requires entity_id or entity_ids")
+    else:
+        for eid in entity_ids:
+            state = hass.states.get(eid)
+            if state is None:
+                warnings.append(f"Entity {eid} does not exist (yet)")
+            elif state.state in ("unavailable", "unknown"):
+                warnings.append(
+                    f"Entity {eid} is currently '{state.state}'"
+                )
+        # Ensure entity_id is set for backwards compat
+        if not trigger_config.get("entity_id"):
+            trigger_config["entity_id"] = entity_ids[0]
+        # Always store entity_ids list
+        trigger_config["entity_ids"] = entity_ids
+
+    # Validate entity_logic
+    entity_logic = trigger_config.get("entity_logic")
+    if entity_logic is not None and entity_logic not in ("any", "all"):
+        errors.append(
+            f"trigger_config.entity_logic must be 'any' or 'all', "
+            f"got '{entity_logic}'"
+        )
 
     # Required fields per type
     for field in _TRIGGER_REQUIRED_FIELDS[trigger_type]:
@@ -693,6 +731,47 @@ def _validate_trigger_config(
                     "trigger_config.trigger_on_states must not be empty "
                     "when provided"
                 )
+
+    return errors, warnings
+
+
+def _validate_compound_trigger(
+    hass: HomeAssistant,
+    trigger_config: dict[str, Any],
+) -> tuple[list[str], list[str]]:
+    """Validate a compound trigger config."""
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    compound_logic = trigger_config.get("compound_logic", "AND").upper()
+    if compound_logic not in ("AND", "OR"):
+        errors.append(
+            f"compound_logic must be 'AND' or 'OR', got '{compound_logic}'"
+        )
+
+    conditions = trigger_config.get("conditions")
+    if not isinstance(conditions, list) or len(conditions) < 2:
+        errors.append(
+            "Compound trigger requires 'conditions' list with at least 2 entries"
+        )
+        return errors, warnings
+
+    for idx, condition in enumerate(conditions):
+        if not isinstance(condition, dict):
+            errors.append(f"Condition {idx} must be a dict")
+            continue
+        cond_type = condition.get("type", "threshold")
+        if cond_type == "compound":
+            errors.append(
+                f"Condition {idx}: nested compound triggers are not allowed"
+            )
+            continue
+        # Validate each condition as a regular trigger
+        cond_errors, cond_warnings = _validate_trigger_config(hass, condition)
+        for err in cond_errors:
+            errors.append(f"Condition {idx}: {err}")
+        for warn in cond_warnings:
+            warnings.append(f"Condition {idx}: {warn}")
 
     return errors, warnings
 

@@ -62,7 +62,9 @@ class StateChangeTrigger(BaseTrigger):
         if self._change_count >= self._target_changes:
             self._triggered = True
             self.entity.async_update_trigger_state(
-                is_triggered=True, current_value=float(self._change_count)
+                is_triggered=True,
+                current_value=float(self._change_count),
+                trigger_entity_id=self.entity_id,
             )
 
         # Register state change listener (override base: we handle events differently)
@@ -177,7 +179,8 @@ class StateChangeTrigger(BaseTrigger):
         """Persist change count to config entry for survival across restarts."""
         await self._coordinator.async_persist_trigger_runtime(
             self._task_id,
-            {"trigger_change_count": self._change_count},
+            {"change_count": self._change_count},
+            entity_id=self.entity_id,
         )
 
     def reset(self) -> None:

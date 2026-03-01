@@ -563,7 +563,20 @@
         "threshold": "Soglia",
         "counter": "Contatore",
         "state_change": "Cambio stato",
-        "runtime": "Tempo di funzionamento"
+        "runtime": "Tempo di funzionamento",
+        "compound": "Composto (Condizioni Multiple)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "E (tutte le condizioni devono attivarsi)",
+        "OR": "O (qualsiasi condizione attiva)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Qualsiasi entità attiva",
+        "all": "Tutte le entità devono attivare"
       }
     }
   },
@@ -616,7 +629,8 @@
               "threshold": "Soglia",
               "counter": "Contatore",
               "state_change": "Cambio stato",
-              "runtime": "Tempo di funzionamento"
+              "runtime": "Tempo di funzionamento",
+              "compound": "Composto"
             }
           },
           "trigger_active": { "name": "Trigger attivo" },

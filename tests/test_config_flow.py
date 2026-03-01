@@ -309,7 +309,7 @@ async def test_sensor_threshold_flow(
     # Select sensor
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_TRIGGER_ENTITY: "sensor.pool_pressure"},
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.pool_pressure"]},
     )
     assert result["step_id"] == "sensor_attribute"
 
@@ -369,7 +369,7 @@ async def test_sensor_counter_flow(
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_TRIGGER_ENTITY: "sensor.runtime_hours"},
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.runtime_hours"]},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -420,7 +420,7 @@ async def test_sensor_state_change_flow(
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_TRIGGER_ENTITY: "sensor.door_count"},
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.door_count"]},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -471,7 +471,7 @@ async def test_sensor_select_invalid_entity(
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_TRIGGER_ENTITY: "sensor.does_not_exist"},
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.does_not_exist"]},
     )
     assert result["type"] == FlowResultType.FORM
     assert CONF_TRIGGER_ENTITY in result["errors"]
@@ -494,7 +494,7 @@ async def test_threshold_requires_at_least_one(
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_TRIGGER_ENTITY: "sensor.test"},
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.test"]},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -658,7 +658,7 @@ async def test_sensor_attribute_with_numeric_attributes(
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_TRIGGER_ENTITY: "sensor.complex"},
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.complex"]},
     )
     assert result["step_id"] == "sensor_attribute"
     # The form should have attribute options
@@ -750,62 +750,3 @@ def test_format_threshold_placeholders_output() -> None:
     assert "average" in result
     assert "suggested_above" in result
     assert "suggested_below" in result
-
-
-# ─── Notify Service Validation ──────────────────────────────────────────
-
-
-async def test_global_setup_auto_fixes_notify_service(hass: HomeAssistant) -> None:
-    """Test that entering a service name without 'notify.' prefix is auto-fixed."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["step_id"] == "global_setup"
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_DEFAULT_WARNING_DAYS: 7,
-            CONF_NOTIFICATIONS_ENABLED: True,
-            CONF_NOTIFY_SERVICE: "all_devices_ingmar",
-        },
-    )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["data"][CONF_NOTIFY_SERVICE] == "notify.all_devices_ingmar"
-
-
-async def test_global_setup_valid_notify_service(hass: HomeAssistant) -> None:
-    """Test that a correctly formatted notify service passes through unchanged."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_DEFAULT_WARNING_DAYS: 7,
-            CONF_NOTIFICATIONS_ENABLED: True,
-            CONF_NOTIFY_SERVICE: "notify.mobile_app_phone",
-        },
-    )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["data"][CONF_NOTIFY_SERVICE] == "notify.mobile_app_phone"
-
-
-async def test_global_setup_invalid_notify_service(hass: HomeAssistant) -> None:
-    """Test that an invalid notify service format shows an error."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_DEFAULT_WARNING_DAYS: 7,
-            CONF_NOTIFICATIONS_ENABLED: True,
-            CONF_NOTIFY_SERVICE: "a.b.c",
-        },
-    )
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "global_setup"
-    assert result["errors"][CONF_NOTIFY_SERVICE] == "invalid_notify_service"

@@ -563,7 +563,20 @@
         "threshold": "Schwellwert",
         "counter": "Zähler",
         "state_change": "Zustandswechsel",
-        "runtime": "Laufzeit"
+        "runtime": "Laufzeit",
+        "compound": "Kombiniert (Mehrere Bedingungen)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "UND (alle Bedingungen müssen auslösen)",
+        "OR": "ODER (eine Bedingung genügt)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Beliebige Entität löst aus",
+        "all": "Alle Entitäten müssen auslösen"
       }
     }
   },
@@ -616,7 +629,8 @@
               "threshold": "Schwellwert",
               "counter": "Zähler",
               "state_change": "Zustandswechsel",
-              "runtime": "Laufzeit"
+              "runtime": "Laufzeit",
+              "compound": "Kombiniert"
             }
           },
           "trigger_active": { "name": "Trigger aktiv" },

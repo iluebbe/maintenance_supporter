@@ -563,7 +563,20 @@
         "threshold": "Umbral",
         "counter": "Contador",
         "state_change": "Cambio de estado",
-        "runtime": "Tiempo de funcionamiento"
+        "runtime": "Tiempo de funcionamiento",
+        "compound": "Compuesto (Múltiples Condiciones)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "Y (todas las condiciones deben activarse)",
+        "OR": "O (cualquier condición activa)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Cualquier entidad activa",
+        "all": "Todas las entidades deben activar"
       }
     }
   },
@@ -616,7 +629,8 @@
               "threshold": "Umbral",
               "counter": "Contador",
               "state_change": "Cambio de estado",
-              "runtime": "Tiempo de funcionamiento"
+              "runtime": "Tiempo de funcionamiento",
+              "compound": "Compuesto"
             }
           },
           "trigger_active": { "name": "Disparador activo" },

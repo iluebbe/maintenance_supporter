@@ -285,11 +285,11 @@ class RuntimeTrigger(BaseTrigger):
     async def _persist_runtime(self) -> None:
         """Persist accumulated runtime and on_since to config entry."""
         data: dict[str, Any] = {
-            "trigger_accumulated_seconds": self._accumulated_seconds,
-            "trigger_on_since": self._on_since,
+            "accumulated_seconds": self._accumulated_seconds,
+            "on_since": self._on_since,
         }
         await self._coordinator.async_persist_trigger_runtime(
-            self._task_id, data
+            self._task_id, data, entity_id=self.entity_id,
         )
 
     def reset(self) -> None:

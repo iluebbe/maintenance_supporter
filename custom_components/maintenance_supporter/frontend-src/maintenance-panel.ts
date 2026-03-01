@@ -1761,11 +1761,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!tc) return nothing;
     const L = this._lang;
     const info = task.trigger_entity_info;
+    const infos = task.trigger_entity_infos;
     const friendlyName = info?.friendly_name || tc.entity_id || "—";
     const entityId = tc.entity_id || "";
+    const entityIds = tc.entity_ids || (entityId ? [entityId] : []);
     const unit = info?.unit_of_measurement || "";
     const currentVal = task.trigger_current_value;
     const triggerType = tc.type || "threshold";
+    const isMultiEntity = entityIds.length > 1;
 
     return html`
       <h3>${t("trigger", L)}</h3>
@@ -1773,8 +1776,13 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="trigger-header">
           <ha-icon icon="mdi:pulse" style="color: var(--primary-color); --mdc-icon-size: 20px;"></ha-icon>
           <div>
-            <div class="trigger-entity-name">${friendlyName}</div>
-            <div class="trigger-entity-id">${entityId}${tc.attribute ? ` → ${tc.attribute}` : ""}</div>
+            ${isMultiEntity ? html`
+              <div class="trigger-entity-name">${entityIds.length} ${t("entities", L)} (${tc.entity_logic || "any"})</div>
+              <div class="trigger-entity-id">${entityIds.join(", ")}${tc.attribute ? ` → ${tc.attribute}` : ""}</div>
+            ` : html`
+              <div class="trigger-entity-name">${friendlyName}</div>
+              <div class="trigger-entity-id">${entityId}${tc.attribute ? ` → ${tc.attribute}` : ""}</div>
+            `}
           </div>
           <span class="status-badge ${task.trigger_active ? "triggered" : "ok"}" style="margin-left: auto;">
             ${task.trigger_active ? t("triggered", L) : t("ok", L)}

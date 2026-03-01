@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.2.4 | **~23,000 lines** across 50+ source files | **0 external Python dependencies**
+**Version:** 0.3.0 | **~21,000 lines** across 51 source files | **0 external Python dependencies**
 
 ---
 
@@ -31,18 +31,20 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 +-------------------+    | (threshold,       |    |  Notification Mgr |
                          |  counter,         |    | - per-status      |
 +-------------------+    |  state_change,    |    | - quiet hours     |
-|   Frontend Panel  |    |  runtime)         |    | - mobile actions  |
-| (LitElement + TS) |    +-------------------+    | - user-specific   |
-| - overview        |                             +-------------------+
-| - object detail   |    +-------------------+
-| - task detail     |    |   Helpers         |
-| - user filter     |    | - interval_analyzer (EWA + Weibull)
-| - dialogs         |    | - sensor_predictor (degradation + env)
-+-------------------+    | - entity_analyzer (stats + discovery)
-                         | - notification_manager
-+-------------------+    | - csv_handler, qr_generator
-|   Lovelace Card   |    +-------------------+
-+-------------------+
+|   Frontend Panel  |    |  runtime,         |    | - mobile actions  |
+| (LitElement + TS) |    |  compound)        |    | - user-specific   |
+| - overview        |    | - multi-entity    |    +-------------------+
+| - object detail   |    | - per-entity state|
+| - task detail     |    +-------------------+
+| - user filter     |
+| - dialogs         |    +-------------------+
++-------------------+    |   Helpers         |
+                         | - interval_analyzer (EWA + Weibull)
++-------------------+    | - sensor_predictor (degradation + env)
+|   Lovelace Card   |    | - entity_analyzer (stats + discovery)
++-------------------+    | - notification_manager
+                         | - csv_handler, qr_generator
+                         +-------------------+
 ```
 
 ---
@@ -79,52 +81,53 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 ```
 custom_components/maintenance_supporter/
 ├── __init__.py                 (455 lines)  Integration setup, services, lifecycle
-├── const.py                    (264 lines)  Constants, enums, defaults
-├── coordinator.py              (792 lines)  DataUpdateCoordinator per object
+├── const.py                    (272 lines)  Constants, enums, defaults
+├── coordinator.py              (881 lines)  DataUpdateCoordinator per object
 │
-├── config_flow.py              (680 lines)  Initial setup flow + templates
+├── config_flow.py              (779 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py       (62 lines)  Shared config flow utilities
 ├── config_flow_options.py       (11 lines)  Options dispatcher
 ├── config_flow_options_global.py(503 lines)  Global settings (notifications, budgets, panel)
-├── config_flow_options_task.py (727 lines)  Per-object task management
-├── config_flow_trigger.py      (512 lines)  TriggerConfigMixin for trigger UI
+├── config_flow_options_task.py (818 lines)  Per-object task management
+├── config_flow_trigger.py    (1,003 lines)  TriggerConfigMixin for trigger UI
 │
-├── sensor.py                   (339 lines)  MaintenanceSensor (enum, per task)
+├── sensor.py                   (461 lines)  MaintenanceSensor (enum, per task)
 ├── calendar.py                 (277 lines)  MaintenanceCalendar (global, all tasks)
 ├── entity/
 │   ├── entity_base.py           (55 lines)  CoordinatorEntity base class
 │   └── triggers/
-│       ├── __init__.py          (45 lines)  Factory: create_trigger()
-│       ├── base_trigger.py     (239 lines)  Abstract base with availability tracking
+│       ├── __init__.py         (164 lines)  Factory: create_triggers(), multi-entity
+│       ├── base_trigger.py     (291 lines)  Abstract base with availability tracking
 │       ├── threshold.py        (101 lines)  Value above/below trigger
-│       ├── counter.py           (95 lines)  Accumulated value trigger
-│       ├── state_change.py     (186 lines)  State transition counter
-│       └── runtime.py          (317 lines)  Accumulated operating hours trigger
+│       ├── counter.py           (96 lines)  Accumulated value trigger
+│       ├── state_change.py     (189 lines)  State transition counter
+│       ├── runtime.py          (325 lines)  Accumulated operating hours trigger
+│       └── compound.py         (306 lines)  AND/OR compound trigger
 │
-├── websocket.py              (1,581 lines)  20+ WS commands (CRUD, stats, subscribe)
+├── websocket.py              (1,841 lines)  20+ WS commands (CRUD, stats, subscribe)
 ├── panel.py                     (66 lines)  Sidebar panel registration
 ├── frontend/
 │   ├── __init__.py              (36 lines)  Lovelace card registration
 │   ├── maintenance-panel.js              Built panel (esbuild output)
 │   └── maintenance-card.js               Built card (esbuild output)
-├── frontend-src/             (6,917 lines)  TypeScript sources
-│   ├── maintenance-panel.ts  (2,779 lines)  Panel: overview, object detail, task detail
+├── frontend-src/             (6,990 lines)  TypeScript sources
+│   ├── maintenance-panel.ts  (2,787 lines)  Panel: overview, object detail, task detail
 │   ├── maintenance-card.ts     (262 lines)  Lovelace card
 │   ├── maintenance-card-editor.ts (80 lines)
 │   ├── statistics-service.ts   (132 lines)  WS statistics cache
-│   ├── styles.ts             (2,242 lines)  CSS, i18n (6 languages), shared helpers
-│   ├── types.ts                (274 lines)  TypeScript interfaces
+│   ├── styles.ts             (2,272 lines)  CSS, i18n (6 languages), shared helpers
+│   ├── types.ts                (277 lines)  TypeScript interfaces
 │   ├── user-service.ts         (121 lines)  HA user list cache
-│   └── components/           (1,027 lines)
+│   └── components/           (1,059 lines)
 │       ├── complete-dialog.ts  (225 lines)  Mark task complete
-│       ├── task-dialog.ts      (437 lines)  Add/edit task
+│       ├── task-dialog.ts      (469 lines)  Add/edit task
 │       ├── object-dialog.ts    (118 lines)  Add/edit object
 │       └── qr-dialog.ts       (247 lines)  QR code generation
 │
-├── helpers/                  (3,237 lines)
+├── helpers/                  (3,313 lines)
 │   ├── interval_analyzer.py    (732 lines)  EWA + Weibull + seasonal analysis
 │   ├── sensor_predictor.py     (625 lines)  Degradation + environmental correlation
-│   ├── notification_manager.py (618 lines)  Multi-channel notification system
+│   ├── notification_manager.py (694 lines)  Multi-channel notification system
 │   ├── entity_analyzer.py      (202 lines)  Entity discovery + recorder stats
 │   ├── csv_handler.py          (155 lines)  CSV import/export
 │   ├── threshold_calculator.py (131 lines)  Threshold suggestion engine
@@ -173,13 +176,23 @@ Coordinator refresh (every 5 min)
 
 ### Trigger Lifecycle
 ```
-Task has trigger_config with entity_id
+Task has trigger_config with entity_id(s)
   └─> sensor.async_added_to_hass()
-      └─> create_trigger(type) → Threshold / Counter / StateChange / RuntimeTrigger
-          └─> async_setup()
-              ├─ Register async_track_state_change_event listener
-              ├─ RuntimeTrigger: restore accumulated_seconds + on_since, start periodic timer
-              └─ Initial evaluation
+      └─> create_triggers(type, entity_ids) → list of trigger instances
+          ├─ Single entity → 1 trigger
+          ├─ Multi-entity → N triggers (one per entity_id)
+          │   ├─ Per-entity state from _trigger_state dict
+          │   └─ Aggregated via entity_logic (any/all)
+          └─ Compound → 1 CompoundTrigger with sub-triggers
+              ├─ Each condition → create_triggers() for condition's entities
+              ├─ CompoundSubEntity proxies aggregate per-condition
+              └─ compound_logic (AND/OR) aggregates across conditions
+
+For each trigger:
+  └─> async_setup()
+      ├─ Register async_track_state_change_event listener
+      ├─ RuntimeTrigger: restore accumulated_seconds + on_since, start periodic timer
+      └─ Initial evaluation
 
 Entity state changes → _handle_state_change_event()
   └─> _evaluate_and_update()
@@ -209,7 +222,7 @@ Service call or WebSocket command
 
 ## Trigger System
 
-Abstract factory pattern with four implementations:
+Abstract factory pattern with five implementations:
 
 | Type | Trigger Condition | Config |
 |------|-------------------|--------|
@@ -217,6 +230,7 @@ Abstract factory pattern with four implementations:
 | **Counter** | Accumulated delta reaches target | `trigger_target_value`, `trigger_delta_mode` |
 | **State Change** | N transitions between from→to states | `trigger_from_state`, `trigger_to_state`, `trigger_target_changes` |
 | **Runtime** | Accumulated ON-time reaches target hours | `trigger_runtime_hours` |
+| **Compound** | Multiple conditions combined with AND/OR | `compound_logic`, `conditions[]` |
 
 All triggers share:
 - Entity availability tracking with startup grace period (5 min)
@@ -229,6 +243,26 @@ RuntimeTrigger additionally:
 - Periodic persistence every 5 minutes (minimizes data loss on crash)
 - Pauses accumulation when entity becomes unavailable
 - Reset clears hours but keeps tracking if entity is still ON
+
+### Multi-Entity Support
+
+All trigger types support multiple `entity_ids` with configurable `entity_logic`:
+- **any** (default): Trigger activates when *any* entity meets the condition
+- **all**: Trigger activates only when *all* entities meet the condition
+
+Implementation: `create_triggers()` creates one trigger instance per entity_id. Per-entity runtime state (baselines, accumulated seconds, change counts) is persisted in a nested `_trigger_state` dict within `trigger_config`, keyed by entity_id. Legacy flat keys are auto-migrated on first load.
+
+### Compound Triggers
+
+Two-level aggregation for combining multiple trigger types per task:
+1. **Within each condition**: Multi-entity `entity_logic` (any/all) — reuses standard per-entity logic
+2. **Across conditions**: `compound_logic` (AND/OR)
+
+Architecture:
+- `CompoundTrigger(BaseTrigger)`: Main class, creates sub-triggers for each condition
+- `CompoundSubEntity`: Proxy entity that intercepts sub-trigger callbacks and aggregates per-condition
+- `_CompoundCoordinatorProxy`: Routes persistence to correct condition index in `_trigger_state.conditions[idx]`
+- Nested compound triggers are rejected at validation time
 
 ---
 
@@ -330,12 +364,12 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-362 tests across 17 test files:
+397 tests across 16 test files:
 
 | Test File | Scope |
 |-----------|-------|
 | `test_status_computation.py` | Status logic (OK, DUE_SOON, OVERDUE, TRIGGERED) |
-| `test_triggers.py` | Threshold, counter, state_change, runtime triggers |
+| `test_triggers.py` | All trigger types, multi-entity, compound triggers |
 | `test_adaptive_scheduling.py` | EWA, Weibull, interval computation |
 | `test_seasonal_scheduling.py` | Seasonal factors, hemisphere support |
 | `test_sensor_predictions.py` | Degradation analysis, threshold prediction |
@@ -349,7 +383,6 @@ All write commands fire events for subscription updates.
 | `test_edge_cases.py` | Boundary conditions, error handling |
 | `test_phase2_features.py` | Checklist, groups, budgets |
 | `test_qr_generation.py` | QR URL building, SVG generation |
-| `test_issue_fixes.py` | GitHub issue regression tests (#1-#7) |
 
 ---
 

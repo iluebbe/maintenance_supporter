@@ -563,7 +563,20 @@
         "threshold": "Seuil",
         "counter": "Compteur",
         "state_change": "Changement d'état",
-        "runtime": "Temps de fonctionnement"
+        "runtime": "Temps de fonctionnement",
+        "compound": "Composé (Conditions Multiples)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "ET (toutes les conditions doivent déclencher)",
+        "OR": "OU (n'importe quelle condition déclenche)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "N'importe quelle entité déclenche",
+        "all": "Toutes les entités doivent déclencher"
       }
     }
   },
@@ -616,7 +629,8 @@
               "threshold": "Seuil",
               "counter": "Compteur",
               "state_change": "Changement d'état",
-              "runtime": "Temps de fonctionnement"
+              "runtime": "Temps de fonctionnement",
+              "compound": "Composé"
             }
           },
           "trigger_active": { "name": "Déclencheur actif" },

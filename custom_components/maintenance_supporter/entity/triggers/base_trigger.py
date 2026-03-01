@@ -220,7 +220,9 @@ class BaseTrigger(ABC):
 
         # Update entity state
         self.entity.async_update_trigger_state(
-            is_triggered=True, current_value=value
+            is_triggered=True,
+            current_value=value,
+            trigger_entity_id=self.entity_id,
         )
 
         # Add history entry for the trigger activation
@@ -253,7 +255,9 @@ class BaseTrigger(ABC):
 
         # Update entity state
         self.entity.async_update_trigger_state(
-            is_triggered=False, current_value=value
+            is_triggered=False,
+            current_value=value,
+            trigger_entity_id=self.entity_id,
         )
 
         # Fire event

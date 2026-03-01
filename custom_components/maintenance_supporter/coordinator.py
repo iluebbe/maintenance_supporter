@@ -282,66 +282,124 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         changes with features like for_minutes timers. This fallback ensures
         that the coordinator also evaluates the basic trigger condition during
         periodic refreshes, so the status is correct even if an event was missed.
+
+        For multi-entity threshold triggers, evaluates each entity and
+        aggregates using entity_logic ("any" or "all").
         """
         if task.trigger_config is None:
             return
 
-        trigger_entity_id = task.trigger_config.get("entity_id")
-        if trigger_entity_id is None:
-            return
-
-        state = self.hass.states.get(trigger_entity_id)
-        if state is None or state.state in ("unavailable", "unknown"):
-            return
-
-        # Read current value
-        attribute = task.trigger_config.get("attribute")
-        try:
-            if attribute:
-                raw_value = state.attributes.get(attribute)
-            else:
-                raw_value = state.state
-            if raw_value is not None:
-                task._trigger_current_value = float(raw_value)
-        except (ValueError, TypeError):
-            return
-
-        # Evaluate basic trigger condition (without duration/timer logic)
-        if task._trigger_current_value is None:
-            return
+        from .entity.triggers import normalize_entity_ids
 
         trigger_type = task.trigger_config.get("type")
-        value = task._trigger_current_value
+
+        # Compound triggers have entity_ids inside conditions, not at top level
+        if trigger_type == "compound":
+            # Compound is fully event-driven; fallback cannot re-evaluate
+            return
+
+        entity_ids = normalize_entity_ids(task.trigger_config)
+        if not entity_ids:
+            return
+        attribute = task.trigger_config.get("attribute")
 
         if trigger_type == "threshold":
+            entity_logic = task.trigger_config.get("entity_logic", "any")
+            for_minutes = task.trigger_config.get("trigger_for_minutes", 0)
             above = task.trigger_config.get("trigger_above")
             below = task.trigger_config.get("trigger_below")
-            exceeds = False
-            if above is not None and value > above:
-                exceeds = True
-            if below is not None and value < below:
-                exceeds = True
 
-            for_minutes = task.trigger_config.get("trigger_for_minutes", 0)
-            if exceeds and for_minutes == 0:
-                # Immediate threshold: activate directly
-                task._trigger_active = True
-            elif not exceeds:
-                # Value back in normal range: deactivate
-                # (only if not managed by event-driven trigger with timer)
-                if for_minutes == 0:
-                    task._trigger_active = False
+            per_entity_triggered: list[bool] = []
+            last_value = None
+
+            for eid in entity_ids:
+                state = self.hass.states.get(eid)
+                if state is None or state.state in ("unavailable", "unknown"):
+                    per_entity_triggered.append(False)
+                    continue
+
+                try:
+                    if attribute:
+                        raw_value = state.attributes.get(attribute)
+                    else:
+                        raw_value = state.state
+                    if raw_value is None:
+                        per_entity_triggered.append(False)
+                        continue
+                    value = float(raw_value)
+                    last_value = value
+                except (ValueError, TypeError):
+                    per_entity_triggered.append(False)
+                    continue
+
+                exceeds = False
+                if above is not None and value > above:
+                    exceeds = True
+                if below is not None and value < below:
+                    exceeds = True
+                per_entity_triggered.append(exceeds)
+
+            if last_value is not None:
+                task._trigger_current_value = last_value
+
+            if per_entity_triggered and for_minutes == 0:
+                if entity_logic == "all":
+                    task._trigger_active = all(per_entity_triggered)
+                else:
+                    task._trigger_active = any(per_entity_triggered)
+            elif not any(per_entity_triggered) and for_minutes == 0:
+                task._trigger_active = False
 
         elif trigger_type == "counter":
+            entity_logic = task.trigger_config.get("entity_logic", "any")
             target = task.trigger_config.get("trigger_target_value", 0)
             delta_mode = task.trigger_config.get("trigger_delta_mode", False)
-            if delta_mode:
-                baseline = task.trigger_config.get("trigger_baseline_value")
-                if baseline is not None:
-                    delta = value - baseline
-                    task._trigger_active = delta >= target
-            else:
-                task._trigger_active = value >= target
+            trigger_state = task.trigger_config.get("_trigger_state", {})
+
+            per_entity_triggered: list[bool] = []
+            last_value = None
+
+            for eid in entity_ids:
+                state = self.hass.states.get(eid)
+                if state is None or state.state in ("unavailable", "unknown"):
+                    per_entity_triggered.append(False)
+                    continue
+                try:
+                    if attribute:
+                        raw_value = state.attributes.get(attribute)
+                    else:
+                        raw_value = state.state
+                    if raw_value is None:
+                        per_entity_triggered.append(False)
+                        continue
+                    value = float(raw_value)
+                    last_value = value
+                except (ValueError, TypeError):
+                    per_entity_triggered.append(False)
+                    continue
+
+                if delta_mode:
+                    # Per-entity baseline from _trigger_state, fall back to flat
+                    es = trigger_state.get(eid, {})
+                    baseline = es.get("baseline_value")
+                    if baseline is None:
+                        baseline = task.trigger_config.get("trigger_baseline_value")
+                    if baseline is not None:
+                        delta = value - baseline
+                        per_entity_triggered.append(delta >= target)
+                    else:
+                        per_entity_triggered.append(False)
+                else:
+                    per_entity_triggered.append(value >= target)
+
+            if last_value is not None:
+                task._trigger_current_value = last_value
+
+            if per_entity_triggered:
+                if entity_logic == "all":
+                    task._trigger_active = all(per_entity_triggered)
+                else:
+                    task._trigger_active = any(per_entity_triggered)
 
         elif trigger_type == "state_change":
             # State change triggers are purely event-driven (count transitions)
@@ -365,100 +423,114 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         - Entity exists + unavailable/unknown: log once, no issue
         - Entity missing + within threshold: increment counter
         - Entity missing + past threshold: create repair issue with data
+
+        For multi-entity triggers, checks each entity_id independently.
         """
+        from .entity.triggers import normalize_entity_ids
+
         for task_id, task in tasks.items():
             if not task.enabled or task.trigger_config is None:
                 continue
 
-            trigger_entity_id = task.trigger_config.get("entity_id")
-            if trigger_entity_id is None:
+            entity_ids = normalize_entity_ids(task.trigger_config)
+            if not entity_ids:
                 continue
 
-            issue_id = f"missing_trigger_{self.entry.entry_id}_{task_id}"
-            state = self.hass.states.get(trigger_entity_id)
+            # Track overall task-level trigger entity state
+            # (worst state across all entities)
+            worst_state = TriggerEntityState.AVAILABLE
 
-            if state is not None and state.state not in ("unavailable", "unknown"):
-                # ✅ Entity exists and is available — all good
-                self._trigger_entity_states[task_id] = TriggerEntityState.AVAILABLE
-                self._entity_missing_refresh_count.pop(task_id, None)
-                self._entity_unavailable_logged.pop(task_id, None)
-                ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+            for trigger_entity_id in entity_ids:
+                # Per-entity issue tracking key
+                entity_key = f"{task_id}_{trigger_entity_id}"
+                issue_id = f"missing_trigger_{self.entry.entry_id}_{task_id}_{trigger_entity_id}"
+                state = self.hass.states.get(trigger_entity_id)
 
-            elif state is not None:
-                # ⚠️ Entity exists but is unavailable/unknown — log once, no issue
-                self._trigger_entity_states[task_id] = TriggerEntityState.UNAVAILABLE
-                self._entity_missing_refresh_count.pop(task_id, None)
+                if state is not None and state.state not in ("unavailable", "unknown"):
+                    # Entity exists and is available
+                    self._entity_missing_refresh_count.pop(entity_key, None)
+                    self._entity_unavailable_logged.pop(entity_key, None)
+                    ir.async_delete_issue(self.hass, DOMAIN, issue_id)
 
-                if not self._entity_unavailable_logged.get(task_id, False):
-                    _LOGGER.warning(
-                        "Trigger entity %s for task '%s' is %s",
-                        trigger_entity_id,
-                        task.name,
-                        state.state,
-                    )
-                    self._entity_unavailable_logged[task_id] = True
+                elif state is not None:
+                    # Entity exists but is unavailable/unknown
+                    if worst_state == TriggerEntityState.AVAILABLE:
+                        worst_state = TriggerEntityState.UNAVAILABLE
+                    self._entity_missing_refresh_count.pop(entity_key, None)
 
-                # Clear issue if it existed (entity came back but is unavailable)
-                ir.async_delete_issue(self.hass, DOMAIN, issue_id)
-
-            elif self._in_startup_grace_period:
-                # ⏳ Entity missing during startup — just wait
-                self._trigger_entity_states[task_id] = TriggerEntityState.STARTUP
-                _LOGGER.debug(
-                    "Trigger entity %s not yet available (startup grace period), "
-                    "skipping issue creation for task '%s'",
-                    trigger_entity_id,
-                    task.name,
-                )
-
-            else:
-                # 🔍 Entity missing after startup grace period
-                count = self._entity_missing_refresh_count.get(task_id, 0) + 1
-                self._entity_missing_refresh_count[task_id] = count
-                self._trigger_entity_states[task_id] = TriggerEntityState.MISSING
-
-                if count < MISSING_ENTITY_THRESHOLD_REFRESHES:
-                    # 📊 Still counting — entity might appear soon
-                    _LOGGER.debug(
-                        "Trigger entity %s missing for task '%s' "
-                        "(refresh %d/%d before issue)",
-                        trigger_entity_id,
-                        task.name,
-                        count,
-                        MISSING_ENTITY_THRESHOLD_REFRESHES,
-                    )
-                else:
-                    # 🔧 Confirmed missing — create repair issue with context data
-                    obj = self.maintenance_object
-                    if count == MISSING_ENTITY_THRESHOLD_REFRESHES:
+                    if not self._entity_unavailable_logged.get(entity_key, False):
                         _LOGGER.warning(
-                            "Trigger entity %s for task '%s' on '%s' has been "
-                            "missing for %d refreshes — creating repair issue",
+                            "Trigger entity %s for task '%s' is %s",
                             trigger_entity_id,
                             task.name,
-                            obj.name,
-                            count,
+                            state.state,
                         )
-                    ir.async_create_issue(
-                        self.hass,
-                        DOMAIN,
-                        issue_id,
-                        is_fixable=True,
-                        severity=ir.IssueSeverity.WARNING,
-                        translation_key="missing_trigger_entity",
-                        translation_placeholders={
-                            "entity_id": trigger_entity_id,
-                            "task_name": task.name,
-                            "object_name": obj.name,
-                        },
-                        data={
-                            "entry_id": self.entry.entry_id,
-                            "task_id": task_id,
-                            "task_name": task.name,
-                            "object_name": obj.name,
-                            "entity_id": trigger_entity_id,
-                        },
+                        self._entity_unavailable_logged[entity_key] = True
+
+                    ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+
+                elif self._in_startup_grace_period:
+                    # Entity missing during startup
+                    if worst_state in (
+                        TriggerEntityState.AVAILABLE,
+                        TriggerEntityState.UNAVAILABLE,
+                    ):
+                        worst_state = TriggerEntityState.STARTUP
+                    _LOGGER.debug(
+                        "Trigger entity %s not yet available (startup grace period), "
+                        "skipping issue creation for task '%s'",
+                        trigger_entity_id,
+                        task.name,
                     )
+
+                else:
+                    # Entity missing after startup grace period
+                    worst_state = TriggerEntityState.MISSING
+                    count = self._entity_missing_refresh_count.get(entity_key, 0) + 1
+                    self._entity_missing_refresh_count[entity_key] = count
+
+                    if count < MISSING_ENTITY_THRESHOLD_REFRESHES:
+                        _LOGGER.debug(
+                            "Trigger entity %s missing for task '%s' "
+                            "(refresh %d/%d before issue)",
+                            trigger_entity_id,
+                            task.name,
+                            count,
+                            MISSING_ENTITY_THRESHOLD_REFRESHES,
+                        )
+                    else:
+                        obj = self.maintenance_object
+                        if count == MISSING_ENTITY_THRESHOLD_REFRESHES:
+                            _LOGGER.warning(
+                                "Trigger entity %s for task '%s' on '%s' has been "
+                                "missing for %d refreshes — creating repair issue",
+                                trigger_entity_id,
+                                task.name,
+                                obj.name,
+                                count,
+                            )
+                        ir.async_create_issue(
+                            self.hass,
+                            DOMAIN,
+                            issue_id,
+                            is_fixable=True,
+                            severity=ir.IssueSeverity.WARNING,
+                            translation_key="missing_trigger_entity",
+                            translation_placeholders={
+                                "entity_id": trigger_entity_id,
+                                "task_name": task.name,
+                                "object_name": obj.name,
+                            },
+                            data={
+                                "entry_id": self.entry.entry_id,
+                                "task_id": task_id,
+                                "task_name": task.name,
+                                "object_name": obj.name,
+                                "entity_id": trigger_entity_id,
+                            },
+                        )
+
+            self._trigger_entity_states[task_id] = worst_state
 
     async def _async_notify_status_changes(
         self, task_results: dict[str, Any]
@@ -757,12 +829,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.async_request_refresh()
 
     async def async_persist_trigger_runtime(
-        self, task_id: str, runtime_data: dict[str, Any]
+        self,
+        task_id: str,
+        runtime_data: dict[str, Any],
+        entity_id: str | None = None,
     ) -> None:
-        """Persist trigger runtime values (baseline, change_count) to config entry.
+        """Persist trigger runtime values to config entry.
 
         This is called by triggers to save values that must survive restarts.
-        The values are stored inside the task's trigger_config dict.
+
+        When *entity_id* is provided the data is stored per-entity under
+        ``_trigger_state[entity_id]``.  When *entity_id* is ``None`` the
+        legacy flat storage is used for backwards compatibility.
         """
         tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
         if task_id not in tasks_data:
@@ -771,8 +849,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task_dict = dict(tasks_data[task_id])
         trigger_config = dict(task_dict.get("trigger_config", {}))
 
-        for key, value in runtime_data.items():
-            trigger_config[key] = value
+        if entity_id is not None:
+            # Per-entity nested storage
+            trigger_state = dict(trigger_config.get("_trigger_state", {}))
+            entity_state = dict(trigger_state.get(entity_id, {}))
+            for key, value in runtime_data.items():
+                entity_state[key] = value
+            trigger_state[entity_id] = entity_state
+            trigger_config["_trigger_state"] = trigger_state
+        else:
+            # Legacy flat storage
+            for key, value in runtime_data.items():
+                trigger_config[key] = value
 
         task_dict["trigger_config"] = trigger_config
         tasks_data[task_id] = task_dict
@@ -782,8 +870,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
         _LOGGER.debug(
-            "Persisted trigger runtime data for task %s: %s",
+            "Persisted trigger runtime data for task %s (entity=%s): %s",
             task_id,
+            entity_id or "flat",
             runtime_data,
         )
 
