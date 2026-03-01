@@ -537,16 +537,47 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         """Confirm and remove trigger configuration from a task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
+        tc = task.get("trigger_config", {})
+
+        # Resolve entity list
+        entity_ids = tc.get("entity_ids", [])
+        if not entity_ids:
+            eid = tc.get("entity_id", "")
+            entity_ids = [eid] if isinstance(eid, str) and eid else (
+                eid if isinstance(eid, list) else []
+            )
+        has_multiple = len(entity_ids) > 1
 
         if user_input is not None:
             if user_input.get("confirm"):
+                entities_to_remove = user_input.get(
+                    "entities_to_remove", entity_ids
+                )
+                remaining = [
+                    e for e in entity_ids if e not in entities_to_remove
+                ]
+
                 new_data = dict(self.config_entry.data)
                 new_tasks = dict(new_data.get(CONF_TASKS, {}))
-                updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
+                updated_task = dict(
+                    new_tasks.get(self._selected_task_id or "", {})
+                )
 
-                updated_task.pop("trigger_config", None)
-                if updated_task.get("schedule_type") == ScheduleType.SENSOR_BASED:
-                    updated_task["schedule_type"] = ScheduleType.TIME_BASED
+                if remaining:
+                    # Partial removal — keep trigger with remaining entities
+                    updated_tc = dict(
+                        updated_task.get("trigger_config", {})
+                    )
+                    updated_tc["entity_ids"] = remaining
+                    updated_tc.pop("entity_id", None)
+                    updated_task["trigger_config"] = updated_tc
+                else:
+                    # Full removal — remove entire trigger config
+                    updated_task.pop("trigger_config", None)
+                    if updated_task.get(
+                        "schedule_type"
+                    ) == ScheduleType.SENSOR_BASED:
+                        updated_task["schedule_type"] = ScheduleType.TIME_BASED
 
                 new_tasks[self._selected_task_id or ""] = updated_task
                 new_data[CONF_TASKS] = new_tasks
@@ -555,20 +586,30 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             return self._show_task_action_menu()
 
         # Build rich description from trigger_config
-        tc = task.get("trigger_config", {})
         entity_ids_str = self._get_entity_ids_str(tc)
         trigger_type = tc.get("type", "unknown")
 
         config_parts = self._build_trigger_config_parts(tc)
         config_details = "\n".join(config_parts) if config_parts else "—"
 
+        # Build schema — add entity selector for multi-entity triggers
+        schema_dict: dict[Any, Any] = {}
+        if has_multiple:
+            schema_dict[
+                vol.Required("entities_to_remove")
+            ] = selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=entity_ids,
+                    multiple=True,
+                )
+            )
+        schema_dict[
+            vol.Required("confirm", default=False)
+        ] = selector.BooleanSelector()
+
         return self.async_show_form(
             step_id="remove_trigger",
-            data_schema=vol.Schema(
-                {
-                    vol.Required("confirm", default=False): selector.BooleanSelector(),
-                }
-            ),
+            data_schema=vol.Schema(schema_dict),
             description_placeholders={
                 "task_name": task.get("name", ""),
                 "entity_ids": entity_ids_str,

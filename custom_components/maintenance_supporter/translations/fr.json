@@ -611,9 +611,13 @@
       },
       "remove_trigger": {
         "title": "Supprimer le déclencheur",
-        "description": "Supprimer le déclencheur de **{task_name}** ?\n\n**Entité :** {entity_ids}\n**Type :** {trigger_type}\n**Configuration :** {config_details}\n\nLa planification reviendra en mode temporel.",
+        "description": "Supprimer le déclencheur de **{task_name}** ?\n\n**Entité :** {entity_ids}\n**Type :** {trigger_type}\n**Configuration :** {config_details}\n\nSi toutes les entités sont supprimées, la planification reviendra en mode temporel.",
         "data": {
+          "entities_to_remove": "Entités à supprimer",
           "confirm": "Confirmer la suppression"
+        },
+        "data_description": {
+          "entities_to_remove": "Sélectionnez les entités à supprimer de ce déclencheur. Si toutes sont supprimées, le déclencheur entier est supprimé."
         }
       },
       "trigger_summary": {

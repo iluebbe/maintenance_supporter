@@ -518,9 +518,13 @@
       },
       "remove_trigger": {
         "title": "Remove Trigger",
-        "description": "Remove trigger from **{task_name}**?\n\n**Entity:** {entity_ids}\n**Type:** {trigger_type}\n**Config:** {config_details}\n\nThe schedule will revert to time-based.",
+        "description": "Remove trigger from **{task_name}**?\n\n**Entity:** {entity_ids}\n**Type:** {trigger_type}\n**Config:** {config_details}\n\nIf all entities are removed, the schedule will revert to time-based.",
         "data": {
+          "entities_to_remove": "Entities to remove",
           "confirm": "Confirm removal"
+        },
+        "data_description": {
+          "entities_to_remove": "Select which entities to remove from this trigger. If all are removed, the entire trigger is deleted."
         }
       },
       "trigger_summary": {

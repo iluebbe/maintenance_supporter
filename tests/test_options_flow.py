@@ -1560,3 +1560,154 @@ async def test_edit_trigger_prepopulates_entities(
             break
     else:
         pytest.fail("trigger_entity key not found in schema")
+
+
+async def test_remove_trigger_selective_entity_removal(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test selectively removing entities from a multi-entity trigger."""
+    hass.states.async_set("sensor.temp_a", "25", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.temp_b", "30", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.temp_c", "28", {"unit_of_measurement": "°C"})
+
+    # Add a trigger with 3 entities
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ENTITY: [
+                "sensor.temp_a",
+                "sensor.temp_b",
+                "sensor.temp_c",
+            ]
+        },
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 50.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+    tc = object_config_entry.data[CONF_TASKS][task_id]["trigger_config"]
+    assert tc["entity_ids"] == ["sensor.temp_a", "sensor.temp_b", "sensor.temp_c"]
+
+    # Navigate to remove_trigger
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "remove_trigger"},
+    )
+    assert result2["step_id"] == "remove_trigger"
+
+    # Verify the form has an entities_to_remove selector for multi-entity triggers
+    schema = result2["data_schema"].schema
+    has_entity_selector = any(
+        str(key) == "entities_to_remove" for key in schema
+    )
+    assert has_entity_selector, "Multi-entity trigger should show entity selector"
+
+    # Remove only one entity, keep the other two
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        user_input={
+            "entities_to_remove": ["sensor.temp_b"],
+            "confirm": True,
+        },
+    )
+    assert result2["type"] == FlowResultType.MENU
+    assert result2["step_id"] == "task_action"
+
+    # Verify only the selected entity was removed, trigger still exists
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert "trigger_config" in task
+    assert task["trigger_config"]["entity_ids"] == [
+        "sensor.temp_a",
+        "sensor.temp_c",
+    ]
+    assert task["schedule_type"] == ScheduleType.SENSOR_BASED
+
+
+async def test_remove_trigger_all_entities_removes_trigger(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test removing all entities from a multi-entity trigger removes the entire trigger."""
+    hass.states.async_set("sensor.temp_a", "25", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.temp_b", "30", {"unit_of_measurement": "°C"})
+
+    # Add a trigger with 2 entities
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ENTITY: ["sensor.temp_a", "sensor.temp_b"]
+        },
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 50.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    # Navigate to remove_trigger and remove ALL entities
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "remove_trigger"},
+    )
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        user_input={
+            "entities_to_remove": ["sensor.temp_a", "sensor.temp_b"],
+            "confirm": True,
+        },
+    )
+    assert result2["type"] == FlowResultType.MENU
+
+    # Verify trigger completely removed and schedule reverted
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert "trigger_config" not in task
+    assert task["schedule_type"] == ScheduleType.TIME_BASED

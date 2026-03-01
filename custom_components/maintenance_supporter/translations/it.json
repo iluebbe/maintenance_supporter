@@ -611,9 +611,13 @@
       },
       "remove_trigger": {
         "title": "Rimuovi trigger",
-        "description": "Rimuovere il trigger da **{task_name}**?\n\n**Entità:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configurazione:** {config_details}\n\nLa pianificazione tornerà a essere temporale.",
+        "description": "Rimuovere il trigger da **{task_name}**?\n\n**Entità:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configurazione:** {config_details}\n\nSe tutte le entità vengono rimosse, la pianificazione tornerà a essere temporale.",
         "data": {
+          "entities_to_remove": "Entità da rimuovere",
           "confirm": "Conferma rimozione"
+        },
+        "data_description": {
+          "entities_to_remove": "Seleziona quali entità rimuovere da questo trigger. Se vengono rimosse tutte, l'intero trigger viene eliminato."
         }
       },
       "trigger_summary": {

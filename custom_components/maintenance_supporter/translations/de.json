@@ -540,9 +540,13 @@
       },
       "remove_trigger": {
         "title": "Trigger entfernen",
-        "description": "Trigger von **{task_name}** entfernen?\n\n**Entität:** {entity_ids}\n**Typ:** {trigger_type}\n**Konfiguration:** {config_details}\n\nDer Zeitplan wird auf zeitbasiert zurückgesetzt.",
+        "description": "Trigger von **{task_name}** entfernen?\n\n**Entität:** {entity_ids}\n**Typ:** {trigger_type}\n**Konfiguration:** {config_details}\n\nWenn alle Entitäten entfernt werden, wird der Zeitplan auf zeitbasiert zurückgesetzt.",
         "data": {
+          "entities_to_remove": "Zu entfernende Entitäten",
           "confirm": "Entfernung bestätigen"
+        },
+        "data_description": {
+          "entities_to_remove": "Wählen Sie aus, welche Entitäten aus diesem Trigger entfernt werden sollen. Werden alle entfernt, wird der gesamte Trigger gelöscht."
         }
       },
       "trigger_summary": {

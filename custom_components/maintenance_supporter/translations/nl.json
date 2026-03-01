@@ -611,9 +611,13 @@
       },
       "remove_trigger": {
         "title": "Trigger verwijderen",
-        "description": "Trigger verwijderen van **{task_name}**?\n\n**Entiteit:** {entity_ids}\n**Type:** {trigger_type}\n**Configuratie:** {config_details}\n\nHet schema wordt teruggezet naar tijdgebaseerd.",
+        "description": "Trigger verwijderen van **{task_name}**?\n\n**Entiteit:** {entity_ids}\n**Type:** {trigger_type}\n**Configuratie:** {config_details}\n\nAls alle entiteiten worden verwijderd, wordt het schema teruggezet naar tijdgebaseerd.",
         "data": {
+          "entities_to_remove": "Te verwijderen entiteiten",
           "confirm": "Verwijdering bevestigen"
+        },
+        "data_description": {
+          "entities_to_remove": "Selecteer welke entiteiten uit deze trigger verwijderd moeten worden. Als alle worden verwijderd, wordt de hele trigger gewist."
         }
       },
       "trigger_summary": {

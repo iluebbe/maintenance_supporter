@@ -611,9 +611,13 @@
       },
       "remove_trigger": {
         "title": "Eliminar trigger",
-        "description": "¿Eliminar trigger de **{task_name}**?\n\n**Entidad:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configuración:** {config_details}\n\nLa programación volverá a ser temporal.",
+        "description": "¿Eliminar trigger de **{task_name}**?\n\n**Entidad:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configuración:** {config_details}\n\nSi se eliminan todas las entidades, la programación volverá a ser temporal.",
         "data": {
+          "entities_to_remove": "Entidades a eliminar",
           "confirm": "Confirmar eliminación"
+        },
+        "data_description": {
+          "entities_to_remove": "Seleccione qué entidades eliminar de este trigger. Si se eliminan todas, se borra el trigger completo."
         }
       },
       "trigger_summary": {
