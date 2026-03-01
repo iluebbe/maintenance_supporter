@@ -608,6 +608,13 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
 
             return self.async_create_entry(title="", data=self.config_entry.options)
 
+        env_entity = current_adaptive.get("environmental_entity")
+        env_key = (
+            vol.Optional(CONF_ENVIRONMENTAL_ENTITY, default=env_entity)
+            if env_entity
+            else vol.Optional(CONF_ENVIRONMENTAL_ENTITY)
+        )
+
         return self.async_show_form(
             step_id="adaptive_scheduling",
             data_schema=vol.Schema(
@@ -661,10 +668,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             CONF_SENSOR_PREDICTION_ENABLED, True
                         ),
                     ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ENVIRONMENTAL_ENTITY,
-                        default=current_adaptive.get("environmental_entity", ""),
-                    ): selector.EntitySelector(
+                    env_key: selector.EntitySelector(
                         selector.EntitySelectorConfig(
                             domain=["sensor"],
                             device_class=["temperature", "humidity", "pressure"],
