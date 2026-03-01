@@ -25,5 +25,11 @@ desktop.ini
 .env
 *.env
 
+# Docker dev environment (runtime data)
+docker/config-dev/
+docker/config-fresh/
+docker/snapshots/
+docker/faketime.txt
+
 # Claude Code
 .claude/

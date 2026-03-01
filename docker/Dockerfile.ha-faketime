@@ -1,0 +1,12 @@
+FROM alpine:3.21 AS faketime-builder
+RUN apk add --no-cache build-base git
+RUN git clone https://github.com/wolfcw/libfaketime.git /libfaketime \
+    && cd /libfaketime/src && make
+
+FROM ghcr.io/home-assistant/home-assistant:2026.2.2
+COPY --from=faketime-builder \
+  /libfaketime/src/libfaketime.so.1 \
+  /usr/local/lib/faketime/libfaketime.so.1
+
+# Replace the HA run script with our version that adds faketime to LD_PRELOAD
+COPY ha-run-faketime.sh /etc/services.d/home-assistant/run

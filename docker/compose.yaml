@@ -1,0 +1,60 @@
+services:
+  homeassistant-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.ha-faketime
+    container_name: ha-dev
+    volumes:
+      - ./config-dev:/config
+      - ./custom_components:/config/custom_components
+      - ./faketime.txt:/config/faketime.txt:ro
+    ports:
+      - "${HA_DEV_PORT:-8123}:8123"
+    environment:
+      TZ: Europe/Berlin
+      # Faketime: the custom run script (ha-run-faketime.sh) adds libfaketime
+      # to LD_PRELOAD only for the HA Python process when FAKETIME_ENABLED is set.
+      FAKETIME_ENABLED: "${FAKETIME_ENABLED:-}"
+      FAKETIME_TIMESTAMP_FILE: /config/faketime.txt
+      FAKETIME_NO_CACHE: "1"
+      DONT_FAKE_MONOTONIC: "1"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/manifest.json"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+      start_interval: 5s
+    restart: unless-stopped
+    networks: [ha-net]
+
+  homeassistant-fresh:
+    image: "ghcr.io/home-assistant/home-assistant:2026.2.2"
+    container_name: ha-fresh
+    profiles: ["testing"]
+    volumes:
+      - ./config-fresh:/config
+      - ./custom_components:/config/custom_components:ro
+    ports:
+      - "${HA_FRESH_PORT:-8124}:8123"
+    environment:
+      TZ: Europe/Berlin
+    restart: "no"
+    networks: [ha-net]
+
+  playwright:
+    image: "mcr.microsoft.com/playwright:v1.57.0-noble"
+    container_name: playwright-server
+    profiles: ["testing"]
+    command: >
+      /bin/sh -c "npx -y playwright@1.57.0 run-server --port 3000 --host 0.0.0.0"
+    ports:
+      - "3000:3000"
+    init: true
+    ipc: host
+    user: pwuser
+    networks: [ha-net]
+
+networks:
+  ha-net:
+    driver: bridge
