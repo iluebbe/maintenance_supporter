@@ -206,6 +206,77 @@
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
+      "compound_logic": {
+        "title": "Trigger composto",
+        "description": "Scegli come combinare più condizioni.",
+        "data": { "compound_logic": "Logica" },
+        "data_description": { "compound_logic": "E = tutte le condizioni devono attivarsi. O = qualsiasi condizione attiva." }
+      },
+      "compound_condition_entity": {
+        "title": "Condizione #{condition_num} — Entità",
+        "description": "Seleziona l'entità per questa condizione.",
+        "data": { "trigger_entity": "Entità" },
+        "data_description": { "trigger_entity": "L'entità sensore da monitorare per questa condizione." }
+      },
+      "compound_condition_type": {
+        "title": "Condizione #{condition_num} — Tipo",
+        "description": "Come deve questa condizione valutare il sensore?",
+        "data": { "trigger_type": "Tipo di trigger" },
+        "data_description": { "trigger_type": "Il metodo usato per determinare quando questa condizione si attiva." }
+      },
+      "compound_condition_threshold": {
+        "title": "Condizione — Soglia",
+        "data": {
+          "trigger_above": "Attiva sopra",
+          "trigger_below": "Attiva sotto",
+          "trigger_for_minutes": "Durata (minuti)"
+        },
+        "data_description": {
+          "trigger_above": "Attiva quando il valore supera questa soglia.",
+          "trigger_below": "Attiva quando il valore scende sotto questa soglia.",
+          "trigger_for_minutes": "Il valore deve rimanere oltre la soglia per questa durata."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condizione — Contatore",
+        "data": {
+          "trigger_target_value": "Valore obiettivo",
+          "trigger_delta_mode": "Modalità delta"
+        },
+        "data_description": {
+          "trigger_target_value": "Attiva quando il valore accumulato raggiunge questo obiettivo.",
+          "trigger_delta_mode": "Conta i cambiamenti da una linea di base anziché il valore assoluto."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condizione — Cambio di stato",
+        "data": {
+          "trigger_from_state": "Dallo stato",
+          "trigger_to_state": "Allo stato",
+          "trigger_target_changes": "Numero di cambiamenti"
+        },
+        "data_description": {
+          "trigger_from_state": "Conta solo le transizioni da questo stato. Lascia vuoto per qualsiasi.",
+          "trigger_to_state": "Conta solo le transizioni a questo stato. Lascia vuoto per qualsiasi.",
+          "trigger_target_changes": "Numero di cambiamenti di stato corrispondenti prima dell'attivazione."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condizione — Tempo di esecuzione",
+        "data": {
+          "trigger_runtime_hours": "Tempo obiettivo (ore)",
+          "trigger_on_states": "Stati attivi"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Attiva dopo queste ore di tempo di esecuzione accumulato.",
+          "trigger_on_states": "Stati del sensore contati come 'attivi'. Lascia vuoto per predefinito."
+        }
+      },
+      "compound_review": {
+        "title": "Revisione trigger composto",
+        "description": "{condition_count} condizione/i configurata/e con logica {compound_logic}.",
+        "data": { "compound_action": "Azione" }
+      },
       "manual": {
         "title": "Pianificazione manuale",
         "description": "Questa attività non ha una pianificazione automatica. Puoi contrassegnarla come scaduta manualmente.",
@@ -438,6 +509,77 @@
           "checklist_text": "Inserisci ogni passaggio su una riga separata. Questi passaggi saranno mostrati durante il completamento dell'attività."
         }
       },
+      "compound_logic": {
+        "title": "Trigger composto",
+        "description": "Scegli come combinare più condizioni.",
+        "data": { "compound_logic": "Logica" },
+        "data_description": { "compound_logic": "E = tutte le condizioni devono attivarsi. O = qualsiasi condizione attiva." }
+      },
+      "compound_condition_entity": {
+        "title": "Condizione #{condition_num} — Entità",
+        "description": "Seleziona l'entità per questa condizione.",
+        "data": { "trigger_entity": "Entità" },
+        "data_description": { "trigger_entity": "L'entità sensore da monitorare per questa condizione." }
+      },
+      "compound_condition_type": {
+        "title": "Condizione #{condition_num} — Tipo",
+        "description": "Come deve questa condizione valutare il sensore?",
+        "data": { "trigger_type": "Tipo di trigger" },
+        "data_description": { "trigger_type": "Il metodo usato per determinare quando questa condizione si attiva." }
+      },
+      "compound_condition_threshold": {
+        "title": "Condizione — Soglia",
+        "data": {
+          "trigger_above": "Attiva sopra",
+          "trigger_below": "Attiva sotto",
+          "trigger_for_minutes": "Durata (minuti)"
+        },
+        "data_description": {
+          "trigger_above": "Attiva quando il valore supera questa soglia.",
+          "trigger_below": "Attiva quando il valore scende sotto questa soglia.",
+          "trigger_for_minutes": "Il valore deve rimanere oltre la soglia per questa durata."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condizione — Contatore",
+        "data": {
+          "trigger_target_value": "Valore obiettivo",
+          "trigger_delta_mode": "Modalità delta"
+        },
+        "data_description": {
+          "trigger_target_value": "Attiva quando il valore accumulato raggiunge questo obiettivo.",
+          "trigger_delta_mode": "Conta i cambiamenti da una linea di base anziché il valore assoluto."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condizione — Cambio di stato",
+        "data": {
+          "trigger_from_state": "Dallo stato",
+          "trigger_to_state": "Allo stato",
+          "trigger_target_changes": "Numero di cambiamenti"
+        },
+        "data_description": {
+          "trigger_from_state": "Conta solo le transizioni da questo stato. Lascia vuoto per qualsiasi.",
+          "trigger_to_state": "Conta solo le transizioni a questo stato. Lascia vuoto per qualsiasi.",
+          "trigger_target_changes": "Numero di cambiamenti di stato corrispondenti prima dell'attivazione."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condizione — Tempo di esecuzione",
+        "data": {
+          "trigger_runtime_hours": "Tempo obiettivo (ore)",
+          "trigger_on_states": "Stati attivi"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Attiva dopo queste ore di tempo di esecuzione accumulato.",
+          "trigger_on_states": "Stati del sensore contati come 'attivi'. Lascia vuoto per predefinito."
+        }
+      },
+      "compound_review": {
+        "title": "Revisione trigger composto",
+        "description": "{condition_count} condizione/i configurata/e con logica {compound_logic}.",
+        "data": { "compound_action": "Azione" }
+      },
       "adaptive_scheduling": {
         "title": "Pianificazione adattiva",
         "description": "Configura l'adattamento intelligente degli intervalli per {task_name}. Il sistema impara dai tuoi feedback di completamento per suggerire intervalli migliori.",
@@ -640,46 +782,6 @@
       }
     }
   },
-  "selector": {
-    "maintenance_type": {
-      "options": {
-        "cleaning": "Pulizia",
-        "inspection": "Ispezione",
-        "replacement": "Sostituzione",
-        "calibration": "Calibrazione",
-        "service": "Servizio",
-        "custom": "Personalizzato"
-      }
-    },
-    "schedule_type": {
-      "options": {
-        "time_based": "Temporale",
-        "sensor_based": "Basato su sensore",
-        "manual": "Manuale"
-      }
-    },
-    "trigger_type": {
-      "options": {
-        "threshold": "Soglia",
-        "counter": "Contatore",
-        "state_change": "Cambio stato",
-        "runtime": "Tempo di funzionamento",
-        "compound": "Composto (Condizioni Multiple)"
-      }
-    },
-    "compound_logic": {
-      "options": {
-        "AND": "E (tutte le condizioni devono attivarsi)",
-        "OR": "O (qualsiasi condizione attiva)"
-      }
-    },
-    "entity_logic": {
-      "options": {
-        "any": "Qualsiasi entità attiva",
-        "all": "Tutte le entità devono attivare"
-      }
-    }
-  },
   "entity": {
     "sensor": {
       "maintenance_task": {
@@ -818,6 +920,46 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Calendario manutenzione"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Pulizia",
+        "inspection": "Ispezione",
+        "replacement": "Sostituzione",
+        "calibration": "Calibrazione",
+        "service": "Servizio",
+        "custom": "Personalizzato"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Temporale",
+        "sensor_based": "Basato su sensore",
+        "manual": "Manuale"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Soglia",
+        "counter": "Contatore",
+        "state_change": "Cambio stato",
+        "runtime": "Tempo di funzionamento",
+        "compound": "Composto (Condizioni Multiple)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "E (tutte le condizioni devono attivarsi)",
+        "OR": "O (qualsiasi condizione attiva)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Qualsiasi entità attiva",
+        "all": "Tutte le entità devono attivare"
       }
     }
   },

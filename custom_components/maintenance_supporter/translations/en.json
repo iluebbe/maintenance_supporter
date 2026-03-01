@@ -206,6 +206,77 @@
           "warning_days": "Number of days before due date to show a warning."
         }
       },
+      "compound_logic": {
+        "title": "Compound Trigger",
+        "description": "Choose how multiple conditions should be combined.",
+        "data": { "compound_logic": "Logic" },
+        "data_description": { "compound_logic": "AND = all conditions must trigger. OR = any condition triggers." }
+      },
+      "compound_condition_entity": {
+        "title": "Condition #{condition_num} — Entity",
+        "description": "Select the entity for this condition.",
+        "data": { "trigger_entity": "Entity" },
+        "data_description": { "trigger_entity": "The sensor entity to monitor for this condition." }
+      },
+      "compound_condition_type": {
+        "title": "Condition #{condition_num} — Type",
+        "description": "How should this condition evaluate the sensor?",
+        "data": { "trigger_type": "Trigger type" },
+        "data_description": { "trigger_type": "The method used to determine when this condition triggers." }
+      },
+      "compound_condition_threshold": {
+        "title": "Condition — Threshold",
+        "data": {
+          "trigger_above": "Trigger above",
+          "trigger_below": "Trigger below",
+          "trigger_for_minutes": "Duration (minutes)"
+        },
+        "data_description": {
+          "trigger_above": "Trigger when value exceeds this threshold.",
+          "trigger_below": "Trigger when value drops below this threshold.",
+          "trigger_for_minutes": "Value must remain beyond threshold for this duration."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condition — Counter",
+        "data": {
+          "trigger_target_value": "Target value",
+          "trigger_delta_mode": "Delta mode"
+        },
+        "data_description": {
+          "trigger_target_value": "Trigger when accumulated value reaches this target.",
+          "trigger_delta_mode": "Count changes from a baseline instead of the absolute value."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condition — State Change",
+        "data": {
+          "trigger_from_state": "From state",
+          "trigger_to_state": "To state",
+          "trigger_target_changes": "Number of changes"
+        },
+        "data_description": {
+          "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
+          "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
+          "trigger_target_changes": "Number of matching state changes before triggering."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condition — Runtime",
+        "data": {
+          "trigger_runtime_hours": "Target runtime (hours)",
+          "trigger_on_states": "Active states"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Trigger after this many hours of accumulated runtime.",
+          "trigger_on_states": "Sensor states counted as 'active'. Leave empty for default."
+        }
+      },
+      "compound_review": {
+        "title": "Compound Trigger Review",
+        "description": "{condition_count} condition(s) configured with {compound_logic} logic.",
+        "data": { "compound_action": "Action" }
+      },
       "manual": {
         "title": "Manual Schedule",
         "description": "This task has no automatic schedule. You can mark it as due manually.",
@@ -438,6 +509,77 @@
           "checklist_text": "Enter each checklist step on a separate line. These steps will be shown when completing the task."
         }
       },
+      "compound_logic": {
+        "title": "Compound Trigger",
+        "description": "Choose how multiple conditions should be combined.",
+        "data": { "compound_logic": "Logic" },
+        "data_description": { "compound_logic": "AND = all conditions must trigger. OR = any condition triggers." }
+      },
+      "compound_condition_entity": {
+        "title": "Condition #{condition_num} — Entity",
+        "description": "Select the entity for this condition.",
+        "data": { "trigger_entity": "Entity" },
+        "data_description": { "trigger_entity": "The sensor entity to monitor for this condition." }
+      },
+      "compound_condition_type": {
+        "title": "Condition #{condition_num} — Type",
+        "description": "How should this condition evaluate the sensor?",
+        "data": { "trigger_type": "Trigger type" },
+        "data_description": { "trigger_type": "The method used to determine when this condition triggers." }
+      },
+      "compound_condition_threshold": {
+        "title": "Condition — Threshold",
+        "data": {
+          "trigger_above": "Trigger above",
+          "trigger_below": "Trigger below",
+          "trigger_for_minutes": "Duration (minutes)"
+        },
+        "data_description": {
+          "trigger_above": "Trigger when value exceeds this threshold.",
+          "trigger_below": "Trigger when value drops below this threshold.",
+          "trigger_for_minutes": "Value must remain beyond threshold for this duration."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condition — Counter",
+        "data": {
+          "trigger_target_value": "Target value",
+          "trigger_delta_mode": "Delta mode"
+        },
+        "data_description": {
+          "trigger_target_value": "Trigger when accumulated value reaches this target.",
+          "trigger_delta_mode": "Count changes from a baseline instead of the absolute value."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condition — State Change",
+        "data": {
+          "trigger_from_state": "From state",
+          "trigger_to_state": "To state",
+          "trigger_target_changes": "Number of changes"
+        },
+        "data_description": {
+          "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
+          "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
+          "trigger_target_changes": "Number of matching state changes before triggering."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condition — Runtime",
+        "data": {
+          "trigger_runtime_hours": "Target runtime (hours)",
+          "trigger_on_states": "Active states"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Trigger after this many hours of accumulated runtime.",
+          "trigger_on_states": "Sensor states counted as 'active'. Leave empty for default."
+        }
+      },
+      "compound_review": {
+        "title": "Compound Trigger Review",
+        "description": "{condition_count} condition(s) configured with {compound_logic} logic.",
+        "data": { "compound_action": "Action" }
+      },
       "adaptive_scheduling": {
         "title": "Adaptive Scheduling",
         "description": "Configure smart interval adaptation for {task_name}. The system learns from your completion feedback to suggest better intervals.",
@@ -640,46 +782,6 @@
       }
     }
   },
-  "selector": {
-    "maintenance_type": {
-      "options": {
-        "cleaning": "Cleaning",
-        "inspection": "Inspection",
-        "replacement": "Replacement",
-        "calibration": "Calibration",
-        "service": "Service",
-        "custom": "Custom"
-      }
-    },
-    "schedule_type": {
-      "options": {
-        "time_based": "Time-based",
-        "sensor_based": "Sensor-based",
-        "manual": "Manual"
-      }
-    },
-    "trigger_type": {
-      "options": {
-        "threshold": "Threshold",
-        "counter": "Counter",
-        "state_change": "State Change",
-        "runtime": "Runtime",
-        "compound": "Compound (Multiple Conditions)"
-      }
-    },
-    "compound_logic": {
-      "options": {
-        "AND": "AND (all conditions must trigger)",
-        "OR": "OR (any condition triggers)"
-      }
-    },
-    "entity_logic": {
-      "options": {
-        "any": "Any entity triggers",
-        "all": "All entities must trigger"
-      }
-    }
-  },
   "entity": {
     "sensor": {
       "maintenance_task": {
@@ -818,6 +920,46 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Maintenance Schedule"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Cleaning",
+        "inspection": "Inspection",
+        "replacement": "Replacement",
+        "calibration": "Calibration",
+        "service": "Service",
+        "custom": "Custom"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Time-based",
+        "sensor_based": "Sensor-based",
+        "manual": "Manual"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Threshold",
+        "counter": "Counter",
+        "state_change": "State Change",
+        "runtime": "Runtime",
+        "compound": "Compound (Multiple Conditions)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "AND (all conditions must trigger)",
+        "OR": "OR (any condition triggers)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Any entity triggers",
+        "all": "All entities must trigger"
       }
     }
   },

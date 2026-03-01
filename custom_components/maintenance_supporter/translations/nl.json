@@ -206,6 +206,77 @@
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
         }
       },
+      "compound_logic": {
+        "title": "Samengestelde trigger",
+        "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
+        "data": { "compound_logic": "Logica" },
+        "data_description": { "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert." }
+      },
+      "compound_condition_entity": {
+        "title": "Voorwaarde #{condition_num} — Entiteit",
+        "description": "Selecteer de entiteit voor deze voorwaarde.",
+        "data": { "trigger_entity": "Entiteit" },
+        "data_description": { "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde." }
+      },
+      "compound_condition_type": {
+        "title": "Voorwaarde #{condition_num} — Type",
+        "description": "Hoe moet deze voorwaarde de sensor evalueren?",
+        "data": { "trigger_type": "Triggertype" },
+        "data_description": { "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert." }
+      },
+      "compound_condition_threshold": {
+        "title": "Voorwaarde — Drempel",
+        "data": {
+          "trigger_above": "Activeren boven",
+          "trigger_below": "Activeren onder",
+          "trigger_for_minutes": "Duur (minuten)"
+        },
+        "data_description": {
+          "trigger_above": "Activeren wanneer de waarde deze drempel overschrijdt.",
+          "trigger_below": "Activeren wanneer de waarde onder deze drempel daalt.",
+          "trigger_for_minutes": "De waarde moet de drempel gedurende deze duur overschrijden."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Voorwaarde — Teller",
+        "data": {
+          "trigger_target_value": "Doelwaarde",
+          "trigger_delta_mode": "Deltamodus"
+        },
+        "data_description": {
+          "trigger_target_value": "Activeren wanneer de opgetelde waarde dit doel bereikt.",
+          "trigger_delta_mode": "Wijzigingen tellen vanaf een basislijn in plaats van de absolute waarde."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Voorwaarde — Statuswijziging",
+        "data": {
+          "trigger_from_state": "Van status",
+          "trigger_to_state": "Naar status",
+          "trigger_target_changes": "Aantal wijzigingen"
+        },
+        "data_description": {
+          "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke.",
+          "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor elke.",
+          "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voor activering."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Voorwaarde — Looptijd",
+        "data": {
+          "trigger_runtime_hours": "Doellooptijd (uren)",
+          "trigger_on_states": "Actieve statussen"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Activeren na dit aantal uren opgebouwde looptijd.",
+          "trigger_on_states": "Sensorstatussen die als 'actief' worden geteld. Laat leeg voor standaard."
+        }
+      },
+      "compound_review": {
+        "title": "Samengestelde trigger — Overzicht",
+        "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
+        "data": { "compound_action": "Actie" }
+      },
       "manual": {
         "title": "Handmatig schema",
         "description": "Deze taak heeft geen automatisch schema. U kunt deze handmatig als verlopen markeren.",
@@ -438,6 +509,77 @@
           "checklist_text": "Voer elke checkliststap op een aparte regel in. Deze stappen worden getoond bij het voltooien van de taak."
         }
       },
+      "compound_logic": {
+        "title": "Samengestelde trigger",
+        "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
+        "data": { "compound_logic": "Logica" },
+        "data_description": { "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert." }
+      },
+      "compound_condition_entity": {
+        "title": "Voorwaarde #{condition_num} — Entiteit",
+        "description": "Selecteer de entiteit voor deze voorwaarde.",
+        "data": { "trigger_entity": "Entiteit" },
+        "data_description": { "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde." }
+      },
+      "compound_condition_type": {
+        "title": "Voorwaarde #{condition_num} — Type",
+        "description": "Hoe moet deze voorwaarde de sensor evalueren?",
+        "data": { "trigger_type": "Triggertype" },
+        "data_description": { "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert." }
+      },
+      "compound_condition_threshold": {
+        "title": "Voorwaarde — Drempel",
+        "data": {
+          "trigger_above": "Activeren boven",
+          "trigger_below": "Activeren onder",
+          "trigger_for_minutes": "Duur (minuten)"
+        },
+        "data_description": {
+          "trigger_above": "Activeren wanneer de waarde deze drempel overschrijdt.",
+          "trigger_below": "Activeren wanneer de waarde onder deze drempel daalt.",
+          "trigger_for_minutes": "De waarde moet de drempel gedurende deze duur overschrijden."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Voorwaarde — Teller",
+        "data": {
+          "trigger_target_value": "Doelwaarde",
+          "trigger_delta_mode": "Deltamodus"
+        },
+        "data_description": {
+          "trigger_target_value": "Activeren wanneer de opgetelde waarde dit doel bereikt.",
+          "trigger_delta_mode": "Wijzigingen tellen vanaf een basislijn in plaats van de absolute waarde."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Voorwaarde — Statuswijziging",
+        "data": {
+          "trigger_from_state": "Van status",
+          "trigger_to_state": "Naar status",
+          "trigger_target_changes": "Aantal wijzigingen"
+        },
+        "data_description": {
+          "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke.",
+          "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor elke.",
+          "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voor activering."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Voorwaarde — Looptijd",
+        "data": {
+          "trigger_runtime_hours": "Doellooptijd (uren)",
+          "trigger_on_states": "Actieve statussen"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Activeren na dit aantal uren opgebouwde looptijd.",
+          "trigger_on_states": "Sensorstatussen die als 'actief' worden geteld. Laat leeg voor standaard."
+        }
+      },
+      "compound_review": {
+        "title": "Samengestelde trigger — Overzicht",
+        "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
+        "data": { "compound_action": "Actie" }
+      },
       "adaptive_scheduling": {
         "title": "Adaptieve planning",
         "description": "Configureer slimme intervalaanpassing voor {task_name}. Het systeem leert van uw feedback om betere intervallen voor te stellen.",
@@ -640,46 +782,6 @@
       }
     }
   },
-  "selector": {
-    "maintenance_type": {
-      "options": {
-        "cleaning": "Reiniging",
-        "inspection": "Inspectie",
-        "replacement": "Vervanging",
-        "calibration": "Kalibratie",
-        "service": "Service",
-        "custom": "Aangepast"
-      }
-    },
-    "schedule_type": {
-      "options": {
-        "time_based": "Tijdgebaseerd",
-        "sensor_based": "Sensorgebaseerd",
-        "manual": "Handmatig"
-      }
-    },
-    "trigger_type": {
-      "options": {
-        "threshold": "Drempel",
-        "counter": "Teller",
-        "state_change": "Statuswijziging",
-        "runtime": "Looptijd",
-        "compound": "Samengesteld (Meerdere Voorwaarden)"
-      }
-    },
-    "compound_logic": {
-      "options": {
-        "AND": "EN (alle voorwaarden moeten activeren)",
-        "OR": "OF (elke voorwaarde activeert)"
-      }
-    },
-    "entity_logic": {
-      "options": {
-        "any": "Elke entiteit triggert",
-        "all": "Alle entiteiten moeten triggeren"
-      }
-    }
-  },
   "entity": {
     "sensor": {
       "maintenance_task": {
@@ -818,6 +920,46 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Onderhoudsschema"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Reiniging",
+        "inspection": "Inspectie",
+        "replacement": "Vervanging",
+        "calibration": "Kalibratie",
+        "service": "Service",
+        "custom": "Aangepast"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Tijdgebaseerd",
+        "sensor_based": "Sensorgebaseerd",
+        "manual": "Handmatig"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Drempel",
+        "counter": "Teller",
+        "state_change": "Statuswijziging",
+        "runtime": "Looptijd",
+        "compound": "Samengesteld (Meerdere Voorwaarden)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "EN (alle voorwaarden moeten activeren)",
+        "OR": "OF (elke voorwaarde activeert)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Elke entiteit triggert",
+        "all": "Alle entiteiten moeten triggeren"
       }
     }
   },

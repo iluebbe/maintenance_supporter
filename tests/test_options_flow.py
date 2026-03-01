@@ -1474,3 +1474,89 @@ async def test_compound_remove_trigger_shows_conditions(
     assert "#2" in details
     assert "changes: 50" in details
     assert "from: on" in details
+
+
+# ─── Entity Pre-population on Edit Trigger ───────────────────────────
+
+
+async def test_edit_trigger_prepopulates_entities(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that editing a trigger pre-populates existing entity_ids."""
+    # Set up entities in HA
+    hass.states.async_set(
+        "sensor.pool_temp", "25.0", {"unit_of_measurement": "°C"}
+    )
+    hass.states.async_set(
+        "sensor.pool_pressure", "1.2", {"unit_of_measurement": "bar"}
+    )
+
+    # First, add a trigger with multiple entities to the task
+    result, task_id = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.pool_temp", "sensor.pool_pressure"]},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_ABOVE: 30.0,
+            CONF_TRIGGER_FOR_MINUTES: 0,
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_action"
+
+    # Verify the trigger was saved with multiple entity_ids
+    task = object_config_entry.data[CONF_TASKS][task_id]
+    assert task["trigger_config"]["entity_ids"] == [
+        "sensor.pool_temp",
+        "sensor.pool_pressure",
+    ]
+
+    # Now navigate to edit the trigger again — via trigger_summary
+    result2, _ = await _navigate_to_task_action(
+        hass, global_config_entry, object_config_entry, skip_setup=True
+    )
+    # Task now has a trigger, so edit_trigger shows trigger_summary first
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "edit_trigger"},
+    )
+    assert result2["step_id"] == "trigger_summary"
+
+    # Proceed to edit
+    result2 = await hass.config_entries.options.async_configure(
+        result2["flow_id"],
+        {"next_step_id": "edit_trigger_proceed"},
+    )
+    assert result2["step_id"] == "opt_sensor_select"
+
+    # Verify the form has the existing entities pre-populated as defaults
+    schema = result2["data_schema"].schema
+    for key in schema:
+        if str(key) == CONF_TRIGGER_ENTITY:
+            assert key.default() == [
+                "sensor.pool_temp",
+                "sensor.pool_pressure",
+            ]
+            break
+    else:
+        pytest.fail("trigger_entity key not found in schema")

@@ -206,6 +206,77 @@
           "warning_days": "Anzahl Tage vor Fälligkeit für Warnung."
         }
       },
+      "compound_logic": {
+        "title": "Kombinierter Trigger",
+        "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
+        "data": { "compound_logic": "Logik" },
+        "data_description": { "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt." }
+      },
+      "compound_condition_entity": {
+        "title": "Bedingung #{condition_num} — Entität",
+        "description": "Wählen Sie die Entität für diese Bedingung.",
+        "data": { "trigger_entity": "Entität" },
+        "data_description": { "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll." }
+      },
+      "compound_condition_type": {
+        "title": "Bedingung #{condition_num} — Typ",
+        "description": "Wie soll diese Bedingung den Sensor auswerten?",
+        "data": { "trigger_type": "Trigger-Typ" },
+        "data_description": { "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst." }
+      },
+      "compound_condition_threshold": {
+        "title": "Bedingung — Schwellwert",
+        "data": {
+          "trigger_above": "Auslösen wenn über",
+          "trigger_below": "Auslösen wenn unter",
+          "trigger_for_minutes": "Dauer (Minuten)"
+        },
+        "data_description": {
+          "trigger_above": "Auslösen, wenn der Wert diesen Schwellwert überschreitet.",
+          "trigger_below": "Auslösen, wenn der Wert unter diesen Schwellwert fällt.",
+          "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Dauer überschreiten."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Bedingung — Zähler",
+        "data": {
+          "trigger_target_value": "Zielwert",
+          "trigger_delta_mode": "Delta-Modus"
+        },
+        "data_description": {
+          "trigger_target_value": "Auslösen, wenn der akkumulierte Wert dieses Ziel erreicht.",
+          "trigger_delta_mode": "Änderungen ab einer Basislinie zählen statt des absoluten Werts."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Bedingung — Zustandswechsel",
+        "data": {
+          "trigger_from_state": "Von Zustand",
+          "trigger_to_state": "Zu Zustand",
+          "trigger_target_changes": "Anzahl der Wechsel"
+        },
+        "data_description": {
+          "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Bedingung — Laufzeit",
+        "data": {
+          "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
+          "trigger_on_states": "Aktive Zustände"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
+          "trigger_on_states": "Sensorzustände, die als 'aktiv' gezählt werden. Leer lassen für Standard."
+        }
+      },
+      "compound_review": {
+        "title": "Kombinierter Trigger — Überprüfung",
+        "description": "{condition_count} Bedingung(en) mit {compound_logic}-Logik konfiguriert.",
+        "data": { "compound_action": "Aktion" }
+      },
       "manual": {
         "title": "Manueller Plan",
         "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
@@ -620,6 +691,77 @@
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
+      "compound_logic": {
+        "title": "Kombinierter Trigger",
+        "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
+        "data": { "compound_logic": "Logik" },
+        "data_description": { "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt." }
+      },
+      "compound_condition_entity": {
+        "title": "Bedingung #{condition_num} — Entität",
+        "description": "Wählen Sie die Entität für diese Bedingung.",
+        "data": { "trigger_entity": "Entität" },
+        "data_description": { "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll." }
+      },
+      "compound_condition_type": {
+        "title": "Bedingung #{condition_num} — Typ",
+        "description": "Wie soll diese Bedingung den Sensor auswerten?",
+        "data": { "trigger_type": "Trigger-Typ" },
+        "data_description": { "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst." }
+      },
+      "compound_condition_threshold": {
+        "title": "Bedingung — Schwellwert",
+        "data": {
+          "trigger_above": "Auslösen wenn über",
+          "trigger_below": "Auslösen wenn unter",
+          "trigger_for_minutes": "Dauer (Minuten)"
+        },
+        "data_description": {
+          "trigger_above": "Auslösen, wenn der Wert diesen Schwellwert überschreitet.",
+          "trigger_below": "Auslösen, wenn der Wert unter diesen Schwellwert fällt.",
+          "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Dauer überschreiten."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Bedingung — Zähler",
+        "data": {
+          "trigger_target_value": "Zielwert",
+          "trigger_delta_mode": "Delta-Modus"
+        },
+        "data_description": {
+          "trigger_target_value": "Auslösen, wenn der akkumulierte Wert dieses Ziel erreicht.",
+          "trigger_delta_mode": "Änderungen ab einer Basislinie zählen statt des absoluten Werts."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Bedingung — Zustandswechsel",
+        "data": {
+          "trigger_from_state": "Von Zustand",
+          "trigger_to_state": "Zu Zustand",
+          "trigger_target_changes": "Anzahl der Wechsel"
+        },
+        "data_description": {
+          "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
+          "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Bedingung — Laufzeit",
+        "data": {
+          "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
+          "trigger_on_states": "Aktive Zustände"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
+          "trigger_on_states": "Sensorzustände, die als 'aktiv' gezählt werden. Leer lassen für Standard."
+        }
+      },
+      "compound_review": {
+        "title": "Kombinierter Trigger — Überprüfung",
+        "description": "{condition_count} Bedingung(en) mit {compound_logic}-Logik konfiguriert.",
+        "data": { "compound_action": "Aktion" }
+      },
       "object_settings": {
         "title": "Objekteinstellungen",
         "description": "Objektdetails bearbeiten.",
@@ -637,46 +779,6 @@
           "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
           "installation_date": "Wann dieses Objekt installiert oder gekauft wurde."
         }
-      }
-    }
-  },
-  "selector": {
-    "maintenance_type": {
-      "options": {
-        "cleaning": "Reinigung",
-        "inspection": "Inspektion",
-        "replacement": "Austausch",
-        "calibration": "Kalibrierung",
-        "service": "Service",
-        "custom": "Benutzerdefiniert"
-      }
-    },
-    "schedule_type": {
-      "options": {
-        "time_based": "Zeitbasiert",
-        "sensor_based": "Sensorbasiert",
-        "manual": "Manuell"
-      }
-    },
-    "trigger_type": {
-      "options": {
-        "threshold": "Schwellwert",
-        "counter": "Zähler",
-        "state_change": "Zustandswechsel",
-        "runtime": "Laufzeit",
-        "compound": "Kombiniert (Mehrere Bedingungen)"
-      }
-    },
-    "compound_logic": {
-      "options": {
-        "AND": "UND (alle Bedingungen müssen auslösen)",
-        "OR": "ODER (eine Bedingung genügt)"
-      }
-    },
-    "entity_logic": {
-      "options": {
-        "any": "Beliebige Entität löst aus",
-        "all": "Alle Entitäten müssen auslösen"
       }
     }
   },
@@ -818,6 +920,46 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Wartungsplan"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Reinigung",
+        "inspection": "Inspektion",
+        "replacement": "Austausch",
+        "calibration": "Kalibrierung",
+        "service": "Service",
+        "custom": "Benutzerdefiniert"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Zeitbasiert",
+        "sensor_based": "Sensorbasiert",
+        "manual": "Manuell"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Schwellwert",
+        "counter": "Zähler",
+        "state_change": "Zustandswechsel",
+        "runtime": "Laufzeit",
+        "compound": "Kombiniert (Mehrere Bedingungen)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "UND (alle Bedingungen müssen auslösen)",
+        "OR": "ODER (eine Bedingung genügt)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Beliebige Entität löst aus",
+        "all": "Alle Entitäten müssen auslösen"
       }
     }
   },

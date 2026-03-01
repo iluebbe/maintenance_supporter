@@ -21,6 +21,8 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **Counter**: trigger when accumulated value reaches a target (absolute or delta mode)
 - **State change**: trigger after a number of state transitions (e.g., on/off cycles)
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime)
+- **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
+- Multi-entity support for all trigger types (any/all entity logic)
 - Automatic entity availability tracking with grace periods
 - Repair issues for missing or unavailable trigger entities (replace / remove / dismiss)
 

@@ -206,6 +206,77 @@
           "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement."
         }
       },
+      "compound_logic": {
+        "title": "Déclencheur composé",
+        "description": "Choisissez comment combiner les conditions multiples.",
+        "data": { "compound_logic": "Logique" },
+        "data_description": { "compound_logic": "ET = toutes les conditions doivent se déclencher. OU = n'importe quelle condition déclenche." }
+      },
+      "compound_condition_entity": {
+        "title": "Condition #{condition_num} — Entité",
+        "description": "Sélectionnez l'entité pour cette condition.",
+        "data": { "trigger_entity": "Entité" },
+        "data_description": { "trigger_entity": "L'entité capteur à surveiller pour cette condition." }
+      },
+      "compound_condition_type": {
+        "title": "Condition #{condition_num} — Type",
+        "description": "Comment cette condition doit-elle évaluer le capteur ?",
+        "data": { "trigger_type": "Type de déclencheur" },
+        "data_description": { "trigger_type": "La méthode utilisée pour déterminer quand cette condition se déclenche." }
+      },
+      "compound_condition_threshold": {
+        "title": "Condition — Seuil",
+        "data": {
+          "trigger_above": "Déclencher au-dessus de",
+          "trigger_below": "Déclencher en dessous de",
+          "trigger_for_minutes": "Durée (minutes)"
+        },
+        "data_description": {
+          "trigger_above": "Déclencher quand la valeur dépasse ce seuil.",
+          "trigger_below": "Déclencher quand la valeur tombe en dessous de ce seuil.",
+          "trigger_for_minutes": "La valeur doit rester au-delà du seuil pendant cette durée."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condition — Compteur",
+        "data": {
+          "trigger_target_value": "Valeur cible",
+          "trigger_delta_mode": "Mode delta"
+        },
+        "data_description": {
+          "trigger_target_value": "Déclencher quand la valeur accumulée atteint cette cible.",
+          "trigger_delta_mode": "Compter les changements depuis une ligne de base au lieu de la valeur absolue."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condition — Changement d'état",
+        "data": {
+          "trigger_from_state": "Depuis l'état",
+          "trigger_to_state": "Vers l'état",
+          "trigger_target_changes": "Nombre de changements"
+        },
+        "data_description": {
+          "trigger_from_state": "Ne compter que les transitions depuis cet état. Laisser vide pour tous.",
+          "trigger_to_state": "Ne compter que les transitions vers cet état. Laisser vide pour tous.",
+          "trigger_target_changes": "Nombre de changements d'état correspondants avant le déclenchement."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condition — Durée de fonctionnement",
+        "data": {
+          "trigger_runtime_hours": "Durée cible (heures)",
+          "trigger_on_states": "États actifs"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Déclencher après ce nombre d'heures de fonctionnement accumulé.",
+          "trigger_on_states": "États du capteur comptés comme 'actifs'. Laisser vide pour la valeur par défaut."
+        }
+      },
+      "compound_review": {
+        "title": "Révision du déclencheur composé",
+        "description": "{condition_count} condition(s) configurée(s) avec la logique {compound_logic}.",
+        "data": { "compound_action": "Action" }
+      },
       "manual": {
         "title": "Planification manuelle",
         "description": "Cette tâche n'a pas de planification automatique. Vous pouvez la marquer comme due manuellement.",
@@ -438,6 +509,77 @@
           "checklist_text": "Saisissez chaque étape sur une ligne séparée. Ces étapes seront affichées lors de la réalisation de la tâche."
         }
       },
+      "compound_logic": {
+        "title": "Déclencheur composé",
+        "description": "Choisissez comment combiner les conditions multiples.",
+        "data": { "compound_logic": "Logique" },
+        "data_description": { "compound_logic": "ET = toutes les conditions doivent se déclencher. OU = n'importe quelle condition déclenche." }
+      },
+      "compound_condition_entity": {
+        "title": "Condition #{condition_num} — Entité",
+        "description": "Sélectionnez l'entité pour cette condition.",
+        "data": { "trigger_entity": "Entité" },
+        "data_description": { "trigger_entity": "L'entité capteur à surveiller pour cette condition." }
+      },
+      "compound_condition_type": {
+        "title": "Condition #{condition_num} — Type",
+        "description": "Comment cette condition doit-elle évaluer le capteur ?",
+        "data": { "trigger_type": "Type de déclencheur" },
+        "data_description": { "trigger_type": "La méthode utilisée pour déterminer quand cette condition se déclenche." }
+      },
+      "compound_condition_threshold": {
+        "title": "Condition — Seuil",
+        "data": {
+          "trigger_above": "Déclencher au-dessus de",
+          "trigger_below": "Déclencher en dessous de",
+          "trigger_for_minutes": "Durée (minutes)"
+        },
+        "data_description": {
+          "trigger_above": "Déclencher quand la valeur dépasse ce seuil.",
+          "trigger_below": "Déclencher quand la valeur tombe en dessous de ce seuil.",
+          "trigger_for_minutes": "La valeur doit rester au-delà du seuil pendant cette durée."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condition — Compteur",
+        "data": {
+          "trigger_target_value": "Valeur cible",
+          "trigger_delta_mode": "Mode delta"
+        },
+        "data_description": {
+          "trigger_target_value": "Déclencher quand la valeur accumulée atteint cette cible.",
+          "trigger_delta_mode": "Compter les changements depuis une ligne de base au lieu de la valeur absolue."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condition — Changement d'état",
+        "data": {
+          "trigger_from_state": "Depuis l'état",
+          "trigger_to_state": "Vers l'état",
+          "trigger_target_changes": "Nombre de changements"
+        },
+        "data_description": {
+          "trigger_from_state": "Ne compter que les transitions depuis cet état. Laisser vide pour tous.",
+          "trigger_to_state": "Ne compter que les transitions vers cet état. Laisser vide pour tous.",
+          "trigger_target_changes": "Nombre de changements d'état correspondants avant le déclenchement."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condition — Durée de fonctionnement",
+        "data": {
+          "trigger_runtime_hours": "Durée cible (heures)",
+          "trigger_on_states": "États actifs"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Déclencher après ce nombre d'heures de fonctionnement accumulé.",
+          "trigger_on_states": "États du capteur comptés comme 'actifs'. Laisser vide pour la valeur par défaut."
+        }
+      },
+      "compound_review": {
+        "title": "Révision du déclencheur composé",
+        "description": "{condition_count} condition(s) configurée(s) avec la logique {compound_logic}.",
+        "data": { "compound_action": "Action" }
+      },
       "adaptive_scheduling": {
         "title": "Planification adaptative",
         "description": "Configurez l'adaptation intelligente des intervalles pour {task_name}. Le système apprend de vos retours de réalisation pour suggérer de meilleurs intervalles.",
@@ -640,46 +782,6 @@
       }
     }
   },
-  "selector": {
-    "maintenance_type": {
-      "options": {
-        "cleaning": "Nettoyage",
-        "inspection": "Inspection",
-        "replacement": "Remplacement",
-        "calibration": "Calibration",
-        "service": "Service",
-        "custom": "Personnalisé"
-      }
-    },
-    "schedule_type": {
-      "options": {
-        "time_based": "Temporel",
-        "sensor_based": "Basé sur capteur",
-        "manual": "Manuel"
-      }
-    },
-    "trigger_type": {
-      "options": {
-        "threshold": "Seuil",
-        "counter": "Compteur",
-        "state_change": "Changement d'état",
-        "runtime": "Temps de fonctionnement",
-        "compound": "Composé (Conditions Multiples)"
-      }
-    },
-    "compound_logic": {
-      "options": {
-        "AND": "ET (toutes les conditions doivent déclencher)",
-        "OR": "OU (n'importe quelle condition déclenche)"
-      }
-    },
-    "entity_logic": {
-      "options": {
-        "any": "N'importe quelle entité déclenche",
-        "all": "Toutes les entités doivent déclencher"
-      }
-    }
-  },
   "entity": {
     "sensor": {
       "maintenance_task": {
@@ -818,6 +920,46 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Calendrier de maintenance"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Nettoyage",
+        "inspection": "Inspection",
+        "replacement": "Remplacement",
+        "calibration": "Calibration",
+        "service": "Service",
+        "custom": "Personnalisé"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Temporel",
+        "sensor_based": "Basé sur capteur",
+        "manual": "Manuel"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Seuil",
+        "counter": "Compteur",
+        "state_change": "Changement d'état",
+        "runtime": "Temps de fonctionnement",
+        "compound": "Composé (Conditions Multiples)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "AND": "ET (toutes les conditions doivent déclencher)",
+        "OR": "OU (n'importe quelle condition déclenche)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "N'importe quelle entité déclenche",
+        "all": "Toutes les entités doivent déclencher"
       }
     }
   },

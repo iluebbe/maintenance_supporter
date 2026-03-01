@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.3 | **~21,000 lines** across 51 source files (40 Python + 11 TypeScript) | **0 external Python dependencies**
+**Version:** 0.3.4 | **~21,000 lines** across 51 source files (40 Python + 11 TypeScript) | **0 external Python dependencies**
 
 ---
 
@@ -52,6 +52,11 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 
 ## Core Design Decisions
 
+### Config Flow UX
+- Entity selector pre-populates existing entity_ids when editing a trigger (`default_entities` parameter on `_trigger_sensor_select()`)
+- All 8 compound trigger steps have proper translations in both config and options flows
+- Back navigation via menus returns to parent context after form submission
+
 ### Two-Entry Model
 - **Global entry** (`GLOBAL_UNIQUE_ID`): Integration-wide settings, panel toggle, notification config, budgets
 - **Per-object entries**: One config entry per maintenance object, each with its own coordinator
@@ -89,8 +94,8 @@ custom_components/maintenance_supporter/
 ├── config_flow_helpers.py       (62 lines)  Shared config flow utilities
 ├── config_flow_options.py       (11 lines)  Options dispatcher
 ├── config_flow_options_global.py(663 lines)  Global settings (notifications, budgets, panel)
-├── config_flow_options_task.py (1,153 lines)  Per-object task management
-├── config_flow_trigger.py    (1,003 lines)  TriggerConfigMixin for trigger UI
+├── config_flow_options_task.py (1,167 lines)  Per-object task management
+├── config_flow_trigger.py    (1,009 lines)  TriggerConfigMixin for trigger UI
 │
 ├── sensor.py                   (461 lines)  MaintenanceSensor (enum, per task)
 ├── calendar.py                 (337 lines)  MaintenanceCalendar (global, all tasks)

@@ -801,10 +801,24 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select sensor entity for trigger."""
+        # Pre-populate with existing entity_ids when editing a trigger
+        existing = None
+        if self._selected_task_id:
+            tasks = self.config_entry.data.get(CONF_TASKS, {})
+            task = tasks.get(self._selected_task_id, {})
+            tc = task.get("trigger_config", {})
+            eids = tc.get("entity_ids", [])
+            if not eids:
+                eid = tc.get("entity_id", "")
+                eids = [eid] if eid else []
+            if eids:
+                existing = eids
+
         return await self._trigger_sensor_select(
             user_input,
             step_id="opt_sensor_select",
             next_step=self.async_step_opt_sensor_attribute,
+            default_entities=existing,
         )
 
     async def async_step_opt_sensor_attribute(

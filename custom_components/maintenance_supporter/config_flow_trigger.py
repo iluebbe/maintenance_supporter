@@ -64,6 +64,7 @@ class TriggerConfigMixin:
         *,
         step_id: str,
         next_step: Callable[[], Awaitable[ConfigFlowResult]],
+        default_entities: list[str] | None = None,
     ) -> ConfigFlowResult:
         """Core logic for sensor entity selection.
 
@@ -93,11 +94,16 @@ class TriggerConfigMixin:
                     self._trigger_entity_ids = entity_ids
                     return await next_step()
 
+        entity_key = (
+            vol.Required(CONF_TRIGGER_ENTITY, default=default_entities)
+            if default_entities
+            else vol.Required(CONF_TRIGGER_ENTITY)
+        )
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
+                    entity_key: selector.EntitySelector(
                         selector.EntitySelectorConfig(
                             domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
                             multiple=True,
