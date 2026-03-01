@@ -10,19 +10,13 @@ used by the Maintenance Supporter integration.
 """
 
 import math
-import os
 import random
 import sqlite3
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-DB_PATH = Path(
-    os.environ.get(
-        "HA_DB_PATH",
-        str(Path(__file__).parent.parent / "docker" / "config-dev" / "home-assistant_v2.db"),
-    )
-)
+DB_PATH = Path(__file__).parent / "config-dev" / "home-assistant_v2.db"
 
 # How many days of hourly data to generate
 DAYS = 90
