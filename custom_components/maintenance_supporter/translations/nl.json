@@ -209,20 +209,32 @@
       "compound_logic": {
         "title": "Samengestelde trigger",
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
-        "data": { "compound_logic": "Logica" },
-        "data_description": { "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert." }
+        "data": {
+          "compound_logic": "Logica"
+        },
+        "data_description": {
+          "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert."
+        }
       },
       "compound_condition_entity": {
         "title": "Voorwaarde #{condition_num} — Entiteit",
         "description": "Selecteer de entiteit voor deze voorwaarde.",
-        "data": { "trigger_entity": "Entiteit" },
-        "data_description": { "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde." }
+        "data": {
+          "trigger_entity": "Entiteit"
+        },
+        "data_description": {
+          "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde."
+        }
       },
       "compound_condition_type": {
         "title": "Voorwaarde #{condition_num} — Type",
         "description": "Hoe moet deze voorwaarde de sensor evalueren?",
-        "data": { "trigger_type": "Triggertype" },
-        "data_description": { "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert." }
+        "data": {
+          "trigger_type": "Triggertype"
+        },
+        "data_description": {
+          "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert."
+        }
       },
       "compound_condition_threshold": {
         "title": "Voorwaarde — Drempel",
@@ -275,7 +287,9 @@
       "compound_review": {
         "title": "Samengestelde trigger — Overzicht",
         "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
-        "data": { "compound_action": "Actie" }
+        "data": {
+          "compound_action": "Actie"
+        }
       },
       "manual": {
         "title": "Handmatig schema",
@@ -457,7 +471,8 @@
         "title": "Taken beheren",
         "description": "Selecteer een taak om te bewerken of te verwijderen.",
         "data": {
-          "selected_task": "Selecteer taak"
+          "selected_task": "Selecteer taak",
+          "go_back": "Terug"
         }
       },
       "task_action": {
@@ -485,7 +500,8 @@
           "notes": "Notities",
           "documentation_url": "Documentatie-URL",
           "last_performed": "Laatst uitgevoerd",
-          "responsible_user_id": "Verantwoordelijke gebruiker"
+          "responsible_user_id": "Verantwoordelijke gebruiker",
+          "go_back": "Terug"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
@@ -496,36 +512,51 @@
           "notes": "Aanvullende notities of instructies voor deze taak.",
           "documentation_url": "Link naar externe documentatie of handleiding voor deze taak.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
-          "responsible_user_id": "De Home Assistant gebruiker die verantwoordelijk is voor deze taak."
+          "responsible_user_id": "De Home Assistant gebruiker die verantwoordelijk is voor deze taak.",
+          "go_back": "Terug naar taakacties zonder opslaan."
         }
       },
       "edit_checklist": {
         "title": "Checklist bewerken",
         "description": "Definieer checkliststappen voor {task_name}. Voer één stap per regel in.",
         "data": {
-          "checklist_text": "Checkliststappen"
+          "checklist_text": "Checkliststappen",
+          "go_back": "Terug"
         },
         "data_description": {
-          "checklist_text": "Voer elke checkliststap op een aparte regel in. Deze stappen worden getoond bij het voltooien van de taak."
+          "checklist_text": "Voer elke checkliststap op een aparte regel in. Deze stappen worden getoond bij het voltooien van de taak.",
+          "go_back": "Terug naar taakacties zonder opslaan."
         }
       },
       "compound_logic": {
         "title": "Samengestelde trigger",
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
-        "data": { "compound_logic": "Logica" },
-        "data_description": { "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert." }
+        "data": {
+          "compound_logic": "Logica"
+        },
+        "data_description": {
+          "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert."
+        }
       },
       "compound_condition_entity": {
         "title": "Voorwaarde #{condition_num} — Entiteit",
         "description": "Selecteer de entiteit voor deze voorwaarde.",
-        "data": { "trigger_entity": "Entiteit" },
-        "data_description": { "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde." }
+        "data": {
+          "trigger_entity": "Entiteit"
+        },
+        "data_description": {
+          "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde."
+        }
       },
       "compound_condition_type": {
         "title": "Voorwaarde #{condition_num} — Type",
         "description": "Hoe moet deze voorwaarde de sensor evalueren?",
-        "data": { "trigger_type": "Triggertype" },
-        "data_description": { "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert." }
+        "data": {
+          "trigger_type": "Triggertype"
+        },
+        "data_description": {
+          "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert."
+        }
       },
       "compound_condition_threshold": {
         "title": "Voorwaarde — Drempel",
@@ -578,7 +609,9 @@
       "compound_review": {
         "title": "Samengestelde trigger — Overzicht",
         "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
-        "data": { "compound_action": "Actie" }
+        "data": {
+          "compound_action": "Actie"
+        }
       },
       "adaptive_scheduling": {
         "title": "Adaptieve planning",
@@ -590,7 +623,8 @@
           "max_interval_days": "Maximaal interval (dagen)",
           "seasonal_enabled": "Seizoensbewustzijn inschakelen",
           "sensor_prediction_enabled": "Sensorgestuurde voorspellingen inschakelen",
-          "environmental_entity": "Omgevingssensor (optioneel)"
+          "environmental_entity": "Omgevingssensor (optioneel)",
+          "go_back": "Terug"
         },
         "data_description": {
           "adaptive_enabled": "Wanneer ingeschakeld, leert het systeem van uw feedback en stelt het optimale onderhoudsintervallen voor.",
@@ -599,14 +633,16 @@
           "max_interval_days": "Het langste interval dat het systeem ooit zal aanbevelen.",
           "seasonal_enabled": "Aanbevelingen aanpassen op basis van seizoenspatronen uit uw onderhoudsgeschiedenis.",
           "sensor_prediction_enabled": "Sensortrends analyseren om te voorspellen wanneer drempels bereikt worden en eerder onderhoud voor te stellen indien nodig.",
-          "environmental_entity": "Koppel een temperatuur-, vochtigheids- of druksensor om omgevingsomstandigheden te correleren met onderhoudsintervallen."
+          "environmental_entity": "Koppel een temperatuur-, vochtigheids- of druksensor om omgevingsomstandigheden te correleren met onderhoudsintervallen.",
+          "go_back": "Terug naar taakacties zonder opslaan."
         }
       },
       "delete_task": {
         "title": "Taak verwijderen",
         "description": "Weet u zeker dat u de taak {task_name} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
         "data": {
-          "confirm": "Verwijdering bevestigen"
+          "confirm": "Verwijdering bevestigen",
+          "go_back": "Terug"
         }
       },
       "remove_trigger": {
@@ -614,10 +650,12 @@
         "description": "Trigger verwijderen van **{task_name}**?\n\n**Entiteit:** {entity_ids}\n**Type:** {trigger_type}\n**Configuratie:** {config_details}\n\nAls alle entiteiten worden verwijderd, wordt het schema teruggezet naar tijdgebaseerd.",
         "data": {
           "entities_to_remove": "Te verwijderen entiteiten",
-          "confirm": "Verwijdering bevestigen"
+          "confirm": "Verwijdering bevestigen",
+          "go_back": "Terug"
         },
         "data_description": {
-          "entities_to_remove": "Selecteer welke entiteiten uit deze trigger verwijderd moeten worden. Als alle worden verwijderd, wordt de hele trigger gewist."
+          "entities_to_remove": "Selecteer welke entiteiten uit deze trigger verwijderd moeten worden. Als alle worden verwijderd, wordt de hele trigger gewist.",
+          "go_back": "Terug naar taakacties zonder opslaan."
         }
       },
       "trigger_summary": {
@@ -774,14 +812,16 @@
           "manufacturer": "Fabrikant",
           "model": "Model",
           "area_id": "Gebied",
-          "installation_date": "Installatiedatum"
+          "installation_date": "Installatiedatum",
+          "go_back": "Terug"
         },
         "data_description": {
           "name": "Een unieke naam voor dit onderhoudsobject (bijv. 'Zwembadpomp', 'Auto').",
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
           "area_id": "Het gebied in uw huis waar dit object zich bevindt.",
-          "installation_date": "Wanneer dit object is geïnstalleerd of gekocht."
+          "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
+          "go_back": "Terug naar het hoofdmenu zonder opslaan."
         }
       }
     }
@@ -816,19 +856,45 @@
               "manual": "Handmatig"
             }
           },
-          "interval_days": { "name": "Interval (dagen)" },
-          "warning_days": { "name": "Waarschuwingsdagen" },
-          "last_performed": { "name": "Laatst uitgevoerd" },
-          "next_due": { "name": "Volgende deadline" },
-          "days_until_due": { "name": "Dagen tot deadline" },
-          "parent_object": { "name": "Bovenliggend object" },
-          "times_performed": { "name": "Aantal keer uitgevoerd" },
-          "total_cost": { "name": "Totale kosten" },
-          "average_duration": { "name": "Gemiddelde duur (min)" },
-          "notes": { "name": "Notities" },
-          "documentation_url": { "name": "Documentatie-URL" },
-          "trigger_entity": { "name": "Triggerentiteit" },
-          "trigger_attribute": { "name": "Triggerattribuut" },
+          "interval_days": {
+            "name": "Interval (dagen)"
+          },
+          "warning_days": {
+            "name": "Waarschuwingsdagen"
+          },
+          "last_performed": {
+            "name": "Laatst uitgevoerd"
+          },
+          "next_due": {
+            "name": "Volgende deadline"
+          },
+          "days_until_due": {
+            "name": "Dagen tot deadline"
+          },
+          "parent_object": {
+            "name": "Bovenliggend object"
+          },
+          "times_performed": {
+            "name": "Aantal keer uitgevoerd"
+          },
+          "total_cost": {
+            "name": "Totale kosten"
+          },
+          "average_duration": {
+            "name": "Gemiddelde duur (min)"
+          },
+          "notes": {
+            "name": "Notities"
+          },
+          "documentation_url": {
+            "name": "Documentatie-URL"
+          },
+          "trigger_entity": {
+            "name": "Triggerentiteit"
+          },
+          "trigger_attribute": {
+            "name": "Triggerattribuut"
+          },
           "trigger_type": {
             "name": "Triggertype",
             "state": {
@@ -839,8 +905,12 @@
               "compound": "Samengesteld"
             }
           },
-          "trigger_active": { "name": "Trigger actief" },
-          "trigger_current_value": { "name": "Huidige triggerwaarde" },
+          "trigger_active": {
+            "name": "Trigger actief"
+          },
+          "trigger_current_value": {
+            "name": "Huidige triggerwaarde"
+          },
           "trigger_entity_state": {
             "name": "Triggerentiteitstatus",
             "state": {
@@ -850,22 +920,54 @@
               "startup": "Opstarten"
             }
           },
-          "trigger_above": { "name": "Trigger boven" },
-          "trigger_below": { "name": "Trigger onder" },
-          "trigger_for_minutes": { "name": "Trigger gedurende (minuten)" },
-          "trigger_target_value": { "name": "Triggerdoelwaarde" },
-          "trigger_delta_mode": { "name": "Trigger deltamodus" },
-          "trigger_baseline_value": { "name": "Trigger basiswaarde" },
-          "trigger_current_delta": { "name": "Trigger huidig verschil" },
-          "trigger_from_state": { "name": "Trigger van status" },
-          "trigger_to_state": { "name": "Trigger naar status" },
-          "trigger_target_changes": { "name": "Trigger doelwijzigingen" },
-          "trigger_change_count": { "name": "Trigger wijzigingsteller" },
-          "trigger_runtime_hours": { "name": "Doellooptijd (uren)" },
-          "trigger_accumulated_hours": { "name": "Opgebouwde looptijd (uren)" },
-          "trigger_remaining_hours": { "name": "Resterende looptijd (uren)" },
-          "last_entry": { "name": "Laatste invoer" },
-          "suggested_interval": { "name": "Voorgesteld interval" },
+          "trigger_above": {
+            "name": "Trigger boven"
+          },
+          "trigger_below": {
+            "name": "Trigger onder"
+          },
+          "trigger_for_minutes": {
+            "name": "Trigger gedurende (minuten)"
+          },
+          "trigger_target_value": {
+            "name": "Triggerdoelwaarde"
+          },
+          "trigger_delta_mode": {
+            "name": "Trigger deltamodus"
+          },
+          "trigger_baseline_value": {
+            "name": "Trigger basiswaarde"
+          },
+          "trigger_current_delta": {
+            "name": "Trigger huidig verschil"
+          },
+          "trigger_from_state": {
+            "name": "Trigger van status"
+          },
+          "trigger_to_state": {
+            "name": "Trigger naar status"
+          },
+          "trigger_target_changes": {
+            "name": "Trigger doelwijzigingen"
+          },
+          "trigger_change_count": {
+            "name": "Trigger wijzigingsteller"
+          },
+          "trigger_runtime_hours": {
+            "name": "Doellooptijd (uren)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Opgebouwde looptijd (uren)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Resterende looptijd (uren)"
+          },
+          "last_entry": {
+            "name": "Laatste invoer"
+          },
+          "suggested_interval": {
+            "name": "Voorgesteld interval"
+          },
           "interval_confidence": {
             "name": "Intervalbetrouwbaarheid",
             "state": {
@@ -874,8 +976,12 @@
               "high": "Hoog"
             }
           },
-          "adaptive_scheduling_enabled": { "name": "Adaptieve planning ingeschakeld" },
-          "seasonal_factor": { "name": "Seizoensfactor" },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptieve planning ingeschakeld"
+          },
+          "seasonal_factor": {
+            "name": "Seizoensfactor"
+          },
           "seasonal_reason": {
             "name": "Seizoensreden",
             "state": {
@@ -883,7 +989,9 @@
               "manual": "Handmatig"
             }
           },
-          "degradation_rate": { "name": "Degradatiesnelheid" },
+          "degradation_rate": {
+            "name": "Degradatiesnelheid"
+          },
           "degradation_trend": {
             "name": "Degradatietrend",
             "state": {
@@ -893,7 +1001,9 @@
               "insufficient_data": "Onvoldoende gegevens"
             }
           },
-          "days_until_threshold": { "name": "Dagen tot drempel" },
+          "days_until_threshold": {
+            "name": "Dagen tot drempel"
+          },
           "threshold_prediction_confidence": {
             "name": "Voorspellingsbetrouwbaarheid",
             "state": {
@@ -902,11 +1012,21 @@
               "high": "Hoog"
             }
           },
-          "environmental_factor": { "name": "Omgevingsfactor" },
-          "environmental_entity": { "name": "Omgevingsentiteit" },
-          "weibull_beta": { "name": "Weibull-vorm (\u03b2)" },
-          "weibull_eta": { "name": "Weibull-schaal (\u03b7)" },
-          "weibull_r_squared": { "name": "Weibull R\u00b2" },
+          "environmental_factor": {
+            "name": "Omgevingsfactor"
+          },
+          "environmental_entity": {
+            "name": "Omgevingsentiteit"
+          },
+          "weibull_beta": {
+            "name": "Weibull-vorm (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull-schaal (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
           "weibull_beta_interpretation": {
             "name": "Storingspatroon",
             "state": {
@@ -916,8 +1036,12 @@
               "highly_predictable": "Zeer voorspelbaar"
             }
           },
-          "confidence_interval_low": { "name": "Betrouwbaarheidsinterval (laag)" },
-          "confidence_interval_high": { "name": "Betrouwbaarheidsinterval (hoog)" }
+          "confidence_interval_low": {
+            "name": "Betrouwbaarheidsinterval (laag)"
+          },
+          "confidence_interval_high": {
+            "name": "Betrouwbaarheidsinterval (hoog)"
+          }
         }
       }
     },

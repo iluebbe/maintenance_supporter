@@ -151,6 +151,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_init_menu()
             selected = user_input.get("selected_task")
             if selected and selected in tasks_data:
                 self._selected_task_id = selected
@@ -178,6 +180,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             mode=selector.SelectSelectorMode.LIST,
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
         )
@@ -229,6 +234,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         task = tasks_data.get(self._selected_task_id or "", {})
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_task_action_menu()
             new_data = dict(self.config_entry.data)
             new_tasks = dict(new_data.get(CONF_TASKS, {}))
             updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
@@ -351,6 +358,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -549,6 +559,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         has_multiple = len(entity_ids) > 1
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_task_action_menu()
+
             if user_input.get("confirm"):
                 entities_to_remove = user_input.get(
                     "entities_to_remove", entity_ids
@@ -606,6 +619,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         schema_dict[
             vol.Required("confirm", default=False)
         ] = selector.BooleanSelector()
+        schema_dict[
+            vol.Optional("go_back", default=False)
+        ] = selector.BooleanSelector()
 
         return self.async_show_form(
             step_id="remove_trigger",
@@ -626,6 +642,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         task = tasks_data.get(self._selected_task_id or "", {})
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_task_action_menu()
+
             # Parse textarea: one step per line, strip empty lines
             raw = user_input.get("checklist_text", "")
             items = [line.strip() for line in raw.splitlines() if line.strip()]
@@ -655,6 +674,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             multiline=True,
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -670,6 +692,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         task = tasks_data.get(self._selected_task_id or "", {})
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_task_action_menu()
+
             if user_input.get("confirm"):
                 new_data = dict(self.config_entry.data)
                 new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -695,6 +720,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required("confirm", default=False): selector.BooleanSelector(),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -1024,6 +1052,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         current_adaptive = task.get(CONF_ADAPTIVE_CONFIG, {})
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_task_action_menu()
+
             enabled = user_input.get(CONF_ADAPTIVE_ENABLED, False)
             adaptive_config: dict[str, Any] = dict(current_adaptive)
             adaptive_config["enabled"] = enabled
@@ -1133,6 +1164,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             multiple=False,
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -1147,6 +1181,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
     ) -> ConfigFlowResult:
         """Edit object settings."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_init_menu()
             new_data = dict(self.config_entry.data)
             obj = dict(new_data.get(CONF_OBJECT, {}))
             obj[CONF_OBJECT_NAME] = user_input.get(CONF_OBJECT_NAME, obj.get("name"))
@@ -1203,6 +1239,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ),
                     area_key: selector.AreaSelector(),
                     install_date_key: selector.DateSelector(),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
         )

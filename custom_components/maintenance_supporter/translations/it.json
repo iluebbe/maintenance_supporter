@@ -457,7 +457,8 @@
         "title": "Gestisci attività",
         "description": "Seleziona un'attività da modificare o rimuovere.",
         "data": {
-          "selected_task": "Seleziona attività"
+          "selected_task": "Seleziona attività",
+          "go_back": "Indietro"
         }
       },
       "task_action": {
@@ -485,7 +486,8 @@
           "notes": "Note",
           "documentation_url": "URL documentazione",
           "last_performed": "Ultima esecuzione",
-          "responsible_user_id": "Utente responsabile"
+          "responsible_user_id": "Utente responsabile",
+          "go_back": "Indietro"
         },
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
@@ -496,17 +498,20 @@
           "notes": "Note aggiuntive o istruzioni per questa attività.",
           "documentation_url": "Link alla documentazione esterna o al manuale per questa attività.",
           "last_performed": "Quando questa manutenzione è stata eseguita l'ultima volta. Lasciare vuoto se mai eseguita.",
-          "responsible_user_id": "L'utente Home Assistant responsabile di questa attività."
+          "responsible_user_id": "L'utente Home Assistant responsabile di questa attività.",
+          "go_back": "Torna alle azioni attività senza salvare."
         }
       },
       "edit_checklist": {
         "title": "Modifica lista di controllo",
         "description": "Definisci i passaggi della lista di controllo per {task_name}. Inserisci un passaggio per riga.",
         "data": {
-          "checklist_text": "Passaggi della lista di controllo"
+          "checklist_text": "Passaggi della lista di controllo",
+          "go_back": "Indietro"
         },
         "data_description": {
-          "checklist_text": "Inserisci ogni passaggio su una riga separata. Questi passaggi saranno mostrati durante il completamento dell'attività."
+          "checklist_text": "Inserisci ogni passaggio su una riga separata. Questi passaggi saranno mostrati durante il completamento dell'attività.",
+          "go_back": "Torna alle azioni attività senza salvare."
         }
       },
       "compound_logic": {
@@ -590,7 +595,8 @@
           "max_interval_days": "Intervallo massimo (giorni)",
           "seasonal_enabled": "Abilita consapevolezza stagionale",
           "sensor_prediction_enabled": "Abilita previsioni sensore",
-          "environmental_entity": "Sensore ambientale (opzionale)"
+          "environmental_entity": "Sensore ambientale (opzionale)",
+          "go_back": "Indietro"
         },
         "data_description": {
           "adaptive_enabled": "Quando abilitato, il sistema impara dai tuoi feedback e suggerisce intervalli di manutenzione ottimali.",
@@ -599,14 +605,16 @@
           "max_interval_days": "L'intervallo più lungo che il sistema raccomanderà.",
           "seasonal_enabled": "Regola le raccomandazioni in base ai modelli stagionali appresi dalla tua cronologia di manutenzione.",
           "sensor_prediction_enabled": "Analizza le tendenze dei sensori per prevedere quando verranno raggiunte le soglie e suggerire manutenzione anticipata se necessario.",
-          "environmental_entity": "Collega un sensore di temperatura, umidità o pressione per correlare le condizioni ambientali con gli intervalli di manutenzione."
+          "environmental_entity": "Collega un sensore di temperatura, umidità o pressione per correlare le condizioni ambientali con gli intervalli di manutenzione.",
+          "go_back": "Torna alle azioni attività senza salvare."
         }
       },
       "delete_task": {
         "title": "Elimina attività",
         "description": "Sei sicuro di voler eliminare l'attività {task_name}? Questa azione è irreversibile.",
         "data": {
-          "confirm": "Conferma eliminazione"
+          "confirm": "Conferma eliminazione",
+          "go_back": "Indietro"
         }
       },
       "remove_trigger": {
@@ -614,10 +622,12 @@
         "description": "Rimuovere il trigger da **{task_name}**?\n\n**Entità:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configurazione:** {config_details}\n\nSe tutte le entità vengono rimosse, la pianificazione tornerà a essere temporale.",
         "data": {
           "entities_to_remove": "Entità da rimuovere",
-          "confirm": "Conferma rimozione"
+          "confirm": "Conferma rimozione",
+          "go_back": "Indietro"
         },
         "data_description": {
-          "entities_to_remove": "Seleziona quali entità rimuovere da questo trigger. Se vengono rimosse tutte, l'intero trigger viene eliminato."
+          "entities_to_remove": "Seleziona quali entità rimuovere da questo trigger. Se vengono rimosse tutte, l'intero trigger viene eliminato.",
+          "go_back": "Torna alle azioni attività senza salvare."
         }
       },
       "trigger_summary": {
@@ -774,14 +784,16 @@
           "manufacturer": "Produttore",
           "model": "Modello",
           "area_id": "Area",
-          "installation_date": "Data di installazione"
+          "installation_date": "Data di installazione",
+          "go_back": "Indietro"
         },
         "data_description": {
           "name": "Un nome unico per questo oggetto di manutenzione (es. 'Pompa piscina', 'Auto').",
           "manufacturer": "Il produttore dell'oggetto.",
           "model": "Il nome o numero del modello.",
           "area_id": "L'area della tua casa dove si trova questo oggetto.",
-          "installation_date": "Quando questo oggetto è stato installato o acquistato."
+          "installation_date": "Quando questo oggetto è stato installato o acquistato.",
+          "go_back": "Torna al menu principale senza salvare."
         }
       }
     }

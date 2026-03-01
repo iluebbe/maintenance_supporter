@@ -457,7 +457,8 @@
         "title": "Aufgaben verwalten",
         "description": "Wählen Sie eine Aufgabe zum Bearbeiten oder Entfernen.",
         "data": {
-          "selected_task": "Aufgabe auswählen"
+          "selected_task": "Aufgabe auswählen",
+          "go_back": "Zurück"
         }
       },
       "task_action": {
@@ -485,7 +486,8 @@
           "notes": "Notizen",
           "documentation_url": "Dokumentations-URL",
           "last_performed": "Zuletzt durchgeführt",
-          "responsible_user_id": "Verantwortlicher Benutzer"
+          "responsible_user_id": "Verantwortlicher Benutzer",
+          "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -496,17 +498,20 @@
           "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe.",
           "documentation_url": "Link zu externer Dokumentation oder Handbuch für diese Aufgabe.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
-          "responsible_user_id": "Der Home Assistant Benutzer, der für diese Aufgabe verantwortlich ist."
+          "responsible_user_id": "Der Home Assistant Benutzer, der für diese Aufgabe verantwortlich ist.",
+          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       },
       "edit_checklist": {
         "title": "Checkliste bearbeiten",
         "description": "Definieren Sie Checklisten-Schritte für {task_name}. Geben Sie einen Schritt pro Zeile ein.",
         "data": {
-          "checklist_text": "Checklisten-Schritte"
+          "checklist_text": "Checklisten-Schritte",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "checklist_text": "Geben Sie jeden Checklisten-Schritt in einer separaten Zeile ein. Diese Schritte werden beim Abschließen der Aufgabe angezeigt."
+          "checklist_text": "Geben Sie jeden Checklisten-Schritt in einer separaten Zeile ein. Diese Schritte werden beim Abschließen der Aufgabe angezeigt.",
+          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       },
       "adaptive_scheduling": {
@@ -519,7 +524,8 @@
           "max_interval_days": "Maximales Intervall (Tage)",
           "seasonal_enabled": "Saisonale Anpassung aktivieren",
           "sensor_prediction_enabled": "Sensorbasierte Vorhersagen aktivieren",
-          "environmental_entity": "Umgebungssensor (optional)"
+          "environmental_entity": "Umgebungssensor (optional)",
+          "go_back": "Zurück"
         },
         "data_description": {
           "adaptive_enabled": "Wenn aktiviert, lernt das System aus Ihrem Feedback und schlägt optimale Wartungsintervalle vor.",
@@ -528,14 +534,16 @@
           "max_interval_days": "Das längste Intervall, das das System jemals empfehlen wird.",
           "seasonal_enabled": "Empfehlungen basierend auf saisonalen Mustern aus Ihrer Wartungshistorie anpassen.",
           "sensor_prediction_enabled": "Sensortrends analysieren, um vorherzusagen, wann Schwellwerte erreicht werden, und bei Bedarf frühere Wartung vorschlagen.",
-          "environmental_entity": "Einen Temperatur-, Feuchtigkeits- oder Drucksensor verknüpfen, um Umgebungsbedingungen mit Wartungsintervallen zu korrelieren."
+          "environmental_entity": "Einen Temperatur-, Feuchtigkeits- oder Drucksensor verknüpfen, um Umgebungsbedingungen mit Wartungsintervallen zu korrelieren.",
+          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       },
       "delete_task": {
         "title": "Aufgabe löschen",
         "description": "Sind Sie sicher, dass Sie die Aufgabe {task_name} löschen möchten? Dies kann nicht rückgängig gemacht werden.",
         "data": {
-          "confirm": "Löschung bestätigen"
+          "confirm": "Löschung bestätigen",
+          "go_back": "Zurück"
         }
       },
       "remove_trigger": {
@@ -543,10 +551,12 @@
         "description": "Trigger von **{task_name}** entfernen?\n\n**Entität:** {entity_ids}\n**Typ:** {trigger_type}\n**Konfiguration:** {config_details}\n\nWenn alle Entitäten entfernt werden, wird der Zeitplan auf zeitbasiert zurückgesetzt.",
         "data": {
           "entities_to_remove": "Zu entfernende Entitäten",
-          "confirm": "Entfernung bestätigen"
+          "confirm": "Entfernung bestätigen",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "entities_to_remove": "Wählen Sie aus, welche Entitäten aus diesem Trigger entfernt werden sollen. Werden alle entfernt, wird der gesamte Trigger gelöscht."
+          "entities_to_remove": "Wählen Sie aus, welche Entitäten aus diesem Trigger entfernt werden sollen. Werden alle entfernt, wird der gesamte Trigger gelöscht.",
+          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       },
       "trigger_summary": {
@@ -774,14 +784,16 @@
           "manufacturer": "Hersteller",
           "model": "Modell",
           "area_id": "Bereich",
-          "installation_date": "Installationsdatum"
+          "installation_date": "Installationsdatum",
+          "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein eindeutiger Name für dieses Wartungsobjekt (z.B. 'Poolpumpe', 'Auto').",
           "manufacturer": "Der Hersteller des Objekts.",
           "model": "Die Modellbezeichnung oder -nummer.",
           "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
-          "installation_date": "Wann dieses Objekt installiert oder gekauft wurde."
+          "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
+          "go_back": "Zurück zum Hauptmenü ohne Speichern."
         }
       }
     }

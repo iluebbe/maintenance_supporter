@@ -457,7 +457,8 @@
         "title": "Manage Tasks",
         "description": "Select a task to edit or remove.",
         "data": {
-          "selected_task": "Select task"
+          "selected_task": "Select task",
+          "go_back": "Go back"
         }
       },
       "task_action": {
@@ -485,7 +486,8 @@
           "notes": "Notes",
           "documentation_url": "Documentation URL",
           "last_performed": "Last performed",
-          "responsible_user_id": "Responsible user"
+          "responsible_user_id": "Responsible user",
+          "go_back": "Go back"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
@@ -496,24 +498,28 @@
           "notes": "Additional notes or instructions for this task.",
           "documentation_url": "Link to external documentation or manual for this task.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
-          "responsible_user_id": "The Home Assistant user responsible for this task."
+          "responsible_user_id": "The Home Assistant user responsible for this task.",
+          "go_back": "Return to task actions without saving."
         }
       },
       "edit_checklist": {
         "title": "Edit Checklist",
         "description": "Define checklist steps for {task_name}. Enter one step per line.",
         "data": {
-          "checklist_text": "Checklist steps"
+          "checklist_text": "Checklist steps",
+          "go_back": "Go back"
         },
         "data_description": {
-          "checklist_text": "Enter each checklist step on a separate line. These steps will be shown when completing the task."
+          "checklist_text": "Enter each checklist step on a separate line. These steps will be shown when completing the task.",
+          "go_back": "Return to task actions without saving."
         }
       },
       "delete_task": {
         "title": "Delete Task",
         "description": "Are you sure you want to delete the task {task_name}? This cannot be undone.",
         "data": {
-          "confirm": "Confirm deletion"
+          "confirm": "Confirm deletion",
+          "go_back": "Go back"
         }
       },
       "remove_trigger": {
@@ -521,10 +527,12 @@
         "description": "Remove trigger from **{task_name}**?\n\n**Entity:** {entity_ids}\n**Type:** {trigger_type}\n**Config:** {config_details}\n\nIf all entities are removed, the schedule will revert to time-based.",
         "data": {
           "entities_to_remove": "Entities to remove",
-          "confirm": "Confirm removal"
+          "confirm": "Confirm removal",
+          "go_back": "Go back"
         },
         "data_description": {
-          "entities_to_remove": "Select which entities to remove from this trigger. If all are removed, the entire trigger is deleted."
+          "entities_to_remove": "Select which entities to remove from this trigger. If all are removed, the entire trigger is deleted.",
+          "go_back": "Return to task actions without saving."
         }
       },
       "trigger_summary": {
@@ -754,7 +762,8 @@
           "max_interval_days": "Maximum interval (days)",
           "seasonal_enabled": "Enable seasonal awareness",
           "sensor_prediction_enabled": "Enable sensor-driven predictions",
-          "environmental_entity": "Environmental sensor (optional)"
+          "environmental_entity": "Environmental sensor (optional)",
+          "go_back": "Go back"
         },
         "data_description": {
           "adaptive_enabled": "When enabled, the system will learn from your feedback and suggest optimal maintenance intervals.",
@@ -763,7 +772,8 @@
           "max_interval_days": "The longest interval the system will ever recommend.",
           "seasonal_enabled": "Adjust recommendations based on seasonal patterns learned from your maintenance history.",
           "sensor_prediction_enabled": "Analyze sensor trends to predict when thresholds will be reached and suggest earlier maintenance if needed.",
-          "environmental_entity": "Link a temperature, humidity or pressure sensor to correlate environmental conditions with maintenance intervals."
+          "environmental_entity": "Link a temperature, humidity or pressure sensor to correlate environmental conditions with maintenance intervals.",
+          "go_back": "Return to task actions without saving."
         }
       },
       "object_settings": {
@@ -774,14 +784,16 @@
           "manufacturer": "Manufacturer",
           "model": "Model",
           "area_id": "Area",
-          "installation_date": "Installation date"
+          "installation_date": "Installation date",
+          "go_back": "Go back"
         },
         "data_description": {
           "name": "A unique name for this maintenance object (e.g., 'Pool Pump', 'Car').",
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
           "area_id": "The area in your home where this object is located.",
-          "installation_date": "When this object was installed or purchased."
+          "installation_date": "When this object was installed or purchased.",
+          "go_back": "Return to the main menu without saving."
         }
       }
     }

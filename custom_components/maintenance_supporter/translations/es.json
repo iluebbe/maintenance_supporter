@@ -457,7 +457,8 @@
         "title": "Gestionar tareas",
         "description": "Seleccione una tarea para editar o eliminar.",
         "data": {
-          "selected_task": "Seleccionar tarea"
+          "selected_task": "Seleccionar tarea",
+          "go_back": "Volver"
         }
       },
       "task_action": {
@@ -485,7 +486,8 @@
           "notes": "Notas",
           "documentation_url": "URL de documentación",
           "last_performed": "Última ejecución",
-          "responsible_user_id": "Usuario responsable"
+          "responsible_user_id": "Usuario responsable",
+          "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej. 'Limpieza de filtro', 'Cambio de aceite').",
@@ -496,17 +498,20 @@
           "notes": "Notas adicionales o instrucciones para esta tarea.",
           "documentation_url": "Enlace a documentación externa o manual para esta tarea.",
           "last_performed": "Cuándo se realizó este mantenimiento por última vez. Dejar vacío si nunca se realizó.",
-          "responsible_user_id": "El usuario de Home Assistant responsable de esta tarea."
+          "responsible_user_id": "El usuario de Home Assistant responsable de esta tarea.",
+          "go_back": "Volver a las acciones de tarea sin guardar."
         }
       },
       "edit_checklist": {
         "title": "Editar lista de verificación",
         "description": "Defina los pasos de la lista de verificación para {task_name}. Ingrese un paso por línea.",
         "data": {
-          "checklist_text": "Pasos de la lista de verificación"
+          "checklist_text": "Pasos de la lista de verificación",
+          "go_back": "Volver"
         },
         "data_description": {
-          "checklist_text": "Ingrese cada paso en una línea separada. Estos pasos se mostrarán al completar la tarea."
+          "checklist_text": "Ingrese cada paso en una línea separada. Estos pasos se mostrarán al completar la tarea.",
+          "go_back": "Volver a las acciones de tarea sin guardar."
         }
       },
       "compound_logic": {
@@ -590,7 +595,8 @@
           "max_interval_days": "Intervalo máximo (días)",
           "seasonal_enabled": "Activar conciencia estacional",
           "sensor_prediction_enabled": "Activar predicciones de sensor",
-          "environmental_entity": "Sensor ambiental (opcional)"
+          "environmental_entity": "Sensor ambiental (opcional)",
+          "go_back": "Volver"
         },
         "data_description": {
           "adaptive_enabled": "Cuando está activado, el sistema aprende de sus comentarios y sugiere intervalos de mantenimiento óptimos.",
@@ -599,14 +605,16 @@
           "max_interval_days": "El intervalo más largo que el sistema recomendará.",
           "seasonal_enabled": "Ajustar recomendaciones según los patrones estacionales aprendidos de su historial de mantenimiento.",
           "sensor_prediction_enabled": "Analizar tendencias de sensores para predecir cuándo se alcanzarán los umbrales y sugerir mantenimiento anticipado si es necesario.",
-          "environmental_entity": "Vincule un sensor de temperatura, humedad o presión para correlacionar las condiciones ambientales con los intervalos de mantenimiento."
+          "environmental_entity": "Vincule un sensor de temperatura, humedad o presión para correlacionar las condiciones ambientales con los intervalos de mantenimiento.",
+          "go_back": "Volver a las acciones de tarea sin guardar."
         }
       },
       "delete_task": {
         "title": "Eliminar tarea",
         "description": "¿Está seguro de que desea eliminar la tarea {task_name}? Esta acción es irreversible.",
         "data": {
-          "confirm": "Confirmar eliminación"
+          "confirm": "Confirmar eliminación",
+          "go_back": "Volver"
         }
       },
       "remove_trigger": {
@@ -614,10 +622,12 @@
         "description": "¿Eliminar trigger de **{task_name}**?\n\n**Entidad:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configuración:** {config_details}\n\nSi se eliminan todas las entidades, la programación volverá a ser temporal.",
         "data": {
           "entities_to_remove": "Entidades a eliminar",
-          "confirm": "Confirmar eliminación"
+          "confirm": "Confirmar eliminación",
+          "go_back": "Volver"
         },
         "data_description": {
-          "entities_to_remove": "Seleccione qué entidades eliminar de este trigger. Si se eliminan todas, se borra el trigger completo."
+          "entities_to_remove": "Seleccione qué entidades eliminar de este trigger. Si se eliminan todas, se borra el trigger completo.",
+          "go_back": "Volver a las acciones de tarea sin guardar."
         }
       },
       "trigger_summary": {
@@ -774,14 +784,16 @@
           "manufacturer": "Fabricante",
           "model": "Modelo",
           "area_id": "Área",
-          "installation_date": "Fecha de instalación"
+          "installation_date": "Fecha de instalación",
+          "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre único para este objeto de mantenimiento (ej. 'Bomba de piscina', 'Coche').",
           "manufacturer": "El fabricante del objeto.",
           "model": "El nombre o número de modelo.",
           "area_id": "El área en su hogar donde se encuentra este objeto.",
-          "installation_date": "Cuándo se instaló o compró este objeto."
+          "installation_date": "Cuándo se instaló o compró este objeto.",
+          "go_back": "Volver al menú principal sin guardar."
         }
       }
     }
