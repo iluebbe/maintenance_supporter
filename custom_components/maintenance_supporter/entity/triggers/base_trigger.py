@@ -4,10 +4,19 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
-from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callback
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_call_later,
+    async_track_state_change_event,
+)
+
+if TYPE_CHECKING:
+    from ...coordinator import MaintenanceCoordinator
+    from ...sensor import MaintenanceSensor
 
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
@@ -24,7 +33,7 @@ class BaseTrigger(ABC):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: Any,  # MaintenanceSensor
+        entity: MaintenanceSensor,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize the trigger."""
@@ -41,7 +50,7 @@ class BaseTrigger(ABC):
         self._logged_unavailable = False  # Log-once pattern for unavailable
 
     @property
-    def _coordinator(self):
+    def _coordinator(self) -> MaintenanceCoordinator:
         """Get the coordinator from the entity."""
         return self.entity.coordinator
 
@@ -107,7 +116,7 @@ class BaseTrigger(ABC):
         self._cancel_retry()
 
         @callback
-        def _retry_initial_evaluation(_now) -> None:
+        def _retry_initial_evaluation(_now: datetime) -> None:
             """Re-check entity state after a delay."""
             self._unsub_retry = None
             state = self.hass.states.get(self.entity_id)
@@ -147,7 +156,7 @@ class BaseTrigger(ABC):
         _LOGGER.debug("Trigger teardown: %s", self.entity_id)
 
     @callback
-    def _handle_state_change_event(self, event: Event) -> None:
+    def _handle_state_change_event(self, event: Event[EventStateChangedData]) -> None:
         """Handle state change event from the monitored entity."""
         old_state = event.data.get("old_state")
         new_state = event.data.get("new_state")
@@ -272,7 +281,7 @@ class BaseTrigger(ABC):
             },
         )
 
-    def _get_numeric_value(self, state) -> float | None:
+    def _get_numeric_value(self, state: State) -> float | None:
         """Extract numeric value from state or attribute."""
         try:
             if self.attribute:

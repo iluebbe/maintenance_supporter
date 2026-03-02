@@ -5,6 +5,8 @@ Actual implementations split for maintainability:
 - config_flow_options_task.py: MaintenanceOptionsFlow (per-object task CRUD, trigger config)
 """
 
+from __future__ import annotations
+
 from .config_flow_options_global import GlobalOptionsFlow
 from .config_flow_options_task import MaintenanceOptionsFlow
 

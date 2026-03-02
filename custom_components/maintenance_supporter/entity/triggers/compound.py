@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant, callback
+
+if TYPE_CHECKING:
+    from ...coordinator import MaintenanceCoordinator
+    from ...sensor import MaintenanceSensor
 
 from ...const import (
     CONF_COMPOUND_CONDITIONS,
@@ -84,7 +88,7 @@ class _CompoundCoordinatorProxy:
     stores data under ``_trigger_state.conditions[idx][entity_id]``.
     """
 
-    def __init__(self, real_coordinator: Any, condition_idx: int) -> None:
+    def __init__(self, real_coordinator: MaintenanceCoordinator, condition_idx: int) -> None:
         """Initialize the proxy."""
         self._real = real_coordinator
         self._condition_idx = condition_idx
@@ -149,7 +153,7 @@ class CompoundTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: Any,
+        entity: MaintenanceSensor,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize the compound trigger."""
@@ -195,9 +199,9 @@ class CompoundTrigger(BaseTrigger):
             proxy_coordinator = _CompoundCoordinatorProxy(
                 self._coordinator, idx
             )
-            sub_entity.coordinator = proxy_coordinator
+            sub_entity.coordinator = proxy_coordinator  # type: ignore[assignment]
 
-            sub_triggers = create_triggers(self.hass, sub_entity, cond_config)
+            sub_triggers = create_triggers(self.hass, sub_entity, cond_config)  # type: ignore[arg-type]
             self._sub_triggers.append(sub_triggers)
 
             for trigger in sub_triggers:

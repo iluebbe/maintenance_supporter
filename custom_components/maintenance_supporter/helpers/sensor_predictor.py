@@ -347,6 +347,8 @@ class SensorPredictor:
                     raw = state.attributes.get(env_attribute)
                 else:
                     raw = state.state
+                if raw is None:
+                    raise TypeError("No value available")
                 current_env = float(raw)
             except (TypeError, ValueError):
                 current_env = None
@@ -476,14 +478,15 @@ class SensorPredictor:
 
         try:
             result = await self.hass.async_add_executor_job(
-                statistics_during_period,
-                self.hass,
-                start_time,
-                None,  # end_time = now
-                {entity_id},
-                "hour",
-                None,  # units
-                {"mean", "state"},
+                lambda: statistics_during_period(
+                    self.hass,
+                    start_time,
+                    None,  # end_time = now
+                    {entity_id},
+                    "hour",
+                    None,  # units
+                    {"mean", "state"},
+                )
             )
         except (Exception,):  # noqa: BLE001
             _LOGGER.debug(

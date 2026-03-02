@@ -122,14 +122,15 @@ class EntityAnalyzer:
 
         try:
             result = await self.hass.async_add_executor_job(
-                statistics_during_period,
-                self.hass,
-                start_time,
-                None,  # end_time = now
-                {entity_id},
-                "day",
-                None,  # units
-                {"mean", "min", "max"},
+                lambda: statistics_during_period(
+                    self.hass,
+                    start_time,
+                    None,  # end_time = now
+                    {entity_id},
+                    "day",
+                    None,  # units
+                    {"mean", "min", "max"},
+                )
             )
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.debug("Failed to fetch statistics for %s", entity_id, exc_info=True)

@@ -14,12 +14,12 @@ from homeassistant.config_entries import (
     ConfigFlowResult,
     OptionsFlow,
 )
-from homeassistant.core import callback
+from homeassistant.core import State, callback
 from homeassistant.helpers import selector
 
 from .config_flow_options_global import validate_notify_service
 from .config_flow_trigger import TriggerConfigMixin
-from .templates import TEMPLATE_CATEGORIES, TEMPLATES, get_template_by_id, get_templates_by_category
+from .templates import TEMPLATE_CATEGORIES, TEMPLATES, ObjectTemplate, get_template_by_id, get_templates_by_category
 from .const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_NOTIFICATIONS_ENABLED,
@@ -59,9 +59,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self._tasks: dict[str, dict[str, Any]] = {}
         self._current_task: dict[str, Any] = {}
         self._trigger_entity_id: str | None = None
-        self._trigger_entity_state: Any = None
+        self._trigger_entity_state: State | None = None
         self._template_category: str = ""
-        self._selected_template: Any = None
+        self._selected_template: ObjectTemplate | None = None
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -213,6 +213,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         """Step 3: Customize the template before creating the entry."""
         errors: dict[str, str] = {}
         template = self._selected_template
+        if template is None:
+            return self.async_abort(reason="unknown")
 
         if user_input is not None:
             if user_input.get("go_back"):

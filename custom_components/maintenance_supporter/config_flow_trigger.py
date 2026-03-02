@@ -17,7 +17,12 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from homeassistant.core import HomeAssistant, State
 
 import voluptuous as vol
 
@@ -64,7 +69,37 @@ class TriggerConfigMixin:
     When ``_on_cancel`` is ``None`` (the default), no toggle is shown.
     """
 
-    _on_cancel: Callable[[], ConfigFlowResult] | None = None
+    # -- attributes provided by the consuming ConfigFlow / OptionsFlow class --
+    if TYPE_CHECKING:
+        hass: HomeAssistant
+        _current_task: dict[str, Any]
+        _trigger_entity_id: str | None
+        _trigger_entity_state: State | None
+        _trigger_entity_ids: list[str]
+        _compound_conditions: list[dict[str, Any]]
+        _compound_logic: str
+        _current_compound_condition: dict[str, Any]
+
+        def async_show_form(
+            self,
+            *,
+            step_id: str | None = None,
+            data_schema: vol.Schema | None = None,
+            errors: dict[str, str] | None = None,
+            description_placeholders: Mapping[str, str] | None = None,
+            last_step: bool | None = None,
+            preview: str | None = None,
+        ) -> ConfigFlowResult: ...
+
+        def async_abort(
+            self,
+            *,
+            reason: str,
+            description_placeholders: Mapping[str, str] | None = None,
+            **kwargs: Any,
+        ) -> ConfigFlowResult: ...
+
+    _on_cancel: Callable[[], ConfigFlowResult | Awaitable[ConfigFlowResult]] | None = None
 
     async def _mixin_check_go_back(
         self, user_input: dict[str, Any] | None
@@ -85,7 +120,7 @@ class TriggerConfigMixin:
             return result
         return None
 
-    def _mixin_add_go_back(self, schema_dict: dict) -> dict:
+    def _mixin_add_go_back(self, schema_dict: dict[Any, Any]) -> dict[Any, Any]:
         """Append go_back toggle to schema dict when cancelling is enabled."""
         if self._on_cancel is not None:
             schema_dict[
@@ -177,6 +212,8 @@ class TriggerConfigMixin:
 
         # Build attribute options from entity
         state = self._trigger_entity_state
+        if state is None:
+            return self.async_abort(reason="entity_unavailable")
         options: list[selector.SelectOptionDict] = []
 
         # Add state value
@@ -348,7 +385,7 @@ class TriggerConfigMixin:
         )
 
         # Build schema fields
-        schema_fields: dict = {
+        schema_fields: dict[Any, Any] = {
             vol.Optional(CONF_TRIGGER_ABOVE): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
@@ -460,7 +497,7 @@ class TriggerConfigMixin:
             else:
                 current_value = state.state
 
-        schema_fields: dict = {
+        schema_fields: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_TARGET_VALUE): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
@@ -556,7 +593,7 @@ class TriggerConfigMixin:
 
             return on_complete()
 
-        schema_fields: dict = {
+        schema_fields: dict[Any, Any] = {
             vol.Optional(CONF_TRIGGER_FROM_STATE): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.TEXT
@@ -670,7 +707,7 @@ class TriggerConfigMixin:
         existing_states = current_tc.get(CONF_TRIGGER_ON_STATES)
         default_states = ", ".join(existing_states) if existing_states else ""
 
-        schema_fields: dict = {
+        schema_fields: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_RUNTIME_HOURS): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     mode=selector.NumberSelectorMode.BOX,
@@ -755,7 +792,7 @@ class TriggerConfigMixin:
                 CONF_COMPOUND_CONDITIONS: [],
             }
             if not hasattr(self, "_compound_conditions"):
-                self._compound_conditions = []
+                self._compound_conditions: list[dict[str, Any]] = []
             self._compound_conditions = []
             self._compound_logic = logic
             return await next_step()
@@ -939,7 +976,7 @@ class TriggerConfigMixin:
             self._current_compound_condition = {}
             return await on_complete()
 
-        schema_fields: dict = {}
+        schema_fields: dict[Any, Any] = {}
         if condition_type == TriggerType.THRESHOLD:
             schema_fields = {
                 vol.Optional(CONF_TRIGGER_ABOVE): selector.NumberSelector(

@@ -9,6 +9,8 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
+from homeassistant.core import State
+
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
@@ -63,12 +65,12 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self._current_task: dict[str, Any] = {}
         self._selected_task_id: str | None = None
         self._trigger_entity_id: str | None = None
-        self._trigger_entity_state: Any = None
+        self._trigger_entity_state: State | None = None
         self._trigger_on_complete = self._save_new_task
 
     # --- Helpers ---
 
-    def _update_config_entry(self, new_data: dict) -> None:
+    def _update_config_entry(self, new_data: dict[str, Any]) -> None:
         """Update the config entry with new data."""
         self.hass.config_entries.async_update_entry(
             self.config_entry, data=new_data

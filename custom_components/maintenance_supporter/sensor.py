@@ -20,8 +20,9 @@ from .const import (
     MaintenanceStatus,
     TriggerEntityState,
 )
+from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
-from .entity.triggers import create_triggers, normalize_entity_ids
+from .entity.triggers import BaseTrigger, RuntimeTrigger, create_triggers, normalize_entity_ids
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,13 +71,13 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         MaintenanceStatus.OVERDUE,
         MaintenanceStatus.TRIGGERED,
     ]
-    _triggers: list = []
+    _triggers: list[BaseTrigger] = []
     _trigger_states: dict[str, bool] = {}
     _trigger_values: dict[str, float | None] = {}
 
     def __init__(
         self,
-        coordinator,
+        coordinator: MaintenanceCoordinator,
         task_id: str,
     ) -> None:
         """Initialize the maintenance sensor."""
@@ -102,7 +103,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         self._trigger_values = {}
 
     @property
-    def _trigger(self):
+    def _trigger(self) -> BaseTrigger | None:
         """Backwards-compatible access to the first trigger (or None)."""
         return self._triggers[0] if self._triggers else None
 
@@ -112,7 +113,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         task = self._task_data
         if not task:
             return None
-        return task.get("_status", MaintenanceStatus.OK)
+        return str(task.get("_status", MaintenanceStatus.OK))
 
     @property
     def available(self) -> bool:
@@ -250,7 +251,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                     remaining = {}
                     target = trigger_config.get("trigger_runtime_hours", 100.0)
                     for t in self._triggers:
-                        if hasattr(t, "current_runtime_hours"):
+                        if isinstance(t, RuntimeTrigger):
                             accumulated[t.entity_id] = round(
                                 t.current_runtime_hours, 2
                             )
@@ -259,10 +260,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                             )
                     attrs["trigger_accumulated_hours"] = accumulated
                     attrs["trigger_remaining_hours"] = remaining
-                elif (
-                    trigger is not None
-                    and hasattr(trigger, "accumulated_hours")
-                ):
+                elif isinstance(trigger, RuntimeTrigger):
                     attrs["trigger_accumulated_hours"] = round(
                         trigger.current_runtime_hours, 2
                     )

@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def _get_object_entries(hass: HomeAssistant) -> list:
+def _get_object_entries(hass: HomeAssistant) -> list[ConfigEntry]:
     """Return all non-global config entries for this domain."""
     return [
         entry
@@ -38,12 +38,13 @@ def _get_object_entries(hass: HomeAssistant) -> list:
 
 def _get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporterData | None:
     """Get runtime data for a config entry."""
-    return hass.data.get(DOMAIN, {}).get(entry_id)
+    result: MaintenanceSupporterData | None = hass.data.get(DOMAIN, {}).get(entry_id)
+    return result
 
 
 def _build_task_summary(
-    hass: HomeAssistant, task_id: str, task_data: dict, coordinator_task: dict | None
-) -> dict:
+    hass: HomeAssistant, task_id: str, task_data: dict[str, Any], coordinator_task: dict[str, Any] | None
+) -> dict[str, Any]:
     """Build a task summary dict for WS responses."""
     from ..entity.triggers import normalize_entity_ids
 
@@ -51,14 +52,14 @@ def _build_task_summary(
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")
-    trigger_entity_info: dict | None = None
-    trigger_entity_infos: list[dict] | None = None
+    trigger_entity_info: dict[str, Any] | None = None
+    trigger_entity_infos: list[dict[str, Any]] | None = None
 
     if trigger_config:
         entity_ids = normalize_entity_ids(trigger_config)
 
         # Build info for all entities
-        infos: list[dict] = []
+        infos: list[dict[str, Any]] = []
         for eid in entity_ids:
             state_obj = hass.states.get(eid)
             if state_obj is not None:
@@ -129,7 +130,7 @@ def _build_task_summary(
     }
 
 
-def _build_object_response(hass: HomeAssistant, entry, coordinator_data: dict | None) -> dict:
+def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_data: dict[str, Any] | None) -> dict[str, Any]:
     """Build a full object response dict."""
     obj_data = entry.data.get(CONF_OBJECT, {})
     tasks_data = entry.data.get(CONF_TASKS, {})

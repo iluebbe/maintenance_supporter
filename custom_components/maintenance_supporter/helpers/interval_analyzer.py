@@ -504,7 +504,7 @@ class IntervalAnalyzer:
             return 0
         try:
             t = eta * ((-math.log(reliability)) ** (1 / beta))
-            return max(1, round(t))
+            return int(max(1, round(t)))
         except (ValueError, ZeroDivisionError, OverflowError):
             return 0
 

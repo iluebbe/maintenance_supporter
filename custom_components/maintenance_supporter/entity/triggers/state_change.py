@@ -3,10 +3,16 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_track_state_change_event,
+)
+
+if TYPE_CHECKING:
+    from ...sensor import MaintenanceSensor
 
 from .base_trigger import BaseTrigger
 
@@ -23,7 +29,7 @@ class StateChangeTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: Any,
+        entity: MaintenanceSensor,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize state change trigger."""
@@ -82,7 +88,7 @@ class StateChangeTrigger(BaseTrigger):
         )
 
     @callback
-    def _handle_state_transition(self, event: Event) -> None:
+    def _handle_state_transition(self, event: Event[EventStateChangedData]) -> None:
         """Handle state transition and count matching changes."""
         old_state = event.data.get("old_state")
         new_state = event.data.get("new_state")

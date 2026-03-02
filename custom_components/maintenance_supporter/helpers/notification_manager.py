@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
@@ -239,7 +240,7 @@ class NotificationManager:
         self._daily_reset_date: date | None = None
 
     @property
-    def _global_options(self) -> dict[str, Any]:
+    def _global_options(self) -> Mapping[str, Any]:
         """Get global options from the global config entry."""
         for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -254,19 +255,19 @@ class NotificationManager:
     @property
     def enabled(self) -> bool:
         """Check if notifications are globally enabled."""
-        return self._global_options.get(CONF_NOTIFICATIONS_ENABLED, False)
+        return bool(self._global_options.get(CONF_NOTIFICATIONS_ENABLED, False))
 
     @property
     def notify_service(self) -> str:
         """Get the configured notify service."""
-        return self._global_options.get(CONF_NOTIFY_SERVICE, "")
+        return str(self._global_options.get(CONF_NOTIFY_SERVICE, ""))
 
     def _is_status_enabled(self, status: str) -> bool:
         """Check if notifications for this specific status are enabled."""
         key = _STATUS_ENABLED_KEYS.get(status)
         if key is None:
             return False
-        return self._global_options.get(key, True)
+        return bool(self._global_options.get(key, True))
 
     def _get_interval_hours(self, status: str) -> int:
         """Get repeat interval for a status. 0 = single notification."""

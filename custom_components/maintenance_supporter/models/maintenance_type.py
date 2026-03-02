@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from ..const import MaintenanceTypeEnum
 
@@ -17,7 +18,7 @@ class MaintenanceType:
     typical_duration: int  # minutes
     default_interval_days: int
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
         return {
             "id": self.id,
@@ -28,7 +29,7 @@ class MaintenanceType:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> MaintenanceType:
+    def from_dict(cls, data: dict[str, Any]) -> MaintenanceType:
         """Deserialize from dictionary."""
         return cls(
             id=data["id"],

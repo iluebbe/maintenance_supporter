@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 from uuid import uuid4
 
 
@@ -21,7 +22,7 @@ class MaintenanceObject:
     installation_date: str | None = None  # ISO format YYYY-MM-DD
     task_ids: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary for config entry storage."""
         return {
             "id": self.id,
@@ -34,7 +35,7 @@ class MaintenanceObject:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> MaintenanceObject:
+    def from_dict(cls, data: dict[str, Any]) -> MaintenanceObject:
         """Deserialize from dictionary."""
         return cls(
             id=data.get("id", uuid4().hex),

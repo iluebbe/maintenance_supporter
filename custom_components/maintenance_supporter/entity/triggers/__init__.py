@@ -15,6 +15,8 @@ from .threshold import ThresholdTrigger
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+    from ...sensor import MaintenanceSensor
+
 
 def normalize_entity_ids(trigger_config: dict[str, Any]) -> list[str]:
     """Return a list of entity IDs from trigger_config.
@@ -88,7 +90,7 @@ def _inject_per_entity_state(
 
 def create_trigger(
     hass: HomeAssistant,
-    entity: Any,
+    entity: MaintenanceSensor,
     trigger_config: dict[str, Any],
 ) -> BaseTrigger:
     """Create a trigger instance based on trigger type."""
@@ -110,7 +112,7 @@ def create_trigger(
 
 def create_triggers(
     hass: HomeAssistant,
-    entity: Any,
+    entity: MaintenanceSensor,
     trigger_config: dict[str, Any],
 ) -> list[BaseTrigger]:
     """Create trigger instances for all entity_ids in the config.

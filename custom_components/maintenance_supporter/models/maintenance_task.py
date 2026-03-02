@@ -117,7 +117,7 @@ class MaintenanceTask:
     def total_cost(self) -> float:
         """Sum of all costs in history."""
         return sum(
-            entry.get("cost", 0.0)
+            float(entry.get("cost", 0.0))
             for entry in self.history
             if entry.get("cost") is not None
         )
@@ -133,7 +133,7 @@ class MaintenanceTask:
         ]
         if not durations:
             return None
-        return sum(durations) / len(durations)
+        return float(sum(durations)) / len(durations)
 
     @property
     def last_entry(self) -> dict[str, Any] | None:

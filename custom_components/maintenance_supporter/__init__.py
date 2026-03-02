@@ -409,7 +409,7 @@ def _get_coordinator_for_entity(
     if config_entry_id is None:
         return None
 
-    runtime_data = hass.data.get(DOMAIN, {}).get(config_entry_id)
+    runtime_data: MaintenanceSupporterData | None = hass.data.get(DOMAIN, {}).get(config_entry_id)
     if runtime_data is None:
         return None
 
@@ -447,9 +447,9 @@ def _get_task_id_for_entity(
 
     # Look up which task matches this unique_id
     from .const import CONF_TASKS
-    tasks = config_entry.data.get(CONF_TASKS, {})
+    tasks: dict[str, Any] = config_entry.data.get(CONF_TASKS, {})
     for task_id in tasks:
         if unique_id.endswith(f"_{task_id}"):
-            return task_id
+            return str(task_id)
 
     return None

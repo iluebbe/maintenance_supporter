@@ -1,0 +1,11 @@
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+exclude = "qrcodegen\\.py$"
+
+# NOTE: mypy reads module names without the "custom_components." prefix because
+# it discovers the package base_dir as custom_components/.
+# Use mypy.ini format for per-module overrides (pyproject.toml ignore_errors
+# does not work reliably with directory-scanned modules).

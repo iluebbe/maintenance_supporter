@@ -52,9 +52,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             step_id="init",
             menu_options=["replace_entity", "remove_trigger", "dismiss"],
             description_placeholders={
-                "entity_id": issue_data.get("entity_id", "unknown"),
-                "task_name": issue_data.get("task_name", "unknown"),
-                "object_name": issue_data.get("object_name", "unknown"),
+                "entity_id": str(issue_data.get("entity_id", "unknown")),
+                "task_name": str(issue_data.get("task_name", "unknown")),
+                "object_name": str(issue_data.get("object_name", "unknown")),
             },
         )
 
@@ -82,9 +82,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
                 }
             ),
             description_placeholders={
-                "entity_id": issue_data.get("entity_id", "unknown"),
-                "task_name": issue_data.get("task_name", "unknown"),
-                "object_name": issue_data.get("object_name", "unknown"),
+                "entity_id": str(issue_data.get("entity_id", "unknown")),
+                "task_name": str(issue_data.get("task_name", "unknown")),
+                "object_name": str(issue_data.get("object_name", "unknown")),
             },
         )
 
@@ -102,9 +102,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             step_id="remove_trigger",
             data_schema=vol.Schema({}),
             description_placeholders={
-                "entity_id": issue_data.get("entity_id", "unknown"),
-                "task_name": issue_data.get("task_name", "unknown"),
-                "object_name": issue_data.get("object_name", "unknown"),
+                "entity_id": str(issue_data.get("entity_id", "unknown")),
+                "task_name": str(issue_data.get("task_name", "unknown")),
+                "object_name": str(issue_data.get("object_name", "unknown")),
             },
         )
 
@@ -123,9 +123,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         within the entity_ids list.
         """
         issue_data = self.data or {}
-        entry_id = issue_data.get("entry_id")
+        entry_id = str(issue_data.get("entry_id", ""))
         task_id = issue_data.get("task_id")
-        old_entity_id = issue_data.get("entity_id", "")
+        old_entity_id = str(issue_data.get("entity_id", ""))
 
         if not entry_id or not task_id:
             _LOGGER.error("Repair flow missing entry_id or task_id in issue data")
@@ -193,9 +193,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         removes the entire trigger and converts to time_based or manual.
         """
         issue_data = self.data or {}
-        entry_id = issue_data.get("entry_id")
+        entry_id = str(issue_data.get("entry_id", ""))
         task_id = issue_data.get("task_id")
-        missing_entity_id = issue_data.get("entity_id", "")
+        missing_entity_id = str(issue_data.get("entity_id", ""))
 
         if not entry_id or not task_id:
             _LOGGER.error("Repair flow missing entry_id or task_id in issue data")

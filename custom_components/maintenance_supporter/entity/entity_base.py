@@ -51,5 +51,6 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
         """Return the current task data from coordinator."""
         if self.coordinator.data is None:
             return {}
-        tasks = self.coordinator.data.get("tasks", {})
-        return tasks.get(self._task_id, {})
+        tasks: dict[str, Any] = self.coordinator.data.get("tasks", {})
+        result: dict[str, Any] = tasks.get(self._task_id, {})
+        return result

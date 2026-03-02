@@ -8,14 +8,18 @@ configured threshold in hours.
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
-from typing import Any
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
 from homeassistant.helpers.event import (
+    EventStateChangedData,
     async_track_state_change_event,
     async_track_time_interval,
 )
+
+if TYPE_CHECKING:
+    from ...sensor import MaintenanceSensor
 from homeassistant.util import dt as dt_util
 
 from .base_trigger import BaseTrigger
@@ -38,7 +42,7 @@ class RuntimeTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: Any,
+        entity: MaintenanceSensor,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize runtime trigger."""
@@ -54,7 +58,7 @@ class RuntimeTrigger(BaseTrigger):
         # Restore on_since timestamp for restart recovery
         on_since_str = trigger_config.get("trigger_on_since")
         self._on_since: str | None = None  # ISO string stored for persistence
-        self._on_since_dt: Any | None = None  # parsed datetime for calculation
+        self._on_since_dt: datetime | None = None  # parsed datetime for calculation
         if on_since_str:
             parsed = dt_util.parse_datetime(on_since_str)
             if parsed:
@@ -70,7 +74,7 @@ class RuntimeTrigger(BaseTrigger):
         else:
             self._on_states = _DEFAULT_ON_STATES
 
-        self._unsub_periodic: Any | None = None
+        self._unsub_periodic: CALLBACK_TYPE | None = None
 
     async def async_setup(self) -> None:
         """Set up runtime trigger with state restoration."""
@@ -149,7 +153,7 @@ class RuntimeTrigger(BaseTrigger):
         await super().async_teardown()
 
     @callback
-    def _handle_runtime_state_change(self, event: Event) -> None:
+    def _handle_runtime_state_change(self, event: Event[EventStateChangedData]) -> None:
         """Handle state changes for runtime accumulation."""
         old_state = event.data.get("old_state")
         new_state = event.data.get("new_state")
@@ -262,7 +266,7 @@ class RuntimeTrigger(BaseTrigger):
         return value >= self._target_hours
 
     @callback
-    def _periodic_callback(self, _now: Any) -> None:
+    def _periodic_callback(self, _now: datetime) -> None:
         """Periodic callback to persist runtime every 5 minutes."""
         if self._on_since_dt is None:
             return

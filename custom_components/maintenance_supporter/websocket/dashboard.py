@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -175,7 +176,7 @@ async def ws_get_budget_status(
     )
 
     # Get global options
-    global_options: dict[str, Any] = {}
+    global_options: Mapping[str, Any] = {}
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             global_options = entry.options or entry.data

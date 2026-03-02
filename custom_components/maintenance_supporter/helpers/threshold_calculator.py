@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 
-from .entity_analyzer import EntityAnalysis, EntityAnalyzer
+from .entity_analyzer import EntityAnalysis, EntityAnalyzer, StatisticsInfo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ class ThresholdCalculator:
         self,
         current: float,
         unit: str,
-        stats,
+        stats: StatisticsInfo,
     ) -> ThresholdSuggestions:
         """Calculate suggestions from recorder statistics."""
         suggested_above = None

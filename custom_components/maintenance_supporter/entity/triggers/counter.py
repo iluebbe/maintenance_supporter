@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant
+
+if TYPE_CHECKING:
+    from ...sensor import MaintenanceSensor
 
 from .base_trigger import BaseTrigger
 
@@ -23,7 +26,7 @@ class CounterTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: Any,
+        entity: MaintenanceSensor,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize counter trigger."""

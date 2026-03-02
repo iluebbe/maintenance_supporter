@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping
 from datetime import date, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+if TYPE_CHECKING:
+    from .calendar import MaintenanceCalendar
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -47,7 +51,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(minutes=DEFAULT_UPDATE_INTERVAL_MINUTES),
         )
         self.entry = entry
-        self._calendar_entity = None  # Set by calendar platform
+        self._calendar_entity: MaintenanceCalendar | None = None
         self._previous_statuses: dict[str, str] = {}  # task_id -> status
 
         # Trigger entity availability tracking
@@ -356,7 +360,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             delta_mode = task.trigger_config.get("trigger_delta_mode", False)
             trigger_state = task.trigger_config.get("_trigger_state", {})
 
-            per_entity_triggered: list[bool] = []
+            per_entity_triggered = []
             last_value = None
 
             for eid in entity_ids:
@@ -575,7 +579,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             GLOBAL_UNIQUE_ID,
         )
 
-        global_options: dict[str, Any] = {}
+        global_options: Mapping[str, Any] = {}
         for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.unique_id == GLOBAL_UNIQUE_ID:
                 global_options = entry.options or entry.data
@@ -623,7 +627,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not isinstance(nm, NotificationManager) or not nm.enabled:
             return
 
-        global_options: dict[str, Any] = {}
+        global_options: Mapping[str, Any] = {}
         for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.unique_id == GLOBAL_UNIQUE_ID:
                 global_options = entry.options or entry.data
@@ -632,7 +636,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not global_options.get(CONF_BUDGET_ALERTS_ENABLED, False):
             return
 
-        threshold_pct = global_options.get(CONF_BUDGET_ALERT_THRESHOLD, 80) / 100.0
+        threshold_pct = int(global_options.get(CONF_BUDGET_ALERT_THRESHOLD, 80)) / 100.0
         monthly_budget = float(global_options.get(CONF_BUDGET_MONTHLY, 0))
         yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))
 
@@ -876,6 +880,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             runtime_data,
         )
 
-    def register_calendar_entity(self, calendar_entity: Any) -> None:
+    def register_calendar_entity(self, calendar_entity: MaintenanceCalendar) -> None:
         """Register the calendar entity for state updates."""
         self._calendar_entity = calendar_entity

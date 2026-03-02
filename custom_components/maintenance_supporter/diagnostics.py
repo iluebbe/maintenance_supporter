@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
@@ -101,7 +102,7 @@ def _get_integration_overview(hass: HomeAssistant) -> dict[str, Any]:
     }
 
 
-def _calculate_statistics(data: dict[str, Any]) -> dict[str, Any]:
+def _calculate_statistics(data: Mapping[str, Any]) -> dict[str, Any]:
     """Calculate statistics for a maintenance object."""
     tasks = data.get(CONF_TASKS, {})
 
@@ -136,7 +137,7 @@ def _calculate_statistics(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _check_trigger_status(
-    hass: HomeAssistant, data: dict[str, Any]
+    hass: HomeAssistant, data: Mapping[str, Any]
 ) -> list[dict[str, Any]]:
     """Check the status of all configured triggers."""
     results = []
@@ -175,7 +176,7 @@ def _check_trigger_status(
     return results
 
 
-def _check_data_quality(data: dict[str, Any]) -> list[str]:
+def _check_data_quality(data: Mapping[str, Any]) -> list[str]:
     """Check data quality and return warnings."""
     warnings = []
 

@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers.event import async_call_later
+
+if TYPE_CHECKING:
+    from ...sensor import MaintenanceSensor
 
 from .base_trigger import BaseTrigger
 
@@ -25,7 +29,7 @@ class ThresholdTrigger(BaseTrigger):
     def __init__(
         self,
         hass: HomeAssistant,
-        entity: Any,
+        entity: MaintenanceSensor,
         trigger_config: dict[str, Any],
     ) -> None:
         """Initialize threshold trigger."""
@@ -36,7 +40,7 @@ class ThresholdTrigger(BaseTrigger):
         self._for_minutes: int = trigger_config.get("trigger_for_minutes", 0)
 
         self._threshold_exceeded = False
-        self._timer_cancel: callback | None = None
+        self._timer_cancel: CALLBACK_TYPE | None = None
 
     def evaluate(self, value: float) -> bool:
         """Evaluate threshold condition."""
@@ -68,7 +72,7 @@ class ThresholdTrigger(BaseTrigger):
         self._cancel_timer()
 
         @callback
-        def _timer_fired(_now) -> None:
+        def _timer_fired(_now: datetime) -> None:
             """Handle timer completion."""
             if self._threshold_exceeded:
                 _LOGGER.debug(

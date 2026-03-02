@@ -6,6 +6,7 @@ import json
 import logging
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
@@ -15,8 +16,8 @@ _LOGGER = logging.getLogger(__name__)
 
 def _build_export_object(
     hass: HomeAssistant,
-    entry,
-    coordinator_data: dict | None,
+    entry: ConfigEntry,
+    coordinator_data: dict[str, Any] | None,
     include_history: bool,
 ) -> dict[str, Any]:
     """Build a single object's export dict."""
@@ -105,9 +106,9 @@ def export_maintenance_data(
 
     if fmt == "yaml":
         try:
-            import yaml  # noqa: PLC0415
+            import yaml  # type: ignore[import-untyped]  # noqa: PLC0415
 
-            return yaml.safe_dump(data, default_flow_style=False, allow_unicode=True)
+            return str(yaml.safe_dump(data, default_flow_style=False, allow_unicode=True))
         except ImportError:
             _LOGGER.warning("PyYAML not available, falling back to JSON")
             return json.dumps(data, indent=2, ensure_ascii=False)
