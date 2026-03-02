@@ -98,9 +98,9 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
 
         # Instance-level mutable state (class attrs are just defaults)
-        self._triggers = []
-        self._trigger_states = {}
-        self._trigger_values = {}
+        self._triggers: list[BaseTrigger] = []
+        self._trigger_states: dict[str, bool] = {}
+        self._trigger_values: dict[str, Any] = {}
 
     @property
     def _trigger(self) -> BaseTrigger | None:

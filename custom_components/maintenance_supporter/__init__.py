@@ -352,7 +352,7 @@ async def async_setup_entry(
             hass, entry.entry_id, entry.data, store
         )
         if cleaned_data is not entry.data:
-            hass.config_entries.async_update_entry(entry, data=cleaned_data)
+            hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
 
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(

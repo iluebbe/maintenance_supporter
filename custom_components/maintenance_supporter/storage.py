@@ -11,6 +11,7 @@ remains in ConfigEntry.data and is only written on explicit user edits.
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -83,14 +84,17 @@ class MaintenanceStore:
 
     def _ensure_task(self, task_id: str) -> dict[str, Any]:
         """Ensure a task state dict exists and return it."""
-        tasks = self._data.setdefault("tasks", {})
+        tasks: dict[str, Any] = self._data.setdefault("tasks", {})
         if task_id not in tasks:
             tasks[task_id] = {}
-        return tasks[task_id]
+        result: dict[str, Any] = tasks[task_id]
+        return result
 
     def get_task_state(self, task_id: str) -> dict[str, Any]:
         """Return the dynamic state for a task (or empty dict)."""
-        return self._data.get("tasks", {}).get(task_id, {})
+        tasks: dict[str, Any] = self._data.get("tasks", {})
+        result: dict[str, Any] = tasks.get(task_id, {})
+        return result
 
     def init_task(
         self, task_id: str, last_performed: str | None = None
@@ -119,7 +123,8 @@ class MaintenanceStore:
 
     def get_history(self, task_id: str) -> list[dict[str, Any]]:
         """Return the history list for a task."""
-        return self.get_task_state(task_id).get("history", [])
+        result: list[dict[str, Any]] = self.get_task_state(task_id).get("history", [])
+        return result
 
     def append_history(self, task_id: str, entry: dict[str, Any]) -> None:
         """Append a history entry and trim to max size."""
@@ -156,9 +161,10 @@ class MaintenanceStore:
         Otherwise, return the whole trigger_runtime dict.
         """
         state = self.get_task_state(task_id)
-        runtime = state.get("trigger_runtime", {})
+        runtime: dict[str, Any] = state.get("trigger_runtime", {})
         if entity_id is not None:
-            return runtime.get(entity_id, {})
+            result: dict[str, Any] = runtime.get(entity_id, {})
+            return result
         return runtime
 
     def set_trigger_runtime(
@@ -263,9 +269,9 @@ def extract_dynamic_from_task(
 async def async_migrate_to_store(
     hass: HomeAssistant,
     entry_id: str,
-    entry_data: dict[str, Any],
+    entry_data: Mapping[str, Any],
     store: MaintenanceStore,
-) -> dict[str, Any]:
+) -> dict[str, Any] | Mapping[str, Any]:
     """Migrate dynamic state from ConfigEntry.data into a Store.
 
     Returns the cleaned static-only entry data (for updating the ConfigEntry).
