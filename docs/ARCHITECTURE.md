@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.6 | **~22,000 lines** across 58 source files (47 Python + 11 TypeScript) | **0 external Python dependencies** | **95% test coverage** (964 tests)
+**Version:** 0.3.8 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **95% test coverage** (1,005 tests)
 
 ---
 
@@ -58,6 +58,11 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 
 This enables per-object lifecycle management (add/remove objects independently) while sharing resources like the NotificationManager and panel registration.
 
+### Two-Tier Storage (ConfigEntry + Store)
+Static task configuration (name, type, interval, trigger thresholds) lives in `ConfigEntry.data` and is only written on explicit user edits. Frequently-changing dynamic state (history, last_performed, adaptive_config, trigger_runtime) lives in per-entry Store files (`.storage/maintenance_supporter.<entry_id>`), using debounced 1-second writes to minimize SD-card wear on Raspberry Pi.
+
+One-time idempotent migration on first load extracts dynamic fields from ConfigEntry.data into the Store. All consumers use `store.merge_all_tasks()` to recombine static + dynamic data at read time.
+
 ### Coordinator as Central Hub
 All data flows through `MaintenanceCoordinator` (one per object):
 - Periodic refresh every 5 minutes
@@ -66,6 +71,7 @@ All data flows through `MaintenanceCoordinator` (one per object):
 - Runs adaptive interval analysis and sensor predictions
 - Tracks entity availability with grace periods
 - Checks budget thresholds and sends notifications
+- Writes dynamic state to Store (debounced), static config to ConfigEntry
 
 ### Event-Driven + Periodic Hybrid
 Trigger sensors update immediately via HA state_change events, but the coordinator still refreshes periodically to:
@@ -89,9 +95,10 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                    (454 lines)  Integration setup, services, lifecycle
+├── __init__.py                    (486 lines)  Integration setup, services, lifecycle
 ├── const.py                       (272 lines)  Constants, enums, defaults
-├── coordinator.py                 (885 lines)  DataUpdateCoordinator per object
+├── coordinator.py                 (950 lines)  DataUpdateCoordinator per object
+├── storage.py                     (307 lines)  Per-entry Store (dynamic state, migration)
 │
 ├── config_flow.py                 (899 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py          (62 lines)  Shared config flow utilities
@@ -100,7 +107,7 @@ custom_components/maintenance_supporter/
 ├── config_flow_options_task.py  (1,270 lines)  Per-object task management
 ├── config_flow_trigger.py       (1,122 lines)  TriggerConfigMixin for trigger UI
 │
-├── sensor.py                      (461 lines)  MaintenanceSensor (enum, per task)
+├── sensor.py                      (297 lines)  MaintenanceSensor (enum, per task)
 ├── calendar.py                    (342 lines)  MaintenanceCalendar (global, all tasks)
 ├── entity/
 │   ├── entity_base.py              (56 lines)  CoordinatorEntity base class
@@ -237,13 +244,14 @@ Entity unavailable for 6+ refreshes (~30 min):
 Service call or WebSocket command
   └─> Find coordinator for entry
       └─> coordinator.complete_maintenance(task_id, notes, cost, duration)
+          ├─ Read merged task data (ConfigEntry static + Store dynamic)
           ├─ Append history entry (timestamp, type, notes, cost, duration, feedback)
           ├─ Update last_performed
           ├─ Reset trigger baseline (if counter trigger)
           ├─ Reset change count (if state_change trigger)
           ├─ Reset accumulated hours (if runtime trigger)
           ├─ Update adaptive config (if adaptive enabled)
-          ├─ hass.config_entries.async_update_entry(data=...)
+          ├─ Write dynamic state → Store (debounced 1s)
           └─> coordinator.async_request_refresh()
               └─> All entities update via CoordinatorEntity
 ```
@@ -271,8 +279,8 @@ All triggers share:
 - Attribute-based triggering (monitor an entity attribute instead of state)
 
 RuntimeTrigger additionally:
-- Persists `accumulated_seconds` + `on_since` to config entry for restart recovery
-- Periodic persistence every 5 minutes (minimizes data loss on crash)
+- Persists `accumulated_seconds` + `on_since` to Store for restart recovery
+- Periodic persistence every 5 minutes (debounced, minimizes data loss on crash)
 - Pauses accumulation when entity becomes unavailable
 - Configurable `on_states` (default: `["on"]`, customizable to `["running", "active"]` etc.)
 - Reset clears hours but keeps tracking if entity is still ON
@@ -283,7 +291,7 @@ All trigger types support multiple `entity_ids` with configurable `entity_logic`
 - **any** (default): Trigger activates when *any* entity meets the condition
 - **all**: Trigger activates only when *all* entities meet the condition
 
-Implementation: `create_triggers()` creates one trigger instance per entity_id. Per-entity runtime state (baselines, accumulated seconds, change counts) is persisted in a nested `_trigger_state` dict within `trigger_config`, keyed by entity_id. Legacy flat keys are auto-migrated on first load.
+Implementation: `create_triggers()` creates one trigger instance per entity_id. Per-entity runtime state (baselines, accumulated seconds, change counts) is persisted in the Store's `trigger_runtime` dict, keyed by entity_id. At read time, `merge_task_data()` injects this back into `trigger_config._trigger_state` for compatibility. Legacy flat keys in ConfigEntry are auto-migrated to Store on first load.
 
 ### Compound Triggers
 
@@ -397,7 +405,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (95%, 964 tests) |
+| test-coverage (>95%) | Silver | Yes (95%, 1,005 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -419,7 +427,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**964 tests** across **53 test files** with **95% code coverage** (5,979 statements, 308 uncovered).
+**1,005 tests** across **55 test files** with **95% code coverage**.
 
 ### Coverage by Module
 
@@ -508,6 +516,8 @@ All write commands fire events for subscription updates.
 | `test_issue_fixes.py` | ~15 | Regression tests for bug fixes |
 | `test_services.py` | ~8 | Complete, skip, reset services |
 | `test_calendar.py` | ~8 | Calendar basic tests |
+| `test_storage.py` | 29 | Store CRUD, merge helpers, extract_dynamic |
+| `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
 | `test_entity_lifecycle.py` | ~5 | Entity setup/teardown |
 | `test_qr_generation.py` | ~5 | QR URL building, SVG generation |
 
