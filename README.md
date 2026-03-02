@@ -94,6 +94,190 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 3. Follow the setup wizard to configure global settings
 4. Add maintenance objects and tasks through the sidebar panel or config flow
 
+For a complete list of all configurable parameters, see [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+
+## Supported Functions
+
+### Platforms
+
+- **Sensor** — one entity per maintenance task. State is an enum: `ok`, `due_soon`, `overdue`, `triggered`
+- **Calendar** — one global entity showing upcoming maintenance events for all tasks
+
+### Sensor Attributes
+
+Each sensor entity exposes attributes grouped by function:
+
+- **Schedule**: `interval_days`, `warning_days`, `days_until_due`, `next_due_date`, `last_performed`, `schedule_type`
+- **Trigger**: `trigger_type`, `trigger_active`, `trigger_current_value`, `trigger_entity_state` (per-entity availability)
+- **Adaptive**: `adaptive_enabled`, `suggested_interval`, `weibull_beta`, `weibull_reliability`, `seasonal_factor`
+- **Prediction**: `degradation_rate`, `predicted_trigger_date`, `environmental_factor`
+
+### Events
+
+- `maintenance_supporter_trigger_activated` — fired when a sensor trigger condition becomes true
+- `maintenance_supporter_trigger_deactivated` — fired when a sensor trigger condition clears
+
+### Services
+
+See the [Services](#services) table below for available service calls. For the full WebSocket API (32 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+
+## Data Updates
+
+The integration uses a hybrid push/poll update model:
+
+- **Coordinator refresh** — every 5 minutes, recomputes time-based status (due soon, overdue), runs adaptive predictions (Weibull, seasonal), checks budget thresholds, and detects missing entities
+- **Trigger sensors** — update immediately when monitored entities change state, via Home Assistant `state_changed` event listeners. No polling delay for sensor-based triggers
+- **Frontend** — receives real-time updates via WebSocket subscription (`maintenance_supporter/subscribe`). No browser polling
+- **IoT class**: `local_push` — all data is local, trigger updates are event-driven
+
+## Uninstalling
+
+1. Go to **Settings > Devices & Services > Maintenance Supporter**
+2. Click the three-dot menu on each object entry and the global entry, then select **Delete**
+3. Remove the `custom_components/maintenance_supporter/` directory from your HA config folder
+4. Restart Home Assistant
+
+> **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting the `sensor.maintenance_*` entities.
+
+## Use Cases
+
+### Car Maintenance — Oil Change by Mileage
+
+Track oil changes using a **counter trigger** in delta mode. Connect to an odometer entity (e.g., from an OBD-II integration) and set a target of 15,000 km. Each time you complete the task, the counter resets and begins accumulating from the current reading. A time-based interval of 365 days runs in parallel as a fallback.
+
+### HVAC Filter Replacement — Airflow Drop Detection
+
+Monitor a filter airflow sensor with a **threshold trigger** set to activate below 60%. Enable **adaptive scheduling** so the integration learns your actual replacement intervals. After 5+ replacements, Weibull analysis provides a reliability-based recommendation — replacing the filter before it degrades enough to trigger.
+
+### Pool Pump — Weekly Pressure Check with Threshold Alert
+
+Combine a time-based schedule (7-day interval for manual pressure checks) with a **threshold trigger** on a pressure sensor that activates above 1.5 bar. The time-based schedule handles routine inspections, while the trigger catches sudden pressure spikes between checks.
+
+### Washing Machine — Descaling Every 50 Cycles
+
+Use a **state change trigger** monitoring a binary sensor that tracks wash cycles (on → off transitions). Set the target to 50 changes. Each completion resets the counter. A parallel time-based interval of 180 days ensures descaling happens even if the machine is used less frequently than expected.
+
+## Examples
+
+### Automation: Notify on Overdue Task
+
+```yaml
+automation:
+  - alias: "Notify when maintenance is overdue"
+    trigger:
+      - platform: state
+        entity_id: sensor.maintenance_family_car_oil_change
+        to: "overdue"
+    action:
+      - service: notify.mobile_app_phone
+        data:
+          title: "Maintenance Overdue"
+          message: >
+            {{ state_attr('sensor.maintenance_family_car_oil_change', 'friendly_name') }}
+            is overdue by {{ state_attr('sensor.maintenance_family_car_oil_change', 'days_until_due') | abs }} days.
+```
+
+### Service Call: Complete a Task with Details
+
+```yaml
+service: maintenance_supporter.complete
+data:
+  entity_id: sensor.maintenance_hvac_system_filter_replacement
+  notes: "Replaced with HEPA filter model XYZ-400"
+  cost: 45.99
+  duration: 30
+```
+
+### Automation: Handle Mobile Notification Actions
+
+```yaml
+automation:
+  - alias: "Handle maintenance notification actions"
+    trigger:
+      - platform: event
+        event_type: mobile_app_notification_action
+    condition:
+      - condition: template
+        value_template: "{{ trigger.event.data.action.startswith('MS_') }}"
+    action:
+      - service: notify.mobile_app_phone
+        data:
+          message: "Maintenance action processed: {{ trigger.event.data.action }}"
+```
+
+> **Note:** Mobile notification actions (Complete, Skip, Snooze) are handled automatically by the integration when enabled in Notification Actions settings. The automation above is only needed for custom follow-up actions.
+
+### Lovelace Card
+
+```yaml
+type: custom:maintenance-card
+title: Maintenance Overview
+show_header: true
+```
+
+### Template Sensor: Count Overdue Tasks
+
+```yaml
+template:
+  - sensor:
+      - name: "Overdue Maintenance Tasks"
+        unit_of_measurement: "tasks"
+        state: >
+          {{ states.sensor
+             | selectattr('entity_id', 'match', 'sensor.maintenance_')
+             | selectattr('state', 'eq', 'overdue')
+             | list | count }}
+```
+
+## Known Limitations
+
+- **Adaptive scheduling**: EWA requires 2+ completions, suggestions appear after 3+, Weibull analysis requires 5+ completions, seasonal adjustment requires 6+ months of history spread across different months
+- **Sensor prediction**: Degradation rate analysis requires 10+ hourly recorder data points (approximately 10+ hours of data)
+- **Runtime trigger**: Accumulated hours are persisted every 5 minutes. Up to 5 minutes of runtime may be lost on an unclean shutdown or crash
+- **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
+- **Threshold debounce**: `trigger_for_minutes` timers are not restored across Home Assistant restarts. A restart during the debounce window resets the timer
+- **Budget tracking**: Numeric values only — there is no currency selector. The unit displayed is fixed to the symbol configured in the UI
+- **History pruning**: Maximum 50 history entries per task. Oldest entries are automatically removed when the limit is reached
+- **Panel visibility**: Changing the `panel_enabled` toggle requires a Home Assistant restart to take effect
+
+## Troubleshooting
+
+### Trigger Not Activating
+
+1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID
+2. Check the sensor's `trigger_entity_state` attribute — it shows per-entity availability (`available`, `unavailable`, `missing`)
+3. For threshold triggers with `trigger_for_minutes` > 0, the condition must hold continuously for that duration
+4. For compound triggers, check each sub-condition's status individually in the sensor attributes
+
+### Notifications Not Arriving
+
+1. Verify `notifications_enabled` is `true` and `notify_service` is set to a valid service (e.g., `notify.mobile_app_phone`)
+2. Check quiet hours — notifications are suppressed between `quiet_hours_start` and `quiet_hours_end`
+3. Check `max_notifications_per_day` — set to 0 for unlimited
+4. Use **Test Notification** in the global options to verify the service works
+5. Check the per-status enable toggles (`notify_due_soon_enabled`, etc.)
+
+### Sidebar Panel Not Visible
+
+1. Ensure `panel_enabled` is `true` in global settings
+2. **Restart Home Assistant** — panel registration requires a restart
+3. Clear browser cache (Ctrl+Shift+F5) after restart
+
+### Mobile Action Buttons Missing
+
+1. Enable action buttons in **Notification Actions** settings (`action_complete_enabled`, etc.)
+2. Verify you are using the HA Companion App (action buttons require the mobile app notification platform)
+
+### Debug Logging
+
+Add to `configuration.yaml` and restart:
+
+```yaml
+logger:
+  logs:
+    custom_components.maintenance_supporter: debug
+```
+
 ## Services
 
 | Service | Description |

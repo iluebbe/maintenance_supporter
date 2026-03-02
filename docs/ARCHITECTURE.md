@@ -395,10 +395,12 @@ All write commands fire events for subscription updates.
 | entity-unique-id | Bronze | Yes |
 | has-entity-name | Bronze | Yes |
 | runtime-data | Bronze | Yes |
+| docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
 | test-coverage (>95%) | Silver | Yes (95%, 964 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
+| docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
 | entity-device-class | Gold | Yes (SensorDeviceClass.ENUM) |
 | icon-translations | Gold | Yes (icons.json) |
 | stale-devices | Gold | Yes (async_remove_config_entry_device) |
@@ -406,6 +408,12 @@ All write commands fire events for subscription updates.
 | entity-category | Gold | Yes (calendar = DIAGNOSTIC) |
 | diagnostics | Gold | Yes (with PII redaction) |
 | repair-issues | Gold | Yes (missing trigger entities) |
+| docs-supported-functions | Gold | Yes (README → Supported Functions) |
+| docs-data-update | Gold | Yes (README → Data Updates) |
+| docs-use-cases | Gold | Yes (README → Use Cases) |
+| docs-examples | Gold | Yes (README → Examples) |
+| docs-known-limitations | Gold | Yes (README → Known Limitations) |
+| docs-troubleshooting | Gold | Yes (README → Troubleshooting) |
 
 ---
 
