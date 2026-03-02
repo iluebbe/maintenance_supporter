@@ -63,19 +63,14 @@ async def test_calendar_shows_time_based_event(
     """Test that time-based tasks appear as calendar events."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    calendar_state = hass.states.get("calendar.maintenance_supporter_maintenance_schedule")
-    if calendar_state is None:
-        # Try alternative entity ID formats
-        all_states = hass.states.async_all("calendar")
-        calendar_states = [s for s in all_states if DOMAIN in s.entity_id]
-        if calendar_states:
-            calendar_state = calendar_states[0]
-
-    # Calendar entity should exist
-    # The exact entity_id depends on how HA generates it from has_entity_name
-    # Just verify there's a calendar entity
-    all_calendar_states = hass.states.async_all("calendar")
-    assert len(all_calendar_states) >= 1
+    # Calendar entity is disabled by default, so check the entity registry
+    # instead of hass.states
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(
+        entity_reg, global_config_entry.entry_id
+    )
+    calendar_entities = [e for e in entities if e.domain == "calendar"]
+    assert len(calendar_entities) >= 1
 
 
 # ─── 8.3 Calendar with Overdue Task ─────────────────────────────────────

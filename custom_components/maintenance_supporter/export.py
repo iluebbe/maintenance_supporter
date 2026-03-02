@@ -93,7 +93,7 @@ def export_maintenance_data(
 
     objects = []
     for entry in entries:
-        rd = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+        rd = getattr(entry, "runtime_data", None)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
         objects.append(
             _build_export_object(hass, entry, coord_data, include_history)

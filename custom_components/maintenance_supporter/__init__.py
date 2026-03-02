@@ -11,7 +11,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import Event, HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import (
     config_validation as cv,
     device_registry as dr,
@@ -107,14 +107,14 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         entity_id = call.data[ATTR_ENTITY_ID]
         coordinator = _get_coordinator_for_entity(hass, entity_id)
         if coordinator is None:
-            raise HomeAssistantError(
+            raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="no_coordinator_for_entity",
                 translation_placeholders={"entity_id": entity_id},
             )
         task_id = _get_task_id_for_entity(hass, entity_id)
         if task_id is None:
-            raise HomeAssistantError(
+            raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="no_task_for_entity",
                 translation_placeholders={"entity_id": entity_id},
@@ -131,14 +131,14 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         entity_id = call.data[ATTR_ENTITY_ID]
         coordinator = _get_coordinator_for_entity(hass, entity_id)
         if coordinator is None:
-            raise HomeAssistantError(
+            raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="no_coordinator_for_entity",
                 translation_placeholders={"entity_id": entity_id},
             )
         task_id = _get_task_id_for_entity(hass, entity_id)
         if task_id is None:
-            raise HomeAssistantError(
+            raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="no_task_for_entity",
                 translation_placeholders={"entity_id": entity_id},
@@ -153,14 +153,14 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         entity_id = call.data[ATTR_ENTITY_ID]
         coordinator = _get_coordinator_for_entity(hass, entity_id)
         if coordinator is None:
-            raise HomeAssistantError(
+            raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="no_coordinator_for_entity",
                 translation_placeholders={"entity_id": entity_id},
             )
         task_id = _get_task_id_for_entity(hass, entity_id)
         if task_id is None:
-            raise HomeAssistantError(
+            raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="no_task_for_entity",
                 translation_placeholders={"entity_id": entity_id},
@@ -233,7 +233,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         entry_id = remainder[:26]
         task_id = remainder[27:]
 
-        runtime_data = hass.data.get(DOMAIN, {}).get(entry_id)
+        config_entry = hass.config_entries.async_get_entry(entry_id)
+        runtime_data = getattr(config_entry, "runtime_data", None) if config_entry else None
         if not runtime_data or not hasattr(runtime_data, "coordinator") or not runtime_data.coordinator:
             _LOGGER.warning(
                 "No coordinator found for notification action (entry_id=%s)", entry_id
@@ -339,9 +340,6 @@ async def async_setup_entry(
         entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator)
         await coordinator.async_config_entry_first_refresh()
 
-        # Store reference for calendar/service lookups
-        hass.data[DOMAIN][entry.entry_id] = entry.runtime_data
-
         _LOGGER.debug(
             "Maintenance object entry set up: %s (%s)",
             entry.title,
@@ -372,9 +370,6 @@ async def async_unload_entry(
         await async_unregister_panel(hass)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-
-    if unload_ok and entry.unique_id != GLOBAL_UNIQUE_ID:
-        hass.data[DOMAIN].pop(entry.entry_id, None)
 
     # Clean up domain data if no entries left
     if not hass.config_entries.async_entries(DOMAIN):
@@ -409,7 +404,11 @@ def _get_coordinator_for_entity(
     if config_entry_id is None:
         return None
 
-    runtime_data: MaintenanceSupporterData | None = hass.data.get(DOMAIN, {}).get(config_entry_id)
+    config_entry = hass.config_entries.async_get_entry(config_entry_id)
+    if config_entry is None:
+        return None
+
+    runtime_data: MaintenanceSupporterData | None = getattr(config_entry, "runtime_data", None)
     if runtime_data is None:
         return None
 

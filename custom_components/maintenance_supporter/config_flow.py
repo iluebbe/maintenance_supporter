@@ -297,6 +297,80 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             },
         )
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Allow user to reconfigure object settings."""
+        entry = self._get_reconfigure_entry()
+        obj_data = dict(entry.data.get(CONF_OBJECT, {}))
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            name = user_input[CONF_OBJECT_NAME]
+            # Validate unique name (skip self)
+            for other in self.hass.config_entries.async_entries(DOMAIN):
+                if (
+                    other.entry_id != entry.entry_id
+                    and other.unique_id != GLOBAL_UNIQUE_ID
+                ):
+                    if (
+                        other.data.get(CONF_OBJECT, {})
+                        .get("name", "")
+                        .lower()
+                        == name.lower()
+                    ):
+                        errors["base"] = "name_exists"
+                        break
+
+            if not errors:
+                obj_data["name"] = name
+                obj_data["area_id"] = user_input.get(CONF_OBJECT_AREA)
+                obj_data["manufacturer"] = user_input.get(CONF_OBJECT_MANUFACTURER)
+                obj_data["model"] = user_input.get(CONF_OBJECT_MODEL)
+                obj_data["installation_date"] = user_input.get(
+                    CONF_OBJECT_INSTALLATION_DATE
+                )
+
+                new_data = dict(entry.data)
+                new_data[CONF_OBJECT] = obj_data
+                return self.async_update_reload_and_abort(
+                    entry, data=new_data, title=name
+                )
+
+        suggested: dict[str, Any] = {
+            CONF_OBJECT_NAME: obj_data.get("name", ""),
+            CONF_OBJECT_MANUFACTURER: obj_data.get("manufacturer", ""),
+            CONF_OBJECT_MODEL: obj_data.get("model", ""),
+        }
+        if obj_data.get("area_id"):
+            suggested[CONF_OBJECT_AREA] = obj_data["area_id"]
+        if obj_data.get("installation_date"):
+            suggested[CONF_OBJECT_INSTALLATION_DATE] = obj_data[
+                "installation_date"
+            ]
+
+        schema = self.add_suggested_values_to_schema(
+            vol.Schema(
+                {
+                    vol.Required(CONF_OBJECT_NAME): str,
+                    vol.Optional(CONF_OBJECT_AREA): selector.AreaSelector(),
+                    vol.Optional(CONF_OBJECT_MANUFACTURER): str,
+                    vol.Optional(CONF_OBJECT_MODEL): str,
+                    vol.Optional(
+                        CONF_OBJECT_INSTALLATION_DATE,
+                    ): selector.DateSelector(),
+                }
+            ),
+            suggested,
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"name": entry.title},
+        )
+
     async def async_step_websocket(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:

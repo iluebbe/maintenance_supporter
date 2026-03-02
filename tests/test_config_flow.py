@@ -25,6 +25,11 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
+    CONF_OBJECT_AREA,
+    CONF_OBJECT_INSTALLATION_DATE,
+    CONF_OBJECT_MANUFACTURER,
+    CONF_OBJECT_MODEL,
+    CONF_OBJECT_NAME,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_NAME,
     CONF_TASK_SCHEDULE_TYPE,
@@ -50,7 +55,15 @@ from custom_components.maintenance_supporter.const import (
     TriggerType,
 )
 
-from .conftest import build_global_entry_data
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from .conftest import (
+    build_global_entry_data,
+    build_object_data,
+    build_object_entry_data,
+    build_task_data,
+    setup_integration,
+)
 
 
 # ─── 3.1 Global Setup ───────────────────────────────────────────────────
@@ -750,3 +763,118 @@ def test_format_threshold_placeholders_output() -> None:
     assert "average" in result
     assert "suggested_above" in result
     assert "suggested_below" in result
+
+
+# ─── Reconfigure Flow ───────────────────────────────────────────────────
+
+
+async def test_reconfigure_shows_form(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that the reconfigure flow shows a form with the current values."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": object_config_entry.entry_id,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+
+async def test_reconfigure_updates_object(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that submitting the reconfigure flow updates the entry."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": object_config_entry.entry_id,
+        },
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_OBJECT_NAME: "Updated Pool Pump",
+            CONF_OBJECT_MANUFACTURER: "AquaTech",
+            CONF_OBJECT_MODEL: "X200",
+        },
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+
+
+async def test_reconfigure_duplicate_name(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that reconfigure rejects a name already used by another entry."""
+    # Create a second object entry
+    entry2 = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Heater",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Heater", object_id="b" * 32),
+            tasks={},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_heater",
+    )
+    entry2.add_to_hass(hass)
+
+    await setup_integration(hass, global_config_entry, object_config_entry, entry2)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": object_config_entry.entry_id,
+        },
+    )
+
+    # Try to rename to the other entry's name
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_OBJECT_NAME: "Heater"},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "name_exists"}
+
+
+async def test_reconfigure_same_name_allowed(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Test that keeping the same name does not trigger duplicate error."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": object_config_entry.entry_id,
+        },
+    )
+
+    # Submit with the same name
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_OBJECT_NAME: "Pool Pump"},
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"

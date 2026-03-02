@@ -1002,7 +1002,7 @@ async def test_state_change_sensor_exposes_change_count(
     await hass.async_block_till_done()
 
     # Force coordinator refresh so entity state gets updated
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = entry.runtime_data
     if runtime and runtime.coordinator:
         await runtime.coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -1252,7 +1252,7 @@ async def test_coordinator_fallback_evaluates_threshold(
     entity_id = sensor_entities[0].entity_id
 
     # After coordinator refresh, trigger should be active via fallback
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = entry.runtime_data
     if runtime and runtime.coordinator:
         await runtime.coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -1311,7 +1311,7 @@ async def test_coordinator_fallback_evaluates_counter_delta(
     entity_id = sensor_entities[0].entity_id
 
     # After coordinator refresh, counter condition should be evaluated
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = entry.runtime_data
     if runtime and runtime.coordinator:
         await runtime.coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -1373,7 +1373,7 @@ async def test_coordinator_fallback_threshold_with_for_minutes_skips_activation(
     entity_id = sensor_entities[0].entity_id
 
     # Coordinator should NOT activate trigger (for_minutes > 0)
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = entry.runtime_data
     if runtime and runtime.coordinator:
         await runtime.coordinator.async_refresh()
         await hass.async_block_till_done()

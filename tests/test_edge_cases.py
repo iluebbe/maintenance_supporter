@@ -260,7 +260,7 @@ async def test_disabled_task_always_ok(
     await setup_integration(hass, global_config_entry, entry)
 
     # Check coordinator data
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime = entry.runtime_data
     if runtime and runtime.coordinator and runtime.coordinator.data:
         task_result = runtime.coordinator.data.get("tasks", {}).get(TASK_ID_1, {})
         assert task_result.get("_status") == MaintenanceStatus.OK
@@ -350,7 +350,7 @@ async def test_coordinator_complete_unknown_task(
     """Test that completing unknown task does nothing."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    runtime = hass.data.get(DOMAIN, {}).get(object_config_entry.entry_id)
+    runtime = object_config_entry.runtime_data
     if runtime and runtime.coordinator:
         # Should not raise
         await runtime.coordinator.complete_maintenance(
@@ -366,7 +366,7 @@ async def test_coordinator_persist_trigger_runtime(
     """Test persisting trigger runtime data."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    runtime = hass.data.get(DOMAIN, {}).get(object_config_entry.entry_id)
+    runtime = object_config_entry.runtime_data
     if runtime and runtime.coordinator:
         await runtime.coordinator.async_persist_trigger_runtime(
             TASK_ID_1,

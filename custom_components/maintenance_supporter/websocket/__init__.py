@@ -38,7 +38,10 @@ def _get_object_entries(hass: HomeAssistant) -> list[ConfigEntry]:
 
 def _get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporterData | None:
     """Get runtime data for a config entry."""
-    result: MaintenanceSupporterData | None = hass.data.get(DOMAIN, {}).get(entry_id)
+    config_entry = hass.config_entries.async_get_entry(entry_id)
+    if config_entry is None:
+        return None
+    result: MaintenanceSupporterData | None = getattr(config_entry, "runtime_data", None)
     return result
 
 

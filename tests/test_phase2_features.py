@@ -389,7 +389,7 @@ class TestMaintenanceChecklists:
         """Test completing a task with checklist state saves in history."""
         await setup_integration(hass, global_config_entry, object_with_checklist)
 
-        rd = hass.data.get(DOMAIN, {}).get(object_with_checklist.entry_id)
+        rd = object_with_checklist.runtime_data
         assert rd is not None
         assert rd.coordinator is not None
 

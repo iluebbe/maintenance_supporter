@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -24,14 +23,17 @@ from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .entity.triggers import BaseTrigger, RuntimeTrigger, create_triggers, normalize_entity_ids
 
+if TYPE_CHECKING:
+    from . import MaintenanceSupporterConfigEntry
+
 _LOGGER = logging.getLogger(__name__)
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: MaintenanceSupporterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensor entities for a maintenance object."""
@@ -39,7 +41,7 @@ async def async_setup_entry(
     if entry.unique_id == GLOBAL_UNIQUE_ID:
         return
 
-    runtime_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    runtime_data = entry.runtime_data
     if runtime_data is None or runtime_data.coordinator is None:
         _LOGGER.error("No coordinator found for entry %s", entry.entry_id)
         return

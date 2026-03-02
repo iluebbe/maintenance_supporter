@@ -273,8 +273,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Check budget alerts
         await self._async_check_budget(result[CONF_TASKS])
 
-        # Notify calendar entity if registered
-        if self._calendar_entity is not None:
+        # Notify calendar entity if registered and added to hass
+        if self._calendar_entity is not None and self._calendar_entity.hass is not None:
             self._calendar_entity.async_write_ha_state()
 
         return result

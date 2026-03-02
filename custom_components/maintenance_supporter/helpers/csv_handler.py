@@ -52,7 +52,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
         obj_data = entry.data.get(CONF_OBJECT, {})
         tasks_data = entry.data.get(CONF_TASKS, {})
 
-        rd = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+        rd = getattr(entry, "runtime_data", None)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
         ct_tasks = (coord_data or {}).get(CONF_TASKS, {})
 

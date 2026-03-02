@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.diagnostics import async_redact_data
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
@@ -17,6 +16,9 @@ from .const import (
     MaintenanceStatus,
     TriggerEntityState,
 )
+
+if TYPE_CHECKING:
+    from . import MaintenanceSupporterConfigEntry
 
 # Fields to redact from diagnostics
 TO_REDACT = {
@@ -30,7 +32,7 @@ TO_REDACT = {
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry
+    hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     is_global = entry.unique_id == GLOBAL_UNIQUE_ID
@@ -58,7 +60,7 @@ async def async_get_config_entry_diagnostics(
         diag["data_quality"] = _check_data_quality(entry.data)
 
         # Coordinator info
-        runtime_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+        runtime_data = getattr(entry, "runtime_data", None)
         if runtime_data and runtime_data.coordinator:
             coord = runtime_data.coordinator
             diag["coordinator"] = {
@@ -85,7 +87,7 @@ def _get_integration_overview(hass: HomeAssistant) -> dict[str, Any]:
         tasks = entry.data.get(CONF_TASKS, {})
         total_tasks += len(tasks)
 
-        runtime_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+        runtime_data = getattr(entry, "runtime_data", None)
         if runtime_data and runtime_data.coordinator and runtime_data.coordinator.data:
             for task_data in runtime_data.coordinator.data.get("tasks", {}).values():
                 status = task_data.get("_status")

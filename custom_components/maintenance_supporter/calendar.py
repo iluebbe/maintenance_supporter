@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
@@ -23,9 +23,12 @@ from .const import (
 )
 from .models.maintenance_task import MaintenanceTask
 
+if TYPE_CHECKING:
+    from . import MaintenanceSupporterConfigEntry
+
 _LOGGER = logging.getLogger(__name__)
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 # Status to emoji/prefix mapping
 STATUS_PREFIX: dict[str, str] = {
@@ -141,14 +144,14 @@ def _cal_t(key: str, lang: str, **kwargs: str) -> str:
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: MaintenanceSupporterConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up calendar entity."""
     # Only create calendar for the global entry
     if entry.unique_id != GLOBAL_UNIQUE_ID:
         # Register this object's coordinator with existing calendar
-        runtime_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+        runtime_data = entry.runtime_data
         if runtime_data and runtime_data.coordinator:
             calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
             if calendar:
@@ -160,11 +163,12 @@ async def async_setup_entry(
     async_add_entities([calendar])
 
     # Register calendar with existing coordinators
-    for entry_id, data in hass.data.get(DOMAIN, {}).items():
-        if entry_id.startswith("_"):
+    for other_entry in hass.config_entries.async_entries(DOMAIN):
+        if other_entry.unique_id == GLOBAL_UNIQUE_ID:
             continue
-        if hasattr(data, "coordinator") and data.coordinator:
-            data.coordinator.register_calendar_entity(calendar)
+        other_data = getattr(other_entry, "runtime_data", None)
+        if other_data and hasattr(other_data, "coordinator") and other_data.coordinator:
+            other_data.coordinator.register_calendar_entity(calendar)
 
     _LOGGER.debug("Maintenance calendar entity created")
 
@@ -172,10 +176,11 @@ async def async_setup_entry(
 class MaintenanceCalendar(CalendarEntity):
     """Calendar entity aggregating all maintenance tasks."""
 
-    _attr_has_entity_name = True
+    _attr_name = "Maintenance Schedule"
     _attr_unique_id = "maintenance_supporter_calendar"
     _attr_translation_key = "maintenance_schedule"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the calendar."""
@@ -234,7 +239,7 @@ class MaintenanceCalendar(CalendarEntity):
 
             # Use live coordinator data (has trigger state) if available,
             # fall back to config entry data
-            runtime_data = self._hass.data.get(DOMAIN, {}).get(entry.entry_id)
+            runtime_data = getattr(entry, "runtime_data", None)
             if (
                 runtime_data
                 and hasattr(runtime_data, "coordinator")

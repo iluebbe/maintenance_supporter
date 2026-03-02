@@ -352,6 +352,24 @@
           "notes": "Additional notes or instructions for this task.",
           "go_back": "Return to task creation without saving."
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure {name}",
+        "description": "Update the settings for this maintenance object.",
+        "data": {
+          "name": "Object name",
+          "area_id": "Area",
+          "manufacturer": "Manufacturer",
+          "model": "Model",
+          "installation_date": "Installation date"
+        },
+        "data_description": {
+          "name": "The name of this maintenance object.",
+          "area_id": "The area where this object is located.",
+          "manufacturer": "The manufacturer of this object.",
+          "model": "The model of this object.",
+          "installation_date": "When this object was installed."
+        }
       }
     },
     "error": {
@@ -368,7 +386,9 @@
       "already_configured": "This maintenance object is already configured.",
       "global_already_exists": "Global settings already configured.",
       "template_not_found": "The selected template was not found.",
-      "missing_data": "Required data was not provided."
+      "missing_data": "Required data was not provided.",
+      "reconfigure_successful": "Configuration updated successfully.",
+      "reconfigure_cancelled": "Reconfiguration cancelled."
     }
   },
   "options": {
