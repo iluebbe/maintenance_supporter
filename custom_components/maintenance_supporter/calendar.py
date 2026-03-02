@@ -293,7 +293,7 @@ class MaintenanceCalendar(CalendarEntity):
     @property
     def _lang(self) -> str:
         """Get the HA language."""
-        return self._hass.config.language or "en"
+        return (self._hass.config.language or "en")[:2].lower()
 
     def _create_event_for_task(
         self,

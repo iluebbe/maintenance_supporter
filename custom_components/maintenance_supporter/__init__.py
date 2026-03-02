@@ -221,7 +221,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         # Parse action: MS_COMPLETE_{entry_id}_{task_id}
         #                MS_SKIP_{entry_id}_{task_id}
         #                MS_SNOOZE_{entry_id}_{task_id}
-        # entry_id is a 26-char ULID, task_id is a 32-char UUID hex
+        # entry_id is a 32-char hex UUID, task_id is a 32-char hex UUID
         if action.startswith("MS_COMPLETE_"):
             action_type = "complete"
             remainder = action[len("MS_COMPLETE_"):]

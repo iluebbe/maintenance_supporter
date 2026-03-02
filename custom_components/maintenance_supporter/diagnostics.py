@@ -157,30 +157,35 @@ def _check_trigger_status(
         if not trigger_config:
             continue
 
-        entity_id = trigger_config.get("entity_id")
-        if not entity_id:
+        entity_ids: list[str] = trigger_config.get(
+            "entity_ids", []
+        )
+        if not entity_ids:
+            single = trigger_config.get("entity_id")
+            entity_ids = [single] if single else []
+        if not entity_ids:
             continue
 
-        state = hass.states.get(entity_id)
+        for eid in entity_ids:
+            state = hass.states.get(eid)
 
-        # Determine consolidated entity_health
-        if state is None:
-            entity_health = TriggerEntityState.MISSING
-        elif state.state in ("unavailable", "unknown"):
-            entity_health = TriggerEntityState.UNAVAILABLE
-        else:
-            entity_health = TriggerEntityState.AVAILABLE
+            if state is None:
+                entity_health = TriggerEntityState.MISSING
+            elif state.state in ("unavailable", "unknown"):
+                entity_health = TriggerEntityState.UNAVAILABLE
+            else:
+                entity_health = TriggerEntityState.AVAILABLE
 
-        results.append(
-            {
-                "task_id": task_id,
-                "trigger_entity": entity_id,
-                "trigger_type": trigger_config.get("type"),
-                "entity_available": state is not None,
-                "entity_state": state.state if state else None,
-                "entity_health": entity_health,
-            }
-        )
+            results.append(
+                {
+                    "task_id": task_id,
+                    "trigger_entity": eid,
+                    "trigger_type": trigger_config.get("type"),
+                    "entity_available": state is not None,
+                    "entity_state": state.state if state else None,
+                    "entity_health": entity_health,
+                }
+            )
 
     return results
 

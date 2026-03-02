@@ -205,6 +205,9 @@ class MaintenanceStore:
 
         # Merge trigger_runtime into trigger_config._trigger_state
         trigger_runtime = state.get("trigger_runtime")
+        if not trigger_runtime:
+            # Fall back to legacy flat runtime keys if no per-entity data yet
+            trigger_runtime = state.get("trigger_runtime_legacy")
         if trigger_runtime and "trigger_config" in result:
             tc = dict(result["trigger_config"])
             tc["_trigger_state"] = trigger_runtime

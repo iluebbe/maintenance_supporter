@@ -19,7 +19,7 @@ async def _async_file_hash(hass: HomeAssistant, path: Path) -> str:
     """Return a short hash of a file for cache busting."""
     try:
         content = await hass.async_add_executor_job(path.read_bytes)
-        return hashlib.md5(content).hexdigest()[:8]  # noqa: S324
+        return hashlib.sha256(content).hexdigest()[:8]
     except OSError:
         return "0"
 

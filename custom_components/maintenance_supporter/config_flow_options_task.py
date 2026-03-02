@@ -535,7 +535,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         current_states = ", ".join(state_parts) if state_parts else "—"
 
         trigger_type = tc.get("type", "unknown")
-        attribute = tc.get("trigger_attribute", "state")
+        attribute = tc.get("attribute") or "state"
 
         config_parts = self._build_trigger_config_parts(tc)
         config_details = "\n".join(config_parts) if config_parts else "—"
