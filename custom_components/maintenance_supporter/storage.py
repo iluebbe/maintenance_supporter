@@ -23,7 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 
 STORE_VERSION = 1
 STORE_KEY_PREFIX = f"{DOMAIN}"
-STORE_SAVE_DELAY = 1.0  # seconds — debounce for rapid updates
+STORE_SAVE_DELAY = 60.0  # seconds — debounce writes to protect SD cards
 
 # Fields that migrate from ConfigEntry.data to Store
 _DYNAMIC_TASK_FIELDS = ("last_performed", "history", "adaptive_config")

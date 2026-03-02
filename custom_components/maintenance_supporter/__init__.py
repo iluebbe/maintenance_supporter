@@ -264,7 +264,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             if nm is not None:
                 nm.snooze_task(entry_id, task_id)
 
-    hass.bus.async_listen(
+    unsub_notification = hass.bus.async_listen(
         "mobile_app_notification_action", _handle_notification_action
     )
 
@@ -308,7 +308,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         # No match found — not our tag, ignore silently
 
-    hass.bus.async_listen("tag_scanned", _handle_tag_scanned)
+    unsub_tag = hass.bus.async_listen("tag_scanned", _handle_tag_scanned)
+
+    # Store unsub callbacks so they can be cleaned up when domain is unloaded
+    hass.data[DOMAIN]["_event_unsubs"] = [unsub_notification, unsub_tag]
 
     return True
 
@@ -438,6 +441,8 @@ async def async_unload_entry(
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is not None:
             await nm.async_unload()
+        for unsub in hass.data.get(DOMAIN, {}).get("_event_unsubs", []):
+            unsub()
         hass.data.pop(DOMAIN, None)
 
     return unload_ok
