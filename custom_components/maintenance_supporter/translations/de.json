@@ -14,14 +14,22 @@
         "title": "Vorlagenkategorie auswählen",
         "description": "Wählen Sie eine Kategorie, um vordefinierte Wartungsvorlagen zu durchsuchen.",
         "data": {
-          "template_category": "Kategorie"
+          "template_category": "Kategorie",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
       },
       "template_select": {
         "title": "Vorlage auswählen",
         "description": "Wählen Sie eine Wartungsvorlage als Ausgangspunkt.",
         "data": {
-          "template_id": "Vorlage"
+          "template_id": "Vorlage",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "go_back": "Zurück zur Kategorieauswahl ohne zu speichern."
         }
       },
       "template_customize": {
@@ -31,13 +39,15 @@
           "name": "Objektname",
           "area_id": "Bereich",
           "manufacturer": "Hersteller",
-          "model": "Modell"
+          "model": "Modell",
+          "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein Name für dieses Wartungsobjekt.",
           "area_id": "Der Bereich, in dem sich dieses Objekt befindet.",
           "manufacturer": "Der Hersteller des Objekts.",
-          "model": "Die Modellbezeichnung oder -nummer."
+          "model": "Die Modellbezeichnung oder -nummer.",
+          "go_back": "Zurück zur Vorlagenauswahl ohne zu speichern."
         }
       },
       "global_setup": {
@@ -62,14 +72,16 @@
           "area_id": "Bereich",
           "manufacturer": "Hersteller",
           "model": "Modell",
-          "installation_date": "Installationsdatum"
+          "installation_date": "Installationsdatum",
+          "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein eindeutiger Name für dieses Wartungsobjekt (z.B. 'Poolpumpe', 'Auto').",
           "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
           "manufacturer": "Der Hersteller des Objekts.",
           "model": "Die Modellbezeichnung oder -nummer.",
-          "installation_date": "Wann dieses Objekt installiert oder gekauft wurde."
+          "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
+          "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
       },
       "task_menu": {
@@ -86,12 +98,14 @@
         "data": {
           "name": "Aufgabenname",
           "type": "Wartungstyp",
-          "schedule_type": "Planungsart"
+          "schedule_type": "Planungsart",
+          "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
           "type": "Die Kategorie der Wartungsarbeit.",
-          "schedule_type": "Wie diese Aufgabe geplant werden soll."
+          "schedule_type": "Wie diese Aufgabe geplant werden soll.",
+          "go_back": "Zurück zum Aufgabenmenü ohne zu speichern."
         }
       },
       "time_based": {
@@ -100,42 +114,50 @@
         "data": {
           "interval_days": "Intervall (Tage)",
           "last_performed": "Zuletzt durchgeführt",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn noch nie durchgeführt.",
-          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern."
         }
       },
       "sensor_select": {
         "title": "Trigger-Sensor auswählen",
         "description": "Wählen Sie eine Home Assistant Entität zur Überwachung für diese Wartungsaufgabe.",
         "data": {
-          "trigger_entity": "Zu überwachende Entität"
+          "trigger_entity": "Zu überwachende Entität",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "trigger_entity": "Wählen Sie die Sensorentität, die diese Wartungsaufgabe auslösen soll."
+          "trigger_entity": "Wählen Sie die Sensorentität, die diese Wartungsaufgabe auslösen soll.",
+          "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern."
         }
       },
       "sensor_attribute": {
         "title": "Attribut auswählen",
         "description": "Wählen Sie, welcher Wert von {entity_id} überwacht werden soll. Aktueller Zustand: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Zu überwachender Wert"
+          "trigger_attribute": "Zu überwachender Wert",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "trigger_attribute": "Wählen Sie den Entitätszustand oder ein bestimmtes Attribut zur Überwachung."
+          "trigger_attribute": "Wählen Sie den Entitätszustand oder ein bestimmtes Attribut zur Überwachung.",
+          "go_back": "Zurück zur Entitätsauswahl ohne zu speichern."
         }
       },
       "trigger_type": {
         "title": "Trigger-Typ",
         "description": "Wie soll der Sensorwert die Wartung auslösen?",
         "data": {
-          "trigger_type": "Trigger-Typ"
+          "trigger_type": "Trigger-Typ",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "trigger_type": "Schwellwert: löst aus, wenn der Wert Grenzen überschreitet. Zähler: löst nach Erreichen eines Zielwerts aus. Zustandswechsel: löst nach einer Anzahl von Zustandsübergängen aus."
+          "trigger_type": "Schwellwert: löst aus, wenn der Wert Grenzen überschreitet. Zähler: löst nach Erreichen eines Zielwerts aus. Zustandswechsel: löst nach einer Anzahl von Zustandsübergängen aus.",
+          "go_back": "Zurück zur Attributauswahl ohne zu speichern."
         }
       },
       "trigger_threshold": {
@@ -146,14 +168,16 @@
           "trigger_below": "Auslösen wenn unter",
           "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellwert überschreitet.",
           "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellwert fällt.",
           "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Anzahl Minuten überschreiten, bevor ausgelöst wird.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Trigger.",
-          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
       "trigger_counter": {
@@ -163,13 +187,15 @@
           "trigger_target_value": "Zielwert",
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_target_value": "Wartung auslösen, wenn dieser akkumulierte Wert erreicht ist.",
           "trigger_delta_mode": "Wenn aktiviert, wird die Differenz ab einer Basislinie gezählt statt des absoluten Werts.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Trigger.",
-          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
       "trigger_state_change": {
@@ -180,14 +206,16 @@
           "trigger_to_state": "Zu Zustand (optional)",
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
           "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
           "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung der Wartung.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandswechsel-Trigger.",
-          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird."
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
       "trigger_runtime": {
@@ -197,43 +225,51 @@
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
           "trigger_on_states": "Welche Sensor-Zustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Trigger.",
-          "warning_days": "Anzahl Tage vor Fälligkeit für Warnung."
+          "warning_days": "Anzahl Tage vor Fälligkeit für Warnung.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
         "data": {
-          "compound_logic": "Logik"
+          "compound_logic": "Logik",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt."
+          "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
       "compound_condition_entity": {
         "title": "Bedingung #{condition_num} — Entität",
         "description": "Wählen Sie die Entität für diese Bedingung.",
         "data": {
-          "trigger_entity": "Entität"
+          "trigger_entity": "Entität",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll."
+          "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll.",
+          "go_back": "Zurück zum vorherigen Schritt ohne zu speichern."
         }
       },
       "compound_condition_type": {
         "title": "Bedingung #{condition_num} — Typ",
         "description": "Wie soll diese Bedingung den Sensor auswerten?",
         "data": {
-          "trigger_type": "Trigger-Typ"
+          "trigger_type": "Trigger-Typ",
+          "go_back": "Zurück"
         },
         "data_description": {
-          "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst."
+          "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst.",
+          "go_back": "Zurück zur Entitätsauswahl ohne zu speichern."
         }
       },
       "compound_condition_threshold": {
@@ -241,23 +277,27 @@
         "data": {
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
-          "trigger_for_minutes": "Dauer (Minuten)"
+          "trigger_for_minutes": "Dauer (Minuten)",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_above": "Auslösen, wenn der Wert diesen Schwellwert überschreitet.",
           "trigger_below": "Auslösen, wenn der Wert unter diesen Schwellwert fällt.",
-          "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Dauer überschreiten."
+          "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Dauer überschreiten.",
+          "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
         }
       },
       "compound_condition_counter": {
         "title": "Bedingung — Zähler",
         "data": {
           "trigger_target_value": "Zielwert",
-          "trigger_delta_mode": "Delta-Modus"
+          "trigger_delta_mode": "Delta-Modus",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_target_value": "Auslösen, wenn der akkumulierte Wert dieses Ziel erreicht.",
-          "trigger_delta_mode": "Änderungen ab einer Basislinie zählen statt des absoluten Werts."
+          "trigger_delta_mode": "Änderungen ab einer Basislinie zählen statt des absoluten Werts.",
+          "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
         }
       },
       "compound_condition_state_change": {
@@ -265,30 +305,38 @@
         "data": {
           "trigger_from_state": "Von Zustand",
           "trigger_to_state": "Zu Zustand",
-          "trigger_target_changes": "Anzahl der Wechsel"
+          "trigger_target_changes": "Anzahl der Wechsel",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
           "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
-          "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung."
+          "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung.",
+          "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
         }
       },
       "compound_condition_runtime": {
         "title": "Bedingung — Laufzeit",
         "data": {
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
-          "trigger_on_states": "Aktive Zustände"
+          "trigger_on_states": "Aktive Zustände",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_runtime_hours": "Auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
-          "trigger_on_states": "Sensorzustände, die als 'aktiv' gezählt werden. Leer lassen für Standard."
+          "trigger_on_states": "Sensorzustände, die als 'aktiv' gezählt werden. Leer lassen für Standard.",
+          "go_back": "Zurück zur Bedingungstyp-Auswahl ohne zu speichern."
         }
       },
       "compound_review": {
         "title": "Kombinierter Trigger — Überprüfung",
         "description": "{condition_count} Bedingung(en) mit {compound_logic}-Logik konfiguriert.",
         "data": {
-          "compound_action": "Aktion"
+          "compound_action": "Aktion",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "go_back": "Zurück zur Logikauswahl ohne zu speichern."
         }
       },
       "manual": {
@@ -296,11 +344,13 @@
         "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
         "data": {
           "warning_days": "Warntage vor Fälligkeit",
-          "notes": "Notizen"
+          "notes": "Notizen",
+          "go_back": "Zurück"
         },
         "data_description": {
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
-          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe."
+          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe.",
+          "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern."
         }
       }
     },

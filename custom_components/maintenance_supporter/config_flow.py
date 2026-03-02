@@ -141,6 +141,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
     ) -> ConfigFlowResult:
         """Step 1: Select a template category."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_user()
             self._template_category = user_input["template_category"]
             return await self.async_step_template_select()
 
@@ -163,6 +165,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             mode=selector.SelectSelectorMode.LIST,
                         )
                     ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )
@@ -172,6 +175,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
     ) -> ConfigFlowResult:
         """Step 2: Select a template from the chosen category."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_create_from_template()
             template = get_template_by_id(user_input["template_id"])
             if template is None:
                 return self.async_abort(reason="template_not_found")
@@ -197,6 +202,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             mode=selector.SelectSelectorMode.LIST,
                         )
                     ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )
@@ -209,6 +215,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         template = self._selected_template
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_template_select()
+
             name = user_input[CONF_OBJECT_NAME]
 
             # Validate unique name
@@ -275,6 +284,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             type=selector.TextSelectorType.TEXT
                         )
                     ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
@@ -316,6 +326,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_user()
+
             name = user_input[CONF_OBJECT_NAME]
 
             # Validate unique name
@@ -363,6 +376,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(
                         CONF_OBJECT_INSTALLATION_DATE
                     ): selector.DateSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
@@ -386,6 +400,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
     ) -> ConfigFlowResult:
         """Add a maintenance task."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_task_menu()
+
             self._current_task = {
                 "id": uuid4().hex,
                 CONF_TASK_NAME: user_input[CONF_TASK_NAME],
@@ -431,6 +448,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             translation_key="schedule_type",
                         )
                     ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -445,6 +463,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_add_task()
+
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS, DEFAULT_INTERVAL_DAYS)
             if interval <= 0:
                 errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
@@ -484,6 +505,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
@@ -495,6 +517,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select sensor entity for trigger."""
+        self._on_cancel = lambda: self.async_step_add_task()
         return await self._trigger_sensor_select(
             user_input,
             step_id="sensor_select",
@@ -505,6 +528,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select attribute to monitor."""
+        self._on_cancel = lambda: self.async_step_sensor_select()
         return await self._trigger_sensor_attribute(
             user_input,
             step_id="sensor_attribute",
@@ -516,6 +540,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select trigger type."""
+        self._on_cancel = lambda: self.async_step_sensor_attribute()
         return await self._trigger_type_select(
             user_input,
             step_id="trigger_type",
@@ -530,6 +555,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure threshold trigger."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_threshold_config(
             user_input,
             step_id="trigger_threshold",
@@ -540,6 +566,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure counter trigger."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_counter_config(
             user_input,
             step_id="trigger_counter",
@@ -550,6 +577,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure state change trigger."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_state_change_config(
             user_input,
             step_id="trigger_state_change",
@@ -560,6 +588,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure runtime trigger."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_runtime_config(
             user_input,
             step_id="trigger_runtime",
@@ -572,6 +601,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select compound trigger logic."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_compound_logic(
             user_input,
             step_id="compound_logic",
@@ -582,6 +612,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select entity for compound condition."""
+        if getattr(self, "_compound_conditions", []):
+            self._on_cancel = lambda: self.async_step_compound_review()
+        else:
+            self._on_cancel = lambda: self.async_step_compound_logic()
         return await self._trigger_compound_condition_entity(
             user_input,
             step_id="compound_condition_entity",
@@ -592,6 +626,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Select trigger type for compound condition."""
+        self._on_cancel = lambda: self.async_step_compound_condition_entity()
         return await self._trigger_compound_condition_type(
             user_input,
             step_id="compound_condition_type",
@@ -605,6 +640,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure threshold for compound condition."""
+        self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
             user_input, "threshold",
             step_id="compound_condition_threshold",
@@ -615,6 +651,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure counter for compound condition."""
+        self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
             user_input, "counter",
             step_id="compound_condition_counter",
@@ -625,6 +662,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure state_change for compound condition."""
+        self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
             user_input, "state_change",
             step_id="compound_condition_state_change",
@@ -635,6 +673,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure runtime for compound condition."""
+        self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
             user_input, "runtime",
             step_id="compound_condition_runtime",
@@ -645,6 +684,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Review compound trigger conditions."""
+        self._on_cancel = lambda: self.async_step_compound_logic()
         return await self._trigger_compound_review(
             user_input,
             step_id="compound_review",
@@ -659,6 +699,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
     ) -> ConfigFlowResult:
         """Configure manual schedule."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_add_task()
+
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.MANUAL
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                 CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
@@ -685,6 +728,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             multiline=True,
                         )
                     ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )

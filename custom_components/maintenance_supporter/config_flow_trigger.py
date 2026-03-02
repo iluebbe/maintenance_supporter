@@ -15,6 +15,7 @@ Consuming classes must provide:
 
 from __future__ import annotations
 
+import inspect
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -65,16 +66,23 @@ class TriggerConfigMixin:
 
     _on_cancel: Callable[[], ConfigFlowResult] | None = None
 
-    def _mixin_check_go_back(
+    async def _mixin_check_go_back(
         self, user_input: dict[str, Any] | None
     ) -> ConfigFlowResult | None:
-        """Return cancel result when user checked go_back, else None."""
+        """Return cancel result when user checked go_back, else None.
+
+        Handles both sync callbacks (options flow) and async callbacks
+        (config flow step methods).
+        """
         if (
             user_input
             and user_input.get("go_back")
             and self._on_cancel is not None
         ):
-            return self._on_cancel()
+            result = self._on_cancel()
+            if inspect.isawaitable(result):
+                return await result
+            return result
         return None
 
     def _mixin_add_go_back(self, schema_dict: dict) -> dict:
@@ -101,7 +109,7 @@ class TriggerConfigMixin:
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -154,7 +162,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for attribute selection."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -251,7 +259,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for trigger type selection."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -297,7 +305,7 @@ class TriggerConfigMixin:
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -414,7 +422,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for counter trigger configuration."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -518,7 +526,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for state change trigger configuration."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -622,7 +630,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for runtime trigger configuration."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -736,7 +744,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Select compound trigger logic (AND/OR)."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -788,7 +796,7 @@ class TriggerConfigMixin:
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -839,7 +847,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Select trigger type for a compound condition."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -886,7 +894,7 @@ class TriggerConfigMixin:
         cond = self._current_compound_condition
 
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 
@@ -1026,7 +1034,7 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Review compound trigger conditions and optionally add more."""
         if user_input is not None:
-            cancel = self._mixin_check_go_back(user_input)
+            cancel = await self._mixin_check_go_back(user_input)
             if cancel is not None:
                 return cancel
 

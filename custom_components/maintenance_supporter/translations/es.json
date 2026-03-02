@@ -14,14 +14,22 @@
         "title": "Seleccionar categoría de plantilla",
         "description": "Elija una categoría para explorar las plantillas de mantenimiento predefinidas.",
         "data": {
-          "template_category": "Categoría"
+          "template_category": "Categoría",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "go_back": "Volver al menú principal sin guardar."
         }
       },
       "template_select": {
         "title": "Seleccionar plantilla",
         "description": "Elija una plantilla de mantenimiento como punto de partida.",
         "data": {
-          "template_id": "Plantilla"
+          "template_id": "Plantilla",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "go_back": "Volver a la selección de categoría sin guardar."
         }
       },
       "template_customize": {
@@ -31,13 +39,15 @@
           "name": "Nombre del objeto",
           "area_id": "Área",
           "manufacturer": "Fabricante",
-          "model": "Modelo"
+          "model": "Modelo",
+          "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre para este objeto de mantenimiento.",
           "area_id": "El área donde se encuentra este objeto.",
           "manufacturer": "El fabricante del objeto.",
-          "model": "El nombre o número de modelo."
+          "model": "El nombre o número de modelo.",
+          "go_back": "Volver a la selección de plantilla sin guardar."
         }
       },
       "global_setup": {
@@ -62,14 +72,16 @@
           "area_id": "Área",
           "manufacturer": "Fabricante",
           "model": "Modelo",
-          "installation_date": "Fecha de instalación"
+          "installation_date": "Fecha de instalación",
+          "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre único para este objeto de mantenimiento (ej.: 'Bomba piscina', 'Coche').",
           "area_id": "El área de su hogar donde se encuentra este objeto.",
           "manufacturer": "El fabricante del objeto.",
           "model": "El nombre o número de modelo.",
-          "installation_date": "Fecha de instalación o compra de este objeto."
+          "installation_date": "Fecha de instalación o compra de este objeto.",
+          "go_back": "Volver al menú principal sin guardar."
         }
       },
       "task_menu": {
@@ -86,12 +98,14 @@
         "data": {
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
-          "schedule_type": "Tipo de programación"
+          "schedule_type": "Tipo de programación",
+          "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej.: 'Limpieza de filtro', 'Cambio de aceite').",
           "type": "La categoría del trabajo de mantenimiento.",
-          "schedule_type": "Cómo se debe programar esta tarea."
+          "schedule_type": "Cómo se debe programar esta tarea.",
+          "go_back": "Volver al menú de tareas sin guardar."
         }
       },
       "time_based": {
@@ -100,42 +114,50 @@
         "data": {
           "interval_days": "Intervalo (días)",
           "last_performed": "Última ejecución",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "interval_days": "Número de días entre los ciclos de mantenimiento.",
           "last_performed": "Fecha del último mantenimiento realizado. Dejar vacío si nunca se realizó.",
-          "warning_days": "Número de días antes del vencimiento para mostrar un aviso."
+          "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
+          "go_back": "Volver a la creación de tareas sin guardar."
         }
       },
       "sensor_select": {
         "title": "Seleccionar sensor disparador",
         "description": "Elija una entidad de Home Assistant para monitorear en esta tarea de mantenimiento.",
         "data": {
-          "trigger_entity": "Entidad a monitorear"
+          "trigger_entity": "Entidad a monitorear",
+          "go_back": "Volver"
         },
         "data_description": {
-          "trigger_entity": "Seleccione la entidad sensor que debe activar esta tarea de mantenimiento."
+          "trigger_entity": "Seleccione la entidad sensor que debe activar esta tarea de mantenimiento.",
+          "go_back": "Volver a la creación de tareas sin guardar."
         }
       },
       "sensor_attribute": {
         "title": "Seleccionar atributo",
         "description": "Elija qué valor monitorear de {entity_id}. Estado actual: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Valor a monitorear"
+          "trigger_attribute": "Valor a monitorear",
+          "go_back": "Volver"
         },
         "data_description": {
-          "trigger_attribute": "Seleccione el estado de la entidad o un atributo específico a monitorear."
+          "trigger_attribute": "Seleccione el estado de la entidad o un atributo específico a monitorear.",
+          "go_back": "Volver a la selección de entidad sin guardar."
         }
       },
       "trigger_type": {
         "title": "Tipo de disparador",
         "description": "¿Cómo debe el valor del sensor activar el mantenimiento?",
         "data": {
-          "trigger_type": "Tipo de disparador"
+          "trigger_type": "Tipo de disparador",
+          "go_back": "Volver"
         },
         "data_description": {
-          "trigger_type": "Umbral: se activa cuando el valor excede los límites. Contador: se activa después de acumular un valor objetivo. Cambio de estado: se activa después de un número de transiciones de estado."
+          "trigger_type": "Umbral: se activa cuando el valor excede los límites. Contador: se activa después de acumular un valor objetivo. Cambio de estado: se activa después de un número de transiciones de estado.",
+          "go_back": "Volver a la selección de atributo sin guardar."
         }
       },
       "trigger_threshold": {
@@ -146,14 +168,16 @@
           "trigger_below": "Activar cuando inferior a",
           "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_above": "Activar mantenimiento cuando el valor supere este umbral.",
           "trigger_below": "Activar mantenimiento cuando el valor caiga por debajo de este umbral.",
           "trigger_for_minutes": "El valor debe superar el umbral durante este número de minutos antes de la activación.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de sensor.",
-          "warning_days": "Número de días antes del vencimiento para mostrar un aviso."
+          "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
+          "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
       },
       "trigger_counter": {
@@ -163,13 +187,15 @@
           "trigger_target_value": "Valor objetivo",
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_target_value": "Activar mantenimiento cuando se alcance este valor acumulado.",
           "trigger_delta_mode": "Si está activado, cuenta la diferencia respecto a una base en lugar del valor absoluto.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de contador.",
-          "warning_days": "Número de días antes del vencimiento para mostrar un aviso."
+          "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
+          "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
       },
       "trigger_state_change": {
@@ -180,14 +206,16 @@
           "trigger_to_state": "Hacia estado (opcional)",
           "trigger_target_changes": "Número de cambios para activar",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_from_state": "Contar solo transiciones desde este estado. Dejar vacío para todos.",
           "trigger_to_state": "Contar solo transiciones hacia este estado. Dejar vacío para todos.",
           "trigger_target_changes": "Número de cambios de estado correspondientes antes de activar el mantenimiento.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de cambio de estado.",
-          "warning_days": "Número de días antes del vencimiento para mostrar un aviso."
+          "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
+          "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
       },
       "trigger_runtime": {
@@ -197,43 +225,51 @@
           "trigger_runtime_hours": "Tiempo de funcionamiento objetivo (horas)",
           "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_runtime_hours": "Activar mantenimiento después de este número de horas de funcionamiento acumulado.",
           "trigger_on_states": "Qué estados del sensor se consideran 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de tiempo de funcionamiento.",
-          "warning_days": "Número de días antes del vencimiento para mostrar un aviso."
+          "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
+          "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
       },
       "compound_logic": {
         "title": "Disparador compuesto",
         "description": "Elija cómo se deben combinar múltiples condiciones.",
         "data": {
-          "compound_logic": "Lógica"
+          "compound_logic": "Lógica",
+          "go_back": "Volver"
         },
         "data_description": {
-          "compound_logic": "Y = todas las condiciones deben activarse. O = cualquier condición activa."
+          "compound_logic": "Y = todas las condiciones deben activarse. O = cualquier condición activa.",
+          "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
       },
       "compound_condition_entity": {
         "title": "Condición #{condition_num} — Entidad",
         "description": "Seleccione la entidad para esta condición.",
         "data": {
-          "trigger_entity": "Entidad"
+          "trigger_entity": "Entidad",
+          "go_back": "Volver"
         },
         "data_description": {
-          "trigger_entity": "La entidad del sensor a monitorizar para esta condición."
+          "trigger_entity": "La entidad del sensor a monitorizar para esta condición.",
+          "go_back": "Volver al paso anterior sin guardar."
         }
       },
       "compound_condition_type": {
         "title": "Condición #{condition_num} — Tipo",
         "description": "¿Cómo debe evaluar esta condición al sensor?",
         "data": {
-          "trigger_type": "Tipo de disparador"
+          "trigger_type": "Tipo de disparador",
+          "go_back": "Volver"
         },
         "data_description": {
-          "trigger_type": "El método utilizado para determinar cuándo se activa esta condición."
+          "trigger_type": "El método utilizado para determinar cuándo se activa esta condición.",
+          "go_back": "Volver a la selección de entidad sin guardar."
         }
       },
       "compound_condition_threshold": {
@@ -241,23 +277,27 @@
         "data": {
           "trigger_above": "Activar por encima de",
           "trigger_below": "Activar por debajo de",
-          "trigger_for_minutes": "Duración (minutos)"
+          "trigger_for_minutes": "Duración (minutos)",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_above": "Activar cuando el valor supere este umbral.",
           "trigger_below": "Activar cuando el valor caiga por debajo de este umbral.",
-          "trigger_for_minutes": "El valor debe permanecer más allá del umbral durante esta duración."
+          "trigger_for_minutes": "El valor debe permanecer más allá del umbral durante esta duración.",
+          "go_back": "Volver a la selección de tipo de condición sin guardar."
         }
       },
       "compound_condition_counter": {
         "title": "Condición — Contador",
         "data": {
           "trigger_target_value": "Valor objetivo",
-          "trigger_delta_mode": "Modo delta"
+          "trigger_delta_mode": "Modo delta",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_target_value": "Activar cuando el valor acumulado alcance este objetivo.",
-          "trigger_delta_mode": "Contar cambios desde una línea base en lugar del valor absoluto."
+          "trigger_delta_mode": "Contar cambios desde una línea base en lugar del valor absoluto.",
+          "go_back": "Volver a la selección de tipo de condición sin guardar."
         }
       },
       "compound_condition_state_change": {
@@ -265,30 +305,38 @@
         "data": {
           "trigger_from_state": "Desde estado",
           "trigger_to_state": "Hacia estado",
-          "trigger_target_changes": "Número de cambios"
+          "trigger_target_changes": "Número de cambios",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_from_state": "Solo contar transiciones desde este estado. Dejar vacío para cualquiera.",
           "trigger_to_state": "Solo contar transiciones hacia este estado. Dejar vacío para cualquiera.",
-          "trigger_target_changes": "Número de cambios de estado coincidentes antes de activar."
+          "trigger_target_changes": "Número de cambios de estado coincidentes antes de activar.",
+          "go_back": "Volver a la selección de tipo de condición sin guardar."
         }
       },
       "compound_condition_runtime": {
         "title": "Condición — Tiempo de ejecución",
         "data": {
           "trigger_runtime_hours": "Tiempo objetivo (horas)",
-          "trigger_on_states": "Estados activos"
+          "trigger_on_states": "Estados activos",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_runtime_hours": "Activar después de estas horas de tiempo acumulado.",
-          "trigger_on_states": "Estados del sensor contados como 'activos'. Dejar vacío para predeterminado."
+          "trigger_on_states": "Estados del sensor contados como 'activos'. Dejar vacío para predeterminado.",
+          "go_back": "Volver a la selección de tipo de condición sin guardar."
         }
       },
       "compound_review": {
         "title": "Revisión del disparador compuesto",
         "description": "{condition_count} condición(es) configurada(s) con lógica {compound_logic}.",
         "data": {
-          "compound_action": "Acción"
+          "compound_action": "Acción",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "go_back": "Volver a la selección de lógica sin guardar."
         }
       },
       "manual": {
@@ -296,11 +344,13 @@
         "description": "Esta tarea no tiene programación automática. Puede marcarla como vencida manualmente.",
         "data": {
           "warning_days": "Días de aviso antes del vencimiento",
-          "notes": "Notas"
+          "notes": "Notas",
+          "go_back": "Volver"
         },
         "data_description": {
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
-          "notes": "Notas o instrucciones adicionales para esta tarea."
+          "notes": "Notas o instrucciones adicionales para esta tarea.",
+          "go_back": "Volver a la creación de tareas sin guardar."
         }
       }
     },

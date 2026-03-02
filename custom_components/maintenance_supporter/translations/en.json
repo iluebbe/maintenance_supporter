@@ -14,14 +14,22 @@
         "title": "Select Template Category",
         "description": "Choose a category to browse predefined maintenance templates.",
         "data": {
-          "template_category": "Category"
+          "template_category": "Category",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "go_back": "Return to the main menu without saving."
         }
       },
       "template_select": {
         "title": "Select Template",
         "description": "Choose a maintenance template to use as a starting point.",
         "data": {
-          "template_id": "Template"
+          "template_id": "Template",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "go_back": "Return to category selection without saving."
         }
       },
       "template_customize": {
@@ -31,13 +39,15 @@
           "name": "Object name",
           "area_id": "Area",
           "manufacturer": "Manufacturer",
-          "model": "Model"
+          "model": "Model",
+          "go_back": "Go back"
         },
         "data_description": {
           "name": "A name for this maintenance object.",
           "area_id": "The area where this object is located.",
           "manufacturer": "The manufacturer of the object.",
-          "model": "The model name or number."
+          "model": "The model name or number.",
+          "go_back": "Return to template selection without saving."
         }
       },
       "global_setup": {
@@ -62,14 +72,16 @@
           "area_id": "Area",
           "manufacturer": "Manufacturer",
           "model": "Model",
-          "installation_date": "Installation date"
+          "installation_date": "Installation date",
+          "go_back": "Go back"
         },
         "data_description": {
           "name": "A unique name for this maintenance object (e.g., 'Pool Pump', 'Car').",
           "area_id": "The area in your home where this object is located.",
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
-          "installation_date": "When this object was installed or purchased."
+          "installation_date": "When this object was installed or purchased.",
+          "go_back": "Return to the main menu without saving."
         }
       },
       "task_menu": {
@@ -86,12 +98,14 @@
         "data": {
           "name": "Task name",
           "type": "Maintenance type",
-          "schedule_type": "Schedule type"
+          "schedule_type": "Schedule type",
+          "go_back": "Go back"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
           "type": "The category of maintenance work.",
-          "schedule_type": "How this task should be scheduled."
+          "schedule_type": "How this task should be scheduled.",
+          "go_back": "Return to the task menu without saving."
         }
       },
       "time_based": {
@@ -100,42 +114,50 @@
         "data": {
           "interval_days": "Interval (days)",
           "last_performed": "Last performed",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "interval_days": "Number of days between maintenance runs.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
-          "warning_days": "Number of days before due date to show a warning."
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to task creation without saving."
         }
       },
       "sensor_select": {
         "title": "Select Trigger Sensor",
         "description": "Choose a Home Assistant entity to monitor for this maintenance task.",
         "data": {
-          "trigger_entity": "Entity to monitor"
+          "trigger_entity": "Entity to monitor",
+          "go_back": "Go back"
         },
         "data_description": {
-          "trigger_entity": "Select the sensor entity that should trigger this maintenance task."
+          "trigger_entity": "Select the sensor entity that should trigger this maintenance task.",
+          "go_back": "Return to task creation without saving."
         }
       },
       "sensor_attribute": {
         "title": "Select Attribute",
         "description": "Choose which value to monitor from {entity_id}. Current state: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Value to monitor"
+          "trigger_attribute": "Value to monitor",
+          "go_back": "Go back"
         },
         "data_description": {
-          "trigger_attribute": "Select the entity state or a specific attribute to monitor."
+          "trigger_attribute": "Select the entity state or a specific attribute to monitor.",
+          "go_back": "Return to entity selection without saving."
         }
       },
       "trigger_type": {
         "title": "Trigger Type",
         "description": "How should the sensor value trigger maintenance?",
         "data": {
-          "trigger_type": "Trigger type"
+          "trigger_type": "Trigger type",
+          "go_back": "Go back"
         },
         "data_description": {
-          "trigger_type": "Threshold: triggers when value exceeds limits. Counter: triggers after accumulating a target value. State Change: triggers after a number of state transitions."
+          "trigger_type": "Threshold: triggers when value exceeds limits. Counter: triggers after accumulating a target value. State Change: triggers after a number of state transitions.",
+          "go_back": "Return to attribute selection without saving."
         }
       },
       "trigger_threshold": {
@@ -146,14 +168,16 @@
           "trigger_below": "Trigger when below",
           "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_above": "Trigger maintenance when value exceeds this threshold.",
           "trigger_below": "Trigger maintenance when value falls below this threshold.",
           "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
           "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
-          "warning_days": "Number of days before due date to show a warning."
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to trigger type selection without saving."
         }
       },
       "trigger_counter": {
@@ -163,13 +187,15 @@
           "trigger_target_value": "Target value",
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
           "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
           "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
-          "warning_days": "Number of days before due date to show a warning."
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to trigger type selection without saving."
         }
       },
       "trigger_state_change": {
@@ -180,14 +206,16 @@
           "trigger_to_state": "To state (optional)",
           "trigger_target_changes": "Number of changes to trigger",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
           "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
           "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
           "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
-          "warning_days": "Number of days before due date to show a warning."
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to trigger type selection without saving."
         }
       },
       "trigger_runtime": {
@@ -197,43 +225,51 @@
           "trigger_runtime_hours": "Target runtime (hours)",
           "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
           "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
           "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
-          "warning_days": "Number of days before due date to show a warning."
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to trigger type selection without saving."
         }
       },
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
         "data": {
-          "compound_logic": "Logic"
+          "compound_logic": "Logic",
+          "go_back": "Go back"
         },
         "data_description": {
-          "compound_logic": "AND = all conditions must trigger. OR = any condition triggers."
+          "compound_logic": "AND = all conditions must trigger. OR = any condition triggers.",
+          "go_back": "Return to trigger type selection without saving."
         }
       },
       "compound_condition_entity": {
         "title": "Condition #{condition_num} — Entity",
         "description": "Select the entity for this condition.",
         "data": {
-          "trigger_entity": "Entity"
+          "trigger_entity": "Entity",
+          "go_back": "Go back"
         },
         "data_description": {
-          "trigger_entity": "The sensor entity to monitor for this condition."
+          "trigger_entity": "The sensor entity to monitor for this condition.",
+          "go_back": "Return to previous step without saving."
         }
       },
       "compound_condition_type": {
         "title": "Condition #{condition_num} — Type",
         "description": "How should this condition evaluate the sensor?",
         "data": {
-          "trigger_type": "Trigger type"
+          "trigger_type": "Trigger type",
+          "go_back": "Go back"
         },
         "data_description": {
-          "trigger_type": "The method used to determine when this condition triggers."
+          "trigger_type": "The method used to determine when this condition triggers.",
+          "go_back": "Return to entity selection without saving."
         }
       },
       "compound_condition_threshold": {
@@ -241,23 +277,27 @@
         "data": {
           "trigger_above": "Trigger above",
           "trigger_below": "Trigger below",
-          "trigger_for_minutes": "Duration (minutes)"
+          "trigger_for_minutes": "Duration (minutes)",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_above": "Trigger when value exceeds this threshold.",
           "trigger_below": "Trigger when value drops below this threshold.",
-          "trigger_for_minutes": "Value must remain beyond threshold for this duration."
+          "trigger_for_minutes": "Value must remain beyond threshold for this duration.",
+          "go_back": "Return to condition type selection without saving."
         }
       },
       "compound_condition_counter": {
         "title": "Condition — Counter",
         "data": {
           "trigger_target_value": "Target value",
-          "trigger_delta_mode": "Delta mode"
+          "trigger_delta_mode": "Delta mode",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_target_value": "Trigger when accumulated value reaches this target.",
-          "trigger_delta_mode": "Count changes from a baseline instead of the absolute value."
+          "trigger_delta_mode": "Count changes from a baseline instead of the absolute value.",
+          "go_back": "Return to condition type selection without saving."
         }
       },
       "compound_condition_state_change": {
@@ -265,30 +305,38 @@
         "data": {
           "trigger_from_state": "From state",
           "trigger_to_state": "To state",
-          "trigger_target_changes": "Number of changes"
+          "trigger_target_changes": "Number of changes",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
           "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
-          "trigger_target_changes": "Number of matching state changes before triggering."
+          "trigger_target_changes": "Number of matching state changes before triggering.",
+          "go_back": "Return to condition type selection without saving."
         }
       },
       "compound_condition_runtime": {
         "title": "Condition — Runtime",
         "data": {
           "trigger_runtime_hours": "Target runtime (hours)",
-          "trigger_on_states": "Active states"
+          "trigger_on_states": "Active states",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger after this many hours of accumulated runtime.",
-          "trigger_on_states": "Sensor states counted as 'active'. Leave empty for default."
+          "trigger_on_states": "Sensor states counted as 'active'. Leave empty for default.",
+          "go_back": "Return to condition type selection without saving."
         }
       },
       "compound_review": {
         "title": "Compound Trigger Review",
         "description": "{condition_count} condition(s) configured with {compound_logic} logic.",
         "data": {
-          "compound_action": "Action"
+          "compound_action": "Action",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "go_back": "Return to logic selection without saving."
         }
       },
       "manual": {
@@ -296,11 +344,13 @@
         "description": "This task has no automatic schedule. You can mark it as due manually.",
         "data": {
           "warning_days": "Warning days before due",
-          "notes": "Notes"
+          "notes": "Notes",
+          "go_back": "Go back"
         },
         "data_description": {
           "warning_days": "Number of days before due date to show a warning.",
-          "notes": "Additional notes or instructions for this task."
+          "notes": "Additional notes or instructions for this task.",
+          "go_back": "Return to task creation without saving."
         }
       }
     },

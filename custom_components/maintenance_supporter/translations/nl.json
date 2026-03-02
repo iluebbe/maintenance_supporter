@@ -14,14 +14,22 @@
         "title": "Selecteer sjablooncategorie",
         "description": "Kies een categorie om voorgedefinieerde onderhoudssjablonen te bekijken.",
         "data": {
-          "template_category": "Categorie"
+          "template_category": "Categorie",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
       "template_select": {
         "title": "Selecteer sjabloon",
         "description": "Kies een onderhoudssjabloon als uitgangspunt.",
         "data": {
-          "template_id": "Sjabloon"
+          "template_id": "Sjabloon",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "go_back": "Terug naar categorieselectie zonder op te slaan."
         }
       },
       "template_customize": {
@@ -31,13 +39,15 @@
           "name": "Objectnaam",
           "area_id": "Ruimte",
           "manufacturer": "Fabrikant",
-          "model": "Model"
+          "model": "Model",
+          "go_back": "Terug"
         },
         "data_description": {
           "name": "Een naam voor dit onderhoudsobject.",
           "area_id": "De ruimte waar dit object zich bevindt.",
           "manufacturer": "De fabrikant van het object.",
-          "model": "De modelnaam of het nummer."
+          "model": "De modelnaam of het nummer.",
+          "go_back": "Terug naar sjabloonselectie zonder op te slaan."
         }
       },
       "global_setup": {
@@ -62,14 +72,16 @@
           "area_id": "Ruimte",
           "manufacturer": "Fabrikant",
           "model": "Model",
-          "installation_date": "Installatiedatum"
+          "installation_date": "Installatiedatum",
+          "go_back": "Terug"
         },
         "data_description": {
           "name": "Een unieke naam voor dit onderhoudsobject (bijv. 'Zwembadpomp', 'Auto').",
           "area_id": "De ruimte in uw huis waar dit object zich bevindt.",
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
-          "installation_date": "Wanneer dit object is geïnstalleerd of gekocht."
+          "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
       "task_menu": {
@@ -86,12 +98,14 @@
         "data": {
           "name": "Taaknaam",
           "type": "Onderhoudstype",
-          "schedule_type": "Planningstype"
+          "schedule_type": "Planningstype",
+          "go_back": "Terug"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filter reinigen', 'Olie verversen').",
           "type": "De categorie van het onderhoud.",
-          "schedule_type": "Hoe deze taak gepland moet worden."
+          "schedule_type": "Hoe deze taak gepland moet worden.",
+          "go_back": "Terug naar het takenmenu zonder op te slaan."
         }
       },
       "time_based": {
@@ -100,42 +114,50 @@
         "data": {
           "interval_days": "Interval (dagen)",
           "last_performed": "Laatst uitgevoerd",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit gedaan.",
-          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar taakaanmaak zonder op te slaan."
         }
       },
       "sensor_select": {
         "title": "Selecteer triggersensor",
         "description": "Kies een Home Assistant-entiteit om te monitoren voor deze onderhoudstaak.",
         "data": {
-          "trigger_entity": "Te monitoren entiteit"
+          "trigger_entity": "Te monitoren entiteit",
+          "go_back": "Terug"
         },
         "data_description": {
-          "trigger_entity": "Selecteer de sensorentiteit die deze onderhoudstaak moet activeren."
+          "trigger_entity": "Selecteer de sensorentiteit die deze onderhoudstaak moet activeren.",
+          "go_back": "Terug naar taakaanmaak zonder op te slaan."
         }
       },
       "sensor_attribute": {
         "title": "Selecteer attribuut",
         "description": "Kies welke waarde gemonitord moet worden van {entity_id}. Huidige status: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Te monitoren waarde"
+          "trigger_attribute": "Te monitoren waarde",
+          "go_back": "Terug"
         },
         "data_description": {
-          "trigger_attribute": "Selecteer de entiteitstatus of een specifiek attribuut om te monitoren."
+          "trigger_attribute": "Selecteer de entiteitstatus of een specifiek attribuut om te monitoren.",
+          "go_back": "Terug naar entiteitselectie zonder op te slaan."
         }
       },
       "trigger_type": {
         "title": "Triggertype",
         "description": "Hoe moet de sensorwaarde onderhoud activeren?",
         "data": {
-          "trigger_type": "Triggertype"
+          "trigger_type": "Triggertype",
+          "go_back": "Terug"
         },
         "data_description": {
-          "trigger_type": "Drempel: activeert wanneer waarde limieten overschrijdt. Teller: activeert na het bereiken van een doelwaarde. Statuswijziging: activeert na een aantal statusovergangen."
+          "trigger_type": "Drempel: activeert wanneer waarde limieten overschrijdt. Teller: activeert na het bereiken van een doelwaarde. Statuswijziging: activeert na een aantal statusovergangen.",
+          "go_back": "Terug naar attribuutselectie zonder op te slaan."
         }
       },
       "trigger_threshold": {
@@ -146,14 +168,16 @@
           "trigger_below": "Activeren bij waarde onder",
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
           "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel daalt.",
           "trigger_for_minutes": "De waarde moet gedurende dit aantal minuten de drempel overschrijden voordat activering plaatsvindt.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
-          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
       "trigger_counter": {
@@ -163,13 +187,15 @@
           "trigger_target_value": "Doelwaarde",
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_target_value": "Onderhoud activeren wanneer deze opgetelde waarde bereikt is.",
           "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
-          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
       "trigger_state_change": {
@@ -180,14 +206,16 @@
           "trigger_to_state": "Naar status (optioneel)",
           "trigger_target_changes": "Aantal wijzigingen voor activering",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke status.",
           "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor elke status.",
           "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
-          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
       "trigger_runtime": {
@@ -197,43 +225,51 @@
           "trigger_runtime_hours": "Doellooptijd (uren)",
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren totale looptijd.",
           "trigger_on_states": "Welke sensorstatussen als 'actief' gelden. Leeg laten voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
-          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond."
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
       "compound_logic": {
         "title": "Samengestelde trigger",
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
         "data": {
-          "compound_logic": "Logica"
+          "compound_logic": "Logica",
+          "go_back": "Terug"
         },
         "data_description": {
-          "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert."
+          "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
       "compound_condition_entity": {
         "title": "Voorwaarde #{condition_num} — Entiteit",
         "description": "Selecteer de entiteit voor deze voorwaarde.",
         "data": {
-          "trigger_entity": "Entiteit"
+          "trigger_entity": "Entiteit",
+          "go_back": "Terug"
         },
         "data_description": {
-          "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde."
+          "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde.",
+          "go_back": "Terug naar vorige stap zonder op te slaan."
         }
       },
       "compound_condition_type": {
         "title": "Voorwaarde #{condition_num} — Type",
         "description": "Hoe moet deze voorwaarde de sensor evalueren?",
         "data": {
-          "trigger_type": "Triggertype"
+          "trigger_type": "Triggertype",
+          "go_back": "Terug"
         },
         "data_description": {
-          "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert."
+          "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert.",
+          "go_back": "Terug naar entiteitselectie zonder op te slaan."
         }
       },
       "compound_condition_threshold": {
@@ -241,23 +277,27 @@
         "data": {
           "trigger_above": "Activeren boven",
           "trigger_below": "Activeren onder",
-          "trigger_for_minutes": "Duur (minuten)"
+          "trigger_for_minutes": "Duur (minuten)",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_above": "Activeren wanneer de waarde deze drempel overschrijdt.",
           "trigger_below": "Activeren wanneer de waarde onder deze drempel daalt.",
-          "trigger_for_minutes": "De waarde moet de drempel gedurende deze duur overschrijden."
+          "trigger_for_minutes": "De waarde moet de drempel gedurende deze duur overschrijden.",
+          "go_back": "Terug naar conditietypeselectie zonder op te slaan."
         }
       },
       "compound_condition_counter": {
         "title": "Voorwaarde — Teller",
         "data": {
           "trigger_target_value": "Doelwaarde",
-          "trigger_delta_mode": "Deltamodus"
+          "trigger_delta_mode": "Deltamodus",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_target_value": "Activeren wanneer de opgetelde waarde dit doel bereikt.",
-          "trigger_delta_mode": "Wijzigingen tellen vanaf een basislijn in plaats van de absolute waarde."
+          "trigger_delta_mode": "Wijzigingen tellen vanaf een basislijn in plaats van de absolute waarde.",
+          "go_back": "Terug naar conditietypeselectie zonder op te slaan."
         }
       },
       "compound_condition_state_change": {
@@ -265,30 +305,38 @@
         "data": {
           "trigger_from_state": "Van status",
           "trigger_to_state": "Naar status",
-          "trigger_target_changes": "Aantal wijzigingen"
+          "trigger_target_changes": "Aantal wijzigingen",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke.",
           "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor elke.",
-          "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voor activering."
+          "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voor activering.",
+          "go_back": "Terug naar conditietypeselectie zonder op te slaan."
         }
       },
       "compound_condition_runtime": {
         "title": "Voorwaarde — Looptijd",
         "data": {
           "trigger_runtime_hours": "Doellooptijd (uren)",
-          "trigger_on_states": "Actieve statussen"
+          "trigger_on_states": "Actieve statussen",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_runtime_hours": "Activeren na dit aantal uren opgebouwde looptijd.",
-          "trigger_on_states": "Sensorstatussen die als 'actief' worden geteld. Laat leeg voor standaard."
+          "trigger_on_states": "Sensorstatussen die als 'actief' worden geteld. Laat leeg voor standaard.",
+          "go_back": "Terug naar conditietypeselectie zonder op te slaan."
         }
       },
       "compound_review": {
         "title": "Samengestelde trigger — Overzicht",
         "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
         "data": {
-          "compound_action": "Actie"
+          "compound_action": "Actie",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "go_back": "Terug naar logicaselectie zonder op te slaan."
         }
       },
       "manual": {
@@ -296,11 +344,13 @@
         "description": "Deze taak heeft geen automatisch schema. U kunt deze handmatig als verlopen markeren.",
         "data": {
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "notes": "Notities"
+          "notes": "Notities",
+          "go_back": "Terug"
         },
         "data_description": {
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
-          "notes": "Aanvullende notities of instructies voor deze taak."
+          "notes": "Aanvullende notities of instructies voor deze taak.",
+          "go_back": "Terug naar taakaanmaak zonder op te slaan."
         }
       }
     },
