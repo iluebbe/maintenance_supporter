@@ -28,6 +28,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -84,12 +85,11 @@ async def test_service_complete(
         blocking=True,
     )
 
-    # Verify task was completed
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    task = entry.data[CONF_TASKS][TASK_ID_1]
-    assert task.get("last_performed") is not None
+    # Verify task was completed (dynamic state is in the Store)
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") is not None
     # History should have a 'completed' entry
-    assert any(h.get("type") == "completed" for h in task.get("history", []))
+    assert any(h.get("type") == "completed" for h in state.get("history", []))
 
 
 async def test_service_complete_with_options(
@@ -105,8 +105,8 @@ async def test_service_complete_with_options(
         blocking=True,
     )
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    history = entry.data[CONF_TASKS][TASK_ID_1].get("history", [])
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    history = state.get("history", [])
     completed = [h for h in history if h.get("type") == "completed"]
     assert len(completed) >= 1
     assert completed[-1].get("cost") == 50.0
@@ -128,10 +128,9 @@ async def test_service_reset(
         blocking=True,
     )
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    task = entry.data[CONF_TASKS][TASK_ID_1]
-    # Reset sets last_performed to today
-    assert task.get("last_performed") == dt_util.now().date().isoformat()
+    # Reset sets last_performed to today (dynamic state is in the Store)
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == dt_util.now().date().isoformat()
 
 
 # ─── Service: skip ───────────────────────────────────────────────────────
@@ -150,9 +149,9 @@ async def test_service_skip(
         blocking=True,
     )
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    task = entry.data[CONF_TASKS][TASK_ID_1]
-    history = task.get("history", [])
+    # Skip adds history (dynamic state is in the Store)
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    history = state.get("history", [])
     assert any(h.get("type") == "skipped" for h in history)
 
 

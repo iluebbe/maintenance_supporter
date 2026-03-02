@@ -51,6 +51,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -887,8 +888,8 @@ async def test_adaptive_scheduling_submit(
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "task_action"
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    adaptive = entry.data[CONF_TASKS][TASK_ID_1].get(CONF_ADAPTIVE_CONFIG, {})
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    adaptive = state.get("adaptive_config", {})
     assert adaptive["enabled"] is True
     assert adaptive[CONF_ADAPTIVE_MIN_INTERVAL] == 7
 

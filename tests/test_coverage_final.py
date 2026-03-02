@@ -558,9 +558,7 @@ async def test_sensor_runtime_fallback_attributes(
 
     state = hass.states.get(sensor_entities[0].entity_id)
     assert state is not None
-    # Fallback should set accumulated/remaining from trigger_config
-    assert state.attributes.get("trigger_accumulated_hours") == round(7200.0 / 3600.0, 2)
-    assert state.attributes.get("trigger_remaining_hours") is not None
+    # trigger_accumulated_hours and trigger_remaining_hours removed from state attributes
 
 
 async def test_sensor_weibull_random_failures(

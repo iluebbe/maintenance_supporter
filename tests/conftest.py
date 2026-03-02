@@ -160,6 +160,25 @@ def build_task_data(
     return data
 
 
+def get_task_store_state(
+    hass: HomeAssistant, entry_id: str, task_id: str
+) -> dict[str, Any]:
+    """Get the dynamic state for a task from the Store.
+
+    Returns the Store's task state dict, or falls back to reading from
+    entry.data for pre-migration entries.
+    """
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None:
+        return {}
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        return store.get_task_state(task_id)
+    # Fallback: read from entry.data (pre-migration)
+    return entry.data.get(CONF_TASKS, {}).get(task_id, {})
+
+
 def build_object_entry_data(
     object_data: dict[str, Any] | None = None,
     tasks: dict[str, dict[str, Any]] | None = None,

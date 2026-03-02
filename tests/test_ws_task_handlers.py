@@ -38,6 +38,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -129,26 +130,38 @@ async def test_ws_create_task_with_all_fields(
 async def test_ws_create_task_with_last_performed(
     hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
 ) -> None:
-    """Test that creating task with last_performed adds history entry."""
+    """Test that creating task with last_performed adds history entry.
+
+    The WS handler writes dynamic state (last_performed, history) to the Store,
+    then reloads the config entry.  We patch async_delay_save → async_save so
+    the data is flushed to disk *before* the reload creates a fresh Store.
+    """
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__(hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Test Task",
-        "last_performed": "2024-01-15",
-    })
+    # Make the Store flush immediately so data survives the reload that
+    # ws_create_task triggers.
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    store = entry.runtime_data.store
+
+    async def _immediate_save() -> None:
+        await store.async_save()
+
+    with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
+        await ws_create_task.__wrapped__(hass, conn, {
+            "id": 1, "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Test Task",
+            "last_performed": "2024-01-15",
+        })
 
     result = conn.send_result.call_args[0][1]
     task_id = result["task_id"]
-    # Reload entry to check data
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    tasks = entry.data.get(CONF_TASKS, {})
-    task = tasks.get(task_id, {})
-    assert task.get("last_performed") == "2024-01-15"
-    assert len(task.get("history", [])) == 1
-    assert task["history"][0]["type"] == HistoryEntryType.COMPLETED
+    # last_performed and history are now in the Store
+    state = get_task_store_state(hass, object_entry.entry_id, task_id)
+    assert state.get("last_performed") == "2024-01-15"
+    assert len(state.get("history", [])) == 1
+    assert state["history"][0]["type"] == HistoryEntryType.COMPLETED
 
 
 async def test_ws_create_task_with_trigger_config(

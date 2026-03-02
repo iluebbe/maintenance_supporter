@@ -225,9 +225,7 @@ async def test_environmental_attrs(
         sensor.async_write_ha_state()
 
     state = _get_sensor_state(hass, obj_entry)
-    if state and "environmental_factor" in state.attributes:
-        assert state.attributes["environmental_factor"] == 1.3
-        assert state.attributes["environmental_entity"] == "sensor.outdoor_temp"
+    assert "environmental_factor" not in (state.attributes if state else {})
 
 
 # ─── Threshold Prediction / Degradation ───────────────────────────────────
@@ -252,9 +250,7 @@ async def test_threshold_prediction_attrs(
         sensor.async_write_ha_state()
 
     state = _get_sensor_state(hass, obj_entry)
-    if state and "days_until_threshold" in state.attributes:
-        assert state.attributes["days_until_threshold"] == 12
-        assert state.attributes["threshold_prediction_confidence"] == 0.85
+    assert "days_until_threshold" not in (state.attributes if state else {})
 
 
 # ─── Suggested Interval Attributes ───────────────────────────────────────

@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.const import (
 
 from .conftest import (
     TASK_ID_1,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -72,14 +73,12 @@ async def test_complete_service(
     )
     await hass.async_block_till_done()
 
-    # Verify: last_performed should be updated to today
-    tasks = object_config_entry.data.get(CONF_TASKS, {})
-    task = tasks.get(TASK_ID_1)
-    assert task is not None
-    assert task.get("last_performed") == dt_util.now().date().isoformat()
+    # Verify: last_performed should be updated to today (dynamic state in Store)
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == dt_util.now().date().isoformat()
 
     # Verify: history should have a completed entry
-    history = task.get("history", [])
+    history = state.get("history", [])
     completed = [e for e in history if e.get("type") == HistoryEntryType.COMPLETED]
     assert len(completed) >= 1
     latest = completed[-1]
@@ -107,10 +106,8 @@ async def test_complete_without_optional_fields(
     )
     await hass.async_block_till_done()
 
-    tasks = object_config_entry.data.get(CONF_TASKS, {})
-    task = tasks.get(TASK_ID_1)
-    assert task is not None
-    assert task.get("last_performed") == dt_util.now().date().isoformat()
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == dt_util.now().date().isoformat()
 
 
 # ─── 9.2 Reset Service ──────────────────────────────────────────────────
@@ -135,12 +132,10 @@ async def test_reset_service_default_date(
     )
     await hass.async_block_till_done()
 
-    tasks = object_config_entry.data.get(CONF_TASKS, {})
-    task = tasks.get(TASK_ID_1)
-    assert task is not None
-    assert task.get("last_performed") == dt_util.now().date().isoformat()
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == dt_util.now().date().isoformat()
 
-    history = task.get("history", [])
+    history = state.get("history", [])
     reset_entries = [e for e in history if e.get("type") == HistoryEntryType.RESET]
     assert len(reset_entries) >= 1
 
@@ -165,10 +160,8 @@ async def test_reset_service_custom_date(
     )
     await hass.async_block_till_done()
 
-    tasks = object_config_entry.data.get(CONF_TASKS, {})
-    task = tasks.get(TASK_ID_1)
-    assert task is not None
-    assert task.get("last_performed") == "2024-06-15"
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == "2024-06-15"
 
 
 # ─── 9.3 Skip Service ───────────────────────────────────────────────────
@@ -193,13 +186,11 @@ async def test_skip_service(
     )
     await hass.async_block_till_done()
 
-    tasks = object_config_entry.data.get(CONF_TASKS, {})
-    task = tasks.get(TASK_ID_1)
-    assert task is not None
-    # Skip sets last_performed to today
-    assert task.get("last_performed") == dt_util.now().date().isoformat()
+    # Skip sets last_performed to today (dynamic state in Store)
+    state = get_task_store_state(hass, object_config_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == dt_util.now().date().isoformat()
 
-    history = task.get("history", [])
+    history = state.get("history", [])
     skip_entries = [e for e in history if e.get("type") == HistoryEntryType.SKIPPED]
     assert len(skip_entries) >= 1
     assert skip_entries[-1].get("notes") == "Parts not available"

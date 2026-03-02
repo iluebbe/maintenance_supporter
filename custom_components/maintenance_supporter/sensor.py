@@ -17,11 +17,10 @@ from .const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
-    TriggerEntityState,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
-from .entity.triggers import BaseTrigger, RuntimeTrigger, create_triggers, normalize_entity_ids
+from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -73,9 +72,8 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         MaintenanceStatus.OVERDUE,
         MaintenanceStatus.TRIGGERED,
     ]
-    _triggers: list[BaseTrigger] = []
-    _trigger_states: dict[str, bool] = {}
-    _trigger_values: dict[str, float | None] = {}
+    # Note: _triggers, _trigger_states, _trigger_values are instance-level
+    # only (initialised in __init__).  No class-level mutable defaults.
 
     def __init__(
         self,
@@ -130,7 +128,13 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return extended attributes for the sensor."""
+        """Return extended attributes for the sensor.
+
+        Only stable attributes are exposed here to avoid excessive recorder
+        writes.  Fast-changing trigger values (current_value,
+        accumulated_hours, change_count, etc.) are served via the WebSocket
+        ``subscribe`` endpoint instead.
+        """
         task = self._task_data
         if not task:
             return {}
@@ -151,76 +155,27 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             "documentation_url": task.get("documentation_url"),
         }
 
-        # Trigger attributes
+        # Trigger attributes (static config only — no fast-changing values)
         trigger_config = task.get("trigger_config")
         if trigger_config:
-            attrs["trigger_type"] = trigger_config.get("type")
+            ttype = trigger_config.get("type")
+            attrs["trigger_type"] = ttype
             attrs["trigger_active"] = task.get("_trigger_active", False)
 
-            # Compound triggers don't have top-level entity_id/entity_ids
-            if trigger_config.get("type") != "compound":
-                entity_ids = normalize_entity_ids(trigger_config)
-                entity_logic = trigger_config.get("entity_logic", DEFAULT_ENTITY_LOGIC)
-
-                # Single-entity backwards compat: expose trigger_entity as string
-                attrs["trigger_entity"] = trigger_config.get("entity_id")
-                attrs["trigger_attribute"] = trigger_config.get("attribute")
-                attrs["trigger_current_value"] = task.get("_trigger_current_value")
-                attrs["trigger_entity_state"] = task.get(
-                    "_trigger_entity_state", TriggerEntityState.AVAILABLE
-                )
-
-                # Multi-entity attributes
-                if len(entity_ids) > 1:
-                    attrs["trigger_entities"] = entity_ids
-                    attrs["trigger_entity_logic"] = entity_logic
-                    attrs["trigger_states"] = dict(self._trigger_states)
-                    attrs["trigger_current_values"] = dict(self._trigger_values)
-            else:
-                entity_ids = []
-
-            # Type-specific trigger attributes
-            trigger = self._trigger
-            if trigger_config.get("type") == "threshold":
+            if ttype == "threshold":
                 attrs["trigger_above"] = trigger_config.get("trigger_above")
                 attrs["trigger_below"] = trigger_config.get("trigger_below")
                 attrs["trigger_for_minutes"] = trigger_config.get(
                     "trigger_for_minutes"
                 )
-            elif trigger_config.get("type") == "counter":
+            elif ttype == "counter":
                 attrs["trigger_target_value"] = trigger_config.get(
                     "trigger_target_value"
                 )
                 attrs["trigger_delta_mode"] = trigger_config.get(
                     "trigger_delta_mode"
                 )
-                if len(self._triggers) > 1:
-                    # Multi-entity: per-entity baselines and deltas
-                    baselines = {}
-                    deltas = {}
-                    for t in self._triggers:
-                        if hasattr(t, "_baseline_value"):
-                            baselines[t.entity_id] = t._baseline_value
-                        if hasattr(t, "current_delta"):
-                            deltas[t.entity_id] = t.current_delta
-                    attrs["trigger_baselines"] = baselines
-                    attrs["trigger_deltas"] = deltas
-                else:
-                    # Baseline: live from trigger object, fallback to config
-                    attrs["trigger_baseline_value"] = (
-                        trigger._baseline_value
-                        if trigger is not None
-                        and hasattr(trigger, "_baseline_value")
-                        else trigger_config.get("trigger_baseline_value")
-                    )
-                    # Current delta: only available live from trigger object
-                    attrs["trigger_current_delta"] = (
-                        trigger.current_delta
-                        if trigger is not None
-                        and hasattr(trigger, "current_delta")
-                        else None
-                    )
-            elif trigger_config.get("type") == "state_change":
+            elif ttype == "state_change":
                 attrs["trigger_from_state"] = trigger_config.get(
                     "trigger_from_state"
                 )
@@ -228,72 +183,16 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 attrs["trigger_target_changes"] = trigger_config.get(
                     "trigger_target_changes"
                 )
-                if len(self._triggers) > 1:
-                    # Multi-entity: per-entity change counts
-                    counts = {}
-                    for t in self._triggers:
-                        if hasattr(t, "change_count"):
-                            counts[t.entity_id] = t.change_count
-                    attrs["trigger_change_counts"] = counts
-                else:
-                    # Change count: live from trigger object, fallback to config
-                    attrs["trigger_change_count"] = (
-                        trigger.change_count
-                        if trigger is not None
-                        and hasattr(trigger, "change_count")
-                        else trigger_config.get("trigger_change_count", 0)
-                    )
-            elif trigger_config.get("type") == "runtime":
+            elif ttype == "runtime":
                 attrs["trigger_runtime_hours"] = trigger_config.get(
                     "trigger_runtime_hours"
                 )
-                if len(self._triggers) > 1:
-                    # Multi-entity: per-entity accumulated and remaining hours
-                    accumulated = {}
-                    remaining = {}
-                    target = trigger_config.get("trigger_runtime_hours", 100.0)
-                    for t in self._triggers:
-                        if isinstance(t, RuntimeTrigger):
-                            accumulated[t.entity_id] = round(
-                                t.current_runtime_hours, 2
-                            )
-                            remaining[t.entity_id] = round(
-                                t.remaining_hours, 2
-                            )
-                    attrs["trigger_accumulated_hours"] = accumulated
-                    attrs["trigger_remaining_hours"] = remaining
-                elif isinstance(trigger, RuntimeTrigger):
-                    attrs["trigger_accumulated_hours"] = round(
-                        trigger.current_runtime_hours, 2
-                    )
-                    attrs["trigger_remaining_hours"] = round(
-                        trigger.remaining_hours, 2
-                    )
-                else:
-                    acc_sec = trigger_config.get(
-                        "trigger_accumulated_seconds", 0.0
-                    )
-                    target = trigger_config.get("trigger_runtime_hours", 100.0)
-                    attrs["trigger_accumulated_hours"] = round(
-                        acc_sec / 3600.0, 2
-                    )
-                    attrs["trigger_remaining_hours"] = round(
-                        max(0.0, target - acc_sec / 3600.0), 2
-                    )
-            elif trigger_config.get("type") == "compound":
+            elif ttype == "compound":
                 attrs["compound_logic"] = trigger_config.get(
                     "compound_logic", "AND"
                 )
                 conditions = trigger_config.get("conditions", [])
                 attrs["compound_conditions_count"] = len(conditions)
-                trigger = self._trigger
-                if trigger is not None and hasattr(trigger, "condition_states"):
-                    attrs["compound_condition_states"] = trigger.condition_states
-
-        # Last history entry
-        last_entry = task.get("_last_entry")
-        if last_entry:
-            attrs["last_entry"] = last_entry
 
         # Adaptive scheduling attributes
         if task.get("_suggested_interval") is not None:
@@ -311,12 +210,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             attrs["seasonal_factor"] = analysis["seasonal_factor"]
             attrs["seasonal_reason"] = analysis.get("seasonal_reason")
 
-        # Weibull advanced statistics (Phase 4)
+        # Weibull advanced statistics
         if analysis and analysis.get("weibull_beta") is not None:
             attrs["weibull_beta"] = analysis["weibull_beta"]
             attrs["weibull_eta"] = analysis.get("weibull_eta")
             attrs["weibull_r_squared"] = analysis.get("weibull_r_squared")
-            # Beta interpretation
             beta = analysis["weibull_beta"]
             if beta < 0.8:
                 attrs["weibull_beta_interpretation"] = "early_failures"
@@ -331,19 +229,6 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             attrs["confidence_interval_high"] = analysis.get(
                 "confidence_interval_high"
             )
-
-        # Sensor-driven prediction attributes (Phase 3)
-        if task.get("_degradation_rate") is not None:
-            attrs["degradation_rate"] = task["_degradation_rate"]
-            attrs["degradation_trend"] = task.get("_degradation_trend")
-        if task.get("_days_until_threshold") is not None:
-            attrs["days_until_threshold"] = task["_days_until_threshold"]
-            attrs["threshold_prediction_confidence"] = task.get(
-                "_threshold_prediction_confidence"
-            )
-        if task.get("_environmental_factor") is not None:
-            attrs["environmental_factor"] = task["_environmental_factor"]
-            attrs["environmental_entity"] = task.get("_environmental_entity")
 
         return attrs
 
@@ -439,9 +324,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             task["_trigger_current_value"] = current_value
 
         # Recompute _status immediately so native_value reflects the change
-        task["_status"] = self._compute_live_status(task)
+        old_status = task.get("_status")
+        new_status = self._compute_live_status(task)
+        task["_status"] = new_status
 
-        self.async_write_ha_state()
+        # Only write HA state when status actually changes to avoid
+        # unnecessary recorder writes on every trigger value update.
+        if new_status != old_status:
+            self.async_write_ha_state()
 
     @staticmethod
     def _compute_live_status(task: dict[str, Any]) -> str:

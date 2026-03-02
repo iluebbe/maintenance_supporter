@@ -39,6 +39,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -589,8 +590,8 @@ async def test_add_trigger_history_entry_success(
     coordinator = entry.runtime_data.coordinator
     await coordinator.async_add_trigger_history_entry(TASK_ID_1, trigger_value=35.0)
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    history = updated.data[CONF_TASKS][TASK_ID_1].get("history", [])
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    history = state.get("history", [])
     triggered = [h for h in history if h.get("type") == "triggered"]
     assert len(triggered) >= 1
 
@@ -622,9 +623,8 @@ async def test_complete_with_adaptive_config(
     coordinator = entry.runtime_data.coordinator
     await coordinator.complete_maintenance(TASK_ID_1, notes="Done")
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = updated.data[CONF_TASKS][TASK_ID_1]
-    adaptive = task_data.get("adaptive_config", {})
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    adaptive = state.get("adaptive_config", {})
     assert "base_interval" in adaptive
     assert "hemisphere" in adaptive
 

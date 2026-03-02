@@ -342,8 +342,7 @@ async def test_degradation_attrs(
             sensor_entity.async_write_ha_state()
 
     state = _get_sensor_state(hass, obj_entry)
-    if state and "degradation_rate" in state.attributes:
-        assert state.attributes["degradation_rate"] == 0.5
+    assert "degradation_rate" not in (state.attributes if state else {})
 
 
 async def test_threshold_prediction_attrs(

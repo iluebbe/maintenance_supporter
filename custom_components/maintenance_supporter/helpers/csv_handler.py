@@ -50,7 +50,11 @@ def export_objects_csv(hass: HomeAssistant) -> str:
 
     for entry in entries:
         obj_data = entry.data.get(CONF_OBJECT, {})
-        tasks_data = entry.data.get(CONF_TASKS, {})
+        # Merge static + Store dynamic data
+        rd = getattr(entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        static_tasks = entry.data.get(CONF_TASKS, {})
+        tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
 
         rd = getattr(entry, "runtime_data", None)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None

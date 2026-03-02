@@ -35,6 +35,7 @@ from .const import (
 )
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
+from .storage import MaintenanceStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,7 +43,9 @@ _LOGGER = logging.getLogger(__name__)
 class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for a single maintenance object and its tasks."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry: ConfigEntry, store: MaintenanceStore | None = None
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -51,6 +54,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(minutes=DEFAULT_UPDATE_INTERVAL_MINUTES),
         )
         self.entry = entry
+        self._store = store
         self._calendar_entity: MaintenanceCalendar | None = None
         self._previous_statuses: dict[str, str] = {}  # task_id -> status
 
@@ -74,8 +78,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @property
     def tasks(self) -> dict[str, MaintenanceTask]:
-        """Return all tasks from config entry data."""
+        """Return all tasks, merging static config with Store dynamic state."""
         tasks_data = self.entry.data.get(CONF_TASKS, {})
+        if self._store is not None:
+            tasks_data = self._store.merge_all_tasks(tasks_data)
         return {
             task_id: MaintenanceTask.from_dict(task_data)
             for task_id, task_data in tasks_data.items()
@@ -653,9 +659,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for ce in self.hass.config_entries.async_entries(DOMAIN):
             if ce.unique_id == GLOBAL_UNIQUE_ID:
                 continue
-            tasks_data = ce.data.get(CONF_TASKS, {})
-            for _tid, tdata in tasks_data.items():
-                for h_entry in tdata.get("history", []):
+
+            # Read history from Store when available, fall back to entry.data
+            rd = getattr(ce, "runtime_data", None)
+            ce_store = getattr(rd, "store", None) if rd else None
+
+            for tid in ce.data.get(CONF_TASKS, {}):
+                if ce_store is not None:
+                    history = ce_store.get_history(tid)
+                else:
+                    history = ce.data.get(CONF_TASKS, {}).get(tid, {}).get("history", [])
+
+                for h_entry in history:
                     if h_entry.get("type") != "completed":
                         continue
                     cost = h_entry.get("cost")
@@ -679,6 +694,28 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if yearly_budget > 0 and yearly_spent >= yearly_budget * threshold_pct:
             await nm.async_budget_alert("yearly", yearly_spent, yearly_budget)
 
+    # --- Helpers ---
+
+    def _get_merged_tasks_data(self) -> dict[str, Any]:
+        """Return merged static (ConfigEntry) + dynamic (Store) task data."""
+        tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
+        if self._store is not None:
+            return self._store.merge_all_tasks(tasks_data)
+        return tasks_data
+
+    def _persist_dynamic_state(self, task_id: str, task: MaintenanceTask) -> None:
+        """Write task's dynamic state to Store (debounced)."""
+        if self._store is None:
+            return
+        td = task.to_dict()
+        lp = td.get("last_performed")
+        if lp is not None:
+            self._store.set_last_performed(task_id, lp)
+        self._store.set_history(task_id, td.get("history", []))
+        if task.adaptive_config:
+            self._store.set_adaptive_config(task_id, task.adaptive_config)
+        self._store.async_delay_save()
+
     # --- Mutation Methods ---
 
     async def async_add_trigger_history_entry(
@@ -687,21 +724,25 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         trigger_value: float | None = None,
     ) -> None:
         """Add a TRIGGERED history entry to a task and persist."""
-        tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-        if task_id not in tasks_data:
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
             return
 
-        task = MaintenanceTask.from_dict(tasks_data[task_id])
+        task = MaintenanceTask.from_dict(merged[task_id])
         task.add_history_entry(
             entry_type=HistoryEntryType.TRIGGERED,
             notes="Sensor trigger activated",
             trigger_value=trigger_value,
         )
-        tasks_data[task_id] = task.to_dict()
 
-        new_data = dict(self.entry.data)
-        new_data[CONF_TASKS] = tasks_data
-        self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+        if self._store is not None:
+            self._persist_dynamic_state(task_id, task)
+        else:
+            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
+            tasks_data[task_id] = task.to_dict()
+            new_data = dict(self.entry.data)
+            new_data[CONF_TASKS] = tasks_data
+            self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
     async def complete_maintenance(
         self,
@@ -714,12 +755,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         completed_by: str | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
-        tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-        if task_id not in tasks_data:
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
 
-        task = MaintenanceTask.from_dict(tasks_data[task_id])
+        task = MaintenanceTask.from_dict(merged[task_id])
 
         # Compute actual interval before updating last_performed
         actual_interval: int | None = None
@@ -754,9 +795,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 task.adaptive_config = updated_config
 
-        tasks_data[task_id] = task.to_dict()
-
-        await self._async_persist_tasks(tasks_data)
+        if self._store is not None:
+            # Dynamic state only → Store (no ConfigEntry write needed)
+            self._persist_dynamic_state(task_id, task)
+            await self.async_request_refresh()
+        else:
+            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
+            tasks_data[task_id] = task.to_dict()
+            await self._async_persist_tasks(tasks_data)
 
         _LOGGER.info(
             "Maintenance completed: %s on %s", task.name, self.maintenance_object.name
@@ -768,16 +814,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         date: date | None = None,
     ) -> None:
         """Reset the last performed date of a task."""
-        tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-        if task_id not in tasks_data:
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
 
-        task = MaintenanceTask.from_dict(tasks_data[task_id])
+        task = MaintenanceTask.from_dict(merged[task_id])
         task.reset(reset_date=date)
-        tasks_data[task_id] = task.to_dict()
 
-        await self._async_persist_tasks(tasks_data)
+        if self._store is not None:
+            self._persist_dynamic_state(task_id, task)
+            await self.async_request_refresh()
+        else:
+            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
+            tasks_data[task_id] = task.to_dict()
+            await self._async_persist_tasks(tasks_data)
 
         _LOGGER.info(
             "Maintenance reset: %s on %s", task.name, self.maintenance_object.name
@@ -789,16 +840,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         reason: str | None = None,
     ) -> None:
         """Skip the current maintenance cycle for a task."""
-        tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-        if task_id not in tasks_data:
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
 
-        task = MaintenanceTask.from_dict(tasks_data[task_id])
+        task = MaintenanceTask.from_dict(merged[task_id])
         task.skip(reason=reason)
-        tasks_data[task_id] = task.to_dict()
 
-        await self._async_persist_tasks(tasks_data)
+        if self._store is not None:
+            self._persist_dynamic_state(task_id, task)
+            await self.async_request_refresh()
+        else:
+            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
+            tasks_data[task_id] = task.to_dict()
+            await self._async_persist_tasks(tasks_data)
 
         _LOGGER.info(
             "Maintenance skipped: %s on %s", task.name, self.maintenance_object.name
@@ -807,22 +863,22 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_apply_suggested_interval(
         self, task_id: str, interval: int
     ) -> None:
-        """Apply a suggested interval to a task."""
+        """Apply a suggested interval to a task (static config → ConfigEntry)."""
         tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
         if task_id not in tasks_data:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
 
-        task = MaintenanceTask.from_dict(tasks_data[task_id])
-        old_interval = task.interval_days
-        task.interval_days = interval
-        tasks_data[task_id] = task.to_dict()
+        task_dict = dict(tasks_data[task_id])
+        old_interval = task_dict.get("interval_days")
+        task_dict["interval_days"] = interval
+        tasks_data[task_id] = task_dict
 
         await self._async_persist_tasks(tasks_data)
 
         _LOGGER.info(
-            "Adaptive: interval %s→%s for %s",
-            old_interval, interval, task.name,
+            "Adaptive: interval %s→%s for task %s",
+            old_interval, interval, task_id,
         )
 
     async def _async_persist_tasks(self, tasks_data: dict[str, Any]) -> None:
@@ -838,40 +894,48 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         runtime_data: dict[str, Any],
         entity_id: str | None = None,
     ) -> None:
-        """Persist trigger runtime values to config entry.
+        """Persist trigger runtime values.
 
         This is called by triggers to save values that must survive restarts.
 
         When *entity_id* is provided the data is stored per-entity under
-        ``_trigger_state[entity_id]``.  When *entity_id* is ``None`` the
+        ``trigger_runtime[entity_id]``.  When *entity_id* is ``None`` the
         legacy flat storage is used for backwards compatibility.
         """
-        tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-        if task_id not in tasks_data:
-            return
-
-        task_dict = dict(tasks_data[task_id])
-        trigger_config = dict(task_dict.get("trigger_config", {}))
-
-        if entity_id is not None:
-            # Per-entity nested storage
-            trigger_state = dict(trigger_config.get("_trigger_state", {}))
-            entity_state = dict(trigger_state.get(entity_id, {}))
-            for key, value in runtime_data.items():
-                entity_state[key] = value
-            trigger_state[entity_id] = entity_state
-            trigger_config["_trigger_state"] = trigger_state
+        if self._store is not None:
+            # Store-based: write to per-entry store file (debounced)
+            if entity_id is not None:
+                self._store.set_trigger_runtime(task_id, entity_id, runtime_data)
+            else:
+                # Legacy flat: store under a synthetic key
+                self._store.set_trigger_runtime(task_id, "_flat", runtime_data)
+            self._store.async_delay_save()
         else:
-            # Legacy flat storage
-            for key, value in runtime_data.items():
-                trigger_config[key] = value
+            # Legacy: write to ConfigEntry.data
+            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
+            if task_id not in tasks_data:
+                return
 
-        task_dict["trigger_config"] = trigger_config
-        tasks_data[task_id] = task_dict
+            task_dict = dict(tasks_data[task_id])
+            trigger_config = dict(task_dict.get("trigger_config", {}))
 
-        new_data = dict(self.entry.data)
-        new_data[CONF_TASKS] = tasks_data
-        self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+            if entity_id is not None:
+                trigger_state = dict(trigger_config.get("_trigger_state", {}))
+                entity_state = dict(trigger_state.get(entity_id, {}))
+                for key, value in runtime_data.items():
+                    entity_state[key] = value
+                trigger_state[entity_id] = entity_state
+                trigger_config["_trigger_state"] = trigger_state
+            else:
+                for key, value in runtime_data.items():
+                    trigger_config[key] = value
+
+            task_dict["trigger_config"] = trigger_config
+            tasks_data[task_id] = task_dict
+
+            new_data = dict(self.entry.data)
+            new_data[CONF_TASKS] = tasks_data
+            self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
         _LOGGER.debug(
             "Persisted trigger runtime data for task %s (entity=%s): %s",

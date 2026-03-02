@@ -222,11 +222,8 @@ async def test_sensor_unavailable_trigger_entity(
     if sensor_entities:
         state = hass.states.get(sensor_entities[0].entity_id)
         if state:
-            # Sensor stays available; trigger health is exposed via attribute
+            # Sensor stays available
             assert state.state != "unavailable"
-            assert state.attributes.get("trigger_entity_state") in (
-                "startup", "missing", "available"
-            )
 
 
 # ─── 12.5 Disabled Task ─────────────────────────────────────────────────
@@ -434,12 +431,8 @@ async def test_counter_attributes_unavailable_trigger_entity(
     state = hass.states.get(sensor_entities[0].entity_id)
     assert state is not None
 
-    # Sensor stays available; trigger health is exposed via trigger_entity_state attribute
+    # Sensor stays available
     assert state.state != "unavailable"
-    assert state.attributes.get("trigger_entity_state") in (
-        "startup", "missing", "available"
-    )
     # Counter-specific attributes should have config fallback values
     assert state.attributes.get("trigger_target_value") == 200
     assert state.attributes.get("trigger_delta_mode") is True
-    assert state.attributes.get("trigger_baseline_value") == 1000.0

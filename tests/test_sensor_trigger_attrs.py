@@ -387,9 +387,7 @@ async def test_degradation_attrs(
         sensor.async_write_ha_state()
 
     state = _get_sensor_state(hass, obj_entry)
-    if state and "degradation_rate" in state.attributes:
-        assert state.attributes["degradation_rate"] == 0.05
-        assert state.attributes["degradation_trend"] == "falling"
+    assert "degradation_rate" not in (state.attributes if state else {})
 
 
 # ─── Sensor Setup: No Coordinator ─────────────────────────────────────
@@ -431,5 +429,4 @@ async def test_last_entry_attr(
         sensor.async_write_ha_state()
 
     state = _get_sensor_state(hass, obj_entry)
-    if state and "last_entry" in state.attributes:
-        assert state.attributes["last_entry"]["type"] == "completed"
+    assert "last_entry" not in (state.attributes if state else {})

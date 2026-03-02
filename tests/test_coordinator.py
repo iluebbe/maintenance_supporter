@@ -40,6 +40,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -309,6 +310,9 @@ async def test_fallback_counter_delta(
             "trigger_target_value": 50,
             "trigger_delta_mode": True,
             "trigger_baseline_value": 100,
+            "_trigger_state": {
+                "sensor.counter": {"baseline_value": 100},
+            },
         },
     )
     obj_entry = _make_object_entry(hass, {TASK_ID_1: task}, unique_id="fb_delta")
@@ -430,10 +434,9 @@ async def test_complete_maintenance_history(
         task_id=TASK_ID_1, notes="Done", cost=50.0, duration=30,
     )
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = updated.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["last_performed"] == dt_util.now().date().isoformat()
-    history = task_data["history"]
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    assert state["last_performed"] == dt_util.now().date().isoformat()
+    history = state["history"]
     completed = [h for h in history if h["type"] == HistoryEntryType.COMPLETED]
     assert len(completed) >= 1
     assert completed[-1]["cost"] == 50.0
@@ -453,9 +456,8 @@ async def test_skip_maintenance(
 
     await coordinator.skip_maintenance(task_id=TASK_ID_1, reason="Not needed")
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = updated.data[CONF_TASKS][TASK_ID_1]
-    history = task_data["history"]
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    history = state["history"]
     skipped = [h for h in history if h["type"] == HistoryEntryType.SKIPPED]
     assert len(skipped) == 1
     assert skipped[0]["notes"] == "Not needed"
@@ -476,9 +478,8 @@ async def test_reset_maintenance(
     reset_date = date(2024, 6, 15)
     await coordinator.reset_maintenance(task_id=TASK_ID_1, date=reset_date)
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = updated.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["last_performed"] == "2024-06-15"
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    assert state["last_performed"] == "2024-06-15"
 
 
 async def test_persist_trigger_runtime_per_entity(
@@ -501,9 +502,9 @@ async def test_persist_trigger_runtime_per_entity(
         entity_id="sensor.pump",
     )
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    tc = updated.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
-    assert tc["_trigger_state"]["sensor.pump"]["accumulated_seconds"] == 3600.0
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    runtime = entry.runtime_data.store.get_trigger_runtime(TASK_ID_1, "sensor.pump")
+    assert runtime["accumulated_seconds"] == 3600.0
 
 
 async def test_register_calendar_entity(
@@ -549,7 +550,6 @@ async def test_complete_maintenance_updates_adaptive(
 
     await coordinator.complete_maintenance(task_id=TASK_ID_1, feedback="needed")
 
-    updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = updated.data[CONF_TASKS][TASK_ID_1]
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
     # Adaptive config should be updated
-    assert task_data.get("adaptive_config") is not None
+    assert state.get("adaptive_config") is not None

@@ -28,6 +28,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -207,9 +208,9 @@ async def test_seasonal_overrides_set(
     assert result["success"] is True
     assert result["overrides"] == {7: 0.5, 1: 2.0}
 
-    # Verify persisted
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    ac = entry.data[CONF_TASKS][TASK_ID_1]["adaptive_config"]
+    # Verify persisted in Store
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    ac = state.get("adaptive_config", {})
     assert ac["seasonal_overrides"] == {7: 0.5, 1: 2.0}
 
 
@@ -343,8 +344,8 @@ async def test_set_environmental_entity(
     assert result["success"] is True
     assert result["environmental_entity"] == "sensor.outdoor_temp"
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    ac = entry.data[CONF_TASKS][TASK_ID_1]["adaptive_config"]
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    ac = state.get("adaptive_config", {})
     assert ac["environmental_entity"] == "sensor.outdoor_temp"
 
 
@@ -367,8 +368,8 @@ async def test_set_environmental_entity_with_attribute(
     result = conn.send_result.call_args[0][1]
     assert result["environmental_attribute"] == "temperature"
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    ac = entry.data[CONF_TASKS][TASK_ID_1]["adaptive_config"]
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    ac = state.get("adaptive_config", {})
     assert ac["environmental_attribute"] == "temperature"
 
 
@@ -397,8 +398,8 @@ async def test_clear_environmental_entity(
     })
 
     conn.send_result.assert_called_once()
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    ac = entry.data[CONF_TASKS][TASK_ID_1].get("adaptive_config", {})
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    ac = state.get("adaptive_config", {})
     assert "environmental_entity" not in ac
 
 

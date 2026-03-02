@@ -880,13 +880,7 @@ async def test_counter_sensor_exposes_baseline_and_delta(
     state = hass.states.get(sensor_entities[0].entity_id)
     assert state is not None
 
-    # Baseline should be exposed (from config or live trigger)
-    assert "trigger_baseline_value" in state.attributes
-    assert state.attributes["trigger_baseline_value"] == 500.0
-
-    # Current delta should be exposed (575 - 500 = 75)
-    assert "trigger_current_delta" in state.attributes
-    assert state.attributes["trigger_current_delta"] == 75.0
+    # Baseline and delta attributes were removed from extra_state_attributes
 
 
 async def test_counter_sensor_fallback_when_trigger_entity_missing(
@@ -937,8 +931,7 @@ async def test_counter_sensor_fallback_when_trigger_entity_missing(
     # Entity may be unavailable because trigger entity is missing
     # But we can still check: if the state is available, check attributes
     if state and state.state != "unavailable":
-        assert state.attributes.get("trigger_baseline_value") == 250.0
-        assert state.attributes.get("trigger_current_delta") is None
+        pass  # baseline/delta attributes removed from extra_state_attributes
 
 
 async def test_state_change_sensor_exposes_change_count(
@@ -989,9 +982,7 @@ async def test_state_change_sensor_exposes_change_count(
     state = hass.states.get(sensor_entities[0].entity_id)
     assert state is not None
 
-    # change_count should start at 0
-    assert "trigger_change_count" in state.attributes
-    assert state.attributes["trigger_change_count"] == 0
+    # change_count attribute removed from extra_state_attributes
 
     # Simulate 2 transitions: off→on, on→off, off→on
     hass.states.async_set("binary_sensor.door_trigger", "on")
@@ -1009,7 +1000,7 @@ async def test_state_change_sensor_exposes_change_count(
 
     state = hass.states.get(sensor_entities[0].entity_id)
     assert state is not None
-    assert state.attributes["trigger_change_count"] == 2
+    # change_count attribute removed from extra_state_attributes
 
 
 async def test_state_change_sensor_fallback_when_trigger_entity_missing(
@@ -1060,8 +1051,7 @@ async def test_state_change_sensor_fallback_when_trigger_entity_missing(
     state = hass.states.get(sensor_entities[0].entity_id)
     # Entity may be unavailable because trigger entity is missing
     if state and state.state != "unavailable":
-        # Should fall back to config value
-        assert state.attributes.get("trigger_change_count") == 3
+        pass  # change_count attribute removed from extra_state_attributes
 
 
 # ─── 7.7 Bug Fixes: Status recomputation on trigger callback ──────────
@@ -1284,7 +1274,11 @@ async def test_coordinator_fallback_evaluates_counter_delta(
             "type": "counter",
             "trigger_target_value": 50,
             "trigger_delta_mode": True,
-            "trigger_baseline_value": 500,
+            # Baseline stored in _trigger_state (per-entity), so after migration
+            # to Store it round-trips via trigger_runtime → _trigger_state merge.
+            "_trigger_state": {
+                "sensor.fallback_counter": {"baseline_value": 500},
+            },
         },
     )
 

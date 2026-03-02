@@ -34,6 +34,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -473,9 +474,8 @@ async def test_complete_updates_history(
         duration=15,
     )
 
-    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = entry.data[CONF_TASKS][TASK_ID_1]
-    history = task_data.get("history", [])
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    history = state.get("history", [])
     completed = [h for h in history if h.get("type") == "completed"]
     assert len(completed) >= 1
     assert completed[-1].get("cost") == 25.0
@@ -504,9 +504,8 @@ async def test_skip_maintenance(
     coordinator = obj_entry.runtime_data.coordinator
     await coordinator.skip_maintenance(task_id=TASK_ID_1, reason="Not needed")
 
-    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = entry.data[CONF_TASKS][TASK_ID_1]
-    history = task_data.get("history", [])
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    history = state.get("history", [])
     assert any(h.get("type") == "skipped" for h in history)
 
 
@@ -532,7 +531,6 @@ async def test_reset_maintenance(
     coordinator = obj_entry.runtime_data.coordinator
     await coordinator.reset_maintenance(task_id=TASK_ID_1)
 
-    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    task_data = entry.data[CONF_TASKS][TASK_ID_1]
-    # Reset sets last_performed to today
-    assert task_data.get("last_performed") == dt_util.now().date().isoformat()
+    # Reset sets last_performed to today (dynamic state in Store)
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == dt_util.now().date().isoformat()

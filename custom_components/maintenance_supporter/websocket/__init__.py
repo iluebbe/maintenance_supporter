@@ -45,6 +45,16 @@ def _get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporte
     return result
 
 
+def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:
+    """Return merged task data (static ConfigEntry + dynamic Store) for an entry."""
+    tasks_data = entry.data.get(CONF_TASKS, {})
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        return store.merge_all_tasks(tasks_data)
+    return tasks_data
+
+
 def _build_task_summary(
     hass: HomeAssistant, task_id: str, task_data: dict[str, Any], coordinator_task: dict[str, Any] | None
 ) -> dict[str, Any]:
@@ -136,7 +146,7 @@ def _build_task_summary(
 def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_data: dict[str, Any] | None) -> dict[str, Any]:
     """Build a full object response dict."""
     obj_data = entry.data.get(CONF_OBJECT, {})
-    tasks_data = entry.data.get(CONF_TASKS, {})
+    tasks_data = _get_merged_tasks(entry)
     ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
 
     tasks = [

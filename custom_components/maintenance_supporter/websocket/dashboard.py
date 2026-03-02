@@ -192,9 +192,16 @@ async def ws_get_budget_status(
 
     entries = _get_object_entries(hass)
     for entry in entries:
-        tasks_data = entry.data.get("tasks", {})
-        for _tid, tdata in tasks_data.items():
-            for h_entry in tdata.get("history", []):
+        rd = _get_runtime_data(hass, entry.entry_id)
+        store = getattr(rd, "store", None) if rd else None
+
+        for tid in entry.data.get("tasks", {}):
+            if store is not None:
+                history = store.get_history(tid)
+            else:
+                history = entry.data.get("tasks", {}).get(tid, {}).get("history", [])
+
+            for h_entry in history:
                 if h_entry.get("type") != "completed":
                     continue
                 cost = h_entry.get("cost")

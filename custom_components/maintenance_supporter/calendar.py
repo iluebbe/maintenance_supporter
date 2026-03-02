@@ -250,7 +250,10 @@ class MaintenanceCalendar(CalendarEntity):
             else:
                 live_tasks = {}
 
-            tasks_data = entry.data.get(CONF_TASKS, {})
+            # Merge static (ConfigEntry) + dynamic (Store) task data
+            store = getattr(runtime_data, "store", None) if runtime_data else None
+            static_tasks = entry.data.get(CONF_TASKS, {})
+            tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
 
             for task_id, task_dict in tasks_data.items():
                 task = MaintenanceTask.from_dict(task_dict)

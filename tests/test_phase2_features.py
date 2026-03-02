@@ -45,6 +45,7 @@ from .conftest import (
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -400,13 +401,13 @@ class TestMaintenanceChecklists:
             checklist_state=checklist_state,
         )
 
-        # Verify history entry contains checklist_state
-        updated_entry = hass.config_entries.async_get_entry(
-            object_with_checklist.entry_id
+        # Verify history entry contains checklist_state (dynamic state in Store)
+        state = get_task_store_state(
+            hass, object_with_checklist.entry_id, TASK_ID_1
         )
-        task_data = updated_entry.data[CONF_TASKS][TASK_ID_1]
-        assert len(task_data["history"]) >= 1
-        latest = task_data["history"][-1]
+        history = state.get("history", [])
+        assert len(history) >= 1
+        latest = history[-1]
         assert latest["type"] == "completed"
         assert latest.get("checklist_state") == checklist_state
 
@@ -912,4 +913,4 @@ class TestIntegration:
 
         assert len(events) == 1
         assert events[0].data["format"] == "json"
-        assert "data" in events[0].data
+        assert "file_path" in events[0].data

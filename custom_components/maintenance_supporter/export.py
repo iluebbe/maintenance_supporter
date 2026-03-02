@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -22,7 +23,11 @@ def _build_export_object(
 ) -> dict[str, Any]:
     """Build a single object's export dict."""
     obj_data = entry.data.get(CONF_OBJECT, {})
-    tasks_data = entry.data.get(CONF_TASKS, {})
+    # Merge static + Store dynamic data for each task
+    rd = getattr(entry, "runtime_data", None)
+    store = getattr(rd, "store", None) if rd else None
+    static_tasks = entry.data.get(CONF_TASKS, {})
+    tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
     ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
 
     tasks = []
@@ -70,20 +75,15 @@ def _build_export_object(
     }
 
 
-def export_maintenance_data(
+def build_export_data(
     hass: HomeAssistant,
-    fmt: str = "json",
     include_history: bool = True,
-) -> str:
-    """Export all maintenance data as a JSON or YAML string.
+) -> dict[str, Any]:
+    """Gather all maintenance data into a plain dict.
 
-    Args:
-        hass: Home Assistant instance.
-        fmt: Output format — "json" or "yaml".
-        include_history: Whether to include task history entries.
-
-    Returns:
-        Serialized string in the requested format.
+    This must be called from the event loop (accesses HA APIs).
+    The returned dict contains no HA objects and is safe to
+    serialize in an executor thread.
     """
     entries = [
         entry
@@ -99,11 +99,17 @@ def export_maintenance_data(
             _build_export_object(hass, entry, coord_data, include_history)
         )
 
-    data: dict[str, Any] = {
+    return {
         "version": 1,
         "objects": objects,
     }
 
+
+def serialize_export(data: dict[str, Any], fmt: str = "json") -> str:
+    """Serialize an export data dict to a JSON or YAML string.
+
+    Pure function with no HA dependencies — safe to run in an executor.
+    """
     if fmt == "yaml":
         try:
             import yaml  # type: ignore[import-untyped]  # noqa: PLC0415
@@ -114,3 +120,35 @@ def export_maintenance_data(
             return json.dumps(data, indent=2, ensure_ascii=False)
 
     return json.dumps(data, indent=2, ensure_ascii=False)
+
+
+def serialize_export_to_file(
+    data: dict[str, Any], fmt: str, file_path: str
+) -> str:
+    """Serialize export data and write to a file.
+
+    Pure sync function — safe to run in an executor via
+    ``hass.async_add_executor_job``.
+
+    Returns:
+        The file path written to.
+    """
+    content = serialize_export(data, fmt)
+    Path(file_path).write_text(content, encoding="utf-8")
+    return file_path
+
+
+def export_maintenance_data(
+    hass: HomeAssistant,
+    fmt: str = "json",
+    include_history: bool = True,
+) -> str:
+    """Export all maintenance data as a JSON or YAML string.
+
+    Legacy convenience wrapper used by the WebSocket export handler.
+    For the service handler, prefer ``build_export_data`` +
+    ``serialize_export_to_file`` (via executor) to avoid blocking
+    the event loop.
+    """
+    data = build_export_data(hass, include_history=include_history)
+    return serialize_export(data, fmt)

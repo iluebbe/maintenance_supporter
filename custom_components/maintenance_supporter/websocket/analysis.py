@@ -14,7 +14,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from . import _get_runtime_data
+from . import _get_merged_tasks, _get_runtime_data
 
 
 @websocket_api.websocket_command(
@@ -38,7 +38,7 @@ async def ws_analyze_interval(
         connection.send_error(msg["id"], "not_found", "Object not found")
         return
 
-    tasks_data = entry.data.get(CONF_TASKS, {})
+    tasks_data = _get_merged_tasks(entry)
     task_id = msg["task_id"]
     if task_id not in tasks_data:
         connection.send_error(msg["id"], "not_found", "Task not found")
@@ -136,7 +136,7 @@ async def ws_seasonal_overrides(
         return
 
     task_id = msg["task_id"]
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
+    tasks_data = _get_merged_tasks(entry)
     if task_id not in tasks_data:
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
@@ -169,21 +169,28 @@ async def ws_seasonal_overrides(
         validated[month] = round(factor, 2)
 
     # Persist overrides in adaptive_config
-    task = dict(tasks_data[task_id])
-    adaptive_config = dict(task.get("adaptive_config", {}))
+    adaptive_config = dict(tasks_data[task_id].get("adaptive_config", {}))
     if validated:
         adaptive_config["seasonal_overrides"] = validated
     else:
         adaptive_config.pop("seasonal_overrides", None)
-    task["adaptive_config"] = adaptive_config
-    tasks_data[task_id] = task
 
-    new_data = dict(entry.data)
-    new_data[CONF_TASKS] = tasks_data
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.set_adaptive_config(task_id, adaptive_config)
+        store.async_delay_save()
+    else:
+        # Legacy: write to ConfigEntry.data
+        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
+        task = dict(static_tasks[task_id])
+        task["adaptive_config"] = adaptive_config
+        static_tasks[task_id] = task
+        new_data = dict(entry.data)
+        new_data[CONF_TASKS] = static_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Refresh coordinator
-    rd = _get_runtime_data(hass, entry.entry_id)
     if rd and rd.coordinator:
         await rd.coordinator.async_request_refresh()
 
@@ -217,13 +224,12 @@ async def ws_set_environmental_entity(
         return
 
     task_id = msg["task_id"]
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
+    tasks_data = _get_merged_tasks(entry)
     if task_id not in tasks_data:
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
 
-    task = dict(tasks_data[task_id])
-    adaptive_config = dict(task.get("adaptive_config", {}))
+    adaptive_config = dict(tasks_data[task_id].get("adaptive_config", {}))
 
     env_entity = msg.get("environmental_entity")
     env_attribute = msg.get("environmental_attribute")
@@ -239,15 +245,22 @@ async def ws_set_environmental_entity(
         adaptive_config.pop("environmental_entity", None)
         adaptive_config.pop("environmental_attribute", None)
 
-    task["adaptive_config"] = adaptive_config
-    tasks_data[task_id] = task
-
-    new_data = dict(entry.data)
-    new_data[CONF_TASKS] = tasks_data
-    hass.config_entries.async_update_entry(entry, data=new_data)
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.set_adaptive_config(task_id, adaptive_config)
+        store.async_delay_save()
+    else:
+        # Legacy: write to ConfigEntry.data
+        static_tasks = dict(entry.data.get(CONF_TASKS, {}))
+        task = dict(static_tasks[task_id])
+        task["adaptive_config"] = adaptive_config
+        static_tasks[task_id] = task
+        new_data = dict(entry.data)
+        new_data[CONF_TASKS] = static_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Refresh coordinator
-    rd = _get_runtime_data(hass, entry.entry_id)
     if rd and rd.coordinator:
         await rd.coordinator.async_request_refresh()
 

@@ -19,7 +19,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
-from . import _get_object_entries, _get_runtime_data
+from . import _get_merged_tasks, _get_object_entries, _get_runtime_data
 
 
 # ---------------------------------------------------------------------------
@@ -209,15 +209,18 @@ async def ws_create_task(
         "enabled": True,
         "schedule_type": msg.get("schedule_type", "time_based"),
         "warning_days": msg.get("warning_days", 7),
-        "history": [],
     }
+
+    # Dynamic state (last_performed, history) for Store initialization
+    initial_last_performed: str | None = None
+    initial_history: list[dict[str, Any]] = []
 
     if msg.get("interval_days") is not None:
         task_data["interval_days"] = msg["interval_days"]
     if msg.get("last_performed") is not None:
-        task_data["last_performed"] = msg["last_performed"]
+        initial_last_performed = msg["last_performed"]
         # Add initial history entry so times_performed reflects the value
-        task_data["history"].append({
+        initial_history.append({
             "timestamp": msg["last_performed"] + "T00:00:00",
             "type": HistoryEntryType.COMPLETED,
             "notes": "Initial value set during task creation",
@@ -273,6 +276,22 @@ async def ws_create_task(
     new_data[CONF_OBJECT] = obj
 
     hass.config_entries.async_update_entry(entry, data=new_data)
+
+    # Initialize dynamic state in Store
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.init_task(task_id, last_performed=initial_last_performed)
+        if initial_history:
+            store.set_history(task_id, initial_history)
+        store.async_delay_save()
+    else:
+        # Legacy: put dynamic fields in ConfigEntry.data
+        task_data["last_performed"] = initial_last_performed
+        task_data["history"] = initial_history
+        new_tasks[task_id] = task_data
+        new_data[CONF_TASKS] = new_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Reload entry to pick up new task entities
     await hass.config_entries.async_reload(entry.entry_id)
@@ -404,6 +423,13 @@ async def ws_delete_task(
 
     hass.config_entries.async_update_entry(entry, data=new_data)
 
+    # Clean up Store
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.remove_task(task_id)
+        store.async_delay_save()
+
     # Reload to remove entity
     await hass.config_entries.async_reload(entry.entry_id)
 
@@ -435,7 +461,7 @@ def ws_list_tasks(
     for entry in entries:
         if filter_entry_id and entry.entry_id != filter_entry_id:
             continue
-        entry_tasks = entry.data.get(CONF_TASKS, {})
+        entry_tasks = _get_merged_tasks(entry)
         obj_data = entry.data.get(CONF_OBJECT, {})
         for task_id, task_data in entry_tasks.items():
             tasks.append({

@@ -91,13 +91,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             "warning_days": self._current_task.get(
                 CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
             ),
-            "history": [],
         }
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             task_data["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
-        if "last_performed" in self._current_task:
-            task_data["last_performed"] = self._current_task["last_performed"]
         if "trigger_config" in self._current_task:
             task_data["trigger_config"] = self._current_task["trigger_config"]
         if CONF_TASK_NOTES in self._current_task:
@@ -115,6 +112,22 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         new_data[CONF_OBJECT] = obj
 
         self._update_config_entry(new_data)
+
+        # Initialize dynamic state in Store
+        rd = getattr(self.config_entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        last_performed = self._current_task.get("last_performed")
+        if store is not None:
+            store.init_task(task_id, last_performed=last_performed)
+            store.async_delay_save()
+        elif last_performed:
+            # Legacy: put last_performed in ConfigEntry.data
+            task_data["last_performed"] = last_performed
+            task_data["history"] = []
+            new_tasks[task_id] = task_data
+            new_data[CONF_TASKS] = new_tasks
+            self._update_config_entry(new_data)
+
         self._current_task = {}
 
         return self._show_init_menu()
@@ -1070,9 +1083,15 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Configure adaptive scheduling for a task."""
+        # Read adaptive_config from Store (merged) data
+        rd = getattr(self.config_entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
-        current_adaptive = task.get(CONF_ADAPTIVE_CONFIG, {})
+        if store is not None:
+            current_adaptive = store.get_adaptive_config(self._selected_task_id or "") or {}
+        else:
+            current_adaptive = task.get(CONF_ADAPTIVE_CONFIG, {})
 
         if user_input is not None:
             if user_input.get("go_back"):
@@ -1110,13 +1129,18 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             if "base_interval" not in adaptive_config:
                 adaptive_config["base_interval"] = task.get("interval_days", 30)
 
-            new_data = dict(self.config_entry.data)
-            new_tasks = dict(new_data.get(CONF_TASKS, {}))
-            updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
-            updated_task[CONF_ADAPTIVE_CONFIG] = adaptive_config
-            new_tasks[self._selected_task_id or ""] = updated_task
-            new_data[CONF_TASKS] = new_tasks
-            self._update_config_entry(new_data)
+            if store is not None:
+                store.set_adaptive_config(self._selected_task_id or "", adaptive_config)
+                store.async_delay_save()
+            else:
+                # Legacy: write to ConfigEntry.data
+                new_data = dict(self.config_entry.data)
+                new_tasks = dict(new_data.get(CONF_TASKS, {}))
+                updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
+                updated_task[CONF_ADAPTIVE_CONFIG] = adaptive_config
+                new_tasks[self._selected_task_id or ""] = updated_task
+                new_data[CONF_TASKS] = new_tasks
+                self._update_config_entry(new_data)
 
             return self._show_task_action_menu()
 

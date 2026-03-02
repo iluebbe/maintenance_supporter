@@ -15,7 +15,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from . import _build_task_summary, _get_object_entries, _get_runtime_data
+from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data
 
 
 @websocket_api.websocket_command(
@@ -125,7 +125,7 @@ async def ws_tasks_by_user(
         rd = _get_runtime_data(hass, entry.entry_id)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
         ct_tasks = (coord_data or {}).get(CONF_TASKS, {})
-        tasks_data = entry.data.get(CONF_TASKS, {})
+        tasks_data = _get_merged_tasks(entry)
         obj_data = entry.data.get(CONF_OBJECT, {})
 
         for tid, tdata in tasks_data.items():

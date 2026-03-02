@@ -136,6 +136,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             _LOGGER.error("Config entry %s not found", entry_id)
             return
 
+        # Read static task data from ConfigEntry
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
         task_dict = dict(tasks_data.get(task_id, {}))
         trigger_config = dict(task_dict.get("trigger_config", {}))
@@ -152,28 +153,48 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         # Update entity_id (for backwards compat / single-entity)
         if trigger_config.get("entity_id") == old_entity_id:
             trigger_config["entity_id"] = new_entity_id
-        # Also update entity_id if it's the first in entity_ids
         if entity_ids:
             trigger_config["entity_id"] = entity_ids[0]
 
-        # Reset runtime values that are specific to the old entity
+        # Reset runtime values
         trigger_config.pop("trigger_baseline_value", None)
         trigger_config.pop("trigger_change_count", None)
         task_dict["trigger_config"] = trigger_config
+        tasks_data[task_id] = task_dict
 
-        # Add history entry
-        from .models.maintenance_task import MaintenanceTask
-
-        task = MaintenanceTask.from_dict(task_dict)
-        task.add_history_entry(
-            entry_type=HistoryEntryType.TRIGGER_REMOVED,
-            notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
-        )
-        tasks_data[task_id] = task.to_dict()
-
+        # Write static changes to ConfigEntry
         new_data = dict(entry.data)
         new_data[CONF_TASKS] = tasks_data
         self.hass.config_entries.async_update_entry(entry, data=new_data)
+
+        # Add history entry via Store (dynamic state)
+        rd = getattr(entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        if store is not None:
+            from .models.maintenance_task import MaintenanceTask
+
+            merged = store.merge_task_data(task_id, task_dict)
+            task = MaintenanceTask.from_dict(merged)
+            task.add_history_entry(
+                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
+            )
+            td = task.to_dict()
+            store.set_history(task_id, td.get("history", []))
+            store.clear_trigger_runtime(task_id)
+            store.async_delay_save()
+        else:
+            # Legacy: full task roundtrip via ConfigEntry
+            from .models.maintenance_task import MaintenanceTask
+
+            task = MaintenanceTask.from_dict(task_dict)
+            task.add_history_entry(
+                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
+            )
+            tasks_data[task_id] = task.to_dict()
+            new_data[CONF_TASKS] = tasks_data
+            self.hass.config_entries.async_update_entry(entry, data=new_data)
 
         # Reload entry so the trigger re-initialises with the new entity
         await self.hass.config_entries.async_reload(entry_id)
@@ -213,23 +234,16 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         entity_ids = trigger_config.get("entity_ids", [])
         remaining = [eid for eid in entity_ids if eid != missing_entity_id]
 
+        history_notes: str
         if remaining:
-            # Multi-entity: just remove the missing entity, keep trigger alive
             trigger_config["entity_ids"] = remaining
             trigger_config["entity_id"] = remaining[0]
             task_dict["trigger_config"] = trigger_config
-
-            from .models.maintenance_task import MaintenanceTask
-
-            task = MaintenanceTask.from_dict(task_dict)
-            task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REMOVED,
-                notes=f"Entity {missing_entity_id} removed from multi-entity trigger. "
-                f"Remaining: {', '.join(remaining)}",
+            history_notes = (
+                f"Entity {missing_entity_id} removed from multi-entity trigger. "
+                f"Remaining: {', '.join(remaining)}"
             )
-            tasks_data[task_id] = task.to_dict()
         else:
-            # Single entity or all removed: remove the entire trigger
             old_entity_id = trigger_config.get("entity_id", missing_entity_id)
             safety_interval = trigger_config.get("interval_days")
 
@@ -242,19 +256,45 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             else:
                 task_dict["schedule_type"] = ScheduleType.MANUAL
 
+            history_notes = (
+                f"Sensor trigger removed (entity was: {old_entity_id}). "
+                f"Schedule converted to {task_dict.get('schedule_type', 'manual')}."
+            )
+
+        # Write static changes to ConfigEntry
+        tasks_data[task_id] = task_dict
+        new_data = dict(entry.data)
+        new_data[CONF_TASKS] = tasks_data
+        self.hass.config_entries.async_update_entry(entry, data=new_data)
+
+        # Add history entry via Store (dynamic state)
+        rd = getattr(entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        if store is not None:
+            from .models.maintenance_task import MaintenanceTask
+
+            merged = store.merge_task_data(task_id, task_dict)
+            task = MaintenanceTask.from_dict(merged)
+            task.add_history_entry(
+                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                notes=history_notes,
+            )
+            td = task.to_dict()
+            store.set_history(task_id, td.get("history", []))
+            store.clear_trigger_runtime(task_id)
+            store.async_delay_save()
+        else:
+            # Legacy: history via full task roundtrip in ConfigEntry
             from .models.maintenance_task import MaintenanceTask
 
             task = MaintenanceTask.from_dict(task_dict)
             task.add_history_entry(
                 entry_type=HistoryEntryType.TRIGGER_REMOVED,
-                notes=f"Sensor trigger removed (entity was: {old_entity_id}). "
-                f"Schedule converted to {task.schedule_type}.",
+                notes=history_notes,
             )
             tasks_data[task_id] = task.to_dict()
-
-        new_data = dict(entry.data)
-        new_data[CONF_TASKS] = tasks_data
-        self.hass.config_entries.async_update_entry(entry, data=new_data)
+            new_data[CONF_TASKS] = tasks_data
+            self.hass.config_entries.async_update_entry(entry, data=new_data)
 
         await self.hass.config_entries.async_reload(entry_id)
 

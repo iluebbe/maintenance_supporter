@@ -45,6 +45,7 @@ from .coordinator import MaintenanceCoordinator
 from .frontend import async_register_card
 from .helpers.notification_manager import NotificationManager
 from .panel import async_register_panel, async_unregister_panel
+from .storage import MaintenanceStore, async_migrate_to_store
 from .websocket import async_register_commands
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,6 +59,7 @@ class MaintenanceSupporterData:
     """Runtime data for a Maintenance Supporter config entry."""
 
     coordinator: MaintenanceCoordinator | None = None
+    store: MaintenanceStore | None = None
 
 
 type MaintenanceSupporterConfigEntry = ConfigEntry[MaintenanceSupporterData]
@@ -172,15 +174,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def _handle_export(call: ServiceCall) -> None:
         """Handle the export_data service call."""
-        from .export import export_maintenance_data  # noqa: PLC0415
+        from .export import build_export_data, serialize_export_to_file  # noqa: PLC0415
 
         fmt = call.data.get("format", "json")
         include_history = call.data.get("include_history", True)
-        result = export_maintenance_data(hass, fmt=fmt, include_history=include_history)
-        # Fire an event with the exported data so automations can use it
+
+        # Phase 1: gather data on the event loop (accesses HA APIs)
+        data = build_export_data(hass, include_history=include_history)
+
+        # Phase 2: serialize in executor (CPU-bound, no HA API calls)
+        file_path = hass.config.path(f"maintenance_export.{fmt}")
+        await hass.async_add_executor_job(serialize_export_to_file, data, fmt, file_path)
+
+        # Fire lightweight event (file path only, not the full payload)
         hass.bus.async_fire(
             f"{DOMAIN}_export_completed",
-            {"format": fmt, "data": result},
+            {"format": fmt, "file_path": file_path},
         )
 
     hass.services.async_register(
@@ -335,9 +344,20 @@ async def async_setup_entry(
 
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
-        # Maintenance object entry: create coordinator
-        coordinator = MaintenanceCoordinator(hass, entry)
-        entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator)
+        # Maintenance object entry: create Store + coordinator
+        store = MaintenanceStore(hass, entry.entry_id)
+
+        # Migrate dynamic state from ConfigEntry.data → Store (one-time)
+        cleaned_data = await async_migrate_to_store(
+            hass, entry.entry_id, entry.data, store
+        )
+        if cleaned_data is not entry.data:
+            hass.config_entries.async_update_entry(entry, data=cleaned_data)
+
+        coordinator = MaintenanceCoordinator(hass, entry, store)
+        entry.runtime_data = MaintenanceSupporterData(
+            coordinator=coordinator, store=store
+        )
         await coordinator.async_config_entry_first_refresh()
 
         _LOGGER.debug(
@@ -379,6 +399,17 @@ async def async_unload_entry(
         hass.data.pop(DOMAIN, None)
 
     return unload_ok
+
+
+async def async_remove_entry(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Clean up store file when a config entry is permanently deleted."""
+    if entry.unique_id == GLOBAL_UNIQUE_ID:
+        return
+    store = MaintenanceStore(hass, entry.entry_id)
+    await store.async_remove()
+    _LOGGER.debug("Removed store for entry %s", entry.entry_id)
 
 
 async def async_remove_config_entry_device(

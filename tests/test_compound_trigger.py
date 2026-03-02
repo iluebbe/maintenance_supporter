@@ -296,13 +296,12 @@ async def test_coordinator_proxy_persist_runtime(
         entity_id="sensor.temp",
     )
 
-    # Verify data was persisted
+    # Verify data was persisted to Store
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    trigger_config = updated.data[CONF_TASKS][TASK_ID_1].get("trigger_config", {})
-    trigger_state = trigger_config.get("_trigger_state", {})
-    conditions = trigger_state.get("conditions", [])
-    assert len(conditions) >= 1
-    assert "sensor.temp" in conditions[0]
+    store = updated.runtime_data.store
+    runtime = store.get_trigger_runtime(TASK_ID_1)
+    assert "_compound_0_sensor.temp" in runtime
+    assert runtime["_compound_0_sensor.temp"]["accumulated_seconds"] == 3600
 
 
 async def test_coordinator_proxy_persist_no_entity(
@@ -325,12 +324,12 @@ async def test_coordinator_proxy_persist_no_entity(
         entity_id=None,
     )
 
+    # Verify data was persisted to Store (no entity_id → key is _compound_0)
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
-    trigger_config = updated.data[CONF_TASKS][TASK_ID_1].get("trigger_config", {})
-    trigger_state = trigger_config.get("_trigger_state", {})
-    conditions = trigger_state.get("conditions", [])
-    assert len(conditions) >= 1
-    assert conditions[0].get("some_key") == "some_value"
+    store = updated.runtime_data.store
+    runtime = store.get_trigger_runtime(TASK_ID_1)
+    assert "_compound_0" in runtime
+    assert runtime["_compound_0"]["some_key"] == "some_value"
 
 
 async def test_coordinator_proxy_persist_missing_task(
