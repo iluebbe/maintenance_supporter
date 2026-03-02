@@ -68,23 +68,6 @@ async def mock_dependencies(hass: HomeAssistant):
         yield
 
 
-@pytest.fixture(autouse=True)
-def reset_global_registration_flags():
-    """Reset module-level registration flags between tests.
-
-    panel.py and frontend/__init__.py use global flags (_PANEL_REGISTERED,
-    _CARD_REGISTERED) to prevent duplicate registration.  These persist
-    across tests because the modules stay loaded in the interpreter.
-    """
-    import custom_components.maintenance_supporter.frontend as frontend_mod
-    import custom_components.maintenance_supporter.panel as panel_mod
-
-    panel_mod._PANEL_REGISTERED = False
-    frontend_mod._CARD_REGISTERED = False
-    yield
-    panel_mod._PANEL_REGISTERED = False
-    frontend_mod._CARD_REGISTERED = False
-
 
 # ─── Constants for testing ──────────────────────────────────────────────
 

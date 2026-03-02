@@ -281,6 +281,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Notify calendar entity if registered and added to hass
         if self._calendar_entity is not None and self._calendar_entity.hass is not None:
+            self._calendar_entity.invalidate_cache()
             self._calendar_entity.async_write_ha_state()
 
         return result
@@ -623,10 +624,60 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     responsible_user_id=task_result.get("responsible_user_id"),
                 )
 
+    def _recalculate_budget_cache(self) -> None:
+        """Recompute global budget totals from all entries' history.
+
+        Stores the result in hass.data[DOMAIN]["_budget_cache"] so that
+        every coordinator reads from the same cache instead of each one
+        re-scanning all entries on every 5-minute refresh.
+        """
+        now = datetime.now()
+        monthly = 0.0
+        yearly = 0.0
+
+        for ce in self.hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID:
+                continue
+
+            rd = getattr(ce, "runtime_data", None)
+            ce_store = getattr(rd, "store", None) if rd else None
+
+            for tid in ce.data.get(CONF_TASKS, {}):
+                if ce_store is not None:
+                    history = ce_store.get_history(tid)
+                else:
+                    history = (
+                        ce.data.get(CONF_TASKS, {})
+                        .get(tid, {})
+                        .get("history", [])
+                    )
+
+                for h_entry in history:
+                    if h_entry.get("type") != "completed":
+                        continue
+                    cost = h_entry.get("cost")
+                    if cost is None:
+                        continue
+                    ts = h_entry.get("timestamp", "")
+                    try:
+                        entry_dt = datetime.fromisoformat(ts)
+                    except (ValueError, TypeError):
+                        continue
+                    if entry_dt.year == now.year:
+                        yearly += cost
+                        if entry_dt.month == now.month:
+                            monthly += cost
+
+        self.hass.data.setdefault(DOMAIN, {})["_budget_cache"] = {
+            "monthly_spent": monthly,
+            "yearly_spent": yearly,
+            "last_updated": now,
+        }
+
     async def _async_check_budget(
         self, task_results: dict[str, Any]
     ) -> None:
-        """Check budget thresholds and send alerts if exceeded."""
+        """Check budget thresholds using cached totals."""
         from .helpers.notification_manager import NotificationManager
 
         nm = self.hass.data.get(DOMAIN, {}).get("_notification_manager")
@@ -649,42 +700,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if monthly_budget <= 0 and yearly_budget <= 0:
             return
 
-        # Sum costs across ALL coordinators (not just this one)
-        from datetime import datetime as dt_cls
+        # Use cached budget totals (recalculate if stale or missing)
+        cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(
+            "_budget_cache"
+        )
+        if cache is None or (
+            datetime.now() - cache["last_updated"]
+        ).total_seconds() > 3600:
+            self._recalculate_budget_cache()
+            cache = self.hass.data[DOMAIN]["_budget_cache"]
 
-        now = dt_cls.now()
-        monthly_spent = 0.0
-        yearly_spent = 0.0
-
-        for ce in self.hass.config_entries.async_entries(DOMAIN):
-            if ce.unique_id == GLOBAL_UNIQUE_ID:
-                continue
-
-            # Read history from Store when available, fall back to entry.data
-            rd = getattr(ce, "runtime_data", None)
-            ce_store = getattr(rd, "store", None) if rd else None
-
-            for tid in ce.data.get(CONF_TASKS, {}):
-                if ce_store is not None:
-                    history = ce_store.get_history(tid)
-                else:
-                    history = ce.data.get(CONF_TASKS, {}).get(tid, {}).get("history", [])
-
-                for h_entry in history:
-                    if h_entry.get("type") != "completed":
-                        continue
-                    cost = h_entry.get("cost")
-                    if cost is None:
-                        continue
-                    ts = h_entry.get("timestamp", "")
-                    try:
-                        entry_dt = dt_cls.fromisoformat(ts)
-                    except (ValueError, TypeError):
-                        continue
-                    if entry_dt.year == now.year:
-                        yearly_spent += cost
-                        if entry_dt.month == now.month:
-                            monthly_spent += cost
+        monthly_spent: float = cache["monthly_spent"]
+        yearly_spent: float = cache["yearly_spent"]
 
         # Check monthly
         if monthly_budget > 0 and monthly_spent >= monthly_budget * threshold_pct:
@@ -803,6 +830,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
             tasks_data[task_id] = task.to_dict()
             await self._async_persist_tasks(tasks_data)
+
+        # Invalidate budget cache when a cost is recorded
+        if cost is not None:
+            self._recalculate_budget_cache()
 
         _LOGGER.info(
             "Maintenance completed: %s on %s", task.name, self.maintenance_object.name

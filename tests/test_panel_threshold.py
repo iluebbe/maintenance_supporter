@@ -31,9 +31,9 @@ from .conftest import build_global_entry_data, setup_integration
 
 async def test_register_panel(hass: HomeAssistant) -> None:
     """Test that panel registration calls static path and panel_custom."""
-    import custom_components.maintenance_supporter.panel as panel_mod
+    from custom_components.maintenance_supporter.const import DOMAIN
 
-    panel_mod._PANEL_REGISTERED = False
+    hass.data.setdefault(DOMAIN, {})
 
     with patch(
         "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
@@ -41,7 +41,7 @@ async def test_register_panel(hass: HomeAssistant) -> None:
     ) as mock_register:
         await async_register_panel(hass)
 
-        assert panel_mod._PANEL_REGISTERED is True
+        assert hass.data[DOMAIN].get("_panel_registered") is True
         mock_register.assert_called_once()
         call_kwargs = mock_register.call_args
         # Verify panel_custom was called with correct params
@@ -50,9 +50,9 @@ async def test_register_panel(hass: HomeAssistant) -> None:
 
 async def test_register_panel_idempotent(hass: HomeAssistant) -> None:
     """Test that second registration is a no-op."""
-    import custom_components.maintenance_supporter.panel as panel_mod
+    from custom_components.maintenance_supporter.const import DOMAIN
 
-    panel_mod._PANEL_REGISTERED = True
+    hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True
 
     with patch(
         "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
@@ -64,24 +64,24 @@ async def test_register_panel_idempotent(hass: HomeAssistant) -> None:
 
 async def test_unregister_panel(hass: HomeAssistant) -> None:
     """Test that panel is removed."""
-    import custom_components.maintenance_supporter.panel as panel_mod
+    from custom_components.maintenance_supporter.const import DOMAIN
 
-    panel_mod._PANEL_REGISTERED = True
+    hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True
 
     with patch(
         "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
     ) as mock_remove:
         await async_unregister_panel(hass)
 
-        assert panel_mod._PANEL_REGISTERED is False
+        assert hass.data[DOMAIN].get("_panel_registered") is False
         mock_remove.assert_called_once()
 
 
 async def test_unregister_panel_idempotent(hass: HomeAssistant) -> None:
     """Test that unregister when not registered is a no-op."""
-    import custom_components.maintenance_supporter.panel as panel_mod
+    from custom_components.maintenance_supporter.const import DOMAIN
 
-    panel_mod._PANEL_REGISTERED = False
+    hass.data.setdefault(DOMAIN, {})
 
     with patch(
         "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
@@ -108,9 +108,9 @@ async def test_file_hash_missing_file(hass: HomeAssistant) -> None:
 
 async def test_panel_url_versioned(hass: HomeAssistant) -> None:
     """Test that panel URL includes version hash."""
-    import custom_components.maintenance_supporter.panel as panel_mod
+    from custom_components.maintenance_supporter.const import DOMAIN
 
-    panel_mod._PANEL_REGISTERED = False
+    hass.data.setdefault(DOMAIN, {})
 
     with patch(
         "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",

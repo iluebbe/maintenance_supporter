@@ -185,20 +185,34 @@ class MaintenanceCalendar(CalendarEntity):
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the calendar."""
         self._hass = hass
+        self._cached_next_event: CalendarEvent | None = None
+        self._cache_time: datetime | None = None
+
+    def invalidate_cache(self) -> None:
+        """Invalidate the cached next event (called by coordinators on update)."""
+        self._cache_time = None
 
     @property
     def event(self) -> CalendarEvent | None:
-        """Return the next upcoming event."""
+        """Return the next upcoming event (cached for up to 1 hour)."""
         now = dt_util.now()
+        if (
+            self._cache_time is not None
+            and (now - self._cache_time).total_seconds() < 3600
+        ):
+            return self._cached_next_event
+
         events = self._get_all_events(
             now, now + timedelta(days=365)
         )
-        if not events:
-            return None
+        if events:
+            events.sort(key=lambda e: e.start)
+            self._cached_next_event = events[0]
+        else:
+            self._cached_next_event = None
 
-        # Sort by start date and return the earliest
-        events.sort(key=lambda e: e.start)
-        return events[0]
+        self._cache_time = now
+        return self._cached_next_event
 
     async def async_get_events(
         self,

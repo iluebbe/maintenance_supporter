@@ -234,13 +234,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         else:
             return
 
-        # Validate format: {26-char entry_id}_{32-char task_id}
-        if len(remainder) != 59 or remainder[26] != "_":
+        # Split on underscore — entry_id and task_id contain no underscores
+        parts = remainder.split("_", 1)
+        if len(parts) != 2 or not parts[0] or not parts[1]:
             _LOGGER.warning("Invalid notification action format: %s", action)
             return
 
-        entry_id = remainder[:26]
-        task_id = remainder[27:]
+        entry_id, task_id = parts
 
         config_entry = hass.config_entries.async_get_entry(entry_id)
         runtime_data = getattr(config_entry, "runtime_data", None) if config_entry else None

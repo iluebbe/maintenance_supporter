@@ -8,19 +8,16 @@ from pathlib import Path
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 
-from ..const import CARD_URL
+from ..const import CARD_URL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 DATA_EXTRA_MODULE_URL = "frontend_extra_module_url"
 
-_CARD_REGISTERED = False
-
 
 async def async_register_card(hass: HomeAssistant) -> None:
     """Register the Lovelace card JS module."""
-    global _CARD_REGISTERED  # noqa: PLW0603
-    if _CARD_REGISTERED:
+    if hass.data.get(DOMAIN, {}).get("_card_registered"):
         return
 
     card_path = Path(__file__).parent / "maintenance-card.js"
@@ -32,5 +29,5 @@ async def async_register_card(hass: HomeAssistant) -> None:
     # Add to extra module URLs so HA auto-loads it in the frontend
     hass.data.setdefault(DATA_EXTRA_MODULE_URL, set()).add(CARD_URL)
 
-    _CARD_REGISTERED = True
+    hass.data.setdefault(DOMAIN, {})["_card_registered"] = True
     _LOGGER.debug("Maintenance Supporter Lovelace card registered at %s", CARD_URL)

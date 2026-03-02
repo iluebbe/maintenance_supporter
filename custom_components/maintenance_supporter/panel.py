@@ -10,11 +10,9 @@ from homeassistant.components import frontend, panel_custom
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 
-from .const import PANEL_ICON, PANEL_NAME, PANEL_TITLE, PANEL_URL
+from .const import DOMAIN, PANEL_ICON, PANEL_NAME, PANEL_TITLE, PANEL_URL
 
 _LOGGER = logging.getLogger(__name__)
-
-_PANEL_REGISTERED = False
 
 
 async def _async_file_hash(hass: HomeAssistant, path: Path) -> str:
@@ -28,8 +26,7 @@ async def _async_file_hash(hass: HomeAssistant, path: Path) -> str:
 
 async def async_register_panel(hass: HomeAssistant) -> None:
     """Register the maintenance supporter sidebar panel."""
-    global _PANEL_REGISTERED  # noqa: PLW0603
-    if _PANEL_REGISTERED:
+    if hass.data.get(DOMAIN, {}).get("_panel_registered"):
         return
 
     panel_path = Path(__file__).parent / "frontend" / "maintenance-panel.js"
@@ -51,16 +48,15 @@ async def async_register_panel(hass: HomeAssistant) -> None:
         config={},
     )
 
-    _PANEL_REGISTERED = True
+    hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True
     _LOGGER.debug("Maintenance Supporter sidebar panel registered (v=%s)", version)
 
 
 async def async_unregister_panel(hass: HomeAssistant) -> None:
     """Remove the maintenance supporter sidebar panel."""
-    global _PANEL_REGISTERED  # noqa: PLW0603
-    if not _PANEL_REGISTERED:
+    if not hass.data.get(DOMAIN, {}).get("_panel_registered"):
         return
 
     frontend.async_remove_panel(hass, PANEL_NAME)
-    _PANEL_REGISTERED = False
+    hass.data.setdefault(DOMAIN, {})["_panel_registered"] = False
     _LOGGER.debug("Maintenance Supporter sidebar panel removed")
