@@ -99,12 +99,14 @@
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
           "schedule_type": "Tipo de programación",
+          "custom_icon": "Icono de tarea",
           "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej.: 'Limpieza de filtro', 'Cambio de aceite').",
           "type": "La categoría del trabajo de mantenimiento.",
           "schedule_type": "Cómo se debe programar esta tarea.",
+          "custom_icon": "Icono personalizado opcional para esta tarea (p. ej., mdi:oil, mdi:filter-variant).",
           "go_back": "Volver al menú de tareas sin guardar."
         }
       },
@@ -352,6 +354,24 @@
           "notes": "Notas o instrucciones adicionales para esta tarea.",
           "go_back": "Volver a la creación de tareas sin guardar."
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar {name}",
+        "description": "Actualizar la configuración de este objeto de mantenimiento.",
+        "data": {
+          "name": "Nombre del objeto",
+          "area_id": "Área",
+          "manufacturer": "Fabricante",
+          "model": "Modelo",
+          "installation_date": "Fecha de instalación"
+        },
+        "data_description": {
+          "name": "El nombre de este objeto de mantenimiento.",
+          "area_id": "El área donde se encuentra este objeto.",
+          "manufacturer": "El fabricante de este objeto.",
+          "model": "El modelo de este objeto.",
+          "installation_date": "Cuándo se instaló este objeto."
+        }
       }
     },
     "error": {
@@ -368,7 +388,9 @@
       "already_configured": "Este objeto de mantenimiento ya está configurado.",
       "global_already_exists": "La configuración global ya está configurada.",
       "template_not_found": "La plantilla seleccionada no se encontró.",
-      "missing_data": "No se proporcionaron los datos requeridos."
+      "missing_data": "No se proporcionaron los datos requeridos.",
+      "reconfigure_successful": "Configuración actualizada correctamente.",
+      "reconfigure_cancelled": "Reconfiguración cancelada."
     }
   },
   "options": {
@@ -551,6 +573,8 @@
           "documentation_url": "URL de documentación",
           "last_performed": "Última ejecución",
           "responsible_user_id": "Usuario responsable",
+          "custom_icon": "Icono de tarea",
+          "nfc_tag_id": "ID de etiqueta NFC",
           "go_back": "Volver"
         },
         "data_description": {
@@ -563,6 +587,8 @@
           "documentation_url": "Enlace a documentación externa o manual para esta tarea.",
           "last_performed": "Cuándo se realizó este mantenimiento por última vez. Dejar vacío si nunca se realizó.",
           "responsible_user_id": "El usuario de Home Assistant responsable de esta tarea.",
+          "custom_icon": "Icono personalizado opcional para esta tarea (p. ej., mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Vincular una etiqueta NFC a esta tarea. Escanear la etiqueta marcará automáticamente la tarea como completada.",
           "go_back": "Volver a las acciones de tarea sin guardar."
         }
       },
@@ -731,12 +757,15 @@
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
           "schedule_type": "Tipo de programación",
+          "custom_icon": "Icono de tarea",
           "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej. 'Limpieza de filtro', 'Cambio de aceite').",
           "type": "La categoría del trabajo de mantenimiento.",
-          "schedule_type": "Cómo debe programarse esta tarea."
+          "schedule_type": "Cómo debe programarse esta tarea.",
+          "custom_icon": "Icono personalizado opcional para esta tarea (ej.: mdi:oil, mdi:filter-variant).",
+          "go_back": "Volver al menú principal sin guardar."
         }
       },
       "opt_time_based": {
@@ -751,7 +780,8 @@
         "data_description": {
           "interval_days": "Número de días entre ejecuciones de mantenimiento.",
           "last_performed": "Cuándo se realizó este mantenimiento por última vez. Dejar vacío si nunca se realizó.",
-          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
+          "go_back": "Volver al menú principal sin guardar."
         }
       },
       "opt_manual": {
@@ -764,7 +794,8 @@
         },
         "data_description": {
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
-          "notes": "Notas adicionales o instrucciones para esta tarea."
+          "notes": "Notas adicionales o instrucciones para esta tarea.",
+          "go_back": "Volver al menú principal sin guardar."
         }
       },
       "opt_sensor_select": {
@@ -1148,8 +1179,8 @@
     },
     "compound_logic": {
       "options": {
-        "AND": "Y (todas las condiciones deben activarse)",
-        "OR": "O (cualquier condición activa)"
+        "and": "Y (todas las condiciones deben activarse)",
+        "or": "O (cualquier condición activa)"
       }
     },
     "entity_logic": {

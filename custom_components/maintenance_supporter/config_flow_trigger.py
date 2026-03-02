@@ -799,16 +799,16 @@ class TriggerConfigMixin:
 
         schema_dict: dict[Any, Any] = {
             vol.Required(
-                CONF_COMPOUND_LOGIC, default="AND"
+                CONF_COMPOUND_LOGIC, default="and"
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(
-                            value="AND",
+                            value="and",
                             label="AND (all conditions must trigger)",
                         ),
                         selector.SelectOptionDict(
-                            value="OR",
+                            value="or",
                             label="OR (any condition triggers)",
                         ),
                     ],

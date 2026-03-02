@@ -99,12 +99,14 @@
           "name": "Nome attività",
           "type": "Tipo di manutenzione",
           "schedule_type": "Tipo di pianificazione",
+          "custom_icon": "Icona attività",
           "go_back": "Indietro"
         },
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es.: 'Pulizia filtro', 'Cambio olio').",
           "type": "La categoria del lavoro di manutenzione.",
           "schedule_type": "Come questa attività deve essere pianificata.",
+          "custom_icon": "Icona personalizzata opzionale per questa attività (es. mdi:oil, mdi:filter-variant).",
           "go_back": "Tornare al menu delle attività senza salvare."
         }
       },
@@ -352,6 +354,24 @@
           "notes": "Note o istruzioni aggiuntive per questa attività.",
           "go_back": "Tornare alla creazione dell'attività senza salvare."
         }
+      },
+      "reconfigure": {
+        "title": "Riconfigura {name}",
+        "description": "Aggiorna le impostazioni per questo oggetto di manutenzione.",
+        "data": {
+          "name": "Nome oggetto",
+          "area_id": "Area",
+          "manufacturer": "Produttore",
+          "model": "Modello",
+          "installation_date": "Data di installazione"
+        },
+        "data_description": {
+          "name": "Il nome di questo oggetto di manutenzione.",
+          "area_id": "L'area dove si trova questo oggetto.",
+          "manufacturer": "Il produttore di questo oggetto.",
+          "model": "Il modello di questo oggetto.",
+          "installation_date": "Quando è stato installato questo oggetto."
+        }
       }
     },
     "error": {
@@ -368,7 +388,9 @@
       "already_configured": "Questo oggetto di manutenzione è già configurato.",
       "global_already_exists": "Le impostazioni globali sono già configurate.",
       "template_not_found": "Il modello selezionato non è stato trovato.",
-      "missing_data": "I dati richiesti non sono stati forniti."
+      "missing_data": "I dati richiesti non sono stati forniti.",
+      "reconfigure_successful": "Configurazione aggiornata con successo.",
+      "reconfigure_cancelled": "Riconfigurazione annullata."
     }
   },
   "options": {
@@ -551,6 +573,8 @@
           "documentation_url": "URL documentazione",
           "last_performed": "Ultima esecuzione",
           "responsible_user_id": "Utente responsabile",
+          "custom_icon": "Icona attività",
+          "nfc_tag_id": "ID tag NFC",
           "go_back": "Indietro"
         },
         "data_description": {
@@ -563,6 +587,8 @@
           "documentation_url": "Link alla documentazione esterna o al manuale per questa attività.",
           "last_performed": "Quando questa manutenzione è stata eseguita l'ultima volta. Lasciare vuoto se mai eseguita.",
           "responsible_user_id": "L'utente Home Assistant responsabile di questa attività.",
+          "custom_icon": "Icona personalizzata opzionale per questa attività (es. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Collega un tag NFC a questa attività. La scansione del tag segnerà automaticamente l'attività come completata.",
           "go_back": "Torna alle azioni attività senza salvare."
         }
       },
@@ -731,12 +757,15 @@
           "name": "Nome attività",
           "type": "Tipo di manutenzione",
           "schedule_type": "Tipo di pianificazione",
+          "custom_icon": "Icona attività",
           "go_back": "Indietro"
         },
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
           "type": "La categoria del lavoro di manutenzione.",
-          "schedule_type": "Come deve essere pianificata questa attività."
+          "schedule_type": "Come deve essere pianificata questa attività.",
+          "custom_icon": "Icona personalizzata opzionale per questa attività (es.: mdi:oil, mdi:filter-variant).",
+          "go_back": "Tornare al menu principale senza salvare."
         }
       },
       "opt_time_based": {
@@ -751,7 +780,8 @@
         "data_description": {
           "interval_days": "Numero di giorni tra le esecuzioni di manutenzione.",
           "last_performed": "Quando questa manutenzione è stata eseguita l'ultima volta. Lasciare vuoto se mai eseguita.",
-          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "go_back": "Tornare al menu principale senza salvare."
         }
       },
       "opt_manual": {
@@ -764,7 +794,8 @@
         },
         "data_description": {
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
-          "notes": "Note aggiuntive o istruzioni per questa attività."
+          "notes": "Note aggiuntive o istruzioni per questa attività.",
+          "go_back": "Tornare al menu principale senza salvare."
         }
       },
       "opt_sensor_select": {
@@ -1148,8 +1179,8 @@
     },
     "compound_logic": {
       "options": {
-        "AND": "E (tutte le condizioni devono attivarsi)",
-        "OR": "O (qualsiasi condizione attiva)"
+        "and": "E (tutte le condizioni devono attivarsi)",
+        "or": "O (qualsiasi condizione attiva)"
       }
     },
     "entity_logic": {

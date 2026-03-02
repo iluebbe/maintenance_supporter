@@ -268,6 +268,48 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "mobile_app_notification_action", _handle_notification_action
     )
 
+    # Register listener for NFC tag scans → complete linked tasks
+    async def _handle_tag_scanned(event: Event) -> None:
+        """Handle tag_scanned events — complete task linked to NFC tag."""
+        tag_id = event.data.get("tag_id", "")
+        if not tag_id:
+            return
+
+        # Search all entries for a task with matching nfc_tag_id
+        for ce in hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID:
+                continue
+            tasks = ce.data.get(CONF_TASKS, {})
+            for task_id, task_data in tasks.items():
+                if task_data.get("nfc_tag_id") != tag_id:
+                    continue
+                # Found matching task
+                runtime_data = getattr(ce, "runtime_data", None)
+                if not runtime_data or not getattr(
+                    runtime_data, "coordinator", None
+                ):
+                    _LOGGER.warning(
+                        "No coordinator for NFC tag match (entry=%s)",
+                        ce.entry_id,
+                    )
+                    return
+                _LOGGER.info(
+                    "Completing task %s via NFC tag scan (%s)",
+                    task_id,
+                    tag_id,
+                )
+                user_id = event.context.user_id if event.context else None
+                await runtime_data.coordinator.complete_maintenance(
+                    task_id=task_id,
+                    completed_by=user_id,
+                    notes="Completed via NFC tag",
+                )
+                return
+
+        # No match found — not our tag, ignore silently
+
+    hass.bus.async_listen("tag_scanned", _handle_tag_scanned)
+
     return True
 
 

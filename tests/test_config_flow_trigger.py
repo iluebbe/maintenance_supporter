@@ -231,7 +231,7 @@ async def test_compound_trigger_two_conditions(
     # Select AND logic
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={"compound_logic": "AND"},
+        user_input={"compound_logic": "and"},
     )
     assert result["step_id"] == "compound_condition_entity"
 

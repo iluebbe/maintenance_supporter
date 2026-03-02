@@ -99,12 +99,14 @@
           "name": "Aufgabenname",
           "type": "Wartungstyp",
           "schedule_type": "Planungsart",
+          "custom_icon": "Aufgaben-Icon",
           "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
           "type": "Die Kategorie der Wartungsarbeit.",
           "schedule_type": "Wie diese Aufgabe geplant werden soll.",
+          "custom_icon": "Optionales benutzerdefiniertes Icon für diese Aufgabe (z.B. mdi:oil, mdi:filter-variant).",
           "go_back": "Zurück zum Aufgabenmenü ohne zu speichern."
         }
       },
@@ -352,6 +354,24 @@
           "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe.",
           "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern."
         }
+      },
+      "reconfigure": {
+        "title": "Neu konfigurieren: {name}",
+        "description": "Aktualisieren Sie die Einstellungen für dieses Wartungsobjekt.",
+        "data": {
+          "name": "Objektname",
+          "area_id": "Bereich",
+          "manufacturer": "Hersteller",
+          "model": "Modell",
+          "installation_date": "Installationsdatum"
+        },
+        "data_description": {
+          "name": "Der Name dieses Wartungsobjekts.",
+          "area_id": "Der Bereich, in dem sich dieses Objekt befindet.",
+          "manufacturer": "Der Hersteller dieses Objekts.",
+          "model": "Das Modell dieses Objekts.",
+          "installation_date": "Wann dieses Objekt installiert wurde."
+        }
       }
     },
     "error": {
@@ -368,7 +388,9 @@
       "already_configured": "Dieses Wartungsobjekt ist bereits konfiguriert.",
       "global_already_exists": "Globale Einstellungen sind bereits konfiguriert.",
       "template_not_found": "Die ausgewählte Vorlage wurde nicht gefunden.",
-      "missing_data": "Erforderliche Daten wurden nicht angegeben."
+      "missing_data": "Erforderliche Daten wurden nicht angegeben.",
+      "reconfigure_successful": "Konfiguration erfolgreich aktualisiert.",
+      "reconfigure_cancelled": "Neukonfiguration abgebrochen."
     }
   },
   "options": {
@@ -551,6 +573,8 @@
           "documentation_url": "Dokumentations-URL",
           "last_performed": "Zuletzt durchgeführt",
           "responsible_user_id": "Verantwortlicher Benutzer",
+          "custom_icon": "Aufgaben-Icon",
+          "nfc_tag_id": "NFC-Tag-ID",
           "go_back": "Zurück"
         },
         "data_description": {
@@ -563,6 +587,8 @@
           "documentation_url": "Link zu externer Dokumentation oder Handbuch für diese Aufgabe.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
           "responsible_user_id": "Der Home Assistant Benutzer, der für diese Aufgabe verantwortlich ist.",
+          "custom_icon": "Optionales benutzerdefiniertes Icon für diese Aufgabe (z.B. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Verknüpfen Sie einen NFC-Tag mit dieser Aufgabe. Das Scannen des Tags markiert die Aufgabe automatisch als erledigt.",
           "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
         }
       },
@@ -638,12 +664,15 @@
           "name": "Aufgabenname",
           "type": "Wartungstyp",
           "schedule_type": "Planungsart",
+          "custom_icon": "Aufgabensymbol",
           "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
           "type": "Die Kategorie der Wartungsarbeit.",
-          "schedule_type": "Wie diese Aufgabe geplant werden soll."
+          "schedule_type": "Wie diese Aufgabe geplant werden soll.",
+          "custom_icon": "Optionales benutzerdefiniertes Symbol für diese Aufgabe (z.B. mdi:oil, mdi:filter-variant).",
+          "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
       },
       "opt_time_based": {
@@ -658,7 +687,8 @@
         "data_description": {
           "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
-          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
+          "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
       },
       "opt_manual": {
@@ -671,7 +701,8 @@
         },
         "data_description": {
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
-          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe."
+          "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe.",
+          "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
       },
       "opt_sensor_select": {
@@ -1148,8 +1179,8 @@
     },
     "compound_logic": {
       "options": {
-        "AND": "UND (alle Bedingungen müssen auslösen)",
-        "OR": "ODER (eine Bedingung genügt)"
+        "and": "UND (alle Bedingungen müssen auslösen)",
+        "or": "ODER (eine Bedingung genügt)"
       }
     },
     "entity_logic": {

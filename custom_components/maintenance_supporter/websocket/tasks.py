@@ -185,6 +185,8 @@ def _validate_compound_trigger(
         vol.Optional("documentation_url"): vol.Any(str, None),
         vol.Optional("responsible_user_id"): vol.Any(str, None),
         vol.Optional("entity_slug"): vol.Any(str, None),
+        vol.Optional("custom_icon"): vol.Any(str, None),
+        vol.Optional("nfc_tag_id"): vol.Any(str, None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -254,6 +256,10 @@ async def ws_create_task(
             )
             return
         task_data["entity_slug"] = slug
+    if msg.get("custom_icon") is not None:
+        task_data["custom_icon"] = msg["custom_icon"]
+    if msg.get("nfc_tag_id") is not None:
+        task_data["nfc_tag_id"] = msg["nfc_tag_id"]
 
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
@@ -318,6 +324,8 @@ async def ws_create_task(
         vol.Optional("documentation_url"): vol.Any(str, None),
         vol.Optional("responsible_user_id"): vol.Any(str, None),
         vol.Optional("entity_slug"): vol.Any(str, None),
+        vol.Optional("custom_icon"): vol.Any(str, None),
+        vol.Optional("nfc_tag_id"): vol.Any(str, None),
     }
 )
 @websocket_api.async_response
@@ -365,6 +373,8 @@ async def ws_update_task(
         "documentation_url": "documentation_url",
         "responsible_user_id": "responsible_user_id",
         "entity_slug": "entity_slug",
+        "custom_icon": "custom_icon",
+        "nfc_tag_id": "nfc_tag_id",
     }
     for msg_key, data_key in field_map.items():
         if msg_key in msg:

@@ -568,15 +568,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             MaintenanceStatus.TRIGGERED,
         }
 
-        # Collect all notifiable tasks
-        notifiable: list[tuple[str, dict[str, Any], str]] = []
+        # Collect all notifiable tasks, capturing old_status BEFORE overwriting
+        notifiable: list[tuple[str, dict[str, Any], str, str | None]] = []
         for task_id, task_result in task_results.items():
             new_status = task_result.get("_status")
+            old_status = self._previous_statuses.get(task_id)
             if new_status in notify_statuses:
-                notifiable.append((task_id, task_result, new_status))
-            self._previous_statuses[task_id] = new_status
+                notifiable.append((task_id, task_result, new_status, old_status))
 
         if not notifiable:
+            # No notifications needed — still update the cache
+            for task_id, task_result in task_results.items():
+                self._previous_statuses[task_id] = task_result.get("_status")
             return
 
         # Check if bundling is enabled and threshold met
@@ -606,12 +609,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         "status": status,
                         "days_until_due": tr.get("_days_until_due"),
                     }
-                    for tid, tr, status in notifiable
+                    for tid, tr, status, _old in notifiable
                 ],
             )
         else:
-            for task_id, task_result, new_status in notifiable:
-                old_status = self._previous_statuses.get(task_id)
+            for task_id, task_result, new_status, old_status in notifiable:
                 await nm.async_task_status_changed(
                     entry_id=self.entry.entry_id,
                     task_id=task_id,
@@ -623,6 +625,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     next_due=task_result.get("_next_due"),
                     responsible_user_id=task_result.get("responsible_user_id"),
                 )
+
+        # Update the cache AFTER all notifications have been sent
+        for task_id, task_result in task_results.items():
+            self._previous_statuses[task_id] = task_result.get("_status")
 
     def _recalculate_budget_cache(self) -> None:
         """Recompute global budget totals from all entries' history.

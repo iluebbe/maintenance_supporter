@@ -44,6 +44,8 @@ def _build_export_object(
             "last_performed": tdata.get("last_performed"),
             "notes": tdata.get("notes"),
             "documentation_url": tdata.get("documentation_url"),
+            "custom_icon": tdata.get("custom_icon"),
+            "nfc_tag_id": tdata.get("nfc_tag_id"),
             "checklist": tdata.get("checklist", []),
             "status": ct.get("_status", "ok"),
             "days_until_due": ct.get("_days_until_due"),

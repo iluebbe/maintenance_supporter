@@ -72,8 +72,6 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         MaintenanceStatus.OVERDUE,
         MaintenanceStatus.TRIGGERED,
     ]
-    # Note: _triggers, _trigger_states, _trigger_values are instance-level
-    # only (initialised in __init__).  No class-level mutable defaults.
 
     def __init__(
         self,
@@ -114,6 +112,16 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         if not task:
             return None
         return str(task.get("_status", MaintenanceStatus.OK))
+
+    @property
+    def icon(self) -> str | None:
+        """Return custom icon if configured, else fall back to icons.json."""
+        task = self._task_data
+        if task:
+            custom: str | None = task.get("custom_icon")
+            if custom:
+                return custom
+        return None
 
     @property
     def available(self) -> bool:

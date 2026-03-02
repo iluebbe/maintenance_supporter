@@ -114,6 +114,8 @@ CONF_TASK_LAST_PERFORMED = "last_performed"
 CONF_TASK_SCHEDULE_TYPE = "schedule_type"
 CONF_TASK_NOTES = "notes"
 CONF_TASK_DOCUMENTATION_URL = "documentation_url"
+CONF_TASK_ICON = "custom_icon"
+CONF_TASK_NFC_TAG = "nfc_tag_id"
 
 # --- Config Keys: User Assignment ---
 CONF_RESPONSIBLE_USER_ID = "responsible_user_id"

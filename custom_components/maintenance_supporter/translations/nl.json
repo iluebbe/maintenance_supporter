@@ -99,12 +99,14 @@
           "name": "Taaknaam",
           "type": "Onderhoudstype",
           "schedule_type": "Planningstype",
+          "custom_icon": "Taakicoon",
           "go_back": "Terug"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filter reinigen', 'Olie verversen').",
           "type": "De categorie van het onderhoud.",
           "schedule_type": "Hoe deze taak gepland moet worden.",
+          "custom_icon": "Optioneel aangepast icoon voor deze taak (bijv. mdi:oil, mdi:filter-variant).",
           "go_back": "Terug naar het takenmenu zonder op te slaan."
         }
       },
@@ -352,6 +354,24 @@
           "notes": "Aanvullende notities of instructies voor deze taak.",
           "go_back": "Terug naar taakaanmaak zonder op te slaan."
         }
+      },
+      "reconfigure": {
+        "title": "Herconfigureer {name}",
+        "description": "Werk de instellingen bij voor dit onderhoudsobject.",
+        "data": {
+          "name": "Objectnaam",
+          "area_id": "Gebied",
+          "manufacturer": "Fabrikant",
+          "model": "Model",
+          "installation_date": "Installatiedatum"
+        },
+        "data_description": {
+          "name": "De naam van dit onderhoudsobject.",
+          "area_id": "Het gebied waar dit object zich bevindt.",
+          "manufacturer": "De fabrikant van dit object.",
+          "model": "Het model van dit object.",
+          "installation_date": "Wanneer dit object is geïnstalleerd."
+        }
       }
     },
     "error": {
@@ -368,7 +388,9 @@
       "already_configured": "Dit onderhoudsobject is al geconfigureerd.",
       "global_already_exists": "Algemene instellingen zijn al geconfigureerd.",
       "template_not_found": "Het geselecteerde sjabloon is niet gevonden.",
-      "missing_data": "Vereiste gegevens zijn niet opgegeven."
+      "missing_data": "Vereiste gegevens zijn niet opgegeven.",
+      "reconfigure_successful": "Configuratie succesvol bijgewerkt.",
+      "reconfigure_cancelled": "Herconfiguratie geannuleerd."
     }
   },
   "options": {
@@ -551,6 +573,8 @@
           "documentation_url": "Documentatie-URL",
           "last_performed": "Laatst uitgevoerd",
           "responsible_user_id": "Verantwoordelijke gebruiker",
+          "custom_icon": "Taakicoon",
+          "nfc_tag_id": "NFC-tag-ID",
           "go_back": "Terug"
         },
         "data_description": {
@@ -563,6 +587,8 @@
           "documentation_url": "Link naar externe documentatie of handleiding voor deze taak.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
           "responsible_user_id": "De Home Assistant gebruiker die verantwoordelijk is voor deze taak.",
+          "custom_icon": "Optioneel aangepast icoon voor deze taak (bijv. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Koppel een NFC-tag aan deze taak. Het scannen van de tag markeert de taak automatisch als voltooid.",
           "go_back": "Terug naar taakacties zonder opslaan."
         }
       },
@@ -731,12 +757,15 @@
           "name": "Taaknaam",
           "type": "Onderhoudstype",
           "schedule_type": "Planningstype",
+          "custom_icon": "Taakicoon",
           "go_back": "Terug"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
           "type": "De categorie van het onderhoudwerk.",
-          "schedule_type": "Hoe deze taak moet worden gepland."
+          "schedule_type": "Hoe deze taak moet worden gepland.",
+          "custom_icon": "Optioneel aangepast icoon voor deze taak (bijv. mdi:oil, mdi:filter-variant).",
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
       "opt_time_based": {
@@ -751,7 +780,8 @@
         "data_description": {
           "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
-          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
       "opt_manual": {
@@ -764,7 +794,8 @@
         },
         "data_description": {
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
-          "notes": "Aanvullende notities of instructies voor deze taak."
+          "notes": "Aanvullende notities of instructies voor deze taak.",
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
       "opt_sensor_select": {
@@ -1148,8 +1179,8 @@
     },
     "compound_logic": {
       "options": {
-        "AND": "EN (alle voorwaarden moeten activeren)",
-        "OR": "OF (elke voorwaarde activeert)"
+        "and": "EN (alle voorwaarden moeten activeren)",
+        "or": "OF (elke voorwaarde activeert)"
       }
     },
     "entity_logic": {

@@ -30,6 +30,7 @@ from .const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
@@ -485,6 +486,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 CONF_TASK_TYPE: user_input[CONF_TASK_TYPE],
                 CONF_TASK_SCHEDULE_TYPE: user_input[CONF_TASK_SCHEDULE_TYPE],
             }
+            if user_input.get(CONF_TASK_ICON):
+                self._current_task[CONF_TASK_ICON] = user_input[CONF_TASK_ICON]
 
             schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
             if schedule == ScheduleType.TIME_BASED:
@@ -524,6 +527,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             translation_key="schedule_type",
                         )
                     ),
+                    vol.Optional(CONF_TASK_ICON): selector.IconSelector(),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
@@ -869,6 +873,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             task_data["trigger_config"] = self._current_task["trigger_config"]
         if CONF_TASK_NOTES in self._current_task:
             task_data["notes"] = self._current_task[CONF_TASK_NOTES]
+        if CONF_TASK_ICON in self._current_task:
+            task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
 
         self._tasks[task_id] = task_data
         self._current_task = {}

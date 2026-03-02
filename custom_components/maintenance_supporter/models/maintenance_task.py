@@ -45,6 +45,8 @@ class MaintenanceTask:
     # --- Metadata ---
     notes: str | None = None
     documentation_url: str | None = None
+    custom_icon: str | None = None
+    nfc_tag_id: str | None = None
 
     # --- User Assignment ---
     responsible_user_id: str | None = None  # HA user UUID
@@ -252,6 +254,10 @@ class MaintenanceTask:
             data["notes"] = self.notes
         if self.documentation_url is not None:
             data["documentation_url"] = self.documentation_url
+        if self.custom_icon is not None:
+            data["custom_icon"] = self.custom_icon
+        if self.nfc_tag_id is not None:
+            data["nfc_tag_id"] = self.nfc_tag_id
         if self.responsible_user_id is not None:
             data["responsible_user_id"] = self.responsible_user_id
         if self.checklist:
@@ -276,6 +282,8 @@ class MaintenanceTask:
             trigger_config=data.get("trigger_config"),
             notes=data.get("notes"),
             documentation_url=data.get("documentation_url"),
+            custom_icon=data.get("custom_icon"),
+            nfc_tag_id=data.get("nfc_tag_id"),
             responsible_user_id=data.get("responsible_user_id"),
             checklist=data.get("checklist", []),
             adaptive_config=data.get("adaptive_config"),

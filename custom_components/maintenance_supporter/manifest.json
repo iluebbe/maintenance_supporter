@@ -8,8 +8,8 @@
   "documentation": "https://github.com/iluebbe/maintenance_supporter",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "quality_scale": "gold",
   "issue_tracker": "https://github.com/iluebbe/maintenance_supporter/issues",
+  "quality_scale": "gold",
   "requirements": [],
-  "version": "0.3.8"
+  "version": "0.3.9"
 }

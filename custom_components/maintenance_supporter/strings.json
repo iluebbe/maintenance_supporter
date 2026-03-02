@@ -99,12 +99,14 @@
           "name": "Task name",
           "type": "Maintenance type",
           "schedule_type": "Schedule type",
+          "custom_icon": "Task icon",
           "go_back": "Go back"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
           "type": "The category of maintenance work.",
           "schedule_type": "How this task should be scheduled.",
+          "custom_icon": "Optional custom icon for this task (e.g., mdi:oil, mdi:filter-variant).",
           "go_back": "Return to the task menu without saving."
         }
       },
@@ -571,6 +573,8 @@
           "documentation_url": "Documentation URL",
           "last_performed": "Last performed",
           "responsible_user_id": "Responsible user",
+          "custom_icon": "Task icon",
+          "nfc_tag_id": "NFC tag ID",
           "go_back": "Go back"
         },
         "data_description": {
@@ -583,6 +587,8 @@
           "documentation_url": "Link to external documentation or manual for this task.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "responsible_user_id": "The Home Assistant user responsible for this task.",
+          "custom_icon": "Optional custom icon for this task (e.g., mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Link an NFC tag to this task. Scanning the tag will automatically mark the task as completed.",
           "go_back": "Return to task actions without saving."
         }
       },
@@ -634,12 +640,14 @@
           "name": "Task name",
           "type": "Maintenance type",
           "schedule_type": "Schedule type",
+          "custom_icon": "Task icon",
           "go_back": "Go back"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
           "type": "The category of maintenance work.",
           "schedule_type": "How this task should be scheduled.",
+          "custom_icon": "Optional custom icon for this task (e.g., mdi:oil, mdi:filter-variant).",
           "go_back": "Return to the main menu without saving."
         }
       },
@@ -1237,8 +1245,8 @@
     },
     "compound_logic": {
       "options": {
-        "AND": "AND (all conditions must trigger)",
-        "OR": "OR (any condition triggers)"
+        "and": "AND (all conditions must trigger)",
+        "or": "OR (any condition triggers)"
       }
     },
     "entity_logic": {

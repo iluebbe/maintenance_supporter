@@ -36,9 +36,11 @@ from .const import (
     CONF_SENSOR_PREDICTION_ENABLED,
     CONF_TASK_DOCUMENTATION_URL,
     CONF_TASK_ENABLED,
+    CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_LAST_PERFORMED,
     CONF_TASK_NAME,
+    CONF_TASK_NFC_TAG,
     CONF_TASK_NOTES,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
@@ -99,6 +101,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             task_data["trigger_config"] = self._current_task["trigger_config"]
         if CONF_TASK_NOTES in self._current_task:
             task_data["notes"] = self._current_task[CONF_TASK_NOTES]
+        if CONF_TASK_ICON in self._current_task:
+            task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
 
         new_data = dict(self.config_entry.data)
         new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -278,6 +282,16 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 updated_task[CONF_RESPONSIBLE_USER_ID] = resp_user
             else:
                 updated_task.pop(CONF_RESPONSIBLE_USER_ID, None)
+            icon_val = user_input.get(CONF_TASK_ICON, "")
+            if icon_val:
+                updated_task[CONF_TASK_ICON] = icon_val
+            else:
+                updated_task.pop(CONF_TASK_ICON, None)
+            nfc_val = user_input.get(CONF_TASK_NFC_TAG, "")
+            if nfc_val:
+                updated_task[CONF_TASK_NFC_TAG] = nfc_val.strip()
+            else:
+                updated_task.pop(CONF_TASK_NFC_TAG, None)
 
             new_tasks[self._selected_task_id or ""] = updated_task
             new_data[CONF_TASKS] = new_tasks
@@ -302,6 +316,16 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             vol.Optional(CONF_TASK_DOCUMENTATION_URL, default=task.get(CONF_TASK_DOCUMENTATION_URL))
             if task.get(CONF_TASK_DOCUMENTATION_URL)
             else vol.Optional(CONF_TASK_DOCUMENTATION_URL)
+        )
+        icon_key = (
+            vol.Optional(CONF_TASK_ICON, default=task.get(CONF_TASK_ICON))
+            if task.get(CONF_TASK_ICON)
+            else vol.Optional(CONF_TASK_ICON)
+        )
+        nfc_tag_key = (
+            vol.Optional(CONF_TASK_NFC_TAG, default=task.get(CONF_TASK_NFC_TAG))
+            if task.get(CONF_TASK_NFC_TAG)
+            else vol.Optional(CONF_TASK_NFC_TAG)
         )
         # Build user dropdown options
         users = await self.hass.auth.async_get_users()
@@ -371,6 +395,12 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         selector.SelectSelectorConfig(
                             options=user_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
+                    icon_key: selector.IconSelector(),
+                    nfc_tag_key: selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
                         )
                     ),
                     vol.Optional(
@@ -762,6 +792,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 CONF_TASK_TYPE: user_input.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CLEANING),
                 CONF_TASK_SCHEDULE_TYPE: user_input[CONF_TASK_SCHEDULE_TYPE],
             }
+            if user_input.get(CONF_TASK_ICON):
+                self._current_task[CONF_TASK_ICON] = user_input[CONF_TASK_ICON]
 
             self._trigger_on_complete = self._save_new_task
             self._on_cancel = self._show_init_menu
@@ -802,6 +834,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             translation_key="schedule_type",
                         )
                     ),
+                    vol.Optional(CONF_TASK_ICON): selector.IconSelector(),
                     vol.Optional(
                         "go_back", default=False
                     ): selector.BooleanSelector(),
