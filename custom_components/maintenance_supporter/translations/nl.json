@@ -532,7 +532,8 @@
         "title": "Samengestelde trigger",
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
         "data": {
-          "compound_logic": "Logica"
+          "compound_logic": "Logica",
+          "go_back": "Terug"
         },
         "data_description": {
           "compound_logic": "EN = alle voorwaarden moeten activeren. OF = elke voorwaarde activeert."
@@ -542,7 +543,8 @@
         "title": "Voorwaarde #{condition_num} — Entiteit",
         "description": "Selecteer de entiteit voor deze voorwaarde.",
         "data": {
-          "trigger_entity": "Entiteit"
+          "trigger_entity": "Entiteit",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_entity": "De sensorentiteit om te monitoren voor deze voorwaarde."
@@ -552,7 +554,8 @@
         "title": "Voorwaarde #{condition_num} — Type",
         "description": "Hoe moet deze voorwaarde de sensor evalueren?",
         "data": {
-          "trigger_type": "Triggertype"
+          "trigger_type": "Triggertype",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_type": "De methode om te bepalen wanneer deze voorwaarde activeert."
@@ -563,7 +566,8 @@
         "data": {
           "trigger_above": "Activeren boven",
           "trigger_below": "Activeren onder",
-          "trigger_for_minutes": "Duur (minuten)"
+          "trigger_for_minutes": "Duur (minuten)",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_above": "Activeren wanneer de waarde deze drempel overschrijdt.",
@@ -575,7 +579,8 @@
         "title": "Voorwaarde — Teller",
         "data": {
           "trigger_target_value": "Doelwaarde",
-          "trigger_delta_mode": "Deltamodus"
+          "trigger_delta_mode": "Deltamodus",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_target_value": "Activeren wanneer de opgetelde waarde dit doel bereikt.",
@@ -587,7 +592,8 @@
         "data": {
           "trigger_from_state": "Van status",
           "trigger_to_state": "Naar status",
-          "trigger_target_changes": "Aantal wijzigingen"
+          "trigger_target_changes": "Aantal wijzigingen",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor elke.",
@@ -599,7 +605,8 @@
         "title": "Voorwaarde — Looptijd",
         "data": {
           "trigger_runtime_hours": "Doellooptijd (uren)",
-          "trigger_on_states": "Actieve statussen"
+          "trigger_on_states": "Actieve statussen",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_runtime_hours": "Activeren na dit aantal uren opgebouwde looptijd.",
@@ -610,7 +617,8 @@
         "title": "Samengestelde trigger — Overzicht",
         "description": "{condition_count} voorwaarde(n) geconfigureerd met {compound_logic}-logica.",
         "data": {
-          "compound_action": "Actie"
+          "compound_action": "Actie",
+          "go_back": "Terug"
         }
       },
       "adaptive_scheduling": {
@@ -672,7 +680,8 @@
         "data": {
           "name": "Taaknaam",
           "type": "Onderhoudstype",
-          "schedule_type": "Planningstype"
+          "schedule_type": "Planningstype",
+          "go_back": "Terug"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
@@ -686,7 +695,8 @@
         "data": {
           "interval_days": "Interval (dagen)",
           "last_performed": "Laatst uitgevoerd",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
@@ -699,7 +709,8 @@
         "description": "Deze taak heeft geen automatische planning. U kunt deze handmatig als te doen markeren.",
         "data": {
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "notes": "Notities"
+          "notes": "Notities",
+          "go_back": "Terug"
         },
         "data_description": {
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
@@ -710,7 +721,8 @@
         "title": "Selecteer triggersensor",
         "description": "Kies een Home Assistant entiteit om te monitoren.",
         "data": {
-          "trigger_entity": "Te monitoren entiteit"
+          "trigger_entity": "Te monitoren entiteit",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_entity": "Selecteer de sensorentiteit die deze onderhoudstaak moet activeren."
@@ -720,7 +732,8 @@
         "title": "Selecteer attribuut",
         "description": "Kies welke waarde gemonitord moet worden van {entity_id}. Huidige status: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Te monitoren waarde"
+          "trigger_attribute": "Te monitoren waarde",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_attribute": "Selecteer de entiteitsstatus of een specifiek attribuut om te monitoren."
@@ -730,7 +743,8 @@
         "title": "Triggertype",
         "description": "Hoe moet de sensorwaarde het onderhoud activeren?",
         "data": {
-          "trigger_type": "Triggertype"
+          "trigger_type": "Triggertype",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_type": "Drempelwaarde: activeert wanneer de waarde de limieten overschrijdt. Teller: activeert na het bereiken van een doelwaarde. Statuswijziging: activeert na een aantal statusovergangen."
@@ -744,7 +758,8 @@
           "trigger_below": "Activeren bij waarde onder",
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_above": "Onderhoud activeren wanneer de waarde deze drempel overschrijdt.",
@@ -761,7 +776,8 @@
           "trigger_target_value": "Doelwaarde",
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_target_value": "Onderhoud activeren wanneer deze gecumuleerde waarde is bereikt.",
@@ -778,7 +794,8 @@
           "trigger_to_state": "Naar status (optioneel)",
           "trigger_target_changes": "Aantal wijzigingen voor activering",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_from_state": "Alleen overgangen vanaf deze status tellen. Laat leeg voor alle.",
@@ -795,7 +812,8 @@
           "trigger_runtime_hours": "Doellooptijd (uren)",
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
           "interval_days": "Veiligheidsinterval (dagen)",
-          "warning_days": "Waarschuwingsdagen voor deadline"
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
         },
         "data_description": {
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren gecumuleerde looptijd.",

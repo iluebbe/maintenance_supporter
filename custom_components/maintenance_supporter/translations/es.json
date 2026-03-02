@@ -209,20 +209,32 @@
       "compound_logic": {
         "title": "Disparador compuesto",
         "description": "Elija cómo se deben combinar múltiples condiciones.",
-        "data": { "compound_logic": "Lógica" },
-        "data_description": { "compound_logic": "Y = todas las condiciones deben activarse. O = cualquier condición activa." }
+        "data": {
+          "compound_logic": "Lógica"
+        },
+        "data_description": {
+          "compound_logic": "Y = todas las condiciones deben activarse. O = cualquier condición activa."
+        }
       },
       "compound_condition_entity": {
         "title": "Condición #{condition_num} — Entidad",
         "description": "Seleccione la entidad para esta condición.",
-        "data": { "trigger_entity": "Entidad" },
-        "data_description": { "trigger_entity": "La entidad del sensor a monitorizar para esta condición." }
+        "data": {
+          "trigger_entity": "Entidad"
+        },
+        "data_description": {
+          "trigger_entity": "La entidad del sensor a monitorizar para esta condición."
+        }
       },
       "compound_condition_type": {
         "title": "Condición #{condition_num} — Tipo",
         "description": "¿Cómo debe evaluar esta condición al sensor?",
-        "data": { "trigger_type": "Tipo de disparador" },
-        "data_description": { "trigger_type": "El método utilizado para determinar cuándo se activa esta condición." }
+        "data": {
+          "trigger_type": "Tipo de disparador"
+        },
+        "data_description": {
+          "trigger_type": "El método utilizado para determinar cuándo se activa esta condición."
+        }
       },
       "compound_condition_threshold": {
         "title": "Condición — Umbral",
@@ -275,7 +287,9 @@
       "compound_review": {
         "title": "Revisión del disparador compuesto",
         "description": "{condition_count} condición(es) configurada(s) con lógica {compound_logic}.",
-        "data": { "compound_action": "Acción" }
+        "data": {
+          "compound_action": "Acción"
+        }
       },
       "manual": {
         "title": "Programación manual",
@@ -517,27 +531,43 @@
       "compound_logic": {
         "title": "Disparador compuesto",
         "description": "Elija cómo se deben combinar múltiples condiciones.",
-        "data": { "compound_logic": "Lógica" },
-        "data_description": { "compound_logic": "Y = todas las condiciones deben activarse. O = cualquier condición activa." }
+        "data": {
+          "compound_logic": "Lógica",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "compound_logic": "Y = todas las condiciones deben activarse. O = cualquier condición activa."
+        }
       },
       "compound_condition_entity": {
         "title": "Condición #{condition_num} — Entidad",
         "description": "Seleccione la entidad para esta condición.",
-        "data": { "trigger_entity": "Entidad" },
-        "data_description": { "trigger_entity": "La entidad del sensor a monitorizar para esta condición." }
+        "data": {
+          "trigger_entity": "Entidad",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "trigger_entity": "La entidad del sensor a monitorizar para esta condición."
+        }
       },
       "compound_condition_type": {
         "title": "Condición #{condition_num} — Tipo",
         "description": "¿Cómo debe evaluar esta condición al sensor?",
-        "data": { "trigger_type": "Tipo de disparador" },
-        "data_description": { "trigger_type": "El método utilizado para determinar cuándo se activa esta condición." }
+        "data": {
+          "trigger_type": "Tipo de disparador",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "trigger_type": "El método utilizado para determinar cuándo se activa esta condición."
+        }
       },
       "compound_condition_threshold": {
         "title": "Condición — Umbral",
         "data": {
           "trigger_above": "Activar por encima de",
           "trigger_below": "Activar por debajo de",
-          "trigger_for_minutes": "Duración (minutos)"
+          "trigger_for_minutes": "Duración (minutos)",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_above": "Activar cuando el valor supere este umbral.",
@@ -549,7 +579,8 @@
         "title": "Condición — Contador",
         "data": {
           "trigger_target_value": "Valor objetivo",
-          "trigger_delta_mode": "Modo delta"
+          "trigger_delta_mode": "Modo delta",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_target_value": "Activar cuando el valor acumulado alcance este objetivo.",
@@ -561,7 +592,8 @@
         "data": {
           "trigger_from_state": "Desde estado",
           "trigger_to_state": "Hacia estado",
-          "trigger_target_changes": "Número de cambios"
+          "trigger_target_changes": "Número de cambios",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_from_state": "Solo contar transiciones desde este estado. Dejar vacío para cualquiera.",
@@ -573,7 +605,8 @@
         "title": "Condición — Tiempo de ejecución",
         "data": {
           "trigger_runtime_hours": "Tiempo objetivo (horas)",
-          "trigger_on_states": "Estados activos"
+          "trigger_on_states": "Estados activos",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_runtime_hours": "Activar después de estas horas de tiempo acumulado.",
@@ -583,7 +616,10 @@
       "compound_review": {
         "title": "Revisión del disparador compuesto",
         "description": "{condition_count} condición(es) configurada(s) con lógica {compound_logic}.",
-        "data": { "compound_action": "Acción" }
+        "data": {
+          "compound_action": "Acción",
+          "go_back": "Volver"
+        }
       },
       "adaptive_scheduling": {
         "title": "Programación adaptativa",
@@ -644,7 +680,8 @@
         "data": {
           "name": "Nombre de la tarea",
           "type": "Tipo de mantenimiento",
-          "schedule_type": "Tipo de programación"
+          "schedule_type": "Tipo de programación",
+          "go_back": "Volver"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej. 'Limpieza de filtro', 'Cambio de aceite').",
@@ -658,7 +695,8 @@
         "data": {
           "interval_days": "Intervalo (días)",
           "last_performed": "Última ejecución",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "interval_days": "Número de días entre ejecuciones de mantenimiento.",
@@ -671,7 +709,8 @@
         "description": "Esta tarea no tiene programación automática. Puede marcarla como pendiente manualmente.",
         "data": {
           "warning_days": "Días de aviso antes del vencimiento",
-          "notes": "Notas"
+          "notes": "Notas",
+          "go_back": "Volver"
         },
         "data_description": {
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
@@ -682,7 +721,8 @@
         "title": "Seleccionar sensor disparador",
         "description": "Elegir una entidad de Home Assistant para monitorear.",
         "data": {
-          "trigger_entity": "Entidad a monitorear"
+          "trigger_entity": "Entidad a monitorear",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_entity": "Seleccione la entidad de sensor que debe activar esta tarea de mantenimiento."
@@ -692,7 +732,8 @@
         "title": "Seleccionar atributo",
         "description": "Elija qué valor monitorear de {entity_id}. Estado actual: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Valor a monitorear"
+          "trigger_attribute": "Valor a monitorear",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_attribute": "Seleccione el estado de la entidad o un atributo específico para monitorear."
@@ -702,7 +743,8 @@
         "title": "Tipo de disparador",
         "description": "¿Cómo debe el valor del sensor activar el mantenimiento?",
         "data": {
-          "trigger_type": "Tipo de disparador"
+          "trigger_type": "Tipo de disparador",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_type": "Umbral: se activa cuando el valor excede los límites. Contador: se activa después de acumular un valor objetivo. Cambio de estado: se activa después de un número de transiciones de estado."
@@ -716,7 +758,8 @@
           "trigger_below": "Activar cuando inferior a",
           "trigger_for_minutes": "Durante al menos (minutos)",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_above": "Activar mantenimiento cuando el valor exceda este umbral.",
@@ -733,7 +776,8 @@
           "trigger_target_value": "Valor objetivo",
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_target_value": "Activar mantenimiento cuando se alcance este valor acumulado.",
@@ -750,7 +794,8 @@
           "trigger_to_state": "Hacia estado (opcional)",
           "trigger_target_changes": "Número de cambios para activar",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_from_state": "Solo contar transiciones desde este estado. Dejar vacío para cualquiera.",
@@ -767,7 +812,8 @@
           "trigger_runtime_hours": "Tiempo de funcionamiento objetivo (horas)",
           "trigger_on_states": "Estados activos (separados por comas)",
           "interval_days": "Intervalo de seguridad (días)",
-          "warning_days": "Días de aviso antes del vencimiento"
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
         },
         "data_description": {
           "trigger_runtime_hours": "Activar mantenimiento después de estas horas de tiempo de ejecución acumulado.",
@@ -828,19 +874,45 @@
               "manual": "Manual"
             }
           },
-          "interval_days": { "name": "Intervalo (días)" },
-          "warning_days": { "name": "Días de aviso" },
-          "last_performed": { "name": "Última ejecución" },
-          "next_due": { "name": "Próximo vencimiento" },
-          "days_until_due": { "name": "Días hasta vencimiento" },
-          "parent_object": { "name": "Objeto padre" },
-          "times_performed": { "name": "Veces realizado" },
-          "total_cost": { "name": "Costo total" },
-          "average_duration": { "name": "Duración promedio (min)" },
-          "notes": { "name": "Notas" },
-          "documentation_url": { "name": "URL de documentación" },
-          "trigger_entity": { "name": "Entidad disparador" },
-          "trigger_attribute": { "name": "Atributo disparador" },
+          "interval_days": {
+            "name": "Intervalo (días)"
+          },
+          "warning_days": {
+            "name": "Días de aviso"
+          },
+          "last_performed": {
+            "name": "Última ejecución"
+          },
+          "next_due": {
+            "name": "Próximo vencimiento"
+          },
+          "days_until_due": {
+            "name": "Días hasta vencimiento"
+          },
+          "parent_object": {
+            "name": "Objeto padre"
+          },
+          "times_performed": {
+            "name": "Veces realizado"
+          },
+          "total_cost": {
+            "name": "Costo total"
+          },
+          "average_duration": {
+            "name": "Duración promedio (min)"
+          },
+          "notes": {
+            "name": "Notas"
+          },
+          "documentation_url": {
+            "name": "URL de documentación"
+          },
+          "trigger_entity": {
+            "name": "Entidad disparador"
+          },
+          "trigger_attribute": {
+            "name": "Atributo disparador"
+          },
           "trigger_type": {
             "name": "Tipo de disparador",
             "state": {
@@ -851,8 +923,12 @@
               "compound": "Compuesto"
             }
           },
-          "trigger_active": { "name": "Disparador activo" },
-          "trigger_current_value": { "name": "Valor actual del disparador" },
+          "trigger_active": {
+            "name": "Disparador activo"
+          },
+          "trigger_current_value": {
+            "name": "Valor actual del disparador"
+          },
           "trigger_entity_state": {
             "name": "Estado de entidad disparador",
             "state": {
@@ -862,22 +938,54 @@
               "startup": "Inicio"
             }
           },
-          "trigger_above": { "name": "Disparador superior" },
-          "trigger_below": { "name": "Disparador inferior" },
-          "trigger_for_minutes": { "name": "Disparador durante (minutos)" },
-          "trigger_target_value": { "name": "Valor objetivo del disparador" },
-          "trigger_delta_mode": { "name": "Modo delta del disparador" },
-          "trigger_baseline_value": { "name": "Valor base del disparador" },
-          "trigger_current_delta": { "name": "Delta actual del disparador" },
-          "trigger_from_state": { "name": "Disparador desde estado" },
-          "trigger_to_state": { "name": "Disparador hacia estado" },
-          "trigger_target_changes": { "name": "Cambios objetivo del disparador" },
-          "trigger_change_count": { "name": "Conteo de cambios del disparador" },
-          "trigger_runtime_hours": { "name": "Tiempo de funcionamiento objetivo (horas)" },
-          "trigger_accumulated_hours": { "name": "Tiempo de funcionamiento acumulado (horas)" },
-          "trigger_remaining_hours": { "name": "Tiempo de funcionamiento restante (horas)" },
-          "last_entry": { "name": "Última entrada" },
-          "suggested_interval": { "name": "Intervalo sugerido" },
+          "trigger_above": {
+            "name": "Disparador superior"
+          },
+          "trigger_below": {
+            "name": "Disparador inferior"
+          },
+          "trigger_for_minutes": {
+            "name": "Disparador durante (minutos)"
+          },
+          "trigger_target_value": {
+            "name": "Valor objetivo del disparador"
+          },
+          "trigger_delta_mode": {
+            "name": "Modo delta del disparador"
+          },
+          "trigger_baseline_value": {
+            "name": "Valor base del disparador"
+          },
+          "trigger_current_delta": {
+            "name": "Delta actual del disparador"
+          },
+          "trigger_from_state": {
+            "name": "Disparador desde estado"
+          },
+          "trigger_to_state": {
+            "name": "Disparador hacia estado"
+          },
+          "trigger_target_changes": {
+            "name": "Cambios objetivo del disparador"
+          },
+          "trigger_change_count": {
+            "name": "Conteo de cambios del disparador"
+          },
+          "trigger_runtime_hours": {
+            "name": "Tiempo de funcionamiento objetivo (horas)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Tiempo de funcionamiento acumulado (horas)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Tiempo de funcionamiento restante (horas)"
+          },
+          "last_entry": {
+            "name": "Última entrada"
+          },
+          "suggested_interval": {
+            "name": "Intervalo sugerido"
+          },
           "interval_confidence": {
             "name": "Confianza del intervalo",
             "state": {
@@ -886,8 +994,12 @@
               "high": "Alta"
             }
           },
-          "adaptive_scheduling_enabled": { "name": "Programación adaptativa activada" },
-          "seasonal_factor": { "name": "Factor estacional" },
+          "adaptive_scheduling_enabled": {
+            "name": "Programación adaptativa activada"
+          },
+          "seasonal_factor": {
+            "name": "Factor estacional"
+          },
           "seasonal_reason": {
             "name": "Razón estacional",
             "state": {
@@ -895,7 +1007,9 @@
               "manual": "Manual"
             }
           },
-          "degradation_rate": { "name": "Tasa de degradación" },
+          "degradation_rate": {
+            "name": "Tasa de degradación"
+          },
           "degradation_trend": {
             "name": "Tendencia de degradación",
             "state": {
@@ -905,7 +1019,9 @@
               "insufficient_data": "Datos insuficientes"
             }
           },
-          "days_until_threshold": { "name": "Días hasta umbral" },
+          "days_until_threshold": {
+            "name": "Días hasta umbral"
+          },
           "threshold_prediction_confidence": {
             "name": "Confianza de predicción",
             "state": {
@@ -914,11 +1030,21 @@
               "high": "Alta"
             }
           },
-          "environmental_factor": { "name": "Factor ambiental" },
-          "environmental_entity": { "name": "Entidad ambiental" },
-          "weibull_beta": { "name": "Forma Weibull (β)" },
-          "weibull_eta": { "name": "Escala Weibull (η)" },
-          "weibull_r_squared": { "name": "R² Weibull" },
+          "environmental_factor": {
+            "name": "Factor ambiental"
+          },
+          "environmental_entity": {
+            "name": "Entidad ambiental"
+          },
+          "weibull_beta": {
+            "name": "Forma Weibull (β)"
+          },
+          "weibull_eta": {
+            "name": "Escala Weibull (η)"
+          },
+          "weibull_r_squared": {
+            "name": "R² Weibull"
+          },
           "weibull_beta_interpretation": {
             "name": "Patrón de fallo",
             "state": {
@@ -928,8 +1054,12 @@
               "highly_predictable": "Muy predecible"
             }
           },
-          "confidence_interval_low": { "name": "Intervalo de confianza (bajo)" },
-          "confidence_interval_high": { "name": "Intervalo de confianza (alto)" }
+          "confidence_interval_low": {
+            "name": "Intervalo de confianza (bajo)"
+          },
+          "confidence_interval_high": {
+            "name": "Intervalo de confianza (alto)"
+          }
         }
       }
     },

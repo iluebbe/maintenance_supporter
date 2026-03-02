@@ -381,6 +381,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         # No existing trigger — go directly to sensor select
         self._current_task = {}
         self._trigger_on_complete = self._save_edited_trigger
+        self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()
 
     @staticmethod
@@ -513,6 +514,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         """Proceed with editing the trigger after reviewing the summary."""
         self._current_task = {}
         self._trigger_on_complete = self._save_edited_trigger
+        self._on_cancel = self._show_task_action_menu
         return await self.async_step_opt_sensor_select()
 
     def _save_edited_trigger(self) -> ConfigFlowResult:
@@ -737,6 +739,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
     ) -> ConfigFlowResult:
         """Add a new task — step 1: name, type, schedule."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_init_menu()
+
             self._current_task = {
                 CONF_TASK_NAME: user_input[CONF_TASK_NAME],
                 CONF_TASK_TYPE: user_input.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CLEANING),
@@ -744,6 +749,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             }
 
             self._trigger_on_complete = self._save_new_task
+            self._on_cancel = self._show_init_menu
 
             schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
             if schedule == ScheduleType.TIME_BASED:
@@ -781,6 +787,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             translation_key="schedule_type",
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
         )
@@ -792,6 +801,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_init_menu()
+
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
             if not interval or interval <= 0:
                 errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
@@ -825,6 +837,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
@@ -835,6 +850,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
     ) -> ConfigFlowResult:
         """Configure manual schedule for new task."""
         if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_init_menu()
+
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.MANUAL
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                 CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
@@ -860,6 +878,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             type=selector.TextSelectorType.TEXT, multiline=True
                         )
                     ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
                 }
             ),
         )

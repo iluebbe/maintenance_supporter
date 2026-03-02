@@ -209,20 +209,32 @@
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
-        "data": { "compound_logic": "Logic" },
-        "data_description": { "compound_logic": "AND = all conditions must trigger. OR = any condition triggers." }
+        "data": {
+          "compound_logic": "Logic"
+        },
+        "data_description": {
+          "compound_logic": "AND = all conditions must trigger. OR = any condition triggers."
+        }
       },
       "compound_condition_entity": {
         "title": "Condition #{condition_num} — Entity",
         "description": "Select the entity for this condition.",
-        "data": { "trigger_entity": "Entity" },
-        "data_description": { "trigger_entity": "The sensor entity to monitor for this condition." }
+        "data": {
+          "trigger_entity": "Entity"
+        },
+        "data_description": {
+          "trigger_entity": "The sensor entity to monitor for this condition."
+        }
       },
       "compound_condition_type": {
         "title": "Condition #{condition_num} — Type",
         "description": "How should this condition evaluate the sensor?",
-        "data": { "trigger_type": "Trigger type" },
-        "data_description": { "trigger_type": "The method used to determine when this condition triggers." }
+        "data": {
+          "trigger_type": "Trigger type"
+        },
+        "data_description": {
+          "trigger_type": "The method used to determine when this condition triggers."
+        }
       },
       "compound_condition_threshold": {
         "title": "Condition — Threshold",
@@ -275,7 +287,9 @@
       "compound_review": {
         "title": "Compound Trigger Review",
         "description": "{condition_count} condition(s) configured with {compound_logic} logic.",
-        "data": { "compound_action": "Action" }
+        "data": {
+          "compound_action": "Action"
+        }
       },
       "manual": {
         "title": "Manual Schedule",
@@ -517,27 +531,43 @@
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
-        "data": { "compound_logic": "Logic" },
-        "data_description": { "compound_logic": "AND = all conditions must trigger. OR = any condition triggers." }
+        "data": {
+          "compound_logic": "Logic",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "compound_logic": "AND = all conditions must trigger. OR = any condition triggers."
+        }
       },
       "compound_condition_entity": {
         "title": "Condition #{condition_num} — Entity",
         "description": "Select the entity for this condition.",
-        "data": { "trigger_entity": "Entity" },
-        "data_description": { "trigger_entity": "The sensor entity to monitor for this condition." }
+        "data": {
+          "trigger_entity": "Entity",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "trigger_entity": "The sensor entity to monitor for this condition."
+        }
       },
       "compound_condition_type": {
         "title": "Condition #{condition_num} — Type",
         "description": "How should this condition evaluate the sensor?",
-        "data": { "trigger_type": "Trigger type" },
-        "data_description": { "trigger_type": "The method used to determine when this condition triggers." }
+        "data": {
+          "trigger_type": "Trigger type",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "trigger_type": "The method used to determine when this condition triggers."
+        }
       },
       "compound_condition_threshold": {
         "title": "Condition — Threshold",
         "data": {
           "trigger_above": "Trigger above",
           "trigger_below": "Trigger below",
-          "trigger_for_minutes": "Duration (minutes)"
+          "trigger_for_minutes": "Duration (minutes)",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_above": "Trigger when value exceeds this threshold.",
@@ -549,7 +579,8 @@
         "title": "Condition — Counter",
         "data": {
           "trigger_target_value": "Target value",
-          "trigger_delta_mode": "Delta mode"
+          "trigger_delta_mode": "Delta mode",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_target_value": "Trigger when accumulated value reaches this target.",
@@ -561,7 +592,8 @@
         "data": {
           "trigger_from_state": "From state",
           "trigger_to_state": "To state",
-          "trigger_target_changes": "Number of changes"
+          "trigger_target_changes": "Number of changes",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
@@ -573,7 +605,8 @@
         "title": "Condition — Runtime",
         "data": {
           "trigger_runtime_hours": "Target runtime (hours)",
-          "trigger_on_states": "Active states"
+          "trigger_on_states": "Active states",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger after this many hours of accumulated runtime.",
@@ -583,7 +616,10 @@
       "compound_review": {
         "title": "Compound Trigger Review",
         "description": "{condition_count} condition(s) configured with {compound_logic} logic.",
-        "data": { "compound_action": "Action" }
+        "data": {
+          "compound_action": "Action",
+          "go_back": "Go back"
+        }
       },
       "adaptive_scheduling": {
         "title": "Adaptive Scheduling",
@@ -644,7 +680,8 @@
         "data": {
           "name": "Task name",
           "type": "Maintenance type",
-          "schedule_type": "Schedule type"
+          "schedule_type": "Schedule type",
+          "go_back": "Go back"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
@@ -658,7 +695,8 @@
         "data": {
           "interval_days": "Interval (days)",
           "last_performed": "Last performed",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "interval_days": "Number of days between maintenance runs.",
@@ -671,7 +709,8 @@
         "description": "This task has no automatic schedule. You can mark it as due manually.",
         "data": {
           "warning_days": "Warning days before due",
-          "notes": "Notes"
+          "notes": "Notes",
+          "go_back": "Go back"
         },
         "data_description": {
           "warning_days": "Number of days before due date to show a warning.",
@@ -682,7 +721,8 @@
         "title": "Select Trigger Sensor",
         "description": "Choose a Home Assistant entity to monitor.",
         "data": {
-          "trigger_entity": "Entity to monitor"
+          "trigger_entity": "Entity to monitor",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_entity": "Select the sensor entity that should trigger this maintenance task."
@@ -692,7 +732,8 @@
         "title": "Select Attribute",
         "description": "Choose which value to monitor from {entity_id}. Current state: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Value to monitor"
+          "trigger_attribute": "Value to monitor",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_attribute": "Select the entity state or a specific attribute to monitor."
@@ -702,7 +743,8 @@
         "title": "Trigger Type",
         "description": "How should the sensor value trigger maintenance?",
         "data": {
-          "trigger_type": "Trigger type"
+          "trigger_type": "Trigger type",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_type": "Threshold: triggers when value exceeds limits. Counter: triggers after accumulating a target value. State Change: triggers after a number of state transitions."
@@ -716,7 +758,8 @@
           "trigger_below": "Trigger when below",
           "trigger_for_minutes": "For at least (minutes)",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_above": "Trigger maintenance when value exceeds this threshold.",
@@ -733,7 +776,8 @@
           "trigger_target_value": "Target value",
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
@@ -750,7 +794,8 @@
           "trigger_to_state": "To state (optional)",
           "trigger_target_changes": "Number of changes to trigger",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_from_state": "Only count transitions from this state. Leave empty for any.",
@@ -767,7 +812,8 @@
           "trigger_runtime_hours": "Target runtime (hours)",
           "trigger_on_states": "Active states (comma-separated)",
           "interval_days": "Safety interval (days)",
-          "warning_days": "Warning days before due"
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
         },
         "data_description": {
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
@@ -828,19 +874,45 @@
               "manual": "Manual"
             }
           },
-          "interval_days": { "name": "Interval (days)" },
-          "warning_days": { "name": "Warning days" },
-          "last_performed": { "name": "Last performed" },
-          "next_due": { "name": "Next due" },
-          "days_until_due": { "name": "Days until due" },
-          "parent_object": { "name": "Parent object" },
-          "times_performed": { "name": "Times performed" },
-          "total_cost": { "name": "Total cost" },
-          "average_duration": { "name": "Average duration (min)" },
-          "notes": { "name": "Notes" },
-          "documentation_url": { "name": "Documentation URL" },
-          "trigger_entity": { "name": "Trigger entity" },
-          "trigger_attribute": { "name": "Trigger attribute" },
+          "interval_days": {
+            "name": "Interval (days)"
+          },
+          "warning_days": {
+            "name": "Warning days"
+          },
+          "last_performed": {
+            "name": "Last performed"
+          },
+          "next_due": {
+            "name": "Next due"
+          },
+          "days_until_due": {
+            "name": "Days until due"
+          },
+          "parent_object": {
+            "name": "Parent object"
+          },
+          "times_performed": {
+            "name": "Times performed"
+          },
+          "total_cost": {
+            "name": "Total cost"
+          },
+          "average_duration": {
+            "name": "Average duration (min)"
+          },
+          "notes": {
+            "name": "Notes"
+          },
+          "documentation_url": {
+            "name": "Documentation URL"
+          },
+          "trigger_entity": {
+            "name": "Trigger entity"
+          },
+          "trigger_attribute": {
+            "name": "Trigger attribute"
+          },
           "trigger_type": {
             "name": "Trigger type",
             "state": {
@@ -851,8 +923,12 @@
               "compound": "Compound"
             }
           },
-          "trigger_active": { "name": "Trigger active" },
-          "trigger_current_value": { "name": "Trigger current value" },
+          "trigger_active": {
+            "name": "Trigger active"
+          },
+          "trigger_current_value": {
+            "name": "Trigger current value"
+          },
           "trigger_entity_state": {
             "name": "Trigger entity state",
             "state": {
@@ -862,22 +938,54 @@
               "startup": "Startup"
             }
           },
-          "trigger_above": { "name": "Trigger above" },
-          "trigger_below": { "name": "Trigger below" },
-          "trigger_for_minutes": { "name": "Trigger for (minutes)" },
-          "trigger_target_value": { "name": "Trigger target value" },
-          "trigger_delta_mode": { "name": "Trigger delta mode" },
-          "trigger_baseline_value": { "name": "Trigger baseline value" },
-          "trigger_current_delta": { "name": "Trigger current delta" },
-          "trigger_from_state": { "name": "Trigger from state" },
-          "trigger_to_state": { "name": "Trigger to state" },
-          "trigger_target_changes": { "name": "Trigger target changes" },
-          "trigger_change_count": { "name": "Trigger change count" },
-          "trigger_runtime_hours": { "name": "Target runtime (hours)" },
-          "trigger_accumulated_hours": { "name": "Accumulated runtime (hours)" },
-          "trigger_remaining_hours": { "name": "Remaining runtime (hours)" },
-          "last_entry": { "name": "Last entry" },
-          "suggested_interval": { "name": "Suggested interval" },
+          "trigger_above": {
+            "name": "Trigger above"
+          },
+          "trigger_below": {
+            "name": "Trigger below"
+          },
+          "trigger_for_minutes": {
+            "name": "Trigger for (minutes)"
+          },
+          "trigger_target_value": {
+            "name": "Trigger target value"
+          },
+          "trigger_delta_mode": {
+            "name": "Trigger delta mode"
+          },
+          "trigger_baseline_value": {
+            "name": "Trigger baseline value"
+          },
+          "trigger_current_delta": {
+            "name": "Trigger current delta"
+          },
+          "trigger_from_state": {
+            "name": "Trigger from state"
+          },
+          "trigger_to_state": {
+            "name": "Trigger to state"
+          },
+          "trigger_target_changes": {
+            "name": "Trigger target changes"
+          },
+          "trigger_change_count": {
+            "name": "Trigger change count"
+          },
+          "trigger_runtime_hours": {
+            "name": "Target runtime (hours)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Accumulated runtime (hours)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Remaining runtime (hours)"
+          },
+          "last_entry": {
+            "name": "Last entry"
+          },
+          "suggested_interval": {
+            "name": "Suggested interval"
+          },
           "interval_confidence": {
             "name": "Interval confidence",
             "state": {
@@ -886,8 +994,12 @@
               "high": "High"
             }
           },
-          "adaptive_scheduling_enabled": { "name": "Adaptive scheduling enabled" },
-          "seasonal_factor": { "name": "Seasonal factor" },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptive scheduling enabled"
+          },
+          "seasonal_factor": {
+            "name": "Seasonal factor"
+          },
           "seasonal_reason": {
             "name": "Seasonal reason",
             "state": {
@@ -895,7 +1007,9 @@
               "manual": "Manual"
             }
           },
-          "degradation_rate": { "name": "Degradation rate" },
+          "degradation_rate": {
+            "name": "Degradation rate"
+          },
           "degradation_trend": {
             "name": "Degradation trend",
             "state": {
@@ -905,7 +1019,9 @@
               "insufficient_data": "Insufficient data"
             }
           },
-          "days_until_threshold": { "name": "Days until threshold" },
+          "days_until_threshold": {
+            "name": "Days until threshold"
+          },
           "threshold_prediction_confidence": {
             "name": "Prediction confidence",
             "state": {
@@ -914,11 +1030,21 @@
               "high": "High"
             }
           },
-          "environmental_factor": { "name": "Environmental factor" },
-          "environmental_entity": { "name": "Environmental entity" },
-          "weibull_beta": { "name": "Weibull shape (β)" },
-          "weibull_eta": { "name": "Weibull scale (η)" },
-          "weibull_r_squared": { "name": "Weibull R²" },
+          "environmental_factor": {
+            "name": "Environmental factor"
+          },
+          "environmental_entity": {
+            "name": "Environmental entity"
+          },
+          "weibull_beta": {
+            "name": "Weibull shape (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull scale (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
           "weibull_beta_interpretation": {
             "name": "Failure pattern",
             "state": {
@@ -928,8 +1054,12 @@
               "highly_predictable": "Highly predictable"
             }
           },
-          "confidence_interval_low": { "name": "Confidence interval (low)" },
-          "confidence_interval_high": { "name": "Confidence interval (high)" }
+          "confidence_interval_low": {
+            "name": "Confidence interval (low)"
+          },
+          "confidence_interval_high": {
+            "name": "Confidence interval (high)"
+          }
         }
       }
     },

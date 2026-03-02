@@ -56,7 +56,34 @@ from .const import (
 
 
 class TriggerConfigMixin:
-    """Shared sensor trigger configuration logic for ConfigFlow and OptionsFlow."""
+    """Shared sensor trigger configuration logic for ConfigFlow and OptionsFlow.
+
+    Consuming classes may set ``_on_cancel`` to a callable returning
+    ``ConfigFlowResult`` to enable a *go back* toggle on every mixin form.
+    When ``_on_cancel`` is ``None`` (the default), no toggle is shown.
+    """
+
+    _on_cancel: Callable[[], ConfigFlowResult] | None = None
+
+    def _mixin_check_go_back(
+        self, user_input: dict[str, Any] | None
+    ) -> ConfigFlowResult | None:
+        """Return cancel result when user checked go_back, else None."""
+        if (
+            user_input
+            and user_input.get("go_back")
+            and self._on_cancel is not None
+        ):
+            return self._on_cancel()
+        return None
+
+    def _mixin_add_go_back(self, schema_dict: dict) -> dict:
+        """Append go_back toggle to schema dict when cancelling is enabled."""
+        if self._on_cancel is not None:
+            schema_dict[
+                vol.Optional("go_back", default=False)
+            ] = selector.BooleanSelector()
+        return schema_dict
 
     async def _trigger_sensor_select(
         self,
@@ -74,6 +101,10 @@ class TriggerConfigMixin:
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             raw = user_input[CONF_TRIGGER_ENTITY]
             # EntitySelector with multiple=True returns a list
             entity_ids = raw if isinstance(raw, list) else [raw]
@@ -99,18 +130,17 @@ class TriggerConfigMixin:
             if default_entities
             else vol.Required(CONF_TRIGGER_ENTITY)
         )
+        schema_dict: dict[Any, Any] = {
+            entity_key: selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
+                    multiple=True,
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    entity_key: selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
-                            multiple=True,
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
             errors=errors,
         )
 
@@ -124,6 +154,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for attribute selection."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             attr = user_input.get(CONF_TRIGGER_ATTRIBUTE, "_state")
             entity_ids = getattr(self, "_trigger_entity_ids", [self._trigger_entity_id])
             self._current_task["trigger_config"] = {
@@ -184,20 +218,19 @@ class TriggerConfigMixin:
         current_state = state.state
         unit = state.attributes.get("unit_of_measurement", "")
 
+        schema_dict: dict[Any, Any] = {
+            vol.Required(
+                CONF_TRIGGER_ATTRIBUTE, default="_state"
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=options,
+                    mode=selector.SelectSelectorMode.LIST,
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_TRIGGER_ATTRIBUTE, default="_state"
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=options,
-                            mode=selector.SelectSelectorMode.LIST,
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
             description_placeholders={
                 "entity_id": self._trigger_entity_id or "",
                 "current_state": str(current_state),
@@ -218,6 +251,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for trigger type selection."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             trigger_type = user_input[CONF_TRIGGER_TYPE]
             self._current_task["trigger_config"]["type"] = trigger_type
 
@@ -233,21 +270,20 @@ class TriggerConfigMixin:
 
         trigger_options = [t.value for t in TriggerType]
 
+        schema_dict: dict[Any, Any] = {
+            vol.Required(
+                CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=trigger_options,
+                    mode=selector.SelectSelectorMode.LIST,
+                    translation_key="trigger_type",
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=trigger_options,
-                            mode=selector.SelectSelectorMode.LIST,
-                            translation_key="trigger_type",
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
         )
 
     async def _trigger_threshold_config(
@@ -261,6 +297,10 @@ class TriggerConfigMixin:
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             above = user_input.get(CONF_TRIGGER_ABOVE)
             below = user_input.get(CONF_TRIGGER_BELOW)
 
@@ -358,7 +398,7 @@ class TriggerConfigMixin:
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(schema_fields),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
             errors=errors,
             description_placeholders=format_threshold_placeholders(
                 self._trigger_entity_id, attribute, suggestions
@@ -374,6 +414,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for counter trigger configuration."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             tc = self._current_task["trigger_config"]
             tc[CONF_TRIGGER_TARGET_VALUE] = user_input[CONF_TRIGGER_TARGET_VALUE]
             tc[CONF_TRIGGER_DELTA_MODE] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
@@ -456,7 +500,7 @@ class TriggerConfigMixin:
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(schema_fields),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
             description_placeholders={
                 "entity_id": self._trigger_entity_id or "",
                 "attribute": attribute or "state",
@@ -474,6 +518,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for state change trigger configuration."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             tc = self._current_task["trigger_config"]
             if user_input.get(CONF_TRIGGER_FROM_STATE):
                 tc[CONF_TRIGGER_FROM_STATE] = user_input[CONF_TRIGGER_FROM_STATE]
@@ -559,7 +607,7 @@ class TriggerConfigMixin:
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(schema_fields),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
             description_placeholders={
                 "entity_id": self._trigger_entity_id or "",
             },
@@ -574,6 +622,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Core logic for runtime trigger configuration."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             tc = self._current_task["trigger_config"]
             tc[CONF_TRIGGER_RUNTIME_HOURS] = user_input[CONF_TRIGGER_RUNTIME_HOURS]
 
@@ -665,7 +717,7 @@ class TriggerConfigMixin:
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(schema_fields),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
             description_placeholders={
                 "entity_id": self._trigger_entity_id or "",
             },
@@ -684,6 +736,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Select compound trigger logic (AND/OR)."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             logic = user_input.get(CONF_COMPOUND_LOGIC, "AND").upper()
             self._current_task["trigger_config"] = {
                 "type": TriggerType.COMPOUND,
@@ -696,30 +752,29 @@ class TriggerConfigMixin:
             self._compound_logic = logic
             return await next_step()
 
+        schema_dict: dict[Any, Any] = {
+            vol.Required(
+                CONF_COMPOUND_LOGIC, default="AND"
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        selector.SelectOptionDict(
+                            value="AND",
+                            label="AND (all conditions must trigger)",
+                        ),
+                        selector.SelectOptionDict(
+                            value="OR",
+                            label="OR (any condition triggers)",
+                        ),
+                    ],
+                    mode=selector.SelectSelectorMode.LIST,
+                    translation_key="compound_logic",
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_COMPOUND_LOGIC, default="AND"
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=[
-                                selector.SelectOptionDict(
-                                    value="AND",
-                                    label="AND (all conditions must trigger)",
-                                ),
-                                selector.SelectOptionDict(
-                                    value="OR",
-                                    label="OR (any condition triggers)",
-                                ),
-                            ],
-                            mode=selector.SelectSelectorMode.LIST,
-                            translation_key="compound_logic",
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
         )
 
     async def _trigger_compound_condition_entity(
@@ -733,6 +788,10 @@ class TriggerConfigMixin:
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             raw = user_input[CONF_TRIGGER_ENTITY]
             entity_ids = raw if isinstance(raw, list) else [raw]
             if not entity_ids:
@@ -752,19 +811,18 @@ class TriggerConfigMixin:
                     return await next_step()
 
         cond_num = len(getattr(self, "_compound_conditions", [])) + 1
+        schema_dict: dict[Any, Any] = {
+            vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain=["sensor", "binary_sensor", "number",
+                            "input_number", "input_boolean", "switch"],
+                    multiple=True,
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor", "binary_sensor", "number",
-                                    "input_number", "input_boolean", "switch"],
-                            multiple=True,
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
             errors=errors,
             description_placeholders={"condition_num": str(cond_num)},
         )
@@ -781,6 +839,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Select trigger type for a compound condition."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             trigger_type = user_input[CONF_TRIGGER_TYPE]
             self._current_compound_condition["type"] = trigger_type
 
@@ -796,21 +858,20 @@ class TriggerConfigMixin:
             t.value for t in TriggerType if t != TriggerType.COMPOUND
         ]
 
+        schema_dict: dict[Any, Any] = {
+            vol.Required(
+                CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=trigger_options,
+                    mode=selector.SelectSelectorMode.LIST,
+                    translation_key="trigger_type",
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=trigger_options,
-                            mode=selector.SelectSelectorMode.LIST,
-                            translation_key="trigger_type",
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
         )
 
     async def _trigger_compound_condition_config(
@@ -825,6 +886,10 @@ class TriggerConfigMixin:
         cond = self._current_compound_condition
 
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             if condition_type == TriggerType.THRESHOLD:
                 above = user_input.get(CONF_TRIGGER_ABOVE)
                 below = user_input.get(CONF_TRIGGER_BELOW)
@@ -948,7 +1013,7 @@ class TriggerConfigMixin:
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(schema_fields),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
         )
 
     async def _trigger_compound_review(
@@ -961,6 +1026,10 @@ class TriggerConfigMixin:
     ) -> ConfigFlowResult:
         """Review compound trigger conditions and optionally add more."""
         if user_input is not None:
+            cancel = self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+
             action = user_input.get("compound_action", "finish")
             if action == "add":
                 return await add_condition_step()
@@ -988,20 +1057,19 @@ class TriggerConfigMixin:
                 ),
             )
 
+        schema_dict: dict[Any, Any] = {
+            vol.Required(
+                "compound_action", default="finish"
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=options,
+                    mode=selector.SelectSelectorMode.LIST,
+                )
+            ),
+        }
         return self.async_show_form(
             step_id=step_id,
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        "compound_action", default="finish"
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=options,
-                            mode=selector.SelectSelectorMode.LIST,
-                        )
-                    ),
-                }
-            ),
+            data_schema=vol.Schema(self._mixin_add_go_back(schema_dict)),
             description_placeholders={
                 "condition_count": str(condition_count),
                 "compound_logic": logic,

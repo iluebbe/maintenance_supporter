@@ -209,20 +209,32 @@
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
-        "data": { "compound_logic": "Logik" },
-        "data_description": { "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt." }
+        "data": {
+          "compound_logic": "Logik"
+        },
+        "data_description": {
+          "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt."
+        }
       },
       "compound_condition_entity": {
         "title": "Bedingung #{condition_num} — Entität",
         "description": "Wählen Sie die Entität für diese Bedingung.",
-        "data": { "trigger_entity": "Entität" },
-        "data_description": { "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll." }
+        "data": {
+          "trigger_entity": "Entität"
+        },
+        "data_description": {
+          "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll."
+        }
       },
       "compound_condition_type": {
         "title": "Bedingung #{condition_num} — Typ",
         "description": "Wie soll diese Bedingung den Sensor auswerten?",
-        "data": { "trigger_type": "Trigger-Typ" },
-        "data_description": { "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst." }
+        "data": {
+          "trigger_type": "Trigger-Typ"
+        },
+        "data_description": {
+          "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst."
+        }
       },
       "compound_condition_threshold": {
         "title": "Bedingung — Schwellwert",
@@ -275,7 +287,9 @@
       "compound_review": {
         "title": "Kombinierter Trigger — Überprüfung",
         "description": "{condition_count} Bedingung(en) mit {compound_logic}-Logik konfiguriert.",
-        "data": { "compound_action": "Aktion" }
+        "data": {
+          "compound_action": "Aktion"
+        }
       },
       "manual": {
         "title": "Manueller Plan",
@@ -573,7 +587,8 @@
         "data": {
           "name": "Aufgabenname",
           "type": "Wartungstyp",
-          "schedule_type": "Planungsart"
+          "schedule_type": "Planungsart",
+          "go_back": "Zurück"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -587,7 +602,8 @@
         "data": {
           "interval_days": "Intervall (Tage)",
           "last_performed": "Zuletzt durchgeführt",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
@@ -600,7 +616,8 @@
         "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
         "data": {
           "warning_days": "Warntage vor Fälligkeit",
-          "notes": "Notizen"
+          "notes": "Notizen",
+          "go_back": "Zurück"
         },
         "data_description": {
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
@@ -611,7 +628,8 @@
         "title": "Trigger-Sensor auswählen",
         "description": "Wählen Sie eine Home Assistant Entität zur Überwachung.",
         "data": {
-          "trigger_entity": "Zu überwachende Entität"
+          "trigger_entity": "Zu überwachende Entität",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_entity": "Wählen Sie die Sensor-Entität, die diese Wartungsaufgabe auslösen soll."
@@ -621,7 +639,8 @@
         "title": "Attribut auswählen",
         "description": "Wählen Sie, welcher Wert von {entity_id} überwacht werden soll. Aktueller Zustand: {current_state} {unit}",
         "data": {
-          "trigger_attribute": "Zu überwachender Wert"
+          "trigger_attribute": "Zu überwachender Wert",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_attribute": "Wählen Sie den Entitätsstatus oder ein bestimmtes Attribut zur Überwachung."
@@ -631,7 +650,8 @@
         "title": "Trigger-Typ",
         "description": "Wie soll der Sensorwert die Wartung auslösen?",
         "data": {
-          "trigger_type": "Trigger-Typ"
+          "trigger_type": "Trigger-Typ",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_type": "Schwellenwert: löst aus, wenn der Wert Grenzen überschreitet. Zähler: löst nach Erreichen eines Zielwerts aus. Zustandsänderung: löst nach einer Anzahl von Zustandsübergängen aus."
@@ -645,7 +665,8 @@
           "trigger_below": "Auslösen wenn unter",
           "trigger_for_minutes": "Für mindestens (Minuten)",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_above": "Wartung auslösen, wenn der Wert diesen Schwellenwert überschreitet.",
@@ -662,7 +683,8 @@
           "trigger_target_value": "Zielwert",
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_target_value": "Wartung auslösen, wenn dieser kumulierte Wert erreicht ist.",
@@ -679,7 +701,8 @@
           "trigger_to_state": "Zu Zustand (optional)",
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
@@ -696,7 +719,8 @@
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
           "interval_days": "Sicherheitsintervall (Tage)",
-          "warning_days": "Warntage vor Fälligkeit"
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl von Stunden kumulierter Laufzeit.",
@@ -708,27 +732,43 @@
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
-        "data": { "compound_logic": "Logik" },
-        "data_description": { "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt." }
+        "data": {
+          "compound_logic": "Logik",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "compound_logic": "UND = alle Bedingungen müssen auslösen. ODER = eine Bedingung genügt."
+        }
       },
       "compound_condition_entity": {
         "title": "Bedingung #{condition_num} — Entität",
         "description": "Wählen Sie die Entität für diese Bedingung.",
-        "data": { "trigger_entity": "Entität" },
-        "data_description": { "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll." }
+        "data": {
+          "trigger_entity": "Entität",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "trigger_entity": "Die Sensorentität, die für diese Bedingung überwacht werden soll."
+        }
       },
       "compound_condition_type": {
         "title": "Bedingung #{condition_num} — Typ",
         "description": "Wie soll diese Bedingung den Sensor auswerten?",
-        "data": { "trigger_type": "Trigger-Typ" },
-        "data_description": { "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst." }
+        "data": {
+          "trigger_type": "Trigger-Typ",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "trigger_type": "Die Methode zur Bestimmung, wann diese Bedingung auslöst."
+        }
       },
       "compound_condition_threshold": {
         "title": "Bedingung — Schwellwert",
         "data": {
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
-          "trigger_for_minutes": "Dauer (Minuten)"
+          "trigger_for_minutes": "Dauer (Minuten)",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_above": "Auslösen, wenn der Wert diesen Schwellwert überschreitet.",
@@ -740,7 +780,8 @@
         "title": "Bedingung — Zähler",
         "data": {
           "trigger_target_value": "Zielwert",
-          "trigger_delta_mode": "Delta-Modus"
+          "trigger_delta_mode": "Delta-Modus",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_target_value": "Auslösen, wenn der akkumulierte Wert dieses Ziel erreicht.",
@@ -752,7 +793,8 @@
         "data": {
           "trigger_from_state": "Von Zustand",
           "trigger_to_state": "Zu Zustand",
-          "trigger_target_changes": "Anzahl der Wechsel"
+          "trigger_target_changes": "Anzahl der Wechsel",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_from_state": "Nur Übergänge von diesem Zustand zählen. Leer lassen für alle.",
@@ -764,7 +806,8 @@
         "title": "Bedingung — Laufzeit",
         "data": {
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
-          "trigger_on_states": "Aktive Zustände"
+          "trigger_on_states": "Aktive Zustände",
+          "go_back": "Zurück"
         },
         "data_description": {
           "trigger_runtime_hours": "Auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
@@ -774,7 +817,10 @@
       "compound_review": {
         "title": "Kombinierter Trigger — Überprüfung",
         "description": "{condition_count} Bedingung(en) mit {compound_logic}-Logik konfiguriert.",
-        "data": { "compound_action": "Aktion" }
+        "data": {
+          "compound_action": "Aktion",
+          "go_back": "Zurück"
+        }
       },
       "object_settings": {
         "title": "Objekteinstellungen",
@@ -828,19 +874,45 @@
               "manual": "Manuell"
             }
           },
-          "interval_days": { "name": "Intervall (Tage)" },
-          "warning_days": { "name": "Warntage" },
-          "last_performed": { "name": "Zuletzt durchgeführt" },
-          "next_due": { "name": "Nächste Fälligkeit" },
-          "days_until_due": { "name": "Tage bis fällig" },
-          "parent_object": { "name": "Übergeordnetes Objekt" },
-          "times_performed": { "name": "Durchführungen" },
-          "total_cost": { "name": "Gesamtkosten" },
-          "average_duration": { "name": "Durchschn. Dauer (Min.)" },
-          "notes": { "name": "Notizen" },
-          "documentation_url": { "name": "Dokumentations-URL" },
-          "trigger_entity": { "name": "Trigger-Entität" },
-          "trigger_attribute": { "name": "Trigger-Attribut" },
+          "interval_days": {
+            "name": "Intervall (Tage)"
+          },
+          "warning_days": {
+            "name": "Warntage"
+          },
+          "last_performed": {
+            "name": "Zuletzt durchgeführt"
+          },
+          "next_due": {
+            "name": "Nächste Fälligkeit"
+          },
+          "days_until_due": {
+            "name": "Tage bis fällig"
+          },
+          "parent_object": {
+            "name": "Übergeordnetes Objekt"
+          },
+          "times_performed": {
+            "name": "Durchführungen"
+          },
+          "total_cost": {
+            "name": "Gesamtkosten"
+          },
+          "average_duration": {
+            "name": "Durchschn. Dauer (Min.)"
+          },
+          "notes": {
+            "name": "Notizen"
+          },
+          "documentation_url": {
+            "name": "Dokumentations-URL"
+          },
+          "trigger_entity": {
+            "name": "Trigger-Entität"
+          },
+          "trigger_attribute": {
+            "name": "Trigger-Attribut"
+          },
           "trigger_type": {
             "name": "Trigger-Typ",
             "state": {
@@ -851,8 +923,12 @@
               "compound": "Kombiniert"
             }
           },
-          "trigger_active": { "name": "Trigger aktiv" },
-          "trigger_current_value": { "name": "Aktueller Trigger-Wert" },
+          "trigger_active": {
+            "name": "Trigger aktiv"
+          },
+          "trigger_current_value": {
+            "name": "Aktueller Trigger-Wert"
+          },
           "trigger_entity_state": {
             "name": "Trigger-Entität Status",
             "state": {
@@ -862,22 +938,54 @@
               "startup": "Startphase"
             }
           },
-          "trigger_above": { "name": "Trigger oberhalb" },
-          "trigger_below": { "name": "Trigger unterhalb" },
-          "trigger_for_minutes": { "name": "Trigger für (Minuten)" },
-          "trigger_target_value": { "name": "Trigger-Zielwert" },
-          "trigger_delta_mode": { "name": "Trigger-Delta-Modus" },
-          "trigger_baseline_value": { "name": "Trigger-Basiswert" },
-          "trigger_current_delta": { "name": "Aktuelles Trigger-Delta" },
-          "trigger_from_state": { "name": "Trigger von Status" },
-          "trigger_to_state": { "name": "Trigger zu Status" },
-          "trigger_target_changes": { "name": "Trigger-Zieländerungen" },
-          "trigger_change_count": { "name": "Trigger-Änderungszähler" },
-          "trigger_runtime_hours": { "name": "Ziel-Laufzeit (Stunden)" },
-          "trigger_accumulated_hours": { "name": "Akkumulierte Laufzeit (Stunden)" },
-          "trigger_remaining_hours": { "name": "Verbleibende Laufzeit (Stunden)" },
-          "last_entry": { "name": "Letzter Eintrag" },
-          "suggested_interval": { "name": "Empfohlenes Intervall" },
+          "trigger_above": {
+            "name": "Trigger oberhalb"
+          },
+          "trigger_below": {
+            "name": "Trigger unterhalb"
+          },
+          "trigger_for_minutes": {
+            "name": "Trigger für (Minuten)"
+          },
+          "trigger_target_value": {
+            "name": "Trigger-Zielwert"
+          },
+          "trigger_delta_mode": {
+            "name": "Trigger-Delta-Modus"
+          },
+          "trigger_baseline_value": {
+            "name": "Trigger-Basiswert"
+          },
+          "trigger_current_delta": {
+            "name": "Aktuelles Trigger-Delta"
+          },
+          "trigger_from_state": {
+            "name": "Trigger von Status"
+          },
+          "trigger_to_state": {
+            "name": "Trigger zu Status"
+          },
+          "trigger_target_changes": {
+            "name": "Trigger-Zieländerungen"
+          },
+          "trigger_change_count": {
+            "name": "Trigger-Änderungszähler"
+          },
+          "trigger_runtime_hours": {
+            "name": "Ziel-Laufzeit (Stunden)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Akkumulierte Laufzeit (Stunden)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Verbleibende Laufzeit (Stunden)"
+          },
+          "last_entry": {
+            "name": "Letzter Eintrag"
+          },
+          "suggested_interval": {
+            "name": "Empfohlenes Intervall"
+          },
           "interval_confidence": {
             "name": "Intervall-Konfidenz",
             "state": {
@@ -886,8 +994,12 @@
               "high": "Hoch"
             }
           },
-          "adaptive_scheduling_enabled": { "name": "Adaptive Planung aktiviert" },
-          "seasonal_factor": { "name": "Saisonfaktor" },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptive Planung aktiviert"
+          },
+          "seasonal_factor": {
+            "name": "Saisonfaktor"
+          },
           "seasonal_reason": {
             "name": "Saisonale Quelle",
             "state": {
@@ -895,7 +1007,9 @@
               "manual": "Manuell"
             }
           },
-          "degradation_rate": { "name": "Degradationsrate" },
+          "degradation_rate": {
+            "name": "Degradationsrate"
+          },
           "degradation_trend": {
             "name": "Degradationstrend",
             "state": {
@@ -905,7 +1019,9 @@
               "insufficient_data": "Unzureichende Daten"
             }
           },
-          "days_until_threshold": { "name": "Tage bis Schwellwert" },
+          "days_until_threshold": {
+            "name": "Tage bis Schwellwert"
+          },
           "threshold_prediction_confidence": {
             "name": "Vorhersagekonfidenz",
             "state": {
@@ -914,11 +1030,21 @@
               "high": "Hoch"
             }
           },
-          "environmental_factor": { "name": "Umgebungsfaktor" },
-          "environmental_entity": { "name": "Umgebungssensor" },
-          "weibull_beta": { "name": "Weibull-Form (β)" },
-          "weibull_eta": { "name": "Weibull-Skala (η)" },
-          "weibull_r_squared": { "name": "Weibull R²" },
+          "environmental_factor": {
+            "name": "Umgebungsfaktor"
+          },
+          "environmental_entity": {
+            "name": "Umgebungssensor"
+          },
+          "weibull_beta": {
+            "name": "Weibull-Form (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull-Skala (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
           "weibull_beta_interpretation": {
             "name": "Ausfallmuster",
             "state": {
@@ -928,8 +1054,12 @@
               "highly_predictable": "Hochvorhersagbar"
             }
           },
-          "confidence_interval_low": { "name": "Konfidenzintervall (unten)" },
-          "confidence_interval_high": { "name": "Konfidenzintervall (oben)" }
+          "confidence_interval_low": {
+            "name": "Konfidenzintervall (unten)"
+          },
+          "confidence_interval_high": {
+            "name": "Konfidenzintervall (oben)"
+          }
         }
       }
     },
