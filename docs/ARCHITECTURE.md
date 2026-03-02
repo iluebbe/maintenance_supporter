@@ -1,8 +1,8 @@
-# Maintenance Supporter - Architecture & Design
+# Maintenance Supporter — Architecture & Design
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.4 | **~21,000 lines** across 51 source files (40 Python + 11 TypeScript) | **0 external Python dependencies**
+**Version:** 0.3.6 | **~22,000 lines** across 58 source files (47 Python + 11 TypeScript) | **0 external Python dependencies** | **95% test coverage** (964 tests)
 
 ---
 
@@ -11,7 +11,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 ```
                           +-----------------+
                           |   Config Flow   |  (create objects, add tasks, configure triggers,
-                          |                 |   trigger summary, user dropdown)
+                          |                 |   trigger summary, user dropdown, templates)
                           +--------+--------+
                                    |
                           writes config entries
@@ -52,11 +52,6 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 
 ## Core Design Decisions
 
-### Config Flow UX
-- Entity selector pre-populates existing entity_ids when editing a trigger (`default_entities` parameter on `_trigger_sensor_select()`)
-- All 8 compound trigger steps have proper translations in both config and options flows
-- Back navigation via menus returns to parent context after form submission
-
 ### Two-Entry Model
 - **Global entry** (`GLOBAL_UNIQUE_ID`): Integration-wide settings, panel toggle, notification config, budgets
 - **Per-object entries**: One config entry per maintenance object, each with its own coordinator
@@ -68,14 +63,22 @@ All data flows through `MaintenanceCoordinator` (one per object):
 - Periodic refresh every 5 minutes
 - Computes task status (OK / DUE_SOON / OVERDUE / TRIGGERED)
 - Manages trigger state preservation between refreshes
-- Runs adaptive interval analysis
+- Runs adaptive interval analysis and sensor predictions
 - Tracks entity availability with grace periods
+- Checks budget thresholds and sends notifications
 
 ### Event-Driven + Periodic Hybrid
 Trigger sensors update immediately via HA state_change events, but the coordinator still refreshes periodically to:
 - Catch time-based status transitions
 - Run complex predictions (Weibull, seasonal, sensor degradation)
 - Detect missing entities and create repair issues
+- Evaluate fallback trigger conditions for missed events
+
+### Config Flow UX
+- Entity selector pre-populates existing entity_ids when editing a trigger
+- All 8 compound trigger steps have proper translations in both config and options flows
+- Go-back navigation on all forms for non-linear editing
+- 20+ object templates with pre-configured tasks and triggers
 
 ### Pure Python Helpers
 `interval_analyzer`, `sensor_predictor`, `entity_analyzer` have zero HA dependencies. This enables isolated unit testing and potential reuse outside HA.
@@ -86,83 +89,83 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                 (455 lines)  Integration setup, services, lifecycle
-├── const.py                    (272 lines)  Constants, enums, defaults
-├── coordinator.py              (881 lines)  DataUpdateCoordinator per object
+├── __init__.py                    (454 lines)  Integration setup, services, lifecycle
+├── const.py                       (272 lines)  Constants, enums, defaults
+├── coordinator.py                 (885 lines)  DataUpdateCoordinator per object
 │
-├── config_flow.py              (779 lines)  Initial setup flow + templates
-├── config_flow_helpers.py       (62 lines)  Shared config flow utilities
-├── config_flow_options.py       (11 lines)  Options dispatcher
-├── config_flow_options_global.py(663 lines)  Global settings (notifications, budgets, panel)
-├── config_flow_options_task.py (1,167 lines)  Per-object task management
-├── config_flow_trigger.py    (1,009 lines)  TriggerConfigMixin for trigger UI
+├── config_flow.py                 (899 lines)  Initial setup flow + templates
+├── config_flow_helpers.py          (62 lines)  Shared config flow utilities
+├── config_flow_options.py          (13 lines)  Options dispatcher
+├── config_flow_options_global.py  (663 lines)  Global settings (notifications, budgets, panel)
+├── config_flow_options_task.py  (1,270 lines)  Per-object task management
+├── config_flow_trigger.py       (1,122 lines)  TriggerConfigMixin for trigger UI
 │
-├── sensor.py                   (461 lines)  MaintenanceSensor (enum, per task)
-├── calendar.py                 (337 lines)  MaintenanceCalendar (global, all tasks)
+├── sensor.py                      (461 lines)  MaintenanceSensor (enum, per task)
+├── calendar.py                    (342 lines)  MaintenanceCalendar (global, all tasks)
 ├── entity/
-│   ├── entity_base.py           (55 lines)  CoordinatorEntity base class
+│   ├── entity_base.py              (56 lines)  CoordinatorEntity base class
 │   └── triggers/
-│       ├── __init__.py         (164 lines)  Factory: create_triggers(), multi-entity
-│       ├── base_trigger.py     (291 lines)  Abstract base with availability tracking
-│       ├── threshold.py        (101 lines)  Value above/below trigger
-│       ├── counter.py           (96 lines)  Accumulated value trigger
-│       ├── state_change.py     (189 lines)  State transition counter
-│       ├── runtime.py          (325 lines)  Accumulated operating hours trigger
-│       └── compound.py         (306 lines)  AND/OR compound trigger
+│       ├── __init__.py            (166 lines)  Factory: create_triggers(), multi-entity
+│       ├── base_trigger.py        (300 lines)  Abstract base with availability tracking
+│       ├── threshold.py           (105 lines)  Value above/below trigger
+│       ├── counter.py              (99 lines)  Accumulated value trigger
+│       ├── state_change.py        (195 lines)  State transition counter
+│       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
+│       └── compound.py            (310 lines)  AND/OR compound trigger
 │
-├── websocket/                              32 WS commands, split by domain
-│   ├── __init__.py           (254 lines)  Shared helpers + registration
-│   ├── objects.py            (185 lines)  Object CRUD (5 handlers)
-│   ├── tasks.py              (552 lines)  Task CRUD + validation + actions (7 handlers)
-│   ├── groups.py             (163 lines)  Group CRUD (4 handlers)
-│   ├── analysis.py           (261 lines)  Adaptive scheduling (4 handlers)
-│   ├── users.py              (138 lines)  User management (3 handlers)
-│   ├── io.py                 (198 lines)  Export/import/CSV/QR/templates (5 handlers)
-│   └── dashboard.py          (221 lines)  Subscribe, statistics, settings, budget (4 handlers)
-├── panel.py                     (66 lines)  Sidebar panel registration
+├── websocket/                               32 WS commands, split by domain
+│   ├── __init__.py              (258 lines)  Shared helpers + registration
+│   ├── objects.py               (185 lines)  Object CRUD (5 handlers)
+│   ├── tasks.py                 (552 lines)  Task CRUD + validation + actions (7 handlers)
+│   ├── groups.py                (163 lines)  Group CRUD (4 handlers)
+│   ├── analysis.py              (261 lines)  Adaptive scheduling (4 handlers)
+│   ├── users.py                 (138 lines)  User management (3 handlers)
+│   ├── io.py                    (198 lines)  Export/import/CSV/QR/templates (5 handlers)
+│   └── dashboard.py             (222 lines)  Subscribe, statistics, settings, budget (4 handlers)
+├── panel.py                        (66 lines)  Sidebar panel registration
 ├── frontend/
-│   ├── __init__.py              (36 lines)  Lovelace card registration
-│   ├── maintenance-panel.js              Built panel (esbuild output)
-│   └── maintenance-card.js               Built card (esbuild output)
-├── frontend-src/             (6,990 lines)  TypeScript sources
-│   ├── maintenance-panel.ts  (2,787 lines)  Panel: overview, object detail, task detail
-│   ├── maintenance-card.ts     (262 lines)  Lovelace card
-│   ├── maintenance-card-editor.ts (80 lines)
-│   ├── statistics-service.ts   (132 lines)  WS statistics cache
-│   ├── styles.ts             (2,272 lines)  CSS, i18n (6 languages), shared helpers
-│   ├── types.ts                (277 lines)  TypeScript interfaces
-│   ├── user-service.ts         (121 lines)  HA user list cache
-│   └── components/           (1,059 lines)
-│       ├── complete-dialog.ts  (225 lines)  Mark task complete
-│       ├── task-dialog.ts      (469 lines)  Add/edit task
-│       ├── object-dialog.ts    (118 lines)  Add/edit object
-│       └── qr-dialog.ts       (247 lines)  QR code generation
+│   ├── __init__.py                 (36 lines)  Lovelace card registration
+│   ├── maintenance-panel.js                  Built panel (esbuild output)
+│   └── maintenance-card.js                   Built card (esbuild output)
+├── frontend-src/                (6,990 lines)  TypeScript sources
+│   ├── maintenance-panel.ts     (2,787 lines)  Panel: overview, object detail, task detail
+│   ├── maintenance-card.ts        (262 lines)  Lovelace card
+│   ├── maintenance-card-editor.ts  (80 lines)
+│   ├── statistics-service.ts      (132 lines)  WS statistics cache
+│   ├── styles.ts                (2,272 lines)  CSS, i18n (6 languages), shared helpers
+│   ├── types.ts                   (277 lines)  TypeScript interfaces
+│   ├── user-service.ts            (121 lines)  HA user list cache
+│   └── components/              (1,059 lines)
+│       ├── complete-dialog.ts     (225 lines)  Mark task complete
+│       ├── task-dialog.ts         (469 lines)  Add/edit task
+│       ├── object-dialog.ts       (118 lines)  Add/edit object
+│       └── qr-dialog.ts          (247 lines)  QR code generation
 │
-├── helpers/                  (3,313 lines)
-│   ├── interval_analyzer.py    (732 lines)  EWA + Weibull + seasonal analysis
-│   ├── sensor_predictor.py     (625 lines)  Degradation + environmental correlation
-│   ├── notification_manager.py (694 lines)  Multi-channel notification system
-│   ├── entity_analyzer.py      (202 lines)  Entity discovery + recorder stats
-│   ├── csv_handler.py          (155 lines)  CSV import/export
-│   ├── threshold_calculator.py (131 lines)  Threshold suggestion engine
-│   ├── qr_generator.py          (73 lines)  QR code URL builder + SVG generator
-│   └── qrcodegen.py            (700 lines)  Vendored QR library (Nayuki, MIT)
+├── helpers/                     (3,318 lines)
+│   ├── interval_analyzer.py       (732 lines)  EWA + Weibull + seasonal analysis
+│   ├── sensor_predictor.py        (628 lines)  Degradation + environmental correlation
+│   ├── notification_manager.py    (695 lines)  Multi-channel notification system
+│   ├── entity_analyzer.py         (203 lines)  Entity discovery + recorder stats
+│   ├── csv_handler.py             (155 lines)  CSV import/export
+│   ├── threshold_calculator.py    (132 lines)  Threshold suggestion engine
+│   ├── qr_generator.py            (73 lines)  QR code URL builder + SVG generator
+│   └── qrcodegen.py              (700 lines)  Vendored QR library (Nayuki, MIT)
 │
-├── models/                     (420 lines)
-│   ├── maintenance_task.py     (283 lines)  Task: schedule, triggers, history, status
-│   ├── maintenance_object.py    (52 lines)  Object: name, area, manufacturer, model
-│   └── maintenance_type.py      (85 lines)  Predefined maintenance categories
+├── models/                        (422 lines)
+│   ├── maintenance_task.py        (283 lines)  Task: schedule, triggers, history, status
+│   ├── maintenance_object.py       (53 lines)  Object: name, area, manufacturer, model
+│   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                (226 lines)  20+ object templates (car, pool, HVAC, ...)
-├── repairs.py                  (274 lines)  Missing trigger entity repair flow
-├── diagnostics.py              (206 lines)  Integration diagnostics with PII redaction
-├── export.py                   (115 lines)  JSON/YAML data export
+├── templates.py                   (226 lines)  20+ object templates (car, pool, HVAC, ...)
+├── repairs.py                     (274 lines)  Missing trigger entity repair flow
+├── diagnostics.py                 (209 lines)  Integration diagnostics with PII redaction
+├── export.py                      (116 lines)  JSON/YAML data export
 │
-├── manifest.json                           Integration metadata
-├── services.yaml                           Service definitions
-├── strings.json                            Localization keys
-├── icons.json                              State-based icon mappings
-└── translations/{en,de,nl,fr,it,es}.json   6 languages (backend config flow)
+├── manifest.json                            Integration metadata
+├── services.yaml                            Service definitions
+├── strings.json                             Localization keys
+├── icons.json                               State-based icon mappings
+└── translations/{en,de,nl,fr,it,es}.json    6 languages (backend config flow)
 ```
 
 ---
@@ -173,19 +176,24 @@ custom_components/maintenance_supporter/
 ```
 Coordinator refresh (every 5 min)
   └─> For each task:
+      ├─ If disabled → OK (skip further evaluation)
       ├─ If trigger_active → TRIGGERED
       ├─ Compute days_until_due = next_due - today
       │   ├─ days < 0 → OVERDUE
       │   ├─ days <= warning_days → DUE_SOON
       │   └─ else → OK
+      ├─ Run _evaluate_trigger_fallback() for periodic re-check
       ├─ Run interval_analyzer (if adaptive enabled, 5+ history entries)
       │   ├─ EWA smoothing of intervals
       │   ├─ Weibull reliability (if 5+ completions)
       │   └─ Seasonal adjustment (if 6+ months of data)
-      └─ Run sensor_predictor (if sensor trigger configured)
-          ├─ Degradation rate from recorder statistics
-          ├─ Threshold prediction (days until trigger)
-          └─ Environmental correlation
+      ├─ Run sensor_predictor (if sensor trigger configured)
+      │   ├─ Degradation rate from recorder statistics
+      │   ├─ Threshold prediction (days until trigger)
+      │   └─ Environmental correlation (adjust interval by factor)
+      ├─ Check entity availability → create/clear repair issues
+      ├─ Send notifications for DUE_SOON / OVERDUE / TRIGGERED
+      └─ Check budget thresholds → send budget alerts
 ```
 
 ### Trigger Lifecycle
@@ -205,10 +213,15 @@ Task has trigger_config with entity_id(s)
 For each trigger:
   └─> async_setup()
       ├─ Register async_track_state_change_event listener
+      ├─ If entity unavailable at setup → schedule retry (30s)
       ├─ RuntimeTrigger: restore accumulated_seconds + on_since, start periodic timer
+      ├─ CounterTrigger: initialize baseline if delta mode
       └─ Initial evaluation
 
 Entity state changes → _handle_state_change_event()
+  ├─ Entity appeared (old_state=None) → initialize, register state
+  ├─ Entity unavailable/unknown → log once, pause (runtime: accumulate & pause)
+  ├─ Entity recovered → clear unavailable flag, resume tracking
   └─> _evaluate_and_update()
       └─> If triggered: sensor.async_update_trigger_state(True, value)
           └─> Recompute _status immediately
@@ -224,9 +237,12 @@ Entity unavailable for 6+ refreshes (~30 min):
 Service call or WebSocket command
   └─> Find coordinator for entry
       └─> coordinator.complete_maintenance(task_id, notes, cost, duration)
-          ├─ Append history entry
+          ├─ Append history entry (timestamp, type, notes, cost, duration, feedback)
           ├─ Update last_performed
           ├─ Reset trigger baseline (if counter trigger)
+          ├─ Reset change count (if state_change trigger)
+          ├─ Reset accumulated hours (if runtime trigger)
+          ├─ Update adaptive config (if adaptive enabled)
           ├─ hass.config_entries.async_update_entry(data=...)
           └─> coordinator.async_request_refresh()
               └─> All entities update via CoordinatorEntity
@@ -243,19 +259,22 @@ Abstract factory pattern with five implementations:
 | **Threshold** | Value crosses above/below limit | `trigger_above`, `trigger_below`, `trigger_for_minutes` |
 | **Counter** | Accumulated delta reaches target | `trigger_target_value`, `trigger_delta_mode` |
 | **State Change** | N transitions between from→to states | `trigger_from_state`, `trigger_to_state`, `trigger_target_changes` |
-| **Runtime** | Accumulated ON-time reaches target hours | `trigger_runtime_hours` |
+| **Runtime** | Accumulated ON-time reaches target hours | `trigger_runtime_hours`, `on_states` |
 | **Compound** | Multiple conditions combined with AND/OR | `compound_logic`, `conditions[]` |
 
 All triggers share:
 - Entity availability tracking with startup grace period (5 min)
 - Automatic recovery when entity reappears
-- Debounce via `trigger_for_minutes`
-- Fallback evaluation in coordinator when trigger entity unavailable
+- Retry logic when entity is unavailable at setup (30s delay)
+- Debounce via `trigger_for_minutes` (threshold only)
+- Fallback evaluation in coordinator during periodic refresh
+- Attribute-based triggering (monitor an entity attribute instead of state)
 
 RuntimeTrigger additionally:
 - Persists `accumulated_seconds` + `on_since` to config entry for restart recovery
 - Periodic persistence every 5 minutes (minimizes data loss on crash)
 - Pauses accumulation when entity becomes unavailable
+- Configurable `on_states` (default: `["on"]`, customizable to `["running", "active"]` etc.)
 - Reset clears hours but keeps tracking if entity is still ON
 
 ### Multi-Entity Support
@@ -284,18 +303,27 @@ Architecture:
 
 Three-layer interval prediction:
 
-1. **EWA (Exponential Weighted Average)** - Always active after 2+ completions
+1. **EWA (Exponential Weighted Average)** — Always active after 2+ completions
    - `smoothed = alpha * current + (1-alpha) * previous`
    - Incorporates user feedback (NEEDED / NOT_NEEDED / NOT_SURE)
 
-2. **Weibull Distribution** - Activates after 5+ completions
-   - Shape parameter beta: <0.8 early failures, 0.8-1.2 random, 1.2-3.5 wear-out, >3.5 highly predictable
+2. **Weibull Distribution** — Activates after 5+ completions
+   - Shape parameter beta: <0.8 early failures, 0.8–1.2 random, 1.2–3.5 wear-out, >3.5 highly predictable
    - Targets 90% reliability for interval recommendation
 
-3. **Seasonal Adjustment** - Activates after 6+ months of history
-   - Per-month multiplier (0.3x - 3.0x)
+3. **Seasonal Adjustment** — Activates after 6+ months of history
+   - Per-month multiplier (0.3x–3.0x)
    - Hemisphere-aware season mapping
    - Manual override per month
+
+### Sensor Prediction (sensor_predictor.py)
+
+When a task has a sensor-based trigger, the predictor analyzes recorder statistics to forecast:
+- **Degradation rate**: Linear regression on historical sensor values, classified as stable/rising/falling
+- **Threshold prediction**: Days until the sensor value reaches the trigger threshold
+- **Environmental correlation**: Pearson correlation between an environmental sensor (temperature, humidity) and maintenance intervals, producing an adjustment factor
+
+All predictions are pure-Python with no external ML dependencies. The predictor uses binary search (`_find_closest_value`) to correlate environmental sensor readings with maintenance completion timestamps.
 
 ---
 
@@ -330,10 +358,12 @@ Multi-channel notification with:
 - **Quiet hours**: Suppress during configured time window
 - **Bundling**: Combine N+ pending tasks into single notification
 - **Daily limits**: Cap maximum notifications per day
+- **Snooze**: Per-task temporary suppression
 - **Mobile actions**: Complete / Skip / Snooze buttons via Companion App
   - Action format: `MS_{ACTION}_{entry_id}_{task_id}`
   - Parsed by `_handle_notification_action()` in `__init__.py`
-- **User-specific notifications**: Tasks assigned to a responsible user trigger separate notifications to that user's registered notification services
+- **User-specific notifications**: Tasks assigned to a responsible user trigger separate notifications to that user's registered notification services, with fallback to global notification service
+- **Budget alerts**: Monthly/yearly budget threshold alerts with 24h rate limiting
 
 ---
 
@@ -366,6 +396,8 @@ All write commands fire events for subscription updates.
 | has-entity-name | Bronze | Yes |
 | runtime-data | Bronze | Yes |
 | config-entry-unloading | Silver | Yes |
+| test-coverage (>95%) | Silver | Yes (95%, 964 tests) |
+| strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | entity-device-class | Gold | Yes (SensorDeviceClass.ENUM) |
 | icon-translations | Gold | Yes (icons.json) |
@@ -379,32 +411,103 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-416 tests across 16 test files:
+**964 tests** across **53 test files** with **95% code coverage** (5,979 statements, 308 uncovered).
 
-| Test File | Scope |
-|-----------|-------|
-| `test_status_computation.py` | Status logic (OK, DUE_SOON, OVERDUE, TRIGGERED) |
-| `test_triggers.py` | All trigger types, multi-entity, compound triggers |
-| `test_adaptive_scheduling.py` | EWA, Weibull, interval computation |
-| `test_seasonal_scheduling.py` | Seasonal factors, hemisphere support |
-| `test_sensor_predictions.py` | Degradation analysis, threshold prediction |
-| `test_config_flow.py` | Config flow steps, validation |
-| `test_options_flow.py` | Options flow management |
-| `test_services.py` | Complete, skip, reset, export services |
-| `test_entity_lifecycle.py` | Entity setup, teardown, trigger lifecycle |
-| `test_calendar.py` | Calendar events, date handling |
-| `test_notifications.py` | Notification delivery, quiet hours, bundling |
-| `test_diagnostics.py` | Diagnostic data, PII redaction |
-| `test_edge_cases.py` | Boundary conditions, error handling |
-| `test_phase2_features.py` | Checklist, groups, budgets |
-| `test_qr_generation.py` | QR URL building, SVG generation |
-| `test_issue_fixes.py` | Entity validation, state handling, WS API fixes |
+### Coverage by Module
+
+| Module | Stmts | Miss | Cover |
+|--------|-------|------|-------|
+| `__init__.py` | 207 | 12 | 94% |
+| `coordinator.py` | 423 | 14 | 97% |
+| `sensor.py` | 234 | 4 | 98% |
+| `calendar.py` | 117 | 3 | 97% |
+| `config_flow.py` | 256 | 12 | 95% |
+| `config_flow_options_task.py` | 467 | 18 | 96% |
+| `config_flow_options_global.py` | 145 | 18 | 88% |
+| `config_flow_trigger.py` | 338 | 56 | 83% |
+| `const.py` | 168 | 0 | 100% |
+| `diagnostics.py` | 84 | 0 | 100% |
+| `repairs.py` | 108 | 5 | 95% |
+| `panel.py` | 32 | 0 | 100% |
+| `templates.py` | 25 | 0 | 100% |
+| **Triggers** | | | |
+| `base_trigger.py` | 121 | 3 | 98% |
+| `threshold.py` | 53 | 1 | 98% |
+| `counter.py` | 44 | 5 | 89% |
+| `state_change.py` | 80 | 5 | 94% |
+| `runtime.py` | 161 | 7 | 96% |
+| `compound.py` | 136 | 3 | 98% |
+| **Helpers** | | | |
+| `interval_analyzer.py` | 312 | 17 | 95% |
+| `sensor_predictor.py` | 271 | 18 | 93% |
+| `notification_manager.py` | 267 | 5 | 98% |
+| `entity_analyzer.py` | 121 | 4 | 97% |
+| `threshold_calculator.py` | 61 | 0 | 100% |
+| **WebSocket** | | | |
+| `websocket/__init__.py` | 87 | 0 | 100% |
+| `websocket/tasks.py` | 235 | 9 | 96% |
+| `websocket/objects.py` | 71 | 2 | 97% |
+| `websocket/analysis.py` | 111 | 0 | 100% |
+| `websocket/users.py` | 65 | 0 | 100% |
+| `websocket/io.py` | 63 | 0 | 100% |
+| `websocket/dashboard.py` | 104 | 8 | 92% |
+| `websocket/groups.py` | 77 | 1 | 99% |
+| **TOTAL** | **5,979** | **308** | **95%** |
+
+### Test Files
+
+| Test File | Tests | Scope |
+|-----------|-------|-------|
+| `test_triggers.py` | ~80 | All trigger types, multi-entity, edge cases |
+| `test_options_flow.py` | ~60 | Options flow management |
+| `test_config_flow.py` | ~35 | Config flow steps, validation |
+| `test_notifications.py` | ~40 | Notification delivery, quiet hours, bundling |
+| `test_phase2_features.py` | ~30 | Checklist, groups, budgets |
+| `test_ws_task_handlers.py` | ~30 | WebSocket task CRUD + actions |
+| `test_coordinator_prediction.py` | ~30 | Sensor prediction, fallback triggers, budget |
+| `test_sensor_predictions.py` | ~25 | Degradation analysis, threshold prediction |
+| `test_config_flow_template.py` | ~25 | Object template creation |
+| `test_adaptive_scheduling.py` | ~25 | EWA, Weibull, interval computation |
+| `test_sensor_predictor.py` | ~33 | Pure unit tests for sensor_predictor |
+| `test_coverage_final.py` | ~24 | Helper functions, diagnostics, budget edges |
+| `test_trigger_events.py` | ~19 | Event-driven trigger state changes |
+| `test_seasonal_scheduling.py` | ~20 | Seasonal factors, hemisphere support |
+| `test_coordinator.py` | ~20 | Coordinator core logic |
+| `test_options_global.py` | ~20 | Global options flow |
+| `test_options_task.py` | ~25 | Task options flow |
+| `test_notification_deep.py` | ~20 | Notification edge cases |
+| `test_coordinator_deep.py` | ~20 | Coordinator deep coverage |
+| `test_config_flow_trigger.py` | ~20 | Trigger config flow steps |
+| `test_compound_trigger.py` | ~18 | Compound trigger scenarios |
+| `test_edge_cases.py` | ~15 | Boundary conditions, error handling |
+| `test_sensor_attributes.py` | ~15 | Sensor attribute computation |
+| `test_ws_analysis.py` | ~15 | WS analysis commands |
+| `test_sensor_trigger_attrs.py` | ~15 | Trigger-specific sensor attributes |
+| `test_ws_dashboard.py` | ~15 | WS dashboard commands |
+| `test_ws_io.py` | ~12 | WS import/export/QR |
+| `test_ws_objects.py` | ~12 | WS object CRUD |
+| `test_ws_groups.py` | ~12 | WS group CRUD |
+| `test_calendar_unit.py` | ~12 | Calendar event generation |
+| `test_repair_flow.py` | ~15 | Repair flow steps |
+| `test_ws_users.py` | ~10 | WS user management |
+| `test_calendar_deep.py` | ~10 | Calendar edge cases |
+| `test_sensor_deep.py` | ~10 | Sensor edge cases |
+| `test_entity_analyzer.py` | ~10 | Entity discovery + stats |
+| `test_panel_threshold.py` | ~10 | Panel + threshold calculator |
+| `test_diagnostics.py` | ~8 | Diagnostic data, PII redaction |
+| `test_init_services.py` | ~10 | Service handlers, unload |
+| `test_status_computation.py` | ~10 | Status logic (OK, DUE_SOON, OVERDUE) |
+| `test_issue_fixes.py` | ~15 | Regression tests for bug fixes |
+| `test_services.py` | ~8 | Complete, skip, reset services |
+| `test_calendar.py` | ~8 | Calendar basic tests |
+| `test_entity_lifecycle.py` | ~5 | Entity setup/teardown |
+| `test_qr_generation.py` | ~5 | QR URL building, SVG generation |
 
 ---
 
 ## Extensibility
 
-- **New trigger type**: Subclass `BaseTrigger`, implement `_evaluate_and_update()`, register in factory
+- **New trigger type**: Subclass `BaseTrigger`, implement `evaluate()` and `_handle_state_change_event()`, register in factory (`entity/triggers/__init__.py`)
 - **New helper**: Add module to `helpers/`, integrate in coordinator
 - **New platform**: Add entity module, register in `const.PLATFORMS`
 - **New WS command**: Add handler in the appropriate `websocket/*.py` module, import and register in `websocket/__init__.py`
@@ -456,11 +559,6 @@ The integration's scheduling and predictions are time-dependent. `libfaketime` a
 - Changes take effect without restart (`FAKETIME_NO_CACHE=1`)
 - `DONT_FAKE_MONOTONIC=1` prevents async event loop issues
 
-**Legacy patch** (`faketime-patch.sh`):
-- Alternative approach: patches HA's generated s6 run script to append libfaketime to jemalloc's `LD_PRELOAD`
-- Waits up to 15s for s6 to generate the run script, then sed-patches it
-- Superseded by `ha-run-faketime.sh` which replaces the script entirely
-
 ### Environment Configuration (`.env`)
 
 ```
@@ -480,6 +578,33 @@ HA_TOKEN=<long-lived access token>
 ```
 
 Code changes in `custom_components/` are reflected immediately after `docker restart ha-dev`.
+
+### Running Tests
+
+**Unit tests** (via pytest inside container):
+```bash
+docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -v"
+```
+
+**With coverage**:
+```bash
+docker exec ha-dev sh -c "cd /config && python -m pytest tests/ --cov=custom_components.maintenance_supporter --cov-report=term-missing -q"
+```
+
+**CI tests** (GitHub Actions):
+```bash
+pip install pytest pytest-homeassistant-custom-component
+pytest tests/ -v
+```
+
+### Typical Development Workflow
+
+1. Edit code in `custom_components/` or `frontend-src/`
+2. If frontend changed: `npm run build` (esbuild)
+3. `docker restart ha-dev`
+4. Browser: `http://localhost:8123` (Ctrl+Shift+F5 for cache bust)
+5. To test time-dependent features: edit `faketime.txt` (e.g., `+7d`)
+6. Run tests: `docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -v"`
 
 ### Demo Data Setup
 
@@ -512,25 +637,3 @@ docker compose stop homeassistant-dev
 python inject_test_statistics.py
 docker compose start homeassistant-dev
 ```
-
-### Running Tests
-
-**Unit tests** (via pytest inside container):
-```bash
-docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -v"
-```
-
-**CI tests** (GitHub Actions):
-```bash
-pip install pytest pytest-homeassistant-custom-component
-pytest tests/ -v
-```
-
-### Typical Development Workflow
-
-1. Edit code in `custom_components/` or `frontend-src/`
-2. If frontend changed: `npm run build` (esbuild)
-3. `docker restart ha-dev`
-4. Browser: `http://localhost:8123` (Ctrl+Shift+F5 for cache bust)
-5. To test time-dependent features: edit `faketime.txt` (e.g., `+7d`)
-6. Run tests: `docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -v"`

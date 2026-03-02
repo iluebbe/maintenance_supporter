@@ -2,6 +2,8 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
+[![Tests](https://img.shields.io/badge/tests-964_passed-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
 
@@ -15,6 +17,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Assign tasks to responsible Home Assistant users with per-user notification routing
 - Checklists for multi-step procedures
 - Task grouping for logical organization
+- 20+ object templates (car, pool, HVAC, washing machine, etc.)
 
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit (with optional duration)
@@ -104,10 +107,29 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 
 Each maintenance task creates:
 - A **sensor** entity with state: `ok`, `due_soon`, `overdue`, or `triggered`
-- Attributes include days until due, interval, last performed date, and trigger status
+- Attributes include days until due, interval, last performed date, trigger status, adaptive recommendations, and Weibull statistics
 
-Each maintenance object creates:
-- A **calendar** entity with events for upcoming maintenance dates
+A global **calendar** entity shows upcoming maintenance events for all tasks.
+
+## Architecture
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture documentation, including:
+- Data flow and status computation
+- Trigger system design (5 trigger types, multi-entity, compound)
+- Adaptive scheduling algorithms (EWA, Weibull, seasonal)
+- WebSocket API command reference
+- Frontend architecture
+- Development and testing infrastructure
+
+## Test Coverage
+
+964 tests across 53 test files with **95% code coverage** (5,979 statements, 308 uncovered).
+
+```
+pytest tests/ --cov=custom_components.maintenance_supporter
+```
+
+See [Architecture — Test Coverage](docs/ARCHITECTURE.md#test-coverage) for the full breakdown.
 
 ## Requirements
 
