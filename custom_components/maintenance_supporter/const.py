@@ -250,6 +250,7 @@ class HistoryEntryType(StrEnum):
     RESET = "reset"
     TRIGGERED = "triggered"
     TRIGGER_REMOVED = "trigger_removed"
+    TRIGGER_REPLACED = "trigger_replaced"
 
 
 class MaintenanceFeedback(StrEnum):

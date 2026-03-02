@@ -184,11 +184,11 @@ async def test_replace_trigger_legacy_no_store(
     # The trigger entity should have been replaced
     tc = task_data.get("trigger_config", {})
     assert tc.get("entity_id") == "sensor.new_temp"
-    # History should contain a trigger_removed entry with the replace note
+    # History should contain a trigger_replaced entry with the replace note
     history = task_data.get("history", [])
     assert len(history) >= 1
     last_entry = history[-1]
-    assert last_entry["type"] == HistoryEntryType.TRIGGER_REMOVED
+    assert last_entry["type"] == HistoryEntryType.TRIGGER_REPLACED
     assert "sensor.old_temp" in last_entry.get("notes", "")
     assert "sensor.new_temp" in last_entry.get("notes", "")
 
@@ -222,7 +222,7 @@ async def test_replace_trigger_legacy_multi_entity(
     assert "sensor.old_temp" not in tc.get("entity_ids", [])
     # History should be written via legacy path
     history = task_data.get("history", [])
-    assert any(h["type"] == HistoryEntryType.TRIGGER_REMOVED for h in history)
+    assert any(h["type"] == HistoryEntryType.TRIGGER_REPLACED for h in history)
 
 
 # ─── Lines 227-228: Entry not found guard in _remove_trigger ─────────────

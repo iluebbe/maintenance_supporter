@@ -176,7 +176,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             merged = store.merge_task_data(task_id, task_dict)
             task = MaintenanceTask.from_dict(merged)
             task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                entry_type=HistoryEntryType.TRIGGER_REPLACED,
                 notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
             )
             td = task.to_dict()
@@ -189,7 +189,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
             task = MaintenanceTask.from_dict(task_dict)
             task.add_history_entry(
-                entry_type=HistoryEntryType.TRIGGER_REMOVED,
+                entry_type=HistoryEntryType.TRIGGER_REPLACED,
                 notes=f"Trigger entity replaced: {old_entity_id} → {new_entity_id}",
             )
             tasks_data[task_id] = task.to_dict()

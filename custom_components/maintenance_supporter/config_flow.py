@@ -223,13 +223,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
             name = user_input[CONF_OBJECT_NAME]
 
-            # Validate unique name
+            # Validate unique name (case-insensitive to match slug-based unique_id)
             existing_names = [
-                entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")
+                entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "").lower()
                 for entry in self.hass.config_entries.async_entries(DOMAIN)
                 if entry.unique_id != GLOBAL_UNIQUE_ID
             ]
-            if name in existing_names:
+            if name.lower() in existing_names:
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
                 # Build object data
@@ -408,13 +408,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
             name = user_input[CONF_OBJECT_NAME]
 
-            # Validate unique name
+            # Validate unique name (case-insensitive to match slug-based unique_id)
             existing_names = [
-                entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")
+                entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "").lower()
                 for entry in self.hass.config_entries.async_entries(DOMAIN)
                 if entry.unique_id != GLOBAL_UNIQUE_ID
             ]
-            if name in existing_names:
+            if name.lower() in existing_names:
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
                 self._object_data = {
