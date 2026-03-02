@@ -202,6 +202,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_get_settings,
         ws_get_statistics,
         ws_subscribe,
+        ws_test_notification,
+        ws_update_global_settings,
     )
     from .groups import (  # noqa: PLC0415
         ws_create_group,
@@ -263,6 +265,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_environmental_entity)
     websocket_api.async_register_command(hass, ws_generate_qr)
     websocket_api.async_register_command(hass, ws_get_settings)
+    websocket_api.async_register_command(hass, ws_update_global_settings)
+    websocket_api.async_register_command(hass, ws_test_notification)
     websocket_api.async_register_command(hass, ws_list_users)
     websocket_api.async_register_command(hass, ws_assign_user)
     websocket_api.async_register_command(hass, ws_tasks_by_user)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from typing import Any
 
@@ -11,6 +12,9 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
 from ..const import (
+    CONF_ACTION_COMPLETE_ENABLED,
+    CONF_ACTION_SKIP_ENABLED,
+    CONF_ACTION_SNOOZE_ENABLED,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
@@ -18,6 +22,27 @@ from ..const import (
     CONF_ADVANCED_GROUPS,
     CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SEASONAL,
+    CONF_BUDGET_ALERT_THRESHOLD,
+    CONF_BUDGET_ALERTS_ENABLED,
+    CONF_BUDGET_MONTHLY,
+    CONF_BUDGET_YEARLY,
+    CONF_DEFAULT_WARNING_DAYS,
+    CONF_MAX_NOTIFICATIONS_PER_DAY,
+    CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_BUNDLE_THRESHOLD,
+    CONF_NOTIFICATIONS_ENABLED,
+    CONF_NOTIFY_DUE_SOON_ENABLED,
+    CONF_NOTIFY_DUE_SOON_INTERVAL,
+    CONF_NOTIFY_OVERDUE_ENABLED,
+    CONF_NOTIFY_OVERDUE_INTERVAL,
+    CONF_NOTIFY_SERVICE,
+    CONF_NOTIFY_TRIGGERED_ENABLED,
+    CONF_NOTIFY_TRIGGERED_INTERVAL,
+    CONF_PANEL_ENABLED,
+    CONF_QUIET_HOURS_ENABLED,
+    CONF_QUIET_HOURS_END,
+    CONF_QUIET_HOURS_START,
+    CONF_SNOOZE_DURATION_HOURS,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -29,6 +54,97 @@ from . import (
     _get_runtime_data,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
+# Keys accepted by global/update — maps config key to voluptuous type
+_ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
+    CONF_DEFAULT_WARNING_DAYS: int,
+    CONF_NOTIFICATIONS_ENABLED: bool,
+    CONF_NOTIFY_SERVICE: str,
+    CONF_PANEL_ENABLED: bool,
+    # Advanced features
+    CONF_ADVANCED_ADAPTIVE: bool,
+    CONF_ADVANCED_PREDICTIONS: bool,
+    CONF_ADVANCED_SEASONAL: bool,
+    CONF_ADVANCED_ENVIRONMENTAL: bool,
+    CONF_ADVANCED_BUDGET: bool,
+    CONF_ADVANCED_GROUPS: bool,
+    CONF_ADVANCED_CHECKLISTS: bool,
+    # Notification per-status
+    CONF_NOTIFY_DUE_SOON_ENABLED: bool,
+    CONF_NOTIFY_DUE_SOON_INTERVAL: int,
+    CONF_NOTIFY_OVERDUE_ENABLED: bool,
+    CONF_NOTIFY_OVERDUE_INTERVAL: int,
+    CONF_NOTIFY_TRIGGERED_ENABLED: bool,
+    CONF_NOTIFY_TRIGGERED_INTERVAL: int,
+    # Quiet hours
+    CONF_QUIET_HOURS_ENABLED: bool,
+    CONF_QUIET_HOURS_START: str,
+    CONF_QUIET_HOURS_END: str,
+    # Limits
+    CONF_MAX_NOTIFICATIONS_PER_DAY: int,
+    # Bundling
+    CONF_NOTIFICATION_BUNDLING_ENABLED: bool,
+    CONF_NOTIFICATION_BUNDLE_THRESHOLD: int,
+    # Actions
+    CONF_ACTION_COMPLETE_ENABLED: bool,
+    CONF_ACTION_SKIP_ENABLED: bool,
+    CONF_ACTION_SNOOZE_ENABLED: bool,
+    CONF_SNOOZE_DURATION_HOURS: int,
+    # Budget
+    CONF_BUDGET_MONTHLY: float,
+    CONF_BUDGET_YEARLY: float,
+    CONF_BUDGET_ALERTS_ENABLED: bool,
+    CONF_BUDGET_ALERT_THRESHOLD: int,
+}
+
+
+def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
+    """Build a full settings dict from global entry options."""
+    return {
+        "features": {
+            "adaptive": options.get(CONF_ADVANCED_ADAPTIVE, False),
+            "predictions": options.get(CONF_ADVANCED_PREDICTIONS, False),
+            "seasonal": options.get(CONF_ADVANCED_SEASONAL, False),
+            "environmental": options.get(CONF_ADVANCED_ENVIRONMENTAL, False),
+            "budget": options.get(CONF_ADVANCED_BUDGET, False),
+            "groups": options.get(CONF_ADVANCED_GROUPS, False),
+            "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
+        },
+        "general": {
+            "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
+            "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
+            "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
+            "panel_enabled": options.get(CONF_PANEL_ENABLED, False),
+        },
+        "notifications": {
+            "due_soon_enabled": options.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),
+            "due_soon_interval_hours": options.get(CONF_NOTIFY_DUE_SOON_INTERVAL, 24),
+            "overdue_enabled": options.get(CONF_NOTIFY_OVERDUE_ENABLED, True),
+            "overdue_interval_hours": options.get(CONF_NOTIFY_OVERDUE_INTERVAL, 12),
+            "triggered_enabled": options.get(CONF_NOTIFY_TRIGGERED_ENABLED, True),
+            "triggered_interval_hours": options.get(CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
+            "quiet_hours_enabled": options.get(CONF_QUIET_HOURS_ENABLED, False),
+            "quiet_hours_start": options.get(CONF_QUIET_HOURS_START, "22:00"),
+            "quiet_hours_end": options.get(CONF_QUIET_HOURS_END, "08:00"),
+            "max_per_day": options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, 0),
+            "bundling_enabled": options.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False),
+            "bundle_threshold": options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
+        },
+        "actions": {
+            "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),
+            "skip_enabled": options.get(CONF_ACTION_SKIP_ENABLED, False),
+            "snooze_enabled": options.get(CONF_ACTION_SNOOZE_ENABLED, False),
+            "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, 4),
+        },
+        "budget": {
+            "monthly": options.get(CONF_BUDGET_MONTHLY, 0.0),
+            "yearly": options.get(CONF_BUDGET_YEARLY, 0.0),
+            "alerts_enabled": options.get(CONF_BUDGET_ALERTS_ENABLED, False),
+            "alert_threshold_pct": options.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
+        },
+    }
+
 
 @websocket_api.websocket_command(
     {vol.Required("type"): f"{DOMAIN}/settings"}
@@ -39,28 +155,14 @@ async def ws_get_settings(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Return global settings including advanced feature flags."""
+    """Return all global settings."""
     global_entry = _get_global_entry(hass)
     if global_entry is None:
         connection.send_result(msg["id"], {"features": {}})
         return
 
     options = global_entry.options or global_entry.data
-
-    connection.send_result(
-        msg["id"],
-        {
-            "features": {
-                "adaptive": options.get(CONF_ADVANCED_ADAPTIVE, False),
-                "predictions": options.get(CONF_ADVANCED_PREDICTIONS, False),
-                "seasonal": options.get(CONF_ADVANCED_SEASONAL, False),
-                "environmental": options.get(CONF_ADVANCED_ENVIRONMENTAL, False),
-                "budget": options.get(CONF_ADVANCED_BUDGET, False),
-                "groups": options.get(CONF_ADVANCED_GROUPS, False),
-                "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
-            },
-        },
-    )
+    connection.send_result(msg["id"], _build_full_settings(options))
 
 
 @websocket_api.websocket_command(
@@ -169,18 +271,10 @@ async def ws_get_budget_status(
     """Return current budget status (monthly/yearly spent vs budget)."""
     from datetime import datetime as dt_cls  # noqa: PLC0415
 
-    from ..const import (  # noqa: PLC0415
-        CONF_BUDGET_ALERT_THRESHOLD,
-        CONF_BUDGET_MONTHLY,
-        CONF_BUDGET_YEARLY,
+    global_entry = _get_global_entry(hass)
+    global_options: Mapping[str, Any] = (
+        (global_entry.options or global_entry.data) if global_entry else {}
     )
-
-    # Get global options
-    global_options: Mapping[str, Any] = {}
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if entry.unique_id == GLOBAL_UNIQUE_ID:
-            global_options = entry.options or entry.data
-            break
 
     monthly_budget = float(global_options.get(CONF_BUDGET_MONTHLY, 0))
     yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))
@@ -227,3 +321,136 @@ async def ws_get_budget_status(
             "alert_threshold_pct": threshold_pct,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Global settings update
+# ---------------------------------------------------------------------------
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/global/update",
+        vol.Required("settings"): dict,
+    }
+)
+@websocket_api.async_response
+async def ws_update_global_settings(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Update global settings.
+
+    Accepts a flat dict of setting keys to update.  Unknown keys are
+    silently ignored.  Returns the full updated settings.
+    """
+    global_entry = _get_global_entry(hass)
+    if global_entry is None:
+        connection.send_error(msg["id"], "not_found", "Global config entry not found")
+        return
+
+    settings_input: dict[str, Any] = msg["settings"]
+
+    # Filter to allowed keys and validate types
+    filtered: dict[str, Any] = {}
+    for key, expected_type in _ALLOWED_SETTING_KEYS.items():
+        if key in settings_input:
+            val = settings_input[key]
+            # Accept int for float fields
+            if expected_type is float and isinstance(val, int):
+                val = float(val)
+            if isinstance(val, expected_type):
+                filtered[key] = val
+
+    if not filtered:
+        connection.send_error(
+            msg["id"], "invalid_input", "No valid setting keys provided"
+        )
+        return
+
+    # Validate notify_service if provided
+    if CONF_NOTIFY_SERVICE in filtered:
+        from ..config_flow_options_global import validate_notify_service  # noqa: PLC0415
+
+        normalized, error = validate_notify_service(filtered[CONF_NOTIFY_SERVICE])
+        if error:
+            connection.send_error(msg["id"], error, f"Invalid notify service: {error}")
+            return
+        filtered[CONF_NOTIFY_SERVICE] = normalized
+
+    # Merge with existing options
+    merged = dict(global_entry.options or global_entry.data)
+    merged.update(filtered)
+    hass.config_entries.async_update_entry(global_entry, options=merged)
+
+    _LOGGER.debug("Global settings updated via WS: %s", list(filtered.keys()))
+
+    connection.send_result(msg["id"], _build_full_settings(merged))
+
+
+# ---------------------------------------------------------------------------
+# Test notification
+# ---------------------------------------------------------------------------
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/global/test_notification"}
+)
+@websocket_api.async_response
+async def ws_test_notification(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Send a test notification using the configured service."""
+    from ..config_flow_options_global import (  # noqa: PLC0415
+        _get_test_result_text,
+        validate_notify_service,
+    )
+
+    global_entry = _get_global_entry(hass)
+    if global_entry is None:
+        connection.send_error(msg["id"], "not_found", "Global config entry not found")
+        return
+
+    options = global_entry.options or global_entry.data
+    notify_service = str(options.get(CONF_NOTIFY_SERVICE, ""))
+
+    if not notify_service:
+        connection.send_result(
+            msg["id"],
+            {"success": False, "message": _get_test_result_text(hass, "no_service")},
+        )
+        return
+
+    normalized, error = validate_notify_service(notify_service)
+    if error:
+        connection.send_result(
+            msg["id"],
+            {
+                "success": False,
+                "message": _get_test_result_text(hass, "invalid_service"),
+            },
+        )
+        return
+
+    try:
+        parts = normalized.split(".")
+        push_msg = _get_test_result_text(hass, "push_message")
+        await hass.services.async_call(
+            parts[0],
+            parts[1],
+            {"title": "Maintenance Supporter", "message": push_msg},
+            blocking=True,
+        )
+        connection.send_result(
+            msg["id"],
+            {"success": True, "message": _get_test_result_text(hass, "success")},
+        )
+    except Exception:
+        _LOGGER.debug("Test notification failed for %s", notify_service, exc_info=True)
+        connection.send_result(
+            msg["id"],
+            {"success": False, "message": _get_test_result_text(hass, "failed")},
+        )

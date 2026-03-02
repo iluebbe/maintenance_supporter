@@ -2,8 +2,8 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-964_passed-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
+[![Tests](https://img.shields.io/badge/tests-1058_passed-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
 
@@ -15,6 +15,8 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Three scheduling modes: **time-based** (interval in days), **sensor-based** (triggered by entity state), **manual**
 - Task status tracking: OK, Due Soon, Overdue, Triggered
 - Assign tasks to responsible Home Assistant users with per-user notification routing
+- Custom task icons (any `mdi:*` icon via the HA icon picker)
+- NFC tag linking — scan an NFC tag to complete a task
 - Checklists for multi-step procedures
 - Task grouping for logical organization
 - 20+ object templates (car, pool, HVAC, washing machine, etc.)
@@ -66,7 +68,8 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Localized UI: English, German, Dutch, French, Italian, Spanish
 
 ### WebSocket API
-- 32 commands for full CRUD operations on objects, tasks, triggers, and groups
+- 34 commands for full CRUD operations on objects, tasks, triggers, and groups
+- Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
 - Statistics, budget status, and interval analysis
@@ -119,7 +122,7 @@ Each sensor entity exposes attributes grouped by function:
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (32 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+See the [Services](#services) table below for available service calls. For the full WebSocket API (34 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
 
 ## Data Updates
 
@@ -307,7 +310,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-964 tests across 53 test files with **95% code coverage** (5,979 statements, 308 uncovered).
+1,058 tests across 53 test files with **94% code coverage** (6,364 statements, 356 uncovered).
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter

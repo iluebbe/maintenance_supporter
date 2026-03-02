@@ -22,6 +22,10 @@ from custom_components.maintenance_supporter.const import (
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    CONF_DEFAULT_WARNING_DAYS,
+    CONF_NOTIFICATIONS_ENABLED,
+    CONF_NOTIFY_SERVICE,
+    CONF_PANEL_ENABLED,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -31,6 +35,8 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
     ws_get_settings,
     ws_get_statistics,
     ws_subscribe,
+    ws_test_notification,
+    ws_update_global_settings,
 )
 
 from .conftest import (
@@ -409,3 +415,277 @@ async def test_budget_status_with_costs(
     # monthly: 50 + 75 = 125; yearly: 50 + 75 + 100 = 225
     assert result["monthly_spent"] == 125.0
     assert result["yearly_spent"] == 225.0
+
+
+# ─── ws_get_settings expanded response ───────────────────────────────────
+
+
+async def test_get_settings_returns_all_sections(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test get_settings returns all sections (general, notifications, etc.)."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_get_settings.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/settings",
+    })
+
+    result = conn.send_result.call_args[0][1]
+    # All sections must be present
+    assert "features" in result
+    assert "general" in result
+    assert "notifications" in result
+    assert "actions" in result
+    assert "budget" in result
+    # Check general defaults
+    assert result["general"]["default_warning_days"] == 7
+    assert result["general"]["notifications_enabled"] is False
+    assert result["general"]["panel_enabled"] is False
+    # Check notification defaults
+    assert result["notifications"]["due_soon_enabled"] is True
+    assert result["notifications"]["quiet_hours_enabled"] is False
+    # Check action defaults
+    assert result["actions"]["complete_enabled"] is False
+    # Check budget defaults
+    assert result["budget"]["monthly"] == 0.0
+
+
+# ─── ws_update_global_settings ────────────────────────────────────────────
+
+
+async def test_update_global_settings(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test updating global settings via WS."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {
+            CONF_DEFAULT_WARNING_DAYS: 14,
+            CONF_PANEL_ENABLED: True,
+        },
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["general"]["default_warning_days"] == 14
+    assert result["general"]["panel_enabled"] is True
+
+    # Verify persisted in config entry
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    options = entry.options or entry.data
+    assert options[CONF_DEFAULT_WARNING_DAYS] == 14
+    assert options[CONF_PANEL_ENABLED] is True
+
+
+async def test_update_global_settings_filters_unknown_keys(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Unknown keys are silently ignored."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {
+            CONF_DEFAULT_WARNING_DAYS: 5,
+            "totally_unknown_key": "should_be_ignored",
+        },
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["general"]["default_warning_days"] == 5
+
+
+async def test_update_global_settings_no_valid_keys(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Error when no valid setting keys are provided."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {"bad_key": True},
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_input"
+
+
+async def test_update_global_settings_type_validation(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Wrong-typed values are filtered out."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {
+            CONF_DEFAULT_WARNING_DAYS: "not_an_int",  # wrong type
+            CONF_PANEL_ENABLED: True,  # valid
+        },
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["general"]["panel_enabled"] is True
+    # warning_days should remain at default since the string was filtered
+    assert result["general"]["default_warning_days"] == 7
+
+
+async def test_update_global_settings_invalid_notify_service(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Invalid notify_service format returns error."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {
+            CONF_NOTIFY_SERVICE: "totally.invalid.service.format",
+        },
+    })
+
+    conn.send_error.assert_called_once()
+
+
+async def test_update_global_settings_no_global_entry(
+    hass: HomeAssistant,
+) -> None:
+    """Error when global config entry doesn't exist."""
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {CONF_PANEL_ENABLED: True},
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+async def test_update_global_settings_int_for_float(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Int values accepted for float fields (budget)."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_update_global_settings.__wrapped__(hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {CONF_BUDGET_MONTHLY: 500},
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["budget"]["monthly"] == 500.0
+
+
+# ─── ws_test_notification ─────────────────────────────────────────────────
+
+
+async def test_test_notification_no_global_entry(
+    hass: HomeAssistant,
+) -> None:
+    """Error when global config entry doesn't exist."""
+    conn = _mock_connection()
+
+    await ws_test_notification.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/global/test_notification",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+async def test_test_notification_no_service(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Returns failure when no notify service is configured."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_test_notification.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/global/test_notification",
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is False
+
+
+async def test_test_notification_success(
+    hass: HomeAssistant,
+) -> None:
+    """Test notification succeeds when service is available."""
+    # Create global entry with notify service configured
+    data = build_global_entry_data()
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=data,
+        options={**data, CONF_NOTIFY_SERVICE: "notify.test_device"},
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, entry)
+
+    # Register a mock notify service
+    async def mock_notify(*args: Any, **kwargs: Any) -> None:
+        pass
+
+    hass.services.async_register("notify", "test_device", mock_notify)
+
+    conn = _mock_connection()
+    await ws_test_notification.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/global/test_notification",
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is True
+
+
+async def test_test_notification_service_call_fails(
+    hass: HomeAssistant,
+) -> None:
+    """Test notification returns failure when service call raises."""
+    data = build_global_entry_data()
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=data,
+        options={**data, CONF_NOTIFY_SERVICE: "notify.broken"},
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, entry)
+
+    # Register a service that raises
+    async def failing_notify(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("Connection refused")
+
+    hass.services.async_register("notify", "broken", failing_notify)
+
+    conn = _mock_connection()
+    await ws_test_notification.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/global/test_notification",
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is False

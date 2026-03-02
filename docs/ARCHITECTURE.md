@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.8 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **95% test coverage** (1,005 tests)
+**Version:** 0.3.12 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,058 tests)
 
 ---
 
@@ -24,7 +24,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          | - predictions     |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (32 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (34 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -59,7 +59,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 This enables per-object lifecycle management (add/remove objects independently) while sharing resources like the NotificationManager and panel registration.
 
 ### Two-Tier Storage (ConfigEntry + Store)
-Static task configuration (name, type, interval, trigger thresholds) lives in `ConfigEntry.data` and is only written on explicit user edits. Frequently-changing dynamic state (history, last_performed, adaptive_config, trigger_runtime) lives in per-entry Store files (`.storage/maintenance_supporter.<entry_id>`), using debounced 1-second writes to minimize SD-card wear on Raspberry Pi.
+Static task configuration (name, type, interval, trigger thresholds) lives in `ConfigEntry.data` and is only written on explicit user edits. Frequently-changing dynamic state (history, last_performed, adaptive_config, trigger_runtime) lives in per-entry Store files (`.storage/maintenance_supporter.<entry_id>`), using debounced 60-second writes to minimize SD-card wear on Raspberry Pi.
 
 One-time idempotent migration on first load extracts dynamic fields from ConfigEntry.data into the Store. All consumers use `store.merge_all_tasks()` to recombine static + dynamic data at read time.
 
@@ -120,15 +120,15 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (310 lines)  AND/OR compound trigger
 │
-├── websocket/                               32 WS commands, split by domain
-│   ├── __init__.py              (258 lines)  Shared helpers + registration
+├── websocket/                               34 WS commands, split by domain
+│   ├── __init__.py              (272 lines)  Shared helpers + registration
 │   ├── objects.py               (185 lines)  Object CRUD (5 handlers)
 │   ├── tasks.py                 (552 lines)  Task CRUD + validation + actions (7 handlers)
 │   ├── groups.py                (163 lines)  Group CRUD (4 handlers)
 │   ├── analysis.py              (261 lines)  Adaptive scheduling (4 handlers)
 │   ├── users.py                 (138 lines)  User management (3 handlers)
 │   ├── io.py                    (198 lines)  Export/import/CSV/QR/templates (5 handlers)
-│   └── dashboard.py             (222 lines)  Subscribe, statistics, settings, budget (4 handlers)
+│   └── dashboard.py             (456 lines)  Subscribe, statistics, settings, budget, global update/test (6 handlers)
 ├── panel.py                        (66 lines)  Sidebar panel registration
 ├── frontend/
 │   ├── __init__.py                 (36 lines)  Lovelace card registration
@@ -372,12 +372,14 @@ Multi-channel notification with:
   - Parsed by `_handle_notification_action()` in `__init__.py`
 - **User-specific notifications**: Tasks assigned to a responsible user trigger separate notifications to that user's registered notification services, with fallback to global notification service
 - **Budget alerts**: Monthly/yearly budget threshold alerts with 24h rate limiting
+- **NFC tag linking**: Tasks can be linked to NFC tags via `nfc_tag_id`. Scanning a tag fires HA's `tag_scanned` event, which the integration listens for in `async_setup()` and auto-completes the matching task
+- **Test notification**: Available via Options Flow and `global/test_notification` WS command to verify service config
 
 ---
 
 ## WebSocket API
 
-32 commands organized by function:
+34 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -386,6 +388,7 @@ Multi-channel notification with:
 | **Task CRUD** | `task/create`, `task/update`, `task/delete`, `tasks/list` |
 | **Task Actions** | `task/complete`, `task/skip`, `task/reset` |
 | **Group CRUD** | `group/create`, `group/update`, `group/delete` |
+| **Global Settings** | `global/update`, `global/test_notification` |
 | **User Assignment** | `task/assign_user`, `users/list` |
 | **Analysis** | `analyze_interval`, `apply_suggestion`, `seasonal_overrides`, `set_environmental_entity` |
 | **Import/Export** | `export_data`, `export_csv`, `import_csv` |
@@ -405,7 +408,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (95%, 1,005 tests) |
+| test-coverage (>95%) | Silver | Yes (94%, 1,058 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
