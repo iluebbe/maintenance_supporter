@@ -69,6 +69,8 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
+  private _dataLoaded = false;
+  private _lastConnection: unknown = null;
 
   private get _lang(): string {
     return this.hass?.language || "de";
@@ -76,8 +78,6 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this._loadData();
-    this._subscribe();
   }
 
   disconnectedCallback(): void {
@@ -86,6 +86,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._unsub();
       this._unsub = null;
     }
+    this._dataLoaded = false;
+    this._lastConnection = null;
+    this._deepLinkHandled = false;
     this._statsService?.clearCache();
     this._statsService = null;
   }
@@ -93,18 +96,30 @@ export class MaintenanceSupporterPanel extends LitElement {
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
     if (changedProps.has("hass") && this.hass) {
+      if (!this._dataLoaded) {
+        this._dataLoaded = true;
+        this._lastConnection = this.hass.connection;
+        this._loadData();
+        this._subscribe();
+      } else if (this.hass.connection !== this._lastConnection) {
+        this._lastConnection = this.hass.connection;
+        if (this._unsub) {
+          try { this._unsub(); } catch { /* ignore */ }
+          this._unsub = null;
+        }
+        this._subscribe();
+        this._loadData();
+      }
+
       if (!this._statsService) {
         this._statsService = new StatisticsService(this.hass);
-        // Fetch mini stats now that service is ready
         this._fetchMiniStatsForOverview();
       } else {
         this._statsService.updateHass(this.hass);
       }
 
-      // Initialize user service
       if (!this._userService) {
         this._userService = new UserService(this.hass);
-        // Pre-load users for badges
         this._userService.getUsers();
       }
     }
@@ -143,15 +158,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     const taskId = params.get("task_id");
     const action = params.get("action");
 
-    // Clean URL to prevent re-trigger on refresh
-    const cleanUrl = window.location.pathname + window.location.hash;
-    history.replaceState(null, "", cleanUrl);
-
     // Navigate to the right view
     if (taskId) {
       this._showTask(entryId, taskId);
       if (action === "complete") {
-        // Wait a tick for view to render, then open complete dialog
+        // Clean URL only for complete action (transient) — keep params for view/navigation
+        history.replaceState(null, "", window.location.pathname + window.location.hash);
         requestAnimationFrame(() => {
           const obj = this._getObject(entryId);
           const task = obj?.tasks.find((t) => t.id === taskId);
@@ -1595,7 +1607,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const chartH = H - PAD_T - PAD_B;
 
     // Determine x-axis range
-    const maxT = Math.max(currentInterval, recommended, eta) * 1.3;
+    const maxT = Math.max(currentInterval, recommended, eta, 1) * 1.3;
     const N = 50; // number of curve points
 
     // Compute CDF points: F(t) = 1 - exp(-(t/eta)^beta)
@@ -2779,6 +2791,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           width: 100%;
           justify-content: flex-start;
         }
+
+        .cell.type { display: none; }
+        .cell.object-name { min-width: auto; }
       }
 
       /* Cost/Duration Card with Toggle */

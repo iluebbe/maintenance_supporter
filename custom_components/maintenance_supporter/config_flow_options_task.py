@@ -159,6 +159,14 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Close the options flow."""
+        # Flush store and reload to pick up config changes from this flow
+        rd = getattr(self.config_entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        if store is not None:
+            await store.async_save()
+        self.hass.async_create_task(
+            self.hass.config_entries.async_reload(self.config_entry.entry_id)
+        )
         return self.async_create_entry(title="", data=self.config_entry.options)
 
     # --- Manage Tasks: List → Select → Action ---

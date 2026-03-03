@@ -2,12 +2,17 @@
 
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { t } from "./styles";
 import type { HomeAssistant, CardConfig } from "./types";
 
 @customElement("maintenance-supporter-card-editor")
 export class MaintenanceSupporterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
+
+  private get _lang(): string {
+    return this.hass?.language || "en";
+  }
 
   setConfig(config: CardConfig): void {
     this._config = { ...config };
@@ -22,16 +27,17 @@ export class MaintenanceSupporterCardEditor extends LitElement {
   }
 
   render() {
+    const L = this._lang;
     return html`
       <div class="editor">
         <ha-textfield
-          label="Title"
+          label="${t("card_title", L)}"
           .value=${this._config.title || ""}
           @input=${(e: Event) =>
             this._valueChanged("title", (e.target as HTMLInputElement).value)}
         ></ha-textfield>
 
-        <ha-formfield label="Show header with statistics">
+        <ha-formfield label="${t("card_show_header", L)}">
           <ha-switch
             .checked=${this._config.show_header !== false}
             @change=${(e: Event) =>
@@ -39,7 +45,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           ></ha-switch>
         </ha-formfield>
 
-        <ha-formfield label="Show action buttons">
+        <ha-formfield label="${t("card_show_actions", L)}">
           <ha-switch
             .checked=${this._config.show_actions !== false}
             @change=${(e: Event) =>
@@ -47,7 +53,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           ></ha-switch>
         </ha-formfield>
 
-        <ha-formfield label="Compact mode">
+        <ha-formfield label="${t("card_compact", L)}">
           <ha-switch
             .checked=${this._config.compact || false}
             @change=${(e: Event) =>
@@ -56,7 +62,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
         </ha-formfield>
 
         <ha-textfield
-          label="Max items (0 = all)"
+          label="${t("card_max_items", L)}"
           type="number"
           .value=${String(this._config.max_items || 0)}
           @input=${(e: Event) =>

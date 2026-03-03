@@ -47,10 +47,11 @@ export class MaintenanceSupporterCard extends LitElement {
     return 3;
   }
 
+  private _dataLoaded = false;
+  private _lastConnection: unknown = null;
+
   connectedCallback(): void {
     super.connectedCallback();
-    this._loadData();
-    this._subscribe();
   }
 
   disconnectedCallback(): void {
@@ -58,6 +59,28 @@ export class MaintenanceSupporterCard extends LitElement {
     if (this._unsub) {
       this._unsub();
       this._unsub = null;
+    }
+    this._dataLoaded = false;
+    this._lastConnection = null;
+  }
+
+  updated(changedProps: Map<string, unknown>): void {
+    super.updated(changedProps);
+    if (changedProps.has("hass") && this.hass) {
+      if (!this._dataLoaded) {
+        this._dataLoaded = true;
+        this._lastConnection = this.hass.connection;
+        this._loadData();
+        this._subscribe();
+      } else if (this.hass.connection !== this._lastConnection) {
+        this._lastConnection = this.hass.connection;
+        if (this._unsub) {
+          try { this._unsub(); } catch { /* ignore */ }
+          this._unsub = null;
+        }
+        this._subscribe();
+        this._loadData();
+      }
     }
   }
 

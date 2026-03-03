@@ -91,6 +91,7 @@ class CounterTrigger(BaseTrigger):
                 self._task_id,
                 {"baseline_value": self._baseline_value},
                 entity_id=self.entity_id,
+                immediate=True,
             )
 
     def reset(self) -> None:

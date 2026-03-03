@@ -290,7 +290,7 @@ async def ws_create_task(
         store.init_task(task_id, last_performed=initial_last_performed)
         if initial_history:
             store.set_history(task_id, initial_history)
-        store.async_delay_save()
+        await store.async_save()
     else:
         # Legacy: put dynamic fields in ConfigEntry.data
         task_data["last_performed"] = initial_last_performed
@@ -385,10 +385,8 @@ async def ws_update_task(
     new_data[CONF_TASKS] = tasks_data
     hass.config_entries.async_update_entry(entry, data=new_data)
 
-    # Refresh coordinator
-    rd = _get_runtime_data(hass, entry.entry_id)
-    if rd and rd.coordinator:
-        await rd.coordinator.async_request_refresh()
+    # Reload entry to pick up changed task config (triggers, schedule, etc.)
+    await hass.config_entries.async_reload(entry.entry_id)
 
     result: dict[str, Any] = {"success": True}
     if tc_warnings:
@@ -438,7 +436,7 @@ async def ws_delete_task(
     store = getattr(rd, "store", None) if rd else None
     if store is not None:
         store.remove_task(task_id)
-        store.async_delay_save()
+        await store.async_save()
 
     # Reload to remove entity
     await hass.config_entries.async_reload(entry.entry_id)

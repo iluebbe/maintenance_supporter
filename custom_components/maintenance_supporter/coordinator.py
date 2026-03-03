@@ -930,6 +930,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task_id: str,
         runtime_data: dict[str, Any],
         entity_id: str | None = None,
+        *,
+        immediate: bool = False,
     ) -> None:
         """Persist trigger runtime values.
 
@@ -946,7 +948,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             else:
                 # Legacy flat: store under a synthetic key
                 self._store.set_trigger_runtime(task_id, "_flat", runtime_data)
-            self._store.async_delay_save()
+            if immediate:
+                await self._store.async_save()
+            else:
+                self._store.async_delay_save()
         else:
             # Legacy: write to ConfigEntry.data
             tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
