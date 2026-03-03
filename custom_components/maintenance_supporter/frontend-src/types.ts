@@ -25,6 +25,8 @@ export interface TriggerConfig {
   trigger_to_state?: string | null;
   trigger_target_changes?: number;
   trigger_runtime_hours?: number;
+  compound_logic?: "AND" | "OR";
+  conditions?: Array<{ trigger_config: TriggerConfig }>;
 }
 
 export interface TriggerEntityInfo {
@@ -133,6 +135,8 @@ export interface MaintenanceTask {
   sensor_prediction_urgency?: boolean;
   // User assignment
   responsible_user_id?: string | null;
+  custom_icon?: string | null;
+  nfc_tag_id?: string | null;
 }
 
 export interface MaintenanceObjectResponse {
@@ -237,6 +241,7 @@ export interface TaskRow {
   total_cost: number;
   interval_days: number | null;
   history: HistoryEntry[];
+  enabled: boolean;
 }
 
 // HomeAssistant type (minimal for our needs)

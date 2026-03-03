@@ -253,6 +253,8 @@ const DE: Translations = {
   shorter: "Kürzer",
   longer: "Länger",
   normal: "Normal",
+  disabled: "Deaktiviert",
+  compound_logic: "Verknüpfungslogik",
 };
 
 const EN: Translations = {
@@ -474,6 +476,8 @@ const EN: Translations = {
   shorter: "Shorter",
   longer: "Longer",
   normal: "Normal",
+  disabled: "Disabled",
+  compound_logic: "Compound logic",
 };
 
 const NL: Translations = {
@@ -685,6 +689,8 @@ const NL: Translations = {
   shorter: "Korter",
   longer: "Langer",
   normal: "Normaal",
+  disabled: "Uitgeschakeld",
+  compound_logic: "Samengestelde logica",
 };
 
 const FR: Translations = {
@@ -896,6 +902,8 @@ const FR: Translations = {
   shorter: "Plus court",
   longer: "Plus long",
   normal: "Normal",
+  disabled: "D\u00E9sactiv\u00E9",
+  compound_logic: "Logique compos\u00E9e",
 };
 
 const IT: Translations = {
@@ -1107,6 +1115,8 @@ const IT: Translations = {
   shorter: "Pi\u00F9 breve",
   longer: "Pi\u00F9 lungo",
   normal: "Normale",
+  disabled: "Disattivato",
+  compound_logic: "Logica composta",
 };
 
 const ES: Translations = {
@@ -1318,6 +1328,8 @@ const ES: Translations = {
   shorter: "M\u00E1s corto",
   longer: "M\u00E1s largo",
   normal: "Normal",
+  disabled: "Desactivado",
+  compound_logic: "L\u00F3gica compuesta",
 };
 
 const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES };
@@ -1330,7 +1342,7 @@ export function t(key: string, lang?: string): string {
 
 /** Map language prefix to BCP-47 locale for date formatting. */
 function langToLocale(lang?: string): string {
-  const l = (lang || "de").substring(0, 2).toLowerCase();
+  const l = (lang || "en").substring(0, 2).toLowerCase();
   const map: Record<string, string> = {
     de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES",
   };
@@ -2268,5 +2280,14 @@ export const sharedStyles = css`
   }
   .confidence-text.high {
     text-align: right;
+  }
+
+  .task-disabled { opacity: 0.5; }
+  .badge-disabled {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--disabled-color, #9e9e9e);
+    color: white;
   }
 `;

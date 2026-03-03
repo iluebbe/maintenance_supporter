@@ -169,6 +169,8 @@ export class MaintenanceSupporterCard extends LitElement {
                                 dlg.entryId = entry_id;
                                 dlg.taskId = task.id;
                                 dlg.taskName = task.name;
+                                dlg.checklist = task.checklist || [];
+                                dlg.adaptiveEnabled = !!task.adaptive_config?.enabled;
                                 dlg.lang = L;
                                 dlg.open();
                               }}

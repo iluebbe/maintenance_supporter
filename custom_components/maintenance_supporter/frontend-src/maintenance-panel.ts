@@ -65,7 +65,6 @@ export class MaintenanceSupporterPanel extends LitElement {
   // Dashboard redesign state
   @state() private _activeTab: "overview" | "analysis" | "history" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
-  @state() private _historyTimeRange: 3 | 6 | 12 | 0 = 12; // months, 0 = all
   @state() private _historySearch = "";
 
   private _statsService: StatisticsService | null = null;
@@ -113,14 +112,14 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _loadData(): Promise<void> {
     const [objResult, statsResult, budgetResult, groupsResult, settingsResult] = await Promise.all([
-      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" }),
-      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }),
+      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects" }).catch(() => null),
+      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/budget_status" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/groups" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/settings" }).catch(() => null),
     ]);
-    this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
-    this._stats = statsResult as StatisticsResponse;
+    if (objResult) this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
+    if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
     if (settingsResult) this._features = (settingsResult as { features: AdvancedFeatures }).features;
@@ -253,6 +252,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           total_cost: task.total_cost,
           interval_days: task.interval_days ?? null,
           history: task.history || [],
+          enabled: task.enabled,
         });
       }
     }
@@ -637,8 +637,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
 
     return html`
-      <div class="task-row">
+      <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
         <span class="status-badge ${row.status}">${t(row.status, L)}</span>
+        ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
         <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
         <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
         <span class="cell type">${t(row.type, L)}</span>
@@ -655,7 +656,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${this._renderMiniSparkline(row)}
         </span>
         <span class="row-actions">
-          <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(row.entry_id, row.task_id, row.task_name); }}>
+          <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
             <ha-icon icon="mdi:check"></ha-icon>
           </mwc-icon-button>
           <mwc-icon-button class="btn-skip" title="${t("skip", L)}" @click=${(e: Event) => { e.stopPropagation(); this._skipTask(row.entry_id, row.task_id); }}>
@@ -664,6 +665,16 @@ export class MaintenanceSupporterPanel extends LitElement {
         </span>
       </div>
     `;
+  }
+
+  private _openCompleteDialogForRow(row: TaskRow): void {
+    const obj = this._objects.find(o => o.entry_id === row.entry_id);
+    const task = obj?.tasks.find(t => t.id === row.task_id);
+    this._openCompleteDialog(
+      row.entry_id, row.task_id, row.task_name,
+      this._features.checklists ? task?.checklist : undefined,
+      this._features.adaptive && !!task?.adaptive_config?.enabled
+    );
   }
 
   /**
@@ -721,6 +732,11 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (val == null) return nothing;
       pct = Math.min(100, Math.max(0, (val / target) * 100));
       label = `${val.toFixed(1)}h / ${target}h`;
+    } else if (triggerType === "compound") {
+      const logic = tc.compound_logic || (tc as any).operator || "AND";
+      const condCount = tc.conditions?.length || 0;
+      label = `${logic} (${condCount})`;
+      pct = row.trigger_active ? 100 : 0;
     } else {
       return nothing;
     }
@@ -860,8 +876,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${obj.tasks.length === 0
           ? html`<p class="empty">${t("no_tasks_short", L)}</p>`
           : obj.tasks.map((task) => html`
-              <div class="task-row">
+              <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="status-badge ${task.status}">${t(task.status, L)}</span>
+                ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
                 ${this._renderUserBadge(task)}
                 <span class="cell type">${t(task.type, L)}</span>
@@ -869,7 +886,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
                 </span>
                 <span class="row-actions">
-                  <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name); }}>
+                  <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
                     <ha-icon icon="mdi:check"></ha-icon>
                   </mwc-icon-button>
                   <mwc-icon-button class="btn-skip" title="${t("skip", L)}" @click=${(e: Event) => { e.stopPropagation(); this._skipTask(obj.entry_id, task.id); }}>
@@ -890,18 +907,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     const obj = this._getObject(this._selectedEntryId!);
     const objName = obj?.object.name || "";
 
-    // Determine status chip
-    let statusClass = "ok";
-    let statusText = "OK";
-    if (task.days_until_due !== null && task.days_until_due !== undefined) {
-      if (task.days_until_due < 0) {
-        statusClass = "overdue";
-        statusText = t("overdue", L);
-      } else if (task.days_until_due <= task.warning_days) {
-        statusClass = "warning";
-        statusText = t("due_soon", L);
-      }
-    }
+    // Determine status chip — use the backend-computed status
+    const statusClass = task.status === "due_soon" ? "warning" : (task.status || "ok");
+    const statusText = t(task.status || "ok", L);
 
     return html`
       <div class="task-header">
@@ -1004,6 +1012,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <div class="tab-content overview-tab">
         ${this._renderKPIBar(task)}
+        ${this._renderDaysProgress(task)}
         <div class="two-column-layout ${hasLeftColumn ? '' : 'single-column'}">
           ${hasLeftColumn ? html`
             <div class="left-column">
@@ -1030,6 +1039,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!hasAnyAdvanced) {
       return html`
         <div class="tab-content analysis-tab">
+          ${this._renderTriggerSection(task)}
+          ${this._renderPredictionSection(task)}
           <div class="analysis-empty-state">
             <ha-icon icon="mdi:chart-line" class="empty-icon"></ha-icon>
             <p class="empty">${t("no_advanced_features", L)}</p>
@@ -1054,6 +1065,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       const pct = Math.min(100, Math.max(0, (dataPoints / 5) * 100));
       return html`
         <div class="tab-content analysis-tab">
+          ${this._renderTriggerSection(task)}
+          ${this._renderPredictionSection(task)}
           <div class="analysis-empty-state">
             <ha-icon icon="mdi:chart-line" class="empty-icon"></ha-icon>
             <p class="empty">${t("analysis_not_enough_data", L)}</p>
@@ -1075,6 +1088,8 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="tab-content analysis-tab">
+        ${this._renderTriggerSection(task)}
+        ${this._renderPredictionSection(task)}
         ${this._features.adaptive ? this._renderWeibullCardExpanded(task) : nothing}
         ${this._features.seasonal ? this._renderSeasonalCardExpanded(task) : nothing}
       </div>
@@ -1191,15 +1206,19 @@ export class MaintenanceSupporterPanel extends LitElement {
       return nothing;
     }
 
-    const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    const monthKeys = ['month_jan','month_feb','month_mar','month_apr','month_may','month_jun','month_jul','month_aug','month_sep','month_oct','month_nov','month_dec'];
+    const months = monthKeys.map(k => t(k, L));
     const currentMonth = new Date().getMonth();
 
-    // Generate mock seasonal data (in real implementation, this would come from task data)
-    const seasonalData = months.map((_, i) => {
-      const base = task.seasonal_factor || 1.0;
-      const variation = Math.sin((i - 6) * Math.PI / 6) * 0.3;
-      return Math.max(0.7, Math.min(1.3, base + variation));
-    });
+    // Use real seasonal factors if available, otherwise fall back to synthetic
+    const realFactors = task.seasonal_factors || task.interval_analysis?.seasonal_factors || null;
+    const seasonalData = realFactors && realFactors.length === 12
+      ? realFactors
+      : months.map((_, i) => {
+          const base = task.seasonal_factor || 1.0;
+          const variation = Math.sin((i - 6) * Math.PI / 6) * 0.3;
+          return Math.max(0.7, Math.min(1.3, base + variation));
+        });
 
     return html`
       <div class="seasonal-card-compact">
@@ -1376,8 +1395,8 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     if (entries.length < 2) return nothing;
 
-    const hasCost = entries.some((e) => e.cost > 0);
-    const hasDuration = entries.some((e) => e.duration > 0);
+    const hasCost = this._costDurationToggle !== "duration" && entries.some((e) => e.cost > 0);
+    const hasDuration = this._costDurationToggle !== "cost" && entries.some((e) => e.duration > 0);
     if (!hasCost && !hasDuration) return nothing;
 
     const W = COST_CHART_W, H = COST_CHART_H;
@@ -1813,9 +1832,23 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${triggerType === "runtime" ? html`
             ${tc.trigger_runtime_hours != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("runtime_hours", L)}: ${tc.trigger_runtime_hours}h</span>` : nothing}
           ` : nothing}
+          ${triggerType === "compound" ? html`
+            <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${tc.compound_logic || (tc as any).operator || "AND"}</span>
+            ${(tc.conditions || []).map((cond: any, i: number) => html`
+              <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.trigger_config?.type || "unknown", L)}: ${cond.trigger_config?.entity_id || ""}</span>
+            `)}
+          ` : nothing}
           ${info?.min != null ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("min", L)}: ${info.min} ${unit}</span>` : nothing}
           ${info?.max != null ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("max", L)}: ${info.max} ${unit}</span>` : nothing}
         </div>
+
+        ${infos && infos.length > 1 ? html`
+          <div class="trigger-entity-list">
+            ${infos.map(info => html`
+              <span class="trigger-entity-id">${info.friendly_name} (${info.entity_id})</span>
+            `)}
+          </div>
+        ` : nothing}
 
         ${this._renderSparkline(task, unit)}
       </div>
