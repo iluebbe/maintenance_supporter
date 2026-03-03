@@ -294,6 +294,70 @@ def test_threshold_prediction_no_slope() -> None:
     assert SensorPredictor._compute_threshold_prediction(degradation, config) is None
 
 
+def test_threshold_prediction_near_zero_slope_no_overflow() -> None:
+    """Test threshold prediction handles near-zero slope without OverflowError.
+
+    Regression test: a near-zero slope produces days_until that exceeds
+    timedelta's max (999_999_999 days), previously crashing the coordinator.
+    """
+    degradation = DegradationAnalysis(
+        entity_id="sensor.temp",
+        slope_per_day=1e-15,  # near-zero but not exactly 0
+        trend="rising",
+        r_squared=0.1,
+        current_value=20.0,
+        data_points=50,
+        lookback_days=30,
+    )
+    config = {"type": "threshold", "trigger_above": 30.0}
+    result = SensorPredictor._compute_threshold_prediction(degradation, config)
+    assert result is not None
+    # predicted_date should be None (overflow handled gracefully)
+    assert result.predicted_date is None
+    assert result.days_until_threshold > 0
+
+
+def test_linear_regression_unix_timestamps() -> None:
+    """Test linear regression with realistic Unix timestamps.
+
+    Regression test: raw timestamps (~1.7e9) cause catastrophic cancellation
+    in the naive least-squares denominator (n*Σx²−(Σx)²). After normalization
+    the slope should still be accurate.
+    """
+    base_ts = 1_700_000_000.0  # ~Nov 2023
+    # 10 hourly points with y = 2.5 * hours + 100
+    points = [
+        (base_ts + i * 3600, 100.0 + 2.5 * i)
+        for i in range(10)
+    ]
+    result = SensorPredictor._linear_regression(points)
+    assert result is not None
+    slope, intercept, r_squared = result
+    # slope should be 2.5 per 3600s ≈ 6.944e-4 per second
+    expected_slope = 2.5 / 3600.0
+    assert abs(slope - expected_slope) < 1e-10
+    assert abs(r_squared - 1.0) < 1e-6
+
+
+def test_linear_regression_unix_timestamps_with_noise() -> None:
+    """Test linear regression with Unix timestamps + noisy data stays accurate."""
+    base_ts = 1_700_000_000.0
+    # 20 points over 20 hours, y ≈ 0.5 * hours + 50 (with noise)
+    import random
+    rng = random.Random(42)
+    points = [
+        (base_ts + i * 3600, 50.0 + 0.5 * i + rng.gauss(0, 0.1))
+        for i in range(20)
+    ]
+    result = SensorPredictor._linear_regression(points)
+    assert result is not None
+    slope, _intercept, r_squared = result
+    expected_slope = 0.5 / 3600.0
+    # With normalization, slope should be close to expected
+    assert abs(slope - expected_slope) / expected_slope < 0.05  # within 5%
+    assert r_squared > 0.9
+
+
 # ─── SensorPredictor.async_analyze ───────────────────────────────────
 
 

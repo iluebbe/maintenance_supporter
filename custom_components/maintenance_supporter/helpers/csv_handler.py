@@ -22,11 +22,17 @@ _COLUMNS = [
     "object_area_id",
     "task_name",
     "task_type",
+    "enabled",
     "schedule_type",
     "interval_days",
     "warning_days",
     "last_performed",
     "notes",
+    "documentation_url",
+    "custom_icon",
+    "nfc_tag_id",
+    "responsible_user_id",
+    "trigger_type",
     "status",
     "times_performed",
     "total_cost",
@@ -70,11 +76,17 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "object_area_id": obj_data.get("area_id", ""),
                     "task_name": tdata.get("name", ""),
                     "task_type": tdata.get("type", "custom"),
+                    "enabled": tdata.get("enabled", True),
                     "schedule_type": tdata.get("schedule_type", "time_based"),
                     "interval_days": tdata.get("interval_days", ""),
                     "warning_days": tdata.get("warning_days", 7),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": tdata.get("notes", ""),
+                    "documentation_url": tdata.get("documentation_url", ""),
+                    "custom_icon": tdata.get("custom_icon", ""),
+                    "nfc_tag_id": tdata.get("nfc_tag_id", ""),
+                    "responsible_user_id": tdata.get("responsible_user_id", ""),
+                    "trigger_type": (tdata.get("trigger_config") or {}).get("type", ""),
                     "status": ct.get("_status", "ok"),
                     "times_performed": ct.get("_times_performed", 0),
                     "total_cost": ct.get("_total_cost", 0.0),
@@ -142,6 +154,22 @@ def import_objects_csv(
         notes = (row.get("notes") or "").strip()
         if notes:
             task_data["notes"] = notes
+
+        # Optional fields (backwards-compatible — missing columns default to empty)
+        if (row.get("enabled") or "").strip().lower() == "false":
+            task_data["enabled"] = False
+        doc_url = (row.get("documentation_url") or "").strip()
+        if doc_url:
+            task_data["documentation_url"] = doc_url
+        custom_icon = (row.get("custom_icon") or "").strip()
+        if custom_icon:
+            task_data["custom_icon"] = custom_icon
+        nfc_tag = (row.get("nfc_tag_id") or "").strip()
+        if nfc_tag:
+            task_data["nfc_tag_id"] = nfc_tag
+        resp_user = (row.get("responsible_user_id") or "").strip()
+        if resp_user:
+            task_data["responsible_user_id"] = resp_user
 
         objects_map[obj_name]["tasks"][task_id] = task_data
         objects_map[obj_name]["object"]["task_ids"].append(task_id)

@@ -302,8 +302,12 @@ class SensorPredictor:
         # Predicted date
         predicted_date = None
         if days_until > 0:
-            pred_dt = datetime.now(timezone.utc) + timedelta(days=days_until)
-            predicted_date = pred_dt.strftime("%Y-%m-%d")
+            try:
+                pred_dt = datetime.now(timezone.utc) + timedelta(days=days_until)
+                predicted_date = pred_dt.strftime("%Y-%m-%d")
+            except OverflowError:
+                # Near-zero slope → astronomically large days_until
+                predicted_date = None
 
         return ThresholdPrediction(
             days_until_threshold=round(days_until, 1),
@@ -545,10 +549,16 @@ class SensorPredictor:
         if n < 2:
             return None
 
-        sum_x = sum(p[0] for p in points)
+        # Normalize X-values to avoid catastrophic cancellation.
+        # Raw Unix timestamps (~1.7e9) squared exceed Float64 precision,
+        # causing the denominator (n*Σx²−(Σx)²) to lose significant digits.
+        # Translation does not change the slope; intercept is adjusted below.
+        x0 = points[0][0]
+
+        sum_x = sum(p[0] - x0 for p in points)
         sum_y = sum(p[1] for p in points)
-        sum_xy = sum(p[0] * p[1] for p in points)
-        sum_x2 = sum(p[0] ** 2 for p in points)
+        sum_xy = sum((p[0] - x0) * p[1] for p in points)
+        sum_x2 = sum((p[0] - x0) ** 2 for p in points)
         sum_y2 = sum(p[1] ** 2 for p in points)
 
         denom = n * sum_x2 - sum_x**2
@@ -556,7 +566,7 @@ class SensorPredictor:
             return None
 
         slope = (n * sum_xy - sum_x * sum_y) / denom
-        intercept = (sum_y - slope * sum_x) / n
+        intercept = (sum_y - slope * sum_x) / n - slope * x0
 
         # R-squared (coefficient of determination)
         ss_tot = sum_y2 - (sum_y**2) / n

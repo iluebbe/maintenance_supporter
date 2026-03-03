@@ -336,6 +336,107 @@ def test_build_task_summary_multi_entity(hass: HomeAssistant) -> None:
     assert len(result["trigger_entity_infos"]) == 2
 
 
+def test_build_task_summary_includes_custom_icon_and_nfc(hass: HomeAssistant) -> None:
+    """Test _build_task_summary includes custom_icon and nfc_tag_id."""
+    task_data = {
+        "name": "Test",
+        "type": "custom",
+        "custom_icon": "mdi:oil",
+        "nfc_tag_id": "tag-abc-123",
+    }
+
+    result = _build_task_summary(hass, "tid", task_data, None)
+    assert result["custom_icon"] == "mdi:oil"
+    assert result["nfc_tag_id"] == "tag-abc-123"
+
+
+def test_build_task_summary_custom_icon_nfc_default_none(hass: HomeAssistant) -> None:
+    """Test _build_task_summary returns None for missing custom_icon/nfc_tag_id."""
+    task_data = {"name": "Test", "type": "custom"}
+
+    result = _build_task_summary(hass, "tid", task_data, None)
+    assert result["custom_icon"] is None
+    assert result["nfc_tag_id"] is None
+
+
+def test_build_task_summary_compound_trigger_entity_enrichment(hass: HomeAssistant) -> None:
+    """Test _build_task_summary enriches entity info for compound triggers."""
+    hass.states.async_set("sensor.temp", "25.0", {"friendly_name": "Temperature"})
+    hass.states.async_set("sensor.runtime", "100", {"friendly_name": "Runtime Hours"})
+
+    task_data = {
+        "name": "Test",
+        "type": "custom",
+        "trigger_config": {
+            "type": "compound",
+            "operator": "AND",
+            "conditions": [
+                {
+                    "trigger_config": {
+                        "type": "threshold",
+                        "entity_id": "sensor.temp",
+                        "threshold": 30.0,
+                    }
+                },
+                {
+                    "trigger_config": {
+                        "type": "runtime",
+                        "entity_id": "sensor.runtime",
+                        "target_hours": 500,
+                    }
+                },
+            ],
+        },
+    }
+
+    result = _build_task_summary(hass, "tid", task_data, None)
+    # Should have entity info from compound sub-conditions
+    assert result["trigger_entity_info"] is not None
+    assert result["trigger_entity_info"]["friendly_name"] == "Temperature"
+    assert result["trigger_entity_infos"] is not None
+    assert len(result["trigger_entity_infos"]) == 2
+    names = [info["friendly_name"] for info in result["trigger_entity_infos"]]
+    assert "Temperature" in names
+    assert "Runtime Hours" in names
+
+
+def test_build_task_summary_compound_trigger_deduplicates(hass: HomeAssistant) -> None:
+    """Test compound trigger entity enrichment deduplicates entity_ids."""
+    hass.states.async_set("sensor.temp", "25.0", {"friendly_name": "Temperature"})
+
+    task_data = {
+        "name": "Test",
+        "type": "custom",
+        "trigger_config": {
+            "type": "compound",
+            "operator": "AND",
+            "conditions": [
+                {
+                    "trigger_config": {
+                        "type": "threshold",
+                        "entity_id": "sensor.temp",
+                        "threshold": 30.0,
+                    }
+                },
+                {
+                    "trigger_config": {
+                        "type": "threshold",
+                        "entity_id": "sensor.temp",
+                        "threshold": 40.0,
+                    }
+                },
+            ],
+        },
+    }
+
+    result = _build_task_summary(hass, "tid", task_data, None)
+    # Same entity in both conditions — should appear once
+    assert result["trigger_entity_info"] is not None
+    assert result["trigger_entity_info"]["friendly_name"] == "Temperature"
+    # Only one unique entity, so trigger_entity_infos should be None (not > 1)
+    assert result["trigger_entity_infos"] is None
+
+
 def test_build_object_response_structure(
     hass: HomeAssistant, global_entry, object_entry,
 ) -> None:

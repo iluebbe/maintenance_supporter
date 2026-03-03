@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.12 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,058 tests)
+**Version:** 0.3.13 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,069 tests)
 
 ---
 
@@ -148,12 +148,12 @@ custom_components/maintenance_supporter/
 │       ├── object-dialog.ts       (118 lines)  Add/edit object
 │       └── qr-dialog.ts          (247 lines)  QR code generation
 │
-├── helpers/                     (3,318 lines)
+├── helpers/                     (3,363 lines)
 │   ├── interval_analyzer.py       (732 lines)  EWA + Weibull + seasonal analysis
-│   ├── sensor_predictor.py        (628 lines)  Degradation + environmental correlation
+│   ├── sensor_predictor.py        (638 lines)  Degradation + environmental correlation
 │   ├── notification_manager.py    (695 lines)  Multi-channel notification system
 │   ├── entity_analyzer.py         (203 lines)  Entity discovery + recorder stats
-│   ├── csv_handler.py             (155 lines)  CSV import/export
+│   ├── csv_handler.py             (187 lines)  CSV import/export
 │   ├── threshold_calculator.py    (132 lines)  Threshold suggestion engine
 │   ├── qr_generator.py            (73 lines)  QR code URL builder + SVG generator
 │   └── qrcodegen.py              (700 lines)  Vendored QR library (Nayuki, MIT)
@@ -327,7 +327,7 @@ Three-layer interval prediction:
 ### Sensor Prediction (sensor_predictor.py)
 
 When a task has a sensor-based trigger, the predictor analyzes recorder statistics to forecast:
-- **Degradation rate**: Linear regression on historical sensor values, classified as stable/rising/falling
+- **Degradation rate**: Linear regression on historical sensor values (X-normalized to avoid catastrophic cancellation with Unix timestamps), classified as stable/rising/falling
 - **Threshold prediction**: Days until the sensor value reaches the trigger threshold
 - **Environmental correlation**: Pearson correlation between an environmental sensor (temperature, humidity) and maintenance intervals, producing an adjustment factor
 
@@ -430,48 +430,48 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,005 tests** across **55 test files** with **95% code coverage**.
+**1,069 tests** across **53 test files** with **94% code coverage**.
 
 ### Coverage by Module
 
 | Module | Stmts | Miss | Cover |
 |--------|-------|------|-------|
-| `__init__.py` | 207 | 12 | 94% |
-| `coordinator.py` | 423 | 14 | 97% |
-| `sensor.py` | 234 | 4 | 98% |
-| `calendar.py` | 117 | 3 | 97% |
-| `config_flow.py` | 256 | 12 | 95% |
-| `config_flow_options_task.py` | 467 | 18 | 96% |
+| `__init__.py` | 244 | 17 | 93% |
+| `coordinator.py` | 480 | 17 | 96% |
+| `sensor.py` | 178 | 5 | 97% |
+| `calendar.py` | 127 | 5 | 96% |
+| `config_flow.py` | 260 | 14 | 95% |
+| `config_flow_options_task.py` | 498 | 36 | 93% |
 | `config_flow_options_global.py` | 145 | 18 | 88% |
 | `config_flow_trigger.py` | 338 | 56 | 83% |
-| `const.py` | 168 | 0 | 100% |
-| `diagnostics.py` | 84 | 0 | 100% |
-| `repairs.py` | 108 | 5 | 95% |
-| `panel.py` | 32 | 0 | 100% |
+| `const.py` | 171 | 0 | 100% |
+| `diagnostics.py` | 94 | 0 | 100% |
+| `repairs.py` | 134 | 0 | 100% |
+| `panel.py` | 31 | 0 | 100% |
 | `templates.py` | 25 | 0 | 100% |
 | **Triggers** | | | |
 | `base_trigger.py` | 121 | 3 | 98% |
 | `threshold.py` | 53 | 1 | 98% |
-| `counter.py` | 44 | 5 | 89% |
+| `counter.py` | 44 | 7 | 84% |
 | `state_change.py` | 80 | 5 | 94% |
 | `runtime.py` | 161 | 7 | 96% |
-| `compound.py` | 136 | 3 | 98% |
+| `compound.py` | 143 | 0 | 100% |
 | **Helpers** | | | |
 | `interval_analyzer.py` | 312 | 17 | 95% |
-| `sensor_predictor.py` | 271 | 18 | 93% |
+| `sensor_predictor.py` | 275 | 18 | 93% |
 | `notification_manager.py` | 267 | 5 | 98% |
 | `entity_analyzer.py` | 121 | 4 | 97% |
 | `threshold_calculator.py` | 61 | 0 | 100% |
 | **WebSocket** | | | |
-| `websocket/__init__.py` | 87 | 0 | 100% |
-| `websocket/tasks.py` | 235 | 9 | 96% |
+| `websocket/__init__.py` | 104 | 0 | 100% |
+| `websocket/tasks.py` | 258 | 14 | 95% |
 | `websocket/objects.py` | 71 | 2 | 97% |
-| `websocket/analysis.py` | 111 | 0 | 100% |
+| `websocket/analysis.py` | 121 | 14 | 88% |
 | `websocket/users.py` | 65 | 0 | 100% |
 | `websocket/io.py` | 63 | 0 | 100% |
-| `websocket/dashboard.py` | 104 | 8 | 92% |
+| `websocket/dashboard.py` | 165 | 12 | 93% |
 | `websocket/groups.py` | 77 | 1 | 99% |
-| **TOTAL** | **5,979** | **308** | **95%** |
+| **TOTAL** | **6,390** | **356** | **94%** |
 
 ### Test Files
 
@@ -481,13 +481,13 @@ All write commands fire events for subscription updates.
 | `test_options_flow.py` | ~60 | Options flow management |
 | `test_config_flow.py` | ~35 | Config flow steps, validation |
 | `test_notifications.py` | ~40 | Notification delivery, quiet hours, bundling |
-| `test_phase2_features.py` | ~30 | Checklist, groups, budgets |
+| `test_phase2_features.py` | ~34 | Checklist, groups, budgets, export/CSV fields |
 | `test_ws_task_handlers.py` | ~30 | WebSocket task CRUD + actions |
 | `test_coordinator_prediction.py` | ~30 | Sensor prediction, fallback triggers, budget |
 | `test_sensor_predictions.py` | ~25 | Degradation analysis, threshold prediction |
 | `test_config_flow_template.py` | ~25 | Object template creation |
 | `test_adaptive_scheduling.py` | ~25 | EWA, Weibull, interval computation |
-| `test_sensor_predictor.py` | ~33 | Pure unit tests for sensor_predictor |
+| `test_sensor_predictor.py` | ~37 | Pure unit tests for sensor_predictor |
 | `test_coverage_final.py` | ~24 | Helper functions, diagnostics, budget edges |
 | `test_trigger_events.py` | ~19 | Event-driven trigger state changes |
 | `test_seasonal_scheduling.py` | ~20 | Seasonal factors, hemisphere support |
@@ -504,7 +504,7 @@ All write commands fire events for subscription updates.
 | `test_sensor_trigger_attrs.py` | ~15 | Trigger-specific sensor attributes |
 | `test_ws_dashboard.py` | ~15 | WS dashboard commands |
 | `test_ws_io.py` | ~12 | WS import/export/QR |
-| `test_ws_objects.py` | ~12 | WS object CRUD |
+| `test_ws_objects.py` | ~16 | WS object CRUD, task summary fields |
 | `test_ws_groups.py` | ~12 | WS group CRUD |
 | `test_calendar_unit.py` | ~12 | Calendar event generation |
 | `test_repair_flow.py` | ~15 | Repair flow steps |

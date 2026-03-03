@@ -511,6 +511,37 @@ class TestExportService:
 
         assert hass.services.has_service(DOMAIN, SERVICE_EXPORT)
 
+    async def test_export_includes_responsible_user_and_adaptive(
+        self,
+        hass: HomeAssistant,
+        global_config_entry: MockConfigEntry,
+    ) -> None:
+        """Test JSON export includes responsible_user_id and adaptive_config."""
+        task = build_task_data()
+        task["responsible_user_id"] = "user123"
+        task["adaptive_config"] = {"enabled": True, "min_completions": 3}
+        entry = MockConfigEntry(
+            version=1,
+            minor_version=1,
+            domain=DOMAIN,
+            title="Test Object",
+            data=build_object_entry_data(tasks={TASK_ID_1: task}),
+            source="user",
+            unique_id="maintenance_supporter_test_obj",
+        )
+        entry.add_to_hass(hass)
+        await setup_integration(hass, global_config_entry, entry)
+
+        from custom_components.maintenance_supporter.export import (
+            export_maintenance_data,
+        )
+
+        result = export_maintenance_data(hass, fmt="json", include_history=True)
+        data = json.loads(result)
+        exported_task = data["objects"][0]["tasks"][0]
+        assert exported_task["responsible_user_id"] == "user123"
+        assert exported_task["adaptive_config"] == {"enabled": True, "min_completions": 3}
+
 
 # ════════════════════════════════════════════════════════════════════════
 # Feature 5: Cost Budget Tracking
@@ -732,6 +763,90 @@ class TestCSVImportExport:
         # Pool: 2 tasks
         pool = [o for o in objects if o["object"]["name"] == "Pool"][0]
         assert len(pool["tasks"]) == 2
+
+    async def test_csv_export_includes_new_columns(
+        self,
+        hass: HomeAssistant,
+        global_config_entry: MockConfigEntry,
+    ) -> None:
+        """Test CSV export includes enabled, documentation_url, custom_icon, nfc_tag_id, responsible_user_id, trigger_type."""
+        task = build_task_data()
+        task["documentation_url"] = "https://example.com/docs"
+        task["custom_icon"] = "mdi:oil"
+        task["nfc_tag_id"] = "tag-xyz"
+        task["responsible_user_id"] = "user456"
+        task["trigger_config"] = {"type": "threshold", "entity_id": "sensor.temp"}
+        entry = MockConfigEntry(
+            version=1,
+            minor_version=1,
+            domain=DOMAIN,
+            title="Test Object",
+            data=build_object_entry_data(tasks={TASK_ID_1: task}),
+            source="user",
+            unique_id="maintenance_supporter_csv_test",
+        )
+        entry.add_to_hass(hass)
+        await setup_integration(hass, global_config_entry, entry)
+
+        from custom_components.maintenance_supporter.helpers.csv_handler import (
+            export_objects_csv,
+        )
+
+        csv_data = export_objects_csv(hass)
+        assert "enabled" in csv_data
+        assert "documentation_url" in csv_data
+        assert "custom_icon" in csv_data
+        assert "nfc_tag_id" in csv_data
+        assert "responsible_user_id" in csv_data
+        assert "trigger_type" in csv_data
+        assert "mdi:oil" in csv_data
+        assert "tag-xyz" in csv_data
+        assert "user456" in csv_data
+        assert "threshold" in csv_data
+
+    def test_csv_import_new_optional_columns(self) -> None:
+        """Test CSV import reads new optional columns."""
+        from custom_components.maintenance_supporter.helpers.csv_handler import (
+            import_objects_csv,
+        )
+
+        csv_content = (
+            "object_name,task_name,task_type,schedule_type,interval_days,warning_days,"
+            "enabled,documentation_url,custom_icon,nfc_tag_id,responsible_user_id\n"
+            "Car,Oil Change,service,time_based,365,30,"
+            "false,https://example.com,mdi:oil,tag-abc,user789\n"
+        )
+
+        objects = import_objects_csv(csv_content)
+        assert len(objects) == 1
+        task = list(objects[0]["tasks"].values())[0]
+        assert task["enabled"] is False
+        assert task["documentation_url"] == "https://example.com"
+        assert task["custom_icon"] == "mdi:oil"
+        assert task["nfc_tag_id"] == "tag-abc"
+        assert task["responsible_user_id"] == "user789"
+
+    def test_csv_import_backwards_compatible(self) -> None:
+        """Test CSV import works with old format (missing new columns)."""
+        from custom_components.maintenance_supporter.helpers.csv_handler import (
+            import_objects_csv,
+        )
+
+        csv_content = (
+            "object_name,object_manufacturer,object_model,object_area_id,"
+            "task_name,task_type,schedule_type,interval_days,warning_days,"
+            "last_performed,notes,status,times_performed,total_cost\n"
+            "Car,Toyota,Corolla,garage,Oil Change,service,time_based,365,30,,,,0,0\n"
+        )
+
+        objects = import_objects_csv(csv_content)
+        assert len(objects) == 1
+        task = list(objects[0]["tasks"].values())[0]
+        assert task["enabled"] is True  # default
+        assert "documentation_url" not in task
+        assert "custom_icon" not in task
+        assert "nfc_tag_id" not in task
+        assert "responsible_user_id" not in task
 
 
 # ════════════════════════════════════════════════════════════════════════

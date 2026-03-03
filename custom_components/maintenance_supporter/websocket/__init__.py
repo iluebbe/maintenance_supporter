@@ -71,6 +71,16 @@ def _build_task_summary(
     if trigger_config:
         entity_ids = normalize_entity_ids(trigger_config)
 
+        # Compound trigger fallback: collect entity_ids from conditions
+        if not entity_ids and trigger_config.get("type") == "compound":
+            seen: set[str] = set()
+            for cond in trigger_config.get("conditions", []):
+                cond_cfg = cond.get("trigger_config", {})
+                for eid in normalize_entity_ids(cond_cfg):
+                    if eid not in seen:
+                        seen.add(eid)
+                        entity_ids.append(eid)
+
         # Build info for all entities
         infos: list[dict[str, Any]] = []
         for eid in entity_ids:
@@ -103,6 +113,8 @@ def _build_task_summary(
         "last_performed": task_data.get("last_performed"),
         "notes": task_data.get("notes"),
         "documentation_url": task_data.get("documentation_url"),
+        "custom_icon": task_data.get("custom_icon"),
+        "nfc_tag_id": task_data.get("nfc_tag_id"),
         "responsible_user_id": task_data.get("responsible_user_id"),
         "trigger_config": trigger_config,
         "trigger_entity_info": trigger_entity_info,
