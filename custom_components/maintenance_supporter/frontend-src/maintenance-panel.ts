@@ -1248,26 +1248,34 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderCostDurationCard(task: MaintenanceTask) {
     const L = this._lang;
 
+    // Don't show the card at all if there aren't enough completed entries
+    const completedEntries = task.history.filter((h) => h.type === "completed" && (h.cost != null || h.duration != null));
+    if (completedEntries.length < 2) return nothing;
+
+    const anyCost = completedEntries.some((h) => (h.cost ?? 0) > 0);
+    const anyDuration = completedEntries.some((h) => (h.duration ?? 0) > 0);
+    if (!anyCost && !anyDuration) return nothing;
+
     return html`
       <div class="cost-duration-card">
         <div class="card-header">
           <h3>${t("cost_duration_chart", L)}</h3>
           <div class="toggle-buttons">
-            <button
+            ${anyCost ? html`<button
               class="toggle-btn ${this._costDurationToggle === 'cost' ? 'active' : ''}"
               @click=${() => this._costDurationToggle = 'cost'}>
               ${t("cost", L)}
-            </button>
-            <button
+            </button>` : nothing}
+            ${anyCost && anyDuration ? html`<button
               class="toggle-btn ${this._costDurationToggle === 'both' ? 'active' : ''}"
               @click=${() => this._costDurationToggle = 'both'}>
               ${t("both", L)}
-            </button>
-            <button
+            </button>` : nothing}
+            ${anyDuration ? html`<button
               class="toggle-btn ${this._costDurationToggle === 'duration' ? 'active' : ''}"
               @click=${() => this._costDurationToggle = 'duration'}>
               ${t("duration", L)}
-            </button>
+            </button>` : nothing}
           </div>
         </div>
         ${this._renderHistoryChart(task)}
@@ -1395,13 +1403,20 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     if (entries.length < 2) return nothing;
 
-    const hasCost = this._costDurationToggle !== "duration" && entries.some((e) => e.cost > 0);
-    const hasDuration = this._costDurationToggle !== "cost" && entries.some((e) => e.duration > 0);
-    if (!hasCost && !hasDuration) return nothing;
+    // Check what data exists, then apply toggle filter
+    const dataCost = entries.some((e) => e.cost > 0);
+    const dataDuration = entries.some((e) => e.duration > 0);
+    if (!dataCost && !dataDuration) return nothing;
+
+    const hasCost = this._costDurationToggle !== "duration" && dataCost;
+    const hasDuration = this._costDurationToggle !== "cost" && dataDuration;
+    // If toggle filters everything, fall back to showing whatever data exists
+    const showCost = hasCost || (!hasDuration && dataCost);
+    const showDuration = hasDuration || (!hasCost && dataDuration);
 
     const W = COST_CHART_W, H = COST_CHART_H;
-    const PAD_L = hasCost ? 32 : 8;
-    const PAD_R = hasDuration ? 32 : 8;
+    const PAD_L = showCost ? 32 : 8;
+    const PAD_R = showDuration ? 32 : 8;
     const PAD_T = 8, PAD_B = 20;
     const chartW = W - PAD_L - PAD_R;
     const chartH = H - PAD_T - PAD_B;
@@ -1419,12 +1434,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="sparkline-container">
         <svg class="history-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${t("chart_history", this._lang)}">
           <!-- Cost bars -->
-          ${hasCost ? entries.map((e, i) => svg`
+          ${showCost ? entries.map((e, i) => svg`
             <rect x="${(barX(i) - barW / 2).toFixed(1)}" y="${costY(e.cost).toFixed(1)}" width="${barW.toFixed(1)}" height="${(PAD_T + chartH - costY(e.cost)).toFixed(1)}"
               fill="var(--primary-color)" opacity="0.6" rx="2" />
           `) : nothing}
           <!-- Duration line -->
-          ${hasDuration ? svg`
+          ${showDuration ? svg`
             <polyline points="${entries.map((e, i) => `${barX(i).toFixed(1)},${durY(e.duration).toFixed(1)}`).join(" ")}"
               fill="none" stroke="var(--accent-color, #ff9800)" stroke-width="2" stroke-linejoin="round" />
             ${entries.map((e, i) => svg`
@@ -1435,19 +1450,19 @@ export class MaintenanceSupporterPanel extends LitElement {
           <text x="${PAD_L}" y="${H - 2}" text-anchor="start" fill="var(--secondary-text-color)" font-size="7">${new Date(entries[0].ts).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</text>
           <text x="${W - PAD_R}" y="${H - 2}" text-anchor="end" fill="var(--secondary-text-color)" font-size="7">${new Date(entries[entries.length - 1].ts).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</text>
           <!-- Y-axis labels -->
-          ${hasCost ? svg`
+          ${showCost ? svg`
             <text x="${PAD_L - 3}" y="${PAD_T + 4}" text-anchor="end" fill="var(--primary-color)" font-size="7">${maxCost.toFixed(0)}\u20AC</text>
             <text x="${PAD_L - 3}" y="${PAD_T + chartH + 3}" text-anchor="end" fill="var(--primary-color)" font-size="7">0\u20AC</text>
           ` : nothing}
-          ${hasDuration ? svg`
+          ${showDuration ? svg`
             <text x="${W - PAD_R + 3}" y="${PAD_T + 4}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="7">${maxDur.toFixed(0)}m</text>
             <text x="${W - PAD_R + 3}" y="${PAD_T + chartH + 3}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="7">0m</text>
           ` : nothing}
         </svg>
       </div>
       <div class="chart-legend">
-        ${hasCost ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${t("cost", this._lang)}</span>` : nothing}
-        ${hasDuration ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${t("duration", this._lang)}</span>` : nothing}
+        ${showCost ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${t("cost", this._lang)}</span>` : nothing}
+        ${showDuration ? html`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${t("duration", this._lang)}</span>` : nothing}
       </div>
     `;
   }
