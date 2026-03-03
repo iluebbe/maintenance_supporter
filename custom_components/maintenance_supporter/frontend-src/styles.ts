@@ -760,7 +760,7 @@ const FR: Translations = {
   seasonal_learned: "Appris",
   seasonal_manual: "Manuel",
   month_jan: "Jan", month_feb: "F\u00E9v", month_mar: "Mar", month_apr: "Avr",
-  month_may: "Mai", month_jun: "Juin", month_jul: "Juil", month_aug: "Ao\u00FB",
+  month_may: "Mai", month_jun: "Juin", month_jul: "Juil", month_aug: "Ao\u00FBt",
   month_sep: "Sep", month_oct: "Oct", month_nov: "Nov", month_dec: "D\u00E9c",
   sensor_prediction: "Pr\u00E9diction capteur",
   degradation_trend: "Tendance",
