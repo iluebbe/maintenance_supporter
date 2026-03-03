@@ -40,6 +40,7 @@ from .const import (
     SERVICE_EXPORT,
     SERVICE_RESET,
     SERVICE_SKIP,
+    SIGNAL_NEW_OBJECT_ENTRY,
 )
 from .coordinator import MaintenanceCoordinator
 from .frontend import async_register_card
@@ -404,6 +405,11 @@ async def async_setup_entry(
             coordinator=coordinator, store=store
         )
         await coordinator.async_config_entry_first_refresh()
+
+        # Notify WS subscribers that a new object entry is available
+        from homeassistant.helpers.dispatcher import async_dispatcher_send  # noqa: PLC0415
+
+        async_dispatcher_send(hass, SIGNAL_NEW_OBJECT_ENTRY, entry.entry_id)
 
         _LOGGER.debug(
             "Maintenance object entry set up: %s (%s)",

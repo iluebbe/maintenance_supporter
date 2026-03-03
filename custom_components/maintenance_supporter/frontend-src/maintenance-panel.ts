@@ -27,6 +27,8 @@ import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import { MaintenanceCompleteDialog } from "./components/complete-dialog";
 import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
+import "./components/confirm-dialog";
+import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
 
 type View = "overview" | "object" | "task";
 
@@ -61,6 +63,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false };
+  @state() private _actionLoading = false;
 
   // Dashboard redesign state
   @state() private _activeTab: "overview" | "analysis" | "history" = "overview";
@@ -193,26 +196,19 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _fetchMiniStatsForOverview(): Promise<void> {
     if (!this._statsService) return;
-    const updated = new Map(this._miniStatsData);
-    const promises: Promise<void>[] = [];
 
+    const entities: Array<{ entityId: string; isCounter: boolean }> = [];
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
         const entityId = task.trigger_config?.entity_id;
         if (!entityId) continue;
-        const isCounter = this._isCounterEntity(task.trigger_config);
-        promises.push(
-          this._statsService!.getMiniStats(entityId, isCounter).then((points) => {
-            updated.set(entityId, points);
-          })
-        );
+        entities.push({ entityId, isCounter: this._isCounterEntity(task.trigger_config) });
       }
     }
 
-    if (promises.length > 0) {
-      await Promise.all(promises);
-      this._miniStatsData = updated;
-    }
+    if (entities.length === 0) return;
+    const batchResult = await this._statsService.getBatchMiniStats(entities);
+    this._miniStatsData = new Map([...this._miniStatsData, ...batchResult]);
   }
 
   private async _subscribe(): Promise<void> {
@@ -314,7 +310,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   // --- Actions ---
 
   private async _deleteObject(entryId: string): Promise<void> {
-    if (!confirm(t("confirm_delete_object", this._lang))) return;
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const ok = await dlg?.confirm({
+      title: t("delete", this._lang),
+      message: t("confirm_delete_object", this._lang),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
     await this.hass.connection.sendMessagePromise({
       type: "maintenance_supporter/object/delete",
       entry_id: entryId,
@@ -324,7 +327,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _deleteTask(entryId: string, taskId: string): Promise<void> {
-    if (!confirm(t("confirm_delete_task", this._lang))) return;
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const ok = await dlg?.confirm({
+      title: t("delete", this._lang),
+      message: t("confirm_delete_task", this._lang),
+      confirmText: t("delete", this._lang),
+      danger: true,
+    });
+    if (!ok) return;
     await this.hass.connection.sendMessagePromise({
       type: "maintenance_supporter/task/delete",
       entry_id: entryId,
@@ -335,21 +345,31 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _skipTask(entryId: string, taskId: string): Promise<void> {
-    await this.hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/task/skip",
-      entry_id: entryId,
-      task_id: taskId,
-    });
-    await this._loadData();
+    this._actionLoading = true;
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/skip",
+        entry_id: entryId,
+        task_id: taskId,
+      });
+      await this._loadData();
+    } finally {
+      this._actionLoading = false;
+    }
   }
 
   private async _resetTask(entryId: string, taskId: string): Promise<void> {
-    await this.hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/task/reset",
-      entry_id: entryId,
-      task_id: taskId,
-    });
-    await this._loadData();
+    this._actionLoading = true;
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/reset",
+        entry_id: entryId,
+        task_id: taskId,
+      });
+      await this._loadData();
+    } finally {
+      this._actionLoading = false;
+    }
   }
 
   private async _applySuggestion(entryId: string, taskId: string, interval: number): Promise<void> {
@@ -416,7 +436,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       csv_content: text,
     }) as { created: number; total: number };
     await this._loadData();
-    alert(`Imported ${result.created} of ${result.total} objects.`);
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    await dlg?.confirm({
+      title: "Import",
+      message: t("import_result", this._lang).replace("{created}", String(result.created)).replace("{total}", String(result.total)),
+      confirmText: "OK",
+    });
   }
 
   private _onDialogEvent = async (): Promise<void> => {
@@ -453,6 +478,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         .lang=${this._lang}
       ></maintenance-qr-dialog>
+      <maintenance-confirm-dialog
+        .hass=${this.hass}
+      ></maintenance-confirm-dialog>
     `;
   }
 
@@ -476,6 +504,15 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="header">
+        ${this._view !== "overview"
+          ? html`<ha-icon-button
+              .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
+              @click=${() => {
+                if (this._view === "task") this._showObject(this._selectedEntryId!);
+                else this._showOverview();
+              }}
+            ></ha-icon-button>`
+          : nothing}
         <div class="breadcrumbs">
           ${crumbs.map(
             (c, i) => html`
@@ -671,7 +708,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
             <ha-icon icon="mdi:check"></ha-icon>
           </mwc-icon-button>
-          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" @click=${(e: Event) => { e.stopPropagation(); this._skipTask(row.entry_id, row.task_id); }}>
+          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._skipTask(row.entry_id, row.task_id); }}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </mwc-icon-button>
         </span>
@@ -901,7 +938,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
                     <ha-icon icon="mdi:check"></ha-icon>
                   </mwc-icon-button>
-                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" @click=${(e: Event) => { e.stopPropagation(); this._skipTask(obj.entry_id, task.id); }}>
+                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._skipTask(obj.entry_id, task.id); }}>
                     <ha-icon icon="mdi:skip-next"></ha-icon>
                   </mwc-icon-button>
                 </span>
@@ -934,25 +971,41 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
-          <ha-button appearance="plain" @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
-          <ha-button appearance="plain" class="more-menu-btn">
-            ⋯
-            <div class="dropdown-menu">
-              <div class="menu-item" @click=${() => {
-                const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
-                dlg?.openEdit(this._selectedEntryId!, task);
-              }}>${t("edit", L)}</div>
-              <div class="menu-item" @click=${() => this._resetTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("reset", L)}</div>
-              <div class="menu-item" @click=${() => {
-                const objData = this._getObject(this._selectedEntryId!)?.object;
-                this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name);
-              }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</div>
-              <div class="menu-item danger" @click=${() => this._deleteTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("delete", L)}</div>
-            </div>
-          </ha-button>
+          <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
+          <ha-button-menu @action=${(e: CustomEvent) => this._handleMoreMenu(e, task)}>
+            <ha-icon-button slot="trigger" .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"}></ha-icon-button>
+            <mwc-list-item>${t("edit", L)}</mwc-list-item>
+            <mwc-list-item>${t("reset", L)}</mwc-list-item>
+            <mwc-list-item graphic="icon"><ha-icon slot="graphic" icon="mdi:qrcode"></ha-icon>${t("qr_code", L)}</mwc-list-item>
+            <li divider role="separator"></li>
+            <mwc-list-item class="danger">${t("delete", L)}</mwc-list-item>
+          </ha-button-menu>
         </div>
       </div>
     `;
+  }
+
+  private _handleMoreMenu(e: CustomEvent, task: MaintenanceTask): void {
+    const index = e.detail.index;
+    const entryId = this._selectedEntryId!;
+    const taskId = this._selectedTaskId!;
+    switch (index) {
+      case 0: // Edit
+        this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(entryId, task);
+        break;
+      case 1: // Reset
+        this._resetTask(entryId, taskId);
+        break;
+      case 2: // QR
+        {
+          const objData = this._getObject(entryId)?.object;
+          this._openQrForTask(entryId, taskId, objData?.name || "", task.name);
+        }
+        break;
+      case 3: // Delete (index 3 because divider doesn't count as an action item)
+        this._deleteTask(entryId, taskId);
+        break;
+    }
   }
 
   /**
@@ -2210,10 +2263,19 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
 
       .header {
+        display: flex;
+        align-items: center;
+        gap: 4px;
         background: var(--app-header-background-color, var(--primary-color));
         color: var(--app-header-text-color, white);
         padding: 12px 16px;
         font-size: 16px;
+      }
+
+      .header ha-icon-button {
+        --mdc-icon-button-size: 36px;
+        --mdc-icon-size: 20px;
+        color: var(--app-header-text-color, white);
       }
 
       .breadcrumbs { display: flex; align-items: center; gap: 4px; }
@@ -2396,43 +2458,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         gap: 8px;
       }
 
-      .more-menu-btn {
-        position: relative;
-      }
-
-      .dropdown-menu {
-        display: none;
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background: var(--card-background-color, #fff);
-        border: 1px solid var(--divider-color);
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        z-index: 100;
-        min-width: 160px;
-      }
-
-      .more-menu-btn:hover .dropdown-menu {
-        display: block;
-      }
-
-      .menu-item {
-        padding: 10px 16px;
-        cursor: pointer;
-        border-bottom: 1px solid var(--divider-color);
-      }
-
-      .menu-item:last-child {
-        border-bottom: none;
-      }
-
-      .menu-item:hover {
-        background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
-      }
-
-      .menu-item.danger {
-        color: #f44336;
+      mwc-list-item.danger {
+        color: var(--error-color, #f44336);
       }
 
       .tab-bar {

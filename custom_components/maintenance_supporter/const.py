@@ -270,6 +270,13 @@ class TriggerEntityState(StrEnum):
     STARTUP = "startup"  # Grace period after HA start
 
 
+# --- Dispatcher Signals ---
+SIGNAL_TASK_RESET = f"{DOMAIN}_task_reset_{{entry_id}}_{{task_id}}"
+SIGNAL_NEW_OBJECT_ENTRY = f"{DOMAIN}_new_object_entry"
+
+# --- Trigger Completion Cooldown ---
+TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes
+
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes
 MISSING_ENTITY_THRESHOLD_REFRESHES = 6  # ~30 min at 5-min intervals

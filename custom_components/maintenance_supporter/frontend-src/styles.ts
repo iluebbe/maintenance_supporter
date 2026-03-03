@@ -234,6 +234,7 @@ const DE: Translations = {
   card_show_actions: "Aktionsbuttons anzeigen",
   card_compact: "Kompaktmodus",
   card_max_items: "Max. Einträge (0 = alle)",
+  import_result: "{created} von {total} Objekten importiert.",
 };
 
 const EN: Translations = {
@@ -436,6 +437,7 @@ const EN: Translations = {
   card_show_actions: "Show action buttons",
   card_compact: "Compact mode",
   card_max_items: "Max items (0 = all)",
+  import_result: "Imported {created} of {total} objects.",
 };
 
 const NL: Translations = {
@@ -628,6 +630,7 @@ const NL: Translations = {
   card_show_actions: "Actieknoppen tonen",
   card_compact: "Compacte modus",
   card_max_items: "Max items (0 = alle)",
+  import_result: "{created} van {total} objecten geïmporteerd.",
 };
 
 const FR: Translations = {
@@ -820,6 +823,7 @@ const FR: Translations = {
   card_show_actions: "Afficher les boutons d'action",
   card_compact: "Mode compact",
   card_max_items: "Nombre max (0 = tous)",
+  import_result: "{created} sur {total} objets importés.",
 };
 
 const IT: Translations = {
@@ -1012,6 +1016,7 @@ const IT: Translations = {
   card_show_actions: "Mostra pulsanti azione",
   card_compact: "Modalit\u00E0 compatta",
   card_max_items: "Max elementi (0 = tutti)",
+  import_result: "{created} di {total} oggetti importati.",
 };
 
 const ES: Translations = {
@@ -1204,6 +1209,7 @@ const ES: Translations = {
   card_show_actions: "Mostrar botones de acci\u00F3n",
   card_compact: "Modo compacto",
   card_max_items: "M\u00E1x. elementos (0 = todos)",
+  import_result: "{created} de {total} objetos importados.",
 };
 
 const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES };

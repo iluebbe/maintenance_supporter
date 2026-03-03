@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
@@ -16,6 +17,7 @@ from .const import (
     DEFAULT_ENTITY_LOGIC,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    SIGNAL_TASK_RESET,
     MaintenanceStatus,
 )
 from .coordinator import MaintenanceCoordinator
@@ -276,6 +278,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 "Failed to set up triggers for %s", self.entity_id
             )
 
+        # Listen for task reset signals (completion/skip/reset)
+        signal = SIGNAL_TASK_RESET.format(
+            entry_id=self.coordinator.entry.entry_id, task_id=self._task_id
+        )
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, signal, self._handle_task_reset)
+        )
+
     async def async_will_remove_from_hass(self) -> None:
         """When entity is removed, clean up triggers."""
         for trigger in self._triggers:
@@ -284,6 +294,26 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         self._trigger_states = {}
         self._trigger_values = {}
         await super().async_will_remove_from_hass()
+
+    @callback
+    def _handle_task_reset(self) -> None:
+        """Reset all trigger instances after task completion/skip/reset."""
+        for trigger in self._triggers:
+            trigger.reset()
+        self._trigger_states = {}
+        self._trigger_values = {}
+
+        if self.coordinator.data is not None:
+            tasks = self.coordinator.data.get(CONF_TASKS, {})
+            task = tasks.get(self._task_id, {})
+            if task:
+                task["_trigger_active"] = False
+                task["_trigger_current_value"] = None
+                old_status = task.get("_status")
+                new_status = self._compute_live_status(task)
+                task["_status"] = new_status
+                if new_status != old_status:
+                    self.async_write_ha_state()
 
     @callback
     def async_update_trigger_state(

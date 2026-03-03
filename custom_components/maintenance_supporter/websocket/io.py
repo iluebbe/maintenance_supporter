@@ -181,7 +181,7 @@ async def ws_generate_qr(
     action = msg.get("action", "view")
     base_url = msg.get("base_url")
     url = build_qr_url(hass, entry_id, task_id=task_id, action=action, base_url_override=base_url)
-    svg_data_uri = generate_qr_svg_data_uri(url, border=2)
+    svg_data_uri = await hass.async_add_executor_job(generate_qr_svg_data_uri, url, 2)
 
     connection.send_result(
         msg["id"],

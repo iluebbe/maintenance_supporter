@@ -10,6 +10,7 @@ import voluptuous as vol
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 
 from ..const import (
     CONF_ACTION_COMPLETE_ENABLED,
@@ -46,6 +47,7 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    SIGNAL_NEW_OBJECT_ENTRY,
 )
 from . import (
     _build_object_response,
@@ -223,6 +225,8 @@ async def ws_subscribe(
     msg: dict[str, Any],
 ) -> None:
     """Subscribe to real-time maintenance updates."""
+    attached_entry_ids: set[str] = set()
+    unsub_callbacks: list = []
 
     @callback
     def _forward_update() -> None:
@@ -237,15 +241,31 @@ async def ws_subscribe(
             websocket_api.event_message(msg["id"], {"objects": result})
         )
 
-    # Register listeners on all coordinators
-    unsub_callbacks = []
-    entries = _get_object_entries(hass)
-    for entry in entries:
-        rd = _get_runtime_data(hass, entry.entry_id)
+    def _attach_entry(entry_id: str) -> None:
+        """Attach a coordinator listener for a specific entry."""
+        if entry_id in attached_entry_ids:
+            return
+        rd = _get_runtime_data(hass, entry_id)
         if rd and rd.coordinator:
             unsub_callbacks.append(
                 rd.coordinator.async_add_listener(_forward_update)
             )
+            attached_entry_ids.add(entry_id)
+
+    # Register listeners on all existing coordinators
+    entries = _get_object_entries(hass)
+    for entry in entries:
+        _attach_entry(entry.entry_id)
+
+    # Listen for new object entries added after subscription
+    @callback
+    def _on_new_entry(entry_id: str) -> None:
+        _attach_entry(entry_id)
+        _forward_update()
+
+    unsub_callbacks.append(
+        async_dispatcher_connect(hass, SIGNAL_NEW_OBJECT_ENTRY, _on_new_entry)
+    )
 
     @callback
     def _unsub() -> None:

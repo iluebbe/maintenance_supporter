@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant
 if TYPE_CHECKING:
     from .calendar import MaintenanceCalendar
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
@@ -27,7 +28,9 @@ from .const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
+    SIGNAL_TASK_RESET,
     STARTUP_GRACE_PERIOD_SECONDS,
+    TRIGGER_COMPLETION_COOLDOWN_SECONDS,
     HistoryEntryType,
     MaintenanceStatus,
     ScheduleType,
@@ -57,6 +60,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._store = store
         self._calendar_entity: MaintenanceCalendar | None = None
         self._previous_statuses: dict[str, str] = {}  # task_id -> status
+
+        # Trigger completion cooldown tracking
+        self._recently_completed: dict[str, float] = {}  # task_id -> monotonic timestamp
 
         # Trigger entity availability tracking
         self._startup_time: float = time.monotonic()
@@ -96,6 +102,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # trigger state that was set by event-driven triggers between refreshes
         prev_tasks = (self.data or {}).get(CONF_TASKS, {})
 
+        # Clean up expired cooldown entries
+        now_mono = time.monotonic()
+        self._recently_completed = {
+            tid: ts for tid, ts in self._recently_completed.items()
+            if now_mono - ts < TRIGGER_COMPLETION_COOLDOWN_SECONDS
+        }
+
         result: dict[str, Any] = {
             CONF_OBJECT: obj.to_dict(),
             CONF_TASKS: {},
@@ -108,18 +121,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 continue
 
             # Restore live trigger state from previous coordinator data
+            # but NOT for recently completed/skipped/reset tasks
             prev_task = prev_tasks.get(task_id, {})
-            if prev_task.get("_trigger_active", False):
-                task._trigger_active = True
-            if prev_task.get("_trigger_current_value") is not None:
-                task._trigger_current_value = prev_task["_trigger_current_value"]
+            if task_id not in self._recently_completed:
+                if prev_task.get("_trigger_active", False):
+                    task._trigger_active = True
+                if prev_task.get("_trigger_current_value") is not None:
+                    task._trigger_current_value = prev_task["_trigger_current_value"]
 
             # Check sensor-based triggers (fallback for threshold/counter)
             if (
                 task.schedule_type == ScheduleType.SENSOR_BASED
                 and task.trigger_config
             ):
-                await self._evaluate_trigger_fallback(task)
+                await self._evaluate_trigger_fallback(task, task_id)
 
             # Compute status
             status = task.status
@@ -286,7 +301,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return result
 
-    async def _evaluate_trigger_fallback(self, task: MaintenanceTask) -> None:
+    async def _evaluate_trigger_fallback(self, task: MaintenanceTask, task_id: str) -> None:
         """Evaluate trigger state as fallback (main evaluation is event-driven).
 
         The event-driven triggers (in entity/triggers/) handle real-time state
@@ -298,6 +313,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         aggregates using entity_logic ("any" or "all").
         """
         if task.trigger_config is None:
+            return
+
+        # Don't re-activate triggers during the cooldown period after completion
+        if task_id in self._recently_completed:
             return
 
         from .entity.triggers import normalize_entity_ids
@@ -831,10 +850,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._store is not None:
             # Dynamic state only → Store (no ConfigEntry write needed)
             self._persist_dynamic_state(task_id, task)
+            await self._store.async_save()  # Flush immediately for user actions
+            self._recently_completed[task_id] = time.monotonic()
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
             await self.async_request_refresh()
         else:
             tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
             tasks_data[task_id] = task.to_dict()
+            self._recently_completed[task_id] = time.monotonic()
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
             await self._async_persist_tasks(tasks_data)
 
         # Invalidate budget cache when a cost is recorded
@@ -861,10 +891,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if self._store is not None:
             self._persist_dynamic_state(task_id, task)
+            await self._store.async_save()  # Flush immediately for user actions
+            self._recently_completed[task_id] = time.monotonic()
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
             await self.async_request_refresh()
         else:
             tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
             tasks_data[task_id] = task.to_dict()
+            self._recently_completed[task_id] = time.monotonic()
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
             await self._async_persist_tasks(tasks_data)
 
         _LOGGER.info(
@@ -887,10 +928,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if self._store is not None:
             self._persist_dynamic_state(task_id, task)
+            await self._store.async_save()  # Flush immediately for user actions
+            self._recently_completed[task_id] = time.monotonic()
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
             await self.async_request_refresh()
         else:
             tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
             tasks_data[task_id] = task.to_dict()
+            self._recently_completed[task_id] = time.monotonic()
+            async_dispatcher_send(
+                self.hass,
+                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
+            )
             await self._async_persist_tasks(tasks_data)
 
         _LOGGER.info(
