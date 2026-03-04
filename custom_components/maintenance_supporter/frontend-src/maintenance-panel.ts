@@ -80,12 +80,16 @@ export class MaintenanceSupporterPanel extends LitElement {
     return this.hass?.language || "de";
   }
 
+  private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);
+
   connectedCallback(): void {
     super.connectedCallback();
+    window.addEventListener("popstate", this._popstateHandler);
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    window.removeEventListener("popstate", this._popstateHandler);
     if (this._unsub) {
       this._unsub();
       this._unsub = null;
@@ -103,6 +107,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
         this._lastConnection = this.hass.connection;
+        // Seed initial history state so back button returns to overview
+        history.replaceState({ msp_view: "overview", msp_entry: null, msp_task: null }, "");
         this._loadData();
         this._subscribe();
       } else if (this.hass.connection !== this._lastConnection) {
@@ -281,7 +287,35 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   // --- Navigation ---
 
+  /** Push a browser history entry so the back button navigates within the panel. */
+  private _pushPanelState(view: View, entryId?: string | null, taskId?: string | null): void {
+    const state = { msp_view: view, msp_entry: entryId || null, msp_task: taskId || null };
+    history.pushState(state, "");
+  }
+
+  /** Handle browser back/forward button. */
+  private _onPopState(e: PopStateEvent): void {
+    const s = e.state as { msp_view?: View; msp_entry?: string; msp_task?: string } | null;
+    if (!s?.msp_view) {
+      // No panel state → we're leaving the panel, let HA handle it
+      return;
+    }
+    // Restore view without pushing another history entry
+    this._view = s.msp_view;
+    this._selectedEntryId = s.msp_entry || null;
+    this._selectedTaskId = s.msp_task || null;
+    this._moreMenuOpen = false;
+    if (s.msp_view === "task" && s.msp_entry && s.msp_task) {
+      this._historyFilter = null;
+      const task = this._getTask(s.msp_entry, s.msp_task);
+      if (task?.trigger_config?.entity_id) {
+        this._fetchDetailStats(task.trigger_config.entity_id, this._isCounterEntity(task.trigger_config));
+      }
+    }
+  }
+
   private _showOverview(): void {
+    this._pushPanelState("overview");
     this._view = "overview";
     this._selectedEntryId = null;
     this._selectedTaskId = null;
@@ -289,12 +323,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _showObject(entryId: string): void {
+    this._pushPanelState("object", entryId);
     this._view = "object";
     this._selectedEntryId = entryId;
     this._selectedTaskId = null;
   }
 
   private _showTask(entryId: string, taskId: string): void {
+    this._pushPanelState("task", entryId, taskId);
     this._view = "task";
     this._selectedEntryId = entryId;
     this._selectedTaskId = taskId;
