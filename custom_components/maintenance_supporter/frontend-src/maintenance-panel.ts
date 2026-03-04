@@ -64,6 +64,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false };
   @state() private _actionLoading = false;
+  @state() private _moreMenuOpen = false;
 
   // Dashboard redesign state
   @state() private _activeTab: "overview" | "analysis" | "history" = "overview";
@@ -284,6 +285,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._view = "overview";
     this._selectedEntryId = null;
     this._selectedTaskId = null;
+    this._moreMenuOpen = false;
   }
 
   private _showObject(entryId: string): void {
@@ -972,40 +974,34 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
           <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
-          <ha-button-menu @action=${(e: CustomEvent) => this._handleMoreMenu(e, task)}>
-            <ha-icon-button slot="trigger" .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"}></ha-icon-button>
-            <mwc-list-item>${t("edit", L)}</mwc-list-item>
-            <mwc-list-item>${t("reset", L)}</mwc-list-item>
-            <mwc-list-item graphic="icon"><ha-icon slot="graphic" icon="mdi:qrcode"></ha-icon>${t("qr_code", L)}</mwc-list-item>
-            <li divider role="separator"></li>
-            <mwc-list-item class="danger">${t("delete", L)}</mwc-list-item>
-          </ha-button-menu>
+          <div class="more-menu-wrapper">
+            <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${this._toggleMoreMenu}></ha-icon-button>
+            ${this._moreMenuOpen ? html`
+              <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
+                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._resetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
+                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</div>
+                <div class="popup-menu-divider"></div>
+                <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
+              </div>
+            ` : nothing}
+          </div>
         </div>
       </div>
     `;
   }
 
-  private _handleMoreMenu(e: CustomEvent, task: MaintenanceTask): void {
-    const index = e.detail.index;
-    const entryId = this._selectedEntryId!;
-    const taskId = this._selectedTaskId!;
-    switch (index) {
-      case 0: // Edit
-        this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(entryId, task);
-        break;
-      case 1: // Reset
-        this._resetTask(entryId, taskId);
-        break;
-      case 2: // QR
-        {
-          const objData = this._getObject(entryId)?.object;
-          this._openQrForTask(entryId, taskId, objData?.name || "", task.name);
-        }
-        break;
-      case 3: // Delete (index 3 because divider doesn't count as an action item)
-        this._deleteTask(entryId, taskId);
-        break;
+  private _toggleMoreMenu(): void {
+    this._moreMenuOpen = !this._moreMenuOpen;
+    if (this._moreMenuOpen) {
+      // Close menu on next outside click
+      const handler = () => { this._moreMenuOpen = false; document.removeEventListener("click", handler); };
+      setTimeout(() => document.addEventListener("click", handler, { once: true }), 0);
     }
+  }
+
+  private _closeMoreMenu(): void {
+    this._moreMenuOpen = false;
   }
 
   /**
@@ -2458,8 +2454,49 @@ export class MaintenanceSupporterPanel extends LitElement {
         gap: 8px;
       }
 
-      mwc-list-item.danger {
+      .more-menu-wrapper {
+        position: relative;
+      }
+
+      .popup-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--card-background-color, #fff);
+        border: 1px solid var(--divider-color);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        min-width: 180px;
+        overflow: hidden;
+      }
+
+      .popup-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--primary-text-color);
+      }
+
+      .popup-menu-item:hover {
+        background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
+      }
+
+      .popup-menu-item.danger {
         color: var(--error-color, #f44336);
+      }
+
+      .popup-menu-item ha-icon {
+        --mdc-icon-size: 18px;
+      }
+
+      .popup-menu-divider {
+        height: 1px;
+        background: var(--divider-color);
+        margin: 4px 0;
       }
 
       .tab-bar {
