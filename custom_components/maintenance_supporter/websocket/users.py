@@ -57,6 +57,7 @@ async def ws_list_users(
         vol.Optional("user_id"): vol.Any(str, None),  # None = unassign
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_assign_user(
     hass: HomeAssistant,

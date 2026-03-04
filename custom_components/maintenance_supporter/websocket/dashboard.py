@@ -126,7 +126,7 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "overdue_interval_hours": options.get(CONF_NOTIFY_OVERDUE_INTERVAL, 12),
             "triggered_enabled": options.get(CONF_NOTIFY_TRIGGERED_ENABLED, True),
             "triggered_interval_hours": options.get(CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
-            "quiet_hours_enabled": options.get(CONF_QUIET_HOURS_ENABLED, False),
+            "quiet_hours_enabled": options.get(CONF_QUIET_HOURS_ENABLED, True),
             "quiet_hours_start": options.get(CONF_QUIET_HOURS_START, "22:00"),
             "quiet_hours_end": options.get(CONF_QUIET_HOURS_END, "08:00"),
             "max_per_day": options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, 0),
@@ -356,6 +356,7 @@ async def ws_get_budget_status(
         vol.Required("settings"): dict,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_update_global_settings(
     hass: HomeAssistant,
@@ -419,6 +420,7 @@ async def ws_update_global_settings(
 @websocket_api.websocket_command(
     {vol.Required("type"): f"{DOMAIN}/global/test_notification"}
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_test_notification(
     hass: HomeAssistant,
@@ -460,10 +462,29 @@ async def ws_test_notification(
     try:
         parts = normalized.split(".")
         push_msg = _get_test_result_text(hass, "push_message")
+        service_data: dict[str, Any] = {
+            "title": "Maintenance Supporter",
+            "message": push_msg,
+        }
+
+        # Add action buttons so users can verify their notification layout
+        actions_enabled = options.get(CONF_ACTION_COMPLETE_ENABLED, False)
+        skip_enabled = options.get(CONF_ACTION_SKIP_ENABLED, False)
+        snooze_enabled = options.get(CONF_ACTION_SNOOZE_ENABLED, False)
+        if actions_enabled or skip_enabled or snooze_enabled:
+            test_actions: list[dict[str, str]] = []
+            if actions_enabled:
+                test_actions.append({"action": "MS_TEST_COMPLETE", "title": "\u2705 Complete"})
+            if skip_enabled:
+                test_actions.append({"action": "MS_TEST_SKIP", "title": "\u23ed\ufe0f Skip"})
+            if snooze_enabled:
+                test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
+            service_data["data"] = {"actions": test_actions}
+
         await hass.services.async_call(
             parts[0],
             parts[1],
-            {"title": "Maintenance Supporter", "message": push_msg},
+            service_data,
             blocking=True,
         )
         connection.send_result(

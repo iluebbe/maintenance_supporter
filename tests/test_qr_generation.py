@@ -69,16 +69,34 @@ class TestBuildQrUrl:
         url = build_qr_url(hass, "e1")
         assert url.startswith("http://192.168.1.10:8123/maintenance-supporter")
 
-    def test_no_urls_relative(self) -> None:
+    def test_no_urls_raises(self) -> None:
         hass = _make_hass()
-        url = build_qr_url(hass, "e1")
-        assert url.startswith("/maintenance-supporter")
+        with pytest.raises(ValueError, match="No Home Assistant URL configured"):
+            build_qr_url(hass, "e1")
 
     def test_trailing_slash_stripped(self) -> None:
         hass = _make_hass(external_url="https://my.ha.example/")
         url = build_qr_url(hass, "e1")
         assert "example//maintenance" not in url
         assert "example/maintenance" in url
+
+    def test_companion_url_mode(self) -> None:
+        hass = _make_hass()  # no URLs needed for companion mode
+        url = build_qr_url(hass, "e1", url_mode="companion")
+        assert url.startswith("homeassistant://navigate/maintenance-supporter")
+        assert "entry_id=e1" in url
+
+    def test_local_url_mode(self) -> None:
+        hass = _make_hass()
+        url = build_qr_url(hass, "e1", url_mode="local")
+        assert url.startswith("http://homeassistant.local:8123/maintenance-supporter")
+
+    def test_companion_with_task_and_action(self) -> None:
+        hass = _make_hass()
+        url = build_qr_url(hass, "e1", task_id="t1", action="complete", url_mode="companion")
+        assert "homeassistant://navigate" in url
+        assert "task_id=t1" in url
+        assert "action=complete" in url
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +124,26 @@ class TestGenerateQrSvg:
         svg = generate_qr_svg("https://example.com")
         assert 'fill="#000000"' in svg
         assert 'fill="#FFFFFF"' in svg
+
+    def test_info_icon_embedded(self) -> None:
+        svg = generate_qr_svg("https://example.com", icon="info")
+        assert "<circle" in svg  # icon background + dot
+        assert "<rect" in svg  # stem of "i"
+
+    def test_check_icon_embedded(self) -> None:
+        svg = generate_qr_svg("https://example.com", icon="check")
+        assert "<polyline" in svg  # checkmark
+        assert "<circle" in svg  # icon background
+
+    def test_no_icon_by_default(self) -> None:
+        svg = generate_qr_svg("https://example.com")
+        assert "<circle" not in svg
+        assert "<polyline" not in svg
+
+    def test_icon_data_uri(self) -> None:
+        uri = generate_qr_svg_data_uri("https://example.com", icon="info")
+        assert uri.startswith("data:image/svg+xml,")
+        assert "circle" in uri
 
 
 class TestGenerateQrSvgDataUri:

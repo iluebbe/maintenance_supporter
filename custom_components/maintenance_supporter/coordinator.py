@@ -632,13 +632,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 ],
             )
         else:
-            for task_id, task_result, new_status, old_status in notifiable:
+            for task_id, task_result, new_status, _old_status in notifiable:
                 await nm.async_task_status_changed(
                     entry_id=self.entry.entry_id,
                     task_id=task_id,
                     task_name=task_result.get("name", ""),
                     object_name=obj_name,
-                    old_status=old_status,
                     new_status=new_status,
                     days_until_due=task_result.get("_days_until_due"),
                     next_due=task_result.get("_next_due"),

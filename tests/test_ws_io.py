@@ -38,6 +38,7 @@ def _mock_connection() -> MagicMock:
     conn = MagicMock()
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
     return conn
 
 
@@ -211,7 +212,7 @@ async def test_import_csv_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_import_csv.__wrapped__(hass, conn, {
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": "object_name,task_name\n",
     })
@@ -233,7 +234,7 @@ async def test_import_csv_valid(
         "Test Pump,Filter Clean,cleaning,time_based,30,7\n"
     )
 
-    await ws_import_csv.__wrapped__(hass, conn, {
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv,
     })
@@ -260,7 +261,7 @@ async def test_import_csv_multiple_objects(
         "Pump B,Filter Clean,cleaning,time_based,30,7\n"
     )
 
-    await ws_import_csv.__wrapped__(hass, conn, {
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv,
     })

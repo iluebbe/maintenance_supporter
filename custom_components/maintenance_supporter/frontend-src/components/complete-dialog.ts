@@ -23,6 +23,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _feedback: string = "needed";
 
   public open(): void {
+    if (this._open) return;
     this._open = true;
     this._notes = "";
     this._cost = "";
@@ -54,8 +55,14 @@ export class MaintenanceCompleteDialog extends LitElement {
         task_id: this.taskId,
       };
       if (this._notes) data.notes = this._notes;
-      if (this._cost) data.cost = parseFloat(this._cost);
-      if (this._duration) data.duration = parseInt(this._duration, 10);
+      if (this._cost) {
+        const cost = parseFloat(this._cost);
+        if (!isNaN(cost) && cost >= 0) data.cost = cost;
+      }
+      if (this._duration) {
+        const dur = parseInt(this._duration, 10);
+        if (!isNaN(dur) && dur >= 0) data.duration = dur;
+      }
       if (this.checklist.length > 0) {
         data.checklist_state = this._checklistState;
       }

@@ -35,6 +35,7 @@ def _mock_connection() -> MagicMock:
     conn = MagicMock()
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
     return conn
 
 
@@ -183,7 +184,7 @@ async def test_ws_assign_user(
     hass.auth.async_get_user = AsyncMock(return_value=_mock_user("user1"))
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__(hass, conn, {
+    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -206,7 +207,7 @@ async def test_ws_assign_user_unassign(
     await setup_integration(hass, global_entry, assigned_object_entry)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__(hass, conn, {
+    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": assigned_object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -225,7 +226,7 @@ async def test_ws_assign_user_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__(hass, conn, {
+    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -242,7 +243,7 @@ async def test_ws_assign_user_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__(hass, conn, {
+    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
@@ -260,7 +261,7 @@ async def test_ws_assign_user_invalid(
     hass.auth.async_get_user = AsyncMock(return_value=None)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__(hass, conn, {
+    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,

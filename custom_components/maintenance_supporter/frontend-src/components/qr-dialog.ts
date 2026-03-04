@@ -1,4 +1,8 @@
-/** Dialog for generating, printing, and downloading QR codes. */
+/** Dialog for generating, printing, and downloading QR codes.
+ *
+ * For tasks: shows two QR codes side-by-side — "Info" (ℹ) and "Complete" (✓)
+ * with embedded icons. For objects: shows a single "Info" QR.
+ */
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
@@ -33,8 +37,9 @@ export class MaintenanceQrDialog extends LitElement {
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
-  @state() private _result: QrResult | null = null;
-  @state() private _action: "view" | "complete" = "view";
+  @state() private _viewResult: QrResult | null = null;
+  @state() private _completeResult: QrResult | null = null;
+  @state() private _urlMode: "companion" | "local" | "server" = "companion";
 
   private _entryId = "";
   private _taskId: string | null = null;
@@ -47,9 +52,10 @@ export class MaintenanceQrDialog extends LitElement {
     this._taskId = null;
     this._objectName = objectName;
     this._taskName = "";
-    this._action = "view";
+    this._urlMode = "companion";
     this._error = "";
-    this._result = null;
+    this._viewResult = null;
+    this._completeResult = null;
     this._open = true;
     this._generate();
   }
@@ -64,9 +70,10 @@ export class MaintenanceQrDialog extends LitElement {
     this._taskId = taskId;
     this._objectName = objectName;
     this._taskName = taskName;
-    this._action = "view";
+    this._urlMode = "companion";
     this._error = "";
-    this._result = null;
+    this._viewResult = null;
+    this._completeResult = null;
     this._open = true;
     this._generate();
   }
@@ -75,19 +82,35 @@ export class MaintenanceQrDialog extends LitElement {
     const seq = ++this._generateSeq;
     this._loading = true;
     this._error = "";
+    this._viewResult = null;
+    this._completeResult = null;
     try {
-      const data: Record<string, unknown> = {
+      const base: Record<string, unknown> = {
         type: "maintenance_supporter/qr/generate",
         entry_id: this._entryId,
-        action: this._action,
+        url_mode: this._urlMode,
       };
-      if (this._taskId) data.task_id = this._taskId;
-      const res = (await this.hass.connection.sendMessagePromise(data)) as QrResult;
-      if (seq !== this._generateSeq) return; // stale response from previous request
-      this._result = res;
+      if (this._taskId) base.task_id = this._taskId;
+
+      // Always request "view" QR; also request "complete" if this is a task
+      const promises: Promise<unknown>[] = [
+        this.hass.connection.sendMessagePromise({ ...base, action: "view" }),
+      ];
+      if (this._taskId) {
+        promises.push(
+          this.hass.connection.sendMessagePromise({ ...base, action: "complete" }),
+        );
+      }
+
+      const results = await Promise.all(promises);
+      if (seq !== this._generateSeq) return;
+
+      this._viewResult = results[0] as QrResult;
+      if (results.length > 1) {
+        this._completeResult = results[1] as QrResult;
+      }
     } catch (err: unknown) {
       if (seq !== this._generateSeq) return;
-      // HA WS rejects with {code, message} plain object, not Error
       const code = (err as Record<string, unknown>)?.code;
       const msg = (err as Record<string, unknown>)?.message;
       this._error = code === "no_url" || (typeof msg === "string" && msg.includes("No Home Assistant URL"))
@@ -98,49 +121,64 @@ export class MaintenanceQrDialog extends LitElement {
     }
   }
 
-  private _setAction(action: "view" | "complete"): void {
-    if (this._action === action) return;
-    this._action = action;
+  private _setUrlMode(mode: "companion" | "local" | "server"): void {
+    if (this._urlMode === mode) return;
+    this._urlMode = mode;
     this._generate();
   }
 
   private _print(): void {
-    if (!this._result) return;
-    const r = this._result;
+    if (!this._viewResult) return;
+    const r = this._viewResult;
     const title = r.label.task_name
       ? `${r.label.object_name} — ${r.label.task_name}`
       : r.label.object_name;
     const subtitle = [r.label.manufacturer, r.label.model]
       .filter(Boolean)
       .join(" ");
-    const w = window.open("", "_blank", "width=400,height=500");
+    const w = window.open("", "_blank", "width=600,height=500");
     if (!w) return;
+    const L = this.lang || "de";
     const safeTitle = escapeHtml(title);
     const safeSub = escapeHtml(subtitle);
-    const safeUrl = escapeHtml(r.url);
+
+    const hasComplete = !!this._completeResult;
+    const viewLabel = escapeHtml(t("qr_action_view", L));
+    const completeLabel = escapeHtml(t("qr_action_complete", L));
+
     w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>${safeTitle}</title>
 <style>
   body{font-family:sans-serif;text-align:center;padding:20px}
   h2{margin:0 0 4px}
   .sub{color:#666;font-size:14px;margin-bottom:16px}
-  img{max-width:280px;width:100%}
-  .url{font-size:11px;color:#999;word-break:break-all;margin-top:12px}
+  .qr-row{display:flex;justify-content:center;gap:24px;margin:12px 0}
+  .qr-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .qr-col img{width:${hasComplete ? "200px" : "280px"}}
+  .qr-label{font-size:13px;font-weight:500;color:#333}
+  .url{font-size:10px;color:#999;word-break:break-all;margin-top:8px;max-width:480px}
 </style></head><body>
 <h2>${safeTitle}</h2>
 ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
-<img src="${r.svg_data_uri}" alt="QR Code" />
-<div class="url">${safeUrl}</div>
+<div class="qr-row">
+  <div class="qr-col">
+    <img src="${this._viewResult.svg_data_uri}" alt="QR Info" />
+    <div class="qr-label">${viewLabel}</div>
+  </div>
+  ${hasComplete ? `<div class="qr-col">
+    <img src="${this._completeResult!.svg_data_uri}" alt="QR Complete" />
+    <div class="qr-label">${completeLabel}</div>
+  </div>` : ""}
+</div>
+<div class="url">${escapeHtml(this._viewResult.url)}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
 </body></html>`);
     w.document.close();
   }
 
-  private _download(): void {
-    if (!this._result) return;
-    // Decode the data URI back to raw SVG for download
+  private _downloadSvg(result: QrResult, suffix: string): void {
     const svgContent = decodeURIComponent(
-      this._result.svg_data_uri.replace("data:image/svg+xml,", ""),
+      result.svg_data_uri.replace("data:image/svg+xml,", ""),
     );
     const blob = new Blob([svgContent], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
@@ -149,13 +187,17 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
     const name = this._taskName
       ? `${this._objectName}-${this._taskName}`
       : this._objectName;
-    a.download = `qr-${sanitizeFilename(name)}.svg`;
+    a.download = `qr-${sanitizeFilename(name)}-${suffix}.svg`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
   private _close(): void {
     this._open = false;
+    this._viewResult = null;
+    this._completeResult = null;
+    this._error = "";
+    this._loading = false;
   }
 
   render() {
@@ -164,6 +206,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
     const heading = this._taskName
       ? `${t("qr_code", L)}: ${this._objectName} — ${this._taskName}`
       : `${t("qr_code", L)}: ${this._objectName}`;
+    const hasResults = !!this._viewResult;
     return html`
       <ha-dialog open @closed=${this._close} .heading=${heading}>
         <div class="content">
@@ -171,44 +214,56 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
             ? html`<div class="loading">${t("qr_generating", L)}</div>`
             : this._error
               ? html`<div class="error">${this._error}</div>`
-              : this._result
+              : hasResults
                 ? html`
-                    <img
-                      class="qr-image"
-                      src="${this._result.svg_data_uri}"
-                      alt="QR Code"
-                    />
-                    <div class="url-display">${this._result.url}</div>
+                    <div class="qr-pair">
+                      <div class="qr-item">
+                        <img
+                          class="qr-image ${this._completeResult ? "small" : ""}"
+                          src="${this._viewResult!.svg_data_uri}"
+                          alt="QR Info"
+                        />
+                        <div class="qr-item-label">${t("qr_action_view", L)}</div>
+                        <button class="dl-btn" title="${t("qr_download", L)}"
+                          @click=${() => this._downloadSvg(this._viewResult!, "info")}>⬇</button>
+                      </div>
+                      ${this._completeResult
+                        ? html`
+                            <div class="qr-item">
+                              <img
+                                class="qr-image small"
+                                src="${this._completeResult.svg_data_uri}"
+                                alt="QR Complete"
+                              />
+                              <div class="qr-item-label">${t("qr_action_complete", L)}</div>
+                              <button class="dl-btn" title="${t("qr_download", L)}"
+                                @click=${() => this._downloadSvg(this._completeResult!, "complete")}>⬇</button>
+                            </div>
+                          `
+                        : nothing}
+                    </div>
+                    <div class="url-display">${this._viewResult!.url}</div>
                   `
                 : nothing}
-          ${this._taskId
-            ? html`
-                <div class="action-row">
-                  <label>${t("qr_action", L)}</label>
-                  <div class="action-toggle">
-                    <button class="toggle-btn ${this._action === "view" ? "active" : ""}"
-                      @click=${() => this._setAction("view")}>${t("qr_action_view", L)}</button>
-                    <button class="toggle-btn ${this._action === "complete" ? "active" : ""}"
-                      @click=${() => this._setAction("complete")}>${t("qr_action_complete", L)}</button>
-                  </div>
-                </div>
-              `
-            : nothing}
+          <div class="action-row">
+            <label>${t("qr_url_mode", L)}</label>
+            <div class="action-toggle">
+              <button class="toggle-btn ${this._urlMode === "companion" ? "active" : ""}"
+                @click=${() => this._setUrlMode("companion")}>${t("qr_mode_companion", L)}</button>
+              <button class="toggle-btn ${this._urlMode === "local" ? "active" : ""}"
+                @click=${() => this._setUrlMode("local")}>${t("qr_mode_local", L)}</button>
+              <button class="toggle-btn ${this._urlMode === "server" ? "active" : ""}"
+                @click=${() => this._setUrlMode("server")}>${t("qr_mode_server", L)}</button>
+            </div>
+          </div>
         </div>
         <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>
           ${t("cancel", L)}
         </ha-button>
         <ha-button
           slot="primaryAction"
-          @click=${this._download}
-          .disabled=${!this._result}
-        >
-          ${t("qr_download", L)}
-        </ha-button>
-        <ha-button
-          slot="primaryAction"
           @click=${this._print}
-          .disabled=${!this._result}
+          .disabled=${!hasResults}
         >
           ${t("qr_print", L)}
         </ha-button>
@@ -224,17 +279,54 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
       gap: 16px;
       min-width: 300px;
     }
+    .qr-pair {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      width: 100%;
+    }
+    .qr-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
     .qr-image {
       width: 240px;
       height: 240px;
       image-rendering: pixelated;
+    }
+    .qr-image.small {
+      width: 180px;
+      height: 180px;
+    }
+    .qr-item-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--secondary-text-color);
+      text-align: center;
+    }
+    .dl-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--secondary-text-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .dl-btn:hover {
+      opacity: 1;
+      background: var(--secondary-background-color, #f5f5f5);
     }
     .url-display {
       font-size: 11px;
       color: var(--secondary-text-color);
       word-break: break-all;
       text-align: center;
-      max-width: 280px;
+      max-width: 400px;
     }
     .loading {
       padding: 40px 0;

@@ -115,6 +115,7 @@ def _build_task_summary(
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
         "responsible_user_id": task_data.get("responsible_user_id"),
+        "entity_slug": task_data.get("entity_slug"),
         "trigger_config": trigger_config,
         "trigger_entity_info": trigger_entity_info,
         "trigger_entity_infos": trigger_entity_infos,

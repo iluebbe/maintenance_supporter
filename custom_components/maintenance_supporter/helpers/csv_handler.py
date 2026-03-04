@@ -160,7 +160,10 @@ def import_objects_csv(
             task_data["enabled"] = False
         doc_url = (row.get("documentation_url") or "").strip()
         if doc_url:
-            task_data["documentation_url"] = doc_url
+            from urllib.parse import urlparse  # noqa: PLC0415
+            scheme = urlparse(doc_url).scheme.lower()
+            if scheme in ("", "http", "https"):
+                task_data["documentation_url"] = doc_url
         custom_icon = (row.get("custom_icon") or "").strip()
         if custom_icon:
             task_data["custom_icon"] = custom_icon

@@ -92,7 +92,7 @@ async def test_old_status_correct_on_first_transition(
     global_entry: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
-    """Test that old_status is None on first notification (never seen before)."""
+    """Test first notification sends correctly (task never seen before)."""
     await setup_integration(hass, global_entry, object_entry)
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
@@ -116,10 +116,9 @@ async def test_old_status_correct_on_first_transition(
             }
         })
 
-    # old_status should be None (first time seeing this task)
+    # Notification should have been sent
     mock_notify.assert_called_once()
     call_kwargs = mock_notify.call_args.kwargs
-    assert call_kwargs["old_status"] is None
     assert call_kwargs["new_status"] == MaintenanceStatus.DUE_SOON
 
 
@@ -128,10 +127,10 @@ async def test_old_status_correct_on_second_transition(
     global_entry: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
-    """Test that old_status reflects the actual previous status, not the new one.
+    """Test that _previous_statuses is updated correctly after notification.
 
-    This is the core regression test: before the fix, old_status would always
-    equal new_status because _previous_statuses was updated before being read.
+    Regression test: _previous_statuses must be updated AFTER the notification
+    is sent, not before.
     """
     await setup_integration(hass, global_entry, object_entry)
 
@@ -155,10 +154,9 @@ async def test_old_status_correct_on_second_transition(
             }
         })
 
-    # old_status should be "ok", NOT "due_soon"
+    # Notification should have been sent with the correct new_status
     mock_notify.assert_called_once()
     call_kwargs = mock_notify.call_args.kwargs
-    assert call_kwargs["old_status"] == MaintenanceStatus.OK
     assert call_kwargs["new_status"] == MaintenanceStatus.DUE_SOON
 
     # After notification, _previous_statuses should be updated
@@ -170,7 +168,7 @@ async def test_old_status_due_soon_to_overdue(
     global_entry: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
-    """Test due_soon -> overdue transition reports correct old_status."""
+    """Test due_soon -> overdue transition sends overdue notification."""
     await setup_integration(hass, global_entry, object_entry)
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
@@ -194,8 +192,10 @@ async def test_old_status_due_soon_to_overdue(
 
     mock_notify.assert_called_once()
     call_kwargs = mock_notify.call_args.kwargs
-    assert call_kwargs["old_status"] == MaintenanceStatus.DUE_SOON
     assert call_kwargs["new_status"] == MaintenanceStatus.OVERDUE
+
+    # _previous_statuses should be updated after notification
+    assert coordinator._previous_statuses[TASK_ID_1] == MaintenanceStatus.OVERDUE
 
 
 async def test_previous_statuses_updated_when_no_notifiable(

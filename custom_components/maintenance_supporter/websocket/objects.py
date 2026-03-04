@@ -79,6 +79,7 @@ async def ws_get_object(
         vol.Optional("dry_run", default=False): bool,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_create_object(
     hass: HomeAssistant,
@@ -130,6 +131,7 @@ async def ws_create_object(
         vol.Optional("installation_date"): vol.Any(str, None),
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_update_object(
     hass: HomeAssistant,
@@ -169,6 +171,7 @@ async def ws_update_object(
         vol.Required("entry_id"): str,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_delete_object(
     hass: HomeAssistant,

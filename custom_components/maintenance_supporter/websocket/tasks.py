@@ -23,6 +23,25 @@ from . import _get_merged_tasks, _get_object_entries, _get_runtime_data
 
 
 # ---------------------------------------------------------------------------
+# Validation helpers
+# ---------------------------------------------------------------------------
+
+_SAFE_URL_SCHEMES = {"http", "https", ""}
+
+
+def _is_safe_url(url: str | None) -> bool:
+    """Reject javascript:, data:, and other dangerous URL schemes."""
+    if not url:
+        return True
+    try:
+        from urllib.parse import urlparse  # noqa: PLC0415
+        scheme = urlparse(url).scheme.lower()
+        return scheme in _SAFE_URL_SCHEMES
+    except Exception:
+        return False
+
+
+# ---------------------------------------------------------------------------
 # NFC tag uniqueness check
 # ---------------------------------------------------------------------------
 
@@ -216,6 +235,7 @@ def _validate_compound_trigger(
         vol.Optional("dry_run", default=False): bool,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_create_task(
     hass: HomeAssistant,
@@ -269,6 +289,9 @@ async def ws_create_task(
     if msg.get("notes") is not None:
         task_data["notes"] = msg["notes"]
     if msg.get("documentation_url") is not None:
+        if not _is_safe_url(msg["documentation_url"]):
+            connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+            return
         task_data["documentation_url"] = msg["documentation_url"]
     if msg.get("responsible_user_id") is not None:
         task_data["responsible_user_id"] = msg["responsible_user_id"]
@@ -358,6 +381,7 @@ async def ws_create_task(
         vol.Optional("nfc_tag_id"): vol.Any(str, None),
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_update_task(
     hass: HomeAssistant,
@@ -407,6 +431,11 @@ async def ws_update_task(
         if nfc_warn:
             tc_warnings.append(nfc_warn)
 
+    # Validate documentation_url if provided
+    if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):
+        connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+        return
+
     # Update provided fields
     field_map = {
         "name": "name",
@@ -448,6 +477,7 @@ async def ws_update_task(
         vol.Required("task_id"): str,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_delete_task(
     hass: HomeAssistant,
@@ -484,6 +514,11 @@ async def ws_delete_task(
     if store is not None:
         store.remove_task(task_id)
         await store.async_save()
+
+    # Clean up notification state for deleted task
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    if nm is not None:
+        nm.clear_task_state(entry.entry_id, task_id)
 
     # Reload to remove entity
     await hass.config_entries.async_reload(entry.entry_id)

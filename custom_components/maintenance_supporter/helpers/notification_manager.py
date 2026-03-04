@@ -20,8 +20,6 @@ from ..const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
-    CONF_NOTIFICATION_BUNDLING_ENABLED,
-    CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
@@ -281,8 +279,8 @@ class NotificationManager:
         """Check if current time is in quiet hours."""
         options = self._global_options
 
-        # Quiet hours are opt-in (default: disabled)
-        if not options.get(CONF_QUIET_HOURS_ENABLED, False):
+        # Quiet hours default: enabled (matches config flow)
+        if not options.get(CONF_QUIET_HOURS_ENABLED, True):
             return False
 
         start_str = options.get(CONF_QUIET_HOURS_START, "22:00")
@@ -349,11 +347,9 @@ class NotificationManager:
         task_id: str,
         task_name: str,
         object_name: str,
-        old_status: str | None,
         new_status: str,
         days_until_due: int | None = None,
         next_due: str | None = None,
-        entity_id: str | None = None,
         responsible_user_id: str | None = None,
     ) -> None:
         """Handle status change / repeat check and send notification if appropriate."""

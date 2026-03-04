@@ -13,6 +13,8 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _name = "";
   @state() private _manufacturer = "";
   @state() private _model = "";
+  @state() private _areaId = "";
+  @state() private _installationDate = "";
   @state() private _entryId: string | null = null; // null = create, string = update
 
   private get _lang(): string {
@@ -24,6 +26,8 @@ export class MaintenanceObjectDialog extends LitElement {
     this._name = "";
     this._manufacturer = "";
     this._model = "";
+    this._areaId = "";
+    this._installationDate = "";
     this._error = "";
     this._open = true;
   }
@@ -33,6 +37,8 @@ export class MaintenanceObjectDialog extends LitElement {
     this._name = obj.name || "";
     this._manufacturer = obj.manufacturer || "";
     this._model = obj.model || "";
+    this._areaId = obj.area_id || "";
+    this._installationDate = obj.installation_date || "";
     this._error = "";
     this._open = true;
   }
@@ -49,6 +55,8 @@ export class MaintenanceObjectDialog extends LitElement {
           name: this._name,
           manufacturer: this._manufacturer || null,
           model: this._model || null,
+          area_id: this._areaId || null,
+          installation_date: this._installationDate || null,
         });
       } else {
         await this.hass.connection.sendMessagePromise({
@@ -56,6 +64,8 @@ export class MaintenanceObjectDialog extends LitElement {
           name: this._name,
           manufacturer: this._manufacturer || null,
           model: this._model || null,
+          area_id: this._areaId || null,
+          installation_date: this._installationDate || null,
         });
       }
       this._open = false;
@@ -94,6 +104,17 @@ export class MaintenanceObjectDialog extends LitElement {
             label="${t("model_optional", L)}"
             .value=${this._model}
             @input=${(e: Event) => (this._model = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
+            label="${t("area_id_optional", L)}"
+            .value=${this._areaId}
+            @input=${(e: Event) => (this._areaId = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
+            label="${t("installation_date_optional", L)}"
+            type="date"
+            .value=${this._installationDate}
+            @input=${(e: Event) => (this._installationDate = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
         </div>
         <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>

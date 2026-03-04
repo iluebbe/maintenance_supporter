@@ -102,7 +102,6 @@ async def test_notification_sent_on_status_change(
             task_id="test_task",
             task_name="Filter Cleaning",
             object_name="Pool Pump",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
             days_until_due=3,
             next_due="2024-12-15",
@@ -136,7 +135,6 @@ async def test_notification_sent_for_overdue(
             task_id="test_task",
             task_name="Oil Change",
             object_name="Car",
-            old_status=MaintenanceStatus.DUE_SOON,
             new_status=MaintenanceStatus.OVERDUE,
             days_until_due=-5,
         )
@@ -164,7 +162,6 @@ async def test_notification_sent_for_triggered(
             task_id="test_task",
             task_name="Pressure Check",
             object_name="Pool Pump",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.TRIGGERED,
         )
 
@@ -195,7 +192,6 @@ async def test_no_notification_when_disabled(
             task_id="test_task",
             task_name="Test",
             object_name="Test Object",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -221,7 +217,6 @@ async def test_no_notification_for_ok_status(
             task_id="test_task",
             task_name="Test",
             object_name="Test Object",
-            old_status=MaintenanceStatus.DUE_SOON,
             new_status=MaintenanceStatus.OK,
         )
 
@@ -252,7 +247,6 @@ async def test_no_notification_during_quiet_hours(
                 task_id="test_task",
                 task_name="Test",
                 object_name="Test Object",
-                old_status=MaintenanceStatus.OK,
                 new_status=MaintenanceStatus.DUE_SOON,
             )
 
@@ -282,7 +276,6 @@ async def test_rate_limiting(
             task_id="test_task",
             task_name="Test",
             object_name="Object",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -293,7 +286,6 @@ async def test_rate_limiting(
             task_id="test_task",
             task_name="Test",
             object_name="Object",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
         # Should still be 1 (rate limited)
@@ -343,7 +335,6 @@ async def test_snooze_suppresses_notification(
             task_id="test_task",
             task_name="Snoozed Task",
             object_name="Object",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -376,7 +367,6 @@ async def test_snooze_expired_allows_notification(
             task_id="test_task",
             task_name="Expired Snooze",
             object_name="Object",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -438,7 +428,6 @@ async def test_daily_limit_blocks(
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Task 1", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -447,7 +436,6 @@ async def test_daily_limit_blocks(
         await nm.async_task_status_changed(
             entry_id="e2", task_id="t2",
             task_name="Task 2", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.OVERDUE,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -475,7 +463,6 @@ async def test_daily_limit_resets_new_day(
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="New Day", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -533,7 +520,6 @@ async def test_due_soon_disabled(hass: HomeAssistant) -> None:
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Task", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -555,7 +541,6 @@ async def test_overdue_disabled(hass: HomeAssistant) -> None:
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Task", object_name="Obj",
-            old_status=MaintenanceStatus.DUE_SOON,
             new_status=MaintenanceStatus.OVERDUE,
         )
 
@@ -584,7 +569,6 @@ async def test_interval_zero_sends_once(
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Once Only", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -593,7 +577,6 @@ async def test_interval_zero_sends_once(
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Once Only", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -784,7 +767,6 @@ async def test_action_buttons_included(hass: HomeAssistant) -> None:
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Filter", object_name="Pump",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
             days_until_due=3,
         )
@@ -825,7 +807,6 @@ async def test_user_targeted_notification(
             await nm.async_task_status_changed(
                 entry_id="e1", task_id="t1",
                 task_name="User Task", object_name="Obj",
-                old_status=MaintenanceStatus.OK,
                 new_status=MaintenanceStatus.DUE_SOON,
                 responsible_user_id="user123",
             )
@@ -857,7 +838,6 @@ async def test_user_fallback_to_global(
             await nm.async_task_status_changed(
                 entry_id="e1", task_id="t1",
                 task_name="Fallback", object_name="Obj",
-                old_status=MaintenanceStatus.OK,
                 new_status=MaintenanceStatus.DUE_SOON,
                 responsible_user_id="user123",
             )
@@ -967,7 +947,6 @@ async def test_service_failure_handled(
         await nm.async_task_status_changed(
             entry_id="e1", task_id="t1",
             task_name="Failing", object_name="Obj",
-            old_status=MaintenanceStatus.OK,
             new_status=MaintenanceStatus.DUE_SOON,
         )
 

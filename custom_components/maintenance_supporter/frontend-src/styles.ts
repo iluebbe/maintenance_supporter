@@ -215,6 +215,10 @@ const DE: Translations = {
   qr_action: "Aktion beim Scannen",
   qr_action_view: "Wartungsinfo anzeigen",
   qr_action_complete: "Wartung als erledigt markieren",
+  qr_url_mode: "Link-Typ",
+  qr_mode_companion: "Companion App",
+  qr_mode_local: "Lokal (mDNS)",
+  qr_mode_server: "Server-URL",
   // Dashboard redesign
   overview: "Übersicht",
   analysis: "Analyse",
@@ -240,6 +244,16 @@ const DE: Translations = {
   card_compact: "Kompaktmodus",
   card_max_items: "Max. Einträge (0 = alle)",
   import_result: "{created} von {total} Objekten importiert.",
+  // Consistency audit additions
+  action_error: "Aktion fehlgeschlagen. Bitte erneut versuchen.",
+  area_id_optional: "Bereich (optional)",
+  installation_date_optional: "Installationsdatum (optional)",
+  custom_icon_optional: "Icon (optional, z.B. mdi:wrench)",
+  task_enabled: "Aufgabe aktiviert",
+  skip_reason_prompt: "Aufgabe überspringen?",
+  reason_optional: "Grund (optional)",
+  reset_date_prompt: "Aufgabe zurücksetzen?",
+  reset_date_optional: "Neues Datum (optional)",
 };
 
 const EN: Translations = {
@@ -423,6 +437,10 @@ const EN: Translations = {
   qr_action: "Action on scan",
   qr_action_view: "View maintenance info",
   qr_action_complete: "Mark maintenance as complete",
+  qr_url_mode: "Link type",
+  qr_mode_companion: "Companion App",
+  qr_mode_local: "Local (mDNS)",
+  qr_mode_server: "Server URL",
   // Dashboard redesign
   overview: "Overview",
   analysis: "Analysis",
@@ -448,6 +466,16 @@ const EN: Translations = {
   card_compact: "Compact mode",
   card_max_items: "Max items (0 = all)",
   import_result: "Imported {created} of {total} objects.",
+  // Consistency audit additions
+  action_error: "Action failed. Please try again.",
+  area_id_optional: "Area (optional)",
+  installation_date_optional: "Installation date (optional)",
+  custom_icon_optional: "Icon (optional, e.g. mdi:wrench)",
+  task_enabled: "Task enabled",
+  skip_reason_prompt: "Skip this task?",
+  reason_optional: "Reason (optional)",
+  reset_date_prompt: "Reset this task?",
+  reset_date_optional: "New date (optional)",
 };
 
 const NL: Translations = {
@@ -622,6 +650,10 @@ const NL: Translations = {
   qr_action: "Actie bij scannen",
   qr_action_view: "Onderhoudsinfo bekijken",
   qr_action_complete: "Onderhoud als voltooid markeren",
+  qr_url_mode: "Linktype",
+  qr_mode_companion: "Companion App",
+  qr_mode_local: "Lokaal (mDNS)",
+  qr_mode_server: "Server-URL",
   overview: "Overzicht",
   analysis: "Analyse",
   recent_activities: "Recente activiteiten",
@@ -646,6 +678,15 @@ const NL: Translations = {
   card_compact: "Compacte modus",
   card_max_items: "Max items (0 = alle)",
   import_result: "{created} van {total} objecten geïmporteerd.",
+  action_error: "Actie mislukt. Probeer het opnieuw.",
+  area_id_optional: "Gebied (optioneel)",
+  installation_date_optional: "Installatiedatum (optioneel)",
+  custom_icon_optional: "Icoon (optioneel, bijv. mdi:wrench)",
+  task_enabled: "Taak ingeschakeld",
+  skip_reason_prompt: "Deze taak overslaan?",
+  reason_optional: "Reden (optioneel)",
+  reset_date_prompt: "Deze taak resetten?",
+  reset_date_optional: "Nieuwe datum (optioneel)",
 };
 
 const FR: Translations = {
@@ -820,6 +861,10 @@ const FR: Translations = {
   qr_action: "Action au scan",
   qr_action_view: "Afficher les infos de maintenance",
   qr_action_complete: "Marquer la maintenance comme termin\u00E9e",
+  qr_url_mode: "Type de lien",
+  qr_mode_companion: "Companion App",
+  qr_mode_local: "Local (mDNS)",
+  qr_mode_server: "URL serveur",
   overview: "Aper\u00E7u",
   analysis: "Analyse",
   recent_activities: "Activit\u00E9s r\u00E9centes",
@@ -844,6 +889,15 @@ const FR: Translations = {
   card_compact: "Mode compact",
   card_max_items: "Nombre max (0 = tous)",
   import_result: "{created} sur {total} objets importés.",
+  action_error: "Action échouée. Veuillez réessayer.",
+  area_id_optional: "Zone (optionnel)",
+  installation_date_optional: "Date d'installation (optionnel)",
+  custom_icon_optional: "Icône (optionnel, ex. mdi:wrench)",
+  task_enabled: "Tâche activée",
+  skip_reason_prompt: "Ignorer cette tâche ?",
+  reason_optional: "Raison (optionnel)",
+  reset_date_prompt: "Réinitialiser cette tâche ?",
+  reset_date_optional: "Nouvelle date (optionnel)",
 };
 
 const IT: Translations = {
@@ -1018,6 +1072,10 @@ const IT: Translations = {
   qr_action: "Azione alla scansione",
   qr_action_view: "Visualizza info manutenzione",
   qr_action_complete: "Segna manutenzione come completata",
+  qr_url_mode: "Tipo di link",
+  qr_mode_companion: "Companion App",
+  qr_mode_local: "Locale (mDNS)",
+  qr_mode_server: "URL server",
   overview: "Panoramica",
   analysis: "Analisi",
   recent_activities: "Attivit\u00E0 recenti",
@@ -1042,6 +1100,15 @@ const IT: Translations = {
   card_compact: "Modalit\u00E0 compatta",
   card_max_items: "Max elementi (0 = tutti)",
   import_result: "{created} di {total} oggetti importati.",
+  action_error: "Azione fallita. Riprova.",
+  area_id_optional: "Area (opzionale)",
+  installation_date_optional: "Data di installazione (opzionale)",
+  custom_icon_optional: "Icona (opzionale, es. mdi:wrench)",
+  task_enabled: "Attività abilitata",
+  skip_reason_prompt: "Saltare questa attività?",
+  reason_optional: "Motivo (opzionale)",
+  reset_date_prompt: "Reimpostare questa attività?",
+  reset_date_optional: "Nuova data (opzionale)",
 };
 
 const ES: Translations = {
@@ -1216,6 +1283,10 @@ const ES: Translations = {
   qr_action: "Acci\u00F3n al escanear",
   qr_action_view: "Ver info de mantenimiento",
   qr_action_complete: "Marcar mantenimiento como completado",
+  qr_url_mode: "Tipo de enlace",
+  qr_mode_companion: "Companion App",
+  qr_mode_local: "Local (mDNS)",
+  qr_mode_server: "URL del servidor",
   overview: "Resumen",
   analysis: "An\u00E1lisis",
   recent_activities: "Actividades recientes",
@@ -1240,6 +1311,15 @@ const ES: Translations = {
   card_compact: "Modo compacto",
   card_max_items: "M\u00E1x. elementos (0 = todos)",
   import_result: "{created} de {total} objetos importados.",
+  action_error: "Acción fallida. Inténtelo de nuevo.",
+  area_id_optional: "Área (opcional)",
+  installation_date_optional: "Fecha de instalación (opcional)",
+  custom_icon_optional: "Icono (opcional, ej. mdi:wrench)",
+  task_enabled: "Tarea habilitada",
+  skip_reason_prompt: "¿Omitir esta tarea?",
+  reason_optional: "Motivo (opcional)",
+  reset_date_prompt: "¿Restablecer esta tarea?",
+  reset_date_optional: "Nueva fecha (opcional)",
 };
 
 const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES };

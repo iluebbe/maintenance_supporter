@@ -49,6 +49,7 @@ async def ws_get_groups(
         ],
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_create_group(
     hass: HomeAssistant,
@@ -91,6 +92,7 @@ async def ws_create_group(
         ],
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_update_group(
     hass: HomeAssistant,
@@ -134,6 +136,7 @@ async def ws_update_group(
         vol.Required("group_id"): str,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_delete_group(
     hass: HomeAssistant,

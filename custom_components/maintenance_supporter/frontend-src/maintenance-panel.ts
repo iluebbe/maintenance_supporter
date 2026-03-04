@@ -65,6 +65,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false };
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
+  @state() private _toastMessage = "";
 
   // Dashboard redesign state
   @state() private _activeTab: "overview" | "history" = "overview";
@@ -357,6 +358,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  // --- Toast ---
+
+  private _showToast(msg: string): void {
+    this._toastMessage = msg;
+    setTimeout(() => { this._toastMessage = ""; }, 4000);
+  }
+
   // --- Actions ---
 
   private async _deleteObject(entryId: string): Promise<void> {
@@ -368,12 +376,16 @@ export class MaintenanceSupporterPanel extends LitElement {
       danger: true,
     });
     if (!ok) return;
-    await this.hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/object/delete",
-      entry_id: entryId,
-    });
-    this._showOverview();
-    await this._loadData();
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/object/delete",
+        entry_id: entryId,
+      });
+      this._showOverview();
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
   }
 
   private async _deleteTask(entryId: string, taskId: string): Promise<void> {
@@ -385,51 +397,95 @@ export class MaintenanceSupporterPanel extends LitElement {
       danger: true,
     });
     if (!ok) return;
-    await this.hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/task/delete",
-      entry_id: entryId,
-      task_id: taskId,
-    });
-    this._showObject(entryId);
-    await this._loadData();
-  }
-
-  private async _skipTask(entryId: string, taskId: string): Promise<void> {
-    this._actionLoading = true;
     try {
       await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/task/skip",
+        type: "maintenance_supporter/task/delete",
         entry_id: entryId,
         task_id: taskId,
       });
+      this._showObject(entryId);
       await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private async _skipTask(entryId: string, taskId: string, reason?: string): Promise<void> {
+    this._actionLoading = true;
+    try {
+      const msg: Record<string, unknown> = {
+        type: "maintenance_supporter/task/skip",
+        entry_id: entryId,
+        task_id: taskId,
+      };
+      if (reason) msg.reason = reason;
+      await this.hass.connection.sendMessagePromise(msg);
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
     } finally {
       this._actionLoading = false;
     }
   }
 
-  private async _resetTask(entryId: string, taskId: string): Promise<void> {
+  private async _resetTask(entryId: string, taskId: string, resetDate?: string): Promise<void> {
     this._actionLoading = true;
     try {
-      await this.hass.connection.sendMessagePromise({
+      const msg: Record<string, unknown> = {
         type: "maintenance_supporter/task/reset",
         entry_id: entryId,
         task_id: taskId,
-      });
+      };
+      if (resetDate) msg.reset_date = resetDate;
+      await this.hass.connection.sendMessagePromise(msg);
       await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
     } finally {
       this._actionLoading = false;
     }
   }
 
   private async _applySuggestion(entryId: string, taskId: string, interval: number): Promise<void> {
-    await this.hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/task/apply_suggestion",
-      entry_id: entryId,
-      task_id: taskId,
-      interval: interval,
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/apply_suggestion",
+        entry_id: entryId,
+        task_id: taskId,
+        interval: interval,
+      });
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private async _promptSkipTask(entryId: string, taskId: string): Promise<void> {
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    if (!dlg) return;
+    const result = await dlg.prompt({
+      title: t("skip", this._lang),
+      message: t("skip_reason_prompt", this._lang),
+      confirmText: t("skip", this._lang),
+      inputLabel: t("reason_optional", this._lang),
+      inputType: "text",
     });
-    await this._loadData();
+    if (!result.confirmed) return;
+    this._skipTask(entryId, taskId, result.value || undefined);
+  }
+
+  private async _promptResetTask(entryId: string, taskId: string): Promise<void> {
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    if (!dlg) return;
+    const result = await dlg.prompt({
+      title: t("reset", this._lang),
+      message: t("reset_date_prompt", this._lang),
+      confirmText: t("reset", this._lang),
+      inputLabel: t("reset_date_optional", this._lang),
+      inputType: "date",
+    });
+    if (!result.confirmed) return;
+    this._resetTask(entryId, taskId, result.value || undefined);
   }
 
   private _dismissSuggestion(): void {
@@ -461,18 +517,22 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private async _exportCsv(): Promise<void> {
-    const result = await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/csv/export" }) as { csv: string };
-    const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "maintenance_export.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const result = await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/csv/export" }) as { csv: string };
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "maintenance_export.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
   }
 
   private _triggerImportCsv(): void {
-    const input = this.shadowRoot!.querySelector("input[type=file]") as HTMLInputElement;
+    const input = this.shadowRoot?.querySelector("input[type=file]") as HTMLInputElement | null;
     if (input) { input.value = ""; input.click(); }
   }
 
@@ -480,22 +540,26 @@ export class MaintenanceSupporterPanel extends LitElement {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const text = await file.text();
-    const result = await this.hass.connection.sendMessagePromise({
-      type: "maintenance_supporter/csv/import",
-      csv_content: text,
-    }) as { created: number; total: number };
-    await this._loadData();
-    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
-    await dlg?.confirm({
-      title: "Import",
-      message: t("import_result", this._lang).replace("{created}", String(result.created)).replace("{total}", String(result.total)),
-      confirmText: "OK",
-    });
+    try {
+      const text = await file.text();
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/csv/import",
+        csv_content: text,
+      }) as { created: number; total: number };
+      await this._loadData();
+      const dlg = this.shadowRoot?.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+      await dlg?.confirm({
+        title: "Import",
+        message: t("import_result", this._lang).replace("{created}", String(result.created)).replace("{total}", String(result.total)),
+        confirmText: "OK",
+      });
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
   }
 
   private _onDialogEvent = async (): Promise<void> => {
-    await this._loadData();
+    try { await this._loadData(); } catch { /* subscription will sync */ }
   };
 
   // --- Render ---
@@ -531,6 +595,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <maintenance-confirm-dialog
         .hass=${this.hass}
       ></maintenance-confirm-dialog>
+      ${this._toastMessage ? html`<div class="toast">${this._toastMessage}</div>` : nothing}
     `;
   }
 
@@ -759,7 +824,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
             <ha-icon icon="mdi:check"></ha-icon>
           </mwc-icon-button>
-          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._skipTask(row.entry_id, row.task_id); }}>
+          <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(row.entry_id, row.task_id); }}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </mwc-icon-button>
         </span>
@@ -990,7 +1055,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
                     <ha-icon icon="mdi:check"></ha-icon>
                   </mwc-icon-button>
-                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._skipTask(obj.entry_id, task.id); }}>
+                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(obj.entry_id, task.id); }}>
                     <ha-icon icon="mdi:skip-next"></ha-icon>
                   </mwc-icon-button>
                 </span>
@@ -1024,13 +1089,13 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
-          <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._skipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
+          <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._promptSkipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
           <div class="more-menu-wrapper">
             <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${this._toggleMoreMenu}></ha-icon-button>
             ${this._moreMenuOpen ? html`
               <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
                 <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
-                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._resetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
+                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
                 <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</div>
                 <div class="popup-menu-divider"></div>
                 <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>

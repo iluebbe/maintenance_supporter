@@ -26,6 +26,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _warningDays = "7";
   @state() private _notes = "";
   @state() private _documentationUrl = "";
+  @state() private _customIcon = "";
+  @state() private _enabled = true;
 
   // Trigger fields
   @state() private _triggerEntityId = "";
@@ -75,6 +77,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._warningDays = task.warning_days.toString();
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
+    this._customIcon = task.custom_icon || "";
+    this._enabled = task.enabled !== false;
     this._nfcTagId = task.nfc_tag_id || "";
     this._responsibleUserId = task.responsible_user_id || null;
 
@@ -110,6 +114,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._warningDays = "7";
     this._notes = "";
     this._documentationUrl = "";
+    this._customIcon = "";
+    this._enabled = true;
     this._nfcTagId = "";
     this._responsibleUserId = null;
     this._resetTriggerFields();
@@ -168,6 +174,8 @@ export class MaintenanceTaskDialog extends LitElement {
 
       data.notes = this._notes || null;
       data.documentation_url = this._documentationUrl || null;
+      data.custom_icon = this._customIcon || null;
+      data.enabled = this._enabled;
       data.nfc_tag_id = this._nfcTagId || null;
       data.responsible_user_id = this._responsibleUserId;
 
@@ -431,10 +439,23 @@ export class MaintenanceTaskDialog extends LitElement {
             @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
           <ha-textfield
+            label="${t("custom_icon_optional", L)}"
+            .value=${this._customIcon}
+            @input=${(e: Event) => (this._customIcon = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
             label="${t("nfc_tag_id_optional", L)}"
             .value=${this._nfcTagId}
             @input=${(e: Event) => (this._nfcTagId = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
+          <label class="toggle-row">
+            <input
+              type="checkbox"
+              .checked=${this._enabled}
+              @change=${(e: Event) => (this._enabled = (e.target as HTMLInputElement).checked)}
+            />
+            ${t("task_enabled", L)}
+          </label>
         </div>
         <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
         <ha-button
@@ -485,6 +506,13 @@ export class MaintenanceTaskDialog extends LitElement {
     .error {
       color: var(--error-color, #f44336);
       font-size: 13px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      cursor: pointer;
     }
   `;
 }

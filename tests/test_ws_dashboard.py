@@ -56,6 +56,7 @@ def _mock_connection() -> MagicMock:
     conn.send_error = MagicMock()
     conn.send_message = MagicMock()
     conn.subscriptions = {}
+    conn.user = MagicMock(is_admin=True)
     return conn
 
 
@@ -461,7 +462,7 @@ async def test_update_global_settings(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -489,7 +490,7 @@ async def test_update_global_settings_filters_unknown_keys(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -510,7 +511,7 @@ async def test_update_global_settings_no_valid_keys(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {"bad_key": True},
@@ -527,7 +528,7 @@ async def test_update_global_settings_type_validation(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -550,7 +551,7 @@ async def test_update_global_settings_invalid_notify_service(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -567,7 +568,7 @@ async def test_update_global_settings_no_global_entry(
     """Error when global config entry doesn't exist."""
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {CONF_PANEL_ENABLED: True},
@@ -584,7 +585,7 @@ async def test_update_global_settings_int_for_float(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__(hass, conn, {
+    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {CONF_BUDGET_MONTHLY: 500},
@@ -604,7 +605,7 @@ async def test_test_notification_no_global_entry(
     """Error when global config entry doesn't exist."""
     conn = _mock_connection()
 
-    await ws_test_notification.__wrapped__(hass, conn, {
+    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 
@@ -619,7 +620,7 @@ async def test_test_notification_no_service(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_test_notification.__wrapped__(hass, conn, {
+    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 
@@ -651,7 +652,7 @@ async def test_test_notification_success(
     hass.services.async_register("notify", "test_device", mock_notify)
 
     conn = _mock_connection()
-    await ws_test_notification.__wrapped__(hass, conn, {
+    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 
@@ -682,7 +683,7 @@ async def test_test_notification_service_call_fails(
     hass.services.async_register("notify", "broken", failing_notify)
 
     conn = _mock_connection()
-    await ws_test_notification.__wrapped__(hass, conn, {
+    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 

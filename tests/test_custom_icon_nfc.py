@@ -282,6 +282,7 @@ def _mock_connection() -> MagicMock:
     conn = MagicMock()
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
     return conn
 
 
@@ -303,7 +304,7 @@ async def test_ws_create_task_with_icon_and_nfc(
         "nfc_tag_id": "nfc-tag-oil",
     }
 
-    await ws_create_task.__wrapped__(hass, conn, msg)
+    await ws_create_task.__wrapped__.__wrapped__(hass, conn, msg)
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     task_id = result["task_id"]
@@ -335,7 +336,7 @@ async def test_ws_update_task_icon_and_nfc(
         "nfc_tag_id": "nfc-filter-tag",
     }
 
-    await ws_update_task.__wrapped__(hass, conn, msg)
+    await ws_update_task.__wrapped__.__wrapped__(hass, conn, msg)
     conn.send_result.assert_called_once()
 
     # Verify updated fields
@@ -369,7 +370,7 @@ async def test_ws_update_task_clear_icon(
         "custom_icon": None,
     }
 
-    await ws_update_task.__wrapped__(hass, conn, msg)
+    await ws_update_task.__wrapped__.__wrapped__(hass, conn, msg)
     conn.send_result.assert_called_once()
 
     # Verify icon was cleared

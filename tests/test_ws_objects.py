@@ -42,6 +42,7 @@ def _mock_connection() -> MagicMock:
     conn = MagicMock()
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
     return conn
 
 
@@ -155,7 +156,7 @@ async def test_ws_create_object_basic(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__(hass, conn, {
+    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "New Object",
     })
@@ -172,7 +173,7 @@ async def test_ws_create_object_all_fields(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__(hass, conn, {
+    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "Full Object",
         "area_id": "garage",
@@ -190,7 +191,7 @@ async def test_ws_create_object_dry_run(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__(hass, conn, {
+    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "Dry Run Object",
         "dry_run": True,
@@ -211,7 +212,7 @@ async def test_ws_update_object_name(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__(hass, conn, {
+    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/update",
         "entry_id": object_entry.entry_id,
         "name": "Updated Pump",
@@ -230,7 +231,7 @@ async def test_ws_update_object_multiple(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__(hass, conn, {
+    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/update",
         "entry_id": object_entry.entry_id,
         "manufacturer": "Hayward",
@@ -253,7 +254,7 @@ async def test_ws_update_object_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__(hass, conn, {
+    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/update",
         "entry_id": "nonexistent",
         "name": "Test",
@@ -272,7 +273,7 @@ async def test_ws_delete_object(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_delete_object.__wrapped__(hass, conn, {
+    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/delete",
         "entry_id": object_entry.entry_id,
     })
@@ -288,7 +289,7 @@ async def test_ws_delete_object_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_delete_object.__wrapped__(hass, conn, {
+    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/delete",
         "entry_id": "nonexistent",
     })

@@ -91,6 +91,7 @@ async def ws_analyze_interval(
         vol.Required("interval"): int,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_apply_suggestion(
     hass: HomeAssistant,
@@ -118,6 +119,7 @@ async def ws_apply_suggestion(
         vol.Required("overrides"): dict,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_seasonal_overrides(
     hass: HomeAssistant,
@@ -206,6 +208,7 @@ async def ws_seasonal_overrides(
         vol.Optional("environmental_attribute"): vol.Any(str, None),
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_set_environmental_entity(
     hass: HomeAssistant,

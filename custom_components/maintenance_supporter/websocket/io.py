@@ -18,7 +18,11 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from ..helpers.qr_generator import build_qr_url, generate_qr_svg_data_uri
+from ..helpers.qr_generator import (
+    _ACTION_ICON_MAP,
+    build_qr_url,
+    generate_qr_svg_data_uri,
+)
 
 
 @websocket_api.websocket_command(
@@ -106,6 +110,7 @@ async def ws_export_csv(
         vol.Required("csv_content"): str,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_import_csv(
     hass: HomeAssistant,
@@ -115,7 +120,16 @@ async def ws_import_csv(
     """Import maintenance objects from CSV content."""
     from ..helpers.csv_handler import import_objects_csv  # noqa: PLC0415
 
-    objects = import_objects_csv(msg["csv_content"])
+    csv_content = msg["csv_content"]
+    # Guard against oversized payloads (max 1MB / 1000 objects)
+    if len(csv_content) > 1_048_576:
+        connection.send_error(msg["id"], "too_large", "CSV content exceeds 1MB limit")
+        return
+
+    objects = import_objects_csv(csv_content)
+    if len(objects) > 1000:
+        connection.send_error(msg["id"], "too_many", "CSV contains more than 1000 objects")
+        return
 
     if not objects:
         connection.send_error(msg["id"], "empty_csv", "No valid objects found in CSV")
@@ -150,6 +164,9 @@ async def ws_import_csv(
         vol.Required("entry_id"): str,
         vol.Optional("task_id"): str,
         vol.Optional("action", default="view"): vol.In(["view", "complete"]),
+        vol.Optional("url_mode", default="server"): vol.In(
+            ["server", "local", "companion"]
+        ),
         vol.Optional("base_url"): vol.Url(),
     }
 )
@@ -178,13 +195,21 @@ async def ws_generate_qr(
         task_name = tasks_data[task_id].get("name", "")
 
     action = msg.get("action", "view")
+    url_mode = msg.get("url_mode", "server")
     base_url = msg.get("base_url")
     try:
-        url = build_qr_url(hass, entry_id, task_id=task_id, action=action, base_url_override=base_url)
+        url = build_qr_url(
+            hass, entry_id, task_id=task_id, action=action,
+            base_url_override=base_url, url_mode=url_mode,
+        )
     except ValueError as err:
         connection.send_error(msg["id"], "no_url", str(err))
         return
-    svg_data_uri = await hass.async_add_executor_job(generate_qr_svg_data_uri, url, 2)
+    from functools import partial  # noqa: PLC0415
+
+    icon = _ACTION_ICON_MAP.get(action)
+    gen_fn = partial(generate_qr_svg_data_uri, url, border=2, icon=icon)
+    svg_data_uri = await hass.async_add_executor_job(gen_fn)
 
     connection.send_result(
         msg["id"],
