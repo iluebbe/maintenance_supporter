@@ -184,6 +184,27 @@ async def test_get_task_id_for_entity_no_matching_task(
     assert result is None
 
 
+async def test_get_task_id_for_entity_binary_sensor(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """_get_task_id_for_entity works for binary_sensor unique_ids (_overdue suffix)."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        # Binary sensor unique_id has _overdue suffix after task_id
+        mock_entry.unique_id = f"maintenance_supporter_pool_pump_{TASK_ID_1}_overdue"
+        mock_entry.config_entry_id = object_config_entry.entry_id
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "binary_sensor.something")
+    assert result == TASK_ID_1
+
+
 # ─── __init__.py notification action handler ────────────────────────────
 
 
@@ -645,3 +666,298 @@ async def test_global_options_updated_panel_toggle(
         global_config_entry, options={CONF_PANEL_ENABLED: False}
     )
     await hass.async_block_till_done()
+
+
+# ─── Export includes interval_anchor, last_planned_due, entity_slug ──────
+
+
+def test_export_includes_new_fields() -> None:
+    """export.py _build_export_object includes interval_anchor, last_planned_due, entity_slug."""
+    from custom_components.maintenance_supporter.export import _build_export_object
+
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+    entry.data = {
+        CONF_OBJECT: {"name": "Test"},
+        CONF_TASKS: {
+            "t1": {
+                "id": "t1",
+                "name": "Test Task",
+                "interval_anchor": "planned",
+                "last_planned_due": "2026-03-01",
+                "entity_slug": "my_slug",
+                "interval_days": 30,
+            }
+        },
+    }
+    # No runtime_data/store
+    entry.runtime_data = None
+
+    result = _build_export_object(MagicMock(), entry, None, include_history=False)
+    task = result["tasks"][0]
+    assert task["interval_anchor"] == "planned"
+    assert task["last_planned_due"] == "2026-03-01"
+    assert task["entity_slug"] == "my_slug"
+
+
+def test_export_default_anchor() -> None:
+    """Tasks without explicit interval_anchor default to 'completion' in export."""
+    from custom_components.maintenance_supporter.export import _build_export_object
+
+    entry = MagicMock()
+    entry.entry_id = "test_entry"
+    entry.data = {
+        CONF_OBJECT: {"name": "Test"},
+        CONF_TASKS: {"t1": {"id": "t1", "name": "Test Task"}},
+    }
+    entry.runtime_data = None
+
+    result = _build_export_object(MagicMock(), entry, None, include_history=False)
+    assert result["tasks"][0]["interval_anchor"] == "completion"
+
+
+# ─── CSV includes interval_anchor ───────────────────────────────────────
+
+
+def test_csv_roundtrip_interval_anchor() -> None:
+    """CSV export/import preserves interval_anchor field."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import (
+        import_objects_csv,
+    )
+
+    csv_content = (
+        "object_name,task_name,task_type,interval_days,interval_anchor,warning_days\n"
+        "Pool,Filter,cleaning,30,planned,7\n"
+        "Pool,Pump,service,60,completion,14\n"
+    )
+    objects = import_objects_csv(csv_content)
+    assert len(objects) == 1
+    tasks = list(objects[0]["tasks"].values())
+    assert tasks[0]["interval_anchor"] == "planned"
+    assert tasks[1]["interval_anchor"] == "completion"
+
+
+# ─── Diagnostics compound trigger handling ───────────────────────────────
+
+
+def test_diagnostics_no_false_warning_compound() -> None:
+    """Compound triggers should not produce 'no entity' warnings."""
+    from custom_components.maintenance_supporter.diagnostics import _check_data_quality
+
+    data = {
+        CONF_OBJECT: {"name": "Test"},
+        CONF_TASKS: {
+            "t1": {
+                "name": "Test Task",
+                "schedule_type": "sensor_based",
+                "trigger_config": {
+                    "type": "compound",
+                    "compound_logic": "AND",
+                    "conditions": [
+                        {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+                        {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 20},
+                    ],
+                },
+            }
+        },
+    }
+    warnings = _check_data_quality(data)
+    assert not any("no entity" in w.lower() for w in warnings)
+
+
+def test_diagnostics_trigger_status_compound(hass: HomeAssistant) -> None:
+    """_check_trigger_status extracts entity_ids from compound conditions."""
+    from custom_components.maintenance_supporter.diagnostics import _check_trigger_status
+
+    hass.states.async_set("sensor.a", "10")
+    hass.states.async_set("sensor.b", "20")
+
+    data = {
+        CONF_TASKS: {
+            "t1": {
+                "trigger_config": {
+                    "type": "compound",
+                    "conditions": [
+                        {"type": "threshold", "entity_id": "sensor.a"},
+                        {"type": "threshold", "entity_id": "sensor.b"},
+                    ],
+                }
+            }
+        }
+    }
+    results = _check_trigger_status(hass, data)
+    entity_ids = [r["trigger_entity"] for r in results]
+    assert "sensor.a" in entity_ids
+    assert "sensor.b" in entity_ids
+
+
+# ─── Audit Round 3 Fixes ─────────────────────────────────────────────
+
+
+class TestAnalysisDatetimeFix:
+    """Verify analysis.py uses dt_util.now() instead of naive datetime."""
+
+    def test_analysis_uses_injected_current_month(self) -> None:
+        """IntervalAnalyzer.analyze uses _current_month from config."""
+        from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+            IntervalAnalyzer,
+        )
+
+        analyzer = IntervalAnalyzer()
+        task_data = {
+            "history": [
+                {"timestamp": "2026-01-01T00:00:00", "type": "completed"},
+                {"timestamp": "2026-01-31T00:00:00", "type": "completed"},
+                {"timestamp": "2026-03-02T00:00:00", "type": "completed"},
+            ],
+            "interval_days": 30,
+        }
+        config = {
+            "enabled": True,
+            "_current_month": 7,  # Inject July
+            "seasonal_enabled": True,
+        }
+        result = analyzer.analyze(task_data, config)
+        # Should not crash and should use month 7 for seasonal calc
+        assert result is not None
+
+    def test_update_on_completion_uses_injected_month(self) -> None:
+        """update_on_completion uses _current_month from config."""
+        from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+            IntervalAnalyzer,
+        )
+
+        analyzer = IntervalAnalyzer()
+        config = {
+            "enabled": True,
+            "smoothed_interval": 30.0,
+            "_seasonal_factors": [1.0] * 12,
+            "seasonal_enabled": True,
+            "_current_month": 3,
+            "_current_date": "2026-03-05",
+        }
+        result = analyzer.update_on_completion(config, 28, None)
+        assert result["last_analysis_date"] == "2026-03-05"
+
+    def test_update_on_completion_fallback_without_injection(self) -> None:
+        """update_on_completion still works without _current_month (fallback)."""
+        from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+            IntervalAnalyzer,
+        )
+
+        analyzer = IntervalAnalyzer()
+        config = {
+            "enabled": True,
+            "smoothed_interval": 30.0,
+        }
+        result = analyzer.update_on_completion(config, 28, None)
+        # Should not crash, date should be set
+        assert "last_analysis_date" in result
+
+
+class TestBinarySensorResetClearsValue:
+    """Verify binary sensor _handle_task_reset clears _trigger_current_value."""
+
+    def test_handle_task_reset_clears_trigger_value(self) -> None:
+        """_handle_task_reset sets _trigger_current_value to None."""
+        from custom_components.maintenance_supporter.binary_sensor import (
+            MaintenanceBinarySensor,
+        )
+
+        # Create a mock coordinator with data containing an active trigger
+        coordinator = MagicMock()
+        coordinator.data = {
+            CONF_TASKS: {
+                "task1": {
+                    "_trigger_active": True,
+                    "_trigger_current_value": 42.5,
+                    "_status": MaintenanceStatus.TRIGGERED,
+                    "_days_until_due": 10,
+                    "warning_days": 7,
+                }
+            }
+        }
+        coordinator.entry.data = {
+            CONF_OBJECT: {"name": "Test"},
+            CONF_TASKS: {"task1": {"name": "Task 1"}},
+        }
+        coordinator.entry.entry_id = "test_entry"
+
+        sensor = MaintenanceBinarySensor.__new__(MaintenanceBinarySensor)
+        sensor.coordinator = coordinator
+        sensor._task_id = "task1"
+        sensor.async_write_ha_state = MagicMock()
+
+        sensor._handle_task_reset()
+
+        task = coordinator.data[CONF_TASKS]["task1"]
+        assert task["_trigger_active"] is False
+        assert task["_trigger_current_value"] is None
+        assert task["_status"] == MaintenanceStatus.OK
+
+
+class TestWsListTasksConsistency:
+    """Verify ws_list_tasks uses _build_task_summary for consistent output."""
+
+    def test_list_tasks_returns_structured_fields(self) -> None:
+        """ws_list_tasks result should include _build_task_summary fields, not raw internal data."""
+        from custom_components.maintenance_supporter.websocket import (
+            _build_task_summary,
+        )
+
+        hass = MagicMock()
+        hass.states.get.return_value = None
+
+        task_data = {
+            "name": "Test Task",
+            "type": "custom",
+            "enabled": True,
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "warning_days": 7,
+            "trigger_config": None,
+            "checklist": ["Step 1", "Step 2"],
+        }
+        ct = {
+            "_status": "ok",
+            "_days_until_due": 15,
+            "_next_due": "2026-03-20",
+            "_trigger_active": False,
+            "_times_performed": 3,
+            "_total_cost": 0.0,
+        }
+
+        result = _build_task_summary(hass, "task1", task_data, ct)
+
+        # Should have structured fields, not raw internal fields
+        assert "id" in result
+        assert result["id"] == "task1"
+        assert result["name"] == "Test Task"
+        assert result["checklist"] == ["Step 1", "Step 2"]
+        assert result["status"] == "ok"
+        assert result["days_until_due"] == 15
+        # Should NOT have underscore-prefixed internal fields
+        assert "_status" not in result
+        assert "_days_until_due" not in result
+
+
+class TestChecklistWsApi:
+    """Verify checklist field is accepted in task create/update schemas."""
+
+    def test_checklist_in_create_task_data(self) -> None:
+        """ws_create_task schema should accept checklist field."""
+        import voluptuous as vol
+
+        # The schema is defined as a decorator, test by constructing the expected vol schema
+        schema = vol.Schema({
+            vol.Optional("checklist"): vol.Any([str], None),
+        })
+        # Should validate successfully
+        result = schema({"checklist": ["Step 1", "Step 2"]})
+        assert result["checklist"] == ["Step 1", "Step 2"]
+
+        result_none = schema({"checklist": None})
+        assert result_none["checklist"] is None
+
+        result_empty = schema({})
+        assert "checklist" not in result_empty

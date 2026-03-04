@@ -20,7 +20,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
-from . import _get_merged_tasks, _get_object_entries, _get_runtime_data
+from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data
 
 
 # ---------------------------------------------------------------------------
@@ -237,6 +237,7 @@ def _validate_compound_trigger(
         vol.Optional("entity_slug"): vol.Any(str, None),
         vol.Optional("custom_icon"): vol.Any(str, None),
         vol.Optional("nfc_tag_id"): vol.Any(str, None),
+        vol.Optional("checklist"): vol.Any([str], None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -320,6 +321,8 @@ async def ws_create_task(
             nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"])
             if nfc_warn:
                 tc_warnings.append(nfc_warn)
+    if msg.get("checklist"):
+        task_data["checklist"] = msg["checklist"]
 
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
@@ -387,6 +390,7 @@ async def ws_create_task(
         vol.Optional("entity_slug"): vol.Any(str, None),
         vol.Optional("custom_icon"): vol.Any(str, None),
         vol.Optional("nfc_tag_id"): vol.Any(str, None),
+        vol.Optional("checklist"): vol.Any([str], None),
     }
 )
 @websocket_api.require_admin
@@ -460,6 +464,7 @@ async def ws_update_task(
         "entity_slug": "entity_slug",
         "custom_icon": "custom_icon",
         "nfc_tag_id": "nfc_tag_id",
+        "checklist": "checklist",
     }
     for msg_key, data_key in field_map.items():
         if msg_key in msg:
@@ -575,13 +580,19 @@ def ws_list_tasks(
             continue
         entry_tasks = _get_merged_tasks(entry)
         obj_data = entry.data.get(CONF_OBJECT, {})
+        rd = _get_runtime_data(hass, entry.entry_id)
+        coordinator_data = (
+            rd.coordinator.data if rd and rd.coordinator else None
+        )
+        ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
         for task_id, task_data in entry_tasks.items():
-            tasks.append({
-                "task_id": task_id,
-                "entry_id": entry.entry_id,
-                "object_name": obj_data.get(CONF_OBJECT_NAME, ""),
-                **task_data,
-            })
+            summary = _build_task_summary(
+                hass, task_id, task_data, ct_tasks.get(task_id)
+            )
+            summary["task_id"] = task_id
+            summary["entry_id"] = entry.entry_id
+            summary["object_name"] = obj_data.get(CONF_OBJECT_NAME, "")
+            tasks.append(summary)
 
     connection.send_result(msg["id"], {"tasks": tasks})
 

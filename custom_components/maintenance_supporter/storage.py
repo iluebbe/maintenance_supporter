@@ -26,7 +26,7 @@ STORE_KEY_PREFIX = f"{DOMAIN}"
 STORE_SAVE_DELAY = 60.0  # seconds — debounce writes to protect SD cards
 
 # Fields that migrate from ConfigEntry.data to Store
-_DYNAMIC_TASK_FIELDS = ("last_performed", "history", "adaptive_config")
+_DYNAMIC_TASK_FIELDS = ("last_performed", "last_planned_due", "history", "adaptive_config")
 
 # Flat trigger_config keys that should move to Store trigger_runtime
 _LEGACY_TRIGGER_RUNTIME_KEYS = (

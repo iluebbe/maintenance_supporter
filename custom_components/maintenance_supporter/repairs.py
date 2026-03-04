@@ -18,6 +18,7 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import selector
 
+from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
 from .const import (
     CONF_TASKS,
     DOMAIN,
@@ -75,7 +76,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
                 {
                     vol.Required("new_entity_id"): selector.EntitySelector(
                         selector.EntitySelectorConfig(
-                            domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch", "climate", "vacuum", "cover", "fan", "light", "water_heater", "humidifier", "media_player", "weather", "air_quality", "valve", "lawn_mower", "lock"],
+                            domain=TRIGGER_ENTITY_DOMAINS,
                             multiple=False,
                         )
                     ),

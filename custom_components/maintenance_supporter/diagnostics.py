@@ -157,12 +157,22 @@ def _check_trigger_status(
         if not trigger_config:
             continue
 
-        entity_ids: list[str] = trigger_config.get(
+        entity_ids: list[str] = list(trigger_config.get(
             "entity_ids", []
-        )
+        ))
         if not entity_ids:
             single = trigger_config.get("entity_id")
-            entity_ids = [single] if single else []
+            if single:
+                entity_ids = [single]
+        # Compound triggers: collect entity_ids from conditions
+        if not entity_ids and trigger_config.get("type") == "compound":
+            for cond in trigger_config.get("conditions", []):
+                for eid in cond.get("entity_ids", []):
+                    if eid not in entity_ids:
+                        entity_ids.append(eid)
+                cond_eid = cond.get("entity_id")
+                if cond_eid and cond_eid not in entity_ids:
+                    entity_ids.append(cond_eid)
         if not entity_ids:
             continue
 
@@ -213,7 +223,7 @@ def _check_data_quality(data: Mapping[str, Any]) -> list[str]:
             )
 
         trigger = task.get("trigger_config")
-        if trigger and not trigger.get("entity_id"):
+        if trigger and trigger.get("type") != "compound" and not trigger.get("entity_id"):
             warnings.append(
                 f"Task '{task.get('name', task_id)}' has trigger config but no entity"
             )

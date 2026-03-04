@@ -100,15 +100,32 @@ class TestIntervalAnchorPlanned:
         # "Today" is Feb 20
         mock_dt.now.return_value.date.return_value = date(2026, 2, 20)
 
-        # Planned for Jan 15 + 30 = Feb 14, completed on Feb 20
+        # Was planned for Feb 14 (anchor), completed late on Feb 20
         task = MaintenanceTask(
             id=TASK_ID_1,
             name="Test",
             last_performed="2026-02-20",
             interval_days=30,
             interval_anchor="planned",
+            last_planned_due="2026-02-14",  # the planned date before completion
         )
-        # Next due: Feb 20 + 30 = Mar 22 (first interval boundary after last_performed)
+        # Next due: Feb 14 + 30 = Mar 16 (not Feb 20 + 30 = Mar 22)
+        assert task.next_due == date(2026, 3, 16)
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_planned_anchor_without_stored_anchor_falls_back(self, mock_dt) -> None:
+        """Without last_planned_due, planned mode falls back to last_performed."""
+        mock_dt.now.return_value.date.return_value = date(2026, 2, 20)
+
+        task = MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-02-20",
+            interval_days=30,
+            interval_anchor="planned",
+            # No last_planned_due → falls back to last_performed
+        )
+        # Fallback: Feb 20 + 30 = Mar 22
         assert task.next_due == date(2026, 3, 22)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
@@ -245,6 +262,83 @@ class TestIntervalAnchorSerialization:
         assert restored.interval_anchor == "planned"
         assert restored.interval_days == 30
 
+    def test_last_planned_due_serialization(self) -> None:
+        """last_planned_due is serialized and deserialized correctly."""
+        task = MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            interval_anchor="planned",
+            last_planned_due="2026-03-01",
+        )
+        data = task.to_dict()
+        assert data["last_planned_due"] == "2026-03-01"
+
+        restored = MaintenanceTask.from_dict(data)
+        assert restored.last_planned_due == "2026-03-01"
+
+    def test_last_planned_due_omitted_when_none(self) -> None:
+        """last_planned_due is omitted from to_dict when None."""
+        task = MaintenanceTask(id=TASK_ID_1, name="Test")
+        data = task.to_dict()
+        assert "last_planned_due" not in data
+
+
+# ─── Complete/Skip save last_planned_due ─────────────────────────────────
+
+
+class TestPlannedAnchorOnComplete:
+    """Tests that complete/skip save last_planned_due for planned anchor."""
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_complete_saves_last_planned_due(self, mock_dt) -> None:
+        """complete() saves current next_due as last_planned_due."""
+        # Set today to Feb 15 so next_due (Mar 3) is in the future
+        mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
+
+        task = MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-02-01",
+            interval_days=30,
+            interval_anchor="planned",
+        )
+        # Before complete: next_due = Feb 1 + 30 = Mar 3
+        assert task.next_due == date(2026, 3, 3)
+
+        task.complete()
+
+        assert task.last_planned_due == "2026-03-03"
+        assert task.last_performed == "2026-02-15"
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_skip_saves_last_planned_due(self, mock_dt) -> None:
+        """skip() saves current next_due as last_planned_due."""
+        mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
+
+        task = MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-02-01",
+            interval_days=30,
+            interval_anchor="planned",
+        )
+        # next_due = Feb 1 + 30 = Mar 3
+        assert task.next_due == date(2026, 3, 3)
+        task.skip()
+        assert task.last_planned_due == "2026-03-03"
+
+    def test_completion_anchor_does_not_save_planned_due(self) -> None:
+        """complete() with completion anchor doesn't save last_planned_due."""
+        task = MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-02-01",
+            interval_days=30,
+            interval_anchor="completion",
+        )
+        task.complete()
+        assert task.last_planned_due is None
+
 
 # ─── Integration test: sensor attribute ──────────────────────────────────
 
@@ -318,3 +412,41 @@ async def test_sensor_default_anchor_completion(
     state = hass.states.get(sensors[0].entity_id)
     assert state is not None
     assert state.attributes.get("interval_anchor") == "completion"
+
+
+# ─── Reset clears last_planned_due ───────────────────────────────────────
+
+
+class TestResetClearsPlannedAnchor:
+    """Tests that reset() clears last_planned_due."""
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_reset_clears_last_planned_due(self, mock_dt) -> None:
+        """Reset must clear last_planned_due so next_due anchors from reset date."""
+        mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
+
+        task = MaintenanceTask(
+            id=TASK_ID_1, name="Test",
+            last_performed="2026-02-01", interval_days=30,
+            interval_anchor="planned",
+            last_planned_due="2026-01-15",
+        )
+        task.reset(reset_date=date(2026, 2, 10))
+        assert task.last_planned_due is None
+        assert task.last_performed == "2026-02-10"
+        # next_due should be 30 days from reset date (no anchor)
+        assert task.next_due == date(2026, 3, 12)
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_reset_without_anchor_still_works(self, mock_dt) -> None:
+        """Reset on completion-anchor task doesn't break anything."""
+        mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
+
+        task = MaintenanceTask(
+            id=TASK_ID_1, name="Test",
+            last_performed="2026-02-01", interval_days=30,
+            interval_anchor="completion",
+        )
+        task.reset(reset_date=date(2026, 2, 10))
+        assert task.last_planned_due is None
+        assert task.next_due == date(2026, 3, 12)

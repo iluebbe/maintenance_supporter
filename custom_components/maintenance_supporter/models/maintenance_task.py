@@ -39,6 +39,7 @@ class MaintenanceTask:
     warning_days: int = DEFAULT_WARNING_DAYS
     last_performed: str | None = None  # ISO format YYYY-MM-DD
     interval_anchor: str = "completion"  # "completion" or "planned"
+    last_planned_due: str | None = None  # ISO date: anchor for planned mode
 
     # --- Trigger ---
     trigger_config: dict[str, Any] | None = None
@@ -89,13 +90,20 @@ class MaintenanceTask:
             return None
 
         if self.interval_anchor == "planned" and self.interval_days > 0:
-            # Find the next multiple-of-interval date that is after `last`
-            # The anchor chain starts from the very first due date, which
-            # we approximate as (last_performed + interval_days) for the
-            # simple case. When completed late, we advance forward by
-            # whole intervals until we land in the future.
-            candidate = last + timedelta(days=self.interval_days)
+            # Anchor from the previously planned due date (saved on complete/skip)
+            # so that late completions don't cause schedule drift.
+            # Example: 30-day interval, planned March 1, completed March 5
+            #   → last_planned_due="2026-03-01", next due = March 31 (not April 4)
+            anchor = last  # fallback: use completion date
+            if self.last_planned_due:
+                try:
+                    anchor = date.fromisoformat(self.last_planned_due)
+                except (ValueError, TypeError):
+                    pass  # fall back to last_performed
+
+            candidate = anchor + timedelta(days=self.interval_days)
             today = dt_util.now().date()
+            # Advance past last_performed (task was already completed then)
             while candidate <= last:
                 candidate += timedelta(days=self.interval_days)
             # If we already passed the candidate, keep advancing
@@ -185,6 +193,10 @@ class MaintenanceTask:
         completed_by: str | None = None,
     ) -> None:
         """Mark this task as completed."""
+        # Save current next_due as anchor for planned mode before resetting
+        if self.interval_anchor == "planned" and self.next_due is not None:
+            self.last_planned_due = self.next_due.isoformat()
+
         now = dt_util.now()
         self.last_performed = now.date().isoformat()
         self._trigger_active = False
@@ -205,6 +217,8 @@ class MaintenanceTask:
         if reset_date is None:
             reset_date = dt_util.now().date()
         self.last_performed = reset_date.isoformat()
+        # Clear planned anchor so next_due is computed from the reset date
+        self.last_planned_due = None
 
         self.add_history_entry(
             entry_type=HistoryEntryType.RESET,
@@ -213,6 +227,10 @@ class MaintenanceTask:
 
     def skip(self, reason: str | None = None) -> None:
         """Skip the current maintenance cycle."""
+        # Save current next_due as anchor for planned mode before resetting
+        if self.interval_anchor == "planned" and self.next_due is not None:
+            self.last_planned_due = self.next_due.isoformat()
+
         # Move last_performed to today to restart the cycle
         self.last_performed = dt_util.now().date().isoformat()
         self._trigger_active = False
@@ -277,6 +295,8 @@ class MaintenanceTask:
             data["interval_days"] = self.interval_days
         if self.interval_anchor != "completion":
             data["interval_anchor"] = self.interval_anchor
+        if self.last_planned_due is not None:
+            data["last_planned_due"] = self.last_planned_due
         if self.last_performed is not None:
             data["last_performed"] = self.last_performed
         if self.trigger_config is not None:
@@ -311,6 +331,7 @@ class MaintenanceTask:
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             last_performed=data.get("last_performed"),
             interval_anchor=data.get("interval_anchor", "completion"),
+            last_planned_due=data.get("last_planned_due"),
             trigger_config=data.get("trigger_config"),
             notes=data.get("notes"),
             documentation_url=data.get("documentation_url"),

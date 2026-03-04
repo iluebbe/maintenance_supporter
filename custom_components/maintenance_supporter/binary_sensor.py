@@ -169,7 +169,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         # Mirror what sensor._handle_task_reset does: clear trigger state
         # and recompute status so we don't depend on execution order.
         task["_trigger_active"] = False
-        old_status = task.get("_status")
+        task["_trigger_current_value"] = None
         new_status = self._compute_live_status(task)
         task["_status"] = new_status
 

@@ -529,10 +529,12 @@ def _get_task_id_for_entity(
         return None
 
     # Look up which task matches this unique_id
+    # Sensor unique_id: maintenance_supporter_{slug}_{task_id}
+    # Binary sensor: maintenance_supporter_{slug}_{task_id}_overdue
     from .const import CONF_TASKS
     tasks: dict[str, Any] = config_entry.data.get(CONF_TASKS, {})
     for task_id in tasks:
-        if unique_id.endswith(f"_{task_id}"):
+        if f"_{task_id}" in unique_id:
             return str(task_id)
 
     return None

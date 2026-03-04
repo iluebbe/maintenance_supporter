@@ -25,6 +25,7 @@ _COLUMNS = [
     "enabled",
     "schedule_type",
     "interval_days",
+    "interval_anchor",
     "warning_days",
     "last_performed",
     "notes",
@@ -79,6 +80,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "enabled": tdata.get("enabled", True),
                     "schedule_type": tdata.get("schedule_type", "time_based"),
                     "interval_days": tdata.get("interval_days", ""),
+                    "interval_anchor": tdata.get("interval_anchor", "completion"),
                     "warning_days": tdata.get("warning_days", 7),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": tdata.get("notes", ""),
@@ -146,6 +148,10 @@ def import_objects_csv(
         interval = row.get("interval_days", "").strip()
         if interval:
             task_data["interval_days"] = _safe_int(interval, None)
+
+        anchor = (row.get("interval_anchor") or "").strip()
+        if anchor in ("planned", "completion"):
+            task_data["interval_anchor"] = anchor
 
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:

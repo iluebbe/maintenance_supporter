@@ -80,13 +80,17 @@ async def ws_export_data(
     msg: dict[str, Any],
 ) -> None:
     """Export all maintenance data as JSON or YAML."""
-    from ..export import export_maintenance_data  # noqa: PLC0415
+    from ..export import build_export_data, serialize_export  # noqa: PLC0415
 
     fmt = msg.get("format", "json")
     include_history = msg.get("include_history", True)
-    result = await hass.async_add_executor_job(
-        export_maintenance_data, hass, fmt, include_history
-    )
+
+    # Phase 1: gather data on the event loop (accesses HA APIs)
+    data = build_export_data(hass, include_history=include_history)
+
+    # Phase 2: serialize in executor (CPU-bound, no HA API calls)
+    result = await hass.async_add_executor_job(serialize_export, data, fmt)
+
     connection.send_result(msg["id"], {"format": fmt, "data": result})
 
 

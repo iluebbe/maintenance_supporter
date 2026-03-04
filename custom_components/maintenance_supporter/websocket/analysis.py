@@ -48,12 +48,12 @@ async def ws_analyze_interval(
     adaptive_config = dict(task_data.get("adaptive_config", {}))
 
     # Inject hemisphere and current month for seasonal awareness
-    from datetime import datetime as dt_cls  # noqa: PLC0415
+    from homeassistant.util import dt as dt_util  # noqa: PLC0415
 
     adaptive_config["hemisphere"] = (
         "south" if hass.config.latitude < 0 else "north"
     )
-    adaptive_config["_current_month"] = dt_cls.now().month
+    adaptive_config["_current_month"] = dt_util.now().month
 
     analyzer = IntervalAnalyzer()
     analysis = analyzer.analyze(task_data, adaptive_config)

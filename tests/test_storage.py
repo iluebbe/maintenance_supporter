@@ -428,3 +428,37 @@ def test_extract_dynamic_legacy_trigger_keys() -> None:
     assert "trigger_runtime_legacy" in dynamic
     assert dynamic["trigger_runtime_legacy"]["trigger_baseline_value"] == 1234.5
     assert dynamic["trigger_runtime_legacy"]["trigger_accumulated_seconds"] == 3600.0
+
+
+# ─── last_planned_due in dynamic fields ────────────────────────────────
+
+
+def test_dynamic_fields_includes_last_planned_due() -> None:
+    """last_planned_due should be in _DYNAMIC_TASK_FIELDS."""
+    assert "last_planned_due" in _DYNAMIC_TASK_FIELDS
+
+
+def test_extract_dynamic_moves_last_planned_due() -> None:
+    """extract_dynamic_from_task moves last_planned_due to dynamic dict."""
+    task = {
+        "id": "abc",
+        "name": "Test",
+        "interval_anchor": "planned",
+        "last_planned_due": "2026-03-01",
+        "last_performed": "2026-03-05",
+    }
+    static, dynamic = extract_dynamic_from_task(task)
+    assert "last_planned_due" not in static
+    assert dynamic["last_planned_due"] == "2026-03-01"
+    assert dynamic["last_performed"] == "2026-03-05"
+
+
+async def test_merge_task_data_includes_last_planned_due(hass: HomeAssistant) -> None:
+    """merge_task_data should overlay last_planned_due from Store."""
+    store = MaintenanceStore(hass, "test_lpd")
+    state = store._ensure_task("task_1")
+    state["last_planned_due"] = "2026-03-01"
+
+    static = {"id": "task_1", "name": "Test", "interval_anchor": "planned"}
+    merged = store.merge_task_data("task_1", static)
+    assert merged["last_planned_due"] == "2026-03-01"

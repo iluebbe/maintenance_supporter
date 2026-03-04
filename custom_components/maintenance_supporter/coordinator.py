@@ -771,6 +771,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         lp = td.get("last_performed")
         if lp is not None:
             self._store.set_last_performed(task_id, lp)
+        lpd = td.get("last_planned_due")
+        state = self._store._ensure_task(task_id)
+        if lpd is not None:
+            state["last_planned_due"] = lpd
+        elif "last_planned_due" in state:
+            del state["last_planned_due"]
         self._store.set_history(task_id, td.get("history", []))
         if task.adaptive_config:
             self._store.set_adaptive_config(task_id, task.adaptive_config)
@@ -827,7 +833,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if task.last_performed:
             try:
                 last = date.fromisoformat(task.last_performed)
-                actual_interval = (date.today() - last).days
+                actual_interval = (dt_util.now().date() - last).days
             except (ValueError, TypeError):
                 actual_interval = None
 
@@ -846,10 +852,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Store the base interval for blending reference
                 if "base_interval" not in task.adaptive_config:
                     task.adaptive_config["base_interval"] = task.interval_days or 30
-                # Inject hemisphere for seasonal awareness
+                # Inject hemisphere, current month/date for seasonal awareness
                 task.adaptive_config["hemisphere"] = (
                     "south" if self.hass.config.latitude < 0 else "north"
                 )
+                now = dt_util.now()
+                task.adaptive_config["_current_month"] = now.month
+                task.adaptive_config["_current_date"] = now.date().isoformat()
                 updated_config = analyzer.update_on_completion(
                     task.adaptive_config, actual_interval, feedback
                 )
