@@ -40,6 +40,21 @@ class CounterTrigger(BaseTrigger):
 
     async def async_setup(self) -> None:
         """Set up counter trigger with baseline initialization."""
+        # Restore persisted baseline BEFORE super().async_setup() which calls
+        # evaluate().  Without this, evaluate() sets _baseline_value to the
+        # current sensor value, discarding the saved baseline from the Store.
+        if self._delta_mode and self._baseline_value is None:
+            saved = self.config.get("_trigger_state", {}).get(
+                self.entity_id, {}
+            ).get("baseline_value")
+            if saved is not None:
+                self._baseline_value = saved
+                _LOGGER.debug(
+                    "Counter baseline restored from store: %s = %s",
+                    self.entity_id,
+                    self._baseline_value,
+                )
+
         await super().async_setup()
 
         # Set initial baseline if in delta mode and no baseline exists

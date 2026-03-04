@@ -225,7 +225,16 @@ async def test_get_settings_no_global_entry(
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
-    assert result["features"] == {}
+    # No global entry → _build_full_settings({}) returns all defaults (all False)
+    assert result["features"] == {
+        "adaptive": False,
+        "predictions": False,
+        "seasonal": False,
+        "environmental": False,
+        "budget": False,
+        "groups": False,
+        "checklists": False,
+    }
 
 
 # ─── ws_get_statistics ───────────────────────────────────────────────────
@@ -445,7 +454,7 @@ async def test_get_settings_returns_all_sections(
     assert result["general"]["panel_enabled"] is False
     # Check notification defaults
     assert result["notifications"]["due_soon_enabled"] is True
-    assert result["notifications"]["quiet_hours_enabled"] is False
+    assert result["notifications"]["quiet_hours_enabled"] is True
     # Check action defaults
     assert result["actions"]["complete_enabled"] is False
     # Check budget defaults

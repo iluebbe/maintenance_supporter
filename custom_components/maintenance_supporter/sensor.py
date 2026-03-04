@@ -246,9 +246,16 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         """When entity is added to hass, set up triggers if configured."""
         await super().async_added_to_hass()
 
-        task_data = self.coordinator.entry.data.get(CONF_TASKS, {}).get(
+        # Use merged data (static config + Store runtime) so that persisted
+        # trigger state (_trigger_state) survives HA restarts.
+        static_task = self.coordinator.entry.data.get(CONF_TASKS, {}).get(
             self._task_id, {}
         )
+        store = self.coordinator._store
+        if store is not None:
+            task_data = store.merge_task_data(self._task_id, static_task)
+        else:
+            task_data = static_task
         trigger_config = task_data.get("trigger_config")
 
         if not trigger_config:

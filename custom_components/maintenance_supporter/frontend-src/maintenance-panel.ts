@@ -869,8 +869,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         label = `${val.toFixed(1)} / ${above} ${unit}`;
       } else if (below != null) {
         // Progress toward lower limit (inverted: lower is worse)
+        // Use entity max, or 2x the threshold as a stable "safe" reference.
+        // Using val*2 caused a dynamic ceiling that distorted the bar.
         const entityMax = row.trigger_entity_info?.max;
-        const high = entityMax ?? ((val * 2) || 100);
+        const high = entityMax ?? ((below * 2) || 100);
         const range = high - below || 1;
         pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
         label = `${val.toFixed(1)} / ${below} ${unit}`;

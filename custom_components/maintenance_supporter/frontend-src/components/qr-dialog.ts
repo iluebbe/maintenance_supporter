@@ -224,8 +224,11 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
                           alt="QR Info"
                         />
                         <div class="qr-item-label">${t("qr_action_view", L)}</div>
-                        <button class="dl-btn" title="${t("qr_download", L)}"
-                          @click=${() => this._downloadSvg(this._viewResult!, "info")}>⬇</button>
+                        <button class="dl-btn"
+                          @click=${() => this._downloadSvg(this._viewResult!, "info")}>
+                          <ha-icon icon="mdi:download"></ha-icon>
+                          ${t("qr_download", L)}
+                        </button>
                       </div>
                       ${this._completeResult
                         ? html`
@@ -236,8 +239,11 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
                                 alt="QR Complete"
                               />
                               <div class="qr-item-label">${t("qr_action_complete", L)}</div>
-                              <button class="dl-btn" title="${t("qr_download", L)}"
-                                @click=${() => this._downloadSvg(this._completeResult!, "complete")}>⬇</button>
+                              <button class="dl-btn"
+                                @click=${() => this._downloadSvg(this._completeResult!, "complete")}>
+                                <ha-icon icon="mdi:download"></ha-icon>
+                                ${t("qr_download", L)}
+                              </button>
                             </div>
                           `
                         : nothing}
@@ -307,19 +313,24 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
       text-align: center;
     }
     .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       background: none;
-      border: none;
+      border: 1px solid var(--divider-color, #e0e0e0);
       cursor: pointer;
-      font-size: 14px;
-      color: var(--secondary-text-color);
-      padding: 2px 6px;
-      border-radius: 4px;
-      opacity: 0.6;
-      transition: opacity 0.2s;
+      font-size: 13px;
+      color: var(--primary-text-color);
+      padding: 6px 14px;
+      border-radius: 18px;
+      transition: background 0.2s, border-color 0.2s;
     }
     .dl-btn:hover {
-      opacity: 1;
       background: var(--secondary-background-color, #f5f5f5);
+      border-color: var(--primary-color);
+    }
+    .dl-btn ha-icon {
+      --mdc-icon-size: 18px;
     }
     .url-display {
       font-size: 11px;

@@ -371,6 +371,42 @@ def test_extract_dynamic_trigger_state() -> None:
     assert dynamic["trigger_runtime"]["sensor.temp"]["baseline_value"] == 25.0
 
 
+async def test_merge_task_data_compound_flat_keys_to_nested(
+    hass: HomeAssistant,
+) -> None:
+    """merge_task_data restructures flat compound keys into nested conditions list.
+
+    The CompoundCoordinatorProxy stores trigger runtime as flat keys like
+    '_compound_0_sensor.temp' but CompoundTrigger.async_setup() expects a
+    nested 'conditions' list in _trigger_state.
+    """
+    store = MaintenanceStore(hass, "merge_compound")
+    # Simulate what _CompoundCoordinatorProxy writes
+    store.set_trigger_runtime("t1", "_compound_0_sensor.temp", {"baseline_value": 42.0})
+    store.set_trigger_runtime("t1", "_compound_1_sensor.humidity", {"accumulated_seconds": 3600})
+
+    static = {
+        "id": "t1",
+        "name": "Compound Task",
+        "trigger_config": {"type": "compound", "compound_logic": "AND"},
+    }
+
+    merged = store.merge_task_data("t1", static)
+    tc = merged["trigger_config"]
+    assert "_trigger_state" in tc
+
+    ts = tc["_trigger_state"]
+    # Should have a conditions list, not flat keys
+    assert "conditions" in ts
+    assert len(ts["conditions"]) == 2
+    assert ts["conditions"][0]["sensor.temp"]["baseline_value"] == 42.0
+    assert ts["conditions"][1]["sensor.humidity"]["accumulated_seconds"] == 3600
+
+    # Flat compound keys should NOT remain at the top level
+    assert "_compound_0_sensor.temp" not in ts
+    assert "_compound_1_sensor.humidity" not in ts
+
+
 def test_extract_dynamic_legacy_trigger_keys() -> None:
     """extract_dynamic_from_task moves legacy flat trigger keys."""
     task = {

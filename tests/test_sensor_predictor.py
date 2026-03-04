@@ -299,6 +299,8 @@ def test_threshold_prediction_near_zero_slope_no_overflow() -> None:
 
     Regression test: a near-zero slope produces days_until that exceeds
     timedelta's max (999_999_999 days), previously crashing the coordinator.
+    Now capped at 3650 days (10 years) to avoid overflow and provide
+    a meaningful upper bound.
     """
     degradation = DegradationAnalysis(
         entity_id="sensor.temp",
@@ -312,9 +314,9 @@ def test_threshold_prediction_near_zero_slope_no_overflow() -> None:
     config = {"type": "threshold", "trigger_above": 30.0}
     result = SensorPredictor._compute_threshold_prediction(degradation, config)
     assert result is not None
-    # predicted_date should be None (overflow handled gracefully)
-    assert result.predicted_date is None
-    assert result.days_until_threshold > 0
+    # days_until capped at 3650 (10 years), so predicted_date is valid
+    assert result.days_until_threshold == 3650
+    assert result.predicted_date is not None
 
 
 def test_linear_regression_unix_timestamps() -> None:

@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 0.3.13 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,069 tests)
+**Version:** 0.3.28 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,079 tests)
 
 ---
 
@@ -207,22 +207,24 @@ Coordinator refresh (every 5 min)
 ```
 Task has trigger_config with entity_id(s)
   └─> sensor.async_added_to_hass()
+      ├─ Merge trigger_config with Store runtime (_trigger_state)
       └─> create_triggers(type, entity_ids) → list of trigger instances
-          ├─ Single entity → 1 trigger
+          ├─ Single entity → 1 trigger (per-entity state injected)
           ├─ Multi-entity → N triggers (one per entity_id)
           │   ├─ Per-entity state from _trigger_state dict
           │   └─ Aggregated via entity_logic (any/all)
           └─ Compound → 1 CompoundTrigger with sub-triggers
               ├─ Each condition → create_triggers() for condition's entities
               ├─ CompoundSubEntity proxies aggregate per-condition
-              └─ compound_logic (AND/OR) aggregates across conditions
+              ├─ compound_logic (AND/OR) aggregates across conditions
+              └─ Flat _compound_N_entity keys restructured to conditions[] on read
 
 For each trigger:
   └─> async_setup()
       ├─ Register async_track_state_change_event listener
       ├─ If entity unavailable at setup → schedule retry (30s)
       ├─ RuntimeTrigger: restore accumulated_seconds + on_since, start periodic timer
-      ├─ CounterTrigger: initialize baseline if delta mode
+      ├─ CounterTrigger: restore baseline from _trigger_state, then initialize if needed
       └─ Initial evaluation
 
 Entity state changes → _handle_state_change_event()
@@ -430,48 +432,50 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,069 tests** across **53 test files** with **94% code coverage**.
+**1,079 tests** across **53 test files** with **94% code coverage**.
 
 ### Coverage by Module
 
 | Module | Stmts | Miss | Cover |
 |--------|-------|------|-------|
-| `__init__.py` | 244 | 17 | 93% |
-| `coordinator.py` | 480 | 17 | 96% |
-| `sensor.py` | 178 | 5 | 97% |
+| `__init__.py` | 246 | 17 | 93% |
+| `coordinator.py` | 504 | 19 | 96% |
+| `sensor.py` | 202 | 21 | 90% |
 | `calendar.py` | 127 | 5 | 96% |
 | `config_flow.py` | 260 | 14 | 95% |
-| `config_flow_options_task.py` | 498 | 36 | 93% |
+| `config_flow_options_task.py` | 503 | 36 | 93% |
 | `config_flow_options_global.py` | 145 | 18 | 88% |
 | `config_flow_trigger.py` | 338 | 56 | 83% |
-| `const.py` | 171 | 0 | 100% |
+| `const.py` | 174 | 0 | 100% |
 | `diagnostics.py` | 94 | 0 | 100% |
 | `repairs.py` | 134 | 0 | 100% |
 | `panel.py` | 31 | 0 | 100% |
 | `templates.py` | 25 | 0 | 100% |
+| `storage.py` | 150 | 3 | 98% |
 | **Triggers** | | | |
 | `base_trigger.py` | 121 | 3 | 98% |
 | `threshold.py` | 53 | 1 | 98% |
-| `counter.py` | 44 | 7 | 84% |
+| `counter.py` | 49 | 7 | 86% |
 | `state_change.py` | 80 | 5 | 94% |
-| `runtime.py` | 161 | 7 | 96% |
+| `runtime.py` | 161 | 3 | 98% |
 | `compound.py` | 143 | 0 | 100% |
+| `triggers/__init__.py` | 89 | 1 | 99% |
 | **Helpers** | | | |
 | `interval_analyzer.py` | 312 | 17 | 95% |
-| `sensor_predictor.py` | 275 | 18 | 93% |
+| `sensor_predictor.py` | 275 | 20 | 93% |
 | `notification_manager.py` | 267 | 5 | 98% |
 | `entity_analyzer.py` | 121 | 4 | 97% |
 | `threshold_calculator.py` | 61 | 0 | 100% |
 | **WebSocket** | | | |
-| `websocket/__init__.py` | 104 | 0 | 100% |
-| `websocket/tasks.py` | 258 | 14 | 95% |
-| `websocket/objects.py` | 71 | 2 | 97% |
-| `websocket/analysis.py` | 121 | 14 | 88% |
-| `websocket/users.py` | 65 | 0 | 100% |
-| `websocket/io.py` | 63 | 0 | 100% |
-| `websocket/dashboard.py` | 165 | 12 | 93% |
-| `websocket/groups.py` | 77 | 1 | 99% |
-| **TOTAL** | **6,390** | **356** | **94%** |
+| `websocket/__init__.py` | 106 | 0 | 100% |
+| `websocket/tasks.py` | 313 | 34 | 89% |
+| `websocket/objects.py` | 74 | 2 | 97% |
+| `websocket/analysis.py` | 124 | 14 | 89% |
+| `websocket/users.py` | 66 | 0 | 100% |
+| `websocket/io.py` | 79 | 7 | 91% |
+| `websocket/dashboard.py` | 193 | 23 | 88% |
+| `websocket/groups.py` | 80 | 1 | 99% |
+| **TOTAL** | **6,624** | **414** | **94%** |
 
 ### Test Files
 
@@ -519,7 +523,7 @@ All write commands fire events for subscription updates.
 | `test_issue_fixes.py` | ~15 | Regression tests for bug fixes |
 | `test_services.py` | ~8 | Complete, skip, reset services |
 | `test_calendar.py` | ~8 | Calendar basic tests |
-| `test_storage.py` | 29 | Store CRUD, merge helpers, extract_dynamic |
+| `test_storage.py` | 30 | Store CRUD, merge helpers, extract_dynamic, compound keys |
 | `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
 | `test_entity_lifecycle.py` | ~5 | Entity setup/teardown |
 | `test_qr_generation.py` | ~5 | QR URL building, SVG generation |

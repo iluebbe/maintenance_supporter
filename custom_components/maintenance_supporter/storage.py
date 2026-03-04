@@ -210,7 +210,36 @@ class MaintenanceStore:
             trigger_runtime = state.get("trigger_runtime_legacy")
         if trigger_runtime and "trigger_config" in result:
             tc = dict(result["trigger_config"])
-            tc["_trigger_state"] = trigger_runtime
+            # Restructure compound flat keys (_compound_N_key) into nested
+            # conditions list that CompoundTrigger.async_setup() expects
+            compound_keys = [
+                k for k in trigger_runtime if k.startswith("_compound_")
+            ]
+            if compound_keys:
+                non_compound = {
+                    k: v for k, v in trigger_runtime.items()
+                    if not k.startswith("_compound_")
+                }
+                conditions: dict[int, dict[str, Any]] = {}
+                for k in compound_keys:
+                    # Key format: _compound_<idx>_<entity_id>
+                    # Split into: ['', 'compound', '<idx>', '<entity_id>']
+                    parts = k.split("_", 3)
+                    if len(parts) < 4:
+                        continue
+                    try:
+                        idx = int(parts[2])
+                    except ValueError:
+                        continue
+                    sub_key = parts[3]
+                    conditions.setdefault(idx, {})[sub_key] = trigger_runtime[k]
+                non_compound["conditions"] = [
+                    conditions.get(i, {})
+                    for i in range(max(conditions.keys()) + 1 if conditions else 0)
+                ]
+                tc["_trigger_state"] = non_compound
+            else:
+                tc["_trigger_state"] = trigger_runtime
             result["trigger_config"] = tc
 
         return result

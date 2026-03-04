@@ -2321,3 +2321,71 @@ class TestCompoundValidation:
         }
         errors, warnings = _validate_compound_trigger(mock_hass, config)
         assert errors == []
+
+
+# ─── Bug-fix regression tests ─────────────────────────────────────────
+
+
+class TestBugFixRegressions:
+    """Regression tests for bugs identified in external code analysis."""
+
+    async def test_single_entity_trigger_state_injection(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test that single-entity triggers also get per-entity state injected.
+
+        Bug 1D fix: create_triggers() previously only called
+        _inject_per_entity_state for multi-entity triggers, skipping
+        single-entity configs.
+        """
+        set_sensor_state(hass, "sensor.meter", "500")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.meter",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 100,
+            "trigger_delta_mode": True,
+            "_trigger_state": {
+                "sensor.meter": {"baseline_value": 350},
+            },
+        }
+        triggers = create_triggers(hass, entity, config)
+        assert len(triggers) == 1
+        # Baseline should be injected from _trigger_state, not None
+        assert triggers[0]._baseline_value == 350
+
+    async def test_counter_baseline_restore_before_evaluate(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test that CounterTrigger restores baseline from _trigger_state before evaluate().
+
+        Bug 1A fix: async_setup() now reads baseline from _trigger_state
+        before calling super().async_setup() which triggers evaluate().
+        Without this fix, evaluate() would set baseline to the current
+        sensor value, discarding the persisted baseline.
+        """
+        set_sensor_state(hass, "sensor.odometer", "10500")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.odometer",
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 1000,
+            "trigger_delta_mode": True,
+            # No trigger_baseline_value at top level (already migrated to Store)
+            "_trigger_state": {
+                "sensor.odometer": {"baseline_value": 10000},
+            },
+        }
+        trigger = CounterTrigger(hass, entity, config)
+        # __init__ doesn't find trigger_baseline_value → baseline is None
+        assert trigger._baseline_value is None
+
+        await trigger.async_setup()
+
+        # After setup, baseline should be restored from _trigger_state (10000)
+        # NOT set to the current sensor value (10500)
+        assert trigger._baseline_value == 10000
+        # Delta should be 10500 - 10000 = 500
+        assert trigger.current_delta == 500
+
+        await trigger.async_teardown()

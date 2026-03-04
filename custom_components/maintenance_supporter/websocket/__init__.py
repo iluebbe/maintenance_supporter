@@ -75,7 +75,14 @@ def _build_task_summary(
         if not entity_ids and trigger_config.get("type") == "compound":
             seen: set[str] = set()
             for cond in trigger_config.get("conditions", []):
-                for eid in normalize_entity_ids(cond):
+                # Conditions may have entity_id at top level or nested
+                # inside a "trigger_config" sub-dict
+                cond_eids = normalize_entity_ids(cond)
+                if not cond_eids:
+                    cond_eids = normalize_entity_ids(
+                        cond.get("trigger_config", {})
+                    )
+                for eid in cond_eids:
                     if eid not in seen:
                         seen.add(eid)
                         entity_ids.append(eid)

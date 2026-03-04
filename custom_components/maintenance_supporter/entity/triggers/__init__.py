@@ -133,6 +133,10 @@ def create_triggers(
     if len(entity_ids) == 1:
         single_config = dict(trigger_config)
         single_config["entity_id"] = entity_ids[0]
+        # Inject per-entity persisted state for single entity too
+        entity_state = trigger_config.get("_trigger_state", {}).get(entity_ids[0], {})
+        if entity_state:
+            _inject_per_entity_state(single_config, entity_state)
         return [create_trigger(hass, entity, single_config)]
 
     # Ensure _trigger_state exists (migrate from flat keys if needed)

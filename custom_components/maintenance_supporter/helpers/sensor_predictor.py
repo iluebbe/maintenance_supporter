@@ -288,7 +288,7 @@ class SensorPredictor:
         elif direction == "below" and delta >= 0:
             days_until = 0.0  # already exceeded
         else:
-            days_until = abs(delta / slope)
+            days_until = min(abs(delta / slope), 3650)  # Cap at 10 years
 
         # Confidence from r_squared
         r2 = degradation.r_squared or 0.0
