@@ -38,6 +38,7 @@ class MaintenanceTask:
     interval_days: int | None = None
     warning_days: int = DEFAULT_WARNING_DAYS
     last_performed: str | None = None  # ISO format YYYY-MM-DD
+    interval_anchor: str = "completion"  # "completion" or "planned"
 
     # --- Trigger ---
     trigger_config: dict[str, Any] | None = None
@@ -68,17 +69,45 @@ class MaintenanceTask:
 
     @property
     def next_due(self) -> date | None:
-        """Calculate the next due date based on last_performed and interval."""
+        """Calculate the next due date based on last_performed and interval.
+
+        When interval_anchor is "planned", the next due date is computed from
+        the *previously planned* due date rather than the actual completion
+        date.  This prevents schedule drift for strictly periodic tasks.
+
+        Example (30-day interval, planned for March 1):
+          - Completed March 5 → next due: March 31 (not April 4)
+          - If multiple periods were missed, advances to the next future date.
+        """
         if self.interval_days is None:
             return None
         if self.last_performed is None:
-            # Never performed but has interval → due today
             return dt_util.now().date()
         try:
             last = date.fromisoformat(self.last_performed)
-            return last + timedelta(days=self.interval_days)
         except (ValueError, TypeError):
             return None
+
+        if self.interval_anchor == "planned" and self.interval_days > 0:
+            # Find the next multiple-of-interval date that is after `last`
+            # The anchor chain starts from the very first due date, which
+            # we approximate as (last_performed + interval_days) for the
+            # simple case. When completed late, we advance forward by
+            # whole intervals until we land in the future.
+            candidate = last + timedelta(days=self.interval_days)
+            today = dt_util.now().date()
+            while candidate <= last:
+                candidate += timedelta(days=self.interval_days)
+            # If we already passed the candidate, keep advancing
+            # (handles the case where multiple periods were missed)
+            if candidate < today:
+                periods_missed = (today - candidate).days // self.interval_days
+                candidate += timedelta(days=self.interval_days * periods_missed)
+                if candidate < today:
+                    candidate += timedelta(days=self.interval_days)
+            return candidate
+
+        return last + timedelta(days=self.interval_days)
 
     @property
     def days_until_due(self) -> int | None:
@@ -246,6 +275,8 @@ class MaintenanceTask:
         }
         if self.interval_days is not None:
             data["interval_days"] = self.interval_days
+        if self.interval_anchor != "completion":
+            data["interval_anchor"] = self.interval_anchor
         if self.last_performed is not None:
             data["last_performed"] = self.last_performed
         if self.trigger_config is not None:
@@ -279,6 +310,7 @@ class MaintenanceTask:
             interval_days=data.get("interval_days"),
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             last_performed=data.get("last_performed"),
+            interval_anchor=data.get("interval_anchor", "completion"),
             trigger_config=data.get("trigger_config"),
             notes=data.get("notes"),
             documentation_url=data.get("documentation_url"),

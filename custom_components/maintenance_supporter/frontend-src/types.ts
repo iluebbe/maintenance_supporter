@@ -93,6 +93,7 @@ export interface MaintenanceTask {
   enabled: boolean;
   schedule_type: string; // "time_based" | "sensor_based" | "manual"
   interval_days?: number | null;
+  interval_anchor?: "completion" | "planned";
   warning_days: number;
   last_performed?: string | null;
   notes?: string | null;

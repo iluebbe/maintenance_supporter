@@ -61,6 +61,32 @@ from .const import (
 )
 
 
+# Domains allowed for trigger entity selection.
+# Includes all domains from entity_attributes.DOMAIN_ATTRIBUTE_MAP plus
+# input helpers and switches that are commonly used as trigger sources.
+TRIGGER_ENTITY_DOMAINS = [
+    "sensor",
+    "binary_sensor",
+    "number",
+    "input_number",
+    "input_boolean",
+    "switch",
+    "climate",
+    "vacuum",
+    "cover",
+    "fan",
+    "light",
+    "water_heater",
+    "humidifier",
+    "media_player",
+    "weather",
+    "air_quality",
+    "valve",
+    "lawn_mower",
+    "lock",
+]
+
+
 class TriggerConfigMixin:
     """Shared sensor trigger configuration logic for ConfigFlow and OptionsFlow.
 
@@ -176,7 +202,7 @@ class TriggerConfigMixin:
         schema_dict: dict[Any, Any] = {
             entity_key: selector.EntitySelector(
                 selector.EntitySelectorConfig(
-                    domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
+                    domain=TRIGGER_ENTITY_DOMAINS,
                     multiple=True,
                 )
             ),
@@ -252,7 +278,7 @@ class TriggerConfigMixin:
                     {
                         vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
                             selector.EntitySelectorConfig(
-                                domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
+                                domain=TRIGGER_ENTITY_DOMAINS,
                             )
                         ),
                     }

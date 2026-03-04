@@ -115,12 +115,14 @@
         "description": "Configure the time interval for this maintenance task.",
         "data": {
           "interval_days": "Interval (days)",
+          "interval_anchor": "Interval anchor",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
         "data_description": {
           "interval_days": "Number of days between maintenance runs.",
+          "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to task creation without saving."
@@ -567,6 +569,7 @@
           "name": "Task name",
           "type": "Maintenance type",
           "interval_days": "Interval (days)",
+          "interval_anchor": "Interval anchor",
           "warning_days": "Warning days before due",
           "enabled": "Enabled",
           "notes": "Notes",
@@ -581,6 +584,7 @@
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
           "type": "The category of maintenance work.",
           "interval_days": "Number of days between maintenance runs.",
+          "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date.",
           "warning_days": "Number of days before due date to show a warning.",
           "enabled": "When disabled, scheduling and triggers are paused. The task is not deleted.",
           "notes": "Additional notes or instructions for this task.",
@@ -656,12 +660,14 @@
         "description": "Configure the time interval for this task.",
         "data": {
           "interval_days": "Interval (days)",
+          "interval_anchor": "Interval anchor",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
         "data_description": {
           "interval_days": "Number of days between maintenance runs.",
+          "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to the main menu without saving."
@@ -958,6 +964,13 @@
           "interval_days": {
             "name": "Interval (days)"
           },
+          "interval_anchor": {
+            "name": "Interval anchor",
+            "state": {
+              "completion": "From completion",
+              "planned": "From planned date"
+            }
+          },
           "warning_days": {
             "name": "Warning days"
           },
@@ -1140,6 +1153,31 @@
           },
           "confidence_interval_high": {
             "name": "Confidence interval (high)"
+          }
+        }
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} overdue",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Maintenance status",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Due Soon",
+              "overdue": "Overdue",
+              "triggered": "Triggered"
+            }
+          },
+          "days_until_due": {
+            "name": "Days until due"
+          },
+          "next_due": {
+            "name": "Next due"
+          },
+          "parent_object": {
+            "name": "Parent object"
           }
         }
       }

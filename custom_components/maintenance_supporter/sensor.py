@@ -153,6 +153,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             "maintenance_type": task.get("type"),
             "schedule_type": task.get("schedule_type"),
             "interval_days": task.get("interval_days"),
+            "interval_anchor": task.get("interval_anchor", "completion"),
             "warning_days": task.get("warning_days"),
             "last_performed": task.get("last_performed"),
             "next_due": task.get("_next_due"),

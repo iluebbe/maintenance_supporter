@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
@@ -481,6 +482,34 @@ async def test_ws_delete_task_not_found_task(
     })
 
     conn.send_error.assert_called_once()
+
+
+async def test_ws_delete_task_cleans_entity_registry(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Test that deleting a task removes its entity registry entries."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Verify entities exist before deletion
+    ent_reg = er.async_get(hass)
+    entities_before = er.async_entries_for_config_entry(ent_reg, object_entry.entry_id)
+    task_entities = [e for e in entities_before if TASK_ID_1 in (e.unique_id or "")]
+    assert len(task_entities) >= 1, "Expected at least sensor + binary_sensor entities"
+
+    conn = _mock_connection()
+    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/delete",
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+    })
+    await hass.async_block_till_done()
+
+    conn.send_result.assert_called_once()
+
+    # Verify entity registry entries for the deleted task are gone
+    entities_after = er.async_entries_for_config_entry(ent_reg, object_entry.entry_id)
+    orphans = [e for e in entities_after if TASK_ID_1 in (e.unique_id or "")]
+    assert len(orphans) == 0, f"Found orphaned entities: {[e.entity_id for e in orphans]}"
 
 
 # ─── Task List Tests ─────────────────────────────────────────────────────

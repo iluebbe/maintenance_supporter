@@ -10,6 +10,7 @@ import voluptuous as vol
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 
 from ..const import (
     CONF_OBJECT,
@@ -226,6 +227,7 @@ def _validate_compound_trigger(
         vol.Optional("task_type", default="custom"): str,
         vol.Optional("schedule_type", default="time_based"): str,
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1)), None),
+        vol.Optional("interval_anchor", default="completion"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days", default=7): int,
         vol.Optional("last_performed"): vol.Any(str, None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
@@ -268,6 +270,8 @@ async def ws_create_task(
 
     if msg.get("interval_days") is not None:
         task_data["interval_days"] = msg["interval_days"]
+    if msg.get("interval_anchor", "completion") != "completion":
+        task_data["interval_anchor"] = msg["interval_anchor"]
     if msg.get("last_performed") is not None:
         initial_last_performed = msg["last_performed"]
         # Add initial history entry so times_performed reflects the value
@@ -374,6 +378,7 @@ async def ws_create_task(
         vol.Optional("enabled"): bool,
         vol.Optional("schedule_type"): str,
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1)), None),
+        vol.Optional("interval_anchor"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days"): int,
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(str, None),
@@ -446,6 +451,7 @@ async def ws_update_task(
         "enabled": "enabled",
         "schedule_type": "schedule_type",
         "interval_days": "interval_days",
+        "interval_anchor": "interval_anchor",
         "warning_days": "warning_days",
         "trigger_config": "trigger_config",
         "notes": "notes",
@@ -530,7 +536,13 @@ async def ws_delete_task(
     if nm is not None:
         nm.clear_task_state(entry.entry_id, task_id)
 
-    # Reload to remove entity
+    # Remove orphaned entity registry entries for the deleted task
+    ent_reg = er.async_get(hass)
+    for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        if ent_entry.unique_id and task_id in ent_entry.unique_id:
+            ent_reg.async_remove(ent_entry.entity_id)
+
+    # Reload to re-create remaining entities
     await hass.config_entries.async_reload(entry.entry_id)
 
     connection.send_result(msg["id"], {"success": True})

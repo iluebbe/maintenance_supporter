@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1079_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1124_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
@@ -14,6 +14,8 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Six task types: cleaning, inspection, replacement, calibration, service, custom
 - Three scheduling modes: **time-based** (interval in days), **sensor-based** (triggered by entity state), **manual**
 - Task status tracking: OK, Due Soon, Overdue, Triggered
+- **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
+- **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift
 - Assign tasks to responsible Home Assistant users with per-user notification routing
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
@@ -28,6 +30,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime)
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
 - Multi-entity support for all trigger types (any/all entity logic)
+- **Entity attribute introspection** — trigger setup shows domain-specific attribute suggestions (e.g., `current_temperature` for climate entities)
 - Automatic entity availability tracking with grace periods
 - Repair issues for missing or unavailable trigger entities (replace / remove / dismiss)
 
@@ -54,7 +57,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Budget alerts at configurable thresholds
 
 ### Data Management
-- Export/import via JSON, YAML, CSV
+- Export via JSON, YAML, CSV; import via CSV
 - QR code generation for mobile quick-actions (print, download SVG)
 - Complete maintenance history with cost, duration, and feedback tracking
 - Integration diagnostics with PII redaction
@@ -63,12 +66,13 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **Sidebar panel** with dashboard overview, object details, task history, and analytics
 - **Lovelace card** for dashboard integration
 - **Calendar** integration with status-emoji events
+- **Binary sensor** entities for automation triggers
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
 - Localized UI: English, German, Dutch, French, Italian, Spanish
 
 ### WebSocket API
-- 34 commands for full CRUD operations on objects, tasks, triggers, and groups
+- 35 commands for full CRUD operations on objects, tasks, triggers, and groups
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -131,7 +135,7 @@ The integration uses a hybrid push/poll update model:
 - **Coordinator refresh** — every 5 minutes, recomputes time-based status (due soon, overdue), runs adaptive predictions (Weibull, seasonal), checks budget thresholds, and detects missing entities
 - **Trigger sensors** — update immediately when monitored entities change state, via Home Assistant `state_changed` event listeners. No polling delay for sensor-based triggers
 - **Frontend** — receives real-time updates via WebSocket subscription (`maintenance_supporter/subscribe`). No browser polling
-- **IoT class**: `local_push` — all data is local, trigger updates are event-driven
+- **IoT class**: `calculated` — all data is computed locally from HA state and configuration, trigger updates are event-driven
 
 ## Uninstalling
 
@@ -241,7 +245,7 @@ template:
 - **Threshold debounce**: `trigger_for_minutes` timers are not restored across Home Assistant restarts. A restart during the debounce window resets the timer
 - **Budget tracking**: Numeric values only — there is no currency selector. The unit displayed is fixed to the symbol configured in the UI
 - **History pruning**: Maximum 50 history entries per task. Oldest entries are automatically removed when the limit is reached
-- **Panel visibility**: Changing the `panel_enabled` toggle requires a Home Assistant restart to take effect
+- **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
 
 ## Troubleshooting
 

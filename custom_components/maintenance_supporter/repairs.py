@@ -75,7 +75,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
                 {
                     vol.Required("new_entity_id"): selector.EntitySelector(
                         selector.EntitySelectorConfig(
-                            domain=["sensor", "binary_sensor", "number", "input_number"],
+                            domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch", "climate", "vacuum", "cover", "fan", "light", "water_heater", "humidifier", "media_player", "weather", "air_quality", "valve", "lawn_mower", "lock"],
                             multiple=False,
                         )
                     ),

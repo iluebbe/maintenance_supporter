@@ -24,6 +24,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _scheduleType = "time_based";
   @state() private _intervalDays = "30";
   @state() private _warningDays = "7";
+  @state() private _intervalAnchor: "completion" | "planned" = "completion";
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
@@ -44,6 +45,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
+
+  // Entity attribute introspection
+  @state() private _suggestedAttributes: string[] = [];
+  @state() private _availableAttributes: Array<{ name: string; value: unknown; numeric: boolean }> = [];
+  @state() private _entityDomain = "";
 
   // NFC
   @state() private _nfcTagId = "";
@@ -75,6 +81,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._scheduleType = task.schedule_type;
     this._intervalDays = task.interval_days?.toString() || "30";
     this._warningDays = task.warning_days.toString();
+    this._intervalAnchor = (task as any).interval_anchor || "completion";
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
@@ -102,6 +109,11 @@ export class MaintenanceTaskDialog extends LitElement {
       this._resetTriggerFields();
     }
 
+    // Fetch entity attributes if trigger entity is set
+    if (this._triggerEntityId) {
+      this._fetchEntityAttributes(this._triggerEntityId);
+    }
+
     await this._loadUsers();
     this._open = true;
   }
@@ -112,6 +124,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._scheduleType = "time_based";
     this._intervalDays = "30";
     this._warningDays = "7";
+    this._intervalAnchor = "completion";
     this._notes = "";
     this._documentationUrl = "";
     this._customIcon = "";
@@ -126,6 +139,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerEntityIds = [];
     this._triggerEntityLogic = "any";
     this._triggerAttribute = "";
+    this._suggestedAttributes = [];
+    this._availableAttributes = [];
+    this._entityDomain = "";
     this._triggerType = "threshold";
     this._triggerAbove = "";
     this._triggerBelow = "";
@@ -150,6 +166,32 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
+  private async _fetchEntityAttributes(entityId: string): Promise<void> {
+    if (!entityId || !this.hass) {
+      this._suggestedAttributes = [];
+      this._availableAttributes = [];
+      this._entityDomain = "";
+      return;
+    }
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/entity/attributes",
+        entity_id: entityId,
+      }) as {
+        domain: string;
+        suggested_attributes: string[];
+        available_attributes: Array<{ name: string; value: unknown; numeric: boolean }>;
+      };
+      this._entityDomain = result.domain || "";
+      this._suggestedAttributes = result.suggested_attributes || [];
+      this._availableAttributes = result.available_attributes || [];
+    } catch {
+      this._suggestedAttributes = [];
+      this._availableAttributes = [];
+      this._entityDomain = "";
+    }
+  }
+
   private async _save(): Promise<void> {
     if (!this._name.trim()) return;
     this._loading = true;
@@ -170,6 +212,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
       if (this._scheduleType !== "manual" && this._intervalDays) {
         data.interval_days = parseInt(this._intervalDays, 10);
+        data.interval_anchor = this._intervalAnchor;
       }
 
       data.notes = this._notes || null;
@@ -241,6 +284,7 @@ export class MaintenanceTaskDialog extends LitElement {
           const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
           this._triggerEntityId = ids[0] || "";
           this._triggerEntityIds = ids;
+          if (ids[0]) this._fetchEntityAttributes(ids[0]);
         }}
       ></ha-textfield>
       ${this._triggerEntityIds.length > 1 ? html`
@@ -255,11 +299,34 @@ export class MaintenanceTaskDialog extends LitElement {
           </select>
         </div>
       ` : nothing}
-      <ha-textfield
-        label="${t("attribute_optional", L)}"
-        .value=${this._triggerAttribute}
-        @input=${(e: Event) => (this._triggerAttribute = (e.target as HTMLInputElement).value)}
-      ></ha-textfield>
+      ${this._availableAttributes.length > 0
+        ? html`
+          <div class="select-row">
+            <label>${t("attribute_optional", L)}</label>
+            <select
+              .value=${this._triggerAttribute}
+              @change=${(e: Event) => (this._triggerAttribute = (e.target as HTMLSelectElement).value)}
+            >
+              <option value="">${t("use_entity_state", L)}</option>
+              ${this._suggestedAttributes.map(
+                (attr) => html`<option value=${attr}>${attr} ★</option>`
+              )}
+              ${this._availableAttributes
+                .filter((a) => !this._suggestedAttributes.includes(a.name))
+                .map(
+                  (a) => html`<option value=${a.name}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
+                )}
+            </select>
+          </div>
+        `
+        : html`
+          <ha-textfield
+            label="${t("attribute_optional", L)}"
+            .value=${this._triggerAttribute}
+            @input=${(e: Event) => (this._triggerAttribute = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+        `
+      }
       <div class="select-row">
         <label>${t("trigger_type", L)}</label>
         <select
@@ -404,6 +471,16 @@ export class MaintenanceTaskDialog extends LitElement {
                   .value=${this._intervalDays}
                   @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
                 ></ha-textfield>
+                <div class="select-row">
+                  <label>${t("interval_anchor", L)}</label>
+                  <select
+                    .value=${this._intervalAnchor}
+                    @change=${(e: Event) => (this._intervalAnchor = (e.target as HTMLSelectElement).value as "completion" | "planned")}
+                  >
+                    <option value="completion">${t("anchor_completion", L)}</option>
+                    <option value="planned">${t("anchor_planned", L)}</option>
+                  </select>
+                </div>
               `
             : nothing}
           <ha-textfield

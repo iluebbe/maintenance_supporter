@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.0 | **~22,500 lines** across 59 source files (48 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,079 tests)
+**Version:** 1.0.0 | **~23,000 lines** across 61 source files (50 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,124 tests)
 
 ---
 
@@ -22,6 +22,12 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 |  reset/export)    |    | - status compute  |    | - native_value    |
 +-------------------+    | - trigger mgmt    |    | - attributes      |
                          | - predictions     |    +-------------------+
+                         |                   |
+                         |                   |    +-------------------+
+                         |                   +--->| Binary Sensor     |
+                         |                   |    | (per task)        |
+                         |                   |    | - is_on = problem |
+                         |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
 | (34 commands)     |    +--------+----------+    |  Calendar Entity  |
@@ -108,6 +114,7 @@ custom_components/maintenance_supporter/
 ├── config_flow_trigger.py       (1,122 lines)  TriggerConfigMixin for trigger UI
 │
 ├── sensor.py                      (297 lines)  MaintenanceSensor (enum, per task)
+├── binary_sensor.py               (199 lines)  MaintenanceBinarySensor (problem, per task)
 ├── calendar.py                    (342 lines)  MaintenanceCalendar (global, all tasks)
 ├── entity/
 │   ├── entity_base.py              (56 lines)  CoordinatorEntity base class
@@ -154,6 +161,7 @@ custom_components/maintenance_supporter/
 │   ├── notification_manager.py    (695 lines)  Multi-channel notification system
 │   ├── entity_analyzer.py         (203 lines)  Entity discovery + recorder stats
 │   ├── csv_handler.py             (187 lines)  CSV import/export
+│   ├── entity_attributes.py      (237 lines)  Domain→attribute mapping for trigger setup
 │   ├── threshold_calculator.py    (132 lines)  Threshold suggestion engine
 │   ├── qr_generator.py            (73 lines)  QR code URL builder + SVG generator
 │   └── qrcodegen.py              (700 lines)  Vendored QR library (Nayuki, MIT)
@@ -381,7 +389,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-34 commands organized by function:
+35 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -395,6 +403,7 @@ Multi-channel notification with:
 | **Analysis** | `analyze_interval`, `apply_suggestion`, `seasonal_overrides`, `set_environmental_entity` |
 | **Import/Export** | `export_data`, `export_csv`, `import_csv` |
 | **QR** | `qr/generate` |
+| **Entity Introspection** | `entity/attributes` |
 
 All write commands fire events for subscription updates.
 
@@ -432,7 +441,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,079 tests** across **53 test files** with **94% code coverage**.
+**1,124 tests** across **56 test files** with **94% code coverage**.
 
 ### Coverage by Module
 
@@ -441,6 +450,7 @@ All write commands fire events for subscription updates.
 | `__init__.py` | 246 | 17 | 93% |
 | `coordinator.py` | 504 | 19 | 96% |
 | `sensor.py` | 202 | 21 | 90% |
+| `binary_sensor.py` | 90 | 5 | 94% |
 | `calendar.py` | 127 | 5 | 96% |
 | `config_flow.py` | 260 | 14 | 95% |
 | `config_flow_options_task.py` | 503 | 36 | 93% |
@@ -466,6 +476,7 @@ All write commands fire events for subscription updates.
 | `notification_manager.py` | 267 | 5 | 98% |
 | `entity_analyzer.py` | 121 | 4 | 97% |
 | `threshold_calculator.py` | 61 | 0 | 100% |
+| `entity_attributes.py` | 65 | 3 | 95% |
 | **WebSocket** | | | |
 | `websocket/__init__.py` | 106 | 0 | 100% |
 | `websocket/tasks.py` | 313 | 34 | 89% |
@@ -527,6 +538,9 @@ All write commands fire events for subscription updates.
 | `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
 | `test_entity_lifecycle.py` | ~5 | Entity setup/teardown |
 | `test_qr_generation.py` | ~5 | QR URL building, SVG generation |
+| `test_binary_sensor.py` | 11 | Binary sensor platform: creation, is_on logic, attributes, lifecycle |
+| `test_entity_attributes.py` | 16 | Entity attribute introspection: domain mapping, WS endpoint, filtering |
+| `test_interval_anchor.py` | 17 | Interval anchoring: completion vs planned mode, edge cases, serialization |
 
 ---
 

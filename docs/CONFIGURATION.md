@@ -17,7 +17,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `default_warning_days` | int | 7 | 1–365 | Days before a task is due when its status changes to `due_soon` |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
-| `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Requires HA restart after changing |
+| `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |
 
 ### Advanced Feature Visibility
 
@@ -103,6 +103,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `enabled` | bool | `true` | — | Whether the task is active. Disabled tasks always show `ok` |
 | `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `manual` |
 | `interval_days` | int | 30 | 1–3650 | Days between maintenance cycles (time-based and sensor-based) |
+| `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
 | `warning_days` | int | 7 | 1–365 | Days before due date when status changes to `due_soon` |
 | `last_performed` | date | *(today)* | — | Date the task was last completed |
 | `notes` | string | `""` | — | General notes about the task |

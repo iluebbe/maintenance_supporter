@@ -7,7 +7,7 @@ from enum import StrEnum
 from homeassistant.const import Platform
 
 DOMAIN = "maintenance_supporter"
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.CALENDAR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.CALENDAR]
 
 # --- Unique IDs ---
 GLOBAL_UNIQUE_ID = "maintenance_supporter_global"
@@ -116,6 +116,7 @@ CONF_TASK_NOTES = "notes"
 CONF_TASK_DOCUMENTATION_URL = "documentation_url"
 CONF_TASK_ICON = "custom_icon"
 CONF_TASK_NFC_TAG = "nfc_tag_id"
+CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
 
 # --- Config Keys: User Assignment ---
 CONF_RESPONSIBLE_USER_ID = "responsible_user_id"

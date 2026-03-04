@@ -186,3 +186,26 @@ async def ws_delete_object(
 
     await hass.config_entries.async_remove(entry.entry_id)
     connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/entity/attributes",
+        vol.Required("entity_id"): str,
+    }
+)
+@callback
+def ws_entity_attributes(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Return relevant attributes for an entity, combining domain mapping with live state.
+
+    Used by the frontend trigger setup to show a dropdown of suitable attributes
+    instead of a free text field.
+    """
+    from ..helpers.entity_attributes import get_entity_attributes
+
+    result = get_entity_attributes(hass, msg["entity_id"])
+    connection.send_result(msg["id"], result)

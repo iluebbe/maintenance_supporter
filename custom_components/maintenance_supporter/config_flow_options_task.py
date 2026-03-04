@@ -14,7 +14,7 @@ from homeassistant.core import State
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
-from homeassistant.helpers import selector
+from homeassistant.helpers import entity_registry as er, selector
 
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
@@ -37,6 +37,7 @@ from .const import (
     CONF_TASK_DOCUMENTATION_URL,
     CONF_TASK_ENABLED,
     CONF_TASK_ICON,
+    CONF_TASK_INTERVAL_ANCHOR,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_LAST_PERFORMED,
     CONF_TASK_NAME,
@@ -97,6 +98,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             task_data["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
+        anchor = self._current_task.get(CONF_TASK_INTERVAL_ANCHOR, "completion")
+        if anchor != "completion":
+            task_data["interval_anchor"] = anchor
         if "trigger_config" in self._current_task:
             task_data["trigger_config"] = self._current_task["trigger_config"]
         if CONF_TASK_NOTES in self._current_task:
@@ -271,6 +275,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             updated_task["type"] = user_input.get(CONF_TASK_TYPE, updated_task.get("type"))
             if user_input.get(CONF_TASK_INTERVAL_DAYS):
                 updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])
+            updated_task["interval_anchor"] = user_input.get(
+                CONF_TASK_INTERVAL_ANCHOR, updated_task.get("interval_anchor", "completion")
+            )
             updated_task["warning_days"] = int(
                 user_input.get(CONF_TASK_WARNING_DAYS, updated_task.get("warning_days", DEFAULT_WARNING_DAYS))
             )
@@ -376,6 +383,18 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_TASK_INTERVAL_ANCHOR,
+                        default=task.get("interval_anchor", "completion"),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(value="completion", label="From completion date"),
+                                selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
                     vol.Optional(
@@ -766,6 +785,17 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 new_data[CONF_OBJECT] = obj
 
                 self._update_config_entry(new_data)
+
+                # Remove orphaned entity registry entries for the deleted task
+                task_id = self._selected_task_id or ""
+                if task_id:
+                    ent_reg = er.async_get(self.hass)
+                    for ent_entry in er.async_entries_for_config_entry(
+                        ent_reg, self.config_entry.entry_id
+                    ):
+                        if ent_entry.unique_id and task_id in ent_entry.unique_id:
+                            ent_reg.async_remove(ent_entry.entity_id)
+
                 return self._show_init_menu()
 
             return self._show_task_action_menu()
@@ -868,6 +898,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                     CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
                 )
+                self._current_task[CONF_TASK_INTERVAL_ANCHOR] = user_input.get(
+                    CONF_TASK_INTERVAL_ANCHOR, "completion"
+                )
                 last_performed = user_input.get("last_performed")
                 if last_performed:
                     self._current_task["last_performed"] = str(last_performed)
@@ -883,6 +916,17 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_TASK_INTERVAL_ANCHOR, default="completion"
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(value="completion", label="From completion date"),
+                                selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
                     vol.Optional("last_performed"): selector.DateSelector(),

@@ -115,6 +115,7 @@ def _build_task_summary(
         "enabled": task_data.get("enabled", True),
         "schedule_type": task_data.get("schedule_type", "time_based"),
         "interval_days": task_data.get("interval_days"),
+        "interval_anchor": task_data.get("interval_anchor", "completion"),
         "warning_days": task_data.get("warning_days", 7),
         "last_performed": task_data.get("last_performed"),
         "notes": task_data.get("notes"),
@@ -240,6 +241,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     from .objects import (  # noqa: PLC0415
         ws_create_object,
         ws_delete_object,
+        ws_entity_attributes,
         ws_get_object,
         ws_get_objects,
         ws_update_object,
@@ -289,3 +291,4 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_list_users)
     websocket_api.async_register_command(hass, ws_assign_user)
     websocket_api.async_register_command(hass, ws_tasks_by_user)
+    websocket_api.async_register_command(hass, ws_entity_attributes)
