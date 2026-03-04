@@ -72,15 +72,19 @@ export class MaintenanceQrDialog extends LitElement {
       if (this._taskId) data.task_id = this._taskId;
       const res = (await this.hass.connection.sendMessagePromise(data)) as QrResult;
       this._result = res;
-    } catch {
-      this._error = t("qr_error", this.lang);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this._error = msg.includes("no_url") || msg.includes("No Home Assistant URL")
+        ? t("qr_error_no_url", this.lang)
+        : t("qr_error", this.lang);
     } finally {
       this._loading = false;
     }
   }
 
-  private _onActionChange(e: Event): void {
-    this._action = (e.target as HTMLSelectElement).value as "view" | "complete";
+  private _setAction(action: "view" | "complete"): void {
+    if (this._action === action) return;
+    this._action = action;
     this._generate();
   }
 
@@ -162,10 +166,12 @@ ${subtitle ? `<div class="sub">${subtitle}</div>` : ""}
             ? html`
                 <div class="action-row">
                   <label>${t("qr_action", L)}</label>
-                  <select @change=${this._onActionChange} .value=${this._action}>
-                    <option value="view">${t("qr_action_view", L)}</option>
-                    <option value="complete">${t("qr_action_complete", L)}</option>
-                  </select>
+                  <div class="action-toggle">
+                    <button class="toggle-btn ${this._action === "view" ? "active" : ""}"
+                      @click=${() => this._setAction("view")}>${t("qr_action_view", L)}</button>
+                    <button class="toggle-btn ${this._action === "complete" ? "active" : ""}"
+                      @click=${() => this._setAction("complete")}>${t("qr_action_complete", L)}</button>
+                  </div>
                 </div>
               `
             : nothing}
@@ -221,23 +227,40 @@ ${subtitle ? `<div class="sub">${subtitle}</div>` : ""}
     }
     .action-row {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
       width: 100%;
     }
     .action-row label {
       font-size: 13px;
       color: var(--secondary-text-color);
-      white-space: nowrap;
     }
-    .action-row select {
+    .action-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--divider-color, #e0e0e0);
+      border-radius: 6px;
+      padding: 3px;
+    }
+    .toggle-btn {
       flex: 1;
-      padding: 6px 8px;
-      border: 1px solid var(--divider-color);
-      border-radius: 4px;
-      background: var(--card-background-color, #fff);
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
       color: var(--primary-text-color);
+      cursor: pointer;
+      border-radius: 4px;
       font-size: 13px;
+      transition: all 0.2s;
+      line-height: 1.3;
+    }
+    .toggle-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    .toggle-btn.active {
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
   `;
 }

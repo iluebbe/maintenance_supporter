@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import urllib.parse
 from typing import TYPE_CHECKING
 
@@ -9,6 +10,8 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 from .qrcodegen import QrCode
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def build_qr_url(
@@ -20,16 +23,26 @@ def build_qr_url(
 ) -> str:
     """Build the URL to encode in a QR code.
 
-    Resolution order for base: base_url_override > external_url > internal_url > "" (relative).
+    Resolution order for base: base_url_override > get_url() > external_url > internal_url.
+    Raises ValueError if no base URL can be determined.
     """
     if base_url_override:
         base = base_url_override.rstrip("/")
-    elif hass.config.external_url:
-        base = hass.config.external_url.rstrip("/")
-    elif hass.config.internal_url:
-        base = hass.config.internal_url.rstrip("/")
     else:
-        base = ""
+        # Try HA's get_url() which considers external/internal/cloud URLs
+        try:
+            from homeassistant.helpers.network import get_url
+            base = get_url(hass).rstrip("/")
+        except Exception:
+            if hass.config.external_url:
+                base = hass.config.external_url.rstrip("/")
+            elif hass.config.internal_url:
+                base = hass.config.internal_url.rstrip("/")
+            else:
+                raise ValueError(
+                    "No Home Assistant URL configured. "
+                    "Set an external or internal URL in Settings → System → Network."
+                )
 
     params: dict[str, str] = {"entry_id": entry_id}
     if task_id:
