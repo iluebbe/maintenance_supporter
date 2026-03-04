@@ -16,6 +16,16 @@ interface QrResult {
   };
 }
 
+/** Escape HTML entities to prevent XSS in document.write contexts. */
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Sanitize a string for use in a filename (remove OS-invalid chars). */
+function sanitizeFilename(s: string): string {
+  return s.replace(/[/\\:*?"<>|#%]+/g, "").replace(/\s+/g, "-").toLowerCase().substring(0, 100);
+}
+
 export class MaintenanceQrDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property() public lang = "de";
@@ -30,6 +40,7 @@ export class MaintenanceQrDialog extends LitElement {
   private _taskId: string | null = null;
   private _objectName = "";
   private _taskName = "";
+  private _generateSeq = 0;
 
   public openForObject(entryId: string, objectName: string): void {
     this._entryId = entryId;
@@ -61,6 +72,7 @@ export class MaintenanceQrDialog extends LitElement {
   }
 
   private async _generate(): Promise<void> {
+    const seq = ++this._generateSeq;
     this._loading = true;
     this._error = "";
     try {
@@ -71,14 +83,18 @@ export class MaintenanceQrDialog extends LitElement {
       };
       if (this._taskId) data.task_id = this._taskId;
       const res = (await this.hass.connection.sendMessagePromise(data)) as QrResult;
+      if (seq !== this._generateSeq) return; // stale response from previous request
       this._result = res;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      this._error = msg.includes("no_url") || msg.includes("No Home Assistant URL")
+      if (seq !== this._generateSeq) return;
+      // HA WS rejects with {code, message} plain object, not Error
+      const code = (err as Record<string, unknown>)?.code;
+      const msg = (err as Record<string, unknown>)?.message;
+      this._error = code === "no_url" || (typeof msg === "string" && msg.includes("No Home Assistant URL"))
         ? t("qr_error_no_url", this.lang)
         : t("qr_error", this.lang);
     } finally {
-      this._loading = false;
+      if (seq === this._generateSeq) this._loading = false;
     }
   }
 
@@ -99,8 +115,11 @@ export class MaintenanceQrDialog extends LitElement {
       .join(" ");
     const w = window.open("", "_blank", "width=400,height=500");
     if (!w) return;
+    const safeTitle = escapeHtml(title);
+    const safeSub = escapeHtml(subtitle);
+    const safeUrl = escapeHtml(r.url);
     w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>${title}</title>
+<title>${safeTitle}</title>
 <style>
   body{font-family:sans-serif;text-align:center;padding:20px}
   h2{margin:0 0 4px}
@@ -108,10 +127,10 @@ export class MaintenanceQrDialog extends LitElement {
   img{max-width:280px;width:100%}
   .url{font-size:11px;color:#999;word-break:break-all;margin-top:12px}
 </style></head><body>
-<h2>${title}</h2>
-${subtitle ? `<div class="sub">${subtitle}</div>` : ""}
+<h2>${safeTitle}</h2>
+${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
 <img src="${r.svg_data_uri}" alt="QR Code" />
-<div class="url">${r.url}</div>
+<div class="url">${safeUrl}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
 </body></html>`);
     w.document.close();
@@ -130,7 +149,7 @@ ${subtitle ? `<div class="sub">${subtitle}</div>` : ""}
     const name = this._taskName
       ? `${this._objectName}-${this._taskName}`
       : this._objectName;
-    a.download = `qr-${name.replace(/\s+/g, "-").toLowerCase()}.svg`;
+    a.download = `qr-${sanitizeFilename(name)}.svg`;
     a.click();
     URL.revokeObjectURL(url);
   }

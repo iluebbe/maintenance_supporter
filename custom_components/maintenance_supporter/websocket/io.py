@@ -150,8 +150,7 @@ async def ws_import_csv(
         vol.Required("entry_id"): str,
         vol.Optional("task_id"): str,
         vol.Optional("action", default="view"): vol.In(["view", "complete"]),
-        vol.Optional("base_url"): str,
-        vol.Optional("scale", default=8): vol.All(int, vol.Range(min=2, max=20)),
+        vol.Optional("base_url"): vol.Url(),
     }
 )
 @websocket_api.async_response

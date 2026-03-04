@@ -168,18 +168,28 @@ export class MaintenanceSupporterPanel extends LitElement {
     const taskId = params.get("task_id");
     const action = params.get("action");
 
+    // Always clean URL params — they are consumed once
+    const cleanUrl = window.location.pathname + window.location.hash;
+    history.replaceState(history.state, "", cleanUrl);
+
+    // Validate that the referenced object exists
+    const obj = this._getObject(entryId);
+    if (!obj) {
+      this._showOverview();
+      return;
+    }
+
     // Navigate to the right view
     if (taskId) {
+      const task = obj.tasks.find((t) => t.id === taskId);
+      if (!task) {
+        this._showObject(entryId);
+        return;
+      }
       this._showTask(entryId, taskId);
       if (action === "complete") {
-        // Clean URL only for complete action (transient) — keep params for view/navigation
-        history.replaceState(null, "", window.location.pathname + window.location.hash);
         requestAnimationFrame(() => {
-          const obj = this._getObject(entryId);
-          const task = obj?.tasks.find((t) => t.id === taskId);
-          if (task) {
-            this._openCompleteDialog(entryId, taskId, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled);
-          }
+          this._openCompleteDialog(entryId, taskId, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled);
         });
       }
     } else {
