@@ -977,6 +977,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="status-badge ${task.status}">${t(task.status, L)}</span>
                 ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
+                ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
                 ${this._renderUserBadge(task)}
                 <span class="cell type">${t(task.type, L)}</span>
@@ -1017,6 +1018,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <span class="object-name-breadcrumb" @click=${() => this._showObject(this._selectedEntryId!)}>${objName}</span>
           <span class="status-chip ${statusClass}">${statusText}</span>
           ${this._renderUserBadge(task)}
+          ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>` : nothing}
         </div>
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>

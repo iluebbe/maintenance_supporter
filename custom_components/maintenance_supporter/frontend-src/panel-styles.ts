@@ -206,6 +206,22 @@ export const panelStyles = css`
     --mdc-icon-size: 14px;
   }
 
+  .nfc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
+    margin-left: 6px;
+    background: var(--secondary-background-color, #e8e8e8);
+    color: var(--primary-text-color);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .nfc-badge ha-icon {
+    --mdc-icon-size: 14px;
+  }
+
   .task-header-actions {
     display: flex;
     gap: 8px;

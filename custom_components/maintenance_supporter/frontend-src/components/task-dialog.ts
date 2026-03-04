@@ -43,6 +43,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
 
+  // NFC
+  @state() private _nfcTagId = "";
+
   // User assignment
   @state() private _responsibleUserId: string | null = null;
   @state() private _availableUsers: HAUser[] = [];
@@ -72,6 +75,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._warningDays = task.warning_days.toString();
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
+    this._nfcTagId = task.nfc_tag_id || "";
     this._responsibleUserId = task.responsible_user_id || null;
 
     if (task.trigger_config) {
@@ -106,6 +110,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._warningDays = "7";
     this._notes = "";
     this._documentationUrl = "";
+    this._nfcTagId = "";
     this._responsibleUserId = null;
     this._resetTriggerFields();
   }
@@ -163,6 +168,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
       data.notes = this._notes || null;
       data.documentation_url = this._documentationUrl || null;
+      data.nfc_tag_id = this._nfcTagId || null;
       data.responsible_user_id = this._responsibleUserId;
 
       if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
@@ -423,6 +429,11 @@ export class MaintenanceTaskDialog extends LitElement {
             label="${t("documentation_url_optional", L)}"
             .value=${this._documentationUrl}
             @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
+            label="${t("nfc_tag_id_optional", L)}"
+            .value=${this._nfcTagId}
+            @input=${(e: Event) => (this._nfcTagId = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
         </div>
         <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
