@@ -1066,11 +1066,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     return html`
       <div class="tab-bar">
-        <div class="tab ${this._activeTab === "overview" ? "active" : ""}" @click=${() => this._activeTab = "overview"}>
+        <div class="tab ${this._activeTab === "overview" || this._activeTab === "analysis" ? "active" : ""}" @click=${() => this._activeTab = "overview"}>
           ${t("overview", L)}
-        </div>
-        <div class="tab ${this._activeTab === "analysis" ? "active" : ""}" @click=${() => this._activeTab = "analysis"}>
-          ${t("analysis", L)}
         </div>
         <div class="tab ${this._activeTab === "history" ? "active" : ""}" @click=${() => this._activeTab = "history"}>
           ${t("history", L)}
@@ -1086,8 +1083,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     switch (this._activeTab) {
       case "overview":
         return this._renderOverviewTab(task);
-      case "analysis":
-        return this._renderAnalysisTab(task);
       case "history":
         return this._renderHistoryTab(task);
       default:
@@ -1101,15 +1096,25 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderOverviewTab(task: MaintenanceTask) {
     const L = this._lang;
 
-    // Check if we have left column content
+    // Check if we have recommendation / seasonal content
     const hasRecommendation = this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days;
     const hasSeasonal = this._features.seasonal && task.seasonal_factor && task.seasonal_factor !== 1.0;
     const hasLeftColumn = hasRecommendation || hasSeasonal;
+
+    // Analysis content: Weibull/Seasonal expanded (only when data is available)
+    const hasWeibullData = this._features.adaptive
+      && task.interval_analysis?.weibull_beta != null
+      && task.interval_analysis?.weibull_eta != null;
+    const hasSeasonalData = this._features.seasonal
+      && (task.seasonal_factors?.length === 12
+        || task.interval_analysis?.seasonal_factors?.length === 12);
 
     return html`
       <div class="tab-content overview-tab">
         ${this._renderKPIBar(task)}
         ${this._renderDaysProgress(task)}
+        ${this._renderTriggerSection(task)}
+        ${this._renderPredictionSection(task)}
         <div class="two-column-layout ${hasLeftColumn ? '' : 'single-column'}">
           ${hasLeftColumn ? html`
             <div class="left-column">
@@ -1121,74 +1126,9 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${this._renderCostDurationCard(task)}
           </div>
         </div>
+        ${hasWeibullData ? this._renderWeibullCardExpanded(task) : nothing}
+        ${hasSeasonalData ? this._renderSeasonalCardExpanded(task) : nothing}
         ${this._renderRecentActivities(task)}
-      </div>
-    `;
-  }
-
-  /**
-   * Render Analysis Tab content.
-   */
-  private _renderAnalysisTab(task: MaintenanceTask) {
-    const L = this._lang;
-    const hasAnyAdvanced = this._features.adaptive || this._features.seasonal;
-
-    if (!hasAnyAdvanced) {
-      return html`
-        <div class="tab-content analysis-tab">
-          ${this._renderTriggerSection(task)}
-          ${this._renderPredictionSection(task)}
-          <div class="analysis-empty-state">
-            <ha-icon icon="mdi:chart-line" class="empty-icon"></ha-icon>
-            <p class="empty">${t("no_advanced_features", L)}</p>
-            <p class="empty-hint">${t("no_advanced_features_hint", L)}</p>
-          </div>
-        </div>
-      `;
-    }
-
-    // Check if the sub-renderers would actually produce content
-    const hasWeibullData = this._features.adaptive
-      && task.interval_analysis?.weibull_beta != null
-      && task.interval_analysis?.weibull_eta != null;
-    const hasSeasonalData = this._features.seasonal
-      && (task.seasonal_factors?.length === 12
-        || task.interval_analysis?.seasonal_factors?.length === 12);
-    const hasAnyData = hasWeibullData || hasSeasonalData;
-
-    if (!hasAnyData) {
-      const isManual = task.schedule_type === "manual";
-      const dataPoints = task.interval_analysis?.data_points ?? 0;
-      const pct = Math.min(100, Math.max(0, (dataPoints / 5) * 100));
-      return html`
-        <div class="tab-content analysis-tab">
-          ${this._renderTriggerSection(task)}
-          ${this._renderPredictionSection(task)}
-          <div class="analysis-empty-state">
-            <ha-icon icon="mdi:chart-line" class="empty-icon"></ha-icon>
-            <p class="empty">${t("analysis_not_enough_data", L)}</p>
-            <p class="empty-hint">
-              ${isManual
-                ? t("analysis_manual_task_hint", L)
-                : t("analysis_not_enough_data_hint", L)}
-            </p>
-            ${!isManual && dataPoints > 0 ? html`
-              <div class="analysis-progress">
-                <div class="analysis-progress-bar" style="width:${pct}%"></div>
-              </div>
-              <p class="empty-hint">${dataPoints} / 5 ${t("completions", L)}</p>
-            ` : nothing}
-          </div>
-        </div>
-      `;
-    }
-
-    return html`
-      <div class="tab-content analysis-tab">
-        ${this._renderTriggerSection(task)}
-        ${this._renderPredictionSection(task)}
-        ${this._features.adaptive ? this._renderWeibullCardExpanded(task) : nothing}
-        ${this._features.seasonal ? this._renderSeasonalCardExpanded(task) : nothing}
       </div>
     `;
   }
