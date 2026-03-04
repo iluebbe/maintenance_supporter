@@ -906,6 +906,39 @@ var Se=Object.defineProperty;var Ce=Object.getOwnPropertyDescriptor;var u=(n,e,t
     background: var(--disabled-color, #9e9e9e);
     color: white;
   }
+
+  /* ── Shared responsive styles (panel + card) ── */
+  @media (max-width: 600px) {
+    .row-actions mwc-icon-button {
+      --mdc-icon-button-size: 44px;
+      --mdc-icon-size: 22px;
+    }
+
+    .due-cell { min-width: 70px; }
+
+    .trigger-card { padding: 10px 12px; }
+    .trigger-current { font-size: 22px; }
+
+    .prediction-grid { flex-direction: column; gap: 8px; }
+
+    .weibull-info-row { flex-direction: column; gap: 8px; }
+
+    .budget-bars { flex-direction: column; }
+    .budget-item { min-width: 0; }
+
+    .group-card { min-width: 0; max-width: 100%; }
+
+    .filter-chip { padding: 6px 12px; font-size: 13px; }
+
+    .history-details { flex-wrap: wrap; gap: 6px; }
+
+    .sparkline-container { max-width: 100%; overflow: hidden; }
+    .sparkline-svg { height: 100px; }
+
+    .stats-bar { gap: 8px; padding: 12px; }
+    .stat-item { min-width: 60px; }
+    .stat-value { font-size: 20px; }
+  }
 `;var T=class extends y{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"}}get _lang(){return this.hass?.language||"en"}setConfig(t){this._config={...t}}_valueChanged(t,a){let i={...this._config,[t]:a};this._config=i,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:i}}))}render(){let t=this._lang;return g`
       <div class="editor">
         <ha-textfield
