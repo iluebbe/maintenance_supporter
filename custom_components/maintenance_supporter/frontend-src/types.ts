@@ -242,6 +242,7 @@ export interface TaskRow {
   interval_days: number | null;
   history: HistoryEntry[];
   enabled: boolean;
+  nfc_tag_id: string | null;
 }
 
 // HomeAssistant type (minimal for our needs)

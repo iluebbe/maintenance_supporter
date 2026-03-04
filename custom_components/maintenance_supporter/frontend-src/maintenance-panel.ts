@@ -278,6 +278,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           interval_days: task.interval_days ?? null,
           history: task.history || [],
           enabled: task.enabled,
+          nfc_tag_id: task.nfc_tag_id ?? null,
         });
       }
     }
@@ -738,6 +739,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
         <span class="status-badge ${row.status}">${t(row.status, L)}</span>
         ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
+        ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
         <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
         <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
         <span class="cell type">${t(row.type, L)}</span>

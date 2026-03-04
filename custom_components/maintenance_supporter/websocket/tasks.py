@@ -23,6 +23,32 @@ from . import _get_merged_tasks, _get_object_entries, _get_runtime_data
 
 
 # ---------------------------------------------------------------------------
+# NFC tag uniqueness check
+# ---------------------------------------------------------------------------
+
+
+def _check_nfc_tag_duplicate(
+    hass: HomeAssistant, nfc_tag_id: str, exclude_task_id: str | None = None
+) -> str | None:
+    """Check if an NFC tag ID is already in use by another task.
+
+    Returns a warning message if duplicate, or None.
+    """
+    for entry in _get_object_entries(hass):
+        tasks = entry.data.get(CONF_TASKS, {})
+        obj_name = entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")
+        for tid, tdata in tasks.items():
+            if tid == exclude_task_id:
+                continue
+            if tdata.get("nfc_tag_id") == nfc_tag_id:
+                return (
+                    f"NFC tag '{nfc_tag_id}' is already linked to task "
+                    f"'{tdata.get('name', tid)}' on object '{obj_name}'"
+                )
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Trigger config validation
 # ---------------------------------------------------------------------------
 
@@ -260,6 +286,10 @@ async def ws_create_task(
         task_data["custom_icon"] = msg["custom_icon"]
     if msg.get("nfc_tag_id") is not None:
         task_data["nfc_tag_id"] = msg["nfc_tag_id"]
+        if msg["nfc_tag_id"]:
+            nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"])
+            if nfc_warn:
+                tc_warnings.append(nfc_warn)
 
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
@@ -370,6 +400,12 @@ async def ws_update_task(
                 "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
             )
             return
+
+    # Check NFC tag uniqueness if provided
+    if "nfc_tag_id" in msg and msg["nfc_tag_id"]:
+        nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"], exclude_task_id=task_id)
+        if nfc_warn:
+            tc_warnings.append(nfc_warn)
 
     # Update provided fields
     field_map = {
