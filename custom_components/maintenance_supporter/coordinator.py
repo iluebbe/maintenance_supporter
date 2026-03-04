@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from .calendar import MaintenanceCalendar
@@ -176,7 +177,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 analysis_config["hemisphere"] = (
                     "south" if self.hass.config.latitude < 0 else "north"
                 )
-                analysis_config["_current_month"] = datetime.now().month
+                analysis_config["_current_month"] = dt_util.now().month
                 analysis = analyzer.analyze(task_result, analysis_config)
                 task_result["_suggested_interval"] = analysis.recommended_interval
                 task_result["_interval_confidence"] = analysis.confidence
@@ -288,8 +289,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Check for issues (repairs)
         await self._async_check_for_issues(tasks)
 
-        # Send notifications for status changes
-        await self._async_notify_status_changes(result[CONF_TASKS])
+        # Send notifications for status changes.
+        # On first refresh after startup, seed _previous_statuses without
+        # sending notifications to avoid a burst of stale alerts.
+        if not self._previous_statuses:
+            for task_id_n, task_result_n in result[CONF_TASKS].items():
+                self._previous_statuses[task_id_n] = task_result_n.get(
+                    "_status", MaintenanceStatus.OK
+                )
+        else:
+            await self._async_notify_status_changes(result[CONF_TASKS])
 
         # Check budget alerts
         await self._async_check_budget(result[CONF_TASKS])
@@ -655,7 +664,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         every coordinator reads from the same cache instead of each one
         re-scanning all entries on every 5-minute refresh.
         """
-        now = datetime.now()
+        now = dt_util.now()
         monthly = 0.0
         yearly = 0.0
 
@@ -729,7 +738,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "_budget_cache"
         )
         if cache is None or (
-            datetime.now() - cache["last_updated"]
+            dt_util.now() - cache["last_updated"]
         ).total_seconds() > 3600:
             self._recalculate_budget_cache()
             cache = self.hass.data[DOMAIN]["_budget_cache"]

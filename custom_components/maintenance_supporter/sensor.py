@@ -258,6 +258,16 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             task_data = static_task
         trigger_config = task_data.get("trigger_config")
 
+        # Listen for task reset signals (completion/skip/reset) —
+        # registered for ALL tasks (not just trigger-based) so that
+        # status updates propagate immediately to the UI.
+        signal = SIGNAL_TASK_RESET.format(
+            entry_id=self.coordinator.entry.entry_id, task_id=self._task_id
+        )
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, signal, self._handle_task_reset)
+        )
+
         if not trigger_config:
             return
 
@@ -284,14 +294,6 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             _LOGGER.exception(
                 "Failed to set up triggers for %s", self.entity_id
             )
-
-        # Listen for task reset signals (completion/skip/reset)
-        signal = SIGNAL_TASK_RESET.format(
-            entry_id=self.coordinator.entry.entry_id, task_id=self._task_id
-        )
-        self.async_on_remove(
-            async_dispatcher_connect(self.hass, signal, self._handle_task_reset)
-        )
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity is removed, clean up triggers."""
@@ -337,7 +339,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         if self.coordinator.data is None:
             return
 
-        tasks = self.coordinator.data.get("tasks", {})
+        tasks = self.coordinator.data.get(CONF_TASKS, {})
         task = tasks.get(self._task_id, {})
 
         # Track per-entity state

@@ -25,6 +25,14 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+/** Sanitize a data URI for safe use in an img src attribute. */
+function sanitizeDataUri(uri: string): string {
+  if (!uri.startsWith("data:image/svg+xml,") && !uri.startsWith("data:image/png;base64,")) {
+    return "";
+  }
+  return escapeHtml(uri);
+}
+
 /** Sanitize a string for use in a filename (remove OS-invalid chars). */
 function sanitizeFilename(s: string): string {
   return s.replace(/[/\\:*?"<>|#%]+/g, "").replace(/\s+/g, "-").toLowerCase().substring(0, 100);
@@ -162,11 +170,11 @@ export class MaintenanceQrDialog extends LitElement {
 ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
 <div class="qr-row">
   <div class="qr-col">
-    <img src="${this._viewResult.svg_data_uri}" alt="QR Info" />
+    <img src="${sanitizeDataUri(this._viewResult.svg_data_uri)}" alt="QR Info" />
     <div class="qr-label">${viewLabel}</div>
   </div>
   ${hasComplete ? `<div class="qr-col">
-    <img src="${this._completeResult!.svg_data_uri}" alt="QR Complete" />
+    <img src="${sanitizeDataUri(this._completeResult!.svg_data_uri)}" alt="QR Complete" />
     <div class="qr-label">${completeLabel}</div>
   </div>` : ""}
 </div>

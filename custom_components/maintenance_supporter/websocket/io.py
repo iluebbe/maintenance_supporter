@@ -84,7 +84,9 @@ async def ws_export_data(
 
     fmt = msg.get("format", "json")
     include_history = msg.get("include_history", True)
-    result = export_maintenance_data(hass, fmt=fmt, include_history=include_history)
+    result = await hass.async_add_executor_job(
+        export_maintenance_data, hass, fmt, include_history
+    )
     connection.send_result(msg["id"], {"format": fmt, "data": result})
 
 

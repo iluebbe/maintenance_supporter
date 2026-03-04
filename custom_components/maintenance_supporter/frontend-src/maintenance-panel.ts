@@ -66,6 +66,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _toastMessage = "";
+  private _toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private _dismissedSuggestions = new Set<string>();
 
   // Dashboard redesign state
   @state() private _activeTab: "overview" | "history" = "overview";
@@ -132,6 +134,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (!this._userService) {
         this._userService = new UserService(this.hass);
         this._userService.getUsers();
+      } else {
+        this._userService.updateHass(this.hass);
       }
     }
   }
@@ -361,8 +365,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   // --- Toast ---
 
   private _showToast(msg: string): void {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastMessage = msg;
-    setTimeout(() => { this._toastMessage = ""; }, 4000);
+    this._toastTimer = setTimeout(() => { this._toastMessage = ""; this._toastTimer = null; }, 4000);
   }
 
   // --- Actions ---
@@ -488,10 +493,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._resetTask(entryId, taskId, result.value || undefined);
   }
 
-  private _dismissSuggestion(): void {
-    // Just reload to clear the badge for this session
-    // (suggestion will reappear on next data refresh if still valid)
-    this._loadData();
+  private _dismissSuggestion(entryId?: string, taskId?: string): void {
+    if (entryId && taskId) {
+      this._dismissedSuggestions.add(`${entryId}_${taskId}`);
+    }
+    this.requestUpdate();
   }
 
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
@@ -1261,7 +1267,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("interval", L)}</div>
-          <div class="kpi-value">${task.interval_days} ${t("days", L)}</div>
+          <div class="kpi-value">${task.interval_days != null ? `${task.interval_days} ${t("days", L)}` : "—"}</div>
           ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
             <div class="kpi-subtext">${t("recommended", L)}: ${task.suggested_interval}${task.interval_analysis?.confidence_interval_low != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""}</div>
           ` : nothing}
@@ -1297,30 +1303,37 @@ export class MaintenanceSupporterPanel extends LitElement {
       return nothing;
     }
 
+    // Check if dismissed this session
+    if (this._selectedEntryId && this._selectedTaskId &&
+        this._dismissedSuggestions.has(`${this._selectedEntryId}_${this._selectedTaskId}`)) {
+      return nothing;
+    }
+
     const current = task.interval_days;
     const suggested = task.suggested_interval;
     const confidence = task.interval_confidence || "medium";
+    const maxBar = Math.max(current || 1, suggested);
 
     return html`
       <div class="recommendation-card">
         <h4>${t("suggested_interval", L)}</h4>
         <div class="interval-comparison">
           <div class="interval-bar">
-            <div class="interval-label">${t("current", L) || "Aktuell"}: ${current} ${t("days", L)}</div>
-            <div class="interval-visual current" style="width: ${Math.min(current / suggested * 100, 100)}%"></div>
+            <div class="interval-label">${t("current", L) || "Aktuell"}: ${current ?? "—"} ${current != null ? t("days", L) : ""}</div>
+            <div class="interval-visual current" style="width: ${current != null ? Math.min((current / maxBar) * 100, 100) : 0}%"></div>
           </div>
           <div class="interval-bar">
             <div class="interval-label">${t("recommended", L)}: ${suggested} ${t("days", L)}
               <span class="confidence-badge ${confidence}">${t(`confidence_${confidence}`, L)}</span>
             </div>
-            <div class="interval-visual suggested" style="width: 100%"></div>
+            <div class="interval-visual suggested" style="width: ${Math.min((suggested / maxBar) * 100, 100)}%"></div>
           </div>
         </div>
         <div class="recommendation-actions">
           <ha-button appearance="filled" @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, suggested)}>
             ${t("apply_suggestion", L)}
           </ha-button>
-          <ha-button appearance="plain" @click=${() => this._dismissSuggestion()}>
+          <ha-button appearance="plain" @click=${() => this._dismissSuggestion(this._selectedEntryId!, this._selectedTaskId!)}>
             ${t("dismiss_suggestion", L)}
           </ha-button>
         </div>

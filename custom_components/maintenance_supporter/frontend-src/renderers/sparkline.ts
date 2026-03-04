@@ -77,7 +77,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         ${triggerType === "compound" ? html`
           <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${tc.compound_logic || (tc as any).operator || "AND"}</span>
           ${(tc.conditions || []).map((cond: any, i: number) => html`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.trigger_config?.type || "unknown", L)}: ${cond.trigger_config?.entity_id || ""}</span>
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type || "unknown", L)}: ${cond.entity_id || ""}</span>
           `)}
         ` : nothing}
         ${info?.min != null ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("min", L)}: ${info.min} ${unit}</span>` : nothing}

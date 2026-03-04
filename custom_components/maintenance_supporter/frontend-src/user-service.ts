@@ -15,6 +15,10 @@ export class UserService {
     this.hass = hass;
   }
 
+  updateHass(hass: HomeAssistant): void {
+    this.hass = hass;
+  }
+
   /**
    * Get list of all active HA users (with caching)
    */

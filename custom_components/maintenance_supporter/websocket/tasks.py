@@ -30,9 +30,12 @@ _SAFE_URL_SCHEMES = {"http", "https", ""}
 
 
 def _is_safe_url(url: str | None) -> bool:
-    """Reject javascript:, data:, and other dangerous URL schemes."""
+    """Reject javascript:, data:, protocol-relative, and other dangerous URL schemes."""
     if not url:
         return True
+    # Block protocol-relative URLs like //evil.com
+    if url.startswith("//"):
+        return False
     try:
         from urllib.parse import urlparse  # noqa: PLC0415
         scheme = urlparse(url).scheme.lower()
@@ -455,6 +458,13 @@ async def ws_update_task(
     for msg_key, data_key in field_map.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
+
+    # Clear stale trigger runtime in Store when trigger config changes
+    if "trigger_config" in msg:
+        rd = _get_runtime_data(hass, msg["entry_id"])
+        if rd and rd.store:
+            rd.store.clear_trigger_runtime(task_id)
+            rd.store.async_delay_save()
 
     tasks_data[task_id] = task
     new_data = dict(entry.data)
