@@ -293,7 +293,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                         "No coordinator for NFC tag match (entry=%s)",
                         ce.entry_id,
                     )
-                    return
+                    continue
                 _LOGGER.info(
                     "Completing task %s via NFC tag scan (%s)",
                     task_id,

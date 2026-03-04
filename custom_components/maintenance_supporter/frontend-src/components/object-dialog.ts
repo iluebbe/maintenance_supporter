@@ -1,15 +1,15 @@
 /** Dialog for creating/editing a maintenance object. */
 
-import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { LitElement, html, css, nothing } from "lit";
+import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceObject } from "../types";
 import { t } from "../styles";
 
-@customElement("maintenance-object-dialog")
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _open = false;
   @state() private _loading = false;
+  @state() private _error = "";
   @state() private _name = "";
   @state() private _manufacturer = "";
   @state() private _model = "";
@@ -24,6 +24,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._name = "";
     this._manufacturer = "";
     this._model = "";
+    this._error = "";
     this._open = true;
   }
 
@@ -32,12 +33,14 @@ export class MaintenanceObjectDialog extends LitElement {
     this._name = obj.name || "";
     this._manufacturer = obj.manufacturer || "";
     this._model = obj.model || "";
+    this._error = "";
     this._open = true;
   }
 
   private async _save(): Promise<void> {
     if (!this._name.trim()) return;
     this._loading = true;
+    this._error = "";
     try {
       if (this._entryId) {
         await this.hass.connection.sendMessagePromise({
@@ -57,6 +60,8 @@ export class MaintenanceObjectDialog extends LitElement {
       }
       this._open = false;
       this.dispatchEvent(new CustomEvent("object-saved"));
+    } catch {
+      this._error = t("save_error", this._lang);
     } finally {
       this._loading = false;
     }
@@ -73,6 +78,7 @@ export class MaintenanceObjectDialog extends LitElement {
     return html`
       <ha-dialog open @closed=${this._close} .heading=${title}>
         <div class="content">
+          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           <ha-textfield
             label="${t("name", L)}"
             required
@@ -114,5 +120,13 @@ export class MaintenanceObjectDialog extends LitElement {
     ha-textfield {
       display: block;
     }
+    .error {
+      color: var(--error-color, #f44336);
+      font-size: 13px;
+    }
   `;
+}
+
+if (!customElements.get("maintenance-object-dialog")) {
+  customElements.define("maintenance-object-dialog", MaintenanceObjectDialog);
 }

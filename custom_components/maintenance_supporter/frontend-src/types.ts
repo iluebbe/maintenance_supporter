@@ -26,7 +26,7 @@ export interface TriggerConfig {
   trigger_target_changes?: number;
   trigger_runtime_hours?: number;
   compound_logic?: "AND" | "OR";
-  conditions?: Array<{ trigger_config: TriggerConfig }>;
+  conditions?: Array<TriggerConfig>;
 }
 
 export interface TriggerEntityInfo {

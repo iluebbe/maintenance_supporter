@@ -1,7 +1,7 @@
 /** Dialog for creating/editing a maintenance task. */
 
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
 import { t } from "../styles";
 import { UserService } from "../user-service";
@@ -10,11 +10,11 @@ const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibra
 const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "manual"];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 
-@customElement("maintenance-task-dialog")
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _open = false;
   @state() private _loading = false;
+  @state() private _error = "";
   @state() private _entryId = "";
   @state() private _taskId: string | null = null; // null = create
 
@@ -55,6 +55,7 @@ export class MaintenanceTaskDialog extends LitElement {
   public async openCreate(entryId: string): Promise<void> {
     this._entryId = entryId;
     this._taskId = null;
+    this._error = "";
     this._resetFields();
     await this._loadUsers();
     this._open = true;
@@ -63,6 +64,7 @@ export class MaintenanceTaskDialog extends LitElement {
   public async openEdit(entryId: string, task: MaintenanceTask): Promise<void> {
     this._entryId = entryId;
     this._taskId = task.id;
+    this._error = "";
     this._name = task.name;
     this._type = task.type;
     this._scheduleType = task.schedule_type;
@@ -140,6 +142,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private async _save(): Promise<void> {
     if (!this._name.trim()) return;
     this._loading = true;
+    this._error = "";
     try {
       const data: Record<string, unknown> = {
         type: this._taskId
@@ -158,9 +161,9 @@ export class MaintenanceTaskDialog extends LitElement {
         data.interval_days = parseInt(this._intervalDays, 10);
       }
 
-      if (this._notes) data.notes = this._notes;
-      if (this._documentationUrl) data.documentation_url = this._documentationUrl;
-      if (this._responsibleUserId) data.responsible_user_id = this._responsibleUserId;
+      data.notes = this._notes || null;
+      data.documentation_url = this._documentationUrl || null;
+      data.responsible_user_id = this._responsibleUserId;
 
       if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
         const entityIds = this._triggerEntityIds.length > 0
@@ -199,6 +202,8 @@ export class MaintenanceTaskDialog extends LitElement {
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-saved"));
+    } catch {
+      this._error = t("save_error", this._lang);
     } finally {
       this._loading = false;
     }
@@ -348,6 +353,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
       <ha-dialog open @closed=${this._close} .heading=${title}>
         <div class="content">
+          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           <ha-textfield
             label="${t("task_name", L)}"
             required
@@ -465,5 +471,13 @@ export class MaintenanceTaskDialog extends LitElement {
       color: var(--primary-text-color);
       font-size: 14px;
     }
+    .error {
+      color: var(--error-color, #f44336);
+      font-size: 13px;
+    }
   `;
+}
+
+if (!customElements.get("maintenance-task-dialog")) {
+  customElements.define("maintenance-task-dialog", MaintenanceTaskDialog);
 }

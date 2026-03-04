@@ -18,6 +18,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _cost = "";
   @state() private _duration = "";
   @state() private _loading = false;
+  @state() private _error = "";
   @state() private _checklistState: Record<string, boolean> = {};
   @state() private _feedback: string = "needed";
 
@@ -26,6 +27,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._notes = "";
     this._cost = "";
     this._duration = "";
+    this._error = "";
     this._checklistState = {};
     this._feedback = "needed";
   }
@@ -44,6 +46,7 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   private async _complete(): Promise<void> {
     this._loading = true;
+    this._error = "";
     try {
       const data: Record<string, unknown> = {
         type: "maintenance_supporter/task/complete",
@@ -62,6 +65,8 @@ export class MaintenanceCompleteDialog extends LitElement {
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
+    } catch {
+      this._error = t("save_error", this.lang);
     } finally {
       this._loading = false;
     }
@@ -81,6 +86,7 @@ export class MaintenanceCompleteDialog extends LitElement {
         .heading=${t("complete_title", L) + this.taskName}
       >
         <div class="content">
+          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           ${this.checklist.length > 0 ? html`
             <div class="checklist-section">
               <label class="checklist-label">${t("checklist", L)}</label>
@@ -150,6 +156,10 @@ export class MaintenanceCompleteDialog extends LitElement {
       flex-direction: column;
       gap: 16px;
       min-width: 300px;
+    }
+    .error {
+      color: var(--error-color, #f44336);
+      font-size: 13px;
     }
     ha-textfield {
       display: block;

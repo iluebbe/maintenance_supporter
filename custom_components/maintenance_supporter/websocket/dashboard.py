@@ -160,7 +160,7 @@ async def ws_get_settings(
     """Return all global settings."""
     global_entry = _get_global_entry(hass)
     if global_entry is None:
-        connection.send_result(msg["id"], {"features": {}})
+        connection.send_result(msg["id"], _build_full_settings({}))
         return
 
     options = global_entry.options or global_entry.data
@@ -291,6 +291,8 @@ async def ws_get_budget_status(
     """Return current budget status (monthly/yearly spent vs budget)."""
     from datetime import datetime as dt_cls  # noqa: PLC0415
 
+    from homeassistant.util import dt as dt_util  # noqa: PLC0415
+
     global_entry = _get_global_entry(hass)
     global_options: Mapping[str, Any] = (
         (global_entry.options or global_entry.data) if global_entry else {}
@@ -300,7 +302,7 @@ async def ws_get_budget_status(
     yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))
     threshold_pct = int(global_options.get(CONF_BUDGET_ALERT_THRESHOLD, 80))
 
-    now = dt_cls.now()
+    now = dt_util.now()
     monthly_spent = 0.0
     yearly_spent = 0.0
 

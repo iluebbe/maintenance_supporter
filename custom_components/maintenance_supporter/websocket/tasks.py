@@ -360,6 +360,17 @@ async def ws_update_task(
             )
             return
 
+    # Validate entity_slug if provided
+    if "entity_slug" in msg and msg["entity_slug"] is not None:
+        slug = msg["entity_slug"]
+        if not re.fullmatch(r"[a-z0-9_]+", slug):
+            connection.send_error(
+                msg["id"],
+                "invalid_entity_slug",
+                "entity_slug must match [a-z0-9_]+ (lowercase, digits, underscores only)",
+            )
+            return
+
     # Update provided fields
     field_map = {
         "name": "name",
@@ -511,6 +522,11 @@ async def ws_complete_task(
         connection.send_error(msg["id"], "not_found", "Coordinator not found")
         return
 
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
     await rd.coordinator.complete_maintenance(
         task_id=msg["task_id"],
         notes=msg.get("notes"),
@@ -542,6 +558,11 @@ async def ws_skip_task(
         connection.send_error(msg["id"], "not_found", "Coordinator not found")
         return
 
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
     await rd.coordinator.skip_maintenance(
         task_id=msg["task_id"],
         reason=msg.get("reason"),
@@ -569,6 +590,11 @@ async def ws_reset_task(
     rd = _get_runtime_data(hass, msg["entry_id"])
     if rd is None or rd.coordinator is None:
         connection.send_error(msg["id"], "not_found", "Coordinator not found")
+        return
+
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
         return
 
     reset_date = None
