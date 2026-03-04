@@ -14,5 +14,5 @@
     "outDir": "../frontend",
     "lib": ["ES2021", "DOM", "DOM.Iterable"]
   },
-  "include": ["*.ts", "components/*.ts"]
+  "include": ["*.ts", "components/*.ts", "renderers/*.ts"]
 }

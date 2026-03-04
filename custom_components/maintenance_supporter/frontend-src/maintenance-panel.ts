@@ -1,6 +1,6 @@
 /** Maintenance Supporter Sidebar Panel. */
 
-import { LitElement, html, nothing, svg } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays } from "./styles";
 import { panelStyles } from "./panel-styles";
@@ -16,7 +16,6 @@ import type {
   HistoryEntry,
   TriggerConfig,
   StatisticsPoint,
-  HAUser,
 } from "./types";
 import { StatisticsService } from "./statistics-service";
 import { UserService } from "./user-service";
@@ -24,7 +23,8 @@ import "./components/object-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import "./components/task-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
-import { MaintenanceCompleteDialog } from "./components/complete-dialog";
+import "./components/complete-dialog";
+import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
 import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import "./components/confirm-dialog";
@@ -67,7 +67,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _moreMenuOpen = false;
 
   // Dashboard redesign state
-  @state() private _activeTab: "overview" | "analysis" | "history" = "overview";
+  @state() private _activeTab: "overview" | "history" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
 
@@ -334,6 +334,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._view = "task";
     this._selectedEntryId = entryId;
     this._selectedTaskId = taskId;
+    this._activeTab = "overview";
     this._historyFilter = null;
 
     // Lazy-load statistics for the task's trigger entity
@@ -1066,7 +1067,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     return html`
       <div class="tab-bar">
-        <div class="tab ${this._activeTab === "overview" || this._activeTab === "analysis" ? "active" : ""}" @click=${() => this._activeTab = "overview"}>
+        <div class="tab ${this._activeTab === "overview" ? "active" : ""}" @click=${() => this._activeTab = "overview"}>
           ${t("overview", L)}
         </div>
         <div class="tab ${this._activeTab === "history" ? "active" : ""}" @click=${() => this._activeTab = "history"}>

@@ -698,7 +698,7 @@ export const panelStyles = css`
 
   :host([narrow]) .toggle-btn {
     flex: 1;
-    padding: 8px 8px;
+    padding: 8px;
     font-size: 12px;
   }
 
@@ -719,39 +719,6 @@ export const panelStyles = css`
     right: auto;
     left: 0;
     min-width: 160px;
-  }
-
-  /* ── Responsive: @media fallback (when narrow attr not set) ── */
-  @media (max-width: 768px) {
-    .content { padding: 0 8px 8px; }
-    .header { padding: 8px 12px; font-size: 14px; }
-    .kpi-bar { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
-    .kpi-card { padding: 12px 8px; }
-    .kpi-label { font-size: 10px; }
-    .kpi-value { font-size: 14px; }
-    .kpi-value-large { font-size: 18px; }
-    .two-column-layout { grid-template-columns: 1fr; }
-    .tab { padding: 12px 16px; font-size: 14px; }
-    .task-header { flex-direction: column; align-items: flex-start; }
-    .task-header-actions { width: 100%; justify-content: flex-start; }
-    .filter-bar { flex-wrap: wrap; }
-    .filter-bar select { flex: 1; min-width: 0; }
-    .task-row { flex-wrap: wrap; gap: 8px; padding: 12px; }
-    .cell.type { display: none; }
-    .cell.object-name { min-width: auto; }
-    .cell.task-name { flex-basis: 100%; order: -1; }
-    .detail-header { flex-direction: column; align-items: flex-start; }
-    .info-grid { grid-template-columns: 1fr; }
-    .history-filters-new { flex-direction: column; }
-    .search-input { min-width: 0; width: 100%; }
-    .cost-duration-card { padding: 12px; }
-    .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-    .toggle-buttons { width: 100%; }
-    .toggle-btn { flex: 1; padding: 8px 8px; font-size: 12px; }
-    .activity-item { flex-wrap: wrap; }
-    .activity-date { min-width: auto; }
-    .activity-note { flex-basis: 100%; white-space: normal; }
-    .popup-menu { right: auto; left: 0; min-width: 160px; }
   }
 
   /* Cost/Duration Card with Toggle */
@@ -800,6 +767,39 @@ export const panelStyles = css`
   .toggle-btn.active {
     background: var(--primary-color);
     color: white;
+  }
+
+  /* ── Responsive: @media fallback (when narrow attr not set) ── */
+  @media (max-width: 768px) {
+    .content { padding: 0 8px 8px; }
+    .header { padding: 8px 12px; font-size: 14px; }
+    .kpi-bar { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .kpi-card { padding: 12px 8px; }
+    .kpi-label { font-size: 10px; }
+    .kpi-value { font-size: 14px; }
+    .kpi-value-large { font-size: 18px; }
+    .two-column-layout { grid-template-columns: 1fr; }
+    .tab { padding: 12px 16px; font-size: 14px; }
+    .task-header { flex-direction: column; align-items: flex-start; }
+    .task-header-actions { width: 100%; justify-content: flex-start; }
+    .filter-bar { flex-wrap: wrap; }
+    .filter-bar select { flex: 1; min-width: 0; }
+    .task-row { flex-wrap: wrap; gap: 8px; padding: 12px; }
+    .cell.type { display: none; }
+    .cell.object-name { min-width: auto; }
+    .cell.task-name { flex-basis: 100%; order: -1; }
+    .detail-header { flex-direction: column; align-items: flex-start; }
+    .info-grid { grid-template-columns: 1fr; }
+    .history-filters-new { flex-direction: column; }
+    .search-input { min-width: 0; width: 100%; }
+    .cost-duration-card { padding: 12px; }
+    .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .toggle-buttons { width: 100%; }
+    .toggle-btn { flex: 1; padding: 8px; font-size: 12px; }
+    .activity-item { flex-wrap: wrap; }
+    .activity-date { min-width: auto; }
+    .activity-note { flex-basis: 100%; white-space: normal; }
+    .popup-menu { right: auto; left: 0; min-width: 160px; }
   }
 
   /* ha-button handles variant="danger" natively */

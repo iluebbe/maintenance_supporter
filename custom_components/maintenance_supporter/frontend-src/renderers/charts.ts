@@ -10,8 +10,8 @@ const COST_CHART_H = 200;
 export function renderCostDurationCard(
   task: MaintenanceTask,
   lang: string,
-  toggle: string,
-  setToggle: (val: string) => void,
+  toggle: "cost" | "duration" | "both",
+  setToggle: (val: "cost" | "duration" | "both") => void,
 ) {
   const completedEntries = task.history.filter((h) => h.type === "completed" && (h.cost != null || h.duration != null));
   if (completedEntries.length < 2) return nothing;
@@ -47,7 +47,7 @@ export function renderCostDurationCard(
   `;
 }
 
-function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: string) {
+function renderHistoryChart(task: MaintenanceTask, lang: string, toggle: "cost" | "duration" | "both") {
   const entries = task.history
     .filter((h) => h.type === "completed" && (h.cost != null || h.duration != null))
     .map((h) => ({ ts: new Date(h.timestamp).getTime(), cost: h.cost ?? 0, duration: h.duration ?? 0 }))

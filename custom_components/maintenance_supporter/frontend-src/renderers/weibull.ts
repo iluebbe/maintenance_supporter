@@ -8,7 +8,7 @@ export function renderWeibullSection(task: MaintenanceTask, lang: string) {
   const analysis = task.interval_analysis;
   const beta = analysis?.weibull_beta;
   const eta = analysis?.weibull_eta;
-  if (beta == null || eta == null) return nothing;
+  if (beta == null || eta == null || eta <= 0) return nothing;
 
   const currentInterval = task.interval_days ?? 0;
   const rec = task.suggested_interval ?? currentInterval;
@@ -94,7 +94,7 @@ function renderWeibullChart(beta: number, eta: number, currentInterval: number, 
           const y = PAD_T + chartH - tick * chartH;
           return svg`
             <line x1="${PAD_L}" y1="${y.toFixed(1)}" x2="${W - PAD_R}" y2="${y.toFixed(1)}"
-              stroke="var(--divider-color)" stroke-width="0.5" ${tick === 0.5 ? 'stroke-dasharray="4,3"' : ""} />
+              stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${tick === 0.5 ? '4,3' : nothing}" />
             <text x="${PAD_L - 4}" y="${(y + 3).toFixed(1)}" fill="var(--secondary-text-color)"
               font-size="8" text-anchor="end">${(tick * 100).toFixed(0)}%</text>
           `;
