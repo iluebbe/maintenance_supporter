@@ -1215,6 +1215,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <div class="tab-content overview-tab">
         ${this._renderKPIBar(task)}
+        ${this._renderTaskMeta(task)}
         ${this._renderDaysProgress(task)}
         ${renderTriggerSection(task, this._sparklineCtx)}
         ${renderPredictionSection(task, L, this._features)}
@@ -1245,6 +1246,32 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="tab-content history-tab">
         ${this._renderHistoryFilters(task)}
         ${this._renderHistoryList(task)}
+      </div>
+    `;
+  }
+
+  /**
+   * Render task notes and documentation URL if present.
+   */
+  private _renderTaskMeta(task: MaintenanceTask) {
+    if (!task.notes && !task.documentation_url) return nothing;
+    const L = this._lang;
+    const safeUrl = task.documentation_url && /^https?:\/\//i.test(task.documentation_url)
+      ? task.documentation_url : null;
+    return html`
+      <div class="task-meta-card">
+        ${task.notes ? html`
+          <div class="task-meta-row">
+            <ha-icon icon="mdi:note-text-outline"></ha-icon>
+            <span class="task-meta-notes">${task.notes}</span>
+          </div>
+        ` : nothing}
+        ${safeUrl ? html`
+          <div class="task-meta-row task-meta-link">
+            <ha-icon icon="mdi:open-in-new"></ha-icon>
+            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_label", L)}</a>
+          </div>
+        ` : nothing}
       </div>
     `;
   }

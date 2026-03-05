@@ -609,6 +609,47 @@ export const panelStyles = css`
     background: #ff9800;
   }
 
+  /* Task meta card (notes + documentation URL) */
+  .task-meta-card {
+    background: var(--card-background-color, #fff);
+    border: 1px solid var(--divider-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .task-meta-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--primary-text-color);
+  }
+
+  .task-meta-row ha-icon {
+    --mdc-icon-size: 18px;
+    color: var(--secondary-text-color);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .task-meta-notes {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .task-meta-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  .task-meta-link a:hover {
+    text-decoration: underline;
+  }
+
   /* ── Responsive: :host([narrow]) (HA sets narrow on mobile/companion) ── */
 
   :host([narrow]) .content {

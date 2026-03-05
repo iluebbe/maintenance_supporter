@@ -72,7 +72,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Localized UI: English, German, Dutch, French, Italian, Spanish
 
 ### WebSocket API
-- 35 commands for full CRUD operations on objects, tasks, triggers, and groups
+- 36 commands for full CRUD operations on objects, tasks, triggers, and groups
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -126,7 +126,7 @@ Each sensor entity exposes attributes grouped by function:
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (34 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+See the [Services](#services) table below for available service calls. For the full WebSocket API (36 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
 
 ## Data Updates
 

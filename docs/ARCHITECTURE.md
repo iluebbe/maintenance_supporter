@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (34 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (36 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -389,7 +389,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-35 commands organized by function:
+36 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -404,6 +404,7 @@ Multi-channel notification with:
 | **Import/Export** | `export_data`, `export_csv`, `import_csv` |
 | **QR** | `qr/generate` |
 | **Entity Introspection** | `entity/attributes` |
+| **NFC Tags** | `tags/list` |
 
 All write commands fire events for subscription updates.
 
@@ -486,6 +487,7 @@ All write commands fire events for subscription updates.
 | `websocket/io.py` | 79 | 7 | 91% |
 | `websocket/dashboard.py` | 193 | 23 | 88% |
 | `websocket/groups.py` | 80 | 1 | 99% |
+| `websocket/tags.py` | 22 | 0 | 100% |
 | **TOTAL** | **6,624** | **414** | **94%** |
 
 ### Test Files
@@ -524,6 +526,7 @@ All write commands fire events for subscription updates.
 | `test_calendar_unit.py` | ~12 | Calendar event generation |
 | `test_repair_flow.py` | ~15 | Repair flow steps |
 | `test_ws_users.py` | ~10 | WS user management |
+| `test_ws_tags.py` | 6 | WS NFC tag listing |
 | `test_calendar_deep.py` | ~10 | Calendar edge cases |
 | `test_sensor_deep.py` | ~10 | Sensor edge cases |
 | `test_entity_analyzer.py` | ~10 | Entity discovery + stats |

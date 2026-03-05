@@ -256,6 +256,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_skip_task,
         ws_update_task,
     )
+    from .tags import ws_list_tags  # noqa: PLC0415
     from .users import ws_assign_user, ws_list_users, ws_tasks_by_user  # noqa: PLC0415
 
     websocket_api.async_register_command(hass, ws_get_objects)
@@ -293,3 +294,4 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_assign_user)
     websocket_api.async_register_command(hass, ws_tasks_by_user)
     websocket_api.async_register_command(hass, ws_entity_attributes)
+    websocket_api.async_register_command(hass, ws_list_tags)

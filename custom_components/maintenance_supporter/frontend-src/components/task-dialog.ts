@@ -53,6 +53,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // NFC
   @state() private _nfcTagId = "";
+  @state() private _availableTags: Array<{id: string; name: string}> = [];
 
   // User assignment
   @state() private _responsibleUserId: string | null = null;
@@ -68,7 +69,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._taskId = null;
     this._error = "";
     this._resetFields();
-    await this._loadUsers();
+    await Promise.all([this._loadUsers(), this._loadTags()]);
     this._open = true;
   }
 
@@ -114,7 +115,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._fetchEntityAttributes(this._triggerEntityId);
     }
 
-    await this._loadUsers();
+    await Promise.all([this._loadUsers(), this._loadTags()]);
     this._open = true;
   }
 
@@ -163,6 +164,17 @@ export class MaintenanceTaskDialog extends LitElement {
     } catch (error) {
       console.error("Failed to load users:", error);
       this._availableUsers = [];
+    }
+  }
+
+  private async _loadTags(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/tags/list",
+      }) as { tags: Array<{id: string; name: string}> };
+      this._availableTags = result.tags || [];
+    } catch {
+      this._availableTags = [];
     }
   }
 
@@ -520,11 +532,29 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._customIcon}
             @input=${(e: Event) => (this._customIcon = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
-          <ha-textfield
-            label="${t("nfc_tag_id_optional", L)}"
-            .value=${this._nfcTagId}
-            @input=${(e: Event) => (this._nfcTagId = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ${this._availableTags.length > 0
+            ? html`
+              <div class="select-row">
+                <label>${t("nfc_tag_id_optional", L)}</label>
+                <select
+                  .value=${this._nfcTagId}
+                  @change=${(e: Event) => (this._nfcTagId = (e.target as HTMLSelectElement).value)}
+                >
+                  <option value="">${t("no_nfc_tag", L)}</option>
+                  ${this._availableTags.map(
+                    (tag) => html`<option value=${tag.id}>${tag.name}</option>`
+                  )}
+                </select>
+              </div>
+            `
+            : html`
+              <ha-textfield
+                label="${t("nfc_tag_id_optional", L)}"
+                .value=${this._nfcTagId}
+                @input=${(e: Event) => (this._nfcTagId = (e.target as HTMLInputElement).value)}
+              ></ha-textfield>
+            `
+          }
           <label class="toggle-row">
             <input
               type="checkbox"

@@ -258,6 +258,9 @@ const DE: Translations = {
   reason_optional: "Grund (optional)",
   reset_date_prompt: "Aufgabe zurücksetzen?",
   reset_date_optional: "Neues Datum (optional)",
+  notes_label: "Notizen",
+  documentation_label: "Dokumentation",
+  no_nfc_tag: "— Kein Tag —",
 };
 
 const EN: Translations = {
@@ -484,6 +487,9 @@ const EN: Translations = {
   reason_optional: "Reason (optional)",
   reset_date_prompt: "Reset this task?",
   reset_date_optional: "New date (optional)",
+  notes_label: "Notes",
+  documentation_label: "Documentation",
+  no_nfc_tag: "— No tag —",
 };
 
 const NL: Translations = {
@@ -699,6 +705,9 @@ const NL: Translations = {
   reason_optional: "Reden (optioneel)",
   reset_date_prompt: "Deze taak resetten?",
   reset_date_optional: "Nieuwe datum (optioneel)",
+  notes_label: "Notities",
+  documentation_label: "Documentatie",
+  no_nfc_tag: "— Geen tag —",
 };
 
 const FR: Translations = {
@@ -914,6 +923,9 @@ const FR: Translations = {
   reason_optional: "Raison (optionnel)",
   reset_date_prompt: "Réinitialiser cette tâche ?",
   reset_date_optional: "Nouvelle date (optionnel)",
+  notes_label: "Notes",
+  documentation_label: "Documentation",
+  no_nfc_tag: "— Aucun tag —",
 };
 
 const IT: Translations = {
@@ -1129,6 +1141,9 @@ const IT: Translations = {
   reason_optional: "Motivo (opzionale)",
   reset_date_prompt: "Reimpostare questa attività?",
   reset_date_optional: "Nuova data (opzionale)",
+  notes_label: "Note",
+  documentation_label: "Documentazione",
+  no_nfc_tag: "— Nessun tag —",
 };
 
 const ES: Translations = {
@@ -1344,6 +1359,9 @@ const ES: Translations = {
   reason_optional: "Motivo (opcional)",
   reset_date_prompt: "¿Restablecer esta tarea?",
   reset_date_optional: "Nueva fecha (opcional)",
+  notes_label: "Notas",
+  documentation_label: "Documentación",
+  no_nfc_tag: "— Sin etiqueta —",
 };
 
 const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES };
