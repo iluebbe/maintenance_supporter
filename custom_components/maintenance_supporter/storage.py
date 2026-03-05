@@ -222,17 +222,21 @@ class MaintenanceStore:
                 }
                 conditions: dict[int, dict[str, Any]] = {}
                 for k in compound_keys:
-                    # Key format: _compound_<idx>_<entity_id>
-                    # Split into: ['', 'compound', '<idx>', '<entity_id>']
+                    # Key format: _compound_<idx> or _compound_<idx>_<entity_id>
+                    # Split into: ['', 'compound', '<idx>'] or ['', 'compound', '<idx>', '<entity_id>']
                     parts = k.split("_", 3)
-                    if len(parts) < 4:
+                    if len(parts) < 3:
                         continue
                     try:
                         idx = int(parts[2])
                     except ValueError:
                         continue
-                    sub_key = parts[3]
-                    conditions.setdefault(idx, {})[sub_key] = trigger_runtime[k]
+                    if len(parts) == 3:
+                        # No entity_id suffix — merge directly into condition dict
+                        conditions.setdefault(idx, {}).update(trigger_runtime[k])
+                    else:
+                        sub_key = parts[3]
+                        conditions.setdefault(idx, {})[sub_key] = trigger_runtime[k]
                 non_compound["conditions"] = [
                     conditions.get(i, {})
                     for i in range(max(conditions.keys()) + 1 if conditions else 0)

@@ -462,3 +462,28 @@ async def test_merge_task_data_includes_last_planned_due(hass: HomeAssistant) ->
     static = {"id": "task_1", "name": "Test", "interval_anchor": "planned"}
     merged = store.merge_task_data("task_1", static)
     assert merged["last_planned_due"] == "2026-03-01"
+
+
+async def test_merge_compound_keys_without_entity_id(hass: HomeAssistant) -> None:
+    """merge_task_data handles _compound_N keys without entity_id suffix."""
+    store = MaintenanceStore(hass, "test_compound_no_eid")
+    # Key without entity_id suffix (condition-level data)
+    store.set_trigger_runtime("t1", "_compound_0", {"some_key": "some_value"})
+    # Key with entity_id suffix (per-entity data)
+    store.set_trigger_runtime("t1", "_compound_1_sensor.temp", {"baseline_value": 42.0})
+
+    static = {
+        "id": "t1",
+        "name": "Compound Task",
+        "trigger_config": {"type": "compound", "compound_logic": "AND"},
+    }
+
+    merged = store.merge_task_data("t1", static)
+    tc = merged["trigger_config"]
+    ts = tc["_trigger_state"]
+    assert "conditions" in ts
+    assert len(ts["conditions"]) == 2
+    # Condition 0: data merged directly (no entity_id suffix)
+    assert ts["conditions"][0]["some_key"] == "some_value"
+    # Condition 1: data keyed by entity_id
+    assert ts["conditions"][1]["sensor.temp"]["baseline_value"] == 42.0

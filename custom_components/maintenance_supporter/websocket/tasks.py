@@ -470,12 +470,19 @@ async def ws_update_task(
         if msg_key in msg:
             task[data_key] = msg[msg_key]
 
-    # Clear stale trigger runtime in Store when trigger config changes
+    # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:
-        rd = _get_runtime_data(hass, msg["entry_id"])
-        if rd and rd.store:
-            rd.store.clear_trigger_runtime(task_id)
-            rd.store.async_delay_save()
+        old_tc = tasks_data.get(task_id, {}).get("trigger_config") or {}
+        new_tc = msg["trigger_config"] or {}
+        if (
+            old_tc.get("type") != new_tc.get("type")
+            or old_tc.get("entity_id") != new_tc.get("entity_id")
+            or old_tc.get("entity_ids") != new_tc.get("entity_ids")
+        ):
+            rd = _get_runtime_data(hass, msg["entry_id"])
+            if rd and rd.store:
+                rd.store.clear_trigger_runtime(task_id)
+                rd.store.async_delay_save()
 
     tasks_data[task_id] = task
     new_data = dict(entry.data)

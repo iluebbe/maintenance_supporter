@@ -243,11 +243,11 @@ class RuntimeTrigger(BaseTrigger):
         """Check if state represents 'on'."""
         return state_value.lower() in self._on_states
 
-    def _accumulate_elapsed(self) -> None:
+    def _accumulate_elapsed(self, now: datetime | None = None) -> None:
         """Add elapsed time since _on_since to accumulated total."""
         if self._on_since_dt is None:
             return
-        now = dt_util.utcnow()
+        now = now or dt_util.utcnow()
         elapsed = (now - self._on_since_dt).total_seconds()
         if elapsed > 0:
             self._accumulated_seconds += elapsed
@@ -271,8 +271,8 @@ class RuntimeTrigger(BaseTrigger):
         if self._on_since_dt is None:
             return
         # Accumulate elapsed, reset window, persist
-        self._accumulate_elapsed()
         now = dt_util.utcnow()
+        self._accumulate_elapsed(now)
         self._on_since_dt = now
         self._on_since = now.isoformat()
         self.hass.async_create_task(self._persist_runtime())

@@ -275,9 +275,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             updated_task["type"] = user_input.get(CONF_TASK_TYPE, updated_task.get("type"))
             if user_input.get(CONF_TASK_INTERVAL_DAYS):
                 updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])
-            updated_task["interval_anchor"] = user_input.get(
-                CONF_TASK_INTERVAL_ANCHOR, updated_task.get("interval_anchor", "completion")
-            )
+            if CONF_TASK_INTERVAL_ANCHOR in user_input:
+                updated_task["interval_anchor"] = user_input[CONF_TASK_INTERVAL_ANCHOR]
             updated_task["warning_days"] = int(
                 user_input.get(CONF_TASK_WARNING_DAYS, updated_task.get("warning_days", DEFAULT_WARNING_DAYS))
             )
@@ -377,25 +376,31 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             translation_key="maintenance_type",
                         )
                     ),
-                    vol.Optional(
-                        CONF_TASK_INTERVAL_DAYS,
-                        default=task.get("interval_days", DEFAULT_INTERVAL_DAYS),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
-                        )
-                    ),
-                    vol.Optional(
-                        CONF_TASK_INTERVAL_ANCHOR,
-                        default=task.get("interval_anchor", "completion"),
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=[
-                                selector.SelectOptionDict(value="completion", label="From completion date"),
-                                selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
-                            ],
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                        )
+                    **(
+                        {
+                            vol.Optional(
+                                CONF_TASK_INTERVAL_DAYS,
+                                default=task.get("interval_days", DEFAULT_INTERVAL_DAYS),
+                            ): selector.NumberSelector(
+                                selector.NumberSelectorConfig(
+                                    min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
+                                )
+                            ),
+                            vol.Optional(
+                                CONF_TASK_INTERVAL_ANCHOR,
+                                default=task.get("interval_anchor", "completion"),
+                            ): selector.SelectSelector(
+                                selector.SelectSelectorConfig(
+                                    options=[
+                                        selector.SelectOptionDict(value="completion", label="From completion date"),
+                                        selector.SelectOptionDict(value="planned", label="From planned date (no drift)"),
+                                    ],
+                                    mode=selector.SelectSelectorMode.DROPDOWN,
+                                )
+                            ),
+                        }
+                        if task.get("schedule_type") == ScheduleType.TIME_BASED
+                        else {}
                     ),
                     vol.Optional(
                         CONF_TASK_WARNING_DAYS,
