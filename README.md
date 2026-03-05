@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1124_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1158_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
@@ -108,6 +108,7 @@ For a complete list of all configurable parameters, see [docs/CONFIGURATION.md](
 ### Platforms
 
 - **Sensor** — one entity per maintenance task. State is an enum: `ok`, `due_soon`, `overdue`, `triggered`
+- **Binary Sensor** — one entity per maintenance task (`device_class: problem`). ON when overdue or triggered, ideal for HA automations
 - **Calendar** — one global entity showing upcoming maintenance events for all tasks
 
 ### Sensor Attributes
@@ -314,7 +315,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,079 tests across 53 test files with **94% code coverage** (6,624 statements, 414 uncovered).
+1,158 tests across 55 test files with **94% code coverage** (6,861 statements, 426 uncovered).
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter

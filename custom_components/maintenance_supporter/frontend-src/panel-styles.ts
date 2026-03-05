@@ -221,6 +221,15 @@ export const panelStyles = css`
   .nfc-badge ha-icon {
     --mdc-icon-size: 14px;
   }
+  .nfc-badge.unlinked {
+    opacity: 0.4;
+    cursor: pointer;
+    border: 1px dashed var(--divider-color);
+    background: transparent;
+  }
+  .nfc-badge.unlinked:hover {
+    opacity: 0.7;
+  }
 
   .task-header-actions {
     display: flex;

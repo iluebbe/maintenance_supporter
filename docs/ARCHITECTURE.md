@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.0 | **~23,000 lines** across 61 source files (50 Python + 11 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,124 tests)
+**Version:** 1.0.3 | **~24,000 lines** across 64 source files (51 Python + 13 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,158 tests)
 
 ---
 
@@ -101,80 +101,83 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 
 ```
 custom_components/maintenance_supporter/
-├── __init__.py                    (486 lines)  Integration setup, services, lifecycle
-├── const.py                       (272 lines)  Constants, enums, defaults
-├── coordinator.py                 (950 lines)  DataUpdateCoordinator per object
-├── storage.py                     (307 lines)  Per-entry Store (dynamic state, migration)
+├── __init__.py                    (540 lines)  Integration setup, services, lifecycle
+├── const.py                       (283 lines)  Constants, enums, defaults
+├── coordinator.py               (1,060 lines)  DataUpdateCoordinator per object
+├── storage.py                     (344 lines)  Per-entry Store (dynamic state, migration)
 │
-├── config_flow.py                 (899 lines)  Initial setup flow + templates
+├── config_flow.py                 (905 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py          (62 lines)  Shared config flow utilities
 ├── config_flow_options.py          (13 lines)  Options dispatcher
 ├── config_flow_options_global.py  (663 lines)  Global settings (notifications, budgets, panel)
-├── config_flow_options_task.py  (1,270 lines)  Per-object task management
-├── config_flow_trigger.py       (1,122 lines)  TriggerConfigMixin for trigger UI
+├── config_flow_options_task.py  (1,394 lines)  Per-object task management
+├── config_flow_trigger.py       (1,148 lines)  TriggerConfigMixin for trigger UI
 │
-├── sensor.py                      (297 lines)  MaintenanceSensor (enum, per task)
-├── binary_sensor.py               (199 lines)  MaintenanceBinarySensor (problem, per task)
-├── calendar.py                    (342 lines)  MaintenanceCalendar (global, all tasks)
+├── sensor.py                      (399 lines)  MaintenanceSensor (enum, per task)
+├── binary_sensor.py               (198 lines)  MaintenanceBinarySensor (problem, per task)
+├── calendar.py                    (359 lines)  MaintenanceCalendar (global, all tasks)
 ├── entity/
 │   ├── entity_base.py              (56 lines)  CoordinatorEntity base class
 │   └── triggers/
-│       ├── __init__.py            (166 lines)  Factory: create_triggers(), multi-entity
+│       ├── __init__.py            (170 lines)  Factory: create_triggers(), multi-entity
 │       ├── base_trigger.py        (300 lines)  Abstract base with availability tracking
 │       ├── threshold.py           (105 lines)  Value above/below trigger
-│       ├── counter.py              (99 lines)  Accumulated value trigger
-│       ├── state_change.py        (195 lines)  State transition counter
+│       ├── counter.py             (115 lines)  Accumulated value trigger
+│       ├── state_change.py        (200 lines)  State transition counter
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
-│       └── compound.py            (310 lines)  AND/OR compound trigger
+│       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               34 WS commands, split by domain
-│   ├── __init__.py              (272 lines)  Shared helpers + registration
-│   ├── objects.py               (185 lines)  Object CRUD (5 handlers)
-│   ├── tasks.py                 (552 lines)  Task CRUD + validation + actions (7 handlers)
-│   ├── groups.py                (163 lines)  Group CRUD (4 handlers)
-│   ├── analysis.py              (261 lines)  Adaptive scheduling (4 handlers)
-│   ├── users.py                 (138 lines)  User management (3 handlers)
-│   ├── io.py                    (198 lines)  Export/import/CSV/QR/templates (5 handlers)
-│   └── dashboard.py             (456 lines)  Subscribe, statistics, settings, budget, global update/test (6 handlers)
-├── panel.py                        (66 lines)  Sidebar panel registration
+├── websocket/                               36 WS commands, split by domain
+│   ├── __init__.py              (297 lines)  Shared helpers + registration
+│   ├── objects.py               (211 lines)  Object CRUD (5 handlers)
+│   ├── tasks.py                 (716 lines)  Task CRUD + validation + actions (7 handlers)
+│   ├── groups.py                (166 lines)  Group CRUD (4 handlers)
+│   ├── analysis.py              (277 lines)  Adaptive scheduling (4 handlers)
+│   ├── users.py                 (139 lines)  User management (3 handlers)
+│   ├── io.py                    (232 lines)  Export/import/CSV/QR/templates (5 handlers)
+│   ├── dashboard.py             (499 lines)  Subscribe, statistics, settings, budget, global update/test (6 handlers)
+│   └── tags.py                   (38 lines)  NFC tag listing (1 handler)
+├── panel.py                        (62 lines)  Sidebar panel registration
 ├── frontend/
-│   ├── __init__.py                 (36 lines)  Lovelace card registration
+│   ├── __init__.py                 (33 lines)  Lovelace card registration
 │   ├── maintenance-panel.js                  Built panel (esbuild output)
 │   └── maintenance-card.js                   Built card (esbuild output)
-├── frontend-src/                (6,990 lines)  TypeScript sources
-│   ├── maintenance-panel.ts     (2,787 lines)  Panel: overview, object detail, task detail
-│   ├── maintenance-card.ts        (262 lines)  Lovelace card
-│   ├── maintenance-card-editor.ts  (80 lines)
-│   ├── statistics-service.ts      (132 lines)  WS statistics cache
-│   ├── styles.ts                (2,272 lines)  CSS, i18n (6 languages), shared helpers
-│   ├── types.ts                   (277 lines)  TypeScript interfaces
-│   ├── user-service.ts            (121 lines)  HA user list cache
-│   └── components/              (1,059 lines)
-│       ├── complete-dialog.ts     (225 lines)  Mark task complete
-│       ├── task-dialog.ts         (469 lines)  Add/edit task
-│       ├── object-dialog.ts       (118 lines)  Add/edit object
-│       └── qr-dialog.ts          (247 lines)  QR code generation
+├── frontend-src/                (7,319 lines)  TypeScript sources
+│   ├── maintenance-panel.ts     (1,502 lines)  Panel: overview, object detail, task detail
+│   ├── maintenance-card.ts        (287 lines)  Lovelace card
+│   ├── maintenance-card-editor.ts  (86 lines)
+│   ├── panel-styles.ts            (891 lines)  Panel-specific CSS
+│   ├── statistics-service.ts      (215 lines)  WS statistics cache
+│   ├── styles.ts                (2,364 lines)  Shared CSS, i18n (6 languages), shared helpers
+│   ├── types.ts                   (284 lines)  TypeScript interfaces
+│   ├── user-service.ts            (125 lines)  HA user list cache
+│   └── components/              (1,565 lines)
+│       ├── complete-dialog.ts     (242 lines)  Mark task complete
+│       ├── confirm-dialog.ts      (141 lines)  Generic confirmation dialog
+│       ├── task-dialog.ts         (629 lines)  Add/edit task
+│       ├── object-dialog.ts       (153 lines)  Add/edit object
+│       └── qr-dialog.ts          (400 lines)  QR code generation
 │
-├── helpers/                     (3,363 lines)
-│   ├── interval_analyzer.py       (732 lines)  EWA + Weibull + seasonal analysis
-│   ├── sensor_predictor.py        (638 lines)  Degradation + environmental correlation
-│   ├── notification_manager.py    (695 lines)  Multi-channel notification system
+├── helpers/                     (3,661 lines)
+│   ├── interval_analyzer.py       (730 lines)  EWA + Weibull + seasonal analysis
+│   ├── sensor_predictor.py        (640 lines)  Degradation + environmental correlation
+│   ├── notification_manager.py    (691 lines)  Multi-channel notification system
 │   ├── entity_analyzer.py         (203 lines)  Entity discovery + recorder stats
-│   ├── csv_handler.py             (187 lines)  CSV import/export
-│   ├── entity_attributes.py      (237 lines)  Domain→attribute mapping for trigger setup
+│   ├── csv_handler.py             (196 lines)  CSV import/export
+│   ├── entity_attributes.py      (239 lines)  Domain→attribute mapping for trigger setup
 │   ├── threshold_calculator.py    (132 lines)  Threshold suggestion engine
-│   ├── qr_generator.py            (73 lines)  QR code URL builder + SVG generator
+│   ├── qr_generator.py           (151 lines)  QR code URL builder + SVG generator
 │   └── qrcodegen.py              (700 lines)  Vendored QR library (Nayuki, MIT)
 │
-├── models/                        (422 lines)
-│   ├── maintenance_task.py        (283 lines)  Task: schedule, triggers, history, status
+├── models/                        (483 lines)
+│   ├── maintenance_task.py        (344 lines)  Task: schedule, triggers, history, status
 │   ├── maintenance_object.py       (53 lines)  Object: name, area, manufacturer, model
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
 ├── templates.py                   (226 lines)  20+ object templates (car, pool, HVAC, ...)
-├── repairs.py                     (274 lines)  Missing trigger entity repair flow
-├── diagnostics.py                 (209 lines)  Integration diagnostics with PII redaction
-├── export.py                      (116 lines)  JSON/YAML data export
+├── repairs.py                     (315 lines)  Missing trigger entity repair flow
+├── diagnostics.py                 (231 lines)  Integration diagnostics with PII redaction
+├── export.py                      (161 lines)  JSON/YAML data export
 │
 ├── manifest.json                            Integration metadata
 ├── services.yaml                            Service definitions
@@ -349,7 +352,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Two bundles:** `maintenance-panel.js` (~172KB) and `maintenance-card.js` (~87KB)
+**Two bundles:** `maintenance-panel.js` (~212KB) and `maintenance-card.js` (~96KB)
 
 ### Panel Views
 1. **Overview**: Statistics dashboard, group list, budget status, sparklines, user filter
@@ -420,7 +423,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (94%, 1,058 tests) |
+| test-coverage (>95%) | Silver | Yes (94%, 1,158 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -442,108 +445,117 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,124 tests** across **56 test files** with **94% code coverage**.
+**1,158 tests** across **55 test files** with **94% code coverage**.
 
 ### Coverage by Module
 
 | Module | Stmts | Miss | Cover |
 |--------|-------|------|-------|
 | `__init__.py` | 246 | 17 | 93% |
-| `coordinator.py` | 504 | 19 | 96% |
-| `sensor.py` | 202 | 21 | 90% |
-| `binary_sensor.py` | 90 | 5 | 94% |
+| `coordinator.py` | 517 | 22 | 96% |
+| `sensor.py` | 202 | 8 | 96% |
+| `binary_sensor.py` | 81 | 7 | 91% |
 | `calendar.py` | 127 | 5 | 96% |
 | `config_flow.py` | 260 | 14 | 95% |
-| `config_flow_options_task.py` | 503 | 36 | 93% |
+| `config_flow_helpers.py` | 22 | 4 | 82% |
+| `config_flow_options_task.py` | 520 | 38 | 93% |
 | `config_flow_options_global.py` | 145 | 18 | 88% |
-| `config_flow_trigger.py` | 338 | 56 | 83% |
-| `const.py` | 174 | 0 | 100% |
-| `diagnostics.py` | 94 | 0 | 100% |
-| `repairs.py` | 134 | 0 | 100% |
+| `config_flow_trigger.py` | 339 | 56 | 83% |
+| `const.py` | 175 | 0 | 100% |
+| `diagnostics.py` | 103 | 2 | 98% |
+| `repairs.py` | 135 | 0 | 100% |
 | `panel.py` | 31 | 0 | 100% |
 | `templates.py` | 25 | 0 | 100% |
 | `storage.py` | 150 | 3 | 98% |
+| `export.py` | 51 | 4 | 92% |
 | **Triggers** | | | |
 | `base_trigger.py` | 121 | 3 | 98% |
 | `threshold.py` | 53 | 1 | 98% |
 | `counter.py` | 49 | 7 | 86% |
-| `state_change.py` | 80 | 5 | 94% |
+| `state_change.py` | 83 | 5 | 94% |
 | `runtime.py` | 161 | 3 | 98% |
-| `compound.py` | 143 | 0 | 100% |
+| `compound.py` | 145 | 0 | 100% |
 | `triggers/__init__.py` | 89 | 1 | 99% |
 | **Helpers** | | | |
-| `interval_analyzer.py` | 312 | 17 | 95% |
-| `sensor_predictor.py` | 275 | 20 | 93% |
-| `notification_manager.py` | 267 | 5 | 98% |
+| `interval_analyzer.py` | 310 | 17 | 95% |
+| `sensor_predictor.py` | 276 | 20 | 93% |
+| `notification_manager.py` | 267 | 7 | 97% |
 | `entity_analyzer.py` | 121 | 4 | 97% |
+| `entity_attributes.py` | 25 | 0 | 100% |
 | `threshold_calculator.py` | 61 | 0 | 100% |
-| `entity_attributes.py` | 65 | 3 | 95% |
+| `csv_handler.py` | 81 | 6 | 93% |
+| `qr_generator.py` | 69 | 2 | 97% |
 | **WebSocket** | | | |
-| `websocket/__init__.py` | 106 | 0 | 100% |
-| `websocket/tasks.py` | 313 | 34 | 89% |
-| `websocket/objects.py` | 74 | 2 | 97% |
+| `websocket/__init__.py` | 109 | 0 | 100% |
+| `websocket/tasks.py` | 336 | 37 | 89% |
+| `websocket/objects.py` | 80 | 5 | 94% |
 | `websocket/analysis.py` | 124 | 14 | 89% |
 | `websocket/users.py` | 66 | 0 | 100% |
-| `websocket/io.py` | 79 | 7 | 91% |
+| `websocket/io.py` | 80 | 7 | 91% |
 | `websocket/dashboard.py` | 193 | 23 | 88% |
 | `websocket/groups.py` | 80 | 1 | 99% |
-| `websocket/tags.py` | 22 | 0 | 100% |
-| **TOTAL** | **6,624** | **414** | **94%** |
+| `websocket/tags.py` | 21 | 0 | 100% |
+| **TOTAL** | **6,861** | **426** | **94%** |
 
 ### Test Files
 
 | Test File | Tests | Scope |
 |-----------|-------|-------|
-| `test_triggers.py` | ~80 | All trigger types, multi-entity, edge cases |
-| `test_options_flow.py` | ~60 | Options flow management |
-| `test_config_flow.py` | ~35 | Config flow steps, validation |
-| `test_notifications.py` | ~40 | Notification delivery, quiet hours, bundling |
-| `test_phase2_features.py` | ~34 | Checklist, groups, budgets, export/CSV fields |
-| `test_ws_task_handlers.py` | ~30 | WebSocket task CRUD + actions |
-| `test_coordinator_prediction.py` | ~30 | Sensor prediction, fallback triggers, budget |
-| `test_sensor_predictions.py` | ~25 | Degradation analysis, threshold prediction |
-| `test_config_flow_template.py` | ~25 | Object template creation |
-| `test_adaptive_scheduling.py` | ~25 | EWA, Weibull, interval computation |
-| `test_sensor_predictor.py` | ~37 | Pure unit tests for sensor_predictor |
-| `test_coverage_final.py` | ~24 | Helper functions, diagnostics, budget edges |
-| `test_trigger_events.py` | ~19 | Event-driven trigger state changes |
-| `test_seasonal_scheduling.py` | ~20 | Seasonal factors, hemisphere support |
-| `test_coordinator.py` | ~20 | Coordinator core logic |
-| `test_options_global.py` | ~20 | Global options flow |
-| `test_options_task.py` | ~25 | Task options flow |
-| `test_notification_deep.py` | ~20 | Notification edge cases |
-| `test_coordinator_deep.py` | ~20 | Coordinator deep coverage |
-| `test_config_flow_trigger.py` | ~20 | Trigger config flow steps |
-| `test_compound_trigger.py` | ~18 | Compound trigger scenarios |
-| `test_edge_cases.py` | ~15 | Boundary conditions, error handling |
-| `test_sensor_attributes.py` | ~15 | Sensor attribute computation |
-| `test_ws_analysis.py` | ~15 | WS analysis commands |
-| `test_sensor_trigger_attrs.py` | ~15 | Trigger-specific sensor attributes |
-| `test_ws_dashboard.py` | ~15 | WS dashboard commands |
-| `test_ws_io.py` | ~12 | WS import/export/QR |
-| `test_ws_objects.py` | ~16 | WS object CRUD, task summary fields |
-| `test_ws_groups.py` | ~12 | WS group CRUD |
-| `test_calendar_unit.py` | ~12 | Calendar event generation |
-| `test_repair_flow.py` | ~15 | Repair flow steps |
-| `test_ws_users.py` | ~10 | WS user management |
-| `test_ws_tags.py` | 6 | WS NFC tag listing |
-| `test_calendar_deep.py` | ~10 | Calendar edge cases |
-| `test_sensor_deep.py` | ~10 | Sensor edge cases |
-| `test_entity_analyzer.py` | ~10 | Entity discovery + stats |
-| `test_panel_threshold.py` | ~10 | Panel + threshold calculator |
-| `test_diagnostics.py` | ~8 | Diagnostic data, PII redaction |
-| `test_init_services.py` | ~10 | Service handlers, unload |
-| `test_status_computation.py` | ~10 | Status logic (OK, DUE_SOON, OVERDUE) |
-| `test_issue_fixes.py` | ~15 | Regression tests for bug fixes |
-| `test_services.py` | ~8 | Complete, skip, reset services |
-| `test_calendar.py` | ~8 | Calendar basic tests |
-| `test_storage.py` | 30 | Store CRUD, merge helpers, extract_dynamic, compound keys |
+| `test_triggers.py` | 82 | All trigger types, multi-entity, edge cases |
+| `test_adaptive_scheduling.py` | 55 | EWA, Weibull, interval computation |
+| `test_sensor_predictions.py` | 45 | Degradation analysis, threshold prediction |
+| `test_options_task.py` | 44 | Task options flow |
+| `test_ws_task_handlers.py` | 41 | WebSocket task CRUD + actions |
+| `test_sensor_predictor.py` | 41 | Pure unit tests for sensor_predictor |
+| `test_coverage_final.py` | 41 | Helper functions, diagnostics, budget edges |
+| `test_phase2_features.py` | 38 | Checklist, groups, budgets, export/CSV fields |
+| `test_seasonal_scheduling.py` | 35 | Seasonal factors, hemisphere support |
+| `test_options_flow.py` | 34 | Options flow management |
+| `test_storage.py` | 33 | Store CRUD, merge helpers, extract_dynamic, compound keys |
+| `test_notifications.py` | 29 | Notification delivery, quiet hours, bundling |
+| `test_notification_deep.py` | 29 | Notification edge cases |
+| `test_config_flow.py` | 28 | Config flow steps, validation |
+| `test_interval_anchor.py` | 26 | Interval anchoring: completion vs planned mode, edge cases, serialization |
+| `test_options_global.py` | 26 | Global options flow |
+| `test_coordinator_prediction.py` | 25 | Sensor prediction, fallback triggers, budget |
+| `test_ws_dashboard.py` | 24 | WS dashboard commands |
+| `test_issue_fixes.py` | 24 | Regression tests for bug fixes |
+| `test_status_computation.py` | 21 | Status logic (OK, DUE_SOON, OVERDUE) |
+| `test_qr_generation.py` | 21 | QR URL building, SVG generation |
+| `test_coordinator.py` | 21 | Coordinator core logic |
+| `test_ws_objects.py` | 19 | WS object CRUD, task summary fields |
+| `test_trigger_events.py` | 19 | Event-driven trigger state changes |
+| `test_entity_analyzer.py` | 19 | Entity discovery + stats |
+| `test_compound_trigger.py` | 19 | Compound trigger scenarios |
+| `test_ws_analysis.py` | 18 | WS analysis commands |
+| `test_config_flow_template.py` | 18 | Object template creation |
+| `test_edge_cases.py` | 17 | Boundary conditions, error handling |
+| `test_ws_io.py` | 15 | WS import/export/QR |
+| `test_sensor_trigger_attrs.py` | 15 | Trigger-specific sensor attributes |
+| `test_panel_threshold.py` | 15 | Panel + threshold calculator |
+| `test_entity_attributes.py` | 15 | Entity attribute introspection: domain mapping, WS endpoint, filtering |
+| `test_sensor_attributes.py` | 14 | Sensor attribute computation |
+| `test_repair_flow.py` | 14 | Repair flow steps |
+| `test_calendar_unit.py` | 14 | Calendar event generation |
+| `test_ws_groups.py` | 13 | WS group CRUD |
+| `test_custom_icon_nfc.py` | 13 | Custom icons, NFC tag linking, task serialization |
+| `test_coordinator_deep.py` | 13 | Coordinator deep coverage |
 | `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
-| `test_entity_lifecycle.py` | ~5 | Entity setup/teardown |
-| `test_qr_generation.py` | ~5 | QR URL building, SVG generation |
+| `test_init_services.py` | 11 | Service handlers, unload |
+| `test_config_flow_trigger.py` | 11 | Trigger config flow steps |
 | `test_binary_sensor.py` | 11 | Binary sensor platform: creation, is_on logic, attributes, lifecycle |
-| `test_entity_attributes.py` | 16 | Entity attribute introspection: domain mapping, WS endpoint, filtering |
-| `test_interval_anchor.py` | 17 | Interval anchoring: completion vs planned mode, edge cases, serialization |
+| `test_ws_users.py` | 10 | WS user management |
+| `test_sensor_deep.py` | 8 | Sensor edge cases |
+| `test_repairs_legacy.py` | 8 | Legacy repair flow compatibility |
+| `test_entity_lifecycle.py` | 8 | Entity setup/teardown |
+| `test_diagnostics.py` | 8 | Diagnostic data, PII redaction |
+| `test_compound_legacy.py` | 8 | Legacy compound trigger compatibility |
+| `test_calendar_deep.py` | 8 | Calendar edge cases |
+| `test_services.py` | 7 | Complete, skip, reset services |
+| `test_coordinator_legacy.py` | 7 | Legacy coordinator compatibility |
+| `test_ws_tags.py` | 6 | WS NFC tag listing |
+| `test_notify_status_transition.py` | 5 | Notification status transition edge cases |
+| `test_calendar.py` | 5 | Calendar basic tests |
 
 ---
 
