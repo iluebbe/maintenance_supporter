@@ -322,8 +322,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 old_status = task.get("_status")
                 new_status = self._compute_live_status(task)
                 task["_status"] = new_status
-                if new_status != old_status:
-                    self.async_write_ha_state()
+                self.async_write_ha_state()
 
     @callback
     def async_update_trigger_state(

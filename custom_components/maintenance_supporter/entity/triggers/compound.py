@@ -287,7 +287,7 @@ class CompoundTrigger(BaseTrigger):
         )
         self.hass.async_create_task(
             self._coordinator.async_add_trigger_history_entry(
-                self._task_id, trigger_value=0.0
+                self._task_id, trigger_value=None
             )
         )
         self.hass.bus.async_fire(
