@@ -1254,10 +1254,10 @@ export class MaintenanceSupporterPanel extends LitElement {
    * Render task notes and documentation URL if present.
    */
   private _renderTaskMeta(task: MaintenanceTask) {
-    if (!task.notes && !task.documentation_url) return nothing;
-    const L = this._lang;
     const safeUrl = task.documentation_url && /^https?:\/\//i.test(task.documentation_url)
       ? task.documentation_url : null;
+    if (!task.notes && !safeUrl) return nothing;
+    const L = this._lang;
     return html`
       <div class="task-meta-card">
         ${task.notes ? html`

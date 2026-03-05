@@ -3133,7 +3133,7 @@ ${K}`,e.setTooltip)}
         ${this._renderHistoryFilters(e)}
         ${this._renderHistoryList(e)}
       </div>
-    `}_renderTaskMeta(e){if(!e.notes&&!e.documentation_url)return c;let t=this._lang,i=e.documentation_url&&/^https?:\/\//i.test(e.documentation_url)?e.documentation_url:null;return l`
+    `}_renderTaskMeta(e){let t=e.documentation_url&&/^https?:\/\//i.test(e.documentation_url)?e.documentation_url:null;if(!e.notes&&!t)return c;let i=this._lang;return l`
       <div class="task-meta-card">
         ${e.notes?l`
           <div class="task-meta-row">
@@ -3141,10 +3141,10 @@ ${K}`,e.setTooltip)}
             <span class="task-meta-notes">${e.notes}</span>
           </div>
         `:c}
-        ${i?l`
+        ${t?l`
           <div class="task-meta-row task-meta-link">
             <ha-icon icon="mdi:open-in-new"></ha-icon>
-            <a href="${i}" target="_blank" rel="noopener noreferrer">${n("documentation_label",t)}</a>
+            <a href="${t}" target="_blank" rel="noopener noreferrer">${n("documentation_label",i)}</a>
           </div>
         `:c}
       </div>
