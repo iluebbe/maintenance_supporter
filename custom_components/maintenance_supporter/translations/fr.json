@@ -117,13 +117,15 @@
           "interval_days": "Intervalle (jours)",
           "last_performed": "Dernière exécution",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "interval_anchor": "Ancrage d'intervalle"
         },
         "data_description": {
           "interval_days": "Nombre de jours entre les cycles de maintenance.",
           "last_performed": "Date de la dernière maintenance effectuée. Laissez vide si jamais effectuée.",
           "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement.",
-          "go_back": "Retourner à la création de tâche sans sauvegarder."
+          "go_back": "Retourner à la création de tâche sans sauvegarder.",
+          "interval_anchor": "Comment la prochaine date d'échéance est calculée après l'achèvement. 'Planifié' empêche la dérive en s'ancrant à la date prévue."
         }
       },
       "sensor_select": {
@@ -381,6 +383,7 @@
       "invalid_attribute": "L'attribut sélectionné n'est pas disponible sur cette entité.",
       "invalid_threshold": "Au moins un seuil (haut ou bas) doit être défini.",
       "invalid_interval": "L'intervalle doit être un nombre positif.",
+      "min_exceeds_max": "L'intervalle minimum ne doit pas dépasser l'intervalle maximum.",
       "invalid_notify_service": "Format du service de notification invalide. Utilisez 'notify.nom_du_service' (ex. : notify.mobile_app_phone).",
       "notify_service_not_found": "Ce service de notification n'a pas été trouvé dans Home Assistant. Veuillez vérifier le nom du service."
     },
@@ -575,7 +578,8 @@
           "responsible_user_id": "Utilisateur responsable",
           "custom_icon": "Icône de tâche",
           "nfc_tag_id": "ID de tag NFC",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "interval_anchor": "Ancrage d'intervalle"
         },
         "data_description": {
           "name": "Un nom descriptif pour cette tâche (ex. 'Nettoyage du filtre', 'Vidange').",
@@ -589,7 +593,8 @@
           "responsible_user_id": "L'utilisateur Home Assistant responsable de cette tâche.",
           "custom_icon": "Icône personnalisée optionnelle pour cette tâche (ex. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Associer un tag NFC à cette tâche. Scanner le tag marquera automatiquement la tâche comme terminée.",
-          "go_back": "Retour aux actions de tâche sans enregistrer."
+          "go_back": "Retour aux actions de tâche sans enregistrer.",
+          "interval_anchor": "Comment la prochaine date d'échéance est calculée après l'achèvement. 'Planifié' empêche la dérive en s'ancrant à la date prévue."
         }
       },
       "edit_checklist": {
@@ -775,13 +780,15 @@
           "interval_days": "Intervalle (jours)",
           "last_performed": "Dernière exécution",
           "warning_days": "Jours d'avertissement avant échéance",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "interval_anchor": "Ancrage d'intervalle"
         },
         "data_description": {
           "interval_days": "Nombre de jours entre les exécutions de maintenance.",
           "last_performed": "Quand cette maintenance a été effectuée pour la dernière fois. Laisser vide si jamais effectuée.",
           "warning_days": "Nombre de jours avant l'échéance pour afficher un avertissement.",
-          "go_back": "Retourner au menu principal sans sauvegarder."
+          "go_back": "Retourner au menu principal sans sauvegarder.",
+          "interval_anchor": "Comment la prochaine date d'échéance est calculée après l'achèvement. 'Planifié' empêche la dérive en s'ancrant à la date prévue."
         }
       },
       "opt_manual": {
@@ -1140,6 +1147,13 @@
           },
           "confidence_interval_high": {
             "name": "Intervalle de confiance (haut)"
+          },
+          "interval_anchor": {
+            "name": "Ancrage d'intervalle",
+            "state": {
+              "completion": "À partir de l'achèvement",
+              "planned": "À partir de la date prévue"
+            }
           }
         }
       }
@@ -1147,6 +1161,31 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Calendrier de maintenance"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} en retard",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Statut de maintenance",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Bientôt dû",
+              "overdue": "En retard",
+              "triggered": "Déclenché"
+            }
+          },
+          "days_until_due": {
+            "name": "Jours avant l'échéance"
+          },
+          "next_due": {
+            "name": "Prochaine échéance"
+          },
+          "parent_object": {
+            "name": "Objet parent"
+          }
+        }
       }
     }
   },

@@ -102,6 +102,8 @@ class _CompoundCoordinatorProxy:
         task_id: str,
         runtime_data: dict[str, Any],
         entity_id: str | None = None,
+        *,
+        immediate: bool = False,
     ) -> None:
         """Persist under trigger_runtime.conditions[idx]."""
         store = getattr(self._real, "_store", None)
@@ -111,7 +113,10 @@ class _CompoundCoordinatorProxy:
             if entity_id is not None:
                 compound_key = f"_compound_{self._condition_idx}_{entity_id}"
             store.set_trigger_runtime(task_id, compound_key, runtime_data)
-            store.async_delay_save()
+            if immediate:
+                await store.async_save()
+            else:
+                store.async_delay_save()
         else:
             # Legacy: write to ConfigEntry.data under _trigger_state
             from ...const import CONF_TASKS

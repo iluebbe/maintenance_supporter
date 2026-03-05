@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from ..const import (
@@ -25,6 +25,8 @@ from ..const import (
     DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS,
     DEFAULT_ENVIRONMENTAL_MIN_COMPLETIONS,
 )
+
+from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -303,7 +305,7 @@ class SensorPredictor:
         predicted_date = None
         if days_until > 0:
             try:
-                pred_dt = datetime.now(timezone.utc) + timedelta(days=days_until)
+                pred_dt = dt_util.now() + timedelta(days=days_until)
                 predicted_date = pred_dt.strftime("%Y-%m-%d")
             except OverflowError:
                 # Near-zero slope → astronomically large days_until
@@ -478,7 +480,7 @@ class SensorPredictor:
             _LOGGER.debug("Recorder statistics module not available")
             return []
 
-        start_time = datetime.now(timezone.utc) - timedelta(days=days)
+        start_time = dt_util.now() - timedelta(days=days)
 
         try:
             result = await self.hass.async_add_executor_job(

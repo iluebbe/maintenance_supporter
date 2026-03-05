@@ -117,13 +117,15 @@
           "interval_days": "Intervall (Tage)",
           "last_performed": "Zuletzt durchgeführt",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "interval_anchor": "Intervall-Anker"
         },
         "data_description": {
           "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn noch nie durchgeführt.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
-          "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern."
+          "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern.",
+          "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum."
         }
       },
       "sensor_select": {
@@ -381,6 +383,7 @@
       "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
       "invalid_threshold": "Mindestens ein Schwellwert (über oder unter) muss gesetzt werden.",
       "invalid_interval": "Das Intervall muss eine positive Zahl sein.",
+      "min_exceeds_max": "Das Mindestintervall darf das Höchstintervall nicht überschreiten.",
       "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
       "notify_service_not_found": "Dieser Benachrichtigungsdienst wurde in Home Assistant nicht gefunden. Bitte prüfen Sie den Dienstnamen."
     },
@@ -575,7 +578,8 @@
           "responsible_user_id": "Verantwortlicher Benutzer",
           "custom_icon": "Aufgaben-Icon",
           "nfc_tag_id": "NFC-Tag-ID",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "interval_anchor": "Intervall-Anker"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -589,7 +593,8 @@
           "responsible_user_id": "Der Home Assistant Benutzer, der für diese Aufgabe verantwortlich ist.",
           "custom_icon": "Optionales benutzerdefiniertes Icon für diese Aufgabe (z.B. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Verknüpfen Sie einen NFC-Tag mit dieser Aufgabe. Das Scannen des Tags markiert die Aufgabe automatisch als erledigt.",
-          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern."
+          "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern.",
+          "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum."
         }
       },
       "edit_checklist": {
@@ -682,13 +687,15 @@
           "interval_days": "Intervall (Tage)",
           "last_performed": "Zuletzt durchgeführt",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "interval_anchor": "Intervall-Anker"
         },
         "data_description": {
           "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
-          "go_back": "Zurück zum Hauptmenü ohne zu speichern."
+          "go_back": "Zurück zum Hauptmenü ohne zu speichern.",
+          "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum."
         }
       },
       "opt_manual": {
@@ -1140,6 +1147,13 @@
           },
           "confidence_interval_high": {
             "name": "Konfidenzintervall (oben)"
+          },
+          "interval_anchor": {
+            "name": "Intervall-Anker",
+            "state": {
+              "completion": "Ab Abschluss",
+              "planned": "Ab geplantem Datum"
+            }
           }
         }
       }
@@ -1147,6 +1161,31 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Wartungsplan"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} überfällig",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Wartungsstatus",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Bald fällig",
+              "overdue": "Überfällig",
+              "triggered": "Ausgelöst"
+            }
+          },
+          "days_until_due": {
+            "name": "Tage bis fällig"
+          },
+          "next_due": {
+            "name": "Nächste Fälligkeit"
+          },
+          "parent_object": {
+            "name": "Übergeordnetes Objekt"
+          }
+        }
       }
     }
   },

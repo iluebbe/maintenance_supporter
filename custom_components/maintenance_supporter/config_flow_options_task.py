@@ -1188,12 +1188,20 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             adaptive_config[CONF_ADAPTIVE_EWA_ALPHA] = user_input.get(
                 CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA
             )
-            adaptive_config[CONF_ADAPTIVE_MIN_INTERVAL] = int(
+            min_iv = int(
                 user_input.get(CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL)
             )
-            adaptive_config[CONF_ADAPTIVE_MAX_INTERVAL] = int(
+            max_iv = int(
                 user_input.get(CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL)
             )
+            if min_iv > max_iv:
+                return self.async_show_form(
+                    step_id="adaptive_scheduling",
+                    data_schema=self._adaptive_schema(current_adaptive, task),
+                    errors={CONF_ADAPTIVE_MIN_INTERVAL: "min_exceeds_max"},
+                )
+            adaptive_config[CONF_ADAPTIVE_MIN_INTERVAL] = min_iv
+            adaptive_config[CONF_ADAPTIVE_MAX_INTERVAL] = max_iv
             # Seasonal awareness toggle
             adaptive_config["seasonal_enabled"] = user_input.get(
                 "seasonal_enabled", True
@@ -1229,81 +1237,88 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
 
             return self._show_task_action_menu()
 
+        return self.async_show_form(
+            step_id="adaptive_scheduling",
+            data_schema=self._adaptive_schema(current_adaptive, task),
+            description_placeholders={
+                "task_name": task.get("name", ""),
+            },
+        )
+
+    def _adaptive_schema(
+        self,
+        current_adaptive: dict[str, Any],
+        task: dict[str, Any],
+    ) -> vol.Schema:
+        """Build the adaptive scheduling form schema."""
         env_entity = current_adaptive.get("environmental_entity")
         env_key = (
             vol.Optional(CONF_ENVIRONMENTAL_ENTITY, default=env_entity)
             if env_entity
             else vol.Optional(CONF_ENVIRONMENTAL_ENTITY)
         )
-
-        return self.async_show_form(
-            step_id="adaptive_scheduling",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_ADAPTIVE_ENABLED,
-                        default=current_adaptive.get("enabled", False),
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ADAPTIVE_EWA_ALPHA,
-                        default=current_adaptive.get(
-                            CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=0.1, max=0.9, step=0.1,
-                            mode=selector.NumberSelectorMode.SLIDER,
-                        )
+        return vol.Schema(
+            {
+                vol.Optional(
+                    CONF_ADAPTIVE_ENABLED,
+                    default=current_adaptive.get("enabled", False),
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    CONF_ADAPTIVE_EWA_ALPHA,
+                    default=current_adaptive.get(
+                        CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA
                     ),
-                    vol.Optional(
-                        CONF_ADAPTIVE_MIN_INTERVAL,
-                        default=current_adaptive.get(
-                            CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1, max=365, step=1,
-                            mode=selector.NumberSelectorMode.BOX,
-                            unit_of_measurement="days",
-                        )
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0.1, max=0.9, step=0.1,
+                        mode=selector.NumberSelectorMode.SLIDER,
+                    )
+                ),
+                vol.Optional(
+                    CONF_ADAPTIVE_MIN_INTERVAL,
+                    default=current_adaptive.get(
+                        CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL
                     ),
-                    vol.Optional(
-                        CONF_ADAPTIVE_MAX_INTERVAL,
-                        default=current_adaptive.get(
-                            CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL
-                        ),
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1, max=3650, step=1,
-                            mode=selector.NumberSelectorMode.BOX,
-                            unit_of_measurement="days",
-                        )
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1, max=365, step=1,
+                        mode=selector.NumberSelectorMode.BOX,
+                        unit_of_measurement="days",
+                    )
+                ),
+                vol.Optional(
+                    CONF_ADAPTIVE_MAX_INTERVAL,
+                    default=current_adaptive.get(
+                        CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL
                     ),
-                    vol.Optional(
-                        "seasonal_enabled",
-                        default=current_adaptive.get("seasonal_enabled", True),
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_SENSOR_PREDICTION_ENABLED,
-                        default=current_adaptive.get(
-                            CONF_SENSOR_PREDICTION_ENABLED, True
-                        ),
-                    ): selector.BooleanSelector(),
-                    env_key: selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor"],
-                            device_class=["temperature", "humidity", "pressure"],
-                            multiple=False,
-                        )
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1, max=3650, step=1,
+                        mode=selector.NumberSelectorMode.BOX,
+                        unit_of_measurement="days",
+                    )
+                ),
+                vol.Optional(
+                    "seasonal_enabled",
+                    default=current_adaptive.get("seasonal_enabled", True),
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    CONF_SENSOR_PREDICTION_ENABLED,
+                    default=current_adaptive.get(
+                        CONF_SENSOR_PREDICTION_ENABLED, True
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
-                }
-            ),
-            description_placeholders={
-                "task_name": task.get("name", ""),
-            },
+                ): selector.BooleanSelector(),
+                env_key: selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=["sensor"],
+                        device_class=["temperature", "humidity", "pressure"],
+                        multiple=False,
+                    )
+                ),
+                vol.Optional(
+                    "go_back", default=False
+                ): selector.BooleanSelector(),
+            }
         )
 
     # --- Object Settings ---

@@ -932,7 +932,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   /**
    * Render a mini sparkline for overview rows (tiny trend line).
    */
-  private _renderMiniSparkline(row: TaskRow) {
+  private _renderMiniSparkline(row: TaskRow | MaintenanceTask) {
     if (!row.trigger_config?.entity_id) return nothing;
     const entityId = row.trigger_config.entity_id;
 
@@ -1058,6 +1058,10 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
+                  ${task.trigger_config
+                    ? this._renderTriggerProgress(task)
+                    : nothing}
+                  ${this._renderMiniSparkline(task)}
                 </span>
                 <span class="row-actions">
                   <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>

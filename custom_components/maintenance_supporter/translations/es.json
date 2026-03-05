@@ -117,13 +117,15 @@
           "interval_days": "Intervalo (días)",
           "last_performed": "Última ejecución",
           "warning_days": "Días de aviso antes del vencimiento",
-          "go_back": "Volver"
+          "go_back": "Volver",
+          "interval_anchor": "Anclaje de intervalo"
         },
         "data_description": {
           "interval_days": "Número de días entre los ciclos de mantenimiento.",
           "last_performed": "Fecha del último mantenimiento realizado. Dejar vacío si nunca se realizó.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
-          "go_back": "Volver a la creación de tareas sin guardar."
+          "go_back": "Volver a la creación de tareas sin guardar.",
+          "interval_anchor": "Cómo se calcula la próxima fecha de vencimiento después de completar. 'Planificado' evita la deriva del calendario anclándose a la fecha planificada."
         }
       },
       "sensor_select": {
@@ -381,6 +383,7 @@
       "invalid_attribute": "El atributo seleccionado no está disponible en esta entidad.",
       "invalid_threshold": "Se debe establecer al menos un umbral (superior o inferior).",
       "invalid_interval": "El intervalo debe ser un número positivo.",
+      "min_exceeds_max": "El intervalo mínimo no debe superar el intervalo máximo.",
       "invalid_notify_service": "Formato del servicio de notificación no válido. Use 'notify.nombre_servicio' (ej.: notify.mobile_app_phone).",
       "notify_service_not_found": "Este servicio de notificación no se encontró en Home Assistant. Verifique el nombre del servicio."
     },
@@ -575,7 +578,8 @@
           "responsible_user_id": "Usuario responsable",
           "custom_icon": "Icono de tarea",
           "nfc_tag_id": "ID de etiqueta NFC",
-          "go_back": "Volver"
+          "go_back": "Volver",
+          "interval_anchor": "Anclaje de intervalo"
         },
         "data_description": {
           "name": "Un nombre descriptivo para esta tarea (ej. 'Limpieza de filtro', 'Cambio de aceite').",
@@ -589,7 +593,8 @@
           "responsible_user_id": "El usuario de Home Assistant responsable de esta tarea.",
           "custom_icon": "Icono personalizado opcional para esta tarea (p. ej., mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Vincular una etiqueta NFC a esta tarea. Escanear la etiqueta marcará automáticamente la tarea como completada.",
-          "go_back": "Volver a las acciones de tarea sin guardar."
+          "go_back": "Volver a las acciones de tarea sin guardar.",
+          "interval_anchor": "Cómo se calcula la próxima fecha de vencimiento después de completar. 'Planificado' evita la deriva del calendario anclándose a la fecha planificada."
         }
       },
       "edit_checklist": {
@@ -775,13 +780,15 @@
           "interval_days": "Intervalo (días)",
           "last_performed": "Última ejecución",
           "warning_days": "Días de aviso antes del vencimiento",
-          "go_back": "Volver"
+          "go_back": "Volver",
+          "interval_anchor": "Anclaje de intervalo"
         },
         "data_description": {
           "interval_days": "Número de días entre ejecuciones de mantenimiento.",
           "last_performed": "Cuándo se realizó este mantenimiento por última vez. Dejar vacío si nunca se realizó.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
-          "go_back": "Volver al menú principal sin guardar."
+          "go_back": "Volver al menú principal sin guardar.",
+          "interval_anchor": "Cómo se calcula la próxima fecha de vencimiento después de completar. 'Planificado' evita la deriva del calendario anclándose a la fecha planificada."
         }
       },
       "opt_manual": {
@@ -1140,6 +1147,13 @@
           },
           "confidence_interval_high": {
             "name": "Intervalo de confianza (alto)"
+          },
+          "interval_anchor": {
+            "name": "Anclaje de intervalo",
+            "state": {
+              "completion": "Desde la finalización",
+              "planned": "Desde la fecha planificada"
+            }
           }
         }
       }
@@ -1147,6 +1161,31 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Calendario de mantenimiento"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} vencida",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Estado de mantenimiento",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Próximamente",
+              "overdue": "Vencida",
+              "triggered": "Activado"
+            }
+          },
+          "days_until_due": {
+            "name": "Días hasta el vencimiento"
+          },
+          "next_due": {
+            "name": "Próximo vencimiento"
+          },
+          "parent_object": {
+            "name": "Objeto principal"
+          }
+        }
       }
     }
   },

@@ -134,9 +134,14 @@ class StateChangeTrigger(BaseTrigger):
             )
             self._logged_unavailable = False
 
+        # Use _last_state as fallback when old_val is unavailable/unknown
+        effective_old = old_val
+        if old_val in ("unavailable", "unknown") and self._last_state is not None:
+            effective_old = self._last_state
+
         # Check if transition matches pattern
         matches = True
-        if self._from_state is not None and old_val != self._from_state:
+        if self._from_state is not None and effective_old != self._from_state:
             matches = False
         if self._to_state is not None and new_val != self._to_state:
             matches = False

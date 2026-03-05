@@ -383,6 +383,7 @@
       "invalid_attribute": "The selected attribute is not available on this entity.",
       "invalid_threshold": "At least one threshold (above or below) must be set.",
       "invalid_interval": "Interval must be a positive number.",
+      "min_exceeds_max": "Minimum interval must not exceed maximum interval.",
       "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
       "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name."
     },

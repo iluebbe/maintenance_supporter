@@ -117,13 +117,15 @@
           "interval_days": "Interval (dagen)",
           "last_performed": "Laatst uitgevoerd",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "interval_anchor": "Interval-anker"
         },
         "data_description": {
           "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit gedaan.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
-          "go_back": "Terug naar taakaanmaak zonder op te slaan."
+          "go_back": "Terug naar taakaanmaak zonder op te slaan.",
+          "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum."
         }
       },
       "sensor_select": {
@@ -381,6 +383,7 @@
       "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
       "invalid_threshold": "Er moet minimaal één drempel (boven of onder) worden ingesteld.",
       "invalid_interval": "Het interval moet een positief getal zijn.",
+      "min_exceeds_max": "Het minimuminterval mag het maximuminterval niet overschrijden.",
       "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
       "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam."
     },
@@ -575,7 +578,8 @@
           "responsible_user_id": "Verantwoordelijke gebruiker",
           "custom_icon": "Taakicoon",
           "nfc_tag_id": "NFC-tag-ID",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "interval_anchor": "Interval-anker"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
@@ -589,7 +593,8 @@
           "responsible_user_id": "De Home Assistant gebruiker die verantwoordelijk is voor deze taak.",
           "custom_icon": "Optioneel aangepast icoon voor deze taak (bijv. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Koppel een NFC-tag aan deze taak. Het scannen van de tag markeert de taak automatisch als voltooid.",
-          "go_back": "Terug naar taakacties zonder opslaan."
+          "go_back": "Terug naar taakacties zonder opslaan.",
+          "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum."
         }
       },
       "edit_checklist": {
@@ -775,13 +780,15 @@
           "interval_days": "Interval (dagen)",
           "last_performed": "Laatst uitgevoerd",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "interval_anchor": "Interval-anker"
         },
         "data_description": {
           "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
-          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan.",
+          "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum."
         }
       },
       "opt_manual": {
@@ -1140,6 +1147,13 @@
           },
           "confidence_interval_high": {
             "name": "Betrouwbaarheidsinterval (hoog)"
+          },
+          "interval_anchor": {
+            "name": "Interval-anker",
+            "state": {
+              "completion": "Vanaf voltooiing",
+              "planned": "Vanaf geplande datum"
+            }
           }
         }
       }
@@ -1147,6 +1161,31 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Onderhoudsschema"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} achterstallig",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Onderhoudsstatus",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Binnenkort",
+              "overdue": "Achterstallig",
+              "triggered": "Geactiveerd"
+            }
+          },
+          "days_until_due": {
+            "name": "Dagen tot vervaldatum"
+          },
+          "next_due": {
+            "name": "Volgende vervaldatum"
+          },
+          "parent_object": {
+            "name": "Bovenliggend object"
+          }
+        }
       }
     }
   },

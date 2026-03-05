@@ -117,13 +117,15 @@
           "interval_days": "Interval (days)",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "interval_anchor": "Interval anchor"
         },
         "data_description": {
           "interval_days": "Number of days between maintenance runs.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before due date to show a warning.",
-          "go_back": "Return to task creation without saving."
+          "go_back": "Return to task creation without saving.",
+          "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date."
         }
       },
       "sensor_select": {
@@ -381,6 +383,7 @@
       "invalid_attribute": "The selected attribute is not available on this entity.",
       "invalid_threshold": "At least one threshold (above or below) must be set.",
       "invalid_interval": "Interval must be a positive number.",
+      "min_exceeds_max": "Minimum interval must not exceed maximum interval.",
       "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
       "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name."
     },
@@ -575,7 +578,8 @@
           "responsible_user_id": "Responsible user",
           "custom_icon": "Task icon",
           "nfc_tag_id": "NFC tag ID",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "interval_anchor": "Interval anchor"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
@@ -589,7 +593,8 @@
           "responsible_user_id": "The Home Assistant user responsible for this task.",
           "custom_icon": "Optional custom icon for this task (e.g., mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Link an NFC tag to this task. Scanning the tag will automatically mark the task as completed.",
-          "go_back": "Return to task actions without saving."
+          "go_back": "Return to task actions without saving.",
+          "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date."
         }
       },
       "edit_checklist": {
@@ -775,13 +780,15 @@
           "interval_days": "Interval (days)",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "interval_anchor": "Interval anchor"
         },
         "data_description": {
           "interval_days": "Number of days between maintenance runs.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before due date to show a warning.",
-          "go_back": "Return to the main menu without saving."
+          "go_back": "Return to the main menu without saving.",
+          "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date."
         }
       },
       "opt_manual": {
@@ -1140,6 +1147,13 @@
           },
           "confidence_interval_high": {
             "name": "Confidence interval (high)"
+          },
+          "interval_anchor": {
+            "name": "Interval anchor",
+            "state": {
+              "completion": "From completion",
+              "planned": "From planned date"
+            }
           }
         }
       }
@@ -1147,6 +1161,31 @@
     "calendar": {
       "maintenance_schedule": {
         "name": "Maintenance Schedule"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} overdue",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Maintenance status",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Due Soon",
+              "overdue": "Overdue",
+              "triggered": "Triggered"
+            }
+          },
+          "days_until_due": {
+            "name": "Days until due"
+          },
+          "next_due": {
+            "name": "Next due"
+          },
+          "parent_object": {
+            "name": "Parent object"
+          }
+        }
       }
     }
   },
