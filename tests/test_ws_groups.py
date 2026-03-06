@@ -14,6 +14,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.websocket import cleanup_group_refs
 from custom_components.maintenance_supporter.websocket.groups import (
     ws_create_group,
     ws_delete_group,
@@ -23,6 +24,7 @@ from custom_components.maintenance_supporter.websocket.groups import (
 
 from .conftest import (
     TASK_ID_1,
+    TASK_ID_2,
     build_global_entry_data,
     setup_integration,
 )
@@ -346,3 +348,115 @@ async def test_group_crud_cycle(
     })
     groups = conn.send_result.call_args[0][1]["groups"]
     assert group_id not in groups
+
+
+# ─── cleanup_group_refs unit tests ──────────────────────────────────────
+
+
+async def test_cleanup_group_refs_by_task_id(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test cleanup_group_refs removes refs matching a task_id."""
+    await setup_integration(hass, global_entry)
+
+    # Create a group with two task refs
+    conn = _mock_connection()
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/group/create",
+        "name": "Test Group",
+        "task_refs": [
+            {"entry_id": "e1", "task_id": TASK_ID_1},
+            {"entry_id": "e1", "task_id": TASK_ID_2},
+        ],
+    })
+    group_id = conn.send_result.call_args[0][1]["group_id"]
+
+    # Clean up refs for TASK_ID_1
+    cleanup_group_refs(hass, task_id=TASK_ID_1)
+
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    refs = entry.options["groups"][group_id]["task_refs"]
+    assert len(refs) == 1
+    assert refs[0]["task_id"] == TASK_ID_2
+
+
+async def test_cleanup_group_refs_by_entry_id(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test cleanup_group_refs removes all refs for an entry_id."""
+    await setup_integration(hass, global_entry)
+
+    conn = _mock_connection()
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/group/create",
+        "name": "Test Group",
+        "task_refs": [
+            {"entry_id": "entry_to_delete", "task_id": "t1"},
+            {"entry_id": "entry_to_delete", "task_id": "t2"},
+            {"entry_id": "other_entry", "task_id": "t3"},
+        ],
+    })
+    group_id = conn.send_result.call_args[0][1]["group_id"]
+
+    cleanup_group_refs(hass, entry_id="entry_to_delete")
+
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    refs = entry.options["groups"][group_id]["task_refs"]
+    assert len(refs) == 1
+    assert refs[0]["entry_id"] == "other_entry"
+
+
+async def test_cleanup_group_refs_no_groups(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test cleanup_group_refs is a no-op when no groups exist."""
+    await setup_integration(hass, global_entry)
+
+    # Should not raise
+    cleanup_group_refs(hass, task_id="nonexistent")
+
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry.options.get("groups", {}) == {}
+
+
+async def test_cleanup_group_refs_no_global_entry(
+    hass: HomeAssistant,
+) -> None:
+    """Test cleanup_group_refs is a no-op when no global entry exists."""
+    # Should not raise
+    cleanup_group_refs(hass, task_id="anything")
+
+
+async def test_cleanup_group_refs_across_multiple_groups(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test cleanup removes refs from ALL groups that reference the task."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    # Create two groups, both referencing the same task
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/group/create",
+        "name": "Group A",
+        "task_refs": [{"entry_id": "e1", "task_id": TASK_ID_1}],
+    })
+    gid_a = conn.send_result.call_args[0][1]["group_id"]
+
+    conn.reset_mock()
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+        "id": 2, "type": "maintenance_supporter/group/create",
+        "name": "Group B",
+        "task_refs": [
+            {"entry_id": "e1", "task_id": TASK_ID_1},
+            {"entry_id": "e1", "task_id": TASK_ID_2},
+        ],
+    })
+    gid_b = conn.send_result.call_args[0][1]["group_id"]
+
+    cleanup_group_refs(hass, task_id=TASK_ID_1)
+
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    groups = entry.options["groups"]
+    assert len(groups[gid_a]["task_refs"]) == 0
+    assert len(groups[gid_b]["task_refs"]) == 1
+    assert groups[gid_b]["task_refs"][0]["task_id"] == TASK_ID_2

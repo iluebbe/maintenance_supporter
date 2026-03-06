@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.5 | **~24,000 lines** across 64 source files (51 Python + 13 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,159 tests)
+**Version:** 1.0.6 | **~24,000 lines** across 64 source files (51 Python + 13 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,168 tests)
 
 ---
 
@@ -445,7 +445,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,158 tests** across **55 test files** with **94% code coverage**.
+**1,168 tests** across **55 test files** with **94% code coverage**.
 
 ### Coverage by Module
 
@@ -471,8 +471,8 @@ All write commands fire events for subscription updates.
 | **Triggers** | | | |
 | `base_trigger.py` | 121 | 3 | 98% |
 | `threshold.py` | 53 | 1 | 98% |
-| `counter.py` | 49 | 7 | 86% |
-| `state_change.py` | 83 | 5 | 94% |
+| `counter.py` | 55 | 4 | 93% |
+| `state_change.py` | 83 | 3 | 96% |
 | `runtime.py` | 161 | 3 | 98% |
 | `compound.py` | 145 | 0 | 100% |
 | `triggers/__init__.py` | 89 | 1 | 99% |
@@ -486,26 +486,26 @@ All write commands fire events for subscription updates.
 | `csv_handler.py` | 81 | 6 | 93% |
 | `qr_generator.py` | 69 | 2 | 97% |
 | **WebSocket** | | | |
-| `websocket/__init__.py` | 109 | 0 | 100% |
-| `websocket/tasks.py` | 336 | 37 | 89% |
-| `websocket/objects.py` | 80 | 5 | 94% |
+| `websocket/__init__.py` | 143 | 0 | 100% |
+| `websocket/tasks.py` | 339 | 35 | 90% |
+| `websocket/objects.py` | 82 | 3 | 96% |
 | `websocket/analysis.py` | 124 | 14 | 89% |
 | `websocket/users.py` | 66 | 0 | 100% |
 | `websocket/io.py` | 80 | 7 | 91% |
 | `websocket/dashboard.py` | 193 | 23 | 88% |
-| `websocket/groups.py` | 80 | 1 | 99% |
+| `websocket/groups.py` | 80 | 0 | 100% |
 | `websocket/tags.py` | 21 | 0 | 100% |
-| **TOTAL** | **6,861** | **426** | **94%** |
+| **TOTAL** | **6,905** | **410** | **94%** |
 
 ### Test Files
 
 | Test File | Tests | Scope |
 |-----------|-------|-------|
-| `test_triggers.py` | 82 | All trigger types, multi-entity, edge cases |
+| `test_triggers.py` | 85 | All trigger types, multi-entity, edge cases |
 | `test_adaptive_scheduling.py` | 55 | EWA, Weibull, interval computation |
 | `test_sensor_predictions.py` | 45 | Degradation analysis, threshold prediction |
 | `test_options_task.py` | 44 | Task options flow |
-| `test_ws_task_handlers.py` | 41 | WebSocket task CRUD + actions |
+| `test_ws_task_handlers.py` | 42 | WebSocket task CRUD + actions |
 | `test_sensor_predictor.py` | 41 | Pure unit tests for sensor_predictor |
 | `test_coverage_final.py` | 41 | Helper functions, diagnostics, budget edges |
 | `test_phase2_features.py` | 38 | Checklist, groups, budgets, export/CSV fields |
@@ -523,7 +523,7 @@ All write commands fire events for subscription updates.
 | `test_status_computation.py` | 21 | Status logic (OK, DUE_SOON, OVERDUE) |
 | `test_qr_generation.py` | 21 | QR URL building, SVG generation |
 | `test_coordinator.py` | 21 | Coordinator core logic |
-| `test_ws_objects.py` | 19 | WS object CRUD, task summary fields |
+| `test_ws_objects.py` | 20 | WS object CRUD, task summary fields |
 | `test_trigger_events.py` | 19 | Event-driven trigger state changes |
 | `test_entity_analyzer.py` | 19 | Entity discovery + stats |
 | `test_compound_trigger.py` | 19 | Compound trigger scenarios |
@@ -537,7 +537,7 @@ All write commands fire events for subscription updates.
 | `test_sensor_attributes.py` | 14 | Sensor attribute computation |
 | `test_repair_flow.py` | 14 | Repair flow steps |
 | `test_calendar_unit.py` | 14 | Calendar event generation |
-| `test_ws_groups.py` | 13 | WS group CRUD |
+| `test_ws_groups.py` | 18 | WS group CRUD, cleanup_group_refs |
 | `test_custom_icon_nfc.py` | 13 | Custom icons, NFC tag linking, task serialization |
 | `test_coordinator_deep.py` | 13 | Coordinator deep coverage |
 | `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |

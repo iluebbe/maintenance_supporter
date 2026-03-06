@@ -21,7 +21,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from . import _build_object_response, _get_object_entries, _get_runtime_data
+from . import _build_object_response, _get_object_entries, _get_runtime_data, cleanup_group_refs
 
 
 @websocket_api.websocket_command(
@@ -185,6 +185,7 @@ async def ws_delete_object(
         return
 
     await hass.config_entries.async_remove(entry.entry_id)
+    cleanup_group_refs(hass, entry_id=entry.entry_id)
     connection.send_result(msg["id"], {"success": True})
 
 

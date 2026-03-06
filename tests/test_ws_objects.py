@@ -20,6 +20,9 @@ from custom_components.maintenance_supporter.websocket import (
     _build_object_response,
     _build_task_summary,
 )
+from custom_components.maintenance_supporter.websocket.groups import (
+    ws_create_group,
+)
 from custom_components.maintenance_supporter.websocket.objects import (
     ws_create_object,
     ws_delete_object,
@@ -280,6 +283,39 @@ async def test_ws_delete_object(
 
     conn.send_result.assert_called_once()
     assert conn.send_result.call_args[0][1]["success"] is True
+
+
+async def test_ws_delete_object_cleans_group_refs(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Test that deleting an object removes its references from groups."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+
+    # Create a group referencing a task in the object we'll delete
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+        "id": 10, "type": "maintenance_supporter/group/create",
+        "name": "Test Group",
+        "task_refs": [
+            {"entry_id": object_entry.entry_id, "task_id": TASK_ID_1},
+            {"entry_id": "other_entry", "task_id": "other_task"},
+        ],
+    })
+    group_id = conn.send_result.call_args[0][1]["group_id"]
+    conn.reset_mock()
+
+    # Delete the object
+    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {
+        "id": 11, "type": "maintenance_supporter/object/delete",
+        "entry_id": object_entry.entry_id,
+    })
+    conn.send_result.assert_called_once()
+
+    # Verify group no longer references the deleted object's tasks
+    ge = hass.config_entries.async_get_entry(global_entry.entry_id)
+    refs = ge.options["groups"][group_id]["task_refs"]
+    assert len(refs) == 1
+    assert refs[0]["entry_id"] == "other_entry"
 
 
 async def test_ws_delete_object_not_found(

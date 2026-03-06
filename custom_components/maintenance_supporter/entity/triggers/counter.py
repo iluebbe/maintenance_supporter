@@ -67,10 +67,23 @@ class CounterTrigger(BaseTrigger):
                 self._baseline_value,
             )
 
+    def _evaluate_and_update(self, value: float) -> None:
+        """Initialize baseline if needed before evaluation, then persist."""
+        if self._delta_mode and self._baseline_value is None:
+            self._baseline_value = value
+            self.hass.async_create_task(self._persist_baseline())
+            _LOGGER.debug(
+                "Counter baseline initialized on state change: %s = %s",
+                self.entity_id,
+                self._baseline_value,
+            )
+        super()._evaluate_and_update(value)
+
     def evaluate(self, value: float) -> bool:
         """Evaluate counter condition."""
         if self._delta_mode:
             if self._baseline_value is None:
+                # Fallback — should be caught by _evaluate_and_update
                 self._baseline_value = value
                 return False
             delta = value - self._baseline_value

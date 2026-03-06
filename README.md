@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1159_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1168_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
@@ -315,7 +315,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,158 tests across 55 test files with **94% code coverage** (6,861 statements, 426 uncovered).
+1,168 tests across 55 test files with **94% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .. import MaintenanceSupporterData
 
 from ..const import (
+    CONF_GROUPS,
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
@@ -195,6 +196,46 @@ def _get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
         if entry.unique_id == GLOBAL_UNIQUE_ID:
             return entry
     return None
+
+
+def cleanup_group_refs(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+    task_id: str | None = None,
+) -> None:
+    """Remove deleted task/object references from all groups.
+
+    Pass entry_id to remove all refs for that object.
+    Pass task_id to remove refs for a specific task.
+    """
+    global_entry = _get_global_entry(hass)
+    if global_entry is None:
+        return
+
+    options = dict(global_entry.options or global_entry.data)
+    groups = options.get(CONF_GROUPS)
+    if not groups:
+        return
+
+    groups = dict(groups)
+    changed = False
+    for gid, group in groups.items():
+        old_refs = group.get("task_refs", [])
+        new_refs = [
+            ref for ref in old_refs
+            if not (
+                (entry_id is not None and ref.get("entry_id") == entry_id)
+                or (task_id is not None and ref.get("task_id") == task_id)
+            )
+        ]
+        if len(new_refs) != len(old_refs):
+            groups[gid] = {**group, "task_refs": new_refs}
+            changed = True
+
+    if changed:
+        options[CONF_GROUPS] = groups
+        hass.config_entries.async_update_entry(global_entry, options=options)
 
 
 # ---------------------------------------------------------------------------

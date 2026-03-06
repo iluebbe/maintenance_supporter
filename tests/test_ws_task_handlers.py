@@ -19,6 +19,9 @@ from custom_components.maintenance_supporter.const import (
     HistoryEntryType,
     ScheduleType,
 )
+from custom_components.maintenance_supporter.websocket.groups import (
+    ws_create_group,
+)
 from custom_components.maintenance_supporter.websocket.tasks import (
     _validate_compound_trigger,
     _validate_trigger_config,
@@ -510,6 +513,38 @@ async def test_ws_delete_task_cleans_entity_registry(
     entities_after = er.async_entries_for_config_entry(ent_reg, object_entry.entry_id)
     orphans = [e for e in entities_after if TASK_ID_1 in (e.unique_id or "")]
     assert len(orphans) == 0, f"Found orphaned entities: {[e.entity_id for e in orphans]}"
+
+
+async def test_ws_delete_task_cleans_group_refs(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Test that deleting a task removes its references from groups."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+
+    # Create a group referencing the task we'll delete
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+        "id": 10, "type": "maintenance_supporter/group/create",
+        "name": "Test Group",
+        "task_refs": [
+            {"entry_id": object_entry.entry_id, "task_id": TASK_ID_1},
+        ],
+    })
+    group_id = conn.send_result.call_args[0][1]["group_id"]
+    conn.reset_mock()
+
+    # Delete the task
+    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {
+        "id": 11, "type": "maintenance_supporter/task/delete",
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+    })
+    conn.send_result.assert_called_once()
+
+    # Verify group no longer references the deleted task
+    ge = hass.config_entries.async_get_entry(global_entry.entry_id)
+    refs = ge.options["groups"][group_id]["task_refs"]
+    assert len(refs) == 0
 
 
 # ─── Task List Tests ─────────────────────────────────────────────────────

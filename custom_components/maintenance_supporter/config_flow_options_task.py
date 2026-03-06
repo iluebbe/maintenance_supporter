@@ -801,6 +801,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         if ent_entry.unique_id and task_id in ent_entry.unique_id:
                             ent_reg.async_remove(ent_entry.entity_id)
 
+                    # Clean up group references
+                    from .websocket import cleanup_group_refs
+                    cleanup_group_refs(self.hass, task_id=task_id)
+
                 return self._show_init_menu()
 
             return self._show_task_action_menu()

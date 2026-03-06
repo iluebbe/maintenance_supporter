@@ -740,10 +740,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         <h3>${t("groups", L)}</h3>
         <div class="groups-grid">
           ${entries.map(([_gid, group]) => {
-            const taskNames = group.task_refs.map((ref) => {
-              const task = this._getTask(ref.entry_id, ref.task_id);
-              return task?.name || ref.task_id;
-            });
+            const taskNames = group.task_refs
+              .map((ref) => this._getTask(ref.entry_id, ref.task_id)?.name)
+              .filter(Boolean);
             return html`
               <div class="group-card">
                 <div class="group-card-name">${group.name}</div>

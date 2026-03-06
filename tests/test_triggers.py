@@ -301,6 +301,43 @@ class TestCounterTrigger:
 
         await trigger.async_teardown()
 
+    async def test_delta_baseline_persisted_on_state_change(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test baseline is persisted when initialized via _evaluate_and_update.
+
+        When the entity is unavailable at setup time, the baseline isn't set.
+        Later, when a state change fires, _evaluate_and_update should init
+        the baseline AND persist it (so it survives HA restarts).
+        """
+        # Entity starts unavailable — no baseline at setup
+        set_sensor_state(hass, "sensor.counter", "unavailable")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.counter",
+            "attribute": None,
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 100,
+            "trigger_delta_mode": True,
+        }
+        trigger = CounterTrigger(hass, entity, config)
+        await trigger.async_setup()
+
+        # Baseline should NOT be set yet (entity unavailable)
+        assert trigger._baseline_value is None
+
+        # Entity becomes available — fires state change
+        hass.states.async_set("sensor.counter", "500")
+        await hass.async_block_till_done()
+
+        # Baseline should now be set AND persisted
+        assert trigger._baseline_value == 500.0
+        entity.coordinator.async_persist_trigger_runtime.assert_called()
+        call_kwargs = entity.coordinator.async_persist_trigger_runtime.call_args
+        assert call_kwargs[0][1] == {"baseline_value": 500.0}
+
+        await trigger.async_teardown()
+
 
 # ─── 7.3 State Change Trigger ───────────────────────────────────────────
 
@@ -442,6 +479,77 @@ class TestStateChangeTrigger:
         hass.states.async_set("sensor.test", "unavailable")
         await hass.async_block_till_done()
         assert trigger.change_count == 0
+
+        await trigger.async_teardown()
+
+    async def test_unavailable_recovery_no_false_positive(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test off→unavailable→off does NOT count as a transition.
+
+        When an entity returns from unavailable to the same state it had
+        before, this should not be counted as a state change.
+        """
+        set_sensor_state(hass, "sensor.test", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_target_changes": 1,
+        }
+        trigger = StateChangeTrigger(hass, entity, config)
+        await trigger.async_setup()
+        assert trigger.change_count == 0
+
+        # off → unavailable (early return, no count)
+        hass.states.async_set("sensor.test", "unavailable")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0
+
+        # unavailable → off (returns to same state — should NOT count)
+        hass.states.async_set("sensor.test", "off")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0
+        assert trigger._triggered is False
+
+        # Now a real transition: off → on (should count)
+        hass.states.async_set("sensor.test", "on")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1
+        assert trigger._triggered is True
+
+        await trigger.async_teardown()
+
+    async def test_unavailable_recovery_different_state_counts(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Test off→unavailable→on DOES count as a transition.
+
+        When an entity returns from unavailable to a different state,
+        the effective transition (off→on) should be counted.
+        """
+        set_sensor_state(hass, "sensor.test", "off")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.STATE_CHANGE,
+            "trigger_target_changes": 1,
+        }
+        trigger = StateChangeTrigger(hass, entity, config)
+        await trigger.async_setup()
+
+        # off → unavailable
+        hass.states.async_set("sensor.test", "unavailable")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 0
+
+        # unavailable → on (effective: off → on, should count)
+        hass.states.async_set("sensor.test", "on")
+        await hass.async_block_till_done()
+        assert trigger.change_count == 1
+        assert trigger._triggered is True
 
         await trigger.async_teardown()
 

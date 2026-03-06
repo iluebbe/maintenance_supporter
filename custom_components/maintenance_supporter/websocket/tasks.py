@@ -20,7 +20,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
 )
-from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data
+from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data, cleanup_group_refs
 
 
 # ---------------------------------------------------------------------------
@@ -553,6 +553,9 @@ async def ws_delete_task(
     for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
         if ent_entry.unique_id and task_id in ent_entry.unique_id:
             ent_reg.async_remove(ent_entry.entity_id)
+
+    # Clean up group references
+    cleanup_group_refs(hass, task_id=task_id)
 
     # Reload to re-create remaining entities
     await hass.config_entries.async_reload(entry.entry_id)

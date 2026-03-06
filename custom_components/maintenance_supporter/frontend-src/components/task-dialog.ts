@@ -225,6 +225,9 @@ export class MaintenanceTaskDialog extends LitElement {
       if (this._scheduleType !== "manual" && this._intervalDays) {
         data.interval_days = parseInt(this._intervalDays, 10);
         data.interval_anchor = this._intervalAnchor;
+      } else if (this._taskId && this._scheduleType === "manual") {
+        data.interval_days = null;
+        data.interval_anchor = "completion";
       }
 
       data.notes = this._notes || null;
@@ -266,6 +269,8 @@ export class MaintenanceTaskDialog extends LitElement {
         }
 
         data.trigger_config = triggerConfig;
+      } else if (this._taskId) {
+        data.trigger_config = null;
       }
 
       await this.hass.connection.sendMessagePromise(data);

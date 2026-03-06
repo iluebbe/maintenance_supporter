@@ -146,7 +146,7 @@ class StateChangeTrigger(BaseTrigger):
         if self._to_state is not None and new_val != self._to_state:
             matches = False
 
-        if matches and old_val != new_val:
+        if matches and effective_old != new_val:
             self._change_count += 1
             # Persist change count to survive restarts
             self.hass.async_create_task(self._persist_change_count())
