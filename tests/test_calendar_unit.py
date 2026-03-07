@@ -80,7 +80,7 @@ def _add_object_entry(
 
 async def test_get_all_events_time_based(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events returns events for time-based tasks."""
     last = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -98,7 +98,7 @@ async def test_get_all_events_time_based(
 
 async def test_get_all_events_disabled_task(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events skips disabled tasks."""
     last = (dt_util.now().date() - timedelta(days=5)).isoformat()
@@ -116,7 +116,7 @@ async def test_get_all_events_disabled_task(
 
 async def test_get_all_events_manual_no_trigger(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events: manual task without trigger → no event."""
     task = build_task_data(schedule_type=ScheduleType.MANUAL)
@@ -134,7 +134,7 @@ async def test_get_all_events_manual_no_trigger(
 
 async def test_get_all_events_out_of_range(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events: task due far away not in short range."""
     last = dt_util.now().date().isoformat()
@@ -152,7 +152,7 @@ async def test_get_all_events_out_of_range(
 
 async def test_get_all_events_with_plain_dates(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events accepts plain date objects."""
     last = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -171,7 +171,7 @@ async def test_get_all_events_with_plain_dates(
 
 async def test_event_property_returns_next(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test event property returns the nearest upcoming event."""
     last = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -186,7 +186,7 @@ async def test_event_property_returns_next(
 
 async def test_event_property_no_events(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test event property returns None when no events."""
     await setup_integration(hass, global_entry)
@@ -200,7 +200,7 @@ async def test_event_property_no_events(
 
 async def test_async_get_events(
     hass: HomeAssistant, global_entry: MockConfigEntry,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test async_get_events returns events."""
     last = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -221,7 +221,7 @@ async def test_async_get_events(
 
 def test_create_event_manual_not_triggered(
     hass: HomeAssistant,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test manual task not triggered → no event."""
     task = MaintenanceTask.from_dict({
@@ -243,7 +243,7 @@ def test_create_event_manual_not_triggered(
 
 def test_create_event_manual_triggered(
     hass: HomeAssistant,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test manual task triggered → event for today."""
     task = MaintenanceTask.from_dict({
@@ -267,7 +267,7 @@ def test_create_event_manual_triggered(
 
 def test_create_event_manual_triggered_out_of_range(
     hass: HomeAssistant,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test manual task triggered but outside date range → no event."""
     task = MaintenanceTask.from_dict({
@@ -292,7 +292,7 @@ def test_create_event_manual_triggered_out_of_range(
 
 def test_create_event_sensor_triggered_no_due_date(
     hass: HomeAssistant,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test sensor-triggered task with no next_due → shows today."""
     task = MaintenanceTask.from_dict({
@@ -317,7 +317,7 @@ def test_create_event_sensor_triggered_no_due_date(
 
 def test_create_event_no_next_due_no_trigger(
     hass: HomeAssistant,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test task with no next_due and no trigger → no event."""
     task = MaintenanceTask.from_dict({
@@ -340,7 +340,7 @@ def test_create_event_no_next_due_no_trigger(
 
 def test_create_event_overdue(
     hass: HomeAssistant,
-    calendar_entity: MaintenanceCalendarEntity,
+    calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test overdue task creates event with correct prefix."""
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()

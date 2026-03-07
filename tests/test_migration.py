@@ -323,6 +323,7 @@ async def test_setup_entry_idempotent_on_reload(
     # First load: migration happens
     await setup_integration(hass, global_config_entry, entry)
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     assert "last_performed" not in refreshed.data[CONF_TASKS][TASK_ID_1]
 
     # Unload and reload: migration should be idempotent
@@ -332,6 +333,7 @@ async def test_setup_entry_idempotent_on_reload(
     await hass.async_block_till_done()
 
     refreshed2 = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed2 is not None
     rd = refreshed2.runtime_data
     assert rd.store.get_last_performed(TASK_ID_1) == last_perf
 
@@ -402,8 +404,12 @@ async def test_migration_multi_entry(
 
     await setup_integration(hass, global_config_entry, entry1, entry2)
 
-    rd1 = hass.config_entries.async_get_entry(entry1.entry_id).runtime_data
-    rd2 = hass.config_entries.async_get_entry(entry2.entry_id).runtime_data
+    entry1_refreshed = hass.config_entries.async_get_entry(entry1.entry_id)
+    assert entry1_refreshed is not None
+    rd1 = entry1_refreshed.runtime_data
+    entry2_refreshed = hass.config_entries.async_get_entry(entry2.entry_id)
+    assert entry2_refreshed is not None
+    rd2 = entry2_refreshed.runtime_data
 
     assert rd1.store.get_last_performed(TASK_ID_1) == lp1
     assert rd2.store.get_last_performed(TASK_ID_1) == lp2

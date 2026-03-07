@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -1013,7 +1013,7 @@ class TestIntegration:
 
         events = []
 
-        def _record_event(event):
+        def _record_event(event: Event) -> None:
             events.append(event)
 
         hass.bus.async_listen(f"{DOMAIN}_export_completed", _record_event)

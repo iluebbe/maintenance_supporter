@@ -26,7 +26,7 @@ from custom_components.maintenance_supporter.entity.triggers.runtime import (
 from custom_components.maintenance_supporter.entity.triggers.threshold import (
     ThresholdTrigger,
 )
-from custom_components.maintenance_supporter.websocket import (
+from custom_components.maintenance_supporter.websocket.tasks import (
     _validate_trigger_config,
 )
 
@@ -42,7 +42,7 @@ from .conftest import (
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
 
-def _make_mock_entity(hass: HomeAssistant, task_id: str = TASK_ID_1):
+def _make_mock_entity(hass: HomeAssistant, task_id: str = TASK_ID_1) -> MagicMock:
     """Create a mock entity for trigger tests."""
     mock_entity = MagicMock()
     mock_entity.hass = hass

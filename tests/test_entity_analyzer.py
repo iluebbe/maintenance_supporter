@@ -101,6 +101,7 @@ async def test_analyze_private_attributes_excluded(hass: HomeAssistant) -> None:
     with patch.object(analyzer, "_async_fetch_statistics", return_value=None):
         result = await analyzer.async_analyze_entity("sensor.device")
 
+    assert result is not None
     assert "_internal" not in result.numeric_attributes
     assert "public_value" in result.numeric_attributes
 
@@ -126,12 +127,12 @@ async def _mock_fetch(
     hass: HomeAssistant,
     analyzer: EntityAnalyzer,
     entity_id: str,
-    mock_result: dict,
+    mock_result: dict[str, Any],
 ) -> StatisticsInfo | None:
     """Helper to call _async_fetch_statistics with mocked recorder."""
     import asyncio
 
-    async def _mock_executor(fn):
+    async def _mock_executor(fn: Any) -> Any:
         return fn()
 
     with patch(
@@ -175,6 +176,7 @@ async def test_fetch_statistics_trend_rising(hass: HomeAssistant) -> None:
         rows.append({"mean": val, "min": val - 2, "max": val + 2})
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
+    assert result is not None
     assert result.recent_trend == "rising"
 
 
@@ -188,6 +190,7 @@ async def test_fetch_statistics_trend_falling(hass: HomeAssistant) -> None:
         rows.append({"mean": val, "min": val - 2, "max": val + 2})
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
+    assert result is not None
     assert result.recent_trend == "falling"
 
 
@@ -197,6 +200,7 @@ async def test_fetch_statistics_trend_stable(hass: HomeAssistant) -> None:
     rows = [{"mean": 25.0, "min": 24.0, "max": 26.0} for _ in range(14)]
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
+    assert result is not None
     assert result.recent_trend == "stable"
 
 
@@ -225,6 +229,7 @@ async def test_fetch_statistics_null_means_uses_mins(hass: HomeAssistant) -> Non
     rows = [{"mean": None, "min": 10.0 + i, "max": 30.0 + i} for i in range(10)]
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
+    assert result is not None
     assert result.has_data is True
     assert result.mean is None
     assert result.minimum is not None
@@ -237,7 +242,7 @@ async def test_fetch_statistics_error_handled(hass: HomeAssistant) -> None:
 
     analyzer = EntityAnalyzer(hass)
 
-    async def _mock_executor(fn):
+    async def _mock_executor(fn: Any) -> Any:
         return fn()
 
     with patch(
@@ -256,6 +261,7 @@ async def test_fetch_statistics_few_points_no_percentiles(hass: HomeAssistant) -
     rows = [{"mean": 20.0 + i, "min": 18.0, "max": 22.0} for i in range(3)]
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
+    assert result is not None
     assert result.has_data is True
     assert result.percentile_10 is None
     assert result.percentile_90 is None
@@ -268,6 +274,7 @@ async def test_fetch_statistics_single_point_no_stddev(hass: HomeAssistant) -> N
     rows = [{"mean": 25.0, "min": 24.0, "max": 26.0}]
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
+    assert result is not None
     assert result.has_data is True
     assert result.std_dev is None
     assert result.mean == 25.0

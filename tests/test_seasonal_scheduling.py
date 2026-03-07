@@ -7,6 +7,7 @@ manual overrides, and integration with the existing analyze()/update_on_completi
 
 from __future__ import annotations
 
+from typing import Any
 from datetime import datetime, timedelta
 
 import pytest
@@ -28,7 +29,7 @@ from custom_components.maintenance_supporter.const import (
 
 
 # Helper to generate history completions at specific dates
-def _make_history(dates: list[str]) -> list[dict]:
+def _make_history(dates: list[str]) -> list[dict[str, str]]:
     """Create history entries from ISO date strings."""
     return [
         {"timestamp": f"{d}T10:00:00", "type": "completed"}
@@ -36,7 +37,7 @@ def _make_history(dates: list[str]) -> list[dict]:
     ]
 
 
-def _make_history_with_feedback(dates: list[str], feedback: str = "needed") -> list[dict]:
+def _make_history_with_feedback(dates: list[str], feedback: str = "needed") -> list[dict[str, str]]:
     """Create history entries with feedback from ISO date strings."""
     return [
         {"timestamp": f"{d}T10:00:00", "type": "completed", "feedback": feedback}
@@ -52,30 +53,30 @@ def _make_history_with_feedback(dates: list[str], feedback: str = "needed") -> l
 class TestComputeIntervalsWithMonths:
     """Test _compute_intervals_with_months method."""
 
-    def test_empty_history(self):
+    def test_empty_history(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._compute_intervals_with_months([])
         assert result == []
 
-    def test_single_completion(self):
+    def test_single_completion(self) -> None:
         analyzer = IntervalAnalyzer()
         history = _make_history(["2026-01-15"])
         result = analyzer._compute_intervals_with_months(history)
         assert result == []
 
-    def test_two_completions(self):
+    def test_two_completions(self) -> None:
         analyzer = IntervalAnalyzer()
         history = _make_history(["2026-01-01", "2026-01-31"])
         result = analyzer._compute_intervals_with_months(history)
         assert result == [(30, 1)]  # 30 days, end-month = January
 
-    def test_cross_month_boundary(self):
+    def test_cross_month_boundary(self) -> None:
         analyzer = IntervalAnalyzer()
         history = _make_history(["2026-01-20", "2026-02-10"])
         result = analyzer._compute_intervals_with_months(history)
         assert result == [(21, 2)]  # 21 days, end-month = February
 
-    def test_multiple_intervals(self):
+    def test_multiple_intervals(self) -> None:
         analyzer = IntervalAnalyzer()
         history = _make_history([
             "2025-06-01", "2025-06-15",  # 14 days, end June
@@ -85,7 +86,7 @@ class TestComputeIntervalsWithMonths:
         result = analyzer._compute_intervals_with_months(history)
         assert result == [(14, 6), (30, 7), (153, 12)]
 
-    def test_ignores_non_completed(self):
+    def test_ignores_non_completed(self) -> None:
         analyzer = IntervalAnalyzer()
         history = [
             {"timestamp": "2026-01-01T10:00:00", "type": "completed"},
@@ -95,7 +96,7 @@ class TestComputeIntervalsWithMonths:
         result = analyzer._compute_intervals_with_months(history)
         assert result == [(19, 1)]  # Only completed entries
 
-    def test_same_day_skipped(self):
+    def test_same_day_skipped(self) -> None:
         analyzer = IntervalAnalyzer()
         history = _make_history(["2026-03-15", "2026-03-15"])
         result = analyzer._compute_intervals_with_months(history)
@@ -110,7 +111,7 @@ class TestComputeIntervalsWithMonths:
 class TestComputeMonthlyFactors:
     """Test _compute_monthly_factors method."""
 
-    def test_insufficient_data(self):
+    def test_insufficient_data(self) -> None:
         """< 6 intervals → all 1.0 factors."""
         analyzer = IntervalAnalyzer()
         intervals = [(30, 1), (28, 2), (31, 3)]  # Only 3
@@ -118,13 +119,13 @@ class TestComputeMonthlyFactors:
         assert not result.has_sufficient_data
         assert result.monthly_factors == [1.0] * 12
 
-    def test_empty_intervals(self):
+    def test_empty_intervals(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._compute_monthly_factors([], "north")
         assert not result.has_sufficient_data
         assert result.data_months == 0
 
-    def test_uniform_distribution(self):
+    def test_uniform_distribution(self) -> None:
         """Same interval every month → all factors ~1.0."""
         analyzer = IntervalAnalyzer()
         # 12 intervals of 30 days, one per month
@@ -134,7 +135,7 @@ class TestComputeMonthlyFactors:
         for f in result.monthly_factors:
             assert abs(f - 1.0) < 0.01
 
-    def test_summer_heavy(self):
+    def test_summer_heavy(self) -> None:
         """Short intervals in summer → summer factors < 1.0."""
         analyzer = IntervalAnalyzer()
         # Summer (Jun, Jul, Aug): 14-day intervals
@@ -154,7 +155,7 @@ class TestComputeMonthlyFactors:
         for m in [12, 1, 2]:
             assert result.monthly_factors[m - 1] > 1.0, f"Month {m} should be > 1.0"
 
-    def test_quarterly_fallback_northern(self):
+    def test_quarterly_fallback_northern(self) -> None:
         """Missing months use quarterly average (northern hemisphere)."""
         analyzer = IntervalAnalyzer()
         # Only have June data (summer) and December data (winter)
@@ -178,7 +179,7 @@ class TestComputeMonthlyFactors:
         assert abs(jan_factor - dec_factor) < 0.01
         assert abs(feb_factor - dec_factor) < 0.01
 
-    def test_quarterly_fallback_southern(self):
+    def test_quarterly_fallback_southern(self) -> None:
         """Southern hemisphere: Dec is summer, Jun is winter."""
         analyzer = IntervalAnalyzer()
         # In southern hemisphere, December = summer
@@ -195,7 +196,7 @@ class TestComputeMonthlyFactors:
         assert abs(jan_factor - dec_factor) < 0.01
         assert abs(feb_factor - dec_factor) < 0.01
 
-    def test_manual_overrides(self):
+    def test_manual_overrides(self) -> None:
         """Manual overrides replace learned values."""
         analyzer = IntervalAnalyzer()
         intervals = [(30, m) for m in range(1, 13)]  # Uniform
@@ -208,7 +209,7 @@ class TestComputeMonthlyFactors:
         assert result.monthly_factors[0] == 2.0    # January overridden
         assert abs(result.monthly_factors[2] - 1.0) < 0.01  # March: learned (1.0)
 
-    def test_manual_overrides_without_history(self):
+    def test_manual_overrides_without_history(self) -> None:
         """Manual overrides work even with no history data."""
         analyzer = IntervalAnalyzer()
         overrides = {6: 0.7, 7: 0.7, 8: 0.7, 12: 1.5, 1: 1.5, 2: 1.5}
@@ -221,7 +222,7 @@ class TestComputeMonthlyFactors:
         assert result.monthly_factors[11] == 1.5  # December
         assert result.monthly_factors[3] == 1.0   # April: no override, default 1.0
 
-    def test_clamping(self):
+    def test_clamping(self) -> None:
         """Factors are clamped to [MIN, MAX]."""
         analyzer = IntervalAnalyzer()
         # Extreme variance: 1-day in summer vs 500-day in winter
@@ -235,14 +236,14 @@ class TestComputeMonthlyFactors:
             assert f >= DEFAULT_SEASONAL_FACTOR_MIN
             assert f <= DEFAULT_SEASONAL_FACTOR_MAX
 
-    def test_data_months_count(self):
+    def test_data_months_count(self) -> None:
         analyzer = IntervalAnalyzer()
         intervals = [(30, 1), (28, 1), (30, 6), (30, 6), (30, 7), (30, 12)]
         result = analyzer._compute_monthly_factors(intervals, "north")
         # Unique months: {1, 6, 7, 12} = 4
         assert result.data_months == 4
 
-    def test_hemisphere_field(self):
+    def test_hemisphere_field(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._compute_monthly_factors([], "south")
         assert result.hemisphere == "south"
@@ -256,27 +257,27 @@ class TestComputeMonthlyFactors:
 class TestApplySeasonalAdjustment:
     """Test _apply_seasonal_adjustment method."""
 
-    def test_factor_below_one(self):
+    def test_factor_below_one(self) -> None:
         """Factor < 1.0 shortens interval."""
         result = IntervalAnalyzer._apply_seasonal_adjustment(30, 0.7, 7, 365)
         assert result == 21  # 30 * 0.7 = 21
 
-    def test_factor_above_one(self):
+    def test_factor_above_one(self) -> None:
         """Factor > 1.0 lengthens interval."""
         result = IntervalAnalyzer._apply_seasonal_adjustment(30, 1.5, 7, 365)
         assert result == 45  # 30 * 1.5 = 45
 
-    def test_factor_one(self):
+    def test_factor_one(self) -> None:
         """Factor 1.0 = no change."""
         result = IntervalAnalyzer._apply_seasonal_adjustment(30, 1.0, 7, 365)
         assert result == 30
 
-    def test_clamped_to_min(self):
+    def test_clamped_to_min(self) -> None:
         """Result clamped to min_interval."""
         result = IntervalAnalyzer._apply_seasonal_adjustment(10, 0.3, 7, 365)
         assert result == 7  # 10 * 0.3 = 3, clamped to 7
 
-    def test_clamped_to_max(self):
+    def test_clamped_to_max(self) -> None:
         """Result clamped to max_interval."""
         result = IntervalAnalyzer._apply_seasonal_adjustment(200, 2.5, 7, 365)
         assert result == 365  # 200 * 2.5 = 500, clamped to 365
@@ -290,9 +291,9 @@ class TestApplySeasonalAdjustment:
 class TestAnalyzeWithSeasonal:
     """Test that analyze() integrates seasonal adjustment correctly."""
 
-    def _make_adaptive_config(self, **kwargs):
+    def _make_adaptive_config(self, **kwargs: Any) -> dict[str, Any]:
         """Create a base adaptive config dict."""
-        config = {
+        config: dict[str, Any] = {
             "enabled": True,
             "ewa_alpha": DEFAULT_ADAPTIVE_EWA_ALPHA,
             "min_interval_days": DEFAULT_ADAPTIVE_MIN_INTERVAL,
@@ -307,7 +308,7 @@ class TestAnalyzeWithSeasonal:
         config.update(kwargs)
         return config
 
-    def test_seasonal_adjustment_applied(self):
+    def test_seasonal_adjustment_applied(self) -> None:
         """With sufficient seasonal data, recommendation is adjusted."""
         analyzer = IntervalAnalyzer()
         # Build history: short intervals in summer, long in winter
@@ -340,7 +341,7 @@ class TestAnalyzeWithSeasonal:
         assert len(analysis.seasonal_factors) == 12
         assert analysis.seasonal_adjustment_reason == "learned"
 
-    def test_no_seasonal_without_data(self):
+    def test_no_seasonal_without_data(self) -> None:
         """With < 6 intervals, no seasonal adjustment."""
         analyzer = IntervalAnalyzer()
         # Only 3 completions = 2 intervals
@@ -358,7 +359,7 @@ class TestAnalyzeWithSeasonal:
         # Seasonal should be None because < 6 intervals
         assert analysis.seasonal_factor is None
 
-    def test_manual_overrides_applied(self):
+    def test_manual_overrides_applied(self) -> None:
         """Manual overrides are applied even without learned data."""
         analyzer = IntervalAnalyzer()
         # Enough feedback for recommendations but not enough intervals for seasonal learning
@@ -377,7 +378,7 @@ class TestAnalyzeWithSeasonal:
         assert analysis.seasonal_factor == 0.5
         assert analysis.seasonal_adjustment_reason == "manual"
 
-    def test_seasonal_disabled(self):
+    def test_seasonal_disabled(self) -> None:
         """When seasonal_enabled=False, no seasonal adjustment."""
         analyzer = IntervalAnalyzer()
         dates = []
@@ -395,7 +396,7 @@ class TestAnalyzeWithSeasonal:
         assert analysis.seasonal_factor is None
         assert analysis.seasonal_factors is None
 
-    def test_backward_compat_no_seasonal_fields(self):
+    def test_backward_compat_no_seasonal_fields(self) -> None:
         """Old adaptive_config without seasonal fields works fine."""
         analyzer = IntervalAnalyzer()
         history = _make_history_with_feedback([
@@ -428,7 +429,7 @@ class TestAnalyzeWithSeasonal:
 class TestUpdateOnCompletionWithSeasonal:
     """Test that update_on_completion handles seasonal fields."""
 
-    def test_no_crash_without_seasonal(self):
+    def test_no_crash_without_seasonal(self) -> None:
         """Old config without seasonal fields doesn't crash."""
         analyzer = IntervalAnalyzer()
         config = {
@@ -444,7 +445,7 @@ class TestUpdateOnCompletionWithSeasonal:
         assert "current_recommendation" in result
         assert "smoothed_interval" in result
 
-    def test_seasonal_adjustment_on_recommendation(self):
+    def test_seasonal_adjustment_on_recommendation(self) -> None:
         """Stored seasonal factors are applied to current_recommendation."""
         analyzer = IntervalAnalyzer()
         config = {
@@ -464,7 +465,7 @@ class TestUpdateOnCompletionWithSeasonal:
         if result.get("current_recommendation") is not None:
             assert "seasonal" in (result.get("recommendation_reason") or "")
 
-    def test_seasonal_disabled_no_adjustment(self):
+    def test_seasonal_disabled_no_adjustment(self) -> None:
         """With seasonal_enabled=False, no seasonal adjustment on recommendation."""
         analyzer = IntervalAnalyzer()
         config = {
@@ -492,7 +493,7 @@ class TestUpdateOnCompletionWithSeasonal:
 class TestSeasonalConstants:
     """Test that seasonal constants are properly defined."""
 
-    def test_hemisphere_seasons_cover_all_months(self):
+    def test_hemisphere_seasons_cover_all_months(self) -> None:
         """Both hemisphere season maps cover all 12 months."""
         for seasons in [NORTHERN_SEASONS, SOUTHERN_SEASONS]:
             all_months = set()
@@ -500,7 +501,7 @@ class TestSeasonalConstants:
                 all_months.update(months)
             assert all_months == set(range(1, 13))
 
-    def test_hemisphere_seasons_no_overlap(self):
+    def test_hemisphere_seasons_no_overlap(self) -> None:
         """No month appears in multiple seasons."""
         for seasons in [NORTHERN_SEASONS, SOUTHERN_SEASONS]:
             seen: set[int] = set()
@@ -509,7 +510,7 @@ class TestSeasonalConstants:
                     assert m not in seen, f"Month {m} in multiple seasons"
                     seen.add(m)
 
-    def test_default_bounds(self):
+    def test_default_bounds(self) -> None:
         assert DEFAULT_SEASONAL_MIN_DATA == 6
         assert DEFAULT_SEASONAL_FACTOR_MIN == 0.3
         assert DEFAULT_SEASONAL_FACTOR_MAX == 3.0
@@ -524,7 +525,7 @@ class TestSeasonalConstants:
 class TestPoolPumpScenario:
     """Realistic scenario: pool pump filter cleaning with seasonal patterns."""
 
-    def test_pool_pump_summer_vs_winter(self):
+    def test_pool_pump_summer_vs_winter(self) -> None:
         """Pool pump needs cleaning every 14d in summer, 42d in winter."""
         analyzer = IntervalAnalyzer()
 

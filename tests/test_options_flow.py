@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
@@ -298,7 +298,7 @@ async def _navigate_to_options_add_task(
     hass: HomeAssistant,
     global_entry: ConfigEntry,
     object_entry: ConfigEntry,
-) -> dict:
+) -> ConfigFlowResult:
     """Helper to navigate to add_task in options flow."""
     await setup_integration(hass, global_entry, object_entry)
 
@@ -528,6 +528,7 @@ async def test_options_sensor_select_invalid_entity(
         user_input={CONF_TRIGGER_ENTITY: ["sensor.does_not_exist"]},
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is not None
     assert CONF_TRIGGER_ENTITY in result["errors"]
 
 
@@ -573,7 +574,7 @@ async def _navigate_to_task_action(
     object_entry: ConfigEntry,
     *,
     skip_setup: bool = False,
-) -> tuple[dict, str]:
+) -> tuple[ConfigFlowResult, str]:
     """Helper to navigate to task_action for the first task."""
     if not skip_setup:
         await setup_integration(hass, global_entry, object_entry)
@@ -864,7 +865,7 @@ def _mock_auth_users(hass: HomeAssistant) -> None:
     user2.is_active = True
     user2.system_generated = True  # Should be filtered out
 
-    hass.auth.async_get_users = AsyncMock(return_value=[user1, user2])
+    hass.auth.async_get_users = AsyncMock(return_value=[user1, user2])  # type: ignore[method-assign]
 
 
 # ─── 4.8 Edit Task with New Fields ────────────────────────────────────
@@ -890,6 +891,7 @@ async def test_edit_task_new_fields(
     assert result["step_id"] == "edit_task"
 
     # Verify new fields are present in the schema
+    assert result["data_schema"] is not None
     schema_keys = [str(k) for k in result["data_schema"].schema]
     assert CONF_TASK_ENABLED in schema_keys
     assert CONF_TASK_NOTES in schema_keys
@@ -983,6 +985,7 @@ async def test_object_settings_with_area_and_install_date(
     assert result["step_id"] == "object_settings"
 
     # Verify new fields are present in the schema
+    assert result["data_schema"] is not None
     schema_keys = [str(k) for k in result["data_schema"].schema]
     assert CONF_OBJECT_AREA in schema_keys
     assert CONF_OBJECT_INSTALLATION_DATE in schema_keys
@@ -1107,6 +1110,7 @@ async def test_trigger_summary_shows_config(
 
     # Verify description_placeholders contain trigger info
     placeholders = result["description_placeholders"]
+    assert placeholders is not None
     assert "sensor.test" in placeholders["entity_ids"]
     assert placeholders["trigger_type"] == TriggerType.THRESHOLD
     assert "above: 50.0" in placeholders["config_details"]
@@ -1163,6 +1167,7 @@ async def test_remove_trigger_shows_entity_info(
     assert result["step_id"] == "remove_trigger"
 
     placeholders = result["description_placeholders"]
+    assert placeholders is not None
     assert "sensor.test" in placeholders["entity_ids"]
     assert placeholders["trigger_type"] == TriggerType.THRESHOLD
     assert "above: 50.0" in placeholders["config_details"]
@@ -1399,6 +1404,7 @@ async def test_compound_trigger_summary_shows_conditions(
     assert result["step_id"] == "trigger_summary"
 
     placeholders = result["description_placeholders"]
+    assert placeholders is not None
     assert "sensor.temp" in placeholders["entity_ids"]
     assert "sensor.humidity" in placeholders["entity_ids"]
     assert placeholders["trigger_type"] == TriggerType.COMPOUND
@@ -1467,6 +1473,7 @@ async def test_compound_remove_trigger_shows_conditions(
     assert result["step_id"] == "remove_trigger"
 
     placeholders = result["description_placeholders"]
+    assert placeholders is not None
     details = placeholders["config_details"]
     assert "logic: OR" in details
     assert "#1" in details
@@ -1550,6 +1557,7 @@ async def test_edit_trigger_prepopulates_entities(
     assert result2["step_id"] == "opt_sensor_select"
 
     # Verify the form has the existing entities pre-populated as defaults
+    assert result2["data_schema"] is not None
     schema = result2["data_schema"].schema
     for key in schema:
         if str(key) == CONF_TRIGGER_ENTITY:
@@ -1622,6 +1630,7 @@ async def test_remove_trigger_selective_entity_removal(
     assert result2["step_id"] == "remove_trigger"
 
     # Verify the form has an entities_to_remove selector for multi-entity triggers
+    assert result2["data_schema"] is not None
     schema = result2["data_schema"].schema
     has_entity_selector = any(
         str(key) == "entities_to_remove" for key in schema

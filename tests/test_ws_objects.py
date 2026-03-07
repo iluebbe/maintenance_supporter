@@ -91,7 +91,7 @@ async def test_ws_get_objects(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_get_objects.__wrapped__(hass, conn, {"id": 1, "type": "maintenance_supporter/objects"})
+    await ws_get_objects.__wrapped__(hass, conn, {"id": 1, "type": "maintenance_supporter/objects"})  # type: ignore[attr-defined]
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -107,7 +107,7 @@ async def test_ws_get_objects_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_objects.__wrapped__(hass, conn, {"id": 1, "type": "maintenance_supporter/objects"})
+    await ws_get_objects.__wrapped__(hass, conn, {"id": 1, "type": "maintenance_supporter/objects"})  # type: ignore[attr-defined]
 
     result = conn.send_result.call_args[0][1]
     assert result["objects"] == []
@@ -123,7 +123,7 @@ async def test_ws_get_object(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_get_object.__wrapped__(hass, conn, {
+    await ws_get_object.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object",
         "entry_id": object_entry.entry_id,
     })
@@ -141,7 +141,7 @@ async def test_ws_get_object_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_object.__wrapped__(hass, conn, {
+    await ws_get_object.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object",
         "entry_id": "nonexistent",
     })
@@ -159,7 +159,7 @@ async def test_ws_create_object_basic(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "New Object",
     })
@@ -176,7 +176,7 @@ async def test_ws_create_object_all_fields(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "Full Object",
         "area_id": "garage",
@@ -194,7 +194,7 @@ async def test_ws_create_object_dry_run(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "Dry Run Object",
         "dry_run": True,
@@ -215,7 +215,7 @@ async def test_ws_update_object_name(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/update",
         "entry_id": object_entry.entry_id,
         "name": "Updated Pump",
@@ -223,6 +223,7 @@ async def test_ws_update_object_name(
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
     assert entry.data[CONF_OBJECT]["name"] == "Updated Pump"
     assert entry.title == "Updated Pump"
 
@@ -234,7 +235,7 @@ async def test_ws_update_object_multiple(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/update",
         "entry_id": object_entry.entry_id,
         "manufacturer": "Hayward",
@@ -244,6 +245,7 @@ async def test_ws_update_object_multiple(
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
     obj = entry.data[CONF_OBJECT]
     assert obj["manufacturer"] == "Hayward"
     assert obj["model"] == "MaxFlo"
@@ -257,7 +259,7 @@ async def test_ws_update_object_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/update",
         "entry_id": "nonexistent",
         "name": "Test",
@@ -276,7 +278,7 @@ async def test_ws_delete_object(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/delete",
         "entry_id": object_entry.entry_id,
     })
@@ -293,7 +295,7 @@ async def test_ws_delete_object_cleans_group_refs(
     conn = _mock_connection()
 
     # Create a group referencing a task in the object we'll delete
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {
+    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 10, "type": "maintenance_supporter/group/create",
         "name": "Test Group",
         "task_refs": [
@@ -305,7 +307,7 @@ async def test_ws_delete_object_cleans_group_refs(
     conn.reset_mock()
 
     # Delete the object
-    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 11, "type": "maintenance_supporter/object/delete",
         "entry_id": object_entry.entry_id,
     })
@@ -313,6 +315,7 @@ async def test_ws_delete_object_cleans_group_refs(
 
     # Verify group no longer references the deleted object's tasks
     ge = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert ge is not None
     refs = ge.options["groups"][group_id]["task_refs"]
     assert len(refs) == 1
     assert refs[0]["entry_id"] == "other_entry"
@@ -325,7 +328,7 @@ async def test_ws_delete_object_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {
+    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/object/delete",
         "entry_id": "nonexistent",
     })
@@ -475,7 +478,7 @@ def test_build_task_summary_compound_trigger_deduplicates(hass: HomeAssistant) -
 
 
 def test_build_object_response_structure(
-    hass: HomeAssistant, global_entry, object_entry,
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
 ) -> None:
     """Test _build_object_response returns correct structure."""
     result = _build_object_response(hass, object_entry, None)

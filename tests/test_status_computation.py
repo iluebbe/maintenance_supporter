@@ -75,10 +75,12 @@ class TestMaintenanceTaskStatus:
             build_task_data(interval_days=30, warning_days=7, last_performed=last)
         )
         # Without trigger: overdue
-        assert task.status == MaintenanceStatus.OVERDUE
+        status_before: MaintenanceStatus = task.status
+        assert status_before == MaintenanceStatus.OVERDUE
         # With trigger: triggered takes precedence
         task._trigger_active = True
-        assert task.status == MaintenanceStatus.TRIGGERED
+        status_after: MaintenanceStatus = task.status
+        assert status_after == MaintenanceStatus.TRIGGERED
 
     def test_never_performed_with_interval(self) -> None:
         """Task never performed but with interval should be immediately due."""
@@ -278,4 +280,6 @@ class TestHistoryProperties:
         task = MaintenanceTask.from_dict(
             build_task_data(history=history)
         )
-        assert task.last_entry["type"] == "skipped"
+        last = task.last_entry
+        assert last is not None
+        assert last["type"] == "skipped"

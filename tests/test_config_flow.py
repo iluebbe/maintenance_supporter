@@ -16,7 +16,7 @@ from unittest.mock import patch
 import pytest
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
@@ -196,7 +196,7 @@ async def test_create_object_duplicate_name(
 
 async def _navigate_to_add_task(
     hass: HomeAssistant, global_entry: ConfigEntry
-) -> dict:
+) -> ConfigFlowResult:
     """Helper to navigate to add_task step."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -487,6 +487,7 @@ async def test_sensor_select_invalid_entity(
         user_input={CONF_TRIGGER_ENTITY: ["sensor.does_not_exist"]},
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is not None
     assert CONF_TRIGGER_ENTITY in result["errors"]
 
 
@@ -524,6 +525,7 @@ async def test_threshold_requires_at_least_one(
         user_input={CONF_TRIGGER_FOR_MINUTES: 0, CONF_TASK_WARNING_DAYS: 7},
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is not None
     assert "base" in result["errors"]
 
 

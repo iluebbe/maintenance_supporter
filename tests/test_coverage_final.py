@@ -886,7 +886,7 @@ class TestBinarySensorResetClearsValue:
         sensor = MaintenanceBinarySensor.__new__(MaintenanceBinarySensor)
         sensor.coordinator = coordinator
         sensor._task_id = "task1"
-        sensor.async_write_ha_state = MagicMock()
+        sensor.async_write_ha_state = MagicMock()  # type: ignore[method-assign]
 
         sensor._handle_task_reset()
 

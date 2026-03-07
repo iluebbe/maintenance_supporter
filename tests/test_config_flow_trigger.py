@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -57,7 +57,7 @@ def global_config_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 async def _navigate_to_add_task(
     hass: HomeAssistant, global_entry: ConfigEntry,
-) -> dict[str, Any]:
+) -> ConfigFlowResult:
     """Navigate config flow to 'add task' step."""
     await setup_integration(hass, global_entry)
 
@@ -454,7 +454,7 @@ def test_mixin_go_back_adds_field() -> None:
     from custom_components.maintenance_supporter.config_flow_trigger import TriggerConfigMixin
 
     mixin = TriggerConfigMixin()
-    mixin._on_cancel = lambda: None  # type: ignore[assignment]
+    mixin._on_cancel = lambda: None  # type: ignore[assignment,return-value]
     schema_dict: dict[Any, Any] = {"existing": str}
     result = mixin._mixin_add_go_back(schema_dict)
     keys = [str(k) for k in result.keys()]
@@ -495,7 +495,7 @@ async def test_attribute_no_numeric(
     )
     # Should show error on sensor_select since no numeric attributes
     assert result["type"] == FlowResultType.FORM
-    assert result.get("errors", {}).get(CONF_TRIGGER_ENTITY) == "invalid_entity"
+    assert (result.get("errors") or {}).get(CONF_TRIGGER_ENTITY) == "invalid_entity"
 
 
 async def test_attribute_multiple_numeric(

@@ -38,7 +38,7 @@ async def _setup_legacy_coordinator(
     global_config_entry: MockConfigEntry,
     task: dict[str, Any] | None = None,
     unique_id: str = "maintenance_supporter_legacy",
-):
+) -> tuple[Any, Any]:
     """Set up an entry normally, then disable its Store for legacy testing."""
     if task is None:
         last_perf = (dt_util.now().date() - timedelta(days=20)).isoformat()
@@ -58,6 +58,7 @@ async def _setup_legacy_coordinator(
 
     # Get the coordinator and disable Store → forces legacy paths
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     coord = refreshed.runtime_data.coordinator
     coord._store = None
 
@@ -88,6 +89,7 @@ async def test_complete_maintenance_no_store(
     await coord.complete_maintenance(task_id=TASK_ID_1, notes="Legacy complete")
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     task_data = refreshed.data[CONF_TASKS][TASK_ID_1]
     assert task_data.get("last_performed") is not None
     assert len(task_data.get("history", [])) >= 1
@@ -109,6 +111,7 @@ async def test_reset_maintenance_no_store(
     await coord.reset_maintenance(task_id=TASK_ID_1)
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     task_data = refreshed.data[CONF_TASKS][TASK_ID_1]
     history = task_data.get("history", [])
     assert any(h["type"] == "reset" for h in history)
@@ -129,6 +132,7 @@ async def test_skip_maintenance_no_store(
     await coord.skip_maintenance(task_id=TASK_ID_1, reason="Too busy")
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     task_data = refreshed.data[CONF_TASKS][TASK_ID_1]
     history = task_data.get("history", [])
     assert any(h["type"] == "skipped" for h in history)
@@ -149,6 +153,7 @@ async def test_trigger_history_entry_no_store(
     await coord.async_add_trigger_history_entry(TASK_ID_1, trigger_value=42.0)
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     task_data = refreshed.data[CONF_TASKS][TASK_ID_1]
     history = task_data.get("history", [])
     assert any(h["type"] == "triggered" for h in history)
@@ -182,6 +187,7 @@ async def test_persist_trigger_runtime_no_store_per_entity(
     )
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     ts = tc.get("_trigger_state", {})
     assert ts["sensor.temp"]["baseline_value"] == 25.5
@@ -213,6 +219,7 @@ async def test_persist_trigger_runtime_no_store_flat(
     )
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert tc["trigger_baseline_value"] == 500.0
 

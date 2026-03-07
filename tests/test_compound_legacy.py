@@ -129,6 +129,7 @@ async def _setup_compound_legacy(
     await setup_integration(hass, global_entry, entry)
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     coord = refreshed.runtime_data.coordinator
     coord._store = None
 
@@ -161,6 +162,7 @@ async def test_proxy_legacy_persist_per_entity(
     )
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     ts = tc["_trigger_state"]
     cond_state = ts["conditions"][0]
@@ -186,6 +188,7 @@ async def test_proxy_legacy_persist_per_entity_condition_idx_1(
     )
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     ts = tc["_trigger_state"]
     conditions = ts["conditions"]
@@ -215,6 +218,7 @@ async def test_proxy_legacy_persist_flat(
     )
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     ts = tc["_trigger_state"]
     cond_state = ts["conditions"][0]
@@ -240,6 +244,7 @@ async def test_proxy_legacy_persist_flat_condition_idx_1(
     )
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     ts = tc["_trigger_state"]
     conditions = ts["conditions"]
@@ -270,6 +275,7 @@ async def test_proxy_legacy_persist_missing_task(
 
     # Entry data should be unchanged
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
     tc = refreshed.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert "_trigger_state" not in tc
 

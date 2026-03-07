@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -80,7 +80,7 @@ class TestIntervalAnchorPlanned:
     """Tests for planned-date anchoring (prevents schedule drift)."""
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_planned_anchor_on_time(self, mock_dt) -> None:
+    def test_planned_anchor_on_time(self, mock_dt: MagicMock) -> None:
         """Planned anchor on-time completion: same as completion anchor."""
         # "Today" is Jan 20 — next due (Feb 14) is in the future
         mock_dt.now.return_value.date.return_value = date(2026, 1, 20)
@@ -95,7 +95,7 @@ class TestIntervalAnchorPlanned:
         assert task.next_due == date(2026, 2, 14)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_planned_anchor_late_completion_no_drift(self, mock_dt) -> None:
+    def test_planned_anchor_late_completion_no_drift(self, mock_dt: MagicMock) -> None:
         """Planned anchor: late completion doesn't cause schedule drift."""
         # "Today" is Feb 20
         mock_dt.now.return_value.date.return_value = date(2026, 2, 20)
@@ -113,7 +113,7 @@ class TestIntervalAnchorPlanned:
         assert task.next_due == date(2026, 3, 16)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_planned_anchor_without_stored_anchor_falls_back(self, mock_dt) -> None:
+    def test_planned_anchor_without_stored_anchor_falls_back(self, mock_dt: MagicMock) -> None:
         """Without last_planned_due, planned mode falls back to last_performed."""
         mock_dt.now.return_value.date.return_value = date(2026, 2, 20)
 
@@ -129,7 +129,7 @@ class TestIntervalAnchorPlanned:
         assert task.next_due == date(2026, 3, 22)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_planned_anchor_missed_periods(self, mock_dt) -> None:
+    def test_planned_anchor_missed_periods(self, mock_dt: MagicMock) -> None:
         """Planned anchor with multiple missed periods advances to next future date."""
         # "Today" is June 1
         mock_dt.now.return_value.date.return_value = date(2026, 6, 1)
@@ -146,10 +146,11 @@ class TestIntervalAnchorPlanned:
             interval_days=30,
             interval_anchor="planned",
         )
+        assert task.next_due is not None
         assert task.next_due >= date(2026, 6, 1)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_planned_anchor_future_due_not_advanced(self, mock_dt) -> None:
+    def test_planned_anchor_future_due_not_advanced(self, mock_dt: MagicMock) -> None:
         """Planned anchor: if candidate is already in the future, use it."""
         # "Today" is Feb 1
         mock_dt.now.return_value.date.return_value = date(2026, 2, 1)
@@ -290,7 +291,7 @@ class TestPlannedAnchorOnComplete:
     """Tests that complete/skip save last_planned_due for planned anchor."""
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_complete_saves_last_planned_due(self, mock_dt) -> None:
+    def test_complete_saves_last_planned_due(self, mock_dt: MagicMock) -> None:
         """complete() saves current next_due as last_planned_due."""
         # Set today to Feb 15 so next_due (Mar 3) is in the future
         mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
@@ -311,7 +312,7 @@ class TestPlannedAnchorOnComplete:
         assert task.last_performed == "2026-02-15"
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_skip_saves_last_planned_due(self, mock_dt) -> None:
+    def test_skip_saves_last_planned_due(self, mock_dt: MagicMock) -> None:
         """skip() saves current next_due as last_planned_due."""
         mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
 
@@ -421,7 +422,7 @@ class TestResetClearsPlannedAnchor:
     """Tests that reset() clears last_planned_due."""
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_reset_clears_last_planned_due(self, mock_dt) -> None:
+    def test_reset_clears_last_planned_due(self, mock_dt: MagicMock) -> None:
         """Reset must clear last_planned_due so next_due anchors from reset date."""
         mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
 
@@ -438,7 +439,7 @@ class TestResetClearsPlannedAnchor:
         assert task.next_due == date(2026, 3, 12)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_reset_without_anchor_still_works(self, mock_dt) -> None:
+    def test_reset_without_anchor_still_works(self, mock_dt: MagicMock) -> None:
         """Reset on completion-anchor task doesn't break anything."""
         mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
 

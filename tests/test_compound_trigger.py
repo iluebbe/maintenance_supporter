@@ -121,16 +121,16 @@ async def test_compound_trigger_and_not_triggered_initially(
     obj_entry = _make_compound_entry(hass, "AND", unique_id="and_not_trig")
     await setup_integration(hass, global_entry, obj_entry)
 
-    state = hass.states.get(
-        next(
-            (e.entity_id for e in er.async_entries_for_config_entry(
-                er.async_get(hass), obj_entry.entry_id
-            ) if e.domain == "sensor"),
-            None,
-        )
+    entity_id = next(
+        (e.entity_id for e in er.async_entries_for_config_entry(
+            er.async_get(hass), obj_entry.entry_id
+        ) if e.domain == "sensor"),
+        None,
     )
-    if state:
-        assert state.attributes.get("trigger_active", False) is False
+    if entity_id is not None:
+        state = hass.states.get(entity_id)
+        if state:
+            assert state.attributes.get("trigger_active", False) is False
 
 
 async def test_compound_trigger_and_partial_trigger(
@@ -143,17 +143,17 @@ async def test_compound_trigger_and_partial_trigger(
     obj_entry = _make_compound_entry(hass, "AND", unique_id="and_partial")
     await setup_integration(hass, global_entry, obj_entry)
 
-    state = hass.states.get(
-        next(
-            (e.entity_id for e in er.async_entries_for_config_entry(
-                er.async_get(hass), obj_entry.entry_id
-            ) if e.domain == "sensor"),
-            None,
-        )
+    entity_id = next(
+        (e.entity_id for e in er.async_entries_for_config_entry(
+            er.async_get(hass), obj_entry.entry_id
+        ) if e.domain == "sensor"),
+        None,
     )
-    if state:
-        # AND logic: both must be true
-        assert state.attributes.get("trigger_active", False) is False
+    if entity_id is not None:
+        state = hass.states.get(entity_id)
+        if state:
+            # AND logic: both must be true
+            assert state.attributes.get("trigger_active", False) is False
 
 
 # ─── Compound Trigger OR Logic ─────────────────────────────────────────
@@ -185,14 +185,14 @@ async def test_compound_trigger_or_one_met(
     obj_entry = _make_compound_entry(hass, "OR", unique_id="or_one_met")
     await setup_integration(hass, global_entry, obj_entry)
 
-    state = hass.states.get(
-        next(
-            (e.entity_id for e in er.async_entries_for_config_entry(
-                er.async_get(hass), obj_entry.entry_id
-            ) if e.domain == "sensor"),
-            None,
-        )
+    entity_id = next(
+        (e.entity_id for e in er.async_entries_for_config_entry(
+            er.async_get(hass), obj_entry.entry_id
+        ) if e.domain == "sensor"),
+        None,
     )
+    if entity_id is not None:
+        state = hass.states.get(entity_id)
     # OR logic: at least one condition met → should trigger
     # NOTE: Whether it actually triggers depends on sub-trigger setup timing
 
@@ -287,6 +287,7 @@ async def test_coordinator_proxy_persist_runtime(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     proxy = _CompoundCoordinatorProxy(coordinator, 0)
@@ -298,6 +299,7 @@ async def test_coordinator_proxy_persist_runtime(
 
     # Verify data was persisted to Store
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated is not None
     store = updated.runtime_data.store
     runtime = store.get_trigger_runtime(TASK_ID_1)
     assert "_compound_0_sensor.temp" in runtime
@@ -315,6 +317,7 @@ async def test_coordinator_proxy_persist_no_entity(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     proxy = _CompoundCoordinatorProxy(coordinator, 0)
@@ -326,6 +329,7 @@ async def test_coordinator_proxy_persist_no_entity(
 
     # Verify data was persisted to Store (no entity_id → key is _compound_0)
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated is not None
     store = updated.runtime_data.store
     runtime = store.get_trigger_runtime(TASK_ID_1)
     assert "_compound_0" in runtime
@@ -343,6 +347,7 @@ async def test_coordinator_proxy_persist_missing_task(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     proxy = _CompoundCoordinatorProxy(coordinator, 0)

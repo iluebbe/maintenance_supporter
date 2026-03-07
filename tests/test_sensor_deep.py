@@ -94,6 +94,7 @@ async def test_weibull_attrs_early_failures(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_interval_analysis"] = {
         "weibull_beta": 0.5,
@@ -123,6 +124,7 @@ async def test_weibull_attrs_wear_out(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_interval_analysis"] = {
         "weibull_beta": 2.5,
@@ -154,6 +156,7 @@ async def test_weibull_attrs_highly_predictable(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_interval_analysis"] = {
         "weibull_beta": 5.0,
@@ -185,6 +188,7 @@ async def test_seasonal_factor_attrs(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_interval_analysis"] = {
         "seasonal_factor": 0.7,
@@ -216,6 +220,7 @@ async def test_environmental_attrs(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_environmental_factor"] = 1.3
     coordinator.data[CONF_TASKS][TASK_ID_1]["_environmental_entity"] = "sensor.outdoor_temp"
@@ -241,6 +246,7 @@ async def test_threshold_prediction_attrs(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_days_until_threshold"] = 12
     coordinator.data[CONF_TASKS][TASK_ID_1]["_threshold_prediction_confidence"] = 0.85
@@ -266,6 +272,7 @@ async def test_suggested_interval_attrs(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_suggested_interval"] = 25
     coordinator.data[CONF_TASKS][TASK_ID_1]["_interval_confidence"] = "high"

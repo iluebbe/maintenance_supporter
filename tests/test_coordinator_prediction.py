@@ -115,6 +115,7 @@ async def test_update_data_with_degradation(
     ) as MockSP:
         MockSP.return_value.async_analyze = AsyncMock(return_value=mock_result)
         entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+        assert entry is not None
         coordinator = entry.runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -168,6 +169,7 @@ async def test_update_data_with_threshold_prediction_urgency(
     ) as MockSP:
         MockSP.return_value.async_analyze = AsyncMock(return_value=mock_result)
         entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+        assert entry is not None
         coordinator = entry.runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -221,6 +223,7 @@ async def test_update_data_with_environmental_factor(
     ) as MockSP:
         MockSP.return_value.async_analyze = AsyncMock(return_value=mock_result)
         entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+        assert entry is not None
         coordinator = entry.runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -256,6 +259,7 @@ async def test_update_data_prediction_exception(
     ) as MockSP:
         MockSP.return_value.async_analyze = AsyncMock(side_effect=RuntimeError("boom"))
         entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+        assert entry is not None
         coordinator = entry.runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -289,6 +293,7 @@ async def test_update_data_prediction_returns_none(
     ) as MockSP:
         MockSP.return_value.async_analyze = AsyncMock(return_value=None)
         entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+        assert entry is not None
         coordinator = entry.runtime_data.coordinator
         await coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -324,6 +329,7 @@ async def test_fallback_counter_per_entity_baseline(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # delta=160-100=60 >= 50 → triggered
     assert data.get("_trigger_active") is True
@@ -351,6 +357,7 @@ async def test_fallback_counter_attribute(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # 200 >= 100 → triggered
     assert data.get("_trigger_active") is True
@@ -376,6 +383,7 @@ async def test_fallback_threshold_below(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # 3 < 5 → triggered
     assert data.get("_trigger_active") is True
@@ -403,6 +411,7 @@ async def test_fallback_threshold_multi_all(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     # Both below threshold → all=False
     assert data.get("_trigger_active") is False
@@ -428,6 +437,7 @@ async def test_fallback_non_numeric_value(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     assert data.get("_trigger_active") is False
 
@@ -455,6 +465,7 @@ async def test_check_issues_unavailable_logs_once(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     # First refresh already happened during setup
     assert coordinator._trigger_entity_states.get(TASK_ID_1) == TriggerEntityState.UNAVAILABLE
@@ -483,6 +494,7 @@ async def test_check_issues_missing_past_threshold(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     # Move past startup grace
     coordinator._startup_time = time.monotonic() - 999
@@ -518,6 +530,7 @@ async def test_check_issues_cleared_when_available(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     assert coordinator._trigger_entity_states.get(TASK_ID_1) == TriggerEntityState.AVAILABLE
 
@@ -534,6 +547,7 @@ async def test_complete_task_not_found(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.complete_maintenance("nonexistent")  # no crash
 
@@ -547,6 +561,7 @@ async def test_reset_task_not_found(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.reset_maintenance("nonexistent")  # no crash
 
@@ -560,6 +575,7 @@ async def test_skip_task_not_found(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.skip_maintenance("nonexistent")  # no crash
 
@@ -573,6 +589,7 @@ async def test_apply_suggested_interval_not_found(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.async_apply_suggested_interval("nonexistent", 15)  # no crash
 
@@ -587,6 +604,7 @@ async def test_add_trigger_history_entry_success(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.async_add_trigger_history_entry(TASK_ID_1, trigger_value=35.0)
 
@@ -605,6 +623,7 @@ async def test_add_trigger_history_entry_not_found(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.async_add_trigger_history_entry("nonexistent", trigger_value=10.0)
 
@@ -620,6 +639,7 @@ async def test_complete_with_adaptive_config(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator.complete_maintenance(TASK_ID_1, notes="Done")
 
@@ -638,6 +658,7 @@ async def test_complete_with_invalid_last_performed(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     # Should not crash despite invalid date
     await coordinator.complete_maintenance(TASK_ID_1)
@@ -652,6 +673,7 @@ async def test_register_calendar_entity(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     mock_cal = MagicMock()
@@ -672,6 +694,7 @@ async def test_disabled_task_status_ok(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]
     assert data["_status"] == MaintenanceStatus.OK
 
@@ -713,6 +736,7 @@ async def test_budget_monthly_alert(hass: HomeAssistant) -> None:
     hass.data[DOMAIN]["_notification_manager"] = mock_nm
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator._async_check_budget({})
     mock_nm.async_budget_alert.assert_called_once_with("monthly", 90.0, 100.0)
@@ -752,6 +776,7 @@ async def test_budget_yearly_alert(hass: HomeAssistant) -> None:
     hass.data[DOMAIN]["_notification_manager"] = mock_nm
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     await coordinator._async_check_budget({})
     mock_nm.async_budget_alert.assert_called_once_with("yearly", 450.0, 500.0)

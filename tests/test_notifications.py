@@ -47,7 +47,7 @@ from .conftest import build_global_entry_data, setup_integration
 
 
 @pytest.fixture
-def global_with_notifications(hass: HomeAssistant) -> ConfigEntry:
+def global_with_notifications(hass: HomeAssistant) -> MockConfigEntry:
     """Create global entry with notifications enabled."""
     entry = MockConfigEntry(
         version=1,

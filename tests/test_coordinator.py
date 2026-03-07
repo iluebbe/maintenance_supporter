@@ -94,6 +94,7 @@ async def test_update_data_basic_status(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     data = coordinator.data
 
@@ -114,6 +115,7 @@ async def test_update_data_disabled_task(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK
 
@@ -132,6 +134,7 @@ async def test_update_data_preserves_trigger_state(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     # Simulate trigger activation via previous data
@@ -165,6 +168,7 @@ async def test_fallback_threshold_above(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -183,6 +187,7 @@ async def test_fallback_threshold_below(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -208,6 +213,7 @@ async def test_fallback_threshold_multi_any(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -233,6 +239,7 @@ async def test_fallback_threshold_multi_all(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -251,6 +258,7 @@ async def test_fallback_threshold_unavailable(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
 
@@ -272,6 +280,7 @@ async def test_fallback_threshold_attribute(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -293,6 +302,7 @@ async def test_fallback_counter_absolute(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -319,6 +329,7 @@ async def test_fallback_counter_delta(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -340,6 +351,7 @@ async def test_check_issues_available_clears(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     assert coordinator._trigger_entity_states.get(TASK_ID_1) == TriggerEntityState.AVAILABLE
 
@@ -358,6 +370,7 @@ async def test_check_issues_startup_grace(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     # During startup grace period (default 300s), state should be STARTUP
@@ -380,6 +393,7 @@ async def test_check_issues_unavailable_logs_once(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     assert coordinator._trigger_entity_states.get(TASK_ID_1) == TriggerEntityState.UNAVAILABLE
     # First refresh should have logged it
@@ -428,6 +442,7 @@ async def test_complete_maintenance_history(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     await coordinator.complete_maintenance(
@@ -452,6 +467,7 @@ async def test_skip_maintenance(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     await coordinator.skip_maintenance(task_id=TASK_ID_1, reason="Not needed")
@@ -473,6 +489,7 @@ async def test_reset_maintenance(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     reset_date = date(2024, 6, 15)
@@ -494,6 +511,7 @@ async def test_persist_trigger_runtime_per_entity(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     await coordinator.async_persist_trigger_runtime(
@@ -503,6 +521,7 @@ async def test_persist_trigger_runtime_per_entity(
     )
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     runtime = entry.runtime_data.store.get_trigger_runtime(TASK_ID_1, "sensor.pump")
     assert runtime["accumulated_seconds"] == 3600.0
 
@@ -516,6 +535,7 @@ async def test_register_calendar_entity(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     mock_calendar = MagicMock()
@@ -546,6 +566,7 @@ async def test_complete_maintenance_updates_adaptive(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
     await coordinator.complete_maintenance(task_id=TASK_ID_1, feedback="needed")

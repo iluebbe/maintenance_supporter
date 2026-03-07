@@ -165,6 +165,7 @@ async def test_notify_overdue_task(
     # and found the overdue task. Notifications may or may not have fired
     # depending on whether notification_manager was fully initialized.
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_status"] == "overdue"
 
@@ -191,6 +192,7 @@ async def test_notify_bundled_sends(
     await setup_integration(hass, global_entry_bundled, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_status"] == "overdue"
     assert data[CONF_TASKS][TASK_ID_2]["_status"] == "overdue"
@@ -295,6 +297,7 @@ async def test_fallback_no_trigger_config(
     await setup_integration(hass, global_entry_notifications, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     # Should have _trigger_active = False for time-based tasks
     assert data[CONF_TASKS][TASK_ID_1].get("_trigger_active") is False
@@ -331,6 +334,7 @@ async def test_fallback_unavailable_entity(
     await setup_integration(hass, global_entry_notifications, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     # Unavailable entity should not trigger
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
@@ -369,6 +373,7 @@ async def test_fallback_counter_delta(
     await setup_integration(hass, global_entry_notifications, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     # Delta = 150 - 100 = 50, target = 100 → not triggered
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
@@ -403,6 +408,7 @@ async def test_fallback_counter_absolute_triggered(
     await setup_integration(hass, global_entry_notifications, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     # 150 >= 100 → triggered
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
@@ -440,6 +446,7 @@ async def test_fallback_threshold_attribute(
     await setup_integration(hass, global_entry_notifications, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 

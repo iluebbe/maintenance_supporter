@@ -39,12 +39,12 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 class TestComputeIntervals:
     """Test _compute_intervals_from_history."""
 
-    def test_empty_history(self):
+    def test_empty_history(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._compute_intervals_from_history([])
         assert result == []
 
-    def test_single_entry(self):
+    def test_single_entry(self) -> None:
         analyzer = IntervalAnalyzer()
         history = [
             {"timestamp": "2026-01-15T10:00:00", "type": "completed"},
@@ -52,7 +52,7 @@ class TestComputeIntervals:
         result = analyzer._compute_intervals_from_history(history)
         assert result == []  # Need at least 2 completions for an interval
 
-    def test_two_entries(self):
+    def test_two_entries(self) -> None:
         analyzer = IntervalAnalyzer()
         history = [
             {"timestamp": "2026-01-01T10:00:00", "type": "completed"},
@@ -61,7 +61,7 @@ class TestComputeIntervals:
         result = analyzer._compute_intervals_from_history(history)
         assert result == [30]
 
-    def test_multiple_entries(self):
+    def test_multiple_entries(self) -> None:
         analyzer = IntervalAnalyzer()
         history = [
             {"timestamp": "2026-01-01T10:00:00", "type": "completed"},
@@ -71,7 +71,7 @@ class TestComputeIntervals:
         result = analyzer._compute_intervals_from_history(history)
         assert result == [14, 17]
 
-    def test_ignores_non_completed(self):
+    def test_ignores_non_completed(self) -> None:
         analyzer = IntervalAnalyzer()
         history = [
             {"timestamp": "2026-01-01T10:00:00", "type": "completed"},
@@ -81,7 +81,7 @@ class TestComputeIntervals:
         result = analyzer._compute_intervals_from_history(history)
         assert result == [19]
 
-    def test_unordered_history(self):
+    def test_unordered_history(self) -> None:
         """History entries may not be in order — should sort by timestamp."""
         analyzer = IntervalAnalyzer()
         history = [
@@ -91,7 +91,7 @@ class TestComputeIntervals:
         result = analyzer._compute_intervals_from_history(history)
         assert result == [31]
 
-    def test_same_day_completions_skipped(self):
+    def test_same_day_completions_skipped(self) -> None:
         analyzer = IntervalAnalyzer()
         history = [
             {"timestamp": "2026-01-01T08:00:00", "type": "completed"},
@@ -107,17 +107,17 @@ class TestComputeIntervals:
 class TestExponentialWeightedAverage:
     """Test _exponential_weighted_average."""
 
-    def test_single_value(self):
+    def test_single_value(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._exponential_weighted_average([30.0], 0.3)
         assert result == 30.0
 
-    def test_empty_list(self):
+    def test_empty_list(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._exponential_weighted_average([], 0.3)
         assert result == 0.0
 
-    def test_converges_toward_recent(self):
+    def test_converges_toward_recent(self) -> None:
         """EWA should be closer to the most recent values."""
         analyzer = IntervalAnalyzer()
         # Old values: 30, recent values: 60
@@ -127,7 +127,7 @@ class TestExponentialWeightedAverage:
         assert result > 45
         assert result < 60
 
-    def test_high_alpha_more_responsive(self):
+    def test_high_alpha_more_responsive(self) -> None:
         """Higher alpha should weight recent data more heavily."""
         analyzer = IntervalAnalyzer()
         intervals = [30.0, 30.0, 30.0, 60.0]
@@ -136,11 +136,11 @@ class TestExponentialWeightedAverage:
         # High alpha should be closer to 60 (the latest value)
         assert high_alpha > low_alpha
 
-    def test_ewa_with_feedback_needed(self):
+    def test_ewa_with_feedback_needed(self) -> None:
         """Feedback 'needed' keeps multiplier at 1.0."""
         assert FEEDBACK_MULTIPLIERS[MaintenanceFeedback.NEEDED] == 1.0
 
-    def test_ewa_with_feedback_not_needed(self):
+    def test_ewa_with_feedback_not_needed(self) -> None:
         """Feedback 'not_needed' uses multiplier 1.3 to extend."""
         assert FEEDBACK_MULTIPLIERS[MaintenanceFeedback.NOT_NEEDED] == 1.3
 
@@ -148,12 +148,12 @@ class TestExponentialWeightedAverage:
 class TestWeibullFit:
     """Test _weibull_fit."""
 
-    def test_insufficient_data(self):
+    def test_insufficient_data(self) -> None:
         analyzer = IntervalAnalyzer()
         result = analyzer._weibull_fit([30.0, 28.0, 32.0])
         assert result is None  # < 5 data points
 
-    def test_basic_fit(self):
+    def test_basic_fit(self) -> None:
         """Should return valid beta, eta for reasonable data."""
         analyzer = IntervalAnalyzer()
         # Simulated data with wear-out pattern (increasing failure rate)
@@ -164,7 +164,7 @@ class TestWeibullFit:
         assert beta > 0
         assert eta > 0
 
-    def test_wear_out_pattern(self):
+    def test_wear_out_pattern(self) -> None:
         """Data with clear increasing pattern should have beta > 1."""
         analyzer = IntervalAnalyzer()
         # Tight clustering around ~30 days = high beta (wear-out)
@@ -174,7 +174,7 @@ class TestWeibullFit:
         beta, _, _r2 = result
         assert beta > 1  # Wear-out pattern
 
-    def test_zero_intervals_handled(self):
+    def test_zero_intervals_handled(self) -> None:
         """Zero-value intervals should be filtered out."""
         analyzer = IntervalAnalyzer()
         intervals = [0.0, 0.0, 30.0, 28.0, 32.0, 31.0, 29.0]
@@ -189,14 +189,14 @@ class TestWeibullFit:
 class TestWeibullRecommendedInterval:
     """Test _weibull_recommended_interval."""
 
-    def test_basic_recommendation(self):
+    def test_basic_recommendation(self) -> None:
         analyzer = IntervalAnalyzer()
         # beta=2, eta=30, reliability=0.9
         result = analyzer._weibull_recommended_interval(2.0, 30.0, 0.9)
         assert result > 0
         assert result < 30  # At 90% reliability, should be less than eta
 
-    def test_invalid_params(self):
+    def test_invalid_params(self) -> None:
         analyzer = IntervalAnalyzer()
         assert analyzer._weibull_recommended_interval(0, 30, 0.9) == 0
         assert analyzer._weibull_recommended_interval(2, 0, 0.9) == 0
@@ -207,19 +207,19 @@ class TestWeibullRecommendedInterval:
 class TestConfidenceLevels:
     """Test _compute_confidence."""
 
-    def test_low_confidence(self):
+    def test_low_confidence(self) -> None:
         analyzer = IntervalAnalyzer()
         assert analyzer._compute_confidence(0) == "low"
         assert analyzer._compute_confidence(1) == "low"
         assert analyzer._compute_confidence(2) == "low"
 
-    def test_medium_confidence(self):
+    def test_medium_confidence(self) -> None:
         analyzer = IntervalAnalyzer()
         assert analyzer._compute_confidence(3) == "medium"
         assert analyzer._compute_confidence(5) == "medium"
         assert analyzer._compute_confidence(7) == "medium"
 
-    def test_high_confidence(self):
+    def test_high_confidence(self) -> None:
         analyzer = IntervalAnalyzer()
         assert analyzer._compute_confidence(8) == "high"
         assert analyzer._compute_confidence(15) == "high"
@@ -229,7 +229,7 @@ class TestConfidenceLevels:
 class TestBlendRecommendations:
     """Test _blend_recommendations."""
 
-    def test_low_confidence_returns_none(self):
+    def test_low_confidence_returns_none(self) -> None:
         analyzer = IntervalAnalyzer()
         result, reason = analyzer._blend_recommendations(
             base=30, ewa=25.0, weibull=28, confidence="low"
@@ -237,7 +237,7 @@ class TestBlendRecommendations:
         assert result is None
         assert reason is None
 
-    def test_medium_confidence_50_50(self):
+    def test_medium_confidence_50_50(self) -> None:
         analyzer = IntervalAnalyzer()
         result, reason = analyzer._blend_recommendations(
             base=30, ewa=20.0, weibull=None, confidence="medium"
@@ -247,7 +247,7 @@ class TestBlendRecommendations:
         assert result == 25
         assert reason == "ewa"
 
-    def test_high_confidence_20_80(self):
+    def test_high_confidence_20_80(self) -> None:
         analyzer = IntervalAnalyzer()
         result, reason = analyzer._blend_recommendations(
             base=30, ewa=20.0, weibull=None, confidence="high"
@@ -257,7 +257,7 @@ class TestBlendRecommendations:
         assert result == 22
         assert reason == "ewa"
 
-    def test_ewa_and_weibull_combined(self):
+    def test_ewa_and_weibull_combined(self) -> None:
         analyzer = IntervalAnalyzer()
         result, reason = analyzer._blend_recommendations(
             base=30, ewa=20.0, weibull=24, confidence="high"
@@ -268,7 +268,7 @@ class TestBlendRecommendations:
         assert result == 24
         assert reason == "ewa_and_weibull"
 
-    def test_no_predictions(self):
+    def test_no_predictions(self) -> None:
         analyzer = IntervalAnalyzer()
         result, reason = analyzer._blend_recommendations(
             base=30, ewa=None, weibull=None, confidence="high"
@@ -280,7 +280,7 @@ class TestBlendRecommendations:
 class TestAnalyze:
     """Test the full analyze() method."""
 
-    def test_analyze_empty_history(self):
+    def test_analyze_empty_history(self) -> None:
         analyzer = IntervalAnalyzer()
         task_data = {"interval_days": 30, "history": []}
         adaptive_config = {
@@ -295,7 +295,7 @@ class TestAnalyze:
         assert result.confidence == "low"
         assert result.recommended_interval is None
 
-    def test_analyze_with_sufficient_data(self):
+    def test_analyze_with_sufficient_data(self) -> None:
         analyzer = IntervalAnalyzer()
         # Build history with 10 completions, ~30 day intervals
         base_date = datetime(2025, 1, 1)
@@ -327,7 +327,7 @@ class TestAnalyze:
 class TestUpdateOnCompletion:
     """Test update_on_completion."""
 
-    def test_first_completion(self):
+    def test_first_completion(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
@@ -341,7 +341,7 @@ class TestUpdateOnCompletion:
         assert updated["feedback_count"] == 1
         assert updated["confidence"] == "low"
 
-    def test_subsequent_completion(self):
+    def test_subsequent_completion(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
@@ -356,7 +356,7 @@ class TestUpdateOnCompletion:
         assert updated["smoothed_interval"] == 28.5
         assert updated["feedback_count"] == 6
 
-    def test_not_needed_extends_interval(self):
+    def test_not_needed_extends_interval(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
@@ -372,7 +372,7 @@ class TestUpdateOnCompletion:
         assert updated["smoothed_interval"] == 32.7
         assert updated["feedback_count"] == 6
 
-    def test_no_feedback_no_count_increment(self):
+    def test_no_feedback_no_count_increment(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
@@ -386,7 +386,7 @@ class TestUpdateOnCompletion:
         assert updated["feedback_count"] == 5  # Not incremented
         assert updated["smoothed_interval"] is not None
 
-    def test_min_max_clamping(self):
+    def test_min_max_clamping(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
@@ -403,7 +403,7 @@ class TestUpdateOnCompletion:
             assert updated["current_recommendation"] >= 14
             assert updated["current_recommendation"] <= 60
 
-    def test_original_config_not_mutated(self):
+    def test_original_config_not_mutated(self) -> None:
         analyzer = IntervalAnalyzer()
         config = {
             "enabled": True,
@@ -426,7 +426,7 @@ class TestUpdateOnCompletion:
 class TestMaintenanceTaskAdaptive:
     """Test adaptive_config field on MaintenanceTask."""
 
-    def test_default_adaptive_config_is_none(self):
+    def test_default_adaptive_config_is_none(self) -> None:
         task = MaintenanceTask(
             id="test",
             object_id="obj1",
@@ -435,7 +435,7 @@ class TestMaintenanceTaskAdaptive:
         )
         assert task.adaptive_config is None
 
-    def test_to_dict_includes_adaptive_config(self):
+    def test_to_dict_includes_adaptive_config(self) -> None:
         task = MaintenanceTask(
             id="test",
             object_id="obj1",
@@ -447,7 +447,7 @@ class TestMaintenanceTaskAdaptive:
         assert "adaptive_config" in d
         assert d["adaptive_config"]["enabled"] is True
 
-    def test_to_dict_excludes_none_adaptive_config(self):
+    def test_to_dict_excludes_none_adaptive_config(self) -> None:
         task = MaintenanceTask(
             id="test",
             object_id="obj1",
@@ -457,7 +457,7 @@ class TestMaintenanceTaskAdaptive:
         d = task.to_dict()
         assert "adaptive_config" not in d
 
-    def test_from_dict_with_adaptive_config(self):
+    def test_from_dict_with_adaptive_config(self) -> None:
         data = {
             "id": "test",
             "object_id": "obj1",
@@ -473,7 +473,7 @@ class TestMaintenanceTaskAdaptive:
         assert task.adaptive_config is not None
         assert task.adaptive_config["enabled"] is True
 
-    def test_from_dict_without_adaptive_config(self):
+    def test_from_dict_without_adaptive_config(self) -> None:
         """Backward compatibility — tasks without adaptive_config."""
         data = {
             "id": "test",
@@ -488,7 +488,7 @@ class TestMaintenanceTaskAdaptive:
         task = MaintenanceTask.from_dict(data)
         assert task.adaptive_config is None
 
-    def test_complete_with_feedback(self):
+    def test_complete_with_feedback(self) -> None:
         """Complete should store feedback in history entry."""
         task = MaintenanceTask(
             id="test",
@@ -502,7 +502,7 @@ class TestMaintenanceTaskAdaptive:
         assert len(task.history) == 1
         assert task.history[0]["feedback"] == "needed"
 
-    def test_complete_without_feedback(self):
+    def test_complete_without_feedback(self) -> None:
         """Complete without feedback should not add feedback key."""
         task = MaintenanceTask(
             id="test",
@@ -516,7 +516,7 @@ class TestMaintenanceTaskAdaptive:
         assert len(task.history) == 1
         assert "feedback" not in task.history[0]
 
-    def test_round_trip_preserves_adaptive_config(self):
+    def test_round_trip_preserves_adaptive_config(self) -> None:
         """to_dict → from_dict should preserve adaptive_config."""
         original = MaintenanceTask(
             id="test",
@@ -546,7 +546,7 @@ class TestMaintenanceTaskAdaptive:
 class TestConstants:
     """Verify adaptive scheduling constants are properly defined."""
 
-    def test_defaults(self):
+    def test_defaults(self) -> None:
         assert DEFAULT_ADAPTIVE_EWA_ALPHA == 0.3
         assert DEFAULT_ADAPTIVE_MIN_INTERVAL == 7
         assert DEFAULT_ADAPTIVE_MAX_INTERVAL == 365
@@ -554,12 +554,12 @@ class TestConstants:
         assert DEFAULT_ADAPTIVE_WEIBULL_MIN == 5
         assert DEFAULT_ADAPTIVE_RELIABILITY_TARGET == 0.9
 
-    def test_feedback_enum(self):
-        assert MaintenanceFeedback.NEEDED == "needed"
-        assert MaintenanceFeedback.NOT_NEEDED == "not_needed"
-        assert MaintenanceFeedback.NOT_SURE == "not_sure"
+    def test_feedback_enum(self) -> None:
+        assert MaintenanceFeedback.NEEDED.value == "needed"
+        assert MaintenanceFeedback.NOT_NEEDED.value == "not_needed"
+        assert MaintenanceFeedback.NOT_SURE.value == "not_sure"
 
-    def test_feedback_multipliers(self):
+    def test_feedback_multipliers(self) -> None:
         assert FEEDBACK_MULTIPLIERS["needed"] == 1.0
         assert FEEDBACK_MULTIPLIERS["not_needed"] == 1.3
         assert FEEDBACK_MULTIPLIERS["not_sure"] == 1.1
@@ -568,7 +568,7 @@ class TestConstants:
 class TestWeibullRSquared:
     """Test R-squared computation in Weibull fit (Phase 4)."""
 
-    def test_r_squared_returned(self):
+    def test_r_squared_returned(self) -> None:
         """Weibull fit should return (beta, eta, r_squared) tuple."""
         analyzer = IntervalAnalyzer()
         intervals = [29.0, 30.0, 30.0, 31.0, 30.0, 29.5, 30.5]
@@ -580,7 +580,7 @@ class TestWeibullRSquared:
         assert eta > 0
         assert 0 <= r_squared <= 1
 
-    def test_good_fit_high_r_squared(self):
+    def test_good_fit_high_r_squared(self) -> None:
         """Tight clustering should produce high R-squared."""
         analyzer = IntervalAnalyzer()
         intervals = [30.0, 30.1, 29.9, 30.0, 30.0, 29.8, 30.2]
@@ -589,7 +589,7 @@ class TestWeibullRSquared:
         _, _, r_squared = result
         assert r_squared > 0.85
 
-    def test_r_squared_is_bounded(self):
+    def test_r_squared_is_bounded(self) -> None:
         """R-squared should be between 0 and 1 even for scattered data."""
         analyzer = IntervalAnalyzer()
         intervals = [5.0, 60.0, 10.0, 90.0, 30.0, 3.0, 45.0]
@@ -602,7 +602,7 @@ class TestWeibullRSquared:
 class TestConfidenceIntervals:
     """Test confidence interval bounds computation (Phase 4)."""
 
-    def test_confidence_bounds_ordering(self):
+    def test_confidence_bounds_ordering(self) -> None:
         """Conservative bound (R=0.95) should be less than aggressive (R=0.80)."""
         analyzer = IntervalAnalyzer()
         low = analyzer._weibull_recommended_interval(2.0, 30.0, 0.95)
@@ -612,7 +612,7 @@ class TestConfidenceIntervals:
         assert high > 0
         assert low < target < high
 
-    def test_analyze_returns_confidence_bounds(self):
+    def test_analyze_returns_confidence_bounds(self) -> None:
         """analyze() should return confidence_interval_low and _high."""
         analyzer = IntervalAnalyzer()
         base_date = datetime(2025, 1, 1)
@@ -642,7 +642,7 @@ class TestConfidenceIntervals:
         assert result.confidence_interval_high is not None
         assert result.confidence_interval_low < result.confidence_interval_high
 
-    def test_no_confidence_bounds_without_weibull(self):
+    def test_no_confidence_bounds_without_weibull(self) -> None:
         """When less than 5 data points, no confidence bounds."""
         analyzer = IntervalAnalyzer()
         base_date = datetime(2025, 1, 1)
@@ -667,18 +667,18 @@ class TestConfidenceIntervals:
 class TestWeibullCDFMath:
     """Test the Weibull CDF formula used for the chart (Phase 4)."""
 
-    def test_cdf_at_zero(self):
+    def test_cdf_at_zero(self) -> None:
         """F(0) should be 0."""
         assert 1 - math.exp(-((0.0 / 30.0) ** 2)) == 0.0
 
-    def test_cdf_at_eta(self):
+    def test_cdf_at_eta(self) -> None:
         """F(eta) should always be 1 - exp(-1) ~ 0.6321 for all beta."""
         eta = 30.0
         for beta in [0.5, 1.0, 2.0, 3.5, 5.0]:
             f_at_eta = 1 - math.exp(-((eta / eta) ** beta))
             assert abs(f_at_eta - 0.6321) < 0.001
 
-    def test_reliability_at_recommended(self):
+    def test_reliability_at_recommended(self) -> None:
         """At the recommended interval (R=0.9), reliability should be ~90%."""
         analyzer = IntervalAnalyzer()
         rec = analyzer._weibull_recommended_interval(2.0, 30.0, 0.9)

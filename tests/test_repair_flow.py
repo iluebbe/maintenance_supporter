@@ -128,6 +128,7 @@ async def test_repair_init_placeholders(
     result = await flow.async_step_init()
 
     placeholders = result["description_placeholders"]
+    assert placeholders is not None
     assert placeholders["entity_id"] == "sensor.old_temp"
     assert placeholders["task_name"] == "Filter Cleaning"
     assert placeholders["object_name"] == "Repair Object"
@@ -180,6 +181,7 @@ async def test_repair_replace_updates_config(
     assert result["type"] == "create_entry"
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert tc["entity_id"] == "sensor.new_temp"
 
@@ -201,6 +203,7 @@ async def test_repair_replace_multi_entity(
 
     assert result["type"] == "create_entry"
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert "sensor.new_temp" in tc["entity_ids"]
     assert "sensor.old_temp" not in tc["entity_ids"]
@@ -215,6 +218,7 @@ async def test_repair_replace_resets_baseline(
 
     # Add baseline to trigger config
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     new_data = dict(entry.data)
     tasks = dict(new_data[CONF_TASKS])
     task = dict(tasks[TASK_ID_1])
@@ -230,6 +234,7 @@ async def test_repair_replace_resets_baseline(
     result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new"})
 
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated is not None
     tc = updated.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert "trigger_baseline_value" not in tc
     assert "trigger_change_count" not in tc
@@ -278,6 +283,7 @@ async def test_repair_remove_single_to_time_based(
 
     assert result["type"] == "create_entry"
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     task = entry.data[CONF_TASKS][TASK_ID_1]
     assert task["schedule_type"] == ScheduleType.TIME_BASED
     assert "trigger_config" not in task
@@ -292,6 +298,7 @@ async def test_repair_remove_single_to_manual(
 
     # Clear interval_days from the task
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     new_data = dict(entry.data)
     tasks = dict(new_data[CONF_TASKS])
     task = dict(tasks[TASK_ID_1])
@@ -305,6 +312,7 @@ async def test_repair_remove_single_to_manual(
 
     assert result["type"] == "create_entry"
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated is not None
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
     assert task_data["schedule_type"] == ScheduleType.MANUAL
 
@@ -326,6 +334,7 @@ async def test_repair_remove_multi_keeps_remaining(
 
     assert result["type"] == "create_entry"
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert tc["entity_ids"] == ["sensor.other"]
     assert tc["entity_id"] == "sensor.other"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator, Generator
 from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -31,13 +32,15 @@ from custom_components.maintenance_supporter.const import (
 
 
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
+def auto_enable_custom_integrations(
+    enable_custom_integrations: None,
+) -> Generator[None]:
     """Enable custom integrations for all tests."""
     yield
 
 
 @pytest.fixture(autouse=True)
-async def mock_dependencies(hass: HomeAssistant):
+async def mock_dependencies(hass: HomeAssistant) -> AsyncGenerator[None]:
     """Mock the HA dependency integrations required by our manifest.
 
     manifest.json declares: dependencies: ["repairs", "http", "panel_custom", "lovelace"]
@@ -58,7 +61,7 @@ async def mock_dependencies(hass: HomeAssistant):
 
     # Mock hass.http.async_register_static_paths (no real server in CI)
     if hasattr(hass, "http") and hass.http is not None:
-        hass.http.async_register_static_paths = AsyncMock()
+        hass.http.async_register_static_paths = AsyncMock()  # type: ignore[method-assign]
 
     # Mock panel_custom.async_register_panel (called in panel.py)
     with patch(
@@ -115,7 +118,7 @@ def build_task_data(
     name: str = "Filter Cleaning",
     task_type: str = MaintenanceTypeEnum.CLEANING,
     schedule_type: str = ScheduleType.TIME_BASED,
-    interval_days: int = DEFAULT_INTERVAL_DAYS,
+    interval_days: int | None = DEFAULT_INTERVAL_DAYS,
     warning_days: int = DEFAULT_WARNING_DAYS,
     last_performed: str | None = None,
     trigger_config: dict[str, Any] | None = None,
@@ -157,9 +160,12 @@ def get_task_store_state(
     rd = getattr(entry, "runtime_data", None)
     store = getattr(rd, "store", None) if rd else None
     if store is not None:
-        return store.get_task_state(task_id)
+        result: dict[str, Any] = store.get_task_state(task_id)
+        return result
     # Fallback: read from entry.data (pre-migration)
-    return entry.data.get(CONF_TASKS, {}).get(task_id, {})
+    tasks: dict[str, Any] = entry.data.get(CONF_TASKS, {})
+    fallback: dict[str, Any] = tasks.get(task_id, {})
+    return fallback
 
 
 def build_object_entry_data(

@@ -142,6 +142,7 @@ def test_threshold_prediction_above_rising() -> None:
     config = {"type": "threshold", "trigger_above": 30.0}
     result = SensorPredictor._compute_threshold_prediction(degradation, config)
     assert result is not None
+    assert result.days_until_threshold is not None
     # (30 - 20) / 2.0 = 5 days
     assert abs(result.days_until_threshold - 5.0) < 0.1
     assert result.threshold_direction == "above"
@@ -162,6 +163,7 @@ def test_threshold_prediction_below_falling() -> None:
     config = {"type": "threshold", "trigger_below": 10.0}
     result = SensorPredictor._compute_threshold_prediction(degradation, config)
     assert result is not None
+    assert result.days_until_threshold is not None
     # (10 - 25) / -3.0 = 5 days
     assert abs(result.days_until_threshold - 5.0) < 0.1
     assert result.threshold_direction == "below"
@@ -236,6 +238,7 @@ def test_threshold_prediction_counter_delta() -> None:
     }
     result = SensorPredictor._compute_threshold_prediction(degradation, config)
     assert result is not None
+    assert result.days_until_threshold is not None
     # current_delta = 110 - 100 = 10, remaining = 50 - 10 = 40, 40 / 5 = 8 days
     assert abs(result.days_until_threshold - 8.0) < 0.1
     assert result.confidence == "low"
@@ -259,6 +262,7 @@ def test_threshold_prediction_counter_absolute() -> None:
     }
     result = SensorPredictor._compute_threshold_prediction(degradation, config)
     assert result is not None
+    assert result.days_until_threshold is not None
     # (100 - 30) / 10 = 7 days
     assert abs(result.days_until_threshold - 7.0) < 0.1
 

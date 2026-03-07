@@ -180,6 +180,7 @@ async def test_replace_trigger_legacy_no_store(
 
     # After reload, verify the config entry was updated
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     task_data = entry.data[CONF_TASKS][TASK_ID_1]
     # The trigger entity should have been replaced
     tc = task_data.get("trigger_config", {})
@@ -216,6 +217,7 @@ async def test_replace_trigger_legacy_multi_entity(
     assert result["type"] == "create_entry"
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     task_data = entry.data[CONF_TASKS][TASK_ID_1]
     tc = task_data.get("trigger_config", {})
     assert "sensor.new_temp" in tc.get("entity_ids", [])
@@ -262,6 +264,7 @@ async def test_remove_trigger_safety_interval_fallback(
 
     # Also remove interval_days from the task data if it was set
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     new_data = dict(entry.data)
     tasks = dict(new_data[CONF_TASKS])
     task = dict(tasks[TASK_ID_1])
@@ -276,6 +279,7 @@ async def test_remove_trigger_safety_interval_fallback(
     assert result["type"] == "create_entry"
 
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated is not None
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
     # Should convert to time_based using the safety interval
     assert task_data["schedule_type"] == ScheduleType.TIME_BASED
@@ -306,6 +310,7 @@ async def test_remove_trigger_legacy_no_store(
     assert result["type"] == "create_entry"
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     task_data = entry.data[CONF_TASKS][TASK_ID_1]
     # Trigger should have been removed
     assert "trigger_config" not in task_data
@@ -340,6 +345,7 @@ async def test_remove_trigger_legacy_no_store_multi_entity(
     assert result["type"] == "create_entry"
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     task_data = entry.data[CONF_TASKS][TASK_ID_1]
     tc = task_data.get("trigger_config", {})
     assert tc["entity_ids"] == ["sensor.other"]
@@ -362,6 +368,7 @@ async def test_remove_trigger_legacy_to_manual(
 
     # Remove interval_days from the task
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     new_data = dict(entry.data)
     tasks = dict(new_data[CONF_TASKS])
     task = dict(tasks[TASK_ID_1])
@@ -378,6 +385,7 @@ async def test_remove_trigger_legacy_to_manual(
     assert result["type"] == "create_entry"
 
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated is not None
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
     assert task_data["schedule_type"] == ScheduleType.MANUAL
     # History written via legacy path

@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from homeassistant.core import ServiceCall
+
 import pytest
 
 from homeassistant.core import HomeAssistant
@@ -295,7 +297,7 @@ async def test_options_flow_test_notification_success(
     await setup_integration(hass, global_entry_with_notifications)
 
     # Register a mock notify service
-    async def mock_service(call):
+    async def mock_service(call: ServiceCall) -> None:
         pass
 
     hass.services.async_register("notify", "test", mock_service)
@@ -325,7 +327,7 @@ async def test_options_flow_test_notification_failed(
     await setup_integration(hass, global_entry_with_notifications)
 
     # Register a failing mock service
-    async def mock_service_fail(call):
+    async def mock_service_fail(call: ServiceCall) -> None:
         raise Exception("Service unavailable")
 
     hass.services.async_register("notify", "test", mock_service_fail)
@@ -386,6 +388,7 @@ async def test_options_flow_general_settings_invalid_service(
         },
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is not None
     assert result["errors"].get(CONF_NOTIFY_SERVICE)
 
 
@@ -491,6 +494,7 @@ async def test_options_flow_add_group(
 
     # Verify group was added
     entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry is not None
     groups = (entry.options or entry.data).get("groups", {})
     assert len(groups) == 1
     group = list(groups.values())[0]

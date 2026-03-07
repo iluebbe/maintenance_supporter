@@ -265,6 +265,7 @@ async def test_template_customize_duplicate_name(
         user_input={CONF_OBJECT_NAME: "My Car"},
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is not None
     assert result["errors"].get(CONF_OBJECT_NAME) == "name_exists"
 
 
@@ -629,6 +630,7 @@ async def test_global_setup_invalid_notify(
         },
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["errors"] is not None
     assert result["errors"].get("notify_service")
 
 

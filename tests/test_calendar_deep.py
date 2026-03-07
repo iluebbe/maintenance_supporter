@@ -43,7 +43,7 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-def _get_calendar_entity(hass: HomeAssistant):
+def _get_calendar_entity(hass: HomeAssistant) -> Any:
     """Get the calendar entity from HA."""
     entity_reg = er.async_get(hass)
     entries = entity_reg.entities

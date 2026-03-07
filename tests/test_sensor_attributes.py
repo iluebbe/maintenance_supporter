@@ -328,6 +328,7 @@ async def test_degradation_attrs(
 
     # Manually inject degradation data into coordinator
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_rate"] = 0.5
     coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_trend"] = "rising"
@@ -356,6 +357,7 @@ async def test_threshold_prediction_attrs(
 
     # Manually inject prediction data
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_days_until_threshold"] = 15
     coordinator.data[CONF_TASKS][TASK_ID_1]["_threshold_prediction_confidence"] = 0.85
@@ -387,6 +389,7 @@ async def test_update_trigger_state_single(
     assert state is not None
     # Trigger not active (25 < 30), but time-based status still applies
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is False
 
@@ -413,6 +416,7 @@ async def test_update_trigger_state_multi_any(
 
     # The coordinator fallback should detect temp1 above threshold
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
 
@@ -438,5 +442,6 @@ async def test_update_trigger_state_multi_all(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True

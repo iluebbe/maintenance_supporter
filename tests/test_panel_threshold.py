@@ -123,7 +123,7 @@ async def test_panel_url_versioned(hass: HomeAssistant) -> None:
             await async_register_panel(hass)
 
             # The static path should contain the hash
-            static_calls = hass.http.async_register_static_paths.call_args[0][0]
+            static_calls = hass.http.async_register_static_paths.call_args[0][0]  # type: ignore[attr-defined]
             assert any("abcd1234" in config.url_path for config in static_calls)
 
 

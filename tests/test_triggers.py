@@ -56,7 +56,7 @@ from .conftest import (
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
 
-def _make_mock_entity(hass: HomeAssistant, task_id: str = TASK_ID_1):
+def _make_mock_entity(hass: HomeAssistant, task_id: str = TASK_ID_1) -> MagicMock:
     """Create a mock entity for trigger tests."""
     mock_entity = MagicMock()
     mock_entity.hass = hass
@@ -1852,6 +1852,8 @@ class TestMultiEntityCounter:
         triggers = create_triggers(hass, entity, config)
         assert len(triggers) == 2
         # Check that per-entity baselines were injected
+        assert isinstance(triggers[0], CounterTrigger)
+        assert isinstance(triggers[1], CounterTrigger)
         assert triggers[0]._baseline_value == 100
         assert triggers[1]._baseline_value == 200
 
@@ -1936,6 +1938,8 @@ class TestMultiEntityRuntime:
         }
         triggers = create_triggers(hass, entity, config)
         assert len(triggers) == 2
+        assert isinstance(triggers[0], RuntimeTrigger)
+        assert isinstance(triggers[1], RuntimeTrigger)
         assert triggers[0]._accumulated_seconds == 180000.0
         assert triggers[1]._accumulated_seconds == 108000.0
 
@@ -1981,6 +1985,8 @@ class TestMultiEntityStateChange:
         }
         triggers = create_triggers(hass, entity, config)
         assert len(triggers) == 2
+        assert isinstance(triggers[0], StateChangeTrigger)
+        assert isinstance(triggers[1], StateChangeTrigger)
         assert triggers[0]._change_count == 2
         assert triggers[1]._change_count == 4
 
@@ -2113,6 +2119,7 @@ class TestCompoundTrigger:
         assert isinstance(triggers[0], CompoundTrigger)
 
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
 
         # Initially neither condition is met (temp=25 < 30, counter=100 > 50 so cond 1 IS met)
@@ -2156,6 +2163,7 @@ class TestCompoundTrigger:
         }
         triggers = create_triggers(hass, entity, config)
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
 
         # Only trigger first condition
@@ -2193,6 +2201,7 @@ class TestCompoundTrigger:
         }
         triggers = create_triggers(hass, entity, config)
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
 
         # Trigger just one
@@ -2229,6 +2238,7 @@ class TestCompoundTrigger:
         }
         triggers = create_triggers(hass, entity, config)
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
         assert trigger._triggered is False
 
@@ -2260,6 +2270,7 @@ class TestCompoundTrigger:
         }
         triggers = create_triggers(hass, entity, config)
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
 
         # Condition 0 should be triggered (a=25 > 20)
@@ -2299,6 +2310,7 @@ class TestCompoundTrigger:
         }
         triggers = create_triggers(hass, entity, config)
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
 
         assert len(trigger._sub_triggers) == 2
@@ -2333,6 +2345,7 @@ class TestCompoundTrigger:
         }
         triggers = create_triggers(hass, entity, config)
         trigger = triggers[0]
+        assert isinstance(trigger, CompoundTrigger)
         await trigger.async_setup()
 
         assert trigger._triggered is True
@@ -2351,7 +2364,7 @@ class TestCompoundValidation:
 
     def test_nested_compound_rejected(self) -> None:
         """Test that nested compound triggers are rejected."""
-        from custom_components.maintenance_supporter.websocket import (
+        from custom_components.maintenance_supporter.websocket.tasks import (
             _validate_compound_trigger,
         )
 
@@ -2381,7 +2394,7 @@ class TestCompoundValidation:
 
     def test_too_few_conditions_rejected(self) -> None:
         """Test that fewer than 2 conditions are rejected."""
-        from custom_components.maintenance_supporter.websocket import (
+        from custom_components.maintenance_supporter.websocket.tasks import (
             _validate_compound_trigger,
         )
 
@@ -2403,7 +2416,7 @@ class TestCompoundValidation:
 
     def test_valid_compound_passes(self) -> None:
         """Test that a valid compound config passes validation."""
-        from custom_components.maintenance_supporter.websocket import (
+        from custom_components.maintenance_supporter.websocket.tasks import (
             _validate_compound_trigger,
         )
 
@@ -2459,6 +2472,7 @@ class TestBugFixRegressions:
         }
         triggers = create_triggers(hass, entity, config)
         assert len(triggers) == 1
+        assert isinstance(triggers[0], CounterTrigger)
         # Baseline should be injected from _trigger_state, not None
         assert triggers[0]._baseline_value == 350
 

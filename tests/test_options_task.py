@@ -365,6 +365,7 @@ async def test_edit_task_submit(
 
     # Verify update
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
     task = entry.data[CONF_TASKS][TASK_ID_1]
     assert task["name"] == "Renamed Task"
     assert task["interval_days"] == 45
@@ -449,6 +450,7 @@ async def test_remove_trigger_confirm(
 
     # Verify trigger removed
     entry = hass.config_entries.async_get_entry(object_entry_with_trigger.entry_id)
+    assert entry is not None
     task = entry.data[CONF_TASKS][TASK_ID_1]
     assert "trigger_config" not in task
     # Should revert to time_based
@@ -532,6 +534,7 @@ async def test_edit_checklist_submit(
     assert result["step_id"] == "task_action"
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
     task = entry.data[CONF_TASKS][TASK_ID_1]
     assert task["checklist"] == ["Step 1", "Step 2", "Step 3"]
 
@@ -613,6 +616,7 @@ async def test_delete_task_confirm(
 
     # Verify task removed
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
     assert TASK_ID_1 not in entry.data[CONF_TASKS]
 
 
@@ -711,6 +715,7 @@ async def test_add_task_time_based_full_flow(
 
     # Verify new task created
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
     assert len(entry.data[CONF_TASKS]) == 2
 
 
@@ -1044,7 +1049,7 @@ def test_get_entity_ids_str_from_entity_id() -> None:
 
 def test_get_entity_ids_str_empty() -> None:
     """Test _get_entity_ids_str with no entities."""
-    tc = {}
+    tc: dict[str, Any] = {}
     result = MaintenanceOptionsFlow._get_entity_ids_str(tc)
     assert result == "—"
 

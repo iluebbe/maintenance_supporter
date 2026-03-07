@@ -78,7 +78,7 @@ async def test_get_templates(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_templates.__wrapped__(hass, conn, {
+    await ws_get_templates.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/templates",
     })
 
@@ -113,7 +113,7 @@ async def test_export_data_json(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_export_data.__wrapped__(hass, conn, {
+    await ws_export_data.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/export",
         "format": "json",
         "include_history": True,
@@ -133,7 +133,7 @@ async def test_export_data_yaml(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_export_data.__wrapped__(hass, conn, {
+    await ws_export_data.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/export",
         "format": "yaml",
         "include_history": True,
@@ -153,7 +153,7 @@ async def test_export_data_no_history(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_export_data.__wrapped__(hass, conn, {
+    await ws_export_data.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/export",
         "include_history": False,
     })
@@ -173,7 +173,7 @@ async def test_export_csv(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_export_csv.__wrapped__(hass, conn, {
+    await ws_export_csv.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/csv/export",
     })
 
@@ -192,7 +192,7 @@ async def test_export_csv_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_export_csv.__wrapped__(hass, conn, {
+    await ws_export_csv.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/csv/export",
     })
 
@@ -212,7 +212,7 @@ async def test_import_csv_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": "object_name,task_name\n",
     })
@@ -234,7 +234,7 @@ async def test_import_csv_valid(
         "Test Pump,Filter Clean,cleaning,time_based,30,7\n"
     )
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv,
     })
@@ -261,7 +261,7 @@ async def test_import_csv_multiple_objects(
         "Pump B,Filter Clean,cleaning,time_based,30,7\n"
     )
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv,
     })
@@ -281,7 +281,7 @@ async def test_generate_qr_object(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {
+    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
     })
@@ -304,7 +304,7 @@ async def test_generate_qr_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {
+    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -325,7 +325,7 @@ async def test_generate_qr_with_base_url(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {
+    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "base_url": "https://my-ha.example.com",
@@ -342,7 +342,7 @@ async def test_generate_qr_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {
+    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": "nonexistent",
     })
@@ -358,7 +358,7 @@ async def test_generate_qr_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {
+    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
@@ -375,7 +375,7 @@ async def test_generate_qr_rejects_global(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {
+    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": global_entry.entry_id,
     })

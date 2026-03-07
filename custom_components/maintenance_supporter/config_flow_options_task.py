@@ -400,7 +400,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             ),
                         }
                         if task.get("schedule_type") == ScheduleType.TIME_BASED
-                        else {}
+                        else dict[Any, Any]()
                     ),
                     vol.Optional(
                         CONF_TASK_WARNING_DAYS,

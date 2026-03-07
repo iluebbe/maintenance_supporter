@@ -288,6 +288,7 @@ class TestNumericValueExtraction:
         )
 
         state = hass.states.get("sensor.test")
+        assert state is not None
         value = trigger._get_numeric_value(state)
         assert value == 42.5
 
@@ -310,6 +311,7 @@ class TestNumericValueExtraction:
         )
 
         state = hass.states.get("sensor.test")
+        assert state is not None
         value = trigger._get_numeric_value(state)
         assert value == 1.5
 
@@ -332,6 +334,7 @@ class TestNumericValueExtraction:
         )
 
         state = hass.states.get("sensor.test")
+        assert state is not None
         value = trigger._get_numeric_value(state)
         assert value is None
 

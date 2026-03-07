@@ -378,6 +378,7 @@ async def test_degradation_attrs(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_rate"] = 0.05
     coordinator.data[CONF_TASKS][TASK_ID_1]["_degradation_trend"] = "falling"
@@ -418,6 +419,7 @@ async def test_last_entry_attr(
     await setup_integration(hass, global_entry, obj_entry)
 
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
     coordinator = entry.runtime_data.coordinator
     coordinator.data[CONF_TASKS][TASK_ID_1]["_last_entry"] = {
         "type": "completed",
