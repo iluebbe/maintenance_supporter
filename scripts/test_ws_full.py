@@ -1,10 +1,24 @@
-"""Comprehensive WS test for maintenance_supporter after i18n + trigger_entity_info changes."""
+"""Comprehensive WS test for maintenance_supporter."""
 import asyncio
 import aiohttp
 import json
+import os
 import sys
+from pathlib import Path
 
-TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkMmMyZGFiN2E3YzA0Yjc1YWU3MmUzYTNhOWRkMTlhNSIsImlhdCI6MTc3MDQ4Mzc5NywiZXhwIjoxODAyMDE5Nzk3fQ.fo2oCXoNa5TKdxkycLzJqyvt7WI1jv05E3n95jdk-4E"
+HARDCODED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkMmMyZGFiN2E3YzA0Yjc1YWU3MmUzYTNhOWRkMTlhNSIsImlhdCI6MTc3MDQ4Mzc5NywiZXhwIjoxODAyMDE5Nzk3fQ.fo2oCXoNa5TKdxkycLzJqyvt7WI1jv05E3n95jdk-4E"
+
+def get_token():
+    if t := os.environ.get("HA_TOKEN"):
+        return t
+    env_path = Path(__file__).parent.parent / "docker" / ".env"
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            if line.startswith("HA_TOKEN="):
+                return line.split("=", 1)[1].strip()
+    return HARDCODED_TOKEN
+
+TOKEN = get_token()
 URL = "ws://localhost:8123/api/websocket"
 
 async def main():

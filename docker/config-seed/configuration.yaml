@@ -1,0 +1,262 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+homeassistant:
+  internal_url: "http://homeassistant-dev:8123"
+
+logger:
+  default: warning
+  logs:
+    custom_components.maintenance_supporter: debug
+
+# =============================================================================
+# Test entities for comprehensive trigger/schedule coverage
+# =============================================================================
+
+input_number:
+  # --- Threshold triggers ---
+  hvac_filter_airflow:
+    name: "HVAC Filter Airflow"
+    min: 0
+    max: 100
+    initial: 85
+    unit_of_measurement: "%"
+    step: 1
+
+  water_softener_salt_level:
+    name: "Water Softener Salt Level"
+    min: 0
+    max: 100
+    initial: 65
+    unit_of_measurement: "%"
+    step: 1
+
+  pool_ph_level:
+    name: "Pool pH Level"
+    min: 0
+    max: 14
+    initial: 7.4
+    unit_of_measurement: "pH"
+    step: 0.1
+
+  freezer_temperature:
+    name: "Freezer Temperature"
+    min: -30
+    max: 10
+    initial: -20
+    unit_of_measurement: "\u00b0C"
+    step: 0.5
+
+  # --- Counter triggers ---
+  car_odometer:
+    name: "Car Odometer"
+    min: 0
+    max: 999999
+    initial: 45000
+    unit_of_measurement: "km"
+    step: 1
+
+  printer_page_count:
+    name: "Printer Page Count"
+    min: 0
+    max: 99999
+    initial: 3200
+    unit_of_measurement: "pages"
+    step: 1
+
+  generator_run_cycles:
+    name: "Generator Run Cycles"
+    min: 0
+    max: 99999
+    initial: 1250
+    unit_of_measurement: "cycles"
+    step: 1
+
+  # --- Compound trigger entities ---
+  water_filter_flow_rate:
+    name: "Water Filter Flow Rate"
+    min: 0
+    max: 10
+    initial: 3.5
+    unit_of_measurement: "L/min"
+    step: 0.1
+
+  water_filter_total_liters:
+    name: "Water Filter Total Liters"
+    min: 0
+    max: 999999
+    initial: 5000
+    unit_of_measurement: "L"
+    step: 1
+
+  # --- Environmental correlation ---
+  outdoor_temperature:
+    name: "Outdoor Temperature"
+    min: -40
+    max: 50
+    initial: 12
+    unit_of_measurement: "\u00b0C"
+    step: 0.5
+
+  outdoor_humidity:
+    name: "Outdoor Humidity"
+    min: 0
+    max: 100
+    initial: 55
+    unit_of_measurement: "%"
+    step: 1
+
+  indoor_temperature:
+    name: "Indoor Temperature"
+    min: 10
+    max: 40
+    initial: 22
+    unit_of_measurement: "\u00b0C"
+    step: 0.5
+
+  indoor_humidity:
+    name: "Indoor Humidity"
+    min: 0
+    max: 100
+    initial: 45
+    unit_of_measurement: "%"
+    step: 1
+
+  # --- Electric Car sensors ---
+  ev_tire_pressure_fl:
+    name: "EV Tire Pressure Front Left"
+    min: 0
+    max: 5
+    initial: 2.4
+    unit_of_measurement: "bar"
+    step: 0.1
+
+  ev_tire_pressure_fr:
+    name: "EV Tire Pressure Front Right"
+    min: 0
+    max: 5
+    initial: 2.4
+    unit_of_measurement: "bar"
+    step: 0.1
+
+  ev_tire_pressure_rl:
+    name: "EV Tire Pressure Rear Left"
+    min: 0
+    max: 5
+    initial: 2.5
+    unit_of_measurement: "bar"
+    step: 0.1
+
+  ev_tire_pressure_rr:
+    name: "EV Tire Pressure Rear Right"
+    min: 0
+    max: 5
+    initial: 2.5
+    unit_of_measurement: "bar"
+    step: 0.1
+
+  ev_odometer:
+    name: "EV Odometer"
+    min: 0
+    max: 999999
+    initial: 28500
+    unit_of_measurement: "km"
+    step: 1
+
+  ev_battery_soh:
+    name: "EV Battery State of Health"
+    min: 0
+    max: 100
+    initial: 96
+    unit_of_measurement: "%"
+    step: 0.1
+
+  ev_brake_pad_thickness:
+    name: "EV Brake Pad Thickness"
+    min: 0
+    max: 15
+    initial: 8.5
+    unit_of_measurement: "mm"
+    step: 0.1
+
+  # --- Misc triggers ---
+  solar_panel_output:
+    name: "Solar Panel Output"
+    min: 0
+    max: 100
+    initial: 92
+    unit_of_measurement: "%"
+    step: 1
+
+  hvac_energy_kwh:
+    name: "HVAC Energy Consumption"
+    min: 0
+    max: 99999
+    initial: 1250
+    unit_of_measurement: "kWh"
+    step: 1
+
+input_boolean:
+  washing_machine_running:
+    name: "Washing Machine Running"
+    initial: false
+
+  garage_door_motor:
+    name: "Garage Door Motor"
+    initial: false
+
+  dishwasher_running:
+    name: "Dishwasher Running"
+    initial: false
+
+  workshop_compressor:
+    name: "Workshop Compressor"
+    initial: false
+
+  server_rack_fan:
+    name: "Server Rack Fan"
+    initial: false
+
+  heat_pump_active:
+    name: "Heat Pump Active"
+    initial: false
+
+  pool_pump_active:
+    name: "Pool Pump Active"
+    initial: false
+
+  ev_charging:
+    name: "EV Charging"
+    initial: false
+
+template:
+  - sensor:
+      - name: "HVAC Efficiency"
+        unique_id: hvac_efficiency
+        unit_of_measurement: "%"
+        state: >
+          {% set airflow = states('input_number.hvac_filter_airflow') | float(85) %}
+          {% set delta = states('input_number.indoor_temperature') | float(22) - states('input_number.outdoor_temperature') | float(12) %}
+          {{ (airflow * 0.8 + (20 - delta | abs) * 1.0) | round(1) }}
+
+      - name: "Compressor Load"
+        unique_id: compressor_load
+        unit_of_measurement: "%"
+        state: >
+          {% set energy = states('input_number.hvac_energy_kwh') | float(1250) %}
+          {{ (energy / 2000 * 100) | round(1) }}
+
+  - binary_sensor:
+      - name: "Water Filter Alert"
+        unique_id: water_filter_alert
+        state: >
+          {{ states('input_number.water_filter_flow_rate') | float(3.5) < 2.0 }}

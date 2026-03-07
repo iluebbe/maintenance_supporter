@@ -1,10 +1,24 @@
-"""Test write WS commands on HA 2026.2.1."""
+"""Test write WS commands on HA dev instance."""
 import asyncio
 import aiohttp
 import json
+import os
 import sys
+from pathlib import Path
 
-TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkMmMyZGFiN2E3YzA0Yjc1YWU3MmUzYTNhOWRkMTlhNSIsImlhdCI6MTc3MDQ4Mzc5NywiZXhwIjoxODAyMDE5Nzk3fQ.fo2oCXoNa5TKdxkycLzJqyvt7WI1jv05E3n95jdk-4E"
+HARDCODED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkMmMyZGFiN2E3YzA0Yjc1YWU3MmUzYTNhOWRkMTlhNSIsImlhdCI6MTc3MDQ4Mzc5NywiZXhwIjoxODAyMDE5Nzk3fQ.fo2oCXoNa5TKdxkycLzJqyvt7WI1jv05E3n95jdk-4E"
+
+def get_token():
+    if t := os.environ.get("HA_TOKEN"):
+        return t
+    env_path = Path(__file__).parent.parent / "docker" / ".env"
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            if line.startswith("HA_TOKEN="):
+                return line.split("=", 1)[1].strip()
+    return HARDCODED_TOKEN
+
+TOKEN = get_token()
 URL = "ws://localhost:8123/api/websocket"
 
 async def main():
@@ -26,20 +40,20 @@ async def main():
     msg = await ws.receive_json()
     objects = msg["result"]["objects"]
 
-    # Find Pool Pump > Filter Cleaning for testing
+    # Find Swimming Pool > pH Test for testing
     target_entry_id = None
     target_task_id = None
     for obj in objects:
-        if obj["object"]["name"] == "Pool Pump":
+        if obj["object"]["name"] == "Swimming Pool":
             target_entry_id = obj["entry_id"]
             for task in obj["tasks"]:
-                if task["name"] == "Filter Cleaning":
+                if task["name"] == "pH Test":
                     target_task_id = task["id"]
                     print(f"   Target: {obj['object']['name']} > {task['name']} [{task['status']}] days={task['days_until_due']}")
                     break
             break
 
-    assert target_entry_id and target_task_id, "Could not find Pool Pump > Filter Cleaning"
+    assert target_entry_id and target_task_id, "Could not find Swimming Pool > pH Test"
 
     # Test: Complete task
     msg_id += 1

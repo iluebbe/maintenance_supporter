@@ -29,7 +29,7 @@ desktop.ini
 docker/config-dev/
 docker/config-fresh/
 docker/snapshots/
-docker/faketime.txt
+docker/.env
 
 # Claude Code
 .claude/

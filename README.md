@@ -376,17 +376,19 @@ A Docker Compose environment provides a complete dev setup with faketime time ma
 ### Quick Start
 
 ```bash
-cd docker
-docker compose up -d                    # Start HA dev instance (:8123)
+pip install requests                    # Required for setup script
 
-# Create demo data (9 objects, all 5 trigger types):
-python scripts/setup_demo.py
-python scripts/seed_history.py          # Inject 12 months of maintenance history
-docker compose restart homeassistant-dev
+# First-time setup (creates config, onboards HA, seeds demo data):
+bash scripts/init-dev.sh                # Login: dev / dev at :8123
 
-# Run tests (1,169 tests):
+# Or if already initialized:
+cd docker && docker compose up -d
+
+# Run tests (1,168 tests):
 docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
+
+The init script is idempotent — safe to run again on an existing setup.
 
 See [Architecture — Development & Testing Infrastructure](docs/ARCHITECTURE.md#development--testing-infrastructure) for details on faketime, test entities, and the full demo object reference.
 
