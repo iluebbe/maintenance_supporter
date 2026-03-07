@@ -579,7 +579,7 @@ Three services in `compose.yaml`:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  ha-dev (:8123)         │  ha-fresh (:8124)    │  playwright │
-│  HA 2026.2.2            │  HA 2026.2.2 stock   │  v1.57.0    │
+│  HA 2026.2.3            │  HA 2026.2.3 stock   │  v1.57.0    │
 │  + libfaketime          │  read-only mounts    │  run-server │
 │  custom_components r/w  │  profile: testing    │  :3000      │
 │  config-dev/ volume     │  config-fresh/       │             │
@@ -599,7 +599,7 @@ The integration's scheduling and predictions are time-dependent. `libfaketime` a
 
 **Build** (`Dockerfile.ha-faketime`):
 1. Alpine stage compiles `libfaketime.so.1` from source
-2. Copies into HA 2026.2.2 image at `/usr/local/lib/faketime/`
+2. Copies into HA 2026.2.3 image at `/usr/local/lib/faketime/`
 3. Replaces HA's s6 run script with `ha-run-faketime.sh`
 
 **Run script** (`ha-run-faketime.sh`):
@@ -662,32 +662,111 @@ pytest tests/ -v
 
 ### Demo Data Setup
 
-**`setup_demo.py`** — Creates maintenance objects via HA's REST Config Flow API:
+**`scripts/setup_demo.py`** — Creates 9 maintenance objects (18 tasks) via HA's REST Config Flow API, covering all 5 trigger types and 3 schedule types. Also configures global options (panel, advanced features, budget).
 
-| Object | Manufacturer | Trigger Type | Entity |
-|--------|-------------|-------------|---------|
-| HVAC System | Daikin FTXM35R | Threshold (airflow < 60%) | `input_number.hvac_filter_airflow` |
-| Family Car | VW Golf VIII | Counter (15,000 km delta) + time-based tire rotation | `input_number.car_odometer` |
-| Washing Machine | Bosch WAX32M92 | State change (50 on→off cycles) | `input_boolean.washing_machine_running` |
-| Water Softener | BWT Perla Silk M | Threshold (salt < 20%) | `input_number.water_softener_salt_level` |
+| # | Object | Manufacturer / Model | Tasks | Trigger Types | Key Entities |
+|---|--------|---------------------|-------|---------------|--------------|
+| 1 | HVAC System | Daikin FTXM35R | Filter Replacement | threshold (< 60%) | `input_number.hvac_filter_airflow` |
+| 2 | Family Car | VW Golf VIII | Oil Change, Tire Rotation | counter (15k km delta), time-based | `input_number.car_odometer` |
+| 3 | Washing Machine | Bosch WAX32M92 | Drum Cleaning | state_change (50 on→off) | `input_boolean.washing_machine_running` |
+| 4 | Water Softener | BWT Perla Silk M | Refill Salt | threshold (< 20%) | `input_number.water_softener_salt_level` |
+| 5 | Workshop Compressor | Atlas Copco GA5 | Oil Change, Air Filter | runtime (500h), time-based | `input_boolean.workshop_compressor` |
+| 6 | Water Filter System | BWT AQA Life S | Cartridge Replacement | compound OR (threshold + counter) | `input_number.water_filter_flow_rate`, `water_filter_total_liters` |
+| 7 | Swimming Pool | — | pH Test, Water Treatment | manual, time-based (7d) | — |
+| 8 | 3D Printer | Prusa MK4S | Nozzle Replacement, Lubrication | counter (5000 abs), time-based | `input_number.printer_page_count` |
+| 9 | Electric Car | Tesla Model 3 | 6 tasks (tire pressure, brake pads, cabin filter, wipers, battery, charging) | multi-entity threshold (4 tire sensors, any-logic), threshold, time-based, runtime | `input_number.ev_tire_pressure_*`, `ev_brake_pad_thickness`, `ev_battery_soh`, `input_boolean.ev_charging` |
 
-Usage: `python setup_demo.py` (requires HA running with valid token)
+Usage: `python scripts/setup_demo.py` (requires HA running with valid token)
 
-**`inject_test_statistics.py`** — Generates 90 days of recorder statistics directly into SQLite:
+**`scripts/seed_history.py`** — Injects realistic historical maintenance data into Store files:
 
-| Entity | Pattern | Cycle |
-|--------|---------|-------|
-| HVAC airflow | 95% → 60% linear decay | 30-day reset |
-| Car odometer | +40 km/day cumulative | monotonic |
-| Salt level | 100% → 30% linear drain | 30-day refill |
-| Washing cycles | +0.6 cycles/day cumulative | monotonic |
-| Pool pressure | 0.7 → 1.4 bar gradual rise | 14-day clean |
-| Test pressure | 0.85–1.15 bar random + 5% spikes | random |
+- 68 history entries across all 9 objects (~12 months of data)
+- Costs totaling ~€960, durations 5–45 min, feedback values
+- Includes `completed`, `skipped`, and `triggered` entry types
+- Sets `last_performed` dates for time-based schedule calculation
 
-Generates both hourly `statistics` (90 days) and 5-minute `statistics_short_term` (10 days). Must run with HA stopped:
+Must run after `setup_demo.py` with HA stopped or will be loaded on next restart:
 
 ```bash
-docker compose stop homeassistant-dev
-python inject_test_statistics.py
-docker compose start homeassistant-dev
+python scripts/setup_demo.py
+python scripts/seed_history.py
+docker compose restart homeassistant-dev
 ```
+
+### Test Entity Reference
+
+The `docker/config-dev/configuration.yaml` defines test entities grouped by trigger type:
+
+**Threshold triggers** (`input_number`):
+
+| Entity | Purpose | Initial | Unit |
+|--------|---------|---------|------|
+| `hvac_filter_airflow` | HVAC filter degradation | 85 | % |
+| `water_softener_salt_level` | Salt level monitoring | 65 | % |
+| `pool_ph_level` | Pool water quality | 7.4 | pH |
+| `freezer_temperature` | Freezer monitoring | -20 | °C |
+| `solar_panel_output` | Solar efficiency | 92 | % |
+| `ev_tire_pressure_fl/fr/rl/rr` | Multi-entity tire pressure (4 sensors) | 2.4–2.5 | bar |
+| `ev_brake_pad_thickness` | Brake wear | 8.5 | mm |
+| `ev_battery_soh` | Battery state of health | 96 | % |
+
+**Counter triggers** (`input_number`):
+
+| Entity | Purpose | Initial | Unit |
+|--------|---------|---------|------|
+| `car_odometer` | Oil change by mileage | 45000 | km |
+| `printer_page_count` | Nozzle wear tracking | 3200 | pages |
+| `generator_run_cycles` | Generator maintenance | 1250 | cycles |
+| `water_filter_total_liters` | Filter capacity | 5000 | L |
+| `ev_odometer` | EV mileage tracking | 28500 | km |
+| `hvac_energy_kwh` | Energy consumption | 1250 | kWh |
+
+**State change / runtime triggers** (`input_boolean`):
+
+| Entity | Purpose |
+|--------|---------|
+| `washing_machine_running` | Wash cycle counting (state_change) |
+| `dishwasher_running` | Dishwasher cycles |
+| `workshop_compressor` | Compressor runtime tracking |
+| `server_rack_fan` | Server fan runtime |
+| `garage_door_motor` | Door cycle counting |
+| `heat_pump_active` | Heat pump runtime |
+| `pool_pump_active` | Pool pump runtime |
+| `ev_charging` | EV charging cycle log (runtime) |
+
+**Compound trigger** (`input_number`):
+
+| Entity | Purpose | Initial | Unit |
+|--------|---------|---------|------|
+| `water_filter_flow_rate` | Flow rate threshold condition | 3.5 | L/min |
+| `water_filter_total_liters` | Volume counter condition | 5000 | L |
+
+**Environmental correlation** (`input_number`):
+
+| Entity | Purpose | Initial | Unit |
+|--------|---------|---------|------|
+| `outdoor_temperature` | Outdoor temp | 12 | °C |
+| `outdoor_humidity` | Outdoor humidity | 55 | % |
+| `indoor_temperature` | Indoor temp | 22 | °C |
+| `indoor_humidity` | Indoor humidity | 45 | % |
+
+**Template sensors**:
+
+| Entity | Purpose |
+|--------|---------|
+| `sensor.hvac_efficiency` | Derived from airflow + temperature delta |
+| `sensor.compressor_load` | Derived from energy consumption |
+| `binary_sensor.water_filter_alert` | Flow rate < 2.0 L/min alert |
+
+### Screenshot Capture
+
+Automated screenshot generation for README documentation:
+
+```bash
+cd docker
+docker compose --profile testing up -d   # Start Playwright server
+cd ../custom_components/maintenance_supporter/frontend-src
+node capture-readme-screenshots.mjs      # Outputs to docs/images/
+```
+
+Requires demo data to be set up first. Captures 12 screenshots covering dashboard, object detail, task detail, history, dialogs, config, Lovelace card, calendar, entity attributes, and mobile views.

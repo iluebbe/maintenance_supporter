@@ -7,6 +7,38 @@
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
 
+## Preview
+
+| Dashboard | Task Detail | Mobile |
+|:-:|:-:|:-:|
+| ![Overview](docs/images/overview.png) | ![Task Detail](docs/images/task-detail.png) | ![Mobile](docs/images/mobile-overview.png) |
+
+<details>
+<summary>More screenshots</summary>
+
+### Object Detail
+![Object Detail](docs/images/object-detail.png)
+
+### Complete Dialog
+![Complete Dialog](docs/images/complete-dialog.png)
+
+### Task History
+![Task History](docs/images/task-history.png)
+
+### QR Codes
+![QR Code](docs/images/qr-dialog.png)
+
+### Lovelace Card
+![Lovelace Card](docs/images/lovelace-card.png)
+
+### Calendar
+![Calendar](docs/images/calendar.png)
+
+### Entity Attributes
+![Entity Attributes](docs/images/entity-attributes.png)
+
+</details>
+
 ## Features
 
 ### Task Management
@@ -327,6 +359,27 @@ See [Architecture — Test Coverage](docs/ARCHITECTURE.md#test-coverage) for the
 
 - Home Assistant 2025.1.0 or newer
 - No external dependencies required
+
+## Development
+
+A Docker Compose environment provides a complete dev setup with faketime time manipulation.
+
+### Quick Start
+
+```bash
+cd docker
+docker compose up -d                    # Start HA dev instance (:8123)
+
+# Create demo data (9 objects, all 5 trigger types):
+python scripts/setup_demo.py
+python scripts/seed_history.py          # Inject 12 months of maintenance history
+docker compose restart homeassistant-dev
+
+# Run tests (1,169 tests):
+docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
+```
+
+See [Architecture — Development & Testing Infrastructure](docs/ARCHITECTURE.md#development--testing-infrastructure) for details on faketime, test entities, and the full demo object reference.
 
 ## License
 

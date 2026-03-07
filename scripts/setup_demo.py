@@ -292,12 +292,21 @@ async def configure_global_options(session):
 
     print("\n=== Configuring global options ===")
 
-    # --- Enable all advanced features ---
+    # --- Enable panel + general settings ---
     r = await start_options_flow(session, entry_id)
     flow_id = r["flow_id"]
     print(f"  Options flow started -> {sid(r)}")
 
-    # Navigate to advanced_features
+    r = await post_options_step(session, flow_id, {"next_step_id": "general_settings"})
+    print(f"  Menu -> {sid(r)}")
+    r = await post_options_step(session, flow_id, {
+        "panel_enabled": True,
+        "notifications_enabled": False,
+        "notify_service": "",
+    })
+    print(f"  General (panel enabled) -> {sid(r)}")
+
+    # --- Enable all advanced features ---
     r = await post_options_step(session, flow_id, {"next_step_id": "advanced_features"})
     print(f"  Menu -> {sid(r)}")
 
