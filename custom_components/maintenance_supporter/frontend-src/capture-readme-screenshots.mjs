@@ -298,30 +298,47 @@ try {
   console.log("  lovelace-card.png SKIPPED:", e.message);
 }
 
-// 9. Calendar — switch to list view to show maintenance events
-await page.goto(HA + "/calendar?view=listWeek");
-await page.waitForTimeout(4000);
-// Enable the maintenance calendar checkbox if not already enabled
+// 9. Calendar — show month view with maintenance events
+await page.goto(HA + "/calendar");
+await page.waitForTimeout(5000);
+// Enable the maintenance calendar checkbox
 try {
+  // Pre-select the maintenance calendar in localStorage so the panel shows it
   await page.evaluate(() => {
+    // HA stores selected calendars in hass-panel-calendar-selected per-user
+    // Try to find and click the checkbox through shadow DOM
     const ha = document.querySelector("home-assistant");
-    const main = ha && ha.shadowRoot && ha.shadowRoot.querySelector("home-assistant-main");
-    const drawer = main && main.shadowRoot && main.shadowRoot.querySelector("ha-drawer");
-    const resolver = drawer && drawer.querySelector("partial-panel-resolver");
-    const calPanel = resolver && resolver.querySelector("ha-panel-calendar");
-    if (!calPanel) return;
-    const sr = calPanel.shadowRoot;
-    if (!sr) return;
-    // Find calendar checkboxes and enable the maintenance one
-    const items = sr.querySelectorAll("ha-check-list-item");
-    for (const item of items) {
-      if (item.textContent && item.textContent.includes("Maintenance")) {
-        if (!item.selected) item.click();
+    const main = ha?.shadowRoot?.querySelector("home-assistant-main");
+    const drawer = main?.shadowRoot?.querySelector("ha-drawer");
+    const resolver = drawer?.querySelector("partial-panel-resolver");
+    const calPanel = resolver?.querySelector("ha-panel-calendar");
+    const sr = calPanel?.shadowRoot;
+    if (!sr) return "no-shadow-root";
+    // Try ha-check-list-item or ha-checkbox or mwc-checkbox
+    const checkItems = sr.querySelectorAll("ha-check-list-item, ha-checkbox-list-item");
+    for (const item of checkItems) {
+      if (item.textContent?.includes("Maintenance")) {
+        if (!item.selected && !item.checked) item.click();
+        return "clicked";
       }
     }
-  });
+    // Try ha-calendar-list-item approach
+    const calList = sr.querySelector("ha-sidebar-calendars, .calendars");
+    if (calList) {
+      const labels = calList.querySelectorAll("label, li, div");
+      for (const lbl of labels) {
+        if (lbl.textContent?.includes("Maintenance")) {
+          const cb = lbl.querySelector("input[type=checkbox], ha-checkbox");
+          if (cb && !cb.checked) cb.click();
+          return "clicked-inner";
+        }
+      }
+    }
+    // Dump what we find for debugging
+    return "items:" + sr.innerHTML.substring(0, 500);
+  }).then(r => console.log("  calendar checkbox:", r));
   await page.waitForTimeout(3000);
-} catch { /* calendar may load differently */ }
+} catch (e) { console.log("  calendar checkbox error:", e.message); }
 await shot(page, "calendar.png");
 
 // 10. Sensor attributes — Developer Tools States filtered to show one entity with all attributes
