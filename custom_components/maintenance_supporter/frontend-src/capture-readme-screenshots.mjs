@@ -180,7 +180,7 @@ await page.waitForTimeout(2000);
 await page.evaluate(`{
   ${panelJS()}
   if (p) {
-    var tabs = p.shadowRoot && p.shadowRoot.querySelectorAll('.tab-btn');
+    var tabs = p.shadowRoot && p.shadowRoot.querySelectorAll('.tab');
     if (tabs && tabs.length > 1) tabs[1].click();
   }
 }`);
@@ -278,61 +278,85 @@ try {
   console.log("  lovelace-card.png SKIPPED:", e.message);
 }
 
-// 9. Calendar
-await page.goto(HA + "/calendar");
+// 9. Calendar — switch to list view to show maintenance events
+await page.goto(HA + "/calendar?view=listWeek");
 await page.waitForTimeout(4000);
-await shot(page, "calendar.png");
-
-// 10. Entity attributes — Developer Tools > States
-await page.goto(HA + "/developer-tools/state");
-await page.waitForTimeout(3000);
-// Try to set the entity filter
+// Enable the maintenance calendar checkbox if not already enabled
 try {
   await page.evaluate(() => {
     const ha = document.querySelector("home-assistant");
     const main = ha && ha.shadowRoot && ha.shadowRoot.querySelector("home-assistant-main");
     const drawer = main && main.shadowRoot && main.shadowRoot.querySelector("ha-drawer");
     const resolver = drawer && drawer.querySelector("partial-panel-resolver");
-    const devTools = resolver && resolver.querySelector("ha-panel-developer-tools");
-    if (!devTools) return;
-    const sr = devTools.shadowRoot;
+    const calPanel = resolver && resolver.querySelector("ha-panel-calendar");
+    if (!calPanel) return;
+    const sr = calPanel.shadowRoot;
     if (!sr) return;
-    const stateTab = sr.querySelector("developer-tools-state");
-    if (!stateTab) return;
-    const sr2 = stateTab.shadowRoot;
-    if (!sr2) return;
-    const input = sr2.querySelector("ha-textfield") || sr2.querySelector("input");
-    if (input) {
-      input.value = "sensor.maintenance_";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.dispatchEvent(new Event("change", { bubbles: true }));
+    // Find calendar checkboxes and enable the maintenance one
+    const items = sr.querySelectorAll("ha-check-list-item");
+    for (const item of items) {
+      if (item.textContent && item.textContent.includes("Maintenance")) {
+        if (!item.selected) item.click();
+      }
     }
   });
-  await page.waitForTimeout(2000);
-} catch { /* filter may fail, still take screenshot */ }
+  await page.waitForTimeout(3000);
+} catch { /* calendar may load differently */ }
+await shot(page, "calendar.png");
+
+// 10. Entity attributes — click into a device from the integration page to show entities
+// First, find a device ID via the integration page
+await page.goto(HA + "/config/integrations/integration/maintenance_supporter");
+await page.waitForTimeout(4000);
+try {
+  // Get the device ID for HVAC System via WS
+  const deviceId = await page.evaluate(() => {
+    return new Promise((resolve) => {
+      const ha = document.querySelector("home-assistant");
+      const hass = ha && (ha.__hass || ha.hass);
+      if (!hass || !hass.connection) { resolve(null); return; }
+      hass.connection.sendMessagePromise({ type: "config/device_registry/list" })
+        .then((devices) => {
+          const dev = devices.find((d) =>
+            d.name && d.name.includes("HVAC") || d.name_by_user && d.name_by_user.includes("HVAC")
+          );
+          resolve(dev ? dev.id : null);
+        })
+        .catch(() => resolve(null));
+    });
+  });
+  if (deviceId) {
+    await page.goto(HA + "/config/devices/device/" + deviceId);
+    await page.waitForTimeout(4000);
+  }
+} catch { /* fall back to integration page */ }
 await shot(page, "entity-attributes.png");
 
 await ctx.close();
 
 // ======================== MOBILE (375×812) ========================
 console.log("\nMobile screenshots:");
-const mCtx = await browser.newContext({ viewport: { width: 375, height: 812 }, locale: "en", isMobile: true });
-const mPage = await mCtx.newPage();
-await login(mPage);
-// Skip setEnglish for mobile — sendMessage can crash mobile contexts
+try {
+  const mCtx = await browser.newContext({ viewport: { width: 375, height: 812 }, locale: "en", isMobile: true });
+  const mPage = await mCtx.newPage();
+  await login(mPage);
+  // Skip setEnglish for mobile — sendMessage can crash mobile contexts
 
-const mObjects = await getObjectData(mPage);
+  const mObjects = await getObjectData(mPage);
 
-// 11. Mobile overview
-await shot(mPage, "mobile-overview.png");
+  // 11. Mobile overview
+  await shot(mPage, "mobile-overview.png");
 
-// 12. Mobile task detail
-const mHvac = find(mObjects, "HVAC System", "Filter Replacement");
-await mPage.evaluate(`{ ${panelJS()} if (p) p._showTask('${mHvac.entryId}', '${mHvac.taskId}'); }`);
-await mPage.waitForTimeout(2000);
-await shot(mPage, "mobile-task.png");
+  // 12. Mobile task detail
+  const mHvac = find(mObjects, "HVAC System", "Filter Replacement");
+  await mPage.evaluate(`{ ${panelJS()} if (p) p._showTask('${mHvac.entryId}', '${mHvac.taskId}'); }`);
+  await mPage.waitForTimeout(2000);
+  await shot(mPage, "mobile-task.png");
 
-await mCtx.close();
+  await mCtx.close();
+} catch (e) {
+  console.log("  mobile screenshots SKIPPED:", e.message);
+}
 
 // ======================== NOTIFICATION MOCKUP (375×812) ========================
 // Rendered as pure HTML/CSS — no HA login needed, own context for stability

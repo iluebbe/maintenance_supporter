@@ -37,8 +37,8 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Calendar
 ![Calendar](docs/images/calendar.png)
 
-### Entity Attributes
-![Entity Attributes](docs/images/entity-attributes.png)
+### Device & Entities
+![Device & Entities](docs/images/entity-attributes.png)
 
 </details>
 
