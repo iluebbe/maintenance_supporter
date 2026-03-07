@@ -118,6 +118,26 @@ if [ "$ONBOARDING_STATUS" = "200" ]; then
         -H "Content-Type: application/json" \
         -d '{"client_id":"http://localhost:8123/","redirect_uri":"http://localhost:8123/"}' > /dev/null 2>&1 || true
 
+    # Step 4: Create a long-lived access token via WS (runs inside HA container)
+    LONG_TOKEN=$(docker exec ha-dev python3 -c "
+import asyncio, aiohttp, json
+async def get_llat():
+    async with aiohttp.ClientSession() as s:
+        async with s.ws_connect('ws://localhost:8123/api/websocket') as ws:
+            await ws.receive_json()
+            await ws.send_json({'type':'auth','access_token':'$ACCESS_TOKEN'})
+            await ws.receive_json()
+            await ws.send_json({'id':1,'type':'auth/long_lived_access_token','client_name':'Dev Scripts','lifespan':3650})
+            r = await ws.receive_json()
+            print(r.get('result',''),end='')
+asyncio.run(get_llat())
+" 2>/dev/null)
+
+    if [ -n "$LONG_TOKEN" ]; then
+        ACCESS_TOKEN="$LONG_TOKEN"
+        echo "  Created long-lived access token."
+    fi
+
     # Save token for scripts
     echo "HA_TOKEN=$ACCESS_TOKEN" > "$ENV_FILE"
     export HA_TOKEN="$ACCESS_TOKEN"
@@ -152,11 +172,22 @@ echo "Seeding maintenance history..."
 $PYTHON scripts/seed_history.py
 
 # ---------------------------------------------------------------------------
-# 8. Final restart to load seeded history
+# 8. Stop HA to safely write recorder DB, then seed recorder history
 # ---------------------------------------------------------------------------
 echo ""
-echo "Restarting HA to load history data..."
-docker compose -f "$DOCKER_DIR/compose.yaml" restart homeassistant-dev
+echo "Stopping HA to seed recorder database..."
+docker compose -f "$DOCKER_DIR/compose.yaml" stop homeassistant-dev
+sleep 3
+
+echo "Seeding recorder history (1 year of granular data)..."
+$PYTHON scripts/seed_recorder.py
+
+# ---------------------------------------------------------------------------
+# 9. Start HA with all seeded data
+# ---------------------------------------------------------------------------
+echo ""
+echo "Starting HA with seeded data..."
+docker compose -f "$DOCKER_DIR/compose.yaml" up -d homeassistant-dev
 
 echo ""
 echo "========================================="

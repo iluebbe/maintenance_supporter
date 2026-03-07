@@ -103,6 +103,6 @@ async def main():
 
     await ws.close()
     await session.close()
-    print("\n✅ All tests passed!")
+    print("\nAll tests passed!")
 
 asyncio.run(main())
