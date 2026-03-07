@@ -25,6 +25,9 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Task History
 ![Task History](docs/images/task-history.png)
 
+### Multi-Entity Trigger
+![Multi-Entity Trigger](docs/images/multi-entity-trigger.png)
+
 ### QR Codes
 ![QR Code](docs/images/qr-dialog.png)
 

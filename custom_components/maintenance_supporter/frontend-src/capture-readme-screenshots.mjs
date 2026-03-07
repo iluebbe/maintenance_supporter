@@ -172,6 +172,12 @@ await page.evaluate(`{ ${panelJS()} if (p) p._showTask('${hvac.entryId}', '${hva
 await page.waitForTimeout(3000);
 await shot(page, "task-detail.png");
 
+// 3b. Multi-entity trigger — Electric Car Tire Pressure Check (4 sensors, threshold < 2.0 bar)
+const tire = find(objects, "Electric Car", "Tire Pressure Check");
+await page.evaluate(`{ ${panelJS()} if (p) p._showTask('${tire.entryId}', '${tire.taskId}'); }`);
+await page.waitForTimeout(3000);
+await shot(page, "multi-entity-trigger.png");
+
 // 4. Task history — Washing Machine Drum Cleaning (8 entries)
 const wm = find(objects, "Washing Machine", "Drum Cleaning");
 await page.evaluate(`{ ${panelJS()} if (p) p._showTask('${wm.entryId}', '${wm.taskId}'); }`);
