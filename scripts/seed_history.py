@@ -124,10 +124,10 @@ HISTORY_DATA: dict[str, dict[str, list[dict]]] = {
         "Tire Pressure Check": [
             {"timestamp": "2025-11-15T09:00:00+01:00", "type": "completed", "notes": "Alle 4 Reifen ok (2.4/2.4/2.5/2.5)", "cost": 0, "duration": 10, "feedback": "needed", "trigger_value": 2.4,
              "checklist_state": {"VL prüfen": True, "VR prüfen": True, "HL prüfen": True, "HR prüfen": True, "Profiltiefe kontrollieren": True}},
-            {"timestamp": "2025-12-20T10:00:00+01:00", "type": "completed", "notes": "VR leicht niedrig (2.1), aufgefüllt", "cost": 0, "duration": 12, "feedback": "needed", "trigger_value": 2.1,
+            {"timestamp": "2025-12-20T10:00:00+01:00", "type": "completed", "notes": "VR leicht niedrig (2.1), alle aufgefüllt auf 2.5", "cost": 0, "duration": 12, "feedback": "needed", "trigger_value": 2.1,
              "checklist_state": {"VL prüfen": True, "VR prüfen": True, "HL prüfen": True, "HR prüfen": True, "Profiltiefe kontrollieren": True}},
-            {"timestamp": "2026-01-25T09:30:00+01:00", "type": "completed", "cost": 0, "duration": 10, "feedback": "not_sure", "trigger_value": 2.5},
-            {"timestamp": "2026-02-28T10:15:00+01:00", "type": "completed", "cost": 0, "duration": 10, "feedback": "needed", "trigger_value": 2.3,
+            {"timestamp": "2026-01-25T09:30:00+01:00", "type": "completed", "notes": "Alle Reifen bei 2.5 bar", "cost": 0, "duration": 10, "feedback": "not_sure", "trigger_value": 2.5},
+            {"timestamp": "2026-02-28T10:15:00+01:00", "type": "completed", "notes": "Kaltes Wetter, alle bei ~2.4 bar, leicht aufgefüllt", "cost": 0, "duration": 10, "feedback": "needed", "trigger_value": 2.4,
              "checklist_state": {"VL prüfen": True, "VR prüfen": True, "HL prüfen": True, "HR prüfen": True, "Profiltiefe kontrollieren": False}},
         ],
         "Brake Pad Inspection": [

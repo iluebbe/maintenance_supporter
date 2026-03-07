@@ -567,9 +567,9 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
             "base": 2.42, "leak": 0.0005,
             "topups": [  # (date, new_base) at each maintenance check
                 (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.42),
-                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.42),
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.45),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.40),
+                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),  # refilled
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
             ],
             "fast_leak": None,
         }),
@@ -577,9 +577,9 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
             "base": 2.42, "leak": 0.0005,
             "topups": [
                 (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.40),  # OK at check
-                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.45),  # refilled
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.45),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.38),
+                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),  # refilled
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
             ],
             # Fast leak after Nov check, fixed at Dec 20 refill
             "fast_leak": (datetime(2025, 11, 16, tzinfo=timezone.utc),
@@ -590,8 +590,8 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
             "topups": [
                 (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.50),
                 (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.52),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.48),
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
             ],
             "fast_leak": None,
         }),
@@ -600,8 +600,8 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
             "topups": [
                 (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.50),
                 (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.52),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.48),
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
             ],
             "fast_leak": None,
         }),
