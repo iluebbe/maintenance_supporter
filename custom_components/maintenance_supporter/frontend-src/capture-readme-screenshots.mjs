@@ -76,6 +76,7 @@ async function login(page) {
   await page.waitForTimeout(8000);
 }
 
+/** Returns true if page is still alive, false if it crashed. */
 async function setEnglish(page) {
   // Set language to English via WS — fire and forget, don't await the WS result
   try {
@@ -93,9 +94,11 @@ async function setEnglish(page) {
     // Reload panel to apply language
     await page.goto(HA + "/maintenance-supporter");
     await page.waitForTimeout(8000);
+    return true;
   } catch {
-    // If language change fails, continue with default locale
-    console.log("  (language change skipped, using default locale)");
+    // If language change fails, page may be crashed
+    console.log("  (language change crashed, will recover)");
+    return false;
   }
 }
 
@@ -149,9 +152,15 @@ console.log("Connected to Playwright server\n");
 
 // ======================== DESKTOP (1280×900) ========================
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "en" });
-const page = await ctx.newPage();
+let page = await ctx.newPage();
 await login(page);
-await setEnglish(page);
+const langOk = await setEnglish(page);
+if (!langOk) {
+  // Language change crashed the page — recreate and re-login
+  try { await page.close(); } catch { /* already dead */ }
+  page = await ctx.newPage();
+  await login(page);
+}
 
 const objects = await getObjectData(page);
 console.log(`Found ${objects.length} objects: ${objects.map((o) => o.name).join(", ")}\n`);
@@ -166,17 +175,23 @@ await page.evaluate(`{ ${panelJS()} if (p) p._showObject('${ev.entryId}'); }`);
 await page.waitForTimeout(2000);
 await shot(page, "object-detail.png");
 
-// 3. Task detail — HVAC Filter Replacement (threshold trigger with history)
+// 3. Task detail — HVAC Filter Replacement (threshold trigger with sparkline)
 const hvac = find(objects, "HVAC System", "Filter Replacement");
 await page.evaluate(`{ ${panelJS()} if (p) p._showTask('${hvac.entryId}', '${hvac.taskId}'); }`);
-await page.waitForTimeout(3000);
+await page.waitForTimeout(5000);
 await shot(page, "task-detail.png");
 
 // 3b. Multi-entity trigger — Electric Car Tire Pressure Check (4 sensors, threshold < 2.0 bar)
 const tire = find(objects, "Electric Car", "Tire Pressure Check");
 await page.evaluate(`{ ${panelJS()} if (p) p._showTask('${tire.entryId}', '${tire.taskId}'); }`);
-await page.waitForTimeout(3000);
+await page.waitForTimeout(5000);
 await shot(page, "multi-entity-trigger.png");
+
+// 3c. Compound trigger — Water Filter System (OR: threshold + counter)
+const wf = find(objects, "Water Filter System", "Cartridge Replacement");
+await page.evaluate(`{ ${panelJS()} if (p) p._showTask('${wf.entryId}', '${wf.taskId}'); }`);
+await page.waitForTimeout(5000);
+await shot(page, "compound-trigger.png");
 
 // 4. Task history — Washing Machine Drum Cleaning (8 entries)
 const wm = find(objects, "Washing Machine", "Drum Cleaning");
@@ -310,32 +325,38 @@ try {
 } catch { /* calendar may load differently */ }
 await shot(page, "calendar.png");
 
-// 10. Entity attributes — click into a device from the integration page to show entities
-// First, find a device ID via the integration page
-await page.goto(HA + "/config/integrations/integration/maintenance_supporter");
+// 10. Sensor attributes — Developer Tools States filtered to show one entity with all attributes
+await page.goto(HA + "/developer-tools/state");
 await page.waitForTimeout(4000);
 try {
-  // Get the device ID for HVAC System via WS
-  const deviceId = await page.evaluate(() => {
-    return new Promise((resolve) => {
-      const ha = document.querySelector("home-assistant");
-      const hass = ha && (ha.__hass || ha.hass);
-      if (!hass || !hass.connection) { resolve(null); return; }
-      hass.connection.sendMessagePromise({ type: "config/device_registry/list" })
-        .then((devices) => {
-          const dev = devices.find((d) =>
-            d.name && d.name.includes("HVAC") || d.name_by_user && d.name_by_user.includes("HVAC")
-          );
-          resolve(dev ? dev.id : null);
-        })
-        .catch(() => resolve(null));
-    });
+  // Filter entities by typing into the search field
+  // The filter input is deep in shadow DOM; use evaluate to find and focus it
+  await page.evaluate(() => {
+    const ha = document.querySelector("home-assistant");
+    const main = ha && ha.shadowRoot && ha.shadowRoot.querySelector("home-assistant-main");
+    const drawer = main && main.shadowRoot && main.shadowRoot.querySelector("ha-drawer");
+    const resolver = drawer && drawer.querySelector("partial-panel-resolver");
+    const devTools = resolver && resolver.querySelector("ha-panel-developer-tools");
+    if (!devTools || !devTools.shadowRoot) return;
+    const statesPanel = devTools.shadowRoot.querySelector("developer-tools-state");
+    if (!statesPanel || !statesPanel.shadowRoot) return;
+    // Find the entity filter input (search field in the table header)
+    const searchInputs = statesPanel.shadowRoot.querySelectorAll("search-input, ha-search-input, input[type=search]");
+    // Also try generic inputs
+    const allInputs = statesPanel.shadowRoot.querySelectorAll("input");
+    const target = searchInputs[0] || allInputs[0];
+    if (target) {
+      target.focus();
+      target.value = "sensor.hvac_system";
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+    }
   });
-  if (deviceId) {
-    await page.goto(HA + "/config/devices/device/" + deviceId);
-    await page.waitForTimeout(4000);
-  }
-} catch { /* fall back to integration page */ }
+  await page.waitForTimeout(1000);
+  // Fallback: use keyboard to type into whatever is focused
+  await page.keyboard.type("sensor.hvac_system", { delay: 30 });
+  await page.waitForTimeout(2000);
+} catch { /* filter may not work */ }
 await shot(page, "entity-attributes.png");
 
 await ctx.close();

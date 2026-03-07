@@ -28,6 +28,9 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Multi-Entity Trigger
 ![Multi-Entity Trigger](docs/images/multi-entity-trigger.png)
 
+### Compound Trigger
+![Compound Trigger](docs/images/compound-trigger.png)
+
 ### QR Codes
 ![QR Code](docs/images/qr-dialog.png)
 
@@ -40,8 +43,8 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Calendar
 ![Calendar](docs/images/calendar.png)
 
-### Device & Entities
-![Device & Entities](docs/images/entity-attributes.png)
+### Sensor Attributes
+![Sensor Attributes](docs/images/entity-attributes.png)
 
 </details>
 
