@@ -576,9 +576,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Check for status changes and send notifications.
 
-        Calls the notification manager for any notifiable status, not just
-        transitions.  The manager itself handles per-status rate limiting,
-        snooze, quiet hours, and daily limits.
+        Only notifies on actual status *transitions* (e.g. OK → OVERDUE)
+        to avoid a burst of stale notifications after HA restart.
         """
         from .helpers.notification_manager import NotificationManager
 
@@ -601,7 +600,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for task_id, task_result in task_results.items():
             new_status = task_result.get("_status")
             old_status = self._previous_statuses.get(task_id)
-            if new_status in notify_statuses:
+            if new_status in notify_statuses and new_status != old_status:
                 notifiable.append((task_id, task_result, new_status, old_status))
 
         if not notifiable:
