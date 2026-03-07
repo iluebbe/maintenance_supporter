@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
@@ -179,8 +178,6 @@ class MaintenanceCalendar(CalendarEntity):
     _attr_name = "Maintenance Schedule"
     _attr_unique_id = "maintenance_supporter_calendar"
     _attr_translation_key = "maintenance_schedule"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_entity_registry_enabled_default = False
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the calendar."""
