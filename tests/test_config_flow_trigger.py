@@ -476,7 +476,7 @@ def test_mixin_go_back_no_field() -> None:
 async def test_attribute_no_numeric(
     hass: HomeAssistant, global_config_entry: ConfigEntry,
 ) -> None:
-    """Test that non-numeric entity at attribute step shows error."""
+    """Test that non-numeric entity at attribute step still offers _state."""
     # Entity with no numeric state or attributes
     hass.states.async_set("binary_sensor.door", "off", {"friendly_name": "Door"})
 
@@ -493,9 +493,10 @@ async def test_attribute_no_numeric(
         result["flow_id"],
         user_input={CONF_TRIGGER_ENTITY: ["binary_sensor.door"]},
     )
-    # Should show error on sensor_select since no numeric attributes
+    # _state is always offered so state_change/runtime triggers work
     assert result["type"] == FlowResultType.FORM
-    assert (result.get("errors") or {}).get(CONF_TRIGGER_ENTITY) == "invalid_entity"
+    assert result["step_id"] == "sensor_attribute"
+    assert result.get("errors") is None
 
 
 async def test_attribute_multiple_numeric(

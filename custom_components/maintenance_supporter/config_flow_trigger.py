@@ -242,18 +242,15 @@ class TriggerConfigMixin:
             return self.async_abort(reason="entity_unavailable")
         options: list[selector.SelectOptionDict] = []
 
-        # Add state value
-        try:
-            float(state.state)
-            unit = state.attributes.get("unit_of_measurement", "")
-            options.append(
-                selector.SelectOptionDict(
-                    value="_state",
-                    label=f"State: {state.state} {unit}".strip(),
-                )
+        # Add state value — always offer _state so that state_change and
+        # runtime triggers work with non-numeric entities (e.g. input_boolean).
+        unit = state.attributes.get("unit_of_measurement", "")
+        options.append(
+            selector.SelectOptionDict(
+                value="_state",
+                label=f"State: {state.state} {unit}".strip(),
             )
-        except (ValueError, TypeError):
-            pass
+        )
 
         # Add numeric attributes
         for attr_name, attr_value in state.attributes.items():
