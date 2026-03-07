@@ -25,23 +25,22 @@ const HA = "http://homeassistant-dev:8123";
 const OUTPUT = path.resolve(__dirname, "../../../docs/images");
 
 // ---------------------------------------------------------------------------
-// Refresh token: env var or auto-extract from HA auth storage
+// Access token: env var or auto-extract from docker/.env
 // ---------------------------------------------------------------------------
-function getRefreshToken() {
-  if (process.env.HA_REFRESH_TOKEN) return process.env.HA_REFRESH_TOKEN;
-  const authPath = path.resolve(__dirname, "../../../docker/config-dev/.storage/auth");
+function getAccessToken() {
+  if (process.env.HA_TOKEN) return process.env.HA_TOKEN;
+  const envPath = path.resolve(__dirname, "../../../docker/.env");
   try {
-    const auth = JSON.parse(fs.readFileSync(authPath, "utf8"));
-    const tok = auth.data.refresh_tokens.find(
-      (t) => t.client_id === "http://homeassistant-dev:8123/" && t.token_type === "normal"
-    );
-    if (tok) return tok.token;
+    const lines = fs.readFileSync(envPath, "utf8").split("\n");
+    for (const line of lines) {
+      if (line.startsWith("HA_TOKEN=")) return line.split("=")[1].trim();
+    }
   } catch { /* fall through */ }
-  console.error("Set HA_REFRESH_TOKEN or ensure docker/config-dev/.storage/auth exists");
+  console.error("Set HA_TOKEN or ensure docker/.env exists with HA_TOKEN=...");
   process.exit(1);
 }
 
-const REFRESH = getRefreshToken();
+const ACCESS_TOKEN = getAccessToken();
 fs.mkdirSync(OUTPUT, { recursive: true });
 
 // ---------------------------------------------------------------------------
@@ -61,17 +60,17 @@ function panelJS() {
 async function login(page) {
   await page.goto(HA);
   await page.waitForTimeout(1000);
-  await page.evaluate((refresh) => {
+  await page.evaluate((token) => {
     localStorage.setItem("hassTokens", JSON.stringify({
       hassUrl: "http://homeassistant-dev:8123",
       clientId: "http://homeassistant-dev:8123/",
-      refresh_token: refresh,
-      access_token: "",
+      refresh_token: "",
+      access_token: token,
       token_type: "Bearer",
-      expires_in: 1800,
-      expires: 0,
+      expires_in: 86400,
+      expires: Date.now() + 86400000,
     }));
-  }, REFRESH);
+  }, ACCESS_TOKEN);
   await page.goto(HA + "/maintenance-supporter");
   await page.waitForTimeout(8000);
 }
