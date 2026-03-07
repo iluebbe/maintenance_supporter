@@ -398,6 +398,8 @@ HISTORY_DATA: dict[str, dict[str, list[dict]]] = {
     },
     "Water Filter System": {
         "Cartridge Replacement": [
+            {"timestamp": "2024-05-15T10:00:00+02:00", "type": "completed"},
+            {"timestamp": "2024-11-20T11:00:00+01:00", "type": "completed"},
             {"timestamp": "2025-05-20T11:00:00+02:00", "type": "completed"},
             {"timestamp": "2025-11-10T10:30:00+01:00", "type": "completed"},
         ],

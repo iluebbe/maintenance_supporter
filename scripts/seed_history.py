@@ -67,6 +67,8 @@ HISTORY_DATA: dict[str, dict[str, list[dict]]] = {
     },
     "Water Filter System": {
         "Cartridge Replacement": [
+            {"timestamp": "2024-05-15T10:00:00+02:00", "type": "completed", "notes": "Erster Wechsel nach Einbau", "cost": 48.00, "duration": 15, "feedback": "needed", "trigger_value": 2.1},
+            {"timestamp": "2024-11-20T11:00:00+01:00", "type": "completed", "notes": "Zu lange gewartet, Durchfluss sehr niedrig", "cost": 50.00, "duration": 18, "feedback": "needed", "trigger_value": 1.5},
             {"timestamp": "2025-05-20T11:00:00+02:00", "type": "completed", "notes": "Durchfluss bei 1.8 L/min", "cost": 52.00, "duration": 20, "feedback": "needed", "trigger_value": 1.8},
             {"timestamp": "2025-11-10T10:30:00+01:00", "type": "completed", "notes": "Zähler bei 14500L", "cost": 55.00, "duration": 18, "feedback": "needed", "trigger_value": 1.9},
         ],
