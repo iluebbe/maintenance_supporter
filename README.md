@@ -28,6 +28,9 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### QR Codes
 ![QR Code](docs/images/qr-dialog.png)
 
+### Actionable Notifications
+![Actionable Notification](docs/images/notification-actions.png)
+
 ### Lovelace Card
 ![Lovelace Card](docs/images/lovelace-card.png)
 

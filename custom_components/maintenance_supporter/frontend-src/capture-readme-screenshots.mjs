@@ -333,6 +333,133 @@ await mPage.waitForTimeout(2000);
 await shot(mPage, "mobile-task.png");
 
 await mCtx.close();
+
+// ======================== NOTIFICATION MOCKUP (375×812) ========================
+// Rendered as pure HTML/CSS — no HA login needed, own context for stability
+console.log("\nNotification mockup:");
+const nCtx = await browser.newContext({ viewport: { width: 375, height: 812 }, locale: "en" });
+const notifPage = await nCtx.newPage();
+await notifPage.setContent(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=375, initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 375px; height: 812px;
+    background: linear-gradient(135deg, #0a0a2e 0%, #1a1a3e 30%, #0d2137 70%, #0a1628 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column; align-items: center;
+    overflow: hidden; position: relative;
+  }
+  /* Lock screen clock */
+  .lock-time {
+    margin-top: 120px;
+    font-size: 76px; font-weight: 700; letter-spacing: 1px;
+    color: #fff;
+    text-align: center; line-height: 1;
+  }
+  .lock-date {
+    font-size: 20px; font-weight: 400; color: rgba(255,255,255,0.7);
+    margin-top: 6px; text-align: center;
+  }
+  /* Notification card */
+  .notif-card {
+    margin-top: 60px; width: 345px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .notif-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px 0 14px;
+  }
+  .notif-icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: #038fc7;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .notif-icon svg { width: 14px; height: 14px; }
+  .notif-app {
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6);
+    flex: 1;
+  }
+  .notif-time {
+    font-size: 13px; color: rgba(255,255,255,0.45);
+  }
+  .notif-body { padding: 6px 14px 14px 14px; }
+  .notif-title {
+    font-size: 15px; font-weight: 600; color: #fff;
+    margin-bottom: 3px;
+  }
+  .notif-message {
+    font-size: 15px; font-weight: 400; color: rgba(255,255,255,0.85);
+    line-height: 1.35;
+  }
+  /* Action buttons */
+  .notif-actions {
+    display: flex;
+    border-top: 0.5px solid rgba(255,255,255,0.15);
+  }
+  .notif-action {
+    flex: 1;
+    padding: 13px 0;
+    text-align: center;
+    font-size: 15px; font-weight: 500;
+    color: #64d2ff;
+    cursor: pointer;
+  }
+  .notif-action:not(:last-child) {
+    border-right: 0.5px solid rgba(255,255,255,0.15);
+  }
+  /* Home bar indicator */
+  .home-bar {
+    position: absolute; bottom: 8px;
+    width: 134px; height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+  <div class="lock-time">9:41</div>
+  <div class="lock-date">Saturday, March 7</div>
+
+  <div class="notif-card">
+    <div class="notif-header">
+      <div class="notif-icon">
+        <svg viewBox="0 0 24 24" fill="white">
+          <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/>
+        </svg>
+      </div>
+      <span class="notif-app">HOME ASSISTANT</span>
+      <span class="notif-time">now</span>
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">Maintenance Overdue!</div>
+      <div class="notif-message">Oil Change for Family Car is 3 day(s) overdue!</div>
+    </div>
+    <div class="notif-actions">
+      <div class="notif-action">\u2705 Complete</div>
+      <div class="notif-action">\u23ed\ufe0f Skip</div>
+      <div class="notif-action">\ud83d\udca4 Snooze</div>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+</body>
+</html>
+`, { waitUntil: "networkidle" });
+await notifPage.waitForTimeout(500);
+await shot(notifPage, "notification-actions.png");
+await notifPage.close();
+await nCtx.close();
+
 await browser.close();
 
 console.log(`\nAll screenshots saved to ${OUTPUT}`);
