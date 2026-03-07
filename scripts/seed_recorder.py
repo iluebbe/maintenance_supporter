@@ -161,43 +161,6 @@ def gen_monotonic_counter(
     return points
 
 
-def gen_tire_pressure(
-    start: datetime, end: datetime,
-    initial: float,
-    temp_points: list[tuple[float, float]],
-) -> list[tuple[float, float]]:
-    """Tire pressure correlated with temperature, slow leak, refills."""
-    points = []
-    t = start
-    base = initial
-    temp_map = {int(ts): temp for ts, temp in temp_points}
-    leak_rate = random.uniform(0.001, 0.003)  # bar per day
-    last_refill = start
-
-    while t < end:
-        ts = t.timestamp()
-        days_since_refill = (t - last_refill).total_seconds() / 86400
-        leak = leak_rate * days_since_refill
-
-        # Temperature effect: ~0.01 bar per degree C
-        temp = temp_map.get(int(ts), 15.0)
-        temp_effect = (temp - 15) * 0.008
-
-        val = base - leak + temp_effect + random.gauss(0, 0.02)
-        val = round(max(1.5, min(3.5, val)), 2)
-
-        # Refill when too low
-        if val < 2.0:
-            base = initial + random.uniform(-0.05, 0.05)
-            last_refill = t
-            val = base
-
-        points.append((ts, val))
-        t += timedelta(hours=4)  # every 4 hours
-
-    return points
-
-
 def gen_boolean_cycles(
     start: datetime, end: datetime,
     avg_cycles_per_day: float,
@@ -518,9 +481,10 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
     # Outdoor humidity
     data["outdoor_humidity"] = gen_seasonal_humidity(outdoor_temp)
 
-    # --- HVAC filter airflow: degrades ~0.15%/day, resets on filter change ---
+    # --- HVAC filter airflow: degrades ~0.25%/day, resets on filter change ---
+    # trigger_values at completion: 72, 68, 75, 64 → rate ~0.25/day
     data["hvac_airflow"] = gen_degrading_sensor(
-        START, NOW, initial=92, rate_per_day=0.15,
+        START, NOW, initial=92, rate_per_day=0.25,
         reset_events=[
             (datetime(2025, 4, 10, 9, 30, tzinfo=timezone.utc), 92),
             (datetime(2025, 7, 5, 14, 0, tzinfo=timezone.utc), 90),
@@ -560,14 +524,19 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
     # Generator run cycles
     data["generator_cycles"] = gen_monotonic_counter(START, NOW, 1100, 3, 2)
 
-    # Water filter flow rate: slow degradation
+    # Water filter flow rate: degrades until cartridge replacement
+    # trigger_values at completion: 1.8 L/min, 1.9 L/min (threshold < 2.0)
+    # At START the old cartridge is already degraded (~2.5 L/min)
+    # May 20: replaced at 1.8 → new cartridge resets to 4.5
+    # Nov 10: replaced at 1.9 → new cartridge resets to 4.3
+    # Currently degrading again (~2.6 L/min)
     data["filter_flow"] = gen_degrading_sensor(
-        START, NOW, initial=4.2, rate_per_day=0.005,
+        START, NOW, initial=3.5, rate_per_day=0.015,
         reset_events=[
             (datetime(2025, 5, 20, 11, 0, tzinfo=timezone.utc), 4.5),
             (datetime(2025, 11, 10, 10, 30, tzinfo=timezone.utc), 4.3),
         ],
-        noise_std=0.15, low=1.0, high=5.0,
+        noise_std=0.08, low=1.0, high=5.0,
     )
 
     # Water filter total liters
@@ -579,11 +548,103 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
     # Indoor humidity
     data["indoor_humidity"] = gen_stable_sensor(START, NOW, 45, 3, 30, 65)
 
-    # EV tire pressures (correlated with temperature)
-    data["ev_tire_fl"] = gen_tire_pressure(START, NOW, 2.4, outdoor_temp)
-    data["ev_tire_fr"] = gen_tire_pressure(START, NOW, 2.4, outdoor_temp)
-    data["ev_tire_rl"] = gen_tire_pressure(START, NOW, 2.5, outdoor_temp)
-    data["ev_tire_rr"] = gen_tire_pressure(START, NOW, 2.5, outdoor_temp)
+    # EV tire pressures — synced with maintenance events:
+    # Nov 15: all OK (trigger_value=2.4, notes: 2.4/2.4/2.5/2.5)
+    # Dec 20: FR low at 2.1, refilled (trigger_value=2.1)
+    # Jan 25: OK (trigger_value=2.5)
+    # Feb 28: slight decrease (trigger_value=2.3)
+    # → Currently Mar 7: should trend slightly downward
+    #
+    # Implicit monthly top-ups are generated before the first recorded
+    # maintenance to prevent unrealistic leak accumulation over ~9 months.
+    # Fast leak on FR starts after Nov 15 check (valve issue develops),
+    # fixed at Dec 20 refill.
+    temp_map = {int(ts): temp for ts, temp in outdoor_temp}
+    for tire_key, tire_cfg in [
+        ("ev_tire_fl", {  # Front Left: stable, no leak issues
+            "base": 2.42, "leak": 0.0005,
+            "topups": [  # (date, new_base) at each maintenance check
+                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.42),
+                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.42),
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.45),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.40),
+            ],
+            "fast_leak": None,
+        }),
+        ("ev_tire_fr", {  # Front Right: valve issue develops after Nov check
+            "base": 2.42, "leak": 0.0005,
+            "topups": [
+                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.40),  # OK at check
+                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.45),  # refilled
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.45),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.38),
+            ],
+            # Fast leak after Nov check, fixed at Dec 20 refill
+            "fast_leak": (datetime(2025, 11, 16, tzinfo=timezone.utc),
+                          datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 0.009),
+        }),
+        ("ev_tire_rl", {  # Rear Left: stable
+            "base": 2.52, "leak": 0.0004,
+            "topups": [
+                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.50),
+                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.52),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.48),
+            ],
+            "fast_leak": None,
+        }),
+        ("ev_tire_rr", {  # Rear Right: stable
+            "base": 2.52, "leak": 0.0004,
+            "topups": [
+                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.50),
+                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),
+                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.52),
+                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.48),
+            ],
+            "fast_leak": None,
+        }),
+    ]:
+        pts: list[tuple[float, float | str]] = []
+        t = START
+        # Build full topup list: implicit monthly ones before first recorded
+        recorded = tire_cfg["topups"]
+        first_rec = recorded[0][0] if recorded else NOW
+        all_topups: list[tuple[datetime, float]] = []
+        check_t = START + timedelta(days=30)
+        while check_t < first_rec - timedelta(days=15):
+            all_topups.append((check_t, tire_cfg["base"]))
+            check_t += timedelta(days=30)
+        all_topups.extend(recorded)
+
+        cur_base = tire_cfg["base"]
+        last_topup = START
+        topup_idx = 0
+        while t < NOW:
+            # Check for top-ups at maintenance dates
+            while topup_idx < len(all_topups) and t >= all_topups[topup_idx][0]:
+                cur_base = all_topups[topup_idx][1]
+                last_topup = all_topups[topup_idx][0]
+                topup_idx += 1
+            days = (t - last_topup).total_seconds() / 86400
+            # Base leak always applies
+            leak = tire_cfg["leak"] * days
+            # Add extra leak during fast_leak period (proportional to overlap)
+            fl = tire_cfg["fast_leak"]
+            if fl:
+                fl_start, fl_end, fl_rate = fl
+                overlap_start = max(last_topup, fl_start)
+                overlap_end = min(t, fl_end)
+                if overlap_start < overlap_end:
+                    fast_days = (overlap_end - overlap_start).total_seconds() / 86400
+                    leak += (fl_rate - tire_cfg["leak"]) * fast_days
+            # Temperature effect (mild)
+            temp = temp_map.get(int(t.timestamp()) // 3600 * 3600, 15.0)
+            temp_effect = (temp - 15) * 0.005
+            val = cur_base - leak + temp_effect + random.gauss(0, 0.012)
+            val = round(max(1.5, min(3.5, val)), 2)
+            pts.append((t.timestamp(), val))
+            t += timedelta(hours=4)
+        data[tire_key] = pts
 
     # EV odometer
     data["ev_odometer"] = gen_monotonic_counter(START, NOW, 25000, 30, 15)
@@ -773,6 +834,8 @@ def insert_statistics(
                 None, last_val, None,
             ))
 
+    # Clear any existing statistics for this entity before inserting
+    conn.execute("DELETE FROM statistics WHERE metadata_id = ?", (meta_id,))
     conn.executemany(
         """INSERT INTO statistics
            (created_ts, metadata_id, start_ts, mean, mean_weight,
@@ -823,6 +886,9 @@ def insert_states(
 
     if not rows:
         return 0
+
+    # Clear existing states for this entity before inserting
+    conn.execute("DELETE FROM states WHERE metadata_id = ?", (metadata_id,))
 
     inserted = 0
     for row in rows:
