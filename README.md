@@ -259,7 +259,7 @@ automation:
 ### Lovelace Card
 
 ```yaml
-type: custom:maintenance-card
+type: custom:maintenance-supporter-card
 title: Maintenance Overview
 show_header: true
 ```
