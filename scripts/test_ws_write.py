@@ -6,8 +6,6 @@ import os
 import sys
 from pathlib import Path
 
-HARDCODED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkMmMyZGFiN2E3YzA0Yjc1YWU3MmUzYTNhOWRkMTlhNSIsImlhdCI6MTc3MDQ4Mzc5NywiZXhwIjoxODAyMDE5Nzk3fQ.fo2oCXoNa5TKdxkycLzJqyvt7WI1jv05E3n95jdk-4E"
-
 def get_token():
     if t := os.environ.get("HA_TOKEN"):
         return t
@@ -16,7 +14,8 @@ def get_token():
         for line in env_path.read_text().splitlines():
             if line.startswith("HA_TOKEN="):
                 return line.split("=", 1)[1].strip()
-    return HARDCODED_TOKEN
+    print("ERROR: No HA_TOKEN found. Set HA_TOKEN env var or create docker/.env", file=sys.stderr)
+    sys.exit(1)
 
 TOKEN = get_token()
 URL = "ws://localhost:8123/api/websocket"

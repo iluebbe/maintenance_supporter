@@ -28,6 +28,7 @@ desktop.ini
 # Docker dev environment (runtime data)
 docker/config-dev/
 docker/config-fresh/
+docker/config-seed/secrets.yaml
 docker/snapshots/
 docker/.env
 

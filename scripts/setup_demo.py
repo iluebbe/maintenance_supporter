@@ -1,7 +1,7 @@
 """Create demo maintenance objects via HA REST Config Flow API.
 
 Uses the `requests` library (pip install requests).
-Token resolution: HA_TOKEN env var > docker/.env file > hardcoded fallback.
+Token resolution: HA_TOKEN env var > docker/.env file.
 Idempotent: skips objects that already exist by name.
 """
 
@@ -12,12 +12,11 @@ from pathlib import Path
 
 import requests
 
-HARDCODED_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5OTEzZjBiNTA0N2U0Njk2YWQwYWNkYzQ2MmIzYzNhOCIsImlhdCI6MTc3Mjg5MjA0OSwiZXhwIjoyMDg4MjUyMDQ5fQ.EH16GiuE3_f63XJw0LL1hy6UmHaeu76udOLkPirGcRE"
 BASE = os.environ.get("HA_URL", "http://localhost:8123")
 
 
 def get_token() -> str:
-    """Resolve HA token: env var > docker/.env > hardcoded fallback."""
+    """Resolve HA token: env var > docker/.env file."""
     if t := os.environ.get("HA_TOKEN"):
         return t
     env_path = Path(__file__).parent.parent / "docker" / ".env"
@@ -25,7 +24,8 @@ def get_token() -> str:
         for line in env_path.read_text().splitlines():
             if line.startswith("HA_TOKEN="):
                 return line.split("=", 1)[1].strip()
-    return HARDCODED_TOKEN
+    print("ERROR: No HA_TOKEN found. Set HA_TOKEN env var or create docker/.env", file=sys.stderr)
+    sys.exit(1)
 
 
 TOKEN = get_token()
