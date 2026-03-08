@@ -1073,6 +1073,7 @@ class TestStateChangeLastStateFallback:
         )
 
         hass = MagicMock()
+        hass.is_running = False  # Prevent coroutine creation during unit test
         hass.states.get.return_value = MagicMock(state="off")
         entity = MagicMock()
         entity.entity_id = "switch.test"

@@ -149,7 +149,8 @@ class StateChangeTrigger(BaseTrigger):
         if matches and effective_old != new_val:
             self._change_count += 1
             # Persist change count to survive restarts
-            self.hass.async_create_task(self._persist_change_count())
+            if self.hass.is_running:
+                self.hass.async_create_task(self._persist_change_count())
             _LOGGER.debug(
                 "State change counted: %s (%s -> %s) count=%d/%d",
                 self.entity_id,
@@ -183,7 +184,8 @@ class StateChangeTrigger(BaseTrigger):
     def reset_count(self) -> None:
         """Reset the change counter (after maintenance)."""
         self._change_count = 0
-        self.hass.async_create_task(self._persist_change_count())
+        if self.hass.is_running:
+            self.hass.async_create_task(self._persist_change_count())
         _LOGGER.debug("State change counter reset: %s", self.entity_id)
 
     async def _persist_change_count(self) -> None:

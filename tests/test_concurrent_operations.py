@@ -70,6 +70,57 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 # ─── Tests ────────────────────────────────────────────────────────────────
 
 
+async def test_complete_during_coordinator_refresh(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Complete task while coordinator refresh is happening → both succeed."""
+    now = dt_util.now().date()
+    task = build_task_data(
+        last_performed=(now - timedelta(days=40)).isoformat(),
+        interval_days=30,
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Concurrent Test",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Concurrent Test"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_concurrent",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coordinator = entry.runtime_data.coordinator
+    store = entry.runtime_data.store
+
+    async def _immediate_save() -> None:
+        await store.async_save()
+
+    # Start a refresh and complete task concurrently
+    with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
+        refresh_task = hass.async_create_task(coordinator.async_refresh())
+
+        conn = _mock_connection()
+        await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+            "id": 1, "type": "maintenance_supporter/task/complete",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+        })
+
+        await refresh_task
+
+    await hass.async_block_till_done()
+    conn.send_result.assert_called_once()
+
+    # Verify the completion stuck
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    assert state.get("last_performed") == now.isoformat()
+
+
 async def test_multiple_task_completions_same_object(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
@@ -116,7 +167,7 @@ async def test_multiple_task_completions_same_object(
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
         for tid, idx in [(TASK_ID_1, 1), (TASK_ID_2, 2), (TASK_ID_3, 3)]:
             conn = _mock_connection()
-            await ws_complete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+            await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
                 "id": idx, "type": "maintenance_supporter/task/complete",
                 "entry_id": obj_entry.entry_id,
                 "task_id": tid,
@@ -170,13 +221,13 @@ async def test_store_delay_save_coalescing(
 
     # Use real delay_save (don't patch) — just verify no crash
     conn1 = _mock_connection()
-    await ws_complete_task.__wrapped__.__wrapped__(hass, conn1, {  # type: ignore[attr-defined]
+    await ws_complete_task.__wrapped__(hass, conn1, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/task/complete",
         "entry_id": obj_entry.entry_id,
         "task_id": TASK_ID_1,
     })
     conn2 = _mock_connection()
-    await ws_complete_task.__wrapped__.__wrapped__(hass, conn2, {  # type: ignore[attr-defined]
+    await ws_complete_task.__wrapped__(hass, conn2, {  # type: ignore[attr-defined]
         "id": 2, "type": "maintenance_supporter/task/complete",
         "entry_id": obj_entry.entry_id,
         "task_id": TASK_ID_2,

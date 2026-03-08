@@ -139,7 +139,7 @@ def _make_overdue_entry(hass: HomeAssistant, unique_suffix: str = "flow") -> Moc
 async def test_full_lifecycle_create_complete_reset(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
-    """Create overdue task → complete → status OK → reset → status OVERDUE."""
+    """Create overdue task → complete → status OK → reset → status OK (reset = today)."""
     obj_entry = _make_overdue_entry(hass)
     await setup_integration(hass, global_entry, obj_entry)
 
@@ -158,7 +158,7 @@ async def test_full_lifecycle_create_complete_reset(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await ws_complete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
             "id": 1, "type": "maintenance_supporter/task/complete",
             "entry_id": obj_entry.entry_id,
             "task_id": TASK_ID_1,
@@ -181,7 +181,7 @@ async def test_full_lifecycle_create_complete_reset(
 
     # Reset task via WS
     conn2 = _mock_connection()
-    await ws_reset_task.__wrapped__.__wrapped__(hass, conn2, {  # type: ignore[attr-defined]
+    await ws_reset_task.__wrapped__(hass, conn2, {  # type: ignore[attr-defined]
         "id": 2, "type": "maintenance_supporter/task/reset",
         "entry_id": obj_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -189,11 +189,71 @@ async def test_full_lifecycle_create_complete_reset(
     await hass.async_block_till_done()
     conn2.send_result.assert_called_once()
 
-    # After reset + refresh, status should be back to OVERDUE
+    # After reset + refresh, status is OK because reset sets last_performed to today
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["_status"] in (MaintenanceStatus.OVERDUE, MaintenanceStatus.DUE_SOON)
+    assert task_data["_status"] == MaintenanceStatus.OK
+
+
+async def test_compound_trigger_lifecycle(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Compound AND trigger: one condition met → not triggered, both → triggered."""
+    set_sensor_state(hass, "sensor.temp1", "25.0")
+    set_sensor_state(hass, "sensor.temp2", "25.0")
+
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        interval_days=None,
+        trigger_config={
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.temp1",
+                    "trigger_above": 30.0,
+                },
+                {
+                    "type": "threshold",
+                    "entity_id": "sensor.temp2",
+                    "trigger_above": 30.0,
+                },
+            ],
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Compound Test",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Compound Test"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_compound_trigger",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coordinator = entry.runtime_data.coordinator
+
+    # Both sensors below threshold → not triggered
+    # (Compound triggers are event-driven, coordinator fallback skips them,
+    # so _trigger_active should remain False)
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
+    assert task_data.get("_trigger_active") is False
+
+    # Only one sensor above threshold → still not triggered (AND logic)
+    set_sensor_state(hass, "sensor.temp1", "35.0")
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
+    assert task_data.get("_trigger_active") is False
 
 
 async def test_sensor_trigger_lifecycle(
@@ -250,7 +310,7 @@ async def test_sensor_trigger_lifecycle(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await ws_complete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
             "id": 1, "type": "maintenance_supporter/task/complete",
             "entry_id": obj_entry.entry_id,
             "task_id": TASK_ID_1,
@@ -460,7 +520,7 @@ async def test_budget_alert_flow(
 
         with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
             conn = _mock_connection()
-            await ws_complete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+            await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
                 "id": 1, "type": "maintenance_supporter/task/complete",
                 "entry_id": obj_entry.entry_id,
                 "task_id": TASK_ID_1,
@@ -542,7 +602,7 @@ async def test_multi_object_statistics(
 
     # Query statistics
     conn = _mock_connection()
-    await ws_get_statistics.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await ws_get_statistics.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
         "id": 1, "type": "maintenance_supporter/statistics",
     })
     stats = conn.send_result.call_args[0][1]

@@ -246,6 +246,48 @@ async def test_store_missing_on_reload(
     assert entry.runtime_data.store is not None
 
 
+async def test_invalid_history_entry(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Malformed history entry in Store → coordinator handles gracefully."""
+    task = build_task_data(
+        last_performed=(dt_util.now().date() - timedelta(days=5)).isoformat(),
+        interval_days=30,
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Bad History",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Bad History"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_bad_history",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    store = entry.runtime_data.store
+    coordinator = entry.runtime_data.coordinator
+
+    # Inject malformed history entries into the store
+    store.set_history(TASK_ID_1, [
+        {"type": "completed", "timestamp": "not-a-date", "cost": "not-a-number"},
+        {},  # completely empty entry
+        {"type": "unknown_type"},
+        {"type": "completed", "timestamp": dt_util.now().isoformat()},  # valid
+    ])
+
+    # Refresh should not crash despite malformed history
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert coordinator.data is not None
+    assert TASK_ID_1 in coordinator.data[CONF_TASKS]
+
+
 async def test_calendar_with_no_tasks(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

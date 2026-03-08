@@ -348,7 +348,7 @@ async def test_multi_entity_trigger_one_removed(
 
     trigger_config = {
         "type": "threshold",
-        "entity_id": ["sensor.tire_fl", "sensor.tire_fr"],
+        "entity_ids": ["sensor.tire_fl", "sensor.tire_fr"],
         "trigger_below": 2.0,
         "entity_logic": "any",
     }
@@ -407,7 +407,7 @@ async def test_multi_entity_trigger_all_logic_one_removed(
 
     trigger_config = {
         "type": "threshold",
-        "entity_id": ["sensor.zone_a", "sensor.zone_b"],
+        "entity_ids": ["sensor.zone_a", "sensor.zone_b"],
         "trigger_below": 2.0,
         "entity_logic": "all",
     }
