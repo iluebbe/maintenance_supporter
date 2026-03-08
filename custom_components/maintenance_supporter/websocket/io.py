@@ -142,26 +142,39 @@ async def ws_import_csv(
         return
 
     created = []
-    for obj_data in objects:
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": "websocket"},
-            data={
-                CONF_OBJECT: obj_data["object"],
-                CONF_TASKS: obj_data["tasks"],
-            },
-        )
+    errors: list[dict[str, str]] = []
+    for idx, obj_data in enumerate(objects):
+        try:
+            result = await hass.config_entries.flow.async_init(
+                DOMAIN,
+                context={"source": "websocket"},
+                data={
+                    CONF_OBJECT: obj_data["object"],
+                    CONF_TASKS: obj_data["tasks"],
+                },
+            )
+        except Exception:  # noqa: BLE001
+            obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
+            errors.append({"name": obj_name, "reason": "unexpected error"})
+            continue
         if result["type"] == "create_entry":
             created.append({
                 "entry_id": result["result"].entry_id,
                 "name": obj_data["object"].get("name", ""),
                 "task_count": len(obj_data["tasks"]),
             })
+        else:
+            obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
+            errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
 
-    connection.send_result(
-        msg["id"],
-        {"imported": created, "total": len(objects), "created": len(created)},
-    )
+    resp: dict[str, Any] = {
+        "imported": created,
+        "total": len(objects),
+        "created": len(created),
+    }
+    if errors:
+        resp["errors"] = errors
+    connection.send_result(msg["id"], resp)
 
 
 @websocket_api.websocket_command(

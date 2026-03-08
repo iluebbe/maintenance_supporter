@@ -30,8 +30,10 @@ from .const import (
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
+    CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    BUDGET_CURRENCIES,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -511,11 +513,29 @@ class GlobalOptionsFlow(OptionsFlow):
             return self._save_and_return(user_input)
 
         current = self._current
+        currency_code = current.get(CONF_BUDGET_CURRENCY, "EUR")
+        currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+
+        currency_options = [
+            selector.SelectOptionDict(
+                value=code, label=f"{code} ({symbol})"
+            )
+            for code, symbol in BUDGET_CURRENCIES.items()
+        ]
 
         return self.async_show_form(
             step_id="budget_settings",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_BUDGET_CURRENCY,
+                        default=currency_code,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=currency_options,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
                     vol.Optional(
                         CONF_BUDGET_MONTHLY,
                         default=current.get(CONF_BUDGET_MONTHLY, 0.0),
@@ -523,7 +543,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         selector.NumberSelectorConfig(
                             min=0, max=100000, step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
-                            unit_of_measurement="€",
+                            unit_of_measurement=currency_symbol,
                         )
                     ),
                     vol.Optional(
@@ -533,7 +553,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         selector.NumberSelectorConfig(
                             min=0, max=1000000, step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
-                            unit_of_measurement="€",
+                            unit_of_measurement=currency_symbol,
                         )
                     ),
                     vol.Optional(

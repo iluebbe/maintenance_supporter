@@ -2,8 +2,8 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1168_passed-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
+[![Tests](https://img.shields.io/badge/tests-1343_passed-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
 
@@ -62,7 +62,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - NFC tag linking — scan an NFC tag to complete a task
 - Checklists for multi-step procedures
 - Task grouping for logical organization
-- 20+ object templates (car, pool, HVAC, washing machine, etc.)
+- 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
 ### Sensor-Based Triggers
 - **Threshold**: trigger when a sensor value exceeds or falls below a limit (with optional duration)
@@ -98,13 +98,13 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Budget alerts at configurable thresholds
 
 ### Data Management
-- Export via JSON, YAML, CSV; import via CSV
+- CSV export and import (via WebSocket API)
 - QR code generation for mobile quick-actions (print, download SVG)
 - Complete maintenance history with cost, duration, and feedback tracking
 - Integration diagnostics with PII redaction
 
 ### Frontend
-- **Sidebar panel** with dashboard overview, object details, task history, and analytics
+- **Sidebar panel** with dashboard overview, object details, task history, analytics, and in-panel **settings editor**
 - **Lovelace card** for dashboard integration
 - **Calendar** integration with status-emoji events
 - **Binary sensor** entities for automation triggers
@@ -285,7 +285,7 @@ template:
 - **Runtime trigger**: Accumulated hours are persisted every 5 minutes. Up to 5 minutes of runtime may be lost on an unclean shutdown or crash
 - **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
 - **Threshold debounce**: `trigger_for_minutes` timers are not restored across Home Assistant restarts. A restart during the debounce window resets the timer
-- **Budget tracking**: Numeric values only — there is no currency selector. The unit displayed is fixed to the symbol configured in the UI
+- **Budget tracking**: Numeric values only — the currency symbol can be changed in Budget Settings (default: €). 10 currencies supported: EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL
 - **History pruning**: Maximum 50 history entries per task. Oldest entries are automatically removed when the limit is reached
 - **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
 
@@ -356,7 +356,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,168 tests across 55 test files with **94% code coverage**.
+1,343 tests across 67 test files with **96% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -384,7 +384,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8123
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,168 tests):
+# Run tests (1,343 tests):
 docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 

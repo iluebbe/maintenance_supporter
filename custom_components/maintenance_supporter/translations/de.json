@@ -507,12 +507,14 @@
         "title": "Budgeteinstellungen",
         "description": "Legen Sie monatliche und jährliche Wartungsbudgets zur Ausgabenverfolgung fest.",
         "data": {
+          "budget_currency": "Währung",
           "budget_monthly": "Monatsbudget",
           "budget_yearly": "Jahresbudget",
           "budget_alerts_enabled": "Budgetwarnungen aktivieren",
           "budget_alert_threshold": "Warnschwelle (%)"
         },
         "data_description": {
+          "budget_currency": "Währung für Budgetanzeige und Benachrichtigungen.",
           "budget_monthly": "Maximale monatliche Wartungsausgaben. 0 zum Deaktivieren.",
           "budget_yearly": "Maximale jährliche Wartungsausgaben. 0 zum Deaktivieren.",
           "budget_alerts_enabled": "Benachrichtigung senden, wenn die Ausgaben die Warnschwelle überschreiten.",

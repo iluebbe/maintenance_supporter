@@ -166,7 +166,18 @@ $PYTHON scripts/setup_demo.py
 echo ""
 echo "Restarting HA to flush storage..."
 docker compose -f "$DOCKER_DIR/compose.yaml" restart homeassistant-dev
-sleep 10
+
+echo "Waiting for HA to become ready after restart..."
+ELAPSED=0
+while [ $ELAPSED -lt $MAX_WAIT ]; do
+    if docker exec ha-dev wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
+        echo "  HA is ready (${ELAPSED}s)."
+        break
+    fi
+    sleep 5
+    ELAPSED=$((ELAPSED + 5))
+done
+sleep 5
 
 echo "Seeding maintenance history..."
 $PYTHON scripts/seed_history.py
@@ -188,6 +199,17 @@ $PYTHON scripts/seed_recorder.py
 echo ""
 echo "Starting HA with seeded data..."
 docker compose -f "$DOCKER_DIR/compose.yaml" up -d homeassistant-dev
+
+echo "Waiting for HA to become ready..."
+ELAPSED=0
+while [ $ELAPSED -lt $MAX_WAIT ]; do
+    if docker exec ha-dev wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
+        echo "  HA is ready (${ELAPSED}s)."
+        break
+    fi
+    sleep 5
+    ELAPSED=$((ELAPSED + 5))
+done
 
 echo ""
 echo "========================================="

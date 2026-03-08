@@ -507,12 +507,14 @@
         "title": "Paramètres de budget",
         "description": "Définissez des budgets de maintenance mensuels et annuels pour suivre les dépenses.",
         "data": {
+          "budget_currency": "Devise",
           "budget_monthly": "Budget mensuel",
           "budget_yearly": "Budget annuel",
           "budget_alerts_enabled": "Activer les alertes de budget",
           "budget_alert_threshold": "Seuil d'alerte (%)"
         },
         "data_description": {
+          "budget_currency": "Devise utilisée pour l'affichage du budget et les notifications.",
           "budget_monthly": "Dépenses de maintenance mensuelles maximales. Définir à 0 pour désactiver.",
           "budget_yearly": "Dépenses de maintenance annuelles maximales. Définir à 0 pour désactiver.",
           "budget_alerts_enabled": "Envoyer une notification lorsque les dépenses dépassent le seuil d'alerte.",

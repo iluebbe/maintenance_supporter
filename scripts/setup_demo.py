@@ -8,6 +8,7 @@ Idempotent: skips objects that already exist by name.
 import json
 import os
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 import requests
@@ -363,13 +364,14 @@ DEMO_OBJECTS = [
          "trigger_entity": ["input_number.car_odometer"], "trigger_type": "counter",
          "trigger_target_value": 15000, "trigger_delta_mode": True, "interval_days": 365, "warning_days": 30},
         {"name": "Tire Rotation", "type": "inspection", "schedule_type": "time_based",
-         "interval_days": 180, "warning_days": 14, "last_performed": "2025-11-01"},
+         "interval_days": 180, "warning_days": 14,
+         "last_performed": (date.today() - timedelta(days=127)).isoformat()},
     ]),
     ("Washing Machine", "Bosch", "WAX32M92", [
         {"name": "Drum Cleaning", "type": "cleaning", "schedule_type": "sensor_based",
          "trigger_entity": ["input_boolean.washing_machine_running"], "trigger_type": "state_change",
-         "trigger_from_state": "on", "trigger_to_state": "off", "trigger_target_changes": 50,
-         "interval_days": 180, "warning_days": 14},
+         "trigger_from_state": "on", "trigger_to_state": "off", "trigger_target_changes": 30,
+         "interval_days": 60, "warning_days": 7},
     ]),
     ("Water Softener", "BWT", "Perla Silk M", [
         {"name": "Refill Salt", "type": "replacement", "schedule_type": "sensor_based",
@@ -400,8 +402,8 @@ DEMO_OBJECTS = [
     ]),
     ("3D Printer", "Prusa", "MK4S", [
         {"name": "Nozzle Replacement", "type": "replacement", "schedule_type": "sensor_based",
-         "trigger_entity": ["input_number.printer_page_count"], "trigger_type": "counter",
-         "trigger_target_value": 5000, "trigger_delta_mode": False, "interval_days": 365, "warning_days": 7},
+         "trigger_entity": ["input_number.printer_print_hours"], "trigger_type": "counter",
+         "trigger_target_value": 500, "trigger_delta_mode": True, "interval_days": 365, "warning_days": 7},
         {"name": "Lubrication", "type": "service", "schedule_type": "time_based",
          "interval_days": 60, "warning_days": 7},
     ]),
@@ -414,7 +416,8 @@ DEMO_OBJECTS = [
          "trigger_entity": ["input_number.ev_brake_pad_thickness"], "trigger_type": "threshold",
          "trigger_below": 3.0, "interval_days": 365, "warning_days": 30},
         {"name": "Cabin Air Filter", "type": "replacement", "schedule_type": "time_based",
-         "interval_days": 365, "warning_days": 30, "last_performed": "2025-09-15"},
+         "interval_days": 365, "warning_days": 30,
+         "last_performed": (date.today() - timedelta(days=174)).isoformat()},
         {"name": "Wiper Blades", "type": "replacement", "schedule_type": "time_based",
          "interval_days": 365, "warning_days": 14},
         {"name": "Battery Health Check", "type": "inspection", "schedule_type": "sensor_based",

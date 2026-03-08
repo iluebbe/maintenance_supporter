@@ -507,12 +507,14 @@
         "title": "Configuración de presupuesto",
         "description": "Establezca presupuestos de mantenimiento mensuales y anuales para rastrear gastos.",
         "data": {
+          "budget_currency": "Moneda",
           "budget_monthly": "Presupuesto mensual",
           "budget_yearly": "Presupuesto anual",
           "budget_alerts_enabled": "Activar alertas de presupuesto",
           "budget_alert_threshold": "Umbral de alerta (%)"
         },
         "data_description": {
+          "budget_currency": "Moneda utilizada para la visualización del presupuesto y las notificaciones.",
           "budget_monthly": "Gasto máximo mensual en mantenimiento. Establecer a 0 para desactivar.",
           "budget_yearly": "Gasto máximo anual en mantenimiento. Establecer a 0 para desactivar.",
           "budget_alerts_enabled": "Enviar una notificación cuando los gastos superen el umbral de alerta.",

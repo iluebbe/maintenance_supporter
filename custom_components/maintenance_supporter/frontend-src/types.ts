@@ -183,6 +183,7 @@ export interface BudgetStatus {
   yearly_budget: number;
   yearly_spent: number;
   alert_threshold_pct: number;
+  currency_symbol: string;
 }
 
 export interface AdvancedFeatures {
@@ -241,6 +242,7 @@ export interface TaskRow {
   times_performed: number;
   total_cost: number;
   interval_days: number | null;
+  interval_anchor: "completion" | "planned" | null;
   history: HistoryEntry[];
   enabled: boolean;
   nfc_tag_id: string | null;

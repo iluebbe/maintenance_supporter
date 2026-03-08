@@ -25,8 +25,10 @@ from ..const import (
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
+    CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    BUDGET_CURRENCIES,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -98,6 +100,7 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_BUDGET_YEARLY: float,
     CONF_BUDGET_ALERTS_ENABLED: bool,
     CONF_BUDGET_ALERT_THRESHOLD: int,
+    CONF_BUDGET_CURRENCY: str,
 }
 
 
@@ -144,6 +147,10 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "yearly": options.get(CONF_BUDGET_YEARLY, 0.0),
             "alerts_enabled": options.get(CONF_BUDGET_ALERTS_ENABLED, False),
             "alert_threshold_pct": options.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
+            "currency": options.get(CONF_BUDGET_CURRENCY, "EUR"),
+            "currency_symbol": BUDGET_CURRENCIES.get(
+                options.get(CONF_BUDGET_CURRENCY, "EUR"), "€"
+            ),
         },
     }
 
@@ -321,7 +328,7 @@ async def ws_get_budget_status(
                 if h_entry.get("type") != "completed":
                     continue
                 cost = h_entry.get("cost")
-                if cost is None:
+                if not isinstance(cost, (int, float)):
                     continue
                 ts = h_entry.get("timestamp", "")
                 try:
@@ -333,6 +340,9 @@ async def ws_get_budget_status(
                     if entry_dt.month == now.month:
                         monthly_spent += cost
 
+    currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, "EUR"))
+    currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+
     connection.send_result(
         msg["id"],
         {
@@ -341,6 +351,7 @@ async def ws_get_budget_status(
             "yearly_budget": yearly_budget,
             "yearly_spent": round(yearly_spent, 2),
             "alert_threshold_pct": threshold_pct,
+            "currency_symbol": currency_symbol,
         },
     )
 

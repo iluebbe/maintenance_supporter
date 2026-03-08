@@ -507,12 +507,14 @@
         "title": "Budgetinstellingen",
         "description": "Stel maandelijkse en jaarlijkse onderhoudsbudgetten in om uitgaven bij te houden.",
         "data": {
+          "budget_currency": "Valuta",
           "budget_monthly": "Maandelijks budget",
           "budget_yearly": "Jaarlijks budget",
           "budget_alerts_enabled": "Budgetwaarschuwingen inschakelen",
           "budget_alert_threshold": "Waarschuwingsdrempel (%)"
         },
         "data_description": {
+          "budget_currency": "Valuta voor budgetweergave en meldingen.",
           "budget_monthly": "Maximale maandelijkse onderhoudsuitgaven. Stel in op 0 om uit te schakelen.",
           "budget_yearly": "Maximale jaarlijkse onderhoudsuitgaven. Stel in op 0 om uit te schakelen.",
           "budget_alerts_enabled": "Een melding verzenden wanneer uitgaven de waarschuwingsdrempel overschrijden.",

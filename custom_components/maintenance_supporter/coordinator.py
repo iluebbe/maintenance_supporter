@@ -21,8 +21,10 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
+    CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
+    BUDGET_CURRENCIES,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
@@ -156,7 +158,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Expose counter delta data for frontend visualization
             tc = task.trigger_config
             if tc and tc.get("type") == "counter" and tc.get("trigger_delta_mode"):
-                baseline = tc.get("trigger_baseline_value")
+                # Check per-entity _trigger_state first, fall back to flat key
+                baseline = None
+                trigger_state = tc.get("_trigger_state", {})
+                for eid in (tc.get("entity_ids") or [tc.get("entity_id")]):
+                    if eid:
+                        es = trigger_state.get(eid, {})
+                        if "baseline_value" in es:
+                            baseline = es["baseline_value"]
+                            break
+                if baseline is None:
+                    baseline = tc.get("trigger_baseline_value")
                 if baseline is not None and task._trigger_current_value is not None:
                     task_result["_trigger_current_delta"] = (
                         task._trigger_current_value - baseline
@@ -732,6 +744,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if monthly_budget <= 0 and yearly_budget <= 0:
             return
 
+        currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, "EUR"))
+        currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
+
         # Use cached budget totals (recalculate if stale or missing)
         cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(
             "_budget_cache"
@@ -747,11 +762,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Check monthly
         if monthly_budget > 0 and monthly_spent >= monthly_budget * threshold_pct:
-            await nm.async_budget_alert("monthly", monthly_spent, monthly_budget)
+            await nm.async_budget_alert(
+                "monthly", monthly_spent, monthly_budget, currency_symbol
+            )
 
         # Check yearly
         if yearly_budget > 0 and yearly_spent >= yearly_budget * threshold_pct:
-            await nm.async_budget_alert("yearly", yearly_spent, yearly_budget)
+            await nm.async_budget_alert(
+                "yearly", yearly_spent, yearly_budget, currency_symbol
+            )
 
     # --- Helpers ---
 

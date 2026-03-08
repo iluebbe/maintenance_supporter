@@ -29,6 +29,7 @@ import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
+import "./components/settings-view";
 import { renderTriggerSection, type SparklineContext } from "./renderers/sparkline";
 import { renderPredictionSection } from "./renderers/prediction";
 import { renderWeibullSection } from "./renderers/weibull";
@@ -70,6 +71,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _dismissedSuggestions = new Set<string>();
 
   // Dashboard redesign state
+  @state() private _overviewTab: "dashboard" | "settings" = "dashboard";
   @state() private _activeTab: "overview" | "history" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
@@ -281,6 +283,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           times_performed: task.times_performed,
           total_cost: task.total_cost,
           interval_days: task.interval_days ?? null,
+          interval_anchor: task.interval_anchor ?? null,
           history: task.history || [],
           enabled: task.enabled,
           nfc_tag_id: task.nfc_tag_id ?? null,
@@ -522,48 +525,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     dlg?.openForTask(entryId, taskId, objectName, taskName);
   }
 
-  private async _exportCsv(): Promise<void> {
-    try {
-      const result = await this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/csv/export" }) as { csv: string };
-      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "maintenance_export.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
-  }
-
-  private _triggerImportCsv(): void {
-    const input = this.shadowRoot?.querySelector("input[type=file]") as HTMLInputElement | null;
-    if (input) { input.value = ""; input.click(); }
-  }
-
-  private async _handleCsvFile(e: Event): Promise<void> {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/csv/import",
-        csv_content: text,
-      }) as { created: number; total: number };
-      await this._loadData();
-      const dlg = this.shadowRoot?.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
-      await dlg?.confirm({
-        title: "Import",
-        message: t("import_result", this._lang).replace("{created}", String(result.created)).replace("{total}", String(result.total)),
-        confirmText: "OK",
-      });
-    } catch {
-      this._showToast(t("action_error", this._lang));
-    }
-  }
-
   private _onDialogEvent = async (): Promise<void> => {
     try { await this._loadData(); } catch { /* subscription will sync */ }
   };
@@ -649,6 +610,30 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _renderOverview() {
+    const L = this._lang;
+    return html`
+      <div class="tab-bar">
+        <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
+          @click=${() => { this._overviewTab = "dashboard"; }}>
+          ${t("dashboard", L)}
+        </div>
+        <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
+          @click=${() => { this._overviewTab = "settings"; }}>
+          ${t("settings", L)}
+        </div>
+      </div>
+      ${this._overviewTab === "dashboard"
+        ? this._renderDashboard()
+        : html`<maintenance-settings-view
+            .hass=${this.hass}
+            .features=${this._features}
+            .budget=${this._budget}
+            @settings-changed=${this._onSettingsChanged}
+          ></maintenance-settings-view>`}
+    `;
+  }
+
+  private _renderDashboard() {
     const s = this._stats;
     const rows = this._taskRows;
     const L = this._lang;
@@ -708,9 +693,6 @@ export class MaintenanceSupporterPanel extends LitElement {
         >
           ${t("new_object", L)}
         </ha-button>
-        <ha-button @click=${this._exportCsv}>${t("export_csv", L)}</ha-button>
-        <ha-button @click=${this._triggerImportCsv}>${t("import_csv", L)}</ha-button>
-        <input type="file" accept=".csv" style="display:none" @change=${this._handleCsvFile} />
       </div>
 
       ${rows.length === 0
@@ -728,6 +710,10 @@ export class MaintenanceSupporterPanel extends LitElement {
 
       ${this._features.groups ? this._renderGroupsSection() : nothing}
     `;
+  }
+
+  private async _onSettingsChanged(): Promise<void> {
+    await this._loadData();
   }
 
   private _renderGroupsSection() {
@@ -764,6 +750,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const b = this._budget;
     if (!b) return nothing;
     const L = this._lang;
+    const cs = b.currency_symbol || "€";
     const bars: { label: string; spent: number; budget: number }[] = [];
     if (b.monthly_budget > 0) bars.push({ label: t("budget_monthly", L), spent: b.monthly_spent, budget: b.monthly_budget });
     if (b.yearly_budget > 0) bars.push({ label: t("budget_yearly", L), spent: b.yearly_spent, budget: b.yearly_budget });
@@ -778,7 +765,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <div class="budget-item">
               <div class="budget-label">
                 <span>${bar.label}</span>
-                <span>${bar.spent.toFixed(2)} / ${bar.budget.toFixed(2)}</span>
+                <span>${bar.spent.toFixed(2)} / ${bar.budget.toFixed(2)} ${cs}</span>
               </div>
               <div class="budget-bar">
                 <div class="budget-bar-fill" style="width:${pct}%; background:${color}"></div>
@@ -1318,7 +1305,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("avg_cost", L)}</div>
-          <div class="kpi-value">${avgCost.toFixed(0)} €</div>
+          <div class="kpi-value">${avgCost.toFixed(0)} ${this._budget?.currency_symbol || "€"}</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("avg_duration", L)}</div>
@@ -1403,7 +1390,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="activity-icon">${getIcon(entry.type)}</span>
             <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
             <span class="activity-note">${entry.notes || "—"}</span>
-            ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}€</span>` : nothing}
+            ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}${this._budget?.currency_symbol || "€"}</span>` : nothing}
             ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
           </div>
         `)}
@@ -1488,7 +1475,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
           ${entry.notes ? html`<div>${entry.notes}</div>` : nothing}
           <div class="history-details">
-            ${entry.cost != null ? html`<span>${t("cost", L)}: ${entry.cost.toFixed(2)} €</span>` : nothing}
+            ${entry.cost != null ? html`<span>${t("cost", L)}: ${entry.cost.toFixed(2)} ${this._budget?.currency_symbol || "€"}</span>` : nothing}
             ${entry.duration != null ? html`<span>${t("duration", L)}: ${entry.duration} min</span>` : nothing}
             ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}</span>` : nothing}
           </div>

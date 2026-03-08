@@ -82,7 +82,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._scheduleType = task.schedule_type;
     this._intervalDays = task.interval_days?.toString() || "30";
     this._warningDays = task.warning_days.toString();
-    this._intervalAnchor = (task as any).interval_anchor || "completion";
+    this._intervalAnchor = task.interval_anchor || "completion";
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
@@ -222,10 +222,15 @@ export class MaintenanceTaskDialog extends LitElement {
 
       if (this._taskId) data.task_id = this._taskId;
 
-      if (this._scheduleType !== "manual" && this._intervalDays) {
-        data.interval_days = parseInt(this._intervalDays, 10);
-        data.interval_anchor = this._intervalAnchor;
-      } else if (this._taskId && this._scheduleType === "manual") {
+      if (this._scheduleType !== "manual") {
+        if (this._intervalDays) {
+          data.interval_days = parseInt(this._intervalDays, 10);
+          data.interval_anchor = this._intervalAnchor;
+        } else if (this._taskId) {
+          data.interval_days = null;
+          data.interval_anchor = "completion";
+        }
+      } else if (this._taskId) {
         data.interval_days = null;
         data.interval_anchor = "completion";
       }

@@ -182,8 +182,15 @@ class EntityAnalyzer:
         if len(values) >= 5:
             sorted_vals = sorted(values)
             n = len(sorted_vals)
-            info.percentile_10 = round(sorted_vals[max(0, int(n * 0.1))], 3)
-            info.percentile_90 = round(sorted_vals[min(n - 1, int(n * 0.9))], 3)
+            idx_10 = (n - 1) * 0.1
+            lo, hi = int(idx_10), min(int(idx_10) + 1, n - 1)
+            frac = idx_10 - lo
+            info.percentile_10 = round(sorted_vals[lo] + frac * (sorted_vals[hi] - sorted_vals[lo]), 3)
+
+            idx_90 = (n - 1) * 0.9
+            lo, hi = int(idx_90), min(int(idx_90) + 1, n - 1)
+            frac = idx_90 - lo
+            info.percentile_90 = round(sorted_vals[lo] + frac * (sorted_vals[hi] - sorted_vals[lo]), 3)
 
         # Recent trend (last 7 days vs previous 7 days)
         if len(values) >= 14:

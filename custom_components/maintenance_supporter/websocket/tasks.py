@@ -316,9 +316,10 @@ async def ws_create_task(
     if msg.get("custom_icon") is not None:
         task_data["custom_icon"] = msg["custom_icon"]
     if msg.get("nfc_tag_id") is not None:
-        task_data["nfc_tag_id"] = msg["nfc_tag_id"]
-        if msg["nfc_tag_id"]:
-            nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"])
+        nfc_val = msg["nfc_tag_id"] or None  # normalise "" → None
+        task_data["nfc_tag_id"] = nfc_val
+        if nfc_val:
+            nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
             if nfc_warn:
                 tc_warnings.append(nfc_warn)
     if msg.get("checklist"):
@@ -437,11 +438,13 @@ async def ws_update_task(
             )
             return
 
-    # Check NFC tag uniqueness if provided
-    if "nfc_tag_id" in msg and msg["nfc_tag_id"]:
-        nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"], exclude_task_id=task_id)
-        if nfc_warn:
-            tc_warnings.append(nfc_warn)
+    # Normalise empty NFC tag to None and check uniqueness
+    if "nfc_tag_id" in msg:
+        msg["nfc_tag_id"] = msg["nfc_tag_id"] or None
+        if msg["nfc_tag_id"]:
+            nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"], exclude_task_id=task_id)
+            if nfc_warn:
+                tc_warnings.append(nfc_warn)
 
     # Validate documentation_url if provided
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):

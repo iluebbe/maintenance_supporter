@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import voluptuous as vol
@@ -10,6 +11,8 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from ..const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @websocket_api.websocket_command(
@@ -33,6 +36,6 @@ async def ws_list_tags(
                 tag_name = item.get("name", "") if isinstance(item, dict) else getattr(item, "name", "")
                 tags.append({"id": tag_id, "name": tag_name or tag_id})
         except Exception:  # noqa: BLE001
-            pass
+            _LOGGER.warning("Failed to read NFC tag registry", exc_info=True)
 
     connection.send_result(msg["id"], {"tags": tags})

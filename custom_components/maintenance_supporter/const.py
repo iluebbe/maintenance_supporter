@@ -178,6 +178,20 @@ CONF_BUDGET_MONTHLY = "budget_monthly"
 CONF_BUDGET_YEARLY = "budget_yearly"
 CONF_BUDGET_ALERTS_ENABLED = "budget_alerts_enabled"
 CONF_BUDGET_ALERT_THRESHOLD = "budget_alert_threshold"
+CONF_BUDGET_CURRENCY = "budget_currency"
+
+BUDGET_CURRENCIES: dict[str, str] = {
+    "EUR": "€",
+    "USD": "$",
+    "GBP": "£",
+    "JPY": "¥",
+    "CHF": "Fr",
+    "CAD": "C$",
+    "AUD": "A$",
+    "CNY": "¥",
+    "INR": "₹",
+    "BRL": "R$",
+}
 
 # --- Groups ---
 CONF_GROUPS = "groups"

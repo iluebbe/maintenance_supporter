@@ -17,20 +17,35 @@ import hashlib
 import json
 import math
 import random
+import re
 import sqlite3
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "docker" / "config-dev" / "home-assistant_v2.db"
+CONFIG_YAML = Path(__file__).parent.parent / "docker" / "config-dev" / "configuration.yaml"
 
-# Reference date: "now" for the generated data.
-# Use a fixed date so the script is deterministic.
-NOW = datetime(2026, 3, 7, 12, 0, 0, tzinfo=timezone.utc)
+# Reference date: "now" — dynamic so data is always relative to today.
+NOW = datetime.now(timezone.utc)
 # Generate ~13 months of history
 START = NOW - timedelta(days=395)
 
 random.seed(42)  # Reproducible data
+
+
+# ---------------------------------------------------------------------------
+# Date helpers — same offsets as seed_history.py
+# ---------------------------------------------------------------------------
+
+def _dt(days_before: int, h: int = 10, m: int = 0) -> datetime:
+    """UTC datetime for N days before NOW, at given hour:minute."""
+    return NOW.replace(hour=h, minute=m, second=0, microsecond=0) - timedelta(days=days_before)
+
+
+def _ts(days_before: int, h: int = 10, m: int = 0) -> str:
+    """ISO timestamp string for N days before NOW."""
+    return _dt(days_before, h, m).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -287,7 +302,7 @@ NUMERIC_ENTITIES: list[tuple[str, str, bool, bool, str]] = [
     ("input_number.pool_ph_level", "pH", True, False, "pool_ph"),
     ("input_number.freezer_temperature", "\u00b0C", True, False, "freezer_temp"),
     ("input_number.car_odometer", "km", False, True, "car_odometer"),
-    ("input_number.printer_page_count", "pages", False, True, "printer_pages"),
+    ("input_number.printer_print_hours", "h", False, True, "printer_hours"),
     ("input_number.generator_run_cycles", "cycles", False, True, "generator_cycles"),
     ("input_number.water_filter_flow_rate", "L/min", True, False, "filter_flow"),
     ("input_number.water_filter_total_liters", "L", False, True, "filter_liters"),
@@ -323,7 +338,7 @@ MAINTENANCE_ENTITIES: list[tuple[str, str, str, int, int]] = [
     ("sensor.hvac_system_filter_replacement", "HVAC System", "Filter Replacement", 90, 14),
     ("sensor.family_car_oil_change", "Family Car", "Oil Change", 365, 30),
     ("sensor.family_car_tire_rotation", "Family Car", "Tire Rotation", 180, 14),
-    ("sensor.washing_machine_drum_cleaning", "Washing Machine", "Drum Cleaning", 180, 14),
+    ("sensor.washing_machine_drum_cleaning", "Washing Machine", "Drum Cleaning", 60, 14),
     ("sensor.water_softener_refill_salt", "Water Softener", "Refill Salt", 60, 7),
     ("sensor.workshop_compressor_oil_change", "Workshop Compressor", "Oil Change", 365, 14),
     ("sensor.workshop_compressor_air_filter", "Workshop Compressor", "Air Filter", 180, 14),
@@ -342,130 +357,130 @@ MAINTENANCE_ENTITIES: list[tuple[str, str, str, int, int]] = [
 
 
 # ---------------------------------------------------------------------------
-# History data (copy from seed_history.py for maintenance state generation)
+# History data — uses same day offsets as seed_history.py
 # ---------------------------------------------------------------------------
 
 HISTORY_DATA: dict[str, dict[str, list[dict]]] = {
     "HVAC System": {
         "Filter Replacement": [
-            {"timestamp": "2025-04-10T09:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-05T14:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-10-02T10:15:00+02:00", "type": "completed"},
-            {"timestamp": "2026-01-08T11:00:00+01:00", "type": "completed"},
+            {"timestamp": _ts(322, 9, 30), "type": "completed"},
+            {"timestamp": _ts(235, 14, 0), "type": "completed"},
+            {"timestamp": _ts(146, 10, 15), "type": "completed"},
+            {"timestamp": _ts(59, 11, 0), "type": "completed"},
         ],
     },
     "Family Car": {
         "Oil Change": [
-            {"timestamp": "2025-06-20T08:00:00+02:00", "type": "completed"},
+            {"timestamp": _ts(261, 8, 0), "type": "completed"},
         ],
         "Tire Rotation": [
-            {"timestamp": "2025-05-01T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-11-01T09:30:00+01:00", "type": "completed"},
+            {"timestamp": _ts(311, 10, 0), "type": "completed"},
+            {"timestamp": _ts(127, 9, 30), "type": "completed"},
         ],
     },
     "Washing Machine": {
         "Drum Cleaning": [
-            {"timestamp": "2025-07-01T18:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-03T17:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-09-07T19:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-10-05T18:15:00+02:00", "type": "completed"},
-            {"timestamp": "2025-11-09T17:00:00+01:00", "type": "completed"},
-            {"timestamp": "2025-12-14T18:30:00+01:00", "type": "completed"},
-            {"timestamp": "2026-01-18T17:45:00+01:00", "type": "completed"},
-            {"timestamp": "2026-02-22T18:00:00+01:00", "type": "completed"},
+            {"timestamp": _ts(250, 18, 0), "type": "completed"},
+            {"timestamp": _ts(219, 17, 30), "type": "completed"},
+            {"timestamp": _ts(186, 19, 0), "type": "completed"},
+            {"timestamp": _ts(153, 18, 15), "type": "completed"},
+            {"timestamp": _ts(118, 17, 0), "type": "completed"},
+            {"timestamp": _ts(83, 18, 30), "type": "completed"},
+            {"timestamp": _ts(49, 17, 45), "type": "completed"},
+            {"timestamp": _ts(14, 18, 0), "type": "completed"},
         ],
     },
     "Water Softener": {
         "Refill Salt": [
-            {"timestamp": "2025-05-10T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-25T09:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-08T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-20T00:00:00+02:00", "type": "skipped"},
-            {"timestamp": "2025-10-15T10:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-12-01T09:00:00+01:00", "type": "completed"},
-            {"timestamp": "2026-01-15T10:00:00+01:00", "type": "completed"},
-            {"timestamp": "2026-02-28T09:45:00+01:00", "type": "completed"},
+            {"timestamp": _ts(302, 10, 0), "type": "completed"},
+            {"timestamp": _ts(256, 9, 30), "type": "completed"},
+            {"timestamp": _ts(212, 11, 0), "type": "completed"},
+            {"timestamp": _ts(170, 0, 0), "type": "skipped"},
+            {"timestamp": _ts(155, 10, 30), "type": "completed"},
+            {"timestamp": _ts(110, 9, 0), "type": "completed"},
+            {"timestamp": _ts(52, 10, 0), "type": "completed"},
+            {"timestamp": _ts(8, 9, 45), "type": "completed"},
         ],
     },
     "Workshop Compressor": {
         "Oil Change": [
-            {"timestamp": "2025-09-15T14:00:00+02:00", "type": "completed"},
+            {"timestamp": _ts(174, 14, 0), "type": "completed"},
         ],
         "Air Filter": [
-            {"timestamp": "2025-06-01T15:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-12-05T14:30:00+01:00", "type": "completed"},
+            {"timestamp": _ts(280, 15, 0), "type": "completed"},
+            {"timestamp": _ts(93, 14, 30), "type": "completed"},
         ],
     },
     "Water Filter System": {
         "Cartridge Replacement": [
-            {"timestamp": "2024-05-15T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2024-11-20T11:00:00+01:00", "type": "completed"},
-            {"timestamp": "2025-05-20T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-11-10T10:30:00+01:00", "type": "completed"},
+            {"timestamp": _ts(663, 10, 0), "type": "completed"},
+            {"timestamp": _ts(474, 11, 0), "type": "completed"},
+            {"timestamp": _ts(293, 11, 0), "type": "completed"},
+            {"timestamp": _ts(118, 10, 30), "type": "completed"},
         ],
     },
     "Swimming Pool": {
         "pH Test": [
-            {"timestamp": "2025-05-05T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-05-19T09:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-02T10:15:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-16T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-30T09:45:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-14T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-28T10:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-11T09:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-25T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-09-08T10:15:00+02:00", "type": "completed"},
-            {"timestamp": "2025-09-22T10:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-10-06T10:30:00+02:00", "type": "completed"},
+            {"timestamp": _ts(307, 10, 0), "type": "completed"},
+            {"timestamp": _ts(293, 9, 30), "type": "completed"},
+            {"timestamp": _ts(279, 10, 15), "type": "completed"},
+            {"timestamp": _ts(265, 10, 0), "type": "completed"},
+            {"timestamp": _ts(251, 9, 45), "type": "completed"},
+            {"timestamp": _ts(237, 10, 0), "type": "completed"},
+            {"timestamp": _ts(223, 10, 30), "type": "completed"},
+            {"timestamp": _ts(209, 9, 30), "type": "completed"},
+            {"timestamp": _ts(195, 10, 0), "type": "completed"},
+            {"timestamp": _ts(181, 10, 15), "type": "completed"},
+            {"timestamp": _ts(167, 10, 0), "type": "completed"},
+            {"timestamp": _ts(153, 10, 30), "type": "completed"},
         ],
         "Water Treatment": [
-            {"timestamp": "2025-05-05T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-05-12T11:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-05-19T10:45:00+02:00", "type": "completed"},
-            {"timestamp": "2025-05-26T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-02T11:15:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-09T10:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-16T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-23T11:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-06-30T10:45:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-07T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-14T11:15:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-21T10:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-07-28T11:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-04T11:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-11T10:45:00+02:00", "type": "completed"},
+            {"timestamp": _ts(307, 11, 0), "type": "completed"},
+            {"timestamp": _ts(300, 11, 30), "type": "completed"},
+            {"timestamp": _ts(293, 10, 45), "type": "completed"},
+            {"timestamp": _ts(286, 11, 0), "type": "completed"},
+            {"timestamp": _ts(279, 11, 15), "type": "completed"},
+            {"timestamp": _ts(272, 10, 30), "type": "completed"},
+            {"timestamp": _ts(265, 11, 0), "type": "completed"},
+            {"timestamp": _ts(258, 11, 30), "type": "completed"},
+            {"timestamp": _ts(251, 10, 45), "type": "completed"},
+            {"timestamp": _ts(244, 11, 0), "type": "completed"},
+            {"timestamp": _ts(237, 11, 15), "type": "completed"},
+            {"timestamp": _ts(230, 10, 30), "type": "completed"},
+            {"timestamp": _ts(223, 11, 0), "type": "completed"},
+            {"timestamp": _ts(216, 11, 30), "type": "completed"},
+            {"timestamp": _ts(209, 10, 45), "type": "completed"},
         ],
     },
     "3D Printer": {
         "Nozzle Replacement": [
-            {"timestamp": "2025-08-10T16:00:00+02:00", "type": "completed"},
+            {"timestamp": _ts(210, 16, 0), "type": "completed"},
         ],
         "Lubrication": [
-            {"timestamp": "2025-06-15T20:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-08-14T19:30:00+02:00", "type": "completed"},
-            {"timestamp": "2025-10-13T20:00:00+02:00", "type": "completed"},
-            {"timestamp": "2025-12-12T19:45:00+01:00", "type": "completed"},
+            {"timestamp": _ts(266, 20, 0), "type": "completed"},
+            {"timestamp": _ts(206, 19, 30), "type": "completed"},
+            {"timestamp": _ts(146, 20, 0), "type": "completed"},
+            {"timestamp": _ts(86, 19, 45), "type": "completed"},
         ],
     },
     "Electric Car": {
         "Tire Pressure Check": [
-            {"timestamp": "2025-11-15T09:00:00+01:00", "type": "completed"},
-            {"timestamp": "2025-12-20T10:00:00+01:00", "type": "completed"},
-            {"timestamp": "2026-01-25T09:30:00+01:00", "type": "completed"},
-            {"timestamp": "2026-02-28T10:15:00+01:00", "type": "completed"},
+            {"timestamp": _ts(113, 9, 0), "type": "completed"},
+            {"timestamp": _ts(78, 10, 0), "type": "completed"},
+            {"timestamp": _ts(42, 9, 30), "type": "completed"},
+            {"timestamp": _ts(8, 10, 15), "type": "completed"},
         ],
         "Brake Pad Inspection": [
-            {"timestamp": "2025-10-01T08:30:00+02:00", "type": "completed"},
+            {"timestamp": _ts(158, 8, 30), "type": "completed"},
         ],
         "Cabin Air Filter": [
-            {"timestamp": "2025-09-15T14:00:00+02:00", "type": "completed"},
+            {"timestamp": _ts(174, 14, 0), "type": "completed"},
         ],
         "Wiper Blades": [
-            {"timestamp": "2025-10-20T11:00:00+02:00", "type": "completed"},
+            {"timestamp": _ts(139, 11, 0), "type": "completed"},
         ],
         "Battery Health Check": [
-            {"timestamp": "2025-11-01T10:00:00+01:00", "type": "completed"},
+            {"timestamp": _ts(127, 10, 0), "type": "completed"},
         ],
         "Charging Cycle Log": [],
     },
@@ -484,29 +499,31 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
     data["outdoor_humidity"] = gen_seasonal_humidity(outdoor_temp)
 
     # --- HVAC filter airflow: degrades ~0.25%/day, resets on filter change ---
-    # trigger_values at completion: 72, 68, 75, 64 → rate ~0.25/day
+    # trigger_values at completion: 57, 62, 68, 55 → rate ~0.25/day
+    # Resets at each Filter Replacement completion (same offsets as seed_history)
     data["hvac_airflow"] = gen_degrading_sensor(
         START, NOW, initial=92, rate_per_day=0.25,
         reset_events=[
-            (datetime(2025, 4, 10, 9, 30, tzinfo=timezone.utc), 92),
-            (datetime(2025, 7, 5, 14, 0, tzinfo=timezone.utc), 90),
-            (datetime(2025, 10, 2, 10, 15, tzinfo=timezone.utc), 93),
-            (datetime(2026, 1, 8, 11, 0, tzinfo=timezone.utc), 91),
+            (_dt(322, 9, 30), 92),   # Filter Replacement #1
+            (_dt(235, 14, 0), 90),   # Filter Replacement #2
+            (_dt(146, 10, 15), 93),  # Filter Replacement #3
+            (_dt(59, 11, 0), 91),    # Filter Replacement #4
         ],
         noise_std=1.5, low=40, high=100,
     )
 
-    # Salt level: drops ~1.5%/day, refills
+    # Salt level: drops ~1.2%/day, refills at each Refill Salt completion
     data["salt_level"] = gen_degrading_sensor(
         START, NOW, initial=80, rate_per_day=1.2,
         reset_events=[
-            (datetime(2025, 5, 10, 10, 0, tzinfo=timezone.utc), 85),
-            (datetime(2025, 6, 25, 9, 30, tzinfo=timezone.utc), 90),
-            (datetime(2025, 8, 8, 11, 0, tzinfo=timezone.utc), 95),
-            (datetime(2025, 10, 15, 10, 30, tzinfo=timezone.utc), 88),
-            (datetime(2025, 12, 1, 9, 0, tzinfo=timezone.utc), 92),
-            (datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc), 90),
-            (datetime(2026, 2, 28, 9, 45, tzinfo=timezone.utc), 85),
+            (_dt(302, 10, 0), 85),   # Refill Salt #1
+            (_dt(256, 9, 30), 90),   # Refill Salt #2
+            (_dt(212, 11, 0), 95),   # Refill Salt #3
+            # skip at 170 — no reset
+            (_dt(155, 10, 30), 88),  # Refill Salt #5
+            (_dt(110, 9, 0), 92),    # Refill Salt #6
+            (_dt(52, 10, 0), 90),    # Refill Salt #7
+            (_dt(8, 9, 45), 85),     # Refill Salt #8
         ],
         noise_std=2.0, low=5, high=100,
     )
@@ -517,32 +534,40 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
     # Freezer temperature
     data["freezer_temp"] = gen_stable_sensor(START, NOW, -20, 0.5, -25, -15)
 
-    # Car odometer
-    data["car_odometer"] = gen_monotonic_counter(START, NOW, 42000, 35, 15)
+    # Car odometer — target end value ~55700
+    # effective daily = 35 * 0.8 = 28, over 395d = 11060
+    # initial 44000 + 11060 ≈ 55060 (close to 55700 with noise)
+    data["car_odometer"] = gen_monotonic_counter(START, NOW, 44000, 35, 15)
 
-    # Printer page count
-    data["printer_pages"] = gen_monotonic_counter(START, NOW, 2800, 8, 5)
+    # 3D Printer print hours — target end value ~1800
+    # effective daily = 1.9 * 0.8 = 1.52, over 395d = 600
+    # initial 1200 + 600 = 1800
+    data["printer_hours"] = gen_monotonic_counter(START, NOW, 1200, 1.9, 1.0)
 
-    # Generator run cycles
-    data["generator_cycles"] = gen_monotonic_counter(START, NOW, 1100, 3, 2)
+    # Generator run cycles — target end value ~1250
+    # effective daily = 0.5 * 0.8 = 0.4, over 395d = 158
+    # initial 1090 + 158 ≈ 1248
+    data["generator_cycles"] = gen_monotonic_counter(START, NOW, 1090, 0.5, 0.3)
 
     # Water filter flow rate: degrades until cartridge replacement
-    # trigger_values at completion: 1.8 L/min, 1.9 L/min (threshold < 2.0)
-    # At START the old cartridge is already degraded (~2.5 L/min)
-    # May 20: replaced at 1.8 → new cartridge resets to 4.5
-    # Nov 10: replaced at 1.9 → new cartridge resets to 4.3
-    # Currently degrading again (~2.6 L/min)
+    # trigger_values at completion: 2.1, 1.5, 1.8, 1.9 (threshold < 2.0)
+    # Resets at Cartridge Replacement completions
     data["filter_flow"] = gen_degrading_sensor(
         START, NOW, initial=3.5, rate_per_day=0.015,
         reset_events=[
-            (datetime(2025, 5, 20, 11, 0, tzinfo=timezone.utc), 4.5),
-            (datetime(2025, 11, 10, 10, 30, tzinfo=timezone.utc), 4.3),
+            (_dt(663, 10, 0), 4.5),  # Cartridge Replacement #1
+            (_dt(474, 11, 0), 4.3),  # Cartridge Replacement #2
+            (_dt(293, 11, 0), 4.5),  # Cartridge Replacement #3
+            (_dt(118, 10, 30), 4.3), # Cartridge Replacement #4
         ],
         noise_std=0.08, low=1.0, high=5.0,
     )
 
-    # Water filter total liters
-    data["filter_liters"] = gen_monotonic_counter(START, NOW, 3000, 40, 15)
+    # Water filter total liters — target end value ~16500
+    # baseline_value at last replacement (118d ago) = 14500
+    # increase since: ~2000 over 118d = ~17/d effective, avg ~21
+    # initial (395d ago): 16500 - 21*0.8*395 ≈ 9860
+    data["filter_liters"] = gen_monotonic_counter(START, NOW, 9860, 21, 8)
 
     # Indoor temperature (stable around 21-22)
     data["indoor_temp"] = gen_stable_sensor(START, NOW, 21.5, 0.5, 18, 26)
@@ -550,58 +575,53 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
     # Indoor humidity
     data["indoor_humidity"] = gen_stable_sensor(START, NOW, 45, 3, 30, 65)
 
-    # EV tire pressures — synced with maintenance events:
-    # Nov 15: all OK (trigger_value=2.4, notes: 2.4/2.4/2.5/2.5)
-    # Dec 20: FR low at 2.1, refilled (trigger_value=2.1)
-    # Jan 25: OK (trigger_value=2.5)
-    # Feb 28: slight decrease (trigger_value=2.3)
-    # → Currently Mar 7: should trend slightly downward
+    # EV tire pressures — synced with maintenance events
+    # Tire Pressure Check at days_ago: 113, 78, 42, 8
+    # trigger_values: 2.4, 2.3, 2.3, 2.2
     #
-    # Implicit monthly top-ups are generated before the first recorded
-    # maintenance to prevent unrealistic leak accumulation over ~9 months.
-    # Fast leak on FR starts after Nov 15 check (valve issue develops),
-    # fixed at Dec 20 refill.
+    # Implicit monthly top-ups before first recorded maintenance prevent
+    # unrealistic leak accumulation. Fast leak on FR after first check,
+    # fixed at second check refill.
     temp_map = {int(ts): temp for ts, temp in outdoor_temp}
     for tire_key, tire_cfg in [
         ("ev_tire_fl", {  # Front Left: stable, no leak issues
             "base": 2.42, "leak": 0.0005,
-            "topups": [  # (date, new_base) at each maintenance check
-                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.42),
-                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),  # refilled
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
+            "topups": [
+                (_dt(113, 9, 0), 2.42),
+                (_dt(78, 10, 0), 2.52),   # refilled
+                (_dt(42, 9, 30), 2.50),
+                (_dt(8, 10, 15), 2.45),
             ],
             "fast_leak": None,
         }),
-        ("ev_tire_fr", {  # Front Right: valve issue develops after Nov check
+        ("ev_tire_fr", {  # Front Right: valve issue develops after first check
             "base": 2.42, "leak": 0.0005,
             "topups": [
-                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.40),  # OK at check
-                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),  # refilled
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
+                (_dt(113, 9, 0), 2.40),   # OK at check
+                (_dt(78, 10, 0), 2.52),    # refilled
+                (_dt(42, 9, 30), 2.50),
+                (_dt(8, 10, 15), 2.45),
             ],
-            # Fast leak after Nov check, fixed at Dec 20 refill
-            "fast_leak": (datetime(2025, 11, 16, tzinfo=timezone.utc),
-                          datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 0.009),
+            # Fast leak after first check, fixed at second check refill
+            "fast_leak": (_dt(112, 9, 0), _dt(78, 10, 0), 0.009),
         }),
         ("ev_tire_rl", {  # Rear Left: stable
             "base": 2.52, "leak": 0.0004,
             "topups": [
-                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.50),
-                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
+                (_dt(113, 9, 0), 2.50),
+                (_dt(78, 10, 0), 2.52),
+                (_dt(42, 9, 30), 2.50),
+                (_dt(8, 10, 15), 2.45),
             ],
             "fast_leak": None,
         }),
         ("ev_tire_rr", {  # Rear Right: stable
             "base": 2.52, "leak": 0.0004,
             "topups": [
-                (datetime(2025, 11, 15, 9, 0, tzinfo=timezone.utc), 2.50),
-                (datetime(2025, 12, 20, 10, 0, tzinfo=timezone.utc), 2.52),
-                (datetime(2026, 1, 25, 9, 30, tzinfo=timezone.utc), 2.50),
-                (datetime(2026, 2, 28, 10, 15, tzinfo=timezone.utc), 2.45),
+                (_dt(113, 9, 0), 2.50),
+                (_dt(78, 10, 0), 2.52),
+                (_dt(42, 9, 30), 2.50),
+                (_dt(8, 10, 15), 2.45),
             ],
             "fast_leak": None,
         }),
@@ -648,8 +668,10 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
             t += timedelta(hours=4)
         data[tire_key] = pts
 
-    # EV odometer
-    data["ev_odometer"] = gen_monotonic_counter(START, NOW, 25000, 30, 15)
+    # EV odometer — target end value ~33000
+    # effective daily = 32 * 0.8 = 25.6, over 395d = 10112
+    # initial 23000 + 10112 ≈ 33112
+    data["ev_odometer"] = gen_monotonic_counter(START, NOW, 23000, 32, 15)
 
     # EV battery SoH
     data["ev_soh"] = gen_battery_soh(START, NOW, 97)
@@ -680,15 +702,16 @@ def generate_all_data() -> dict[str, list[tuple[float, float | str]]]:
         t += timedelta(hours=1)
     data["solar_output"] = points
 
-    # HVAC energy (counter, seasonal - more in winter)
+    # HVAC energy (counter, seasonal - more in winter) — target end ~1250
+    # avg hourly = 0.05, over 9480h ≈ 474. initial 780 + 474 ≈ 1254
     energy_points: list[tuple[float, float | str]] = []
     t = START
-    val = 800.0
+    val = 780.0
     while t < NOW:
         day_of_year = t.timetuple().tm_yday
         # More energy in winter
         seasonal_mult = 1 + 0.5 * math.cos(2 * math.pi * (day_of_year - 15) / 365)
-        hourly_kwh = 0.15 * seasonal_mult * random.uniform(0.5, 1.5)
+        hourly_kwh = 0.05 * seasonal_mult * random.uniform(0.5, 1.5)
         val += hourly_kwh
         energy_points.append((t.timestamp(), round(val, 1)))
         t += timedelta(hours=1)
@@ -749,6 +772,12 @@ def get_or_create_attributes(
     return cur.lastrowid  # type: ignore[return-value]
 
 
+def _has_column(conn: sqlite3.Connection, table: str, column: str) -> bool:
+    """Check if a column exists in a table."""
+    cur = conn.execute(f"PRAGMA table_info({table})")
+    return any(row[1] == column for row in cur.fetchall())
+
+
 def get_or_create_statistics_meta(
     conn: sqlite3.Connection,
     statistic_id: str,
@@ -779,13 +808,23 @@ def get_or_create_statistics_meta(
     elif unit in ("L", "gal", "m\u00b3"):
         unit_class = "volume"
 
-    cur = conn.execute(
-        """INSERT INTO statistics_meta
-           (statistic_id, source, unit_of_measurement, unit_class,
-            has_mean, has_sum, name, mean_type)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (statistic_id, "recorder", unit, unit_class, has_mean, has_sum, None, 2),
-    )
+    # Handle schema differences — mean_type column may not exist
+    if _has_column(conn, "statistics_meta", "mean_type"):
+        cur = conn.execute(
+            """INSERT INTO statistics_meta
+               (statistic_id, source, unit_of_measurement, unit_class,
+                has_mean, has_sum, name, mean_type)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (statistic_id, "recorder", unit, unit_class, has_mean, has_sum, None, 2),
+        )
+    else:
+        cur = conn.execute(
+            """INSERT INTO statistics_meta
+               (statistic_id, source, unit_of_measurement, unit_class,
+                has_mean, has_sum, name)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (statistic_id, "recorder", unit, unit_class, has_mean, has_sum, None),
+        )
     return cur.lastrowid  # type: ignore[return-value]
 
 
@@ -909,6 +948,97 @@ def insert_states(
 
 
 # ---------------------------------------------------------------------------
+# Configuration.yaml auto-update
+# ---------------------------------------------------------------------------
+
+# entity_key -> step size (from configuration.yaml)
+ENTITY_STEPS: dict[str, float] = {
+    "hvac_filter_airflow": 1,
+    "water_softener_salt_level": 1,
+    "pool_ph_level": 0.1,
+    "freezer_temperature": 0.5,
+    "car_odometer": 1,
+    "printer_print_hours": 0.1,
+    "generator_run_cycles": 1,
+    "water_filter_flow_rate": 0.1,
+    "water_filter_total_liters": 1,
+    "outdoor_temperature": 0.5,
+    "outdoor_humidity": 1,
+    "indoor_temperature": 0.5,
+    "indoor_humidity": 1,
+    "ev_tire_pressure_fl": 0.1,
+    "ev_tire_pressure_fr": 0.1,
+    "ev_tire_pressure_rl": 0.1,
+    "ev_tire_pressure_rr": 0.1,
+    "ev_odometer": 1,
+    "ev_battery_soh": 0.1,
+    "ev_brake_pad_thickness": 0.1,
+    "solar_panel_output": 1,
+    "hvac_energy_kwh": 1,
+}
+
+
+def _round_to_step(value: float, step: float) -> float:
+    """Round value to the nearest step."""
+    return round(round(value / step) * step, 10)
+
+
+def _format_val(value: float, step: float) -> str:
+    """Format value for YAML (no trailing zeros for integers)."""
+    rounded = _round_to_step(value, step)
+    if step >= 1:
+        return str(int(rounded))
+    # Determine decimal places from step
+    decimals = len(str(step).rstrip("0").split(".")[-1]) if "." in str(step) else 0
+    return f"{rounded:.{decimals}f}"
+
+
+def update_configuration_yaml(
+    data: dict[str, list[tuple[float, float | str]]],
+) -> None:
+    """Update configuration.yaml initial values to match the last generated values."""
+    if not CONFIG_YAML.exists():
+        print(f"  WARNING: {CONFIG_YAML} not found, skipping")
+        return
+
+    # Extract last numeric value for each entity
+    last_values: dict[str, float] = {}
+    for entity_id, _unit, _hm, _hs, gen_key in NUMERIC_ENTITIES:
+        points = data.get(gen_key, [])
+        if not points:
+            continue
+        # entity key in yaml: strip "input_number." prefix
+        key = entity_id.replace("input_number.", "")
+        # Get the last numeric value
+        for ts, val in reversed(points):
+            if isinstance(val, (int, float)):
+                last_values[key] = float(val)
+                break
+
+    content = CONFIG_YAML.read_text(encoding="utf-8")
+    changed = 0
+
+    for entity_key, value in last_values.items():
+        step = ENTITY_STEPS.get(entity_key, 0.1)
+        new_val = _format_val(value, step)
+
+        pattern = rf"(  {re.escape(entity_key)}:\n(?:    .*\n)*?    initial: )([^\n]+)"
+        match = re.search(pattern, content)
+        if match:
+            old_val = match.group(2).strip()
+            if old_val != new_val:
+                content = content[:match.start(2)] + new_val + content[match.end(2):]
+                print(f"  {entity_key}: {old_val} -> {new_val}")
+                changed += 1
+
+    if changed:
+        CONFIG_YAML.write_text(content, encoding="utf-8")
+        print(f"  Updated {changed} initial values in configuration.yaml")
+    else:
+        print("  All initial values already match")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -1018,6 +1148,10 @@ def main() -> None:
         raise
     finally:
         conn.close()
+
+    # Update configuration.yaml so HA initial values match the last generated values
+    print("\nUpdating configuration.yaml initial values...")
+    update_configuration_yaml(data)
 
 
 if __name__ == "__main__":

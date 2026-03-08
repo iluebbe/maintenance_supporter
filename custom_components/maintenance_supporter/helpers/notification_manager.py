@@ -624,6 +624,7 @@ class NotificationManager:
         period: str,
         spent: float,
         budget: float,
+        currency_symbol: str = "€",
     ) -> None:
         """Send a budget threshold alert notification."""
         if not self.enabled or not self.notify_service:
@@ -651,8 +652,8 @@ class NotificationManager:
         message = _notif_t(
             key, lang,
             pct=str(pct),
-            spent=f"{spent:.2f}",
-            budget=f"{budget:.2f}",
+            spent=f"{spent:.2f}{currency_symbol}",
+            budget=f"{budget:.2f}{currency_symbol}",
         )
 
         service_data: dict[str, Any] = {

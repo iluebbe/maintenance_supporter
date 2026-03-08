@@ -71,7 +71,10 @@ class CounterTrigger(BaseTrigger):
         """Initialize baseline if needed before evaluation, then persist."""
         if self._delta_mode and self._baseline_value is None:
             self._baseline_value = value
-            self.hass.async_create_task(self._persist_baseline())
+            self.hass.async_create_task(
+                self._persist_baseline(),
+                eager_start=False,
+            )
             _LOGGER.debug(
                 "Counter baseline initialized on state change: %s = %s",
                 self.entity_id,

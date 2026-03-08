@@ -2,6 +2,35 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.10] - 2026-03-08
+
+### Fixed
+- NFC tag empty string bypass: empty strings now normalised to `null`, preventing duplicate empty tags from bypassing uniqueness validation
+- CSV import silent failures: failed object imports now reported in response with per-object error details (`errors` array)
+- Budget cost type validation: non-numeric `cost` values in history entries no longer crash the budget endpoint
+- Percentile calculation: replaced truncation with proper linear interpolation in entity analyzer
+- Silent exception swallowing in NFC tag listing: added logging for tag registry errors
+- TypeScript type gap: added `interval_anchor` to `TaskRow` interface and removed unnecessary `as any` cast
+
+### Added
+- 100 new tests across 12 new test files (coverage 94% → 96%, 1243 → 1343 tests)
+
+## [1.0.9] - 2026-03-08
+
+### Changed
+- Removed CSV Export / CSV Import buttons from sidebar panel (import/export remains available via WebSocket API)
+
+### Fixed
+- Remove hardcoded tokens from tracked files
+- Add missing return type annotations for mypy strict mode
+- Prevent notification burst on HA restart
+- Make calendar entity visible by default in HA calendar panel
+
+### Added
+- `seed_recorder.py`: 13 months of hourly recorder data for sparkline charts
+- Auto-update of `configuration.yaml` initial values from seed data
+- 51 new integration tests (entity removal, concurrent operations, error recovery, restart resilience, calendar)
+
 ## [1.0.6] - 2026-03-06
 
 ### Fixed

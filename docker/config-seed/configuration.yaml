@@ -28,7 +28,7 @@ input_number:
     name: "HVAC Filter Airflow"
     min: 0
     max: 100
-    initial: 85
+    initial: 72
     unit_of_measurement: "%"
     step: 1
 
@@ -36,7 +36,7 @@ input_number:
     name: "Water Softener Salt Level"
     min: 0
     max: 100
-    initial: 65
+    initial: 55
     unit_of_measurement: "%"
     step: 1
 
@@ -61,17 +61,17 @@ input_number:
     name: "Car Odometer"
     min: 0
     max: 999999
-    initial: 45000
+    initial: 55700
     unit_of_measurement: "km"
     step: 1
 
-  printer_page_count:
-    name: "Printer Page Count"
+  printer_print_hours:
+    name: "3D Printer Print Hours"
     min: 0
     max: 99999
-    initial: 3200
-    unit_of_measurement: "pages"
-    step: 1
+    initial: 1800
+    unit_of_measurement: "h"
+    step: 0.1
 
   generator_run_cycles:
     name: "Generator Run Cycles"
@@ -94,7 +94,7 @@ input_number:
     name: "Water Filter Total Liters"
     min: 0
     max: 999999
-    initial: 5000
+    initial: 16500
     unit_of_measurement: "L"
     step: 1
 
@@ -136,7 +136,7 @@ input_number:
     name: "EV Tire Pressure Front Left"
     min: 0
     max: 5
-    initial: 2.4
+    initial: 2.3
     unit_of_measurement: "bar"
     step: 0.1
 
@@ -168,7 +168,7 @@ input_number:
     name: "EV Odometer"
     min: 0
     max: 999999
-    initial: 28500
+    initial: 33000
     unit_of_measurement: "km"
     step: 1
 
@@ -176,7 +176,7 @@ input_number:
     name: "EV Battery State of Health"
     min: 0
     max: 100
-    initial: 96
+    initial: 95.5
     unit_of_measurement: "%"
     step: 0.1
 
@@ -184,7 +184,7 @@ input_number:
     name: "EV Brake Pad Thickness"
     min: 0
     max: 15
-    initial: 8.5
+    initial: 8.2
     unit_of_measurement: "mm"
     step: 0.1
 

@@ -507,12 +507,14 @@
         "title": "Impostazioni budget",
         "description": "Imposta budget di manutenzione mensili e annuali per monitorare le spese.",
         "data": {
+          "budget_currency": "Valuta",
           "budget_monthly": "Budget mensile",
           "budget_yearly": "Budget annuale",
           "budget_alerts_enabled": "Abilita avvisi budget",
           "budget_alert_threshold": "Soglia di avviso (%)"
         },
         "data_description": {
+          "budget_currency": "Valuta utilizzata per la visualizzazione del budget e le notifiche.",
           "budget_monthly": "Spesa massima mensile per manutenzione. Impostare a 0 per disabilitare.",
           "budget_yearly": "Spesa massima annuale per manutenzione. Impostare a 0 per disabilitare.",
           "budget_alerts_enabled": "Inviare una notifica quando le spese superano la soglia di avviso.",

@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.6 | **~24,000 lines** across 64 source files (51 Python + 13 TypeScript) | **0 external Python dependencies** | **94% test coverage** (1,168 tests)
+**Version:** 1.0.10 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,343 tests)
 
 ---
 
@@ -90,10 +90,10 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 - Entity selector pre-populates existing entity_ids when editing a trigger
 - All 8 compound trigger steps have proper translations in both config and options flows
 - Go-back navigation on all forms for non-linear editing
-- 20+ object templates with pre-configured tasks and triggers
+- 13 object templates with pre-configured tasks and triggers
 
 ### Pure Python Helpers
-`interval_analyzer`, `sensor_predictor`, `entity_analyzer` have zero HA dependencies. This enables isolated unit testing and potential reuse outside HA.
+`interval_analyzer` has zero HA dependencies, enabling isolated unit testing and reuse outside HA. `sensor_predictor` and `entity_analyzer` depend on the HA recorder and state machine for data access, but their core algorithms (linear regression, Pearson correlation, Weibull analysis) are pure Python.
 
 ---
 
@@ -102,8 +102,8 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 ```
 custom_components/maintenance_supporter/
 ├── __init__.py                    (540 lines)  Integration setup, services, lifecycle
-├── const.py                       (283 lines)  Constants, enums, defaults
-├── coordinator.py               (1,060 lines)  DataUpdateCoordinator per object
+├── const.py                       (297 lines)  Constants, enums, defaults
+├── coordinator.py               (1,078 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (344 lines)  Per-entry Store (dynamic state, migration)
 │
 ├── config_flow.py                 (905 lines)  Initial setup flow + templates
@@ -130,30 +130,31 @@ custom_components/maintenance_supporter/
 ├── websocket/                               36 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py               (211 lines)  Object CRUD (5 handlers)
-│   ├── tasks.py                 (716 lines)  Task CRUD + validation + actions (7 handlers)
+│   ├── tasks.py                 (729 lines)  Task CRUD + validation + actions (7 handlers)
 │   ├── groups.py                (166 lines)  Group CRUD (4 handlers)
 │   ├── analysis.py              (277 lines)  Adaptive scheduling (4 handlers)
 │   ├── users.py                 (139 lines)  User management (3 handlers)
-│   ├── io.py                    (232 lines)  Export/import/CSV/QR/templates (5 handlers)
-│   ├── dashboard.py             (499 lines)  Subscribe, statistics, settings, budget, global update/test (6 handlers)
-│   └── tags.py                   (38 lines)  NFC tag listing (1 handler)
+│   ├── io.py                    (245 lines)  Export/import/CSV/QR/templates (5 handlers)
+│   ├── dashboard.py             (510 lines)  Subscribe, statistics, settings, budget, global update/test (6 handlers)
+│   └── tags.py                   (40 lines)  NFC tag listing (1 handler)
 ├── panel.py                        (62 lines)  Sidebar panel registration
 ├── frontend/
 │   ├── __init__.py                 (33 lines)  Lovelace card registration
 │   ├── maintenance-panel.js                  Built panel (esbuild output)
 │   └── maintenance-card.js                   Built card (esbuild output)
-├── frontend-src/                (7,319 lines)  TypeScript sources
-│   ├── maintenance-panel.ts     (1,502 lines)  Panel: overview, object detail, task detail
+├── frontend-src/                (9,027 lines)  TypeScript sources
+│   ├── maintenance-panel.ts     (1,488 lines)  Panel: overview, object detail, task detail
 │   ├── maintenance-card.ts        (287 lines)  Lovelace card
 │   ├── maintenance-card-editor.ts  (86 lines)
 │   ├── panel-styles.ts            (891 lines)  Panel-specific CSS
 │   ├── statistics-service.ts      (215 lines)  WS statistics cache
-│   ├── styles.ts                (2,364 lines)  Shared CSS, i18n (6 languages), shared helpers
-│   ├── types.ts                   (284 lines)  TypeScript interfaces
+│   ├── styles.ts                (2,676 lines)  Shared CSS, i18n (6 languages), shared helpers
+│   ├── types.ts                   (286 lines)  TypeScript interfaces
 │   ├── user-service.ts            (125 lines)  HA user list cache
-│   └── components/              (1,565 lines)
+│   └── components/              (2,145 lines)
 │       ├── complete-dialog.ts     (242 lines)  Mark task complete
 │       ├── confirm-dialog.ts      (141 lines)  Generic confirmation dialog
+│       ├── settings-view.ts       (580 lines)  In-panel global settings editor
 │       ├── task-dialog.ts         (629 lines)  Add/edit task
 │       ├── object-dialog.ts       (153 lines)  Add/edit object
 │       └── qr-dialog.ts          (400 lines)  QR code generation
@@ -162,7 +163,7 @@ custom_components/maintenance_supporter/
 │   ├── interval_analyzer.py       (730 lines)  EWA + Weibull + seasonal analysis
 │   ├── sensor_predictor.py        (640 lines)  Degradation + environmental correlation
 │   ├── notification_manager.py    (691 lines)  Multi-channel notification system
-│   ├── entity_analyzer.py         (203 lines)  Entity discovery + recorder stats
+│   ├── entity_analyzer.py         (210 lines)  Entity discovery + recorder stats
 │   ├── csv_handler.py             (196 lines)  CSV import/export
 │   ├── entity_attributes.py      (239 lines)  Domain→attribute mapping for trigger setup
 │   ├── threshold_calculator.py    (132 lines)  Threshold suggestion engine
@@ -174,7 +175,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance_object.py       (53 lines)  Object: name, area, manufacturer, model
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
-├── templates.py                   (226 lines)  20+ object templates (car, pool, HVAC, ...)
+├── templates.py                   (226 lines)  13 object templates (car, pool, HVAC, ...)
 ├── repairs.py                     (315 lines)  Missing trigger entity repair flow
 ├── diagnostics.py                 (231 lines)  Integration diagnostics with PII redaction
 ├── export.py                      (161 lines)  JSON/YAML data export
@@ -352,12 +353,13 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Two bundles:** `maintenance-panel.js` (~212KB) and `maintenance-card.js` (~96KB)
+**Two bundles:** `maintenance-panel.js` (~245KB) and `maintenance-card.js` (~111KB)
 
 ### Panel Views
-1. **Overview**: Statistics dashboard, group list, budget status, sparklines, user filter
-2. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
-3. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
+1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter
+2. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options)
+3. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
+4. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
 
 ### Real-Time Updates
 - WebSocket subscription (`maintenance_supporter/subscribe`)
@@ -423,7 +425,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (94%, 1,158 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,343 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -445,57 +447,57 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,168 tests** across **55 test files** with **94% code coverage**.
+**1,343 tests** across **67 test files** with **96% code coverage**.
 
 ### Coverage by Module
 
 | Module | Stmts | Miss | Cover |
 |--------|-------|------|-------|
-| `__init__.py` | 246 | 17 | 93% |
-| `coordinator.py` | 517 | 22 | 96% |
-| `sensor.py` | 202 | 8 | 96% |
+| `__init__.py` | 246 | 6 | 98% |
+| `coordinator.py` | 528 | 9 | 98% |
+| `sensor.py` | 201 | 6 | 97% |
 | `binary_sensor.py` | 81 | 7 | 91% |
-| `calendar.py` | 127 | 5 | 96% |
+| `calendar.py` | 124 | 0 | 100% |
 | `config_flow.py` | 260 | 14 | 95% |
-| `config_flow_helpers.py` | 22 | 4 | 82% |
-| `config_flow_options_task.py` | 520 | 38 | 93% |
-| `config_flow_options_global.py` | 145 | 18 | 88% |
-| `config_flow_trigger.py` | 339 | 56 | 83% |
-| `const.py` | 175 | 0 | 100% |
+| `config_flow_helpers.py` | 22 | 3 | 86% |
+| `config_flow_options_task.py` | 523 | 11 | 98% |
+| `config_flow_options_global.py` | 148 | 0 | 100% |
+| `config_flow_trigger.py` | 335 | 50 | 85% |
+| `const.py` | 177 | 0 | 100% |
 | `diagnostics.py` | 103 | 2 | 98% |
 | `repairs.py` | 135 | 0 | 100% |
 | `panel.py` | 31 | 0 | 100% |
 | `templates.py` | 25 | 0 | 100% |
-| `storage.py` | 150 | 3 | 98% |
+| `storage.py` | 152 | 3 | 98% |
 | `export.py` | 51 | 4 | 92% |
 | **Triggers** | | | |
-| `base_trigger.py` | 121 | 3 | 98% |
+| `base_trigger.py` | 121 | 2 | 98% |
 | `threshold.py` | 53 | 1 | 98% |
-| `counter.py` | 55 | 4 | 93% |
-| `state_change.py` | 83 | 3 | 96% |
+| `counter.py` | 55 | 5 | 91% |
+| `state_change.py` | 85 | 4 | 95% |
 | `runtime.py` | 161 | 3 | 98% |
 | `compound.py` | 145 | 0 | 100% |
 | `triggers/__init__.py` | 89 | 1 | 99% |
 | **Helpers** | | | |
-| `interval_analyzer.py` | 310 | 17 | 95% |
-| `sensor_predictor.py` | 276 | 20 | 93% |
-| `notification_manager.py` | 267 | 7 | 97% |
-| `entity_analyzer.py` | 121 | 4 | 97% |
+| `interval_analyzer.py` | 314 | 10 | 97% |
+| `sensor_predictor.py` | 276 | 9 | 97% |
+| `notification_manager.py` | 267 | 6 | 98% |
+| `entity_analyzer.py` | 127 | 4 | 97% |
 | `entity_attributes.py` | 25 | 0 | 100% |
 | `threshold_calculator.py` | 61 | 0 | 100% |
 | `csv_handler.py` | 81 | 6 | 93% |
 | `qr_generator.py` | 69 | 2 | 97% |
 | **WebSocket** | | | |
-| `websocket/__init__.py` | 143 | 0 | 100% |
-| `websocket/tasks.py` | 339 | 35 | 90% |
-| `websocket/objects.py` | 82 | 3 | 96% |
-| `websocket/analysis.py` | 124 | 14 | 89% |
+| `websocket/__init__.py` | 128 | 0 | 100% |
+| `websocket/tasks.py` | 343 | 2 | 99% |
+| `websocket/objects.py` | 81 | 0 | 100% |
+| `websocket/analysis.py` | 124 | 0 | 100% |
 | `websocket/users.py` | 66 | 0 | 100% |
-| `websocket/io.py` | 80 | 7 | 91% |
-| `websocket/dashboard.py` | 193 | 23 | 88% |
-| `websocket/groups.py` | 80 | 0 | 100% |
-| `websocket/tags.py` | 21 | 0 | 100% |
-| **TOTAL** | **6,905** | **410** | **94%** |
+| `websocket/io.py` | 91 | 10 | 89% |
+| `websocket/dashboard.py` | 195 | 3 | 98% |
+| `websocket/groups.py` | 80 | 1 | 99% |
+| `websocket/tags.py` | 23 | 0 | 100% |
+| **TOTAL** | **6,934** | **248** | **96%** |
 
 ### Test Files
 
@@ -503,6 +505,7 @@ All write commands fire events for subscription updates.
 |-----------|-------|-------|
 | `test_triggers.py` | 85 | All trigger types, multi-entity, edge cases |
 | `test_adaptive_scheduling.py` | 55 | EWA, Weibull, interval computation |
+| `test_coverage_97.py` | 50 | Coverage batch 1: WS, coordinator, config flow edges |
 | `test_sensor_predictions.py` | 45 | Degradation analysis, threshold prediction |
 | `test_options_task.py` | 44 | Task options flow |
 | `test_ws_task_handlers.py` | 42 | WebSocket task CRUD + actions |
@@ -510,8 +513,8 @@ All write commands fire events for subscription updates.
 | `test_coverage_final.py` | 41 | Helper functions, diagnostics, budget edges |
 | `test_phase2_features.py` | 38 | Checklist, groups, budgets, export/CSV fields |
 | `test_seasonal_scheduling.py` | 35 | Seasonal factors, hemisphere support |
+| `test_storage.py` | 34 | Store CRUD, merge helpers, extract_dynamic, compound keys |
 | `test_options_flow.py` | 34 | Options flow management |
-| `test_storage.py` | 33 | Store CRUD, merge helpers, extract_dynamic, compound keys |
 | `test_notifications.py` | 29 | Notification delivery, quiet hours, bundling |
 | `test_notification_deep.py` | 29 | Notification edge cases |
 | `test_config_flow.py` | 28 | Config flow steps, validation |
@@ -520,42 +523,53 @@ All write commands fire events for subscription updates.
 | `test_coordinator_prediction.py` | 25 | Sensor prediction, fallback triggers, budget |
 | `test_ws_dashboard.py` | 24 | WS dashboard commands |
 | `test_issue_fixes.py` | 24 | Regression tests for bug fixes |
+| `test_coverage_97c.py` | 24 | Coverage batch 3: sensor predictor, interval analyzer, coordinator, notifications |
 | `test_status_computation.py` | 21 | Status logic (OK, DUE_SOON, OVERDUE) |
 | `test_qr_generation.py` | 21 | QR URL building, SVG generation |
 | `test_coordinator.py` | 21 | Coordinator core logic |
 | `test_ws_objects.py` | 20 | WS object CRUD, task summary fields |
 | `test_trigger_events.py` | 19 | Event-driven trigger state changes |
 | `test_entity_analyzer.py` | 19 | Entity discovery + stats |
+| `test_coverage_97b.py` | 19 | Coverage batch 2: task options flow, trigger config flow |
 | `test_compound_trigger.py` | 19 | Compound trigger scenarios |
+| `test_ws_groups.py` | 18 | WS group CRUD, cleanup_group_refs |
 | `test_ws_analysis.py` | 18 | WS analysis commands |
 | `test_config_flow_template.py` | 18 | Object template creation |
 | `test_edge_cases.py` | 17 | Boundary conditions, error handling |
 | `test_ws_io.py` | 15 | WS import/export/QR |
 | `test_sensor_trigger_attrs.py` | 15 | Trigger-specific sensor attributes |
 | `test_panel_threshold.py` | 15 | Panel + threshold calculator |
+| `test_lifecycle_coverage.py` | 15 | Entity lifecycle, setup/teardown coverage |
 | `test_entity_attributes.py` | 15 | Entity attribute introspection: domain mapping, WS endpoint, filtering |
 | `test_sensor_attributes.py` | 14 | Sensor attribute computation |
 | `test_repair_flow.py` | 14 | Repair flow steps |
 | `test_calendar_unit.py` | 14 | Calendar event generation |
-| `test_ws_groups.py` | 18 | WS group CRUD, cleanup_group_refs |
 | `test_custom_icon_nfc.py` | 13 | Custom icons, NFC tag linking, task serialization |
 | `test_coordinator_deep.py` | 13 | Coordinator deep coverage |
+| `test_panel_frontend_integration.py` | 12 | Panel registration, frontend integration |
 | `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
+| `test_entity_removal.py` | 12 | Entity/device/attribute removal |
 | `test_init_services.py` | 11 | Service handlers, unload |
 | `test_config_flow_trigger.py` | 11 | Trigger config flow steps |
 | `test_binary_sensor.py` | 11 | Binary sensor platform: creation, is_on logic, attributes, lifecycle |
 | `test_ws_users.py` | 10 | WS user management |
 | `test_sensor_deep.py` | 8 | Sensor edge cases |
 | `test_repairs_legacy.py` | 8 | Legacy repair flow compatibility |
+| `test_integration_flows.py` | 8 | End-to-end integration flow tests |
 | `test_entity_lifecycle.py` | 8 | Entity setup/teardown |
 | `test_diagnostics.py` | 8 | Diagnostic data, PII redaction |
 | `test_compound_legacy.py` | 8 | Legacy compound trigger compatibility |
 | `test_calendar_deep.py` | 8 | Calendar edge cases |
+| `test_settings_sync.py` | 7 | Panel settings ↔ config flow sync verification |
 | `test_services.py` | 7 | Complete, skip, reset services |
+| `test_error_recovery.py` | 7 | Error recovery, graceful degradation |
 | `test_coordinator_legacy.py` | 7 | Legacy coordinator compatibility |
 | `test_ws_tags.py` | 6 | WS NFC tag listing |
 | `test_notify_status_transition.py` | 5 | Notification status transition edge cases |
 | `test_calendar.py` | 5 | Calendar basic tests |
+| `test_restart_resilience.py` | 4 | HA restart state preservation |
+| `test_concurrent_operations.py` | 4 | Concurrent operation safety |
+| `test_calendar_integration.py` | 4 | Calendar integration with HA |
 
 ---
 
@@ -673,25 +687,41 @@ pytest tests/ -v
 | 5 | Workshop Compressor | Atlas Copco GA5 | Oil Change, Air Filter | runtime (500h), time-based | `input_boolean.workshop_compressor` |
 | 6 | Water Filter System | BWT AQA Life S | Cartridge Replacement | compound OR (threshold + counter) | `input_number.water_filter_flow_rate`, `water_filter_total_liters` |
 | 7 | Swimming Pool | — | pH Test, Water Treatment | manual, time-based (7d) | — |
-| 8 | 3D Printer | Prusa MK4S | Nozzle Replacement, Lubrication | counter (5000 abs), time-based | `input_number.printer_page_count` |
+| 8 | 3D Printer | Prusa MK4S | Nozzle Replacement, Lubrication | counter (500h abs), time-based | `input_number.printer_print_hours` |
 | 9 | Electric Car | Tesla Model 3 | 6 tasks (tire pressure, brake pads, cabin filter, wipers, battery, charging) | multi-entity threshold (4 tire sensors, any-logic), threshold, time-based, runtime | `input_number.ev_tire_pressure_*`, `ev_brake_pad_thickness`, `ev_battery_soh`, `input_boolean.ev_charging` |
 
 Usage: `python scripts/setup_demo.py` (requires HA running with valid token)
 
 **`scripts/seed_history.py`** — Injects realistic historical maintenance data into Store files:
 
-- 68 history entries across all 9 objects (~12 months of data)
-- Costs totaling ~€960, durations 5–45 min, feedback values
+- 70 history entries across all 9 objects (~12 months of data, 69 completed + 1 skipped)
+- Costs totaling ~€1,180, durations 5–45 min, feedback values
 - Includes `completed`, `skipped`, and `triggered` entry types
 - Sets `last_performed` dates for time-based schedule calculation
 
-Must run after `setup_demo.py` with HA stopped or will be loaded on next restart:
+Must run after `setup_demo.py` with HA running (reads Store files from container):
+
+**`scripts/seed_recorder.py`** — Populates the HA recorder SQLite database with 13 months of hourly statistics data for all test entities. This provides smooth, continuous sparkline charts in the frontend.
+
+- 9,480 hourly statistics rows per numeric entity (395 days × 24h)
+- Realistic data generators: degrading sensors (airflow, salt level), monotonic counters (odometer, print hours), seasonal patterns (temperature, humidity), sawtooth refills
+- Reset events aligned with `seed_history.py` maintenance dates (same day offsets)
+- Boolean entity state histories (washing machine cycles, compressor on/off, charging sessions)
+- Maintenance sensor state histories matching Store history entries
+- Auto-updates `config-dev/configuration.yaml` initial values to match the last generated value per entity, preventing sparkline discontinuities on HA restart
+- Deterministic output via `random.seed(42)`
+
+Must run after `seed_history.py` with HA **stopped** (writes directly to SQLite):
 
 ```bash
-python scripts/setup_demo.py
-python scripts/seed_history.py
-docker compose restart homeassistant-dev
+python scripts/setup_demo.py          # HA running
+python scripts/seed_history.py         # HA running (restart needed after)
+docker compose stop homeassistant-dev  # Stop HA
+python scripts/seed_recorder.py        # Seeds DB + updates configuration.yaml
+docker compose up -d homeassistant-dev # Start with seeded data
 ```
+
+All three scripts are orchestrated by `scripts/init-dev.sh` which handles the full lifecycle automatically.
 
 ### Test Entity Reference
 
@@ -701,24 +731,24 @@ The `docker/config-dev/configuration.yaml` defines test entities grouped by trig
 
 | Entity | Purpose | Initial | Unit |
 |--------|---------|---------|------|
-| `hvac_filter_airflow` | HVAC filter degradation | 85 | % |
-| `water_softener_salt_level` | Salt level monitoring | 65 | % |
+| `hvac_filter_airflow` | HVAC filter degradation | 72 | % |
+| `water_softener_salt_level` | Salt level monitoring | 55 | % |
 | `pool_ph_level` | Pool water quality | 7.4 | pH |
 | `freezer_temperature` | Freezer monitoring | -20 | °C |
 | `solar_panel_output` | Solar efficiency | 92 | % |
-| `ev_tire_pressure_fl/fr/rl/rr` | Multi-entity tire pressure (4 sensors) | 2.4–2.5 | bar |
-| `ev_brake_pad_thickness` | Brake wear | 8.5 | mm |
-| `ev_battery_soh` | Battery state of health | 96 | % |
+| `ev_tire_pressure_fl/fr/rl/rr` | Multi-entity tire pressure (4 sensors) | 2.3–2.5 | bar |
+| `ev_brake_pad_thickness` | Brake wear | 8.2 | mm |
+| `ev_battery_soh` | Battery state of health | 95.5 | % |
 
 **Counter triggers** (`input_number`):
 
 | Entity | Purpose | Initial | Unit |
 |--------|---------|---------|------|
-| `car_odometer` | Oil change by mileage | 45000 | km |
-| `printer_page_count` | Nozzle wear tracking | 3200 | pages |
+| `car_odometer` | Oil change by mileage | 55700 | km |
+| `printer_print_hours` | Nozzle wear tracking | 1800 | h |
 | `generator_run_cycles` | Generator maintenance | 1250 | cycles |
-| `water_filter_total_liters` | Filter capacity | 5000 | L |
-| `ev_odometer` | EV mileage tracking | 28500 | km |
+| `water_filter_total_liters` | Filter capacity | 16500 | L |
+| `ev_odometer` | EV mileage tracking | 33000 | km |
 | `hvac_energy_kwh` | Energy consumption | 1250 | kWh |
 
 **State change / runtime triggers** (`input_boolean`):
@@ -739,7 +769,7 @@ The `docker/config-dev/configuration.yaml` defines test entities grouped by trig
 | Entity | Purpose | Initial | Unit |
 |--------|---------|---------|------|
 | `water_filter_flow_rate` | Flow rate threshold condition | 3.5 | L/min |
-| `water_filter_total_liters` | Volume counter condition | 5000 | L |
+| `water_filter_total_liters` | Volume counter condition | 16500 | L |
 
 **Environmental correlation** (`input_number`):
 

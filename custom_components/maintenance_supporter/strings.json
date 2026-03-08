@@ -491,12 +491,14 @@
         "title": "Budget Settings",
         "description": "Set monthly and yearly maintenance budgets to track spending.",
         "data": {
+          "budget_currency": "Currency",
           "budget_monthly": "Monthly budget",
           "budget_yearly": "Yearly budget",
           "budget_alerts_enabled": "Enable budget alerts",
           "budget_alert_threshold": "Alert threshold (%)"
         },
         "data_description": {
+          "budget_currency": "Currency used for budget display and notifications.",
           "budget_monthly": "Maximum monthly maintenance spending. Set to 0 to disable.",
           "budget_yearly": "Maximum yearly maintenance spending. Set to 0 to disable.",
           "budget_alerts_enabled": "Send a notification when spending exceeds the alert threshold.",

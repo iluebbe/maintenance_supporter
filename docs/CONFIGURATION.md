@@ -8,7 +8,7 @@ All configuration is done through the Home Assistant UI — there is no YAML con
 
 ## Global Settings
 
-Accessible via **Settings > Devices & Services > Maintenance Supporter > Configure** (the global entry).
+Accessible via **Settings > Devices & Services > Maintenance Supporter > Configure** (the global entry), or via the **Settings tab** in the sidebar panel.
 
 ### General Settings
 
