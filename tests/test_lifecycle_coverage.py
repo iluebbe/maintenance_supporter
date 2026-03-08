@@ -135,7 +135,7 @@ def _make_object_entry(
     return entry
 
 
-def _get_coordinator(hass: HomeAssistant, entry: MockConfigEntry):
+def _get_coordinator(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
     """Get the coordinator from a loaded entry."""
     ce = hass.config_entries.async_get_entry(entry.entry_id)
     assert ce is not None
@@ -144,7 +144,7 @@ def _get_coordinator(hass: HomeAssistant, entry: MockConfigEntry):
     return rd.coordinator
 
 
-def _get_store(hass: HomeAssistant, entry: MockConfigEntry):
+def _get_store(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
     """Get the store from a loaded entry."""
     ce = hass.config_entries.async_get_entry(entry.entry_id)
     assert ce is not None
