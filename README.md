@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1343_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1352_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
@@ -98,7 +98,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Budget alerts at configurable thresholds
 
 ### Data Management
-- CSV export and import (via WebSocket API)
+- JSON and CSV export and import (via WebSocket API and Settings panel)
 - QR code generation for mobile quick-actions (print, download SVG)
 - Complete maintenance history with cost, duration, and feedback tracking
 - Integration diagnostics with PII redaction
@@ -113,7 +113,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Localized UI: English, German, Dutch, French, Italian, Spanish
 
 ### WebSocket API
-- 36 commands for full CRUD operations on objects, tasks, triggers, and groups
+- 37 commands for full CRUD operations on objects, tasks, triggers, and groups
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -168,7 +168,7 @@ Each sensor entity exposes attributes grouped by function:
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (36 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+See the [Services](#services) table below for available service calls. For the full WebSocket API (37 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
 
 ## Data Updates
 
@@ -356,7 +356,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,343 tests across 67 test files with **96% code coverage**.
+1,352 tests across 67 test files with **96% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -384,7 +384,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8123
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,343 tests):
+# Run tests (1,352 tests):
 docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 

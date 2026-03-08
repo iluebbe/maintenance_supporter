@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.10 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,343 tests)
+**Version:** 1.0.11 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,352 tests)
 
 ---
 
@@ -127,7 +127,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               36 WS commands, split by domain
+├── websocket/                               37 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py               (211 lines)  Object CRUD (5 handlers)
 │   ├── tasks.py                 (729 lines)  Task CRUD + validation + actions (7 handlers)
@@ -357,7 +357,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 ### Panel Views
 1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter
-2. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options)
+2. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, JSON/CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options)
 3. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
 4. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
 
@@ -406,7 +406,7 @@ Multi-channel notification with:
 | **Global Settings** | `global/update`, `global/test_notification` |
 | **User Assignment** | `task/assign_user`, `users/list` |
 | **Analysis** | `analyze_interval`, `apply_suggestion`, `seasonal_overrides`, `set_environmental_entity` |
-| **Import/Export** | `export_data`, `export_csv`, `import_csv` |
+| **Import/Export** | `export_data`, `export_csv`, `import_csv`, `import_json` |
 | **QR** | `qr/generate` |
 | **Entity Introspection** | `entity/attributes` |
 | **NFC Tags** | `tags/list` |
@@ -425,7 +425,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,343 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,352 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -447,7 +447,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,343 tests** across **67 test files** with **96% code coverage**.
+**1,352 tests** across **67 test files** with **96% code coverage**.
 
 ### Coverage by Module
 

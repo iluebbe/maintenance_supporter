@@ -22,6 +22,7 @@ from custom_components.maintenance_supporter.websocket.io import (
     ws_generate_qr,
     ws_get_templates,
     ws_import_csv,
+    ws_import_json,
 )
 
 from .conftest import (
@@ -269,6 +270,276 @@ async def test_import_csv_multiple_objects(
     result = conn.send_result.call_args[0][1]
     assert result["total"] == 2  # 2 objects
     assert result["created"] == 2
+
+
+# ─── ws_import_json ──────────────────────────────────────────────────────
+
+
+async def test_import_json_valid(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing valid JSON creates entries with all fields."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json
+    json_data = json.dumps({
+        "version": 1,
+        "objects": [{
+            "object": {
+                "name": "JSON Pump",
+                "manufacturer": "Acme",
+                "model": "X100",
+                "area_id": "garage",
+                "installation_date": "2024-01-15",
+            },
+            "tasks": [
+                {
+                    "name": "Oil Change",
+                    "type": "service",
+                    "enabled": True,
+                    "schedule_type": "time_based",
+                    "interval_days": 90,
+                    "interval_anchor": "planned",
+                    "warning_days": 14,
+                    "last_performed": "2025-12-01",
+                    "notes": "Use 5W-30",
+                    "checklist": ["Drain old oil", "Replace filter"],
+                    "history": [{"date": "2025-12-01", "notes": "Done"}],
+                },
+                {
+                    "name": "Filter Clean",
+                    "type": "cleaning",
+                    "schedule_type": "time_based",
+                    "interval_days": 30,
+                },
+            ],
+        }],
+    })
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["total"] == 1
+    assert result["created"] == 1
+    assert len(result["imported"]) == 1
+    assert result["imported"][0]["name"] == "JSON Pump"
+    assert result["imported"][0]["task_count"] == 2
+
+
+async def test_import_json_multiple_objects(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing JSON with multiple objects."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json
+    json_data = json.dumps({
+        "version": 1,
+        "objects": [
+            {"object": {"name": "Pump A"}, "tasks": [{"name": "Task 1"}]},
+            {"object": {"name": "Pump B"}, "tasks": [{"name": "Task 2"}]},
+        ],
+    })
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["total"] == 2
+    assert result["created"] == 2
+
+
+async def test_import_json_invalid_json(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing invalid JSON returns error."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": "not valid json {{{",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_json"
+
+
+async def test_import_json_missing_objects_key(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing JSON without 'objects' key returns error."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": '{"version": 1}',
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_format"
+
+
+async def test_import_json_empty_objects(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing JSON with empty objects array returns error."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": '{"version": 1, "objects": []}',
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "empty"
+
+
+async def test_import_json_missing_name(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing JSON with missing object name reports error."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json
+    json_data = json.dumps({
+        "version": 1,
+        "objects": [{"object": {}, "tasks": [{"name": "Task 1"}]}],
+    })
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 0
+    assert len(result["errors"]) == 1
+    assert result["errors"][0]["reason"] == "missing name"
+
+
+async def test_import_json_duplicate_name_reports_error(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test importing JSON with an existing object name reports error."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json
+
+    # First import succeeds
+    json_data = json.dumps({
+        "version": 1,
+        "objects": [{"object": {"name": "Dup Pump"}, "tasks": [{"name": "T1"}]}],
+    })
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+    assert conn.send_result.call_args[0][1]["created"] == 1
+
+    # Second import of same name fails
+    conn.reset_mock()
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 2, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 0
+    assert len(result["errors"]) == 1
+
+
+async def test_import_json_skips_computed_fields(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test that computed fields in export JSON are ignored on import."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json
+    json_data = json.dumps({
+        "version": 1,
+        "objects": [{
+            "entry_id": "old_entry_id",
+            "object": {"name": "Computed Test"},
+            "tasks": [{
+                "id": "old_task_id",
+                "name": "Task With Computed",
+                "type": "cleaning",
+                "interval_days": 30,
+                "status": "overdue",
+                "days_until_due": -5,
+                "next_due": "2025-01-01",
+                "times_performed": 10,
+                "total_cost": 500.0,
+                "average_duration": 45,
+            }],
+        }],
+    })
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+    # The entry_id should be new, not the old one
+    assert result["imported"][0]["entry_id"] != "old_entry_id"
+
+
+async def test_import_json_with_trigger_config(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test that trigger_config is preserved on import."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json
+    trigger_config = {
+        "type": "threshold",
+        "entity_ids": ["sensor.temperature"],
+        "trigger_above": 30.0,
+    }
+    json_data = json.dumps({
+        "version": 1,
+        "objects": [{
+            "object": {"name": "Trigger Test"},
+            "tasks": [{
+                "name": "Threshold Task",
+                "schedule_type": "sensor_based",
+                "trigger_config": trigger_config,
+            }],
+        }],
+    })
+
+    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+
+    # Verify the entry was created with trigger_config
+    entry_id = result["imported"][0]["entry_id"]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    tasks = entry.data.get(CONF_TASKS, {})
+    task = list(tasks.values())[0]
+    assert task["trigger_config"] == trigger_config
 
 
 # ─── ws_generate_qr ──────────────────────────────────────────────────────

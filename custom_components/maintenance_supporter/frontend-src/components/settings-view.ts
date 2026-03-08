@@ -423,15 +423,17 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private async _importCsvAction(): Promise<void> {
-    const csv = this._importCsv.trim();
-    if (!csv) return;
+    const content = this._importCsv.trim();
+    if (!content) return;
     this._importLoading = true;
     try {
-      const result = await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/csv/import",
-        csv_content: csv,
-      }) as { created: Array<{ entry_id: string }> };
-      const count = result.created?.length ?? 0;
+      const isJson = content.startsWith("{") || content.startsWith("[");
+      const result = await this.hass.connection.sendMessagePromise(
+        isJson
+          ? { type: "maintenance_supporter/json/import", json_content: content }
+          : { type: "maintenance_supporter/csv/import", csv_content: content }
+      ) as { created: number };
+      const count = result.created ?? 0;
       this._showToast(t("settings_import_success", this._lang).replace("{count}", String(count)));
       this._importCsv = "";
       this.dispatchEvent(new CustomEvent("settings-changed"));
@@ -500,6 +502,9 @@ export class MaintenanceSettingsView extends LitElement {
       color: var(--primary-text-color);
       font-size: 14px;
       flex-shrink: 0;
+    }
+    .setting-row input[type="number"] {
+      text-align: right;
     }
     .setting-row select {
       padding: 6px 8px;

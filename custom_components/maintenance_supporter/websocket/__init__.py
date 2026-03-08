@@ -279,6 +279,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_generate_qr,
         ws_get_templates,
         ws_import_csv,
+        ws_import_json,
     )
     from .objects import (  # noqa: PLC0415
         ws_create_object,
@@ -319,6 +320,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_budget_status)
     websocket_api.async_register_command(hass, ws_export_csv)
     websocket_api.async_register_command(hass, ws_import_csv)
+    websocket_api.async_register_command(hass, ws_import_json)
     websocket_api.async_register_command(hass, ws_get_groups)
     websocket_api.async_register_command(hass, ws_create_group)
     websocket_api.async_register_command(hass, ws_update_group)

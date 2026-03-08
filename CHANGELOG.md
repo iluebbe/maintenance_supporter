@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.11] - 2026-03-08
+
+### Added
+- JSON import via WebSocket API (`maintenance_supporter/json/import`) — re-import exported JSON backups with full task data (trigger configs, adaptive settings, checklists, history)
+- Auto-detect format in Settings panel import: paste JSON or CSV and the frontend calls the correct endpoint
+- 9 new JSON import tests (1343 → 1352 tests)
+
+### Fixed
+- Import count always showing 0 in Settings panel: frontend read `result.created.length` on a number instead of using it directly
+
 ## [1.0.10] - 2026-03-08
 
 ### Fixed

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json as json_mod
 from typing import Any
+from uuid import uuid4
 
 import voluptuous as vol
 
@@ -165,6 +167,129 @@ async def ws_import_csv(
             })
         else:
             obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
+            errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
+
+    resp: dict[str, Any] = {
+        "imported": created,
+        "total": len(objects),
+        "created": len(created),
+    }
+    if errors:
+        resp["errors"] = errors
+    connection.send_result(msg["id"], resp)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/json/import",
+        vol.Required("json_content"): str,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_import_json(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Import maintenance objects from JSON content (exported by /export)."""
+    raw = msg["json_content"]
+    if len(raw) > 10_485_760:
+        connection.send_error(msg["id"], "too_large", "JSON content exceeds 10MB limit")
+        return
+
+    try:
+        data = json_mod.loads(raw)
+    except (json_mod.JSONDecodeError, ValueError):
+        connection.send_error(msg["id"], "invalid_json", "Content is not valid JSON")
+        return
+
+    if not isinstance(data, dict) or "objects" not in data:
+        connection.send_error(msg["id"], "invalid_format", "JSON must contain an 'objects' array")
+        return
+
+    objects = data["objects"]
+    if not isinstance(objects, list):
+        connection.send_error(msg["id"], "invalid_format", "'objects' must be an array")
+        return
+
+    if len(objects) > 1000:
+        connection.send_error(msg["id"], "too_many", "JSON contains more than 1000 objects")
+        return
+
+    if not objects:
+        connection.send_error(msg["id"], "empty", "No objects found in JSON")
+        return
+
+    created = []
+    errors: list[dict[str, str]] = []
+    for idx, obj_entry in enumerate(objects):
+        obj_data = obj_entry.get("object", {})
+        obj_name = (obj_data.get("name") or "").strip()
+        if not obj_name:
+            errors.append({"name": f"object {idx + 1}", "reason": "missing name"})
+            continue
+
+        obj_id = uuid4().hex
+        import_obj: dict[str, Any] = {
+            "id": obj_id,
+            "name": obj_name,
+            "manufacturer": obj_data.get("manufacturer"),
+            "model": obj_data.get("model"),
+            "area_id": obj_data.get("area_id"),
+            "installation_date": obj_data.get("installation_date"),
+            "task_ids": [],
+        }
+
+        import_tasks: dict[str, dict[str, Any]] = {}
+        for task_entry in obj_entry.get("tasks", []):
+            task_name = (task_entry.get("name") or "").strip()
+            if not task_name:
+                continue
+            task_id = uuid4().hex
+            task_data: dict[str, Any] = {
+                "id": task_id,
+                "object_id": obj_id,
+                "name": task_name,
+                "type": task_entry.get("type", "custom"),
+                "enabled": task_entry.get("enabled", True),
+                "schedule_type": task_entry.get("schedule_type", "time_based"),
+                "warning_days": task_entry.get("warning_days", 7),
+                "history": task_entry.get("history", []),
+            }
+            for key in (
+                "interval_days", "interval_anchor", "last_planned_due",
+                "last_performed", "notes", "documentation_url",
+                "custom_icon", "nfc_tag_id", "responsible_user_id",
+                "entity_slug", "trigger_config", "adaptive_config",
+                "checklist",
+            ):
+                val = task_entry.get(key)
+                if val is not None:
+                    task_data[key] = val
+
+            import_tasks[task_id] = task_data
+            import_obj["task_ids"].append(task_id)
+
+        try:
+            result = await hass.config_entries.flow.async_init(
+                DOMAIN,
+                context={"source": "websocket"},
+                data={
+                    CONF_OBJECT: import_obj,
+                    CONF_TASKS: import_tasks,
+                },
+            )
+        except Exception:  # noqa: BLE001
+            errors.append({"name": obj_name, "reason": "unexpected error"})
+            continue
+        if result["type"] == "create_entry":
+            created.append({
+                "entry_id": result["result"].entry_id,
+                "name": obj_name,
+                "task_count": len(import_tasks),
+            })
+        else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
 
     resp: dict[str, Any] = {
