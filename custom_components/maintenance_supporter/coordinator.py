@@ -403,13 +403,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if last_value is not None:
                 task._trigger_current_value = last_value
 
-            if per_entity_triggered and for_minutes == 0:
+            # Aggregated trigger state
+            if per_entity_triggered:
                 if entity_logic == "all":
-                    task._trigger_active = all(per_entity_triggered)
+                    aggregated = all(per_entity_triggered)
                 else:
-                    task._trigger_active = any(per_entity_triggered)
-            elif not any(per_entity_triggered) and for_minutes == 0:
+                    aggregated = any(per_entity_triggered)
+            else:
+                aggregated = False
+
+            if for_minutes == 0:
+                task._trigger_active = aggregated
+            elif not aggregated and last_value is not None:
+                # Value back in normal range — safe to deactivate even with for_minutes
                 task._trigger_active = False
+            # else: for_minutes > 0 and still exceeds — leave to event-driven trigger
 
         elif trigger_type == "counter":
             entity_logic = task.trigger_config.get("entity_logic", "any")
@@ -715,15 +723,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     cost = h_entry.get("cost")
                     if cost is None:
                         continue
+                    try:
+                        cost_val = float(cost)
+                    except (ValueError, TypeError):
+                        continue
                     ts = h_entry.get("timestamp", "")
                     try:
                         entry_dt = datetime.fromisoformat(ts)
                     except (ValueError, TypeError):
                         continue
                     if entry_dt.year == now.year:
-                        yearly += cost
+                        yearly += cost_val
                         if entry_dt.month == now.month:
-                            monthly += cost
+                            monthly += cost_val
 
         self.hass.data.setdefault(DOMAIN, {})["_budget_cache"] = {
             "monthly_spent": monthly,

@@ -491,6 +491,41 @@ async def test_budget_history_no_store(
     rd.store = original_store
 
 
+async def test_budget_string_cost_no_crash(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Budget calculation handles string cost values without TypeError."""
+    from datetime import datetime
+
+    now = datetime.now()
+    ts = now.isoformat()
+    task = build_task_data(last_performed="2024-06-01")
+    task["history"] = [
+        {"type": "completed", "timestamp": ts, "cost": "50.00"},  # string!
+        {"type": "completed", "timestamp": ts, "cost": 25.0},     # normal float
+        {"type": "completed", "timestamp": ts, "cost": "invalid"}, # unparseable
+    ]
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Budget String",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_budget_str",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+
+    # Should not raise TypeError
+    coord._recalculate_budget_cache()
+    cache = hass.data.get(DOMAIN, {}).get("_budget_cache", {})
+    # 50.00 (string) + 25.0 (float) = 75.0 — "invalid" skipped
+    assert cache.get("yearly_spent", 0) == pytest.approx(75.0)
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # config_flow_helpers.py tests
 # ═══════════════════════════════════════════════════════════════════════

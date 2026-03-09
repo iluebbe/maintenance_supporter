@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.14] - 2026-03-09
+
+### Fixed
+- **HIGH**: Repair flow wrote corrupt empty-dict task data when user fixed a stale issue for an already-deleted task — now aborts gracefully
+- **MEDIUM**: Budget calculation crashed with `TypeError` on string cost values (e.g. from JSON import `"cost": "50.00"`) — now casts via `float()` with fallback
+- **LOW**: Deleting a task left orphaned repair issues in the issue registry — now cleans up all `missing_trigger_*` issues for the deleted task
+
+### Added
+- 5 new tests (1,364 → 1,369 tests)
+
+## [1.0.13] - 2026-03-09
+
+### Fixed
+- **HIGH**: `async_unload_entry` cleanup race — `async_entries(DOMAIN)` still included the unloading entry, so domain data was never cleaned up on last-entry unload
+- **MEDIUM**: Format-string injection in notifications — task/object names containing `{curly_braces}` caused `KeyError` crashes in `_notif_t`
+- **MEDIUM**: `total_cost` crashed coordinator on non-numeric cost strings (e.g. `"invalid"`) — now silently skips unparseable values
+- **LOW**: `ws_delete_task` used substring match (`task_id in unique_id`) instead of exact suffix match, potentially deleting wrong entity registry entries
+- **LOW**: Threshold trigger with `for_minutes > 0` could never deactivate via fallback polling when value returned to normal range
+- Dead variable `today` removed from `next_due` property
+
+### Added
+- 2 new lifecycle integration tests (1,362 → 1,364 tests)
+
 ## [1.0.12] - 2026-03-09
 
 ### Fixed

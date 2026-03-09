@@ -10,7 +10,7 @@ import voluptuous as vol
 
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import entity_registry as er, issue_registry as ir
 
 from ..const import (
     CONF_OBJECT,
@@ -528,6 +528,7 @@ async def ws_delete_task(
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
 
+    old_trigger_config = new_tasks[task_id].get("trigger_config")
     del new_tasks[task_id]
     new_data[CONF_TASKS] = new_tasks
 
@@ -554,11 +555,24 @@ async def ws_delete_task(
     # Remove orphaned entity registry entries for the deleted task
     ent_reg = er.async_get(hass)
     for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
-        if ent_entry.unique_id and task_id in ent_entry.unique_id:
+        if ent_entry.unique_id and (
+            ent_entry.unique_id.endswith(f"_{task_id}")
+            or ent_entry.unique_id.endswith(f"_{task_id}_overdue")
+        ):
             ent_reg.async_remove(ent_entry.entity_id)
 
     # Clean up group references
     cleanup_group_refs(hass, task_id=task_id)
+
+    # Clean up any repair issues referencing this task
+    if old_trigger_config:
+        from ..entity.triggers import normalize_entity_ids
+
+        for eid in normalize_entity_ids(old_trigger_config):
+            ir.async_delete_issue(
+                hass, DOMAIN,
+                f"missing_trigger_{entry.entry_id}_{task_id}_{eid}",
+            )
 
     # Reload to re-create remaining entities
     await hass.config_entries.async_reload(entry.entry_id)

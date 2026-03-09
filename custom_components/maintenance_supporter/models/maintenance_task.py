@@ -102,7 +102,6 @@ class MaintenanceTask:
                     pass  # fall back to last_performed
 
             candidate = anchor + timedelta(days=self.interval_days)
-            today = dt_util.now().date()
             # Advance past last_performed (task was already completed then)
             while candidate <= last:
                 candidate += timedelta(days=self.interval_days)
@@ -148,11 +147,16 @@ class MaintenanceTask:
     @property
     def total_cost(self) -> float:
         """Sum of all costs in history."""
-        return sum(
-            float(entry.get("cost", 0.0))
-            for entry in self.history
-            if entry.get("cost") is not None
-        )
+        total = 0.0
+        for entry in self.history:
+            cost = entry.get("cost")
+            if cost is None:
+                continue
+            try:
+                total += float(cost)
+            except (ValueError, TypeError):
+                continue
+        return total
 
     @property
     def average_duration(self) -> float | None:

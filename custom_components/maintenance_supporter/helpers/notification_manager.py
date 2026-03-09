@@ -168,7 +168,11 @@ def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     strings = _NOTIFICATION_STRINGS.get(lang, _NOTIFICATION_STRINGS["en"])
     text = strings.get(key, _NOTIFICATION_STRINGS["en"].get(key, key))
     if kwargs:
-        text = text.format(**kwargs)
+        safe_kwargs = {
+            k: str(v).replace("{", "{{").replace("}", "}}")
+            for k, v in kwargs.items()
+        }
+        text = text.format(**safe_kwargs)
     return text
 
 

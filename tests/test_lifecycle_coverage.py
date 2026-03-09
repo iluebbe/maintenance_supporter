@@ -763,3 +763,83 @@ async def test_nfc_tag_scan_after_object_unload(
     hass.bus.async_fire("tag_scanned", {"tag_id": tag_id, "device_id": "some_device"})
     await hass.async_block_till_done()
     # If we got here without exception, test passes
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Group 7: Real Last-Entry Unload Lifecycle (P1b)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@pytest.mark.asyncio
+async def test_real_last_entry_unload_cleans_up_domain_data(
+    hass: HomeAssistant,
+) -> None:
+    """Real unload of the sole entry triggers full domain cleanup.
+
+    Verifies that hass.data[DOMAIN] is removed, the NotificationManager is
+    unloaded, and event listener unsubs are called — all without patching
+    async_entries or async_unload_platforms.
+    """
+    global_entry = _make_global_entry(hass)
+    await setup_integration(hass, global_entry)
+
+    # Verify domain data exists with NM and event unsubs
+    assert DOMAIN in hass.data
+    nm = hass.data[DOMAIN].get("_notification_manager")
+    assert nm is not None
+    event_unsubs = hass.data[DOMAIN].get("_event_unsubs", [])
+    assert len(event_unsubs) == 2
+
+    # Spy on the unsub callbacks
+    original_unsubs = list(event_unsubs)
+    call_tracker = []
+    for i, orig in enumerate(original_unsubs):
+        def make_wrapper(fn, idx):
+            def wrapper():
+                call_tracker.append(idx)
+                return fn()
+            return wrapper
+        hass.data[DOMAIN]["_event_unsubs"][i] = make_wrapper(orig, i)
+
+    # Spy on NM.async_unload
+    with patch.object(nm, "async_unload", wraps=nm.async_unload) as nm_unload_spy:
+        # Real HA unload — no patches
+        result = await hass.config_entries.async_unload(global_entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert result is True
+    # Domain data should be fully cleaned up
+    assert DOMAIN not in hass.data
+    # Both event unsubs should have been called
+    assert sorted(call_tracker) == [0, 1]
+    # NM.async_unload should have been called
+    nm_unload_spy.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_partial_unload_preserves_domain_data_and_listeners(
+    hass: HomeAssistant,
+) -> None:
+    """Unloading one of two entries does NOT trigger domain cleanup.
+
+    The NotificationManager and event listeners must survive when other
+    entries remain registered.
+    """
+    global_entry = _make_global_entry(hass)
+    obj1 = _make_object_entry(hass, "PartialUnload")
+    await setup_integration(hass, global_entry, obj1)
+
+    assert DOMAIN in hass.data
+    nm_before = hass.data[DOMAIN].get("_notification_manager")
+    assert nm_before is not None
+
+    # Unload the object entry — global entry remains
+    result = await hass.config_entries.async_unload(obj1.entry_id)
+    await hass.async_block_till_done()
+    assert result is True
+
+    # Domain data must still exist
+    assert DOMAIN in hass.data
+    nm_after = hass.data[DOMAIN].get("_notification_manager")
+    assert nm_after is nm_before  # same instance, not recreated
+    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 2

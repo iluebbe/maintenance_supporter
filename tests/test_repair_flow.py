@@ -353,6 +353,114 @@ async def test_repair_remove_missing_data(
     await flow._remove_trigger()
 
 
+# ─── Stale Task Guards ─────────────────────────────────────────────────────
+
+
+async def test_repair_replace_aborts_when_task_deleted(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test replace_entity aborts if the task was deleted after issue creation."""
+    obj_entry = _make_sensor_entry(hass, unique_id="repair_stale_replace")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id)
+
+    # Delete the task from config entry data
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    new_data = dict(entry.data)
+    new_data[CONF_TASKS] = {}
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new"})
+    assert result["type"] == "abort"
+    assert result["reason"] == "task_deleted"
+
+
+async def test_repair_remove_aborts_when_task_deleted(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test remove_trigger aborts if the task was deleted after issue creation."""
+    obj_entry = _make_sensor_entry(hass, unique_id="repair_stale_remove")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id)
+
+    # Delete the task from config entry data
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    new_data = dict(entry.data)
+    new_data[CONF_TASKS] = {}
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    result = await flow.async_step_remove_trigger({})
+    assert result["type"] == "abort"
+    assert result["reason"] == "task_deleted"
+
+
+async def test_repair_replace_aborts_when_entry_gone(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test replace_entity aborts if config entry was removed."""
+    obj_entry = _make_sensor_entry(hass, unique_id="repair_stale_entry")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id)
+
+    # Remove the config entry entirely
+    await hass.config_entries.async_remove(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new"})
+    assert result["type"] == "abort"
+    assert result["reason"] == "task_deleted"
+
+
+# ─── Factory ──────────────────────────────────────────────────────────────
+
+
+async def test_delete_task_cleans_up_repair_issues(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test that deleting a task cleans up associated repair issues."""
+    from homeassistant.helpers import issue_registry as ir_mod
+
+    obj_entry = _make_sensor_entry(hass, unique_id="repair_delete_cleanup")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Create a repair issue for this task
+    issue_id = f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_sensor.old_temp"
+    ir_mod.async_create_issue(
+        hass, DOMAIN, issue_id,
+        is_fixable=True,
+        severity=ir_mod.IssueSeverity.WARNING,
+        translation_key="missing_trigger_entity",
+    )
+
+    # Verify issue exists
+    issue_reg = ir_mod.async_get(hass)
+    assert issue_reg.async_get_issue(DOMAIN, issue_id) is not None
+
+    # Delete the task via WS handler
+    from custom_components.maintenance_supporter.websocket.tasks import ws_delete_task
+
+    mock_conn = MagicMock()
+    mock_conn.send_result = MagicMock()
+    mock_conn.send_error = MagicMock()
+
+    await ws_delete_task.__wrapped__.__wrapped__(  # type: ignore[attr-defined]
+        hass, mock_conn,
+        {"id": 1, "type": "maintenance_supporter/task/delete",
+         "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
+    )
+    await hass.async_block_till_done()
+
+    mock_conn.send_result.assert_called()
+
+    # Verify the repair issue was cleaned up
+    assert issue_reg.async_get_issue(DOMAIN, issue_id) is None
+
+
 # ─── Factory ──────────────────────────────────────────────────────────────
 
 

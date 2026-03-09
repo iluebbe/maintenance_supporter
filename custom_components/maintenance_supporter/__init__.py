@@ -443,7 +443,11 @@ async def async_unload_entry(
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     # Clean up domain data if no entries left
-    if not hass.config_entries.async_entries(DOMAIN):
+    remaining = [
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.entry_id != entry.entry_id
+    ]
+    if not remaining:
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is not None:
             await nm.async_unload()

@@ -16,7 +16,7 @@ import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import selector
+from homeassistant.helpers import issue_registry as ir, selector
 
 from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
 from .const import (
@@ -67,6 +67,15 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
         if user_input is not None:
             new_entity_id = user_input["new_entity_id"]
+            # Guard: task may have been deleted since issue was created
+            issue_data = self.data or {}
+            entry = self.hass.config_entries.async_get_entry(
+                str(issue_data.get("entry_id", ""))
+            )
+            if entry is None or issue_data.get("task_id") not in entry.data.get(
+                CONF_TASKS, {}
+            ):
+                return self.async_abort(reason="task_deleted")
             await self._replace_trigger_entity(new_entity_id)
             return self.async_create_entry(data={})
 
@@ -96,6 +105,15 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         issue_data = self.data or {}
 
         if user_input is not None:
+            # Guard: task may have been deleted since issue was created
+            issue_data = self.data or {}
+            entry = self.hass.config_entries.async_get_entry(
+                str(issue_data.get("entry_id", ""))
+            )
+            if entry is None or issue_data.get("task_id") not in entry.data.get(
+                CONF_TASKS, {}
+            ):
+                return self.async_abort(reason="task_deleted")
             await self._remove_trigger()
             return self.async_create_entry(data={})
 
