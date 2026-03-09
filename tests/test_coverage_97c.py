@@ -180,7 +180,7 @@ async def test_env_analysis_none_attribute(hass: HomeAssistant) -> None:
         result = await sp._async_analyze_environmental(
             "sensor.env_test",
             "missing_attr",  # attribute that doesn't exist
-            [],
+            {},
         )
     assert result is not None
     assert result.has_sufficient_data is False
@@ -255,7 +255,7 @@ async def test_parse_statistics_bad_start_and_bad_value(
     # Mock async_add_executor_job to return raw_stats directly
     original_job = hass.async_add_executor_job
 
-    async def mock_executor_job(func, *args):
+    async def mock_executor_job(func: Any, *args: Any) -> Any:
         return raw_stats
 
     hass.async_add_executor_job = mock_executor_job  # type: ignore[assignment]
@@ -279,7 +279,7 @@ def test_compute_intervals_bad_timestamps() -> None:
     from custom_components.maintenance_supporter.helpers.interval_analyzer import (
         IntervalAnalyzer,
     )
-    history = [
+    history: list[dict[str, Any]] = [
         {"type": "completed", "timestamp": None},        # line 351: falsy
         {"type": "completed", "timestamp": "bad_date"},   # line 357-358
         {"type": "completed", "timestamp": "2024-01-01T00:00:00"},
@@ -320,7 +320,7 @@ def test_seasonal_intervals_bad_timestamps() -> None:
     from custom_components.maintenance_supporter.helpers.interval_analyzer import (
         IntervalAnalyzer,
     )
-    history = [
+    history: list[dict[str, Any]] = [
         {"type": "completed", "timestamp": None},        # line 549
         {"type": "completed", "timestamp": "bad"},        # line 555-556
         {"type": "completed", "timestamp": "2024-01-01T00:00:00"},

@@ -469,7 +469,7 @@ async def test_multi_entity_second_entity_invalid(
     )
     # Should show form again with error (not advance)
     assert result["type"] == FlowResultType.FORM
-    assert result["errors"].get(CONF_TRIGGER_ENTITY) == "invalid_entity"
+    assert (result["errors"] or {}).get(CONF_TRIGGER_ENTITY) == "invalid_entity"
 
 
 async def test_multi_entity_all_valid(

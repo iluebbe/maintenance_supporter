@@ -74,7 +74,8 @@ async def _ws_get(hass: HomeAssistant) -> dict[str, Any]:
         "type": "maintenance_supporter/settings",
     })
     conn.send_result.assert_called_once()
-    return conn.send_result.call_args[0][1]
+    result: dict[str, Any] = conn.send_result.call_args[0][1]
+    return result
 
 
 async def _ws_update(
@@ -88,7 +89,8 @@ async def _ws_update(
         "settings": settings,
     })
     conn.send_result.assert_called_once()
-    return conn.send_result.call_args[0][1]
+    result: dict[str, Any] = conn.send_result.call_args[0][1]
+    return result
 
 
 def _entry_options(hass: HomeAssistant, entry_id: str) -> dict[str, Any]:

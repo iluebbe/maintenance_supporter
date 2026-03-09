@@ -186,7 +186,7 @@ async def test_time_based_invalid_interval(
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "opt_time_based"
-    assert result.get("errors", {}).get("interval_days") == "invalid_interval"
+    assert (result.get("errors") or {}).get("interval_days") == "invalid_interval"
 
 
 # ─── config_flow_options_task.py: non-completion anchor (103) ─────────

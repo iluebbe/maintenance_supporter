@@ -713,12 +713,12 @@ async def test_notification_with_action_buttons(
     original_async_call = hass.services.async_call
 
     async def mock_async_call(
-        domain: str, service: str, service_data: dict | None = None, **kw: Any,
+        domain: str, service: str, service_data: dict[str, Any] | None = None, **kw: Any,
     ) -> None:
         if domain == "notify":
             calls.append({"domain": domain, "service": service, "data": service_data or {}})
             return
-        return await original_async_call(domain, service, service_data, **kw)
+        await original_async_call(domain, service, service_data, **kw)
 
     conn = _conn()
     with patch(
