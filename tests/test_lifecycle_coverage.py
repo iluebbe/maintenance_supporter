@@ -793,13 +793,14 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     # Spy on the unsub callbacks
     original_unsubs = list(event_unsubs)
     call_tracker = []
+    def _make_wrapper(fn: Any, idx: int) -> Any:
+        def wrapper() -> None:
+            call_tracker.append(idx)
+            fn()
+        return wrapper
+
     for i, orig in enumerate(original_unsubs):
-        def make_wrapper(fn, idx):
-            def wrapper():
-                call_tracker.append(idx)
-                return fn()
-            return wrapper
-        hass.data[DOMAIN]["_event_unsubs"][i] = make_wrapper(orig, i)
+        hass.data[DOMAIN]["_event_unsubs"][i] = _make_wrapper(orig, i)
 
     # Spy on NM.async_unload
     with patch.object(nm, "async_unload", wraps=nm.async_unload) as nm_unload_spy:
