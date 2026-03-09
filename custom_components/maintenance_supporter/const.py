@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+import re
 from enum import StrEnum
 
 from homeassistant.const import Platform
 
 DOMAIN = "maintenance_supporter"
+
+
+def slugify_object_name(name: str) -> str:
+    """Convert an object name to a safe slug for use in unique IDs.
+
+    Replaces any non-alphanumeric character with underscore, collapses
+    consecutive underscores, and strips leading/trailing underscores.
+    """
+    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", name.lower())).strip("_")
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.CALENDAR]
 
 # --- Unique IDs ---

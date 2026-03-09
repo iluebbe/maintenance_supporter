@@ -157,7 +157,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
         # Read static task data from ConfigEntry
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
-        task_dict = dict(tasks_data.get(task_id, {}))
+        task_dict = dict(tasks_data[task_id])
         trigger_config = dict(task_dict.get("trigger_config", {}))
 
         # Update entity_ids list if present
@@ -247,7 +247,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             return
 
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
-        task_dict = dict(tasks_data.get(task_id, {}))
+        task_dict = dict(tasks_data[task_id])
         trigger_config = dict(task_dict.get("trigger_config", {}))
 
         entity_ids = trigger_config.get("entity_ids", [])

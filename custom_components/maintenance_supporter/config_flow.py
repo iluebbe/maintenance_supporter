@@ -44,6 +44,7 @@ from .const import (
     GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
+    slugify_object_name,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -381,7 +382,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
         obj_data = user_input.get(CONF_OBJECT, {})
         object_name = obj_data.get(CONF_OBJECT_NAME, "Unknown")
-        object_slug = object_name.lower().replace(" ", "_").replace("-", "_")
+        object_slug = slugify_object_name(object_name)
 
         await self.async_set_unique_id(f"maintenance_supporter_{object_slug}")
         self._abort_if_unique_id_configured()
@@ -829,7 +830,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             )
 
         object_name = self._object_data.get(CONF_OBJECT_NAME, "Unknown")
-        object_slug = object_name.lower().replace(" ", "_").replace("-", "_")
+        object_slug = slugify_object_name(object_name)
 
         await self.async_set_unique_id(f"maintenance_supporter_{object_slug}")
         self._abort_if_unique_id_configured()

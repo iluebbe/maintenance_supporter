@@ -27,7 +27,9 @@ TO_REDACT = {
     "manufacturer",
     "model",
     "name",
+    "nfc_tag_id",
     "notify_service",
+    "responsible_user_id",
 }
 
 

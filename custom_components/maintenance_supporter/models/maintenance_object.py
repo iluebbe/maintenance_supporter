@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from typing import Any
 from uuid import uuid4
 
+from ..const import slugify_object_name
+
 
 @dataclass
 class MaintenanceObject:
@@ -50,4 +52,4 @@ class MaintenanceObject:
     @property
     def slug(self) -> str:
         """Return a slugified version of the name for use in unique IDs."""
-        return self.name.lower().replace(" ", "_").replace("-", "_")
+        return slugify_object_name(self.name)

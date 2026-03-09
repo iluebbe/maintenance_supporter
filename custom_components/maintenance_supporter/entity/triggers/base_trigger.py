@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -291,7 +292,10 @@ class BaseTrigger(ABC):
 
             if raw is None:
                 return None
-            return float(raw)
+            val = float(raw)
+            if not math.isfinite(val):
+                return None
+            return val
         except (ValueError, TypeError):
             return None
 

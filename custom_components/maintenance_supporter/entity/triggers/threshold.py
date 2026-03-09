@@ -68,7 +68,14 @@ class ThresholdTrigger(BaseTrigger):
         return False
 
     def _start_for_timer(self) -> None:
-        """Start the for-duration timer."""
+        """Start the for-duration timer.
+
+        Note: This timer uses ``async_call_later`` which is not persisted
+        across HA restarts.  If HA restarts while the timer is running, the
+        duration requirement resets and the threshold must be exceeded again
+        for the full ``for_minutes`` period.  This is an inherent HA
+        limitation with no practical workaround.
+        """
         self._cancel_timer()
 
         @callback

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json as json_mod
+import logging
 from typing import Any
 from uuid import uuid4
 
@@ -20,6 +21,10 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from ..websocket.tasks import _check_nfc_tag_duplicate
+
+_LOGGER = logging.getLogger(__name__)
+
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
     build_qr_url,
@@ -157,6 +162,7 @@ async def ws_import_csv(
             )
         except Exception:  # noqa: BLE001
             obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
+            _LOGGER.exception("CSV import failed for %s", obj_name)
             errors.append({"name": obj_name, "reason": "unexpected error"})
             continue
         if result["type"] == "create_entry":
@@ -271,6 +277,15 @@ async def ws_import_json(
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
 
+        # Check for NFC tag duplicates across imported tasks
+        nfc_warnings: list[str] = []
+        for t_data in import_tasks.values():
+            nfc_val = t_data.get("nfc_tag_id")
+            if nfc_val:
+                nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
+                if nfc_warn:
+                    nfc_warnings.append(nfc_warn)
+
         try:
             result = await hass.config_entries.flow.async_init(
                 DOMAIN,
@@ -281,14 +296,18 @@ async def ws_import_json(
                 },
             )
         except Exception:  # noqa: BLE001
+            _LOGGER.exception("JSON import failed for %s", obj_name)
             errors.append({"name": obj_name, "reason": "unexpected error"})
             continue
         if result["type"] == "create_entry":
-            created.append({
+            entry_info: dict[str, Any] = {
                 "entry_id": result["result"].entry_id,
                 "name": obj_name,
                 "task_count": len(import_tasks),
-            })
+            }
+            if nfc_warnings:
+                entry_info["warnings"] = nfc_warnings
+            created.append(entry_info)
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
 

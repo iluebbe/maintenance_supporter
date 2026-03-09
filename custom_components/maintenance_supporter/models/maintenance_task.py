@@ -101,11 +101,13 @@ class MaintenanceTask:
                 except (ValueError, TypeError):
                     pass  # fall back to last_performed
 
-            candidate = anchor + timedelta(days=self.interval_days)
-            # Advance past last_performed (task was already completed then)
-            while candidate <= last:
-                candidate += timedelta(days=self.interval_days)
-            return candidate
+            # O(1) arithmetic to find the first candidate after last_performed
+            days_gap = (last - anchor).days
+            if days_gap < 0:
+                periods = 1
+            else:
+                periods = (days_gap // self.interval_days) + 1
+            return anchor + timedelta(days=periods * self.interval_days)
 
         return last + timedelta(days=self.interval_days)
 
