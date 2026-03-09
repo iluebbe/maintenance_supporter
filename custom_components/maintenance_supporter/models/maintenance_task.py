@@ -78,7 +78,7 @@ class MaintenanceTask:
 
         Example (30-day interval, planned for March 1):
           - Completed March 5 → next due: March 31 (not April 4)
-          - If multiple periods were missed, advances to the next future date.
+          - If the task has not been completed, the date may be in the past, correctly showing OVERDUE status.
         """
         if self.interval_days is None:
             return None
@@ -106,13 +106,6 @@ class MaintenanceTask:
             # Advance past last_performed (task was already completed then)
             while candidate <= last:
                 candidate += timedelta(days=self.interval_days)
-            # If we already passed the candidate, keep advancing
-            # (handles the case where multiple periods were missed)
-            if candidate < today:
-                periods_missed = (today - candidate).days // self.interval_days
-                candidate += timedelta(days=self.interval_days * periods_missed)
-                if candidate < today:
-                    candidate += timedelta(days=self.interval_days)
             return candidate
 
         return last + timedelta(days=self.interval_days)

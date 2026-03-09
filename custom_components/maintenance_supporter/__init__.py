@@ -533,8 +533,9 @@ def _get_task_id_for_entity(
     # Binary sensor: maintenance_supporter_{slug}_{task_id}_overdue
     from .const import CONF_TASKS
     tasks: dict[str, Any] = config_entry.data.get(CONF_TASKS, {})
+    clean_id = unique_id.removesuffix("_overdue")
     for task_id in tasks:
-        if f"_{task_id}" in unique_id:
+        if clean_id.endswith(f"_{task_id}"):
             return str(task_id)
 
     return None

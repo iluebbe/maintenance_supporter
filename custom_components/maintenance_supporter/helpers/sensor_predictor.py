@@ -267,6 +267,8 @@ class SensorPredictor:
             else:
                 threshold_value = float(target)
             direction = "above"
+            if slope <= 0:
+                return None  # Counter not increasing; prediction impossible
         else:
             # Threshold trigger
             above = trigger_config.get("trigger_above")

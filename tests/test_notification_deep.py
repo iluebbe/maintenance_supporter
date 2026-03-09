@@ -536,3 +536,83 @@ async def test_mgr_disabled(hass: HomeAssistant) -> None:
 
     mgr = NotificationManager(hass)
     assert mgr.enabled is False
+
+
+# ─── Seed Startup State ──────────────────────────────────────────────
+
+
+async def test_seed_startup_state_with_interval(hass: HomeAssistant) -> None:
+    """seed_startup_state sets _last_notified to now for statuses with repeat interval."""
+    _create_global_entry(hass)
+    mgr = NotificationManager(hass)
+
+    before = dt_util.now()
+    mgr.seed_startup_state("entry1", "task1", MaintenanceStatus.OVERDUE)
+    after = dt_util.now()
+
+    key = f"entry1_task1_{MaintenanceStatus.OVERDUE}"
+    assert key in mgr._last_notified
+    ts = mgr._last_notified[key]
+    assert before <= ts <= after  # timestamp is "now"
+
+
+async def test_seed_startup_state_interval_zero(hass: HomeAssistant) -> None:
+    """seed_startup_state sets _SENT_ONCE for statuses with interval=0."""
+    from custom_components.maintenance_supporter.helpers.notification_manager import _SENT_ONCE
+
+    _create_global_entry(hass)
+    mgr = NotificationManager(hass)
+
+    # Patch interval to 0 for TRIGGERED
+    with patch.object(mgr, "_get_interval_hours", return_value=0):
+        mgr.seed_startup_state("entry1", "task1", MaintenanceStatus.TRIGGERED)
+
+    key = f"entry1_task1_{MaintenanceStatus.TRIGGERED}"
+    assert mgr._last_notified[key] is _SENT_ONCE
+
+
+async def test_seed_prevents_immediate_notification(hass: HomeAssistant) -> None:
+    """After seeding, calling async_task_status_changed does NOT send immediately."""
+    _create_global_entry(hass)
+
+    mock_service = AsyncMock()
+    hass.services.async_register("notify", "test", mock_service)
+
+    mgr = NotificationManager(hass)
+    mgr.seed_startup_state("entry1", "task1", MaintenanceStatus.OVERDUE)
+
+    # Now call async_task_status_changed — should be rate-limited
+    await mgr.async_task_status_changed(
+        entry_id="entry1",
+        task_id="task1",
+        task_name="Filter",
+        object_name="Pool",
+        new_status=MaintenanceStatus.OVERDUE,
+        days_until_due=-5,
+    )
+
+    assert not mock_service.called  # Rate-limited by the seed
+
+
+async def test_seed_allows_repeat_after_interval(hass: HomeAssistant) -> None:
+    """After seed + interval elapsed, repeat notification fires."""
+    _create_global_entry(hass)
+
+    mock_service = AsyncMock()
+    hass.services.async_register("notify", "test", mock_service)
+
+    mgr = NotificationManager(hass)
+    # Seed with a timestamp far enough in the past
+    key = f"entry1_task1_{MaintenanceStatus.OVERDUE}"
+    mgr._last_notified[key] = dt_util.now() - timedelta(hours=13)  # > 12h default
+
+    await mgr.async_task_status_changed(
+        entry_id="entry1",
+        task_id="task1",
+        task_name="Filter",
+        object_name="Pool",
+        new_status=MaintenanceStatus.OVERDUE,
+        days_until_due=-5,
+    )
+
+    assert mock_service.called  # Interval elapsed → notification sent

@@ -181,11 +181,12 @@ class TriggerConfigMixin:
             if not entity_ids:
                 errors[CONF_TRIGGER_ENTITY] = "invalid_entity"
             else:
-                # Validate first entity (used for attribute discovery)
-                state = self.hass.states.get(entity_ids[0])
-                if state is None:
+                # Validate all entities, not just the first
+                missing = [eid for eid in entity_ids if self.hass.states.get(eid) is None]
+                if missing:
                     errors[CONF_TRIGGER_ENTITY] = "invalid_entity"
                 else:
+                    state = self.hass.states.get(entity_ids[0])
                     self._trigger_entity_id = entity_ids[0]
                     self._trigger_entity_state = state
                     # Store all selected entity_ids for multi-entity support
@@ -865,10 +866,11 @@ class TriggerConfigMixin:
             if not entity_ids:
                 errors[CONF_TRIGGER_ENTITY] = "invalid_entity"
             else:
-                state = self.hass.states.get(entity_ids[0])
-                if state is None:
+                missing = [eid for eid in entity_ids if self.hass.states.get(eid) is None]
+                if missing:
                     errors[CONF_TRIGGER_ENTITY] = "invalid_entity"
                 else:
+                    state = self.hass.states.get(entity_ids[0])
                     self._trigger_entity_id = entity_ids[0]
                     self._trigger_entity_state = state
                     self._trigger_entity_ids = entity_ids

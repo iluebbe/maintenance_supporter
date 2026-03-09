@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.12] - 2026-03-09
+
+### Fixed
+- **CRITICAL**: Planned-anchor tasks (`interval_anchor="planned"`) could never become overdue — the auto-advance logic silently moved the due date into the future, defeating the core purpose of a maintenance tracker
+- Repeat notifications broken: the coordinator's `new_status != old_status` filter prevented the NotificationManager from ever re-sending reminders for tasks that remained overdue/due-soon (e.g., every 12h for overdue)
+- Counter prediction produced nonsensical results with negative slope (counter decreasing) instead of returning no prediction
+- Task-ID substring matching: `_get_task_id_for_entity` could match a shorter task ID as a substring of a longer unique_id, causing wrong task resolution
+- Multi-entity trigger validation only checked the first entity — invalid entities in positions 2+ were silently accepted
+- Frontend `parseFloat`/`parseInt` NaN values sent to backend when trigger config fields contained non-numeric text
+
+### Added
+- `NotificationManager.seed_startup_state()` — properly seeds notification timestamps on first coordinator refresh to prevent burst while preserving repeat interval functionality
+- 10 new tests (1,352 → 1,362 tests)
+
 ## [1.0.11] - 2026-03-08
 
 ### Added

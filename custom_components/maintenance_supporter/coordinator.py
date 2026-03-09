@@ -301,14 +301,24 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Check for issues (repairs)
         await self._async_check_for_issues(tasks)
 
-        # Send notifications for status changes.
-        # On first refresh after startup, seed _previous_statuses without
-        # sending notifications to avoid a burst of stale alerts.
+        # Send notifications for status changes / repeats.
+        # On first refresh after startup, seed both _previous_statuses and
+        # the NotificationManager's _last_notified to avoid a burst of stale
+        # alerts while still allowing future repeat reminders.
         if not self._previous_statuses:
+            from .helpers.notification_manager import NotificationManager  # noqa: PLC0415
+
+            nm = self.hass.data.get(DOMAIN, {}).get("_notification_manager")
+            notify_statuses = {
+                MaintenanceStatus.DUE_SOON,
+                MaintenanceStatus.OVERDUE,
+                MaintenanceStatus.TRIGGERED,
+            }
             for task_id_n, task_result_n in result[CONF_TASKS].items():
-                self._previous_statuses[task_id_n] = task_result_n.get(
-                    "_status", MaintenanceStatus.OK
-                )
+                status = task_result_n.get("_status", MaintenanceStatus.OK)
+                self._previous_statuses[task_id_n] = status
+                if isinstance(nm, NotificationManager) and status in notify_statuses:
+                    nm.seed_startup_state(self.entry.entry_id, task_id_n, status)
         else:
             await self._async_notify_status_changes(result[CONF_TASKS])
 
@@ -586,10 +596,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_notify_status_changes(
         self, task_results: dict[str, Any]
     ) -> None:
-        """Check for status changes and send notifications.
+        """Pass tasks with notifiable statuses to the NotificationManager.
 
-        Only notifies on actual status *transitions* (e.g. OK → OVERDUE)
-        to avoid a burst of stale notifications after HA restart.
+        The NotificationManager handles deduplication and repeat intervals
+        via its own ``_last_notified`` timestamps.  On startup the coordinator
+        seeds the NM so that already-notifiable tasks don't trigger an
+        immediate burst but will still repeat after the configured interval.
         """
         from .helpers.notification_manager import NotificationManager
 
@@ -607,12 +619,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             MaintenanceStatus.TRIGGERED,
         }
 
-        # Collect all notifiable tasks, capturing old_status BEFORE overwriting
+        # Collect all tasks with notifiable statuses.
+        # The NM's own rate-limiting decides whether to actually send.
         notifiable: list[tuple[str, dict[str, Any], str, str | None]] = []
         for task_id, task_result in task_results.items():
             new_status = task_result.get("_status")
             old_status = self._previous_statuses.get(task_id)
-            if new_status in notify_statuses and new_status != old_status:
+            if new_status in notify_statuses:
                 notifiable.append((task_id, task_result, new_status, old_status))
 
         if not notifiable:

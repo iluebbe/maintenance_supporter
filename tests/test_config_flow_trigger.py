@@ -446,6 +446,58 @@ async def test_multi_entity_threshold(
     assert tc.get(CONF_TRIGGER_ENTITY_LOGIC) == "any"
 
 
+async def test_multi_entity_second_entity_invalid(
+    hass: HomeAssistant, global_config_entry: ConfigEntry,
+) -> None:
+    """Test multi-entity validation rejects when second entity doesn't exist."""
+    hass.states.async_set("sensor.valid", "25.0", {"unit_of_measurement": "°C"})
+    # sensor.nonexistent is NOT set
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Multi Invalid",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    # Select one valid + one nonexistent entity
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.valid", "sensor.nonexistent"]},
+    )
+    # Should show form again with error (not advance)
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"].get(CONF_TRIGGER_ENTITY) == "invalid_entity"
+
+
+async def test_multi_entity_all_valid(
+    hass: HomeAssistant, global_config_entry: ConfigEntry,
+) -> None:
+    """Test multi-entity validation passes when all entities exist."""
+    hass.states.async_set("sensor.valid1", "25.0", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.valid2", "26.0", {"unit_of_measurement": "°C"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Multi Valid",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    # Select two valid entities
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.valid1", "sensor.valid2"]},
+    )
+    # Should advance to next step (attribute selection), not show error
+    assert result["type"] == FlowResultType.FORM
+    assert "errors" not in result or not result.get("errors")
+
+
 # ─── Mixin Unit Tests ────────────────────────────────────────────────────
 
 

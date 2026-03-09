@@ -129,16 +129,14 @@ class TestIntervalAnchorPlanned:
         assert task.next_due == date(2026, 3, 22)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
-    def test_planned_anchor_missed_periods(self, mock_dt: MagicMock) -> None:
-        """Planned anchor with multiple missed periods advances to next future date."""
+    def test_planned_anchor_missed_periods_shows_overdue(self, mock_dt: MagicMock) -> None:
+        """Planned anchor with missed periods: next_due stays in the past → OVERDUE."""
         # "Today" is June 1
         mock_dt.now.return_value.date.return_value = date(2026, 6, 1)
 
         # Last performed Jan 1, 30-day interval
-        # candidate = Jan 1 + 30 = Jan 31
-        # Jan 31 < Jun 1, so advance: (Jun 1 - Jan 31) = 121 days, 121/30 = 4 periods
-        # Jan 31 + 4*30 = Jan 31 + 120 = May 31
-        # May 31 < Jun 1, advance one more: May 31 + 30 = Jun 30
+        # candidate = Jan 1 + 30 = Jan 31, which is past last_performed
+        # No more advancing → next_due = Jan 31 (in the past) → OVERDUE
         task = MaintenanceTask(
             id=TASK_ID_1,
             name="Test",
@@ -146,8 +144,36 @@ class TestIntervalAnchorPlanned:
             interval_days=30,
             interval_anchor="planned",
         )
-        assert task.next_due is not None
-        assert task.next_due >= date(2026, 6, 1)
+        assert task.next_due == date(2026, 1, 31)
+        assert task.status == MaintenanceStatus.OVERDUE
+
+    @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
+    def test_planned_anchor_overdue_then_complete(self, mock_dt: MagicMock) -> None:
+        """Complete an overdue planned task, verify new next_due is correct."""
+        # "Today" is June 1
+        mock_dt.now.return_value.date.return_value = date(2026, 6, 1)
+
+        task = MaintenanceTask(
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-01-01",
+            interval_days=30,
+            interval_anchor="planned",
+        )
+        # Before complete: overdue
+        assert task.next_due == date(2026, 1, 31)
+        assert task.status == MaintenanceStatus.OVERDUE
+
+        # Complete it — saves next_due (Jan 31) as last_planned_due
+        task.complete()
+        assert task.last_planned_due == "2026-01-31"
+        assert task.last_performed == "2026-06-01"
+
+        # After complete: next_due = Jan 31 + 30 = Mar 2,
+        # but Mar 2 <= Jun 1 (last_performed), so advance:
+        # Mar 2 + 30 = Apr 1, Apr 1 + 30 = May 1, May 1 + 30 = May 31,
+        # May 31 + 30 = Jun 30. Jun 30 > Jun 1 → next_due = Jun 30
+        assert task.next_due == date(2026, 6, 30)
 
     @patch("custom_components.maintenance_supporter.models.maintenance_task.dt_util")
     def test_planned_anchor_future_due_not_advanced(self, mock_dt: MagicMock) -> None:

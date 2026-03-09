@@ -267,6 +267,45 @@ def test_threshold_prediction_counter_absolute() -> None:
     assert abs(result.days_until_threshold - 7.0) < 0.1
 
 
+def test_threshold_prediction_counter_negative_slope() -> None:
+    """Test counter prediction with negative slope returns None."""
+    degradation = DegradationAnalysis(
+        entity_id="sensor.counter",
+        slope_per_day=-2.0,
+        trend="falling",
+        r_squared=0.8,
+        current_value=50.0,
+        data_points=30,
+        lookback_days=30,
+    )
+    config = {
+        "type": "counter",
+        "trigger_target_value": 100,
+        "trigger_delta_mode": False,
+    }
+    result = SensorPredictor._compute_threshold_prediction(degradation, config)
+    assert result is None
+
+
+def test_threshold_prediction_counter_zero_slope() -> None:
+    """Test counter prediction with zero slope returns None (handled by slope==0 guard)."""
+    degradation = DegradationAnalysis(
+        entity_id="sensor.counter",
+        slope_per_day=0.0,
+        trend="stable",
+        r_squared=0.8,
+        current_value=50.0,
+        data_points=30,
+        lookback_days=30,
+    )
+    config = {
+        "type": "counter",
+        "trigger_target_value": 100,
+    }
+    result = SensorPredictor._compute_threshold_prediction(degradation, config)
+    assert result is None
+
+
 def test_threshold_prediction_counter_no_target() -> None:
     """Test threshold prediction for counter without target → None."""
     degradation = DegradationAnalysis(

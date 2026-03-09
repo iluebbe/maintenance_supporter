@@ -677,6 +677,22 @@ class NotificationManager:
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send budget alert")
 
+    def seed_startup_state(
+        self, entry_id: str, task_id: str, status: str
+    ) -> None:
+        """Seed notification state for a task that is already notifiable at startup.
+
+        Called once on first coordinator refresh to prevent a burst of stale
+        notifications.  Sets the ``_last_notified`` timestamp so the repeat
+        interval starts *now* rather than firing immediately.
+        """
+        key = f"{entry_id}_{task_id}_{status}"
+        interval_hours = self._get_interval_hours(status)
+        if interval_hours == 0:
+            self._last_notified[key] = _SENT_ONCE
+        else:
+            self._last_notified[key] = dt_util.now()
+
     def clear_task_state(self, entry_id: str, task_id: str) -> None:
         """Clear notification state for a task (after completion/reset)."""
         for status in (MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED):

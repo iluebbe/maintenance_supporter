@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.11 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,352 tests)
+**Version:** 1.0.12 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,362 tests)
 
 ---
 
@@ -425,7 +425,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,352 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,362 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -447,7 +447,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,352 tests** across **67 test files** with **96% code coverage**.
+**1,362 tests** across **67 test files** with **96% code coverage**.
 
 ### Coverage by Module
 

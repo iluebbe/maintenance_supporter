@@ -259,18 +259,18 @@ export class MaintenanceTaskDialog extends LitElement {
         }
 
         if (this._triggerType === "threshold") {
-          if (this._triggerAbove) triggerConfig.trigger_above = parseFloat(this._triggerAbove);
-          if (this._triggerBelow) triggerConfig.trigger_below = parseFloat(this._triggerBelow);
-          if (this._triggerForMinutes) triggerConfig.trigger_for_minutes = parseInt(this._triggerForMinutes, 10);
+          if (this._triggerAbove) { const v = parseFloat(this._triggerAbove); if (!isNaN(v)) triggerConfig.trigger_above = v; }
+          if (this._triggerBelow) { const v = parseFloat(this._triggerBelow); if (!isNaN(v)) triggerConfig.trigger_below = v; }
+          if (this._triggerForMinutes) { const v = parseInt(this._triggerForMinutes, 10); if (!isNaN(v)) triggerConfig.trigger_for_minutes = v; }
         } else if (this._triggerType === "counter") {
-          if (this._triggerTargetValue) triggerConfig.trigger_target_value = parseFloat(this._triggerTargetValue);
+          if (this._triggerTargetValue) { const v = parseFloat(this._triggerTargetValue); if (!isNaN(v)) triggerConfig.trigger_target_value = v; }
           triggerConfig.trigger_delta_mode = this._triggerDeltaMode;
         } else if (this._triggerType === "state_change") {
           if (this._triggerFromState) triggerConfig.trigger_from_state = this._triggerFromState;
           if (this._triggerToState) triggerConfig.trigger_to_state = this._triggerToState;
-          if (this._triggerTargetChanges) triggerConfig.trigger_target_changes = parseInt(this._triggerTargetChanges, 10);
+          if (this._triggerTargetChanges) { const v = parseInt(this._triggerTargetChanges, 10); if (!isNaN(v)) triggerConfig.trigger_target_changes = v; }
         } else if (this._triggerType === "runtime") {
-          if (this._triggerRuntimeHours) triggerConfig.trigger_runtime_hours = parseFloat(this._triggerRuntimeHours);
+          if (this._triggerRuntimeHours) { const v = parseFloat(this._triggerRuntimeHours); if (!isNaN(v)) triggerConfig.trigger_runtime_hours = v; }
         }
 
         data.trigger_config = triggerConfig;
