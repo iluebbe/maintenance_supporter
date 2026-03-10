@@ -1,7 +1,9 @@
-"""Tests for codebase audit fixes (v1.0.15).
+"""Tests for codebase audit fixes (v1.0.15+).
 
 Covers: Fix A (NaN/Inf guard), Fix B (slugify_object_name), Fix C (O(1) next_due),
-Fix D (import logging), Fix E (NFC duplicate on JSON import), Fix F (diagnostics redaction).
+Fix D (import logging), Fix E (NFC duplicate on JSON import), Fix F (diagnostics redaction),
+Fix G (NFC duplicate in options flow), Fix H (NFC duplicate in CSV import),
+Fix I (NFC tag length validation).
 """
 
 from __future__ import annotations
@@ -35,7 +37,7 @@ from custom_components.maintenance_supporter.entity.triggers.base_trigger import
 from custom_components.maintenance_supporter.models.maintenance_task import (
     MaintenanceTask,
 )
-from custom_components.maintenance_supporter.websocket.io import ws_import_json
+from custom_components.maintenance_supporter.websocket.io import ws_import_csv, ws_import_json
 
 from .conftest import (
     TASK_ID_1,
@@ -351,3 +353,163 @@ async def test_diagnostics_redacts_nfc_and_user_id(
             assert task_data["nfc_tag_id"] == "**REDACTED**"
         if "responsible_user_id" in task_data:
             assert task_data["responsible_user_id"] == "**REDACTED**"
+
+
+# ─── Fix G: Options flow — NFC duplicate check ───────────────────────
+
+
+async def test_options_flow_nfc_duplicate_rejected(
+    hass: HomeAssistant,
+) -> None:
+    """Editing a task via options flow with a duplicate NFC tag should show a form error."""
+    from homeassistant.data_entry_flow import FlowResultType
+
+    from custom_components.maintenance_supporter.const import (
+        CONF_TASK_NFC_TAG,
+        MaintenanceTypeEnum,
+    )
+
+    # Create two objects — second one already has the NFC tag
+    task1 = build_task_data(last_performed="2024-06-01")
+    entry1 = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Object A",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Object A"),
+            tasks={TASK_ID_1: task1},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_object_a",
+    )
+    entry1.add_to_hass(hass)
+
+    task2_id = "d" * 32
+    task2 = build_task_data(task_id=task2_id, name="Task B", last_performed="2024-06-01")
+    task2["nfc_tag_id"] = "TAG_TAKEN"
+    entry2 = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Object B",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Object B", object_id="e" * 32),
+            tasks={task2_id: task2},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_object_b",
+    )
+    entry2.add_to_hass(hass)
+
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry1, entry2)
+
+    # Navigate options flow to edit_task on entry1
+    result = await hass.config_entries.options.async_init(entry1.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "manage_tasks"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "edit_task"},
+    )
+    assert result["step_id"] == "edit_task"
+
+    # Submit with a duplicate NFC tag
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "name": "Filter Cleaning",
+            "type": MaintenanceTypeEnum.CLEANING,
+            "interval_days": 30,
+            "warning_days": 7,
+            "enabled": True,
+            CONF_TASK_NFC_TAG: "TAG_TAKEN",
+        },
+    )
+    # Should re-show form with error, NOT save
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "edit_task"
+    assert result["errors"] == {CONF_TASK_NFC_TAG: "nfc_tag_duplicate"}
+
+
+# ─── Fix H: CSV import — NFC duplicate check ─────────────────────────
+
+
+async def test_csv_import_nfc_duplicate_warning(
+    hass: HomeAssistant,
+) -> None:
+    """CSV import should warn when NFC tag is already in use."""
+    # Create an existing entry with an NFC tag
+    existing_task = build_task_data(last_performed="2024-06-01")
+    existing_task["nfc_tag_id"] = "TAG_CSV_DUP"
+    existing_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Existing CSV Object",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Existing CSV Object"),
+            tasks={TASK_ID_1: existing_task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_existing_csv_object",
+    )
+    existing_entry.add_to_hass(hass)
+
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, existing_entry)
+
+    conn = _mock_connection()
+
+    csv_content = (
+        "object_name,task_name,task_type,schedule_type,interval_days,warning_days,nfc_tag_id\n"
+        "New CSV Pump,Filter Clean,cleaning,time_based,30,7,TAG_CSV_DUP\n"
+    )
+
+    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        "id": 1, "type": "maintenance_supporter/csv/import",
+        "csv_content": csv_content,
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+
+    # Should have created the entry (import still succeeds with warning)
+    assert result["created"] == 1
+    # The created entry should include NFC warnings
+    imported = result["imported"][0]
+    assert "warnings" in imported
+    assert any("TAG_CSV_DUP" in w for w in imported["warnings"])
+
+
+# ─── Fix I: NFC tag length validation ────────────────────────────────
+
+
+def test_nfc_tag_too_long_rejected_by_schema() -> None:
+    """NFC tag longer than 256 chars should be rejected by the WS schema."""
+    import voluptuous as vol
+
+    nfc_validator = vol.All(str, vol.Length(max=256))
+    schema = vol.Schema({vol.Optional("nfc_tag_id"): vol.Any(nfc_validator, None)})
+
+    # 256 chars should pass
+    schema({"nfc_tag_id": "A" * 256})
+
+    # 257 chars should fail
+    with pytest.raises(vol.Invalid):
+        schema({"nfc_tag_id": "A" * 257})
+
+    # None should pass
+    schema({"nfc_tag_id": None})

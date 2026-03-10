@@ -385,7 +385,8 @@
       "invalid_interval": "Het interval moet een positief getal zijn.",
       "min_exceeds_max": "Het minimuminterval mag het maximuminterval niet overschrijden.",
       "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
-      "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam."
+      "notify_service_not_found": "Deze meldingsservice is niet gevonden in Home Assistant. Controleer de servicenaam.",
+      "nfc_tag_duplicate": "Deze NFC-tag is al gekoppeld aan een andere taak."
     },
     "abort": {
       "already_configured": "Dit onderhoudsobject is al geconfigureerd.",

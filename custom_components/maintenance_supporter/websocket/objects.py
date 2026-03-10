@@ -20,6 +20,8 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_META_LENGTH,
+    MAX_NAME_LENGTH,
 )
 from . import _build_object_response, _get_object_entries, _get_runtime_data, cleanup_group_refs
 
@@ -71,11 +73,11 @@ async def ws_get_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/create",
-        vol.Required("name"): str,
+        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("area_id"): vol.Any(str, None),
-        vol.Optional("manufacturer"): vol.Any(str, None),
-        vol.Optional("model"): vol.Any(str, None),
-        vol.Optional("installation_date"): vol.Any(str, None),
+        vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=20)), None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -87,6 +89,25 @@ async def ws_create_object(
     msg: dict[str, Any],
 ) -> None:
     """Create a new maintenance object via config flow."""
+    name = msg["name"].strip()
+    if not name:
+        connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        return
+
+    manufacturer = (msg.get("manufacturer") or "").strip() or None
+    model = (msg.get("model") or "").strip() or None
+
+    # Validate installation_date format if provided
+    installation_date = msg.get("installation_date")
+    if installation_date:
+        from datetime import date as date_cls  # noqa: PLC0415
+
+        try:
+            date_cls.fromisoformat(installation_date)
+        except ValueError:
+            connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
+            return
+
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
         connection.send_result(msg["id"], {"valid": True, "entry_id": None})
@@ -98,11 +119,11 @@ async def ws_create_object(
         data={
             CONF_OBJECT: {
                 "id": uuid4().hex,
-                CONF_OBJECT_NAME: msg["name"],
+                CONF_OBJECT_NAME: name,
                 CONF_OBJECT_AREA: msg.get("area_id"),
-                CONF_OBJECT_MANUFACTURER: msg.get("manufacturer"),
-                CONF_OBJECT_MODEL: msg.get("model"),
-                CONF_OBJECT_INSTALLATION_DATE: msg.get("installation_date"),
+                CONF_OBJECT_MANUFACTURER: manufacturer,
+                CONF_OBJECT_MODEL: model,
+                CONF_OBJECT_INSTALLATION_DATE: installation_date,
                 "task_ids": [],
             },
             CONF_TASKS: {},
@@ -124,11 +145,11 @@ async def ws_create_object(
     {
         vol.Required("type"): "maintenance_supporter/object/update",
         vol.Required("entry_id"): str,
-        vol.Optional("name"): str,
+        vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("area_id"): vol.Any(str, None),
-        vol.Optional("manufacturer"): vol.Any(str, None),
-        vol.Optional("model"): vol.Any(str, None),
-        vol.Optional("installation_date"): vol.Any(str, None),
+        vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=20)), None),
     }
 )
 @websocket_api.require_admin
@@ -143,6 +164,29 @@ async def ws_update_object(
     if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
         connection.send_error(msg["id"], "not_found", "Object not found")
         return
+
+    # Strip and validate name if provided
+    if "name" in msg:
+        msg["name"] = msg["name"].strip()
+        if not msg["name"]:
+            connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            return
+
+    # Strip manufacturer/model
+    if "manufacturer" in msg and msg["manufacturer"]:
+        msg["manufacturer"] = msg["manufacturer"].strip() or None
+    if "model" in msg and msg["model"]:
+        msg["model"] = msg["model"].strip() or None
+
+    # Validate installation_date format if provided
+    if "installation_date" in msg and msg["installation_date"]:
+        from datetime import date as date_cls  # noqa: PLC0415
+
+        try:
+            date_cls.fromisoformat(msg["installation_date"])
+        except ValueError:
+            connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
+            return
 
     new_data = dict(entry.data)
     obj = dict(new_data.get(CONF_OBJECT, {}))

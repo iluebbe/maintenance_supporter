@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from collections.abc import Mapping
 from typing import Any
 
@@ -396,6 +397,39 @@ async def ws_update_global_settings(
                 val = float(val)
             if isinstance(val, expected_type):
                 filtered[key] = val
+
+    # Range-validate numeric and string settings
+    _INT_RANGES: dict[str, tuple[int, int]] = {
+        CONF_DEFAULT_WARNING_DAYS: (1, 365),
+        CONF_MAX_NOTIFICATIONS_PER_DAY: (0, 1000),
+        CONF_NOTIFY_DUE_SOON_INTERVAL: (0, 720),
+        CONF_NOTIFY_OVERDUE_INTERVAL: (0, 720),
+        CONF_NOTIFY_TRIGGERED_INTERVAL: (0, 720),
+        CONF_NOTIFICATION_BUNDLE_THRESHOLD: (1, 100),
+        CONF_SNOOZE_DURATION_HOURS: (1, 168),
+        CONF_BUDGET_ALERT_THRESHOLD: (1, 100),
+    }
+    _FLOAT_RANGES: dict[str, tuple[float, float]] = {
+        CONF_BUDGET_MONTHLY: (0.0, 10_000_000.0),
+        CONF_BUDGET_YEARLY: (0.0, 100_000_000.0),
+    }
+    _STR_MAX_LENGTHS: dict[str, int] = {
+        CONF_NOTIFY_SERVICE: 200,
+        CONF_QUIET_HOURS_START: 5,
+        CONF_QUIET_HOURS_END: 5,
+        CONF_BUDGET_CURRENCY: 5,
+    }
+    for key, (lo, hi) in _INT_RANGES.items():
+        if key in filtered and not (lo <= filtered[key] <= hi):
+            del filtered[key]
+    for key, (lo, hi) in _FLOAT_RANGES.items():
+        if key in filtered:
+            v = filtered[key]
+            if not math.isfinite(v) or not (lo <= v <= hi):
+                del filtered[key]
+    for key, max_len in _STR_MAX_LENGTHS.items():
+        if key in filtered and len(filtered[key]) > max_len:
+            del filtered[key]
 
     if not filtered:
         connection.send_error(

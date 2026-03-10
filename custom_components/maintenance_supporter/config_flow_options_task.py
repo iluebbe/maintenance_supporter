@@ -264,54 +264,69 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
 
+        errors: dict[str, str] = {}
+
         if user_input is not None:
             if user_input.get("go_back"):
                 return self._show_task_action_menu()
-            new_data = dict(self.config_entry.data)
-            new_tasks = dict(new_data.get(CONF_TASKS, {}))
-            updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
 
-            updated_task["name"] = user_input.get(CONF_TASK_NAME, updated_task.get("name"))
-            updated_task["type"] = user_input.get(CONF_TASK_TYPE, updated_task.get("type"))
-            if user_input.get(CONF_TASK_INTERVAL_DAYS):
-                updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])
-            if CONF_TASK_INTERVAL_ANCHOR in user_input:
-                updated_task["interval_anchor"] = user_input[CONF_TASK_INTERVAL_ANCHOR]
-            updated_task["warning_days"] = int(
-                user_input.get(CONF_TASK_WARNING_DAYS, updated_task.get("warning_days", DEFAULT_WARNING_DAYS))
-            )
-            updated_task[CONF_TASK_ENABLED] = user_input.get(
-                CONF_TASK_ENABLED, updated_task.get(CONF_TASK_ENABLED, True)
-            )
-            if user_input.get(CONF_TASK_NOTES):
-                updated_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
-            if user_input.get(CONF_TASK_DOCUMENTATION_URL):
-                updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
-            if user_input.get(CONF_TASK_LAST_PERFORMED):
-                updated_task[CONF_TASK_LAST_PERFORMED] = str(
-                    user_input[CONF_TASK_LAST_PERFORMED]
-                )
-            resp_user = user_input.get(CONF_RESPONSIBLE_USER_ID, "")
-            if resp_user:
-                updated_task[CONF_RESPONSIBLE_USER_ID] = resp_user
-            else:
-                updated_task.pop(CONF_RESPONSIBLE_USER_ID, None)
-            icon_val = user_input.get(CONF_TASK_ICON, "")
-            if icon_val:
-                updated_task[CONF_TASK_ICON] = icon_val
-            else:
-                updated_task.pop(CONF_TASK_ICON, None)
-            nfc_val = user_input.get(CONF_TASK_NFC_TAG, "")
+            # Validate NFC tag uniqueness before saving
+            nfc_val = (user_input.get(CONF_TASK_NFC_TAG) or "").strip()
             if nfc_val:
-                updated_task[CONF_TASK_NFC_TAG] = nfc_val.strip()
-            else:
-                updated_task.pop(CONF_TASK_NFC_TAG, None)
+                from .websocket.tasks import _check_nfc_tag_duplicate
 
-            new_tasks[self._selected_task_id or ""] = updated_task
-            new_data[CONF_TASKS] = new_tasks
-            self._update_config_entry(new_data)
+                dup_warn = _check_nfc_tag_duplicate(
+                    self.hass, nfc_val,
+                    exclude_task_id=self._selected_task_id,
+                )
+                if dup_warn:
+                    errors[CONF_TASK_NFC_TAG] = "nfc_tag_duplicate"
 
-            return self._show_task_action_menu()
+            if not errors:
+                new_data = dict(self.config_entry.data)
+                new_tasks = dict(new_data.get(CONF_TASKS, {}))
+                updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
+
+                updated_task["name"] = user_input.get(CONF_TASK_NAME, updated_task.get("name"))
+                updated_task["type"] = user_input.get(CONF_TASK_TYPE, updated_task.get("type"))
+                if user_input.get(CONF_TASK_INTERVAL_DAYS):
+                    updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])
+                if CONF_TASK_INTERVAL_ANCHOR in user_input:
+                    updated_task["interval_anchor"] = user_input[CONF_TASK_INTERVAL_ANCHOR]
+                updated_task["warning_days"] = int(
+                    user_input.get(CONF_TASK_WARNING_DAYS, updated_task.get("warning_days", DEFAULT_WARNING_DAYS))
+                )
+                updated_task[CONF_TASK_ENABLED] = user_input.get(
+                    CONF_TASK_ENABLED, updated_task.get(CONF_TASK_ENABLED, True)
+                )
+                if user_input.get(CONF_TASK_NOTES):
+                    updated_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
+                if user_input.get(CONF_TASK_DOCUMENTATION_URL):
+                    updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
+                if user_input.get(CONF_TASK_LAST_PERFORMED):
+                    updated_task[CONF_TASK_LAST_PERFORMED] = str(
+                        user_input[CONF_TASK_LAST_PERFORMED]
+                    )
+                resp_user = user_input.get(CONF_RESPONSIBLE_USER_ID, "")
+                if resp_user:
+                    updated_task[CONF_RESPONSIBLE_USER_ID] = resp_user
+                else:
+                    updated_task.pop(CONF_RESPONSIBLE_USER_ID, None)
+                icon_val = user_input.get(CONF_TASK_ICON, "")
+                if icon_val:
+                    updated_task[CONF_TASK_ICON] = icon_val
+                else:
+                    updated_task.pop(CONF_TASK_ICON, None)
+                if nfc_val:
+                    updated_task[CONF_TASK_NFC_TAG] = nfc_val
+                else:
+                    updated_task.pop(CONF_TASK_NFC_TAG, None)
+
+                new_tasks[self._selected_task_id or ""] = updated_task
+                new_data[CONF_TASKS] = new_tasks
+                self._update_config_entry(new_data)
+
+                return self._show_task_action_menu()
 
         type_options = [t.value for t in MaintenanceTypeEnum]
 
@@ -440,6 +455,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ): selector.BooleanSelector(),
                 }
             ),
+            errors=errors,
             description_placeholders={
                 "task_name": task.get("name", ""),
             },

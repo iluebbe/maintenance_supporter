@@ -151,6 +151,15 @@ async def ws_import_csv(
     created = []
     errors: list[dict[str, str]] = []
     for idx, obj_data in enumerate(objects):
+        # Check for NFC tag duplicates in CSV-imported tasks
+        nfc_warnings: list[str] = []
+        for t_data in obj_data.get("tasks", {}).values():
+            nfc_val = t_data.get("nfc_tag_id")
+            if nfc_val:
+                nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
+                if nfc_warn:
+                    nfc_warnings.append(nfc_warn)
+
         try:
             result = await hass.config_entries.flow.async_init(
                 DOMAIN,
@@ -166,11 +175,14 @@ async def ws_import_csv(
             errors.append({"name": obj_name, "reason": "unexpected error"})
             continue
         if result["type"] == "create_entry":
-            created.append({
+            entry_info: dict[str, Any] = {
                 "entry_id": result["result"].entry_id,
                 "name": obj_data["object"].get("name", ""),
                 "task_count": len(obj_data["tasks"]),
-            })
+            }
+            if nfc_warnings:
+                entry_info["warnings"] = nfc_warnings
+            created.append(entry_info)
         else:
             obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})

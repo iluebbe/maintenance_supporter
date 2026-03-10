@@ -10,7 +10,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN
+from ..const import DOMAIN, MAX_GROUP_TASK_REFS, MAX_NAME_LENGTH, MAX_TEXT_LENGTH
 from . import _get_global_entry
 
 
@@ -39,14 +39,14 @@ async def ws_get_groups(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/group/create",
-        vol.Required("name"): str,
-        vol.Optional("description", default=""): str,
-        vol.Optional("task_refs", default=[]): [
+        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        vol.Optional("description", default=""): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
+        vol.Optional("task_refs", default=[]): vol.All([
             {
                 vol.Required("entry_id"): str,
                 vol.Required("task_id"): str,
             }
-        ],
+        ], vol.Length(max=MAX_GROUP_TASK_REFS)),
     }
 )
 @websocket_api.require_admin
@@ -64,11 +64,16 @@ async def ws_create_group(
         connection.send_error(msg["id"], "not_found", "Global config not found")
         return
 
+    name = msg["name"].strip()
+    if not name:
+        connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        return
+
     group_id = uuid4().hex
     options = dict(global_entry.options or global_entry.data)
     groups = dict(options.get(CONF_GROUPS, {}))
     groups[group_id] = {
-        "name": msg["name"],
+        "name": name,
         "description": msg.get("description", ""),
         "task_refs": msg.get("task_refs", []),
     }
@@ -82,14 +87,14 @@ async def ws_create_group(
     {
         vol.Required("type"): f"{DOMAIN}/group/update",
         vol.Required("group_id"): str,
-        vol.Optional("name"): str,
-        vol.Optional("description"): str,
-        vol.Optional("task_refs"): [
+        vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
+        vol.Optional("task_refs"): vol.All([
             {
                 vol.Required("entry_id"): str,
                 vol.Required("task_id"): str,
             }
-        ],
+        ], vol.Length(max=MAX_GROUP_TASK_REFS)),
     }
 )
 @websocket_api.require_admin

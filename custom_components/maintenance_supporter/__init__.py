@@ -70,9 +70,9 @@ type MaintenanceSupporterConfigEntry = ConfigEntry[MaintenanceSupporterData]
 SERVICE_COMPLETE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Optional("notes"): cv.string,
-        vol.Optional("cost"): vol.Coerce(float),
-        vol.Optional("duration"): vol.Coerce(int),
+        vol.Optional("notes"): vol.All(cv.string, vol.Length(max=2000)),
+        vol.Optional("cost"): vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)),
+        vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)),
     }
 )
 
@@ -86,7 +86,7 @@ SERVICE_RESET_SCHEMA = vol.Schema(
 SERVICE_SKIP_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-        vol.Optional("reason"): cv.string,
+        vol.Optional("reason"): vol.All(cv.string, vol.Length(max=2000)),
     }
 )
 

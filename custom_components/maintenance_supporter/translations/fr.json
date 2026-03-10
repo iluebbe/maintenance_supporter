@@ -385,7 +385,8 @@
       "invalid_interval": "L'intervalle doit être un nombre positif.",
       "min_exceeds_max": "L'intervalle minimum ne doit pas dépasser l'intervalle maximum.",
       "invalid_notify_service": "Format du service de notification invalide. Utilisez 'notify.nom_du_service' (ex. : notify.mobile_app_phone).",
-      "notify_service_not_found": "Ce service de notification n'a pas été trouvé dans Home Assistant. Veuillez vérifier le nom du service."
+      "notify_service_not_found": "Ce service de notification n'a pas été trouvé dans Home Assistant. Veuillez vérifier le nom du service.",
+      "nfc_tag_duplicate": "Ce tag NFC est déjà lié à une autre tâche."
     },
     "abort": {
       "already_configured": "Cet objet de maintenance est déjà configuré.",

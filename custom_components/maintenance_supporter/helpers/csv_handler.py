@@ -40,6 +40,13 @@ _COLUMNS = [
 ]
 
 
+def _csv_safe(val: str) -> str:
+    """Prefix cells that start with formula-triggering characters to mitigate CSV injection."""
+    if val and val[0] in ("=", "+", "-", "@"):
+        return "\t" + val
+    return val
+
+
 def export_objects_csv(hass: HomeAssistant) -> str:
     """Export all maintenance objects and tasks as CSV.
 
@@ -71,11 +78,11 @@ def export_objects_csv(hass: HomeAssistant) -> str:
             ct = ct_tasks.get(tid, {})
             writer.writerow(
                 {
-                    "object_name": obj_data.get("name", ""),
-                    "object_manufacturer": obj_data.get("manufacturer", ""),
-                    "object_model": obj_data.get("model", ""),
+                    "object_name": _csv_safe(obj_data.get("name", "")),
+                    "object_manufacturer": _csv_safe(obj_data.get("manufacturer", "")),
+                    "object_model": _csv_safe(obj_data.get("model", "")),
                     "object_area_id": obj_data.get("area_id", ""),
-                    "task_name": tdata.get("name", ""),
+                    "task_name": _csv_safe(tdata.get("name", "")),
                     "task_type": tdata.get("type", "custom"),
                     "enabled": tdata.get("enabled", True),
                     "schedule_type": tdata.get("schedule_type", "time_based"),
@@ -83,9 +90,9 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "interval_anchor": tdata.get("interval_anchor", "completion"),
                     "warning_days": tdata.get("warning_days", 7),
                     "last_performed": tdata.get("last_performed", ""),
-                    "notes": tdata.get("notes", ""),
-                    "documentation_url": tdata.get("documentation_url", ""),
-                    "custom_icon": tdata.get("custom_icon", ""),
+                    "notes": _csv_safe(tdata.get("notes", "")),
+                    "documentation_url": _csv_safe(tdata.get("documentation_url", "")),
+                    "custom_icon": _csv_safe(tdata.get("custom_icon", "")),
                     "nfc_tag_id": tdata.get("nfc_tag_id", ""),
                     "responsible_user_id": tdata.get("responsible_user_id", ""),
                     "trigger_type": (tdata.get("trigger_config") or {}).get("type", ""),

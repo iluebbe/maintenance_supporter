@@ -88,7 +88,7 @@ async def ws_analyze_interval(
         vol.Required("type"): f"{DOMAIN}/task/apply_suggestion",
         vol.Required("entry_id"): str,
         vol.Required("task_id"): str,
-        vol.Required("interval"): int,
+        vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
     }
 )
 @websocket_api.require_admin

@@ -302,6 +302,17 @@ SIGNAL_NEW_OBJECT_ENTRY = f"{DOMAIN}_new_object_entry"
 # --- Trigger Completion Cooldown ---
 TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes
 
+# --- Input Validation Limits ---
+MAX_NAME_LENGTH = 200
+MAX_TEXT_LENGTH = 2000          # notes, reason, feedback, description
+MAX_URL_LENGTH = 2048
+MAX_ICON_LENGTH = 100           # "mdi:icon-name"
+MAX_META_LENGTH = 200           # manufacturer, model, user_id, etc.
+MAX_TYPE_LENGTH = 50            # task_type, schedule_type
+MAX_CHECKLIST_ITEMS = 100
+MAX_CHECKLIST_ITEM_LENGTH = 500
+MAX_GROUP_TASK_REFS = 200
+
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes
 MISSING_ENTITY_THRESHOLD_REFRESHES = 6  # ~30 min at 5-min intervals

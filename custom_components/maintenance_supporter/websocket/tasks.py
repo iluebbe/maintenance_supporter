@@ -19,6 +19,14 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
+    MAX_CHECKLIST_ITEM_LENGTH,
+    MAX_CHECKLIST_ITEMS,
+    MAX_ICON_LENGTH,
+    MAX_META_LENGTH,
+    MAX_NAME_LENGTH,
+    MAX_TEXT_LENGTH,
+    MAX_TYPE_LENGTH,
+    MAX_URL_LENGTH,
 )
 from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data, cleanup_group_refs
 
@@ -223,21 +231,21 @@ def _validate_compound_trigger(
     {
         vol.Required("type"): "maintenance_supporter/task/create",
         vol.Required("entry_id"): str,
-        vol.Required("name"): str,
-        vol.Optional("task_type", default="custom"): str,
-        vol.Optional("schedule_type", default="time_based"): str,
+        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        vol.Optional("task_type", default="custom"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
+        vol.Optional("schedule_type", default="time_based"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1)), None),
         vol.Optional("interval_anchor", default="completion"): vol.In(["completion", "planned"]),
-        vol.Optional("warning_days", default=7): int,
+        vol.Optional("warning_days", default=7): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("last_performed"): vol.Any(str, None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
-        vol.Optional("notes"): vol.Any(str, None),
-        vol.Optional("documentation_url"): vol.Any(str, None),
-        vol.Optional("responsible_user_id"): vol.Any(str, None),
+        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
+        vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("entity_slug"): vol.Any(str, None),
-        vol.Optional("custom_icon"): vol.Any(str, None),
-        vol.Optional("nfc_tag_id"): vol.Any(str, None),
-        vol.Optional("checklist"): vol.Any([str], None),
+        vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
+        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -255,10 +263,15 @@ async def ws_create_task(
         return
 
     task_id = uuid4().hex
+    name = msg["name"].strip()
+    if not name:
+        connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+        return
+
     task_data: dict[str, Any] = {
         "id": task_id,
         "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
-        "name": msg["name"],
+        "name": name,
         "type": msg.get("task_type", "custom"),
         "enabled": True,
         "schedule_type": msg.get("schedule_type", "time_based"),
@@ -316,7 +329,7 @@ async def ws_create_task(
     if msg.get("custom_icon") is not None:
         task_data["custom_icon"] = msg["custom_icon"]
     if msg.get("nfc_tag_id") is not None:
-        nfc_val = msg["nfc_tag_id"] or None  # normalise "" → None
+        nfc_val = (msg["nfc_tag_id"] or "").strip() or None  # normalise ""/ whitespace → None
         task_data["nfc_tag_id"] = nfc_val
         if nfc_val:
             nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
@@ -377,21 +390,21 @@ async def ws_create_task(
         vol.Required("type"): "maintenance_supporter/task/update",
         vol.Required("entry_id"): str,
         vol.Required("task_id"): str,
-        vol.Optional("name"): str,
-        vol.Optional("task_type"): str,
+        vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        vol.Optional("task_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("enabled"): bool,
-        vol.Optional("schedule_type"): str,
+        vol.Optional("schedule_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1)), None),
         vol.Optional("interval_anchor"): vol.In(["completion", "planned"]),
-        vol.Optional("warning_days"): int,
+        vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("trigger_config"): vol.Any(dict, None),
-        vol.Optional("notes"): vol.Any(str, None),
-        vol.Optional("documentation_url"): vol.Any(str, None),
-        vol.Optional("responsible_user_id"): vol.Any(str, None),
+        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
+        vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("entity_slug"): vol.Any(str, None),
-        vol.Optional("custom_icon"): vol.Any(str, None),
-        vol.Optional("nfc_tag_id"): vol.Any(str, None),
-        vol.Optional("checklist"): vol.Any([str], None),
+        vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
+        vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
     }
 )
 @websocket_api.require_admin
@@ -414,6 +427,13 @@ async def ws_update_task(
         return
 
     task = dict(tasks_data[task_id])
+
+    # Strip and validate name if provided
+    if "name" in msg:
+        msg["name"] = msg["name"].strip()
+        if not msg["name"]:
+            connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
+            return
 
     # Validate trigger_config if provided
     tc_warnings: list[str] = []
@@ -440,7 +460,7 @@ async def ws_update_task(
 
     # Normalise empty NFC tag to None and check uniqueness
     if "nfc_tag_id" in msg:
-        msg["nfc_tag_id"] = msg["nfc_tag_id"] or None
+        msg["nfc_tag_id"] = (msg["nfc_tag_id"] or "").strip() or None
         if msg["nfc_tag_id"]:
             nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"], exclude_task_id=task_id)
             if nfc_warn:
@@ -634,11 +654,11 @@ def ws_list_tasks(
         vol.Required("type"): "maintenance_supporter/task/complete",
         vol.Required("entry_id"): str,
         vol.Required("task_id"): str,
-        vol.Optional("notes"): vol.Any(str, None),
-        vol.Optional("cost"): vol.Any(vol.Coerce(float), None),
-        vol.Optional("duration"): vol.Any(vol.Coerce(int), None),
+        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
+        vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)), None),
         vol.Optional("checklist_state"): vol.Any(dict, None),
-        vol.Optional("feedback"): vol.Any(str, None),
+        vol.Optional("feedback"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
 @websocket_api.async_response
@@ -674,7 +694,7 @@ async def ws_complete_task(
         vol.Required("type"): "maintenance_supporter/task/skip",
         vol.Required("entry_id"): str,
         vol.Required("task_id"): str,
-        vol.Optional("reason"): vol.Any(str, None),
+        vol.Optional("reason"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
 @websocket_api.async_response
