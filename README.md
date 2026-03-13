@@ -46,6 +46,12 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Sensor Attributes
 ![Sensor Attributes](docs/images/entity-attributes.png)
 
+### Configuration
+![Configuration](docs/images/config-flow.png)
+
+### Mobile Task Detail
+![Mobile Task Detail](docs/images/mobile-task.png)
+
 </details>
 
 ## Features

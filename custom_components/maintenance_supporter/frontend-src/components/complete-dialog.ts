@@ -10,7 +10,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @property() public entryId = "";
   @property() public taskId = "";
   @property() public taskName = "";
-  @property() public lang = "de";
+  @property() public lang = "en";
   @property({ type: Array }) public checklist: string[] = [];
   @property({ type: Boolean }) public adaptiveEnabled = false;
   @state() private _open = false;
@@ -85,7 +85,7 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   render() {
     if (!this._open) return html``;
-    const L = this.lang || this.hass?.language || "de";
+    const L = this.lang || this.hass?.language || "en";
     return html`
       <ha-dialog
         open

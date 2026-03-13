@@ -82,7 +82,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _lastConnection: unknown = null;
 
   private get _lang(): string {
-    return this.hass?.language || "de";
+    return this.hass?.language || "en";
   }
 
   private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);

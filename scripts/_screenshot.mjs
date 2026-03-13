@@ -61,6 +61,7 @@ const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({
   viewport: { width: 1400, height: 900 },
   colorScheme: "dark",
+  locale: "en-US",
 });
 const page = await ctx.newPage();
 
@@ -89,6 +90,11 @@ await page.evaluate(async () => {
       type: "frontend/set_user_data",
       key: "core",
       value: { selectedTheme: { theme: "default", dark: true } },
+    });
+    await ha.hass.connection.sendMessage({
+      type: "frontend/set_user_data",
+      key: "language",
+      value: { language: "en" },
     });
   }
 });
@@ -129,16 +135,14 @@ await page.keyboard.press("Escape");
 await page.waitForTimeout(500);
 
 // ---------------------------------------------------------------------------
-// 5) Task History — click "Verlauf" tab in task detail
+// 5) Task History — click "History" tab in task detail
 // ---------------------------------------------------------------------------
 console.log("5) Task History…");
 await page.goto(`${BASE}/maintenance-supporter`);
 await page.waitForTimeout(3000);
 await panelClickText(page, ".cell.task-name", "Oil Change");
 await page.waitForTimeout(2000);
-// Click the "Verlauf" (History) tab
-await panelClickText(page, ".tab, [role='tab'], button", "Verlauf");
-await page.waitForTimeout(500);
+// Click the "History" tab
 await panelClickText(page, ".tab, [role='tab'], button", "History");
 await shot(page, "task-history.png", 1500);
 
@@ -310,12 +314,21 @@ await page.evaluate(() => {
 await shot(page, "entity-attributes.png", 2000);
 
 // ---------------------------------------------------------------------------
-// 12) Mobile Overview
+// 12) Config Flow — integration page in Settings
 // ---------------------------------------------------------------------------
-console.log("12) Mobile Overview…");
+console.log("12) Config Flow…");
+await page.goto(`${BASE}/config/integrations/integration/maintenance_supporter`);
+await page.waitForTimeout(5000);
+await shot(page, "config-flow.png", 2000);
+
+// ---------------------------------------------------------------------------
+// 13) Mobile Overview + Mobile Task
+// ---------------------------------------------------------------------------
+console.log("13) Mobile Overview…");
 const mobileCtx = await browser.newContext({
   viewport: { width: 375, height: 812 },
   colorScheme: "dark",
+  locale: "en-US",
 });
 const mobilePage = await mobileCtx.newPage();
 
@@ -341,12 +354,31 @@ await mobilePage.evaluate(async () => {
       key: "core",
       value: { selectedTheme: { theme: "default", dark: true } },
     });
+    await ha.hass.connection.sendMessage({
+      type: "frontend/set_user_data",
+      key: "language",
+      value: { language: "en" },
+    });
   }
 });
 await mobilePage.goto(`${BASE}/maintenance-supporter`);
 await mobilePage.waitForTimeout(5000);
 await mobilePage.screenshot({ path: `${OUT}/mobile-overview.png`, fullPage: false });
 console.log("  ✓ mobile-overview.png");
+
+// 14) Mobile Task Detail
+console.log("14) Mobile Task…");
+await mobilePage.evaluate(({ fn }) => {
+  const getRoot = new Function("return " + fn)();
+  const root = getRoot();
+  if (!root) return;
+  const els = [...root.querySelectorAll(".cell.task-name")];
+  const el = els.find(e => e.textContent?.includes("Filter Replacement"));
+  if (el) el.click();
+}, { fn: getRoot.toString() });
+await mobilePage.waitForTimeout(3000);
+await mobilePage.screenshot({ path: `${OUT}/mobile-task.png`, fullPage: false });
+console.log("  ✓ mobile-task.png");
 await mobilePage.close();
 
 console.log("\nDone! All screenshots saved to docs/images/");

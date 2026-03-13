@@ -28,7 +28,7 @@ export class MaintenanceSupporterCard extends LitElement {
   @state() private _unsub: (() => void) | null = null;
 
   private get _lang(): string {
-    return this.hass?.language || "de";
+    return this.hass?.language || "en";
   }
 
   static getConfigElement() {

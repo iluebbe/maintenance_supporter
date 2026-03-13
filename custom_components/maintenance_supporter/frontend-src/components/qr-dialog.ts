@@ -40,7 +40,7 @@ function sanitizeFilename(s: string): string {
 
 export class MaintenanceQrDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @property() public lang = "de";
+  @property() public lang = "en";
 
   @state() private _open = false;
   @state() private _loading = false;
@@ -146,7 +146,7 @@ export class MaintenanceQrDialog extends LitElement {
       .join(" ");
     const w = window.open("", "_blank", "width=600,height=500");
     if (!w) return;
-    const L = this.lang || "de";
+    const L = this.lang || "en";
     const safeTitle = escapeHtml(title);
     const safeSub = escapeHtml(subtitle);
 
@@ -210,7 +210,7 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
 
   render() {
     if (!this._open) return html``;
-    const L = this.lang || this.hass?.language || "de";
+    const L = this.lang || this.hass?.language || "en";
     const heading = this._taskName
       ? `${t("qr_code", L)}: ${this._objectName} — ${this._taskName}`
       : `${t("qr_code", L)}: ${this._objectName}`;

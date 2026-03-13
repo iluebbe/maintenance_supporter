@@ -11,7 +11,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
 
   private get _lang(): string {
-    return this.hass?.language || "de";
+    return this.hass?.language || "en";
   }
 
   setConfig(config: CardConfig): void {

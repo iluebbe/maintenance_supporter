@@ -90,7 +90,7 @@ export class MaintenanceConfirmDialog extends LitElement {
 
   render() {
     if (!this._open) return nothing;
-    const lang = this.hass?.language || "de";
+    const lang = this.hass?.language || "en";
     return html`
       <ha-dialog open @closed=${this._cancel} .heading=${this._title}>
         <div class="content">

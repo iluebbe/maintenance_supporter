@@ -63,7 +63,7 @@ export class MaintenanceSettingsView extends LitElement {
   private _loaded = false;
 
   private get _lang(): string {
-    return this.hass?.language || "de";
+    return this.hass?.language || "en";
   }
 
   updated(changedProps: Map<string, unknown>): void {
