@@ -293,7 +293,7 @@ template:
 - **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
 - **Threshold debounce**: `trigger_for_minutes` timers are not restored across Home Assistant restarts. A restart during the debounce window resets the timer
 - **Budget tracking**: Numeric values only — the currency symbol can be changed in Budget Settings (default: €). 10 currencies supported: EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL
-- **History pruning**: Maximum 50 history entries per task. Oldest entries are automatically removed when the limit is reached
+- **History pruning**: Maximum 500 history entries per task. Oldest entries are automatically removed when the limit is reached
 - **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
 
 ## Troubleshooting
