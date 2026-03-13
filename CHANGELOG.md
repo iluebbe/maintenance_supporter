@@ -2,6 +2,27 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.17] - 2026-03-13
+
+### Added
+- Portuguese (pt) language support — backend translations and frontend UI (7 languages total)
+- HACS one-click install button in README
+
+## [1.0.16] - 2026-03-12
+
+### Added
+- Input validation with length limits across all WS endpoints and config flow
+- WebSocket hardening: schema validation, error handling, permission checks
+- Translation sync: all 6 language files aligned with English source
+
+## [1.0.15] - 2026-03-11
+
+### Fixed
+- NaN guard for numeric inputs in frontend trigger dialogs
+- Slug sanitizer for object names with special characters
+- O(1) next_due computation (was O(n) history scan)
+- Import logging for better error diagnostics
+
 ## [1.0.14] - 2026-03-09
 
 ### Fixed

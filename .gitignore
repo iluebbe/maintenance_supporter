@@ -34,3 +34,6 @@ docker/.env
 
 # Claude Code
 .claude/
+
+# Local drafts
+docs/forum-post.md

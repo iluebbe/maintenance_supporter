@@ -110,7 +110,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **Binary sensor** entities for automation triggers
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
-- Localized UI: English, German, Dutch, French, Italian, Spanish
+- Localized UI: English, Spanish, Portuguese, French, German, Italian, Dutch
 
 ### WebSocket API
 - 37 commands for full CRUD operations on objects, tasks, triggers, and groups
@@ -124,11 +124,11 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 
 ### HACS (Recommended)
 
-1. Open HACS in Home Assistant
-2. Click the three dots menu (top right) and select **Custom repositories**
-3. Add `https://github.com/iluebbe/maintenance_supporter` as an **Integration**
-4. Search for "Maintenance Supporter" and install it
-5. Restart Home Assistant
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=iluebbe&repository=maintenance_supporter&category=Integration)
+
+1. Click the button above — or open HACS manually, click the three dots menu (top right) and select **Custom repositories**, then add `https://github.com/iluebbe/maintenance_supporter` as an **Integration**
+2. Search for "Maintenance Supporter" and install it
+3. Restart Home Assistant
 
 ### Manual
 

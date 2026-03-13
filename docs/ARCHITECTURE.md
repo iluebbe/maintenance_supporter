@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.12 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,362 tests)
+**Version:** 1.0.17 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,362 tests)
 
 ---
 
@@ -148,7 +148,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-card-editor.ts  (86 lines)
 │   ├── panel-styles.ts            (891 lines)  Panel-specific CSS
 │   ├── statistics-service.ts      (215 lines)  WS statistics cache
-│   ├── styles.ts                (2,676 lines)  Shared CSS, i18n (6 languages), shared helpers
+│   ├── styles.ts                (2,676 lines)  Shared CSS, i18n (7 languages), shared helpers
 │   ├── types.ts                   (286 lines)  TypeScript interfaces
 │   ├── user-service.ts            (125 lines)  HA user list cache
 │   └── components/              (2,145 lines)
@@ -184,7 +184,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es}.json    6 languages (backend config flow)
+└── translations/{en,de,nl,fr,it,es,pt}.json    7 languages (backend config flow)
 ```
 
 ---
@@ -580,7 +580,7 @@ All write commands fire events for subscription updates.
 - **New platform**: Add entity module, register in `const.PLATFORMS`
 - **New WS command**: Add handler in the appropriate `websocket/*.py` module, import and register in `websocket/__init__.py`
 - **New template**: Add `ObjectTemplate` to `templates.py`
-- **New language**: Add `translations/{lang}.json` for backend + dictionary in `styles.ts` for frontend (currently: DE, EN, NL, FR, IT, ES)
+- **New language**: Add `translations/{lang}.json` for backend + dictionary in `styles.ts` for frontend (currently: EN, ES, PT, FR, DE, IT, NL)
 
 ---
 

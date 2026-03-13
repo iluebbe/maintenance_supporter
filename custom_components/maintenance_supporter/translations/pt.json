@@ -1,0 +1,1341 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Configure o seu sistema de gestão de manutenção.",
+        "menu_options": {
+          "create_object": "Criar Objeto de Manutenção",
+          "create_from_template": "Criar a partir de Modelo",
+          "global_setup": "Definições Globais"
+        }
+      },
+      "create_from_template": {
+        "title": "Selecionar Categoria de Modelo",
+        "description": "Escolha uma categoria para navegar nos modelos de manutenção predefinidos.",
+        "data": {
+          "template_category": "Categoria",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "go_back": "Regressar ao menu principal sem guardar."
+        }
+      },
+      "template_select": {
+        "title": "Selecionar Modelo",
+        "description": "Escolha um modelo de manutenção para usar como ponto de partida.",
+        "data": {
+          "template_id": "Modelo",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "go_back": "Regressar à seleção de categoria sem guardar."
+        }
+      },
+      "template_customize": {
+        "title": "Personalizar Modelo",
+        "description": "Personalize o modelo {template_name}. Inclui {task_count} tarefas: {task_list}.",
+        "data": {
+          "name": "Nome do objeto",
+          "area_id": "Área",
+          "manufacturer": "Fabricante",
+          "model": "Modelo",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "name": "Um nome para este objeto de manutenção.",
+          "area_id": "A área onde este objeto se encontra.",
+          "manufacturer": "O fabricante do objeto.",
+          "model": "O nome ou número do modelo.",
+          "go_back": "Regressar à seleção de modelo sem guardar."
+        }
+      },
+      "global_setup": {
+        "title": "Definições Globais",
+        "description": "Configure as definições globais de manutenção.",
+        "data": {
+          "default_warning_days": "Dias de aviso predefinidos antes do vencimento",
+          "notifications_enabled": "Ativar notificações",
+          "notify_service": "Serviço de notificação"
+        },
+        "data_description": {
+          "default_warning_days": "Número de dias antes do vencimento de uma tarefa de manutenção para mostrar um aviso.",
+          "notifications_enabled": "Enviar notificações quando as tarefas de manutenção ficarem pendentes.",
+          "notify_service": "O serviço de notificação a utilizar (ex.: notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Criar Objeto de Manutenção",
+        "description": "Defina um dispositivo ou ativo para gerir a manutenção.",
+        "data": {
+          "name": "Nome do objeto",
+          "area_id": "Área",
+          "manufacturer": "Fabricante",
+          "model": "Modelo",
+          "installation_date": "Data de instalação",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "name": "Um nome único para este objeto de manutenção (ex.: 'Bomba da Piscina', 'Carro').",
+          "area_id": "A área da sua casa onde este objeto se encontra.",
+          "manufacturer": "O fabricante do objeto.",
+          "model": "O nome ou número do modelo.",
+          "installation_date": "Quando este objeto foi instalado ou adquirido.",
+          "go_back": "Regressar ao menu principal sem guardar."
+        }
+      },
+      "task_menu": {
+        "title": "Tarefas de Manutenção",
+        "description": "Adicione tarefas de manutenção para {object_name}. Atualmente {task_count} tarefa(s) definida(s).",
+        "menu_options": {
+          "add_task": "Adicionar Tarefa de Manutenção",
+          "finish": "Concluir Configuração"
+        }
+      },
+      "add_task": {
+        "title": "Adicionar Tarefa de Manutenção",
+        "description": "Defina uma tarefa de manutenção para {object_name}.",
+        "data": {
+          "name": "Nome da tarefa",
+          "type": "Tipo de manutenção",
+          "schedule_type": "Tipo de agendamento",
+          "custom_icon": "Ícone da tarefa",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
+          "type": "A categoria do trabalho de manutenção.",
+          "schedule_type": "Como esta tarefa deve ser agendada.",
+          "custom_icon": "Ícone personalizado opcional para esta tarefa (ex.: mdi:oil, mdi:filter-variant).",
+          "go_back": "Regressar ao menu de tarefas sem guardar."
+        }
+      },
+      "time_based": {
+        "title": "Agendamento Baseado no Tempo",
+        "description": "Configure o intervalo de tempo para esta tarefa de manutenção.",
+        "data": {
+          "interval_days": "Intervalo (dias)",
+          "last_performed": "Última realização",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "interval_anchor": "Âncora do intervalo"
+        },
+        "data_description": {
+          "interval_days": "Número de dias entre execuções de manutenção.",
+          "last_performed": "Quando esta manutenção foi realizada pela última vez. Deixe vazio se nunca foi feita.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à criação da tarefa sem guardar.",
+          "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original."
+        }
+      },
+      "sensor_select": {
+        "title": "Selecionar Sensor de Acionamento",
+        "description": "Escolha uma entidade do Home Assistant para monitorizar nesta tarefa de manutenção.",
+        "data": {
+          "trigger_entity": "Entidade a monitorizar",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_entity": "Selecione a entidade do sensor que deve acionar esta tarefa de manutenção.",
+          "go_back": "Regressar à criação da tarefa sem guardar."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Selecionar Atributo",
+        "description": "Escolha qual valor monitorizar de {entity_id}. Estado atual: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Valor a monitorizar",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_attribute": "Selecione o estado da entidade ou um atributo específico para monitorizar.",
+          "go_back": "Regressar à seleção da entidade sem guardar."
+        }
+      },
+      "trigger_type": {
+        "title": "Tipo de Acionamento",
+        "description": "Como deve o valor do sensor acionar a manutenção?",
+        "data": {
+          "trigger_type": "Tipo de acionamento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_type": "Limiar: aciona quando o valor excede os limites. Contador: aciona após acumular um valor alvo. Mudança de Estado: aciona após um número de transições de estado.",
+          "go_back": "Regressar à seleção do atributo sem guardar."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Configuração de Limiar",
+        "description": "Defina os valores de limiar para **{entity_id}** ({attribute}).\nAtual: **{current_value} {unit}** | Média: {average} | Intervalo: {minimum}–{maximum} ({data_period}d)\nSugerido acima: {suggested_above} | Sugerido abaixo: {suggested_below}",
+        "data": {
+          "trigger_above": "Acionar quando acima de",
+          "trigger_below": "Acionar quando abaixo de",
+          "trigger_for_minutes": "Durante pelo menos (minutos)",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_above": "Acionar manutenção quando o valor exceder este limiar.",
+          "trigger_below": "Acionar manutenção quando o valor ficar abaixo deste limiar.",
+          "trigger_for_minutes": "O valor deve exceder o limiar durante estes minutos antes de acionar.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
+      "trigger_counter": {
+        "title": "Configuração do Contador",
+        "description": "Defina o valor alvo do contador para {entity_id} ({attribute}). Atual: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Valor alvo",
+          "trigger_delta_mode": "Modo delta (contar alterações, não absoluto)",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_target_value": "Acionar manutenção quando este valor acumulado for atingido.",
+          "trigger_delta_mode": "Se ativado, conta a diferença a partir de uma linha de base em vez do valor absoluto.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por contador.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Configuração de Mudança de Estado",
+        "description": "Contar transições de estado de {entity_id}.",
+        "data": {
+          "trigger_from_state": "Do estado (opcional)",
+          "trigger_to_state": "Para o estado (opcional)",
+          "trigger_target_changes": "Número de mudanças para acionar",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_from_state": "Contar apenas transições a partir deste estado. Deixe vazio para qualquer um.",
+          "trigger_to_state": "Contar apenas transições para este estado. Deixe vazio para qualquer um.",
+          "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar a manutenção.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por mudança de estado.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Configuração de Tempo de Execução",
+        "description": "Acompanhar o tempo de execução acumulado de {entity_id}. A manutenção é acionada quando o tempo total ligado atingir as horas alvo.",
+        "data": {
+          "trigger_runtime_hours": "Tempo de execução alvo (horas)",
+          "trigger_on_states": "Estados ativos (separados por vírgula)",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Acionar manutenção após estas horas de tempo de execução acumulado.",
+          "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o predefinido: on, 1, true. Exemplo: in_use, running",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por tempo de execução.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
+      "compound_logic": {
+        "title": "Acionamento Composto",
+        "description": "Escolha como múltiplas condições devem ser combinadas.",
+        "data": {
+          "compound_logic": "Lógica",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "compound_logic": "AND = todas as condições devem ser acionadas. OR = qualquer condição aciona.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Condição #{condition_num} — Entidade",
+        "description": "Selecione a entidade para esta condição.",
+        "data": {
+          "trigger_entity": "Entidade",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_entity": "A entidade do sensor a monitorizar para esta condição.",
+          "go_back": "Regressar ao passo anterior sem guardar."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Condição #{condition_num} — Tipo",
+        "description": "Como deve esta condição avaliar o sensor?",
+        "data": {
+          "trigger_type": "Tipo de acionamento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_type": "O método utilizado para determinar quando esta condição é acionada.",
+          "go_back": "Regressar à seleção da entidade sem guardar."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Condição — Limiar",
+        "data": {
+          "trigger_above": "Acionar acima de",
+          "trigger_below": "Acionar abaixo de",
+          "trigger_for_minutes": "Duração (minutos)",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_above": "Acionar quando o valor exceder este limiar.",
+          "trigger_below": "Acionar quando o valor ficar abaixo deste limiar.",
+          "trigger_for_minutes": "O valor deve permanecer além do limiar durante esta duração.",
+          "go_back": "Regressar à seleção do tipo de condição sem guardar."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condição — Contador",
+        "data": {
+          "trigger_target_value": "Valor alvo",
+          "trigger_delta_mode": "Modo delta",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_target_value": "Acionar quando o valor acumulado atingir este alvo.",
+          "trigger_delta_mode": "Contar alterações a partir de uma linha de base em vez do valor absoluto.",
+          "go_back": "Regressar à seleção do tipo de condição sem guardar."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condição — Mudança de Estado",
+        "data": {
+          "trigger_from_state": "Do estado",
+          "trigger_to_state": "Para o estado",
+          "trigger_target_changes": "Número de mudanças",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_from_state": "Contar apenas transições a partir deste estado. Deixe vazio para qualquer um.",
+          "trigger_to_state": "Contar apenas transições para este estado. Deixe vazio para qualquer um.",
+          "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar.",
+          "go_back": "Regressar à seleção do tipo de condição sem guardar."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condição — Tempo de Execução",
+        "data": {
+          "trigger_runtime_hours": "Tempo de execução alvo (horas)",
+          "trigger_on_states": "Estados ativos",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Acionar após estas horas de tempo de execução acumulado.",
+          "trigger_on_states": "Estados do sensor contados como 'ativo'. Deixe vazio para o predefinido.",
+          "go_back": "Regressar à seleção do tipo de condição sem guardar."
+        }
+      },
+      "compound_review": {
+        "title": "Revisão do Acionamento Composto",
+        "description": "{condition_count} condição(ões) configurada(s) com lógica {compound_logic}.",
+        "data": {
+          "compound_action": "Ação",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "go_back": "Regressar à seleção de lógica sem guardar."
+        }
+      },
+      "manual": {
+        "title": "Agendamento Manual",
+        "description": "Esta tarefa não tem agendamento automático. Pode marcá-la como pendente manualmente.",
+        "data": {
+          "warning_days": "Dias de aviso antes do vencimento",
+          "notes": "Notas",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "notes": "Notas ou instruções adicionais para esta tarefa.",
+          "go_back": "Regressar à criação da tarefa sem guardar."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar {name}",
+        "description": "Atualize as definições deste objeto de manutenção.",
+        "data": {
+          "name": "Nome do objeto",
+          "area_id": "Área",
+          "manufacturer": "Fabricante",
+          "model": "Modelo",
+          "installation_date": "Data de instalação"
+        },
+        "data_description": {
+          "name": "O nome deste objeto de manutenção.",
+          "area_id": "A área onde este objeto se encontra.",
+          "manufacturer": "O fabricante deste objeto.",
+          "model": "O modelo deste objeto.",
+          "installation_date": "Quando este objeto foi instalado."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Já existe um objeto de manutenção com este nome.",
+      "no_tasks": "É necessária pelo menos uma tarefa de manutenção.",
+      "invalid_entity": "A entidade selecionada não existe ou não tem dados numéricos.",
+      "invalid_attribute": "O atributo selecionado não está disponível nesta entidade.",
+      "invalid_threshold": "Pelo menos um limiar (acima ou abaixo) deve ser definido.",
+      "invalid_interval": "O intervalo deve ser um número positivo.",
+      "min_exceeds_max": "O intervalo mínimo não deve exceder o intervalo máximo.",
+      "invalid_notify_service": "Formato de serviço de notificação inválido. Use 'notify.nome_do_servico' (ex.: notify.mobile_app_phone).",
+      "notify_service_not_found": "Este serviço de notificação não foi encontrado no Home Assistant. Verifique o nome do serviço.",
+      "nfc_tag_duplicate": "Esta etiqueta NFC já está associada a outra tarefa."
+    },
+    "abort": {
+      "already_configured": "Este objeto de manutenção já está configurado.",
+      "global_already_exists": "As definições globais já estão configuradas.",
+      "template_not_found": "O modelo selecionado não foi encontrado.",
+      "missing_data": "Os dados necessários não foram fornecidos.",
+      "reconfigure_successful": "Configuração atualizada com sucesso.",
+      "reconfigure_cancelled": "Reconfiguração cancelada."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções de Manutenção",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Gerir Tarefas",
+          "add_task": "Adicionar Nova Tarefa",
+          "object_settings": "Definições do Objeto",
+          "done": "Concluído"
+        }
+      },
+      "global_init": {
+        "title": "Definições Globais",
+        "description": "Configure as definições globais de manutenção.",
+        "menu_options": {
+          "general_settings": "Definições Gerais",
+          "advanced_features": "Funcionalidades Avançadas",
+          "budget_settings": "Definições de Orçamento",
+          "manage_groups": "Gerir Grupos",
+          "notification_settings": "Definições de Notificação",
+          "notification_actions": "Ações Interativas",
+          "test_notification": "Enviar Notificação de Teste",
+          "done": "Concluído"
+        }
+      },
+      "advanced_features": {
+        "title": "Funcionalidades Avançadas",
+        "description": "Escolha quais funcionalidades avançadas mostrar na interface. Desativar uma funcionalidade oculta-a da interface mas não elimina quaisquer dados.",
+        "data": {
+          "advanced_adaptive_visible": "Agendamento Adaptativo",
+          "advanced_predictions_visible": "Previsões de Sensores",
+          "advanced_seasonal_visible": "Ajustes Sazonais",
+          "advanced_environmental_visible": "Correlação Ambiental",
+          "advanced_budget_visible": "Acompanhamento de Orçamento",
+          "advanced_groups_visible": "Grupos",
+          "advanced_checklists_visible": "Listas de Verificação"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Mostrar análise EWA, Weibull e sugestões de intervalo para tarefas.",
+          "advanced_predictions_visible": "Mostrar análise de degradação de sensores e gráficos de previsão de limiares.",
+          "advanced_seasonal_visible": "Mostrar gráficos de fatores sazonais e dados de ajuste mensal.",
+          "advanced_environmental_visible": "Mostrar ajustes de correlação ambiental (temperatura, humidade).",
+          "advanced_budget_visible": "Mostrar acompanhamento de orçamento mensal/anual e alertas.",
+          "advanced_groups_visible": "Mostrar gestão de grupos de manutenção.",
+          "advanced_checklists_visible": "Mostrar listas de verificação de tarefas para conclusão passo a passo."
+        }
+      },
+      "general_settings": {
+        "title": "Definições Gerais",
+        "description": "Configure as definições básicas do Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Dias de aviso predefinidos antes do vencimento",
+          "notifications_enabled": "Ativar notificações",
+          "notify_service": "Serviço de notificação",
+          "panel_enabled": "Mostrar painel na barra lateral"
+        },
+        "data_description": {
+          "default_warning_days": "Número de dias antes do vencimento de uma tarefa de manutenção para mostrar um aviso.",
+          "notifications_enabled": "Enviar notificações quando as tarefas de manutenção ficarem pendentes ou em atraso.",
+          "notify_service": "O serviço de notificação a utilizar (ex.: notify.mobile_app_phone).",
+          "panel_enabled": "Mostrar um painel do Maintenance Supporter na barra lateral."
+        }
+      },
+      "notification_settings": {
+        "title": "Definições de Notificação",
+        "description": "Configure quando e com que frequência as notificações são enviadas para cada estado.",
+        "data": {
+          "notify_due_soon_enabled": "Notificar quando próximo do vencimento",
+          "notify_due_soon_interval_hours": "Intervalo de lembrete próximo do vencimento (horas)",
+          "notify_overdue_enabled": "Notificar quando em atraso",
+          "notify_overdue_interval_hours": "Intervalo de lembrete em atraso (horas)",
+          "notify_triggered_enabled": "Notificar quando acionado",
+          "notify_triggered_interval_hours": "Intervalo de lembrete acionado (horas)",
+          "quiet_hours_enabled": "Ativar horário silencioso",
+          "quiet_hours_start": "Início do horário silencioso",
+          "quiet_hours_end": "Fim do horário silencioso",
+          "max_notifications_per_day": "Máximo de notificações por dia",
+          "notification_bundling_enabled": "Agrupar notificações",
+          "notification_bundle_threshold": "Limiar de agrupamento"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Com que frequência repetir o lembrete de próximo do vencimento. Defina como 0 para uma única notificação.",
+          "notify_overdue_interval_hours": "Com que frequência repetir o lembrete de atraso. Defina como 0 para uma única notificação.",
+          "notify_triggered_interval_hours": "Com que frequência repetir a notificação de acionamento. Defina como 0 para uma única notificação.",
+          "quiet_hours_enabled": "Suprimir notificações durante o horário silencioso.",
+          "max_notifications_per_day": "Número máximo de notificações por dia. Defina como 0 para ilimitado.",
+          "notification_bundling_enabled": "Enviar uma única notificação resumida quando múltiplas tarefas necessitam de atenção.",
+          "notification_bundle_threshold": "Número mínimo de tarefas para acionar uma notificação agrupada."
+        }
+      },
+      "notification_actions": {
+        "title": "Ações Interativas",
+        "description": "Configure os botões de ação mostrados nas notificações móveis (requer Companion App).",
+        "data": {
+          "action_complete_enabled": "Mostrar botão 'Concluir'",
+          "action_skip_enabled": "Mostrar botão 'Saltar'",
+          "action_snooze_enabled": "Mostrar botão 'Adiar'",
+          "snooze_duration_hours": "Duração do adiamento (horas)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Adiciona um botão para marcar a tarefa como concluída diretamente a partir da notificação.",
+          "action_skip_enabled": "Adiciona um botão para saltar o ciclo de manutenção atual a partir da notificação.",
+          "action_snooze_enabled": "Adiciona um botão para adiar o lembrete da notificação.",
+          "snooze_duration_hours": "Durante quanto tempo adiar as notificações quando o botão adiar é premido."
+        }
+      },
+      "budget_settings": {
+        "title": "Definições de Orçamento",
+        "description": "Defina orçamentos mensais e anuais de manutenção para acompanhar os gastos.",
+        "data": {
+          "budget_currency": "Moeda",
+          "budget_monthly": "Orçamento mensal",
+          "budget_yearly": "Orçamento anual",
+          "budget_alerts_enabled": "Ativar alertas de orçamento",
+          "budget_alert_threshold": "Limiar de alerta (%)"
+        },
+        "data_description": {
+          "budget_currency": "Moeda utilizada para a apresentação do orçamento e notificações.",
+          "budget_monthly": "Gasto máximo mensal em manutenção. Defina como 0 para desativar.",
+          "budget_yearly": "Gasto máximo anual em manutenção. Defina como 0 para desativar.",
+          "budget_alerts_enabled": "Enviar uma notificação quando os gastos excederem o limiar de alerta.",
+          "budget_alert_threshold": "Percentagem do orçamento a partir da qual enviar um alerta."
+        }
+      },
+      "test_notification": {
+        "title": "Notificação de Teste",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Gerir Grupos",
+        "description": "Selecione um grupo para gerir ou crie um novo.",
+        "data": {
+          "selected_group": "Selecionar grupo"
+        }
+      },
+      "add_group": {
+        "title": "Adicionar Grupo",
+        "description": "Crie um novo grupo de manutenção para organizar tarefas relacionadas.",
+        "data": {
+          "group_name": "Nome do grupo",
+          "group_description": "Descrição"
+        },
+        "data_description": {
+          "group_name": "Um nome para este grupo (ex.: 'Manutenção de Primavera').",
+          "group_description": "Descrição opcional para este grupo."
+        }
+      },
+      "manage_tasks": {
+        "title": "Gerir Tarefas",
+        "description": "Selecione uma tarefa para editar ou remover.",
+        "data": {
+          "selected_task": "Selecionar tarefa",
+          "go_back": "Voltar"
+        }
+      },
+      "task_action": {
+        "title": "Ações da Tarefa",
+        "description": "Tarefa: {task_name} — Escolha uma ação.",
+        "menu_options": {
+          "edit_task": "Editar Tarefa",
+          "edit_trigger": "Editar Acionamento",
+          "remove_trigger": "Remover Acionamento",
+          "edit_checklist": "Editar Lista de Verificação",
+          "adaptive_scheduling": "Agendamento Adaptativo",
+          "delete_task": "Eliminar Tarefa",
+          "manage_tasks": "Voltar"
+        }
+      },
+      "edit_task": {
+        "title": "Editar Tarefa",
+        "description": "Edite as definições para **{task_name}**.",
+        "data": {
+          "name": "Nome da tarefa",
+          "type": "Tipo de manutenção",
+          "interval_days": "Intervalo (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "enabled": "Ativado",
+          "notes": "Notas",
+          "documentation_url": "URL de documentação",
+          "last_performed": "Última realização",
+          "responsible_user_id": "Utilizador responsável",
+          "custom_icon": "Ícone da tarefa",
+          "nfc_tag_id": "ID da etiqueta NFC",
+          "go_back": "Voltar",
+          "interval_anchor": "Âncora do intervalo"
+        },
+        "data_description": {
+          "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
+          "type": "A categoria do trabalho de manutenção.",
+          "interval_days": "Número de dias entre execuções de manutenção.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "enabled": "Quando desativado, o agendamento e os acionamentos são pausados. A tarefa não é eliminada.",
+          "notes": "Notas ou instruções adicionais para esta tarefa.",
+          "documentation_url": "Ligação para documentação externa ou manual para esta tarefa.",
+          "last_performed": "Quando esta manutenção foi realizada pela última vez. Deixe vazio se nunca foi feita.",
+          "responsible_user_id": "O utilizador do Home Assistant responsável por esta tarefa.",
+          "custom_icon": "Ícone personalizado opcional para esta tarefa (ex.: mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Associe uma etiqueta NFC a esta tarefa. Ao ler a etiqueta, a tarefa será automaticamente marcada como concluída.",
+          "go_back": "Regressar às ações da tarefa sem guardar.",
+          "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original."
+        }
+      },
+      "edit_checklist": {
+        "title": "Editar Lista de Verificação",
+        "description": "Defina os passos da lista de verificação para {task_name}. Introduza um passo por linha.",
+        "data": {
+          "checklist_text": "Passos da lista de verificação",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "checklist_text": "Introduza cada passo da lista de verificação numa linha separada. Estes passos serão mostrados ao concluir a tarefa.",
+          "go_back": "Regressar às ações da tarefa sem guardar."
+        }
+      },
+      "compound_logic": {
+        "title": "Acionamento Composto",
+        "description": "Escolha como múltiplas condições devem ser combinadas.",
+        "data": {
+          "compound_logic": "Lógica",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "compound_logic": "AND = todas as condições devem ser acionadas. OR = qualquer condição aciona."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Condição #{condition_num} — Entidade",
+        "description": "Selecione a entidade para esta condição.",
+        "data": {
+          "trigger_entity": "Entidade",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_entity": "A entidade do sensor a monitorizar para esta condição."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Condição #{condition_num} — Tipo",
+        "description": "Como deve esta condição avaliar o sensor?",
+        "data": {
+          "trigger_type": "Tipo de acionamento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_type": "O método utilizado para determinar quando esta condição é acionada."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Condição — Limiar",
+        "data": {
+          "trigger_above": "Acionar acima de",
+          "trigger_below": "Acionar abaixo de",
+          "trigger_for_minutes": "Duração (minutos)",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_above": "Acionar quando o valor exceder este limiar.",
+          "trigger_below": "Acionar quando o valor ficar abaixo deste limiar.",
+          "trigger_for_minutes": "O valor deve permanecer além do limiar durante esta duração."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Condição — Contador",
+        "data": {
+          "trigger_target_value": "Valor alvo",
+          "trigger_delta_mode": "Modo delta",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_target_value": "Acionar quando o valor acumulado atingir este alvo.",
+          "trigger_delta_mode": "Contar alterações a partir de uma linha de base em vez do valor absoluto."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Condição — Mudança de Estado",
+        "data": {
+          "trigger_from_state": "Do estado",
+          "trigger_to_state": "Para o estado",
+          "trigger_target_changes": "Número de mudanças",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_from_state": "Contar apenas transições a partir deste estado. Deixe vazio para qualquer um.",
+          "trigger_to_state": "Contar apenas transições para este estado. Deixe vazio para qualquer um.",
+          "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Condição — Tempo de Execução",
+        "data": {
+          "trigger_runtime_hours": "Tempo de execução alvo (horas)",
+          "trigger_on_states": "Estados ativos",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Acionar após estas horas de tempo de execução acumulado.",
+          "trigger_on_states": "Estados do sensor contados como 'ativo'. Deixe vazio para o predefinido."
+        }
+      },
+      "compound_review": {
+        "title": "Revisão do Acionamento Composto",
+        "description": "{condition_count} condição(ões) configurada(s) com lógica {compound_logic}.",
+        "data": {
+          "compound_action": "Ação",
+          "go_back": "Voltar"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Agendamento Adaptativo",
+        "description": "Configure a adaptação inteligente de intervalos para {task_name}. O sistema aprende com o seu feedback de conclusão para sugerir melhores intervalos.",
+        "data": {
+          "adaptive_enabled": "Ativar agendamento adaptativo",
+          "ewa_alpha": "Taxa de aprendizagem (alfa)",
+          "min_interval_days": "Intervalo mínimo (dias)",
+          "max_interval_days": "Intervalo máximo (dias)",
+          "seasonal_enabled": "Ativar consciência sazonal",
+          "sensor_prediction_enabled": "Ativar previsões baseadas em sensores",
+          "environmental_entity": "Sensor ambiental (opcional)",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "adaptive_enabled": "Quando ativado, o sistema aprende com o seu feedback e sugere intervalos de manutenção ideais.",
+          "ewa_alpha": "Quão rapidamente o algoritmo se adapta a novos dados. Mais alto = mais responsivo, mais baixo = mais estável.",
+          "min_interval_days": "O intervalo mais curto que o sistema alguma vez recomendará.",
+          "max_interval_days": "O intervalo mais longo que o sistema alguma vez recomendará.",
+          "seasonal_enabled": "Ajustar recomendações com base em padrões sazonais aprendidos do seu histórico de manutenção.",
+          "sensor_prediction_enabled": "Analisar tendências de sensores para prever quando os limiares serão atingidos e sugerir manutenção antecipada se necessário.",
+          "environmental_entity": "Associe um sensor de temperatura, humidade ou pressão para correlacionar condições ambientais com intervalos de manutenção.",
+          "go_back": "Regressar às ações da tarefa sem guardar."
+        }
+      },
+      "delete_task": {
+        "title": "Eliminar Tarefa",
+        "description": "Tem a certeza de que pretende eliminar a tarefa {task_name}? Esta ação não pode ser desfeita.",
+        "data": {
+          "confirm": "Confirmar eliminação",
+          "go_back": "Voltar"
+        }
+      },
+      "remove_trigger": {
+        "title": "Remover Acionamento",
+        "description": "Remover acionamento de **{task_name}**?\n\n**Entidade:** {entity_ids}\n**Tipo:** {trigger_type}\n**Configuração:** {config_details}\n\nSe todas as entidades forem removidas, o agendamento reverterá para baseado no tempo.",
+        "data": {
+          "entities_to_remove": "Entidades a remover",
+          "confirm": "Confirmar remoção",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "entities_to_remove": "Selecione quais entidades remover deste acionamento. Se todas forem removidas, o acionamento inteiro é eliminado.",
+          "go_back": "Regressar às ações da tarefa sem guardar."
+        }
+      },
+      "trigger_summary": {
+        "title": "Acionamento Atual",
+        "description": "Acionamento para **{task_name}**:\n\n**Entidade:** {entity_ids}\n**Estado atual:** {current_states}\n**Tipo:** {trigger_type} (atributo: {attribute})\n**Configuração:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Editar Acionamento",
+          "task_action": "Voltar"
+        }
+      },
+      "add_task": {
+        "title": "Adicionar Tarefa de Manutenção",
+        "description": "Defina uma nova tarefa de manutenção para este objeto.",
+        "data": {
+          "name": "Nome da tarefa",
+          "type": "Tipo de manutenção",
+          "schedule_type": "Tipo de agendamento",
+          "custom_icon": "Ícone da tarefa",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
+          "type": "A categoria do trabalho de manutenção.",
+          "schedule_type": "Como esta tarefa deve ser agendada.",
+          "custom_icon": "Ícone personalizado opcional para esta tarefa (ex.: mdi:oil, mdi:filter-variant).",
+          "go_back": "Regressar ao menu principal sem guardar."
+        }
+      },
+      "opt_time_based": {
+        "title": "Agendamento Baseado no Tempo",
+        "description": "Configure o intervalo de tempo para esta tarefa.",
+        "data": {
+          "interval_days": "Intervalo (dias)",
+          "last_performed": "Última realização",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "interval_anchor": "Âncora do intervalo"
+        },
+        "data_description": {
+          "interval_days": "Número de dias entre execuções de manutenção.",
+          "last_performed": "Quando esta manutenção foi realizada pela última vez. Deixe vazio se nunca foi feita.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar ao menu principal sem guardar.",
+          "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original."
+        }
+      },
+      "opt_manual": {
+        "title": "Agendamento Manual",
+        "description": "Esta tarefa não tem agendamento automático. Pode marcá-la como pendente manualmente.",
+        "data": {
+          "warning_days": "Dias de aviso antes do vencimento",
+          "notes": "Notas",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "notes": "Notas ou instruções adicionais para esta tarefa.",
+          "go_back": "Regressar ao menu principal sem guardar."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Selecionar Sensor de Acionamento",
+        "description": "Escolha uma entidade do Home Assistant para monitorizar.",
+        "data": {
+          "trigger_entity": "Entidade a monitorizar",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_entity": "Selecione a entidade do sensor que deve acionar esta tarefa de manutenção."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Selecionar Atributo",
+        "description": "Escolha qual valor monitorizar de {entity_id}. Estado atual: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Valor a monitorizar",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_attribute": "Selecione o estado da entidade ou um atributo específico para monitorizar."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Tipo de Acionamento",
+        "description": "Como deve o valor do sensor acionar a manutenção?",
+        "data": {
+          "trigger_type": "Tipo de acionamento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_type": "Limiar: aciona quando o valor excede os limites. Contador: aciona após acumular um valor alvo. Mudança de Estado: aciona após um número de transições de estado."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Configuração de Limiar",
+        "description": "Defina os valores de limiar para **{entity_id}** ({attribute}).\nAtual: **{current_value} {unit}** | Média: {average} | Intervalo: {minimum}–{maximum} ({data_period}d)\nSugerido acima: {suggested_above} | Sugerido abaixo: {suggested_below}",
+        "data": {
+          "trigger_above": "Acionar quando acima de",
+          "trigger_below": "Acionar quando abaixo de",
+          "trigger_for_minutes": "Durante pelo menos (minutos)",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_above": "Acionar manutenção quando o valor exceder este limiar.",
+          "trigger_below": "Acionar manutenção quando o valor ficar abaixo deste limiar.",
+          "trigger_for_minutes": "O valor deve exceder o limiar durante estes minutos antes de acionar.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Configuração do Contador",
+        "description": "Defina o valor alvo do contador para {entity_id} ({attribute}). Atual: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Valor alvo",
+          "trigger_delta_mode": "Modo delta (contar alterações, não absoluto)",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_target_value": "Acionar manutenção quando este valor acumulado for atingido.",
+          "trigger_delta_mode": "Se ativado, conta a diferença a partir de uma linha de base em vez do valor absoluto.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por contador.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Configuração de Mudança de Estado",
+        "description": "Contar transições de estado de {entity_id}.",
+        "data": {
+          "trigger_from_state": "Do estado (opcional)",
+          "trigger_to_state": "Para o estado (opcional)",
+          "trigger_target_changes": "Número de mudanças para acionar",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_from_state": "Contar apenas transições a partir deste estado. Deixe vazio para qualquer um.",
+          "trigger_to_state": "Contar apenas transições para este estado. Deixe vazio para qualquer um.",
+          "trigger_target_changes": "Número de mudanças de estado correspondentes antes de acionar a manutenção.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por mudança de estado.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Configuração de Tempo de Execução",
+        "description": "Acompanhar o tempo de execução acumulado de {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Tempo de execução alvo (horas)",
+          "trigger_on_states": "Estados ativos (separados por vírgula)",
+          "interval_days": "Intervalo de segurança (dias)",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Acionar manutenção após estas horas de tempo de execução acumulado.",
+          "trigger_on_states": "Quais estados do sensor contam como 'ativo'. Deixe vazio para o predefinido: on, 1, true. Exemplo: in_use, running",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por tempo de execução.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
+      "object_settings": {
+        "title": "Definições do Objeto",
+        "description": "Edite os detalhes do objeto.",
+        "data": {
+          "name": "Nome do objeto",
+          "manufacturer": "Fabricante",
+          "model": "Modelo",
+          "area_id": "Área",
+          "installation_date": "Data de instalação",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "name": "Um nome único para este objeto de manutenção (ex.: 'Bomba da Piscina', 'Carro').",
+          "manufacturer": "O fabricante do objeto.",
+          "model": "O nome ou número do modelo.",
+          "area_id": "A área da sua casa onde este objeto se encontra.",
+          "installation_date": "Quando este objeto foi instalado ou adquirido.",
+          "go_back": "Regressar ao menu principal sem guardar."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Próximo do Vencimento",
+          "overdue": "Em Atraso",
+          "triggered": "Acionado"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Tipo de manutenção",
+            "state": {
+              "cleaning": "Limpeza",
+              "inspection": "Inspeção",
+              "replacement": "Substituição",
+              "calibration": "Calibração",
+              "service": "Serviço",
+              "custom": "Personalizado"
+            }
+          },
+          "schedule_type": {
+            "name": "Tipo de agendamento",
+            "state": {
+              "time_based": "Baseado no tempo",
+              "sensor_based": "Baseado em sensor",
+              "manual": "Manual"
+            }
+          },
+          "interval_days": {
+            "name": "Intervalo (dias)"
+          },
+          "warning_days": {
+            "name": "Dias de aviso"
+          },
+          "last_performed": {
+            "name": "Última realização"
+          },
+          "next_due": {
+            "name": "Próximo vencimento"
+          },
+          "days_until_due": {
+            "name": "Dias até ao vencimento"
+          },
+          "parent_object": {
+            "name": "Objeto principal"
+          },
+          "times_performed": {
+            "name": "Vezes realizada"
+          },
+          "total_cost": {
+            "name": "Custo total"
+          },
+          "average_duration": {
+            "name": "Duração média (min)"
+          },
+          "notes": {
+            "name": "Notas"
+          },
+          "documentation_url": {
+            "name": "URL de documentação"
+          },
+          "trigger_entity": {
+            "name": "Entidade de acionamento"
+          },
+          "trigger_attribute": {
+            "name": "Atributo de acionamento"
+          },
+          "trigger_type": {
+            "name": "Tipo de acionamento",
+            "state": {
+              "threshold": "Limiar",
+              "counter": "Contador",
+              "state_change": "Mudança de estado",
+              "runtime": "Tempo de execução",
+              "compound": "Composto"
+            }
+          },
+          "trigger_active": {
+            "name": "Acionamento ativo"
+          },
+          "trigger_current_value": {
+            "name": "Valor atual do acionamento"
+          },
+          "trigger_entity_state": {
+            "name": "Estado da entidade de acionamento",
+            "state": {
+              "available": "Disponível",
+              "unavailable": "Indisponível",
+              "missing": "Em falta",
+              "startup": "A iniciar"
+            }
+          },
+          "trigger_above": {
+            "name": "Acionar acima de"
+          },
+          "trigger_below": {
+            "name": "Acionar abaixo de"
+          },
+          "trigger_for_minutes": {
+            "name": "Acionar durante (minutos)"
+          },
+          "trigger_target_value": {
+            "name": "Valor alvo do acionamento"
+          },
+          "trigger_delta_mode": {
+            "name": "Modo delta do acionamento"
+          },
+          "trigger_baseline_value": {
+            "name": "Valor de referência do acionamento"
+          },
+          "trigger_current_delta": {
+            "name": "Delta atual do acionamento"
+          },
+          "trigger_from_state": {
+            "name": "Acionar do estado"
+          },
+          "trigger_to_state": {
+            "name": "Acionar para o estado"
+          },
+          "trigger_target_changes": {
+            "name": "Mudanças alvo do acionamento"
+          },
+          "trigger_change_count": {
+            "name": "Contagem de mudanças do acionamento"
+          },
+          "trigger_runtime_hours": {
+            "name": "Tempo de execução alvo (horas)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Tempo de execução acumulado (horas)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Tempo de execução restante (horas)"
+          },
+          "last_entry": {
+            "name": "Última entrada"
+          },
+          "suggested_interval": {
+            "name": "Intervalo sugerido"
+          },
+          "interval_confidence": {
+            "name": "Confiança do intervalo",
+            "state": {
+              "low": "Baixa",
+              "medium": "Média",
+              "high": "Alta"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Agendamento adaptativo ativado"
+          },
+          "seasonal_factor": {
+            "name": "Fator sazonal"
+          },
+          "seasonal_reason": {
+            "name": "Razão sazonal",
+            "state": {
+              "learned": "Aprendido",
+              "manual": "Manual"
+            }
+          },
+          "degradation_rate": {
+            "name": "Taxa de degradação"
+          },
+          "degradation_trend": {
+            "name": "Tendência de degradação",
+            "state": {
+              "rising": "A subir",
+              "falling": "A descer",
+              "stable": "Estável",
+              "insufficient_data": "Dados insuficientes"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Dias até ao limiar"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Confiança da previsão",
+            "state": {
+              "low": "Baixa",
+              "medium": "Média",
+              "high": "Alta"
+            }
+          },
+          "environmental_factor": {
+            "name": "Fator ambiental"
+          },
+          "environmental_entity": {
+            "name": "Entidade ambiental"
+          },
+          "weibull_beta": {
+            "name": "Weibull forma (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull escala (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Padrão de falhas",
+            "state": {
+              "early_failures": "Falhas precoces",
+              "random_failures": "Falhas aleatórias",
+              "wear_out": "Desgaste",
+              "highly_predictable": "Altamente previsível"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Intervalo de confiança (baixo)"
+          },
+          "confidence_interval_high": {
+            "name": "Intervalo de confiança (alto)"
+          },
+          "interval_anchor": {
+            "name": "Âncora do intervalo",
+            "state": {
+              "completion": "A partir da conclusão",
+              "planned": "A partir da data planeada"
+            }
+          }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Calendário de Manutenção"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} em atraso",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Estado de manutenção",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Próximo do Vencimento",
+              "overdue": "Em Atraso",
+              "triggered": "Acionado"
+            }
+          },
+          "days_until_due": {
+            "name": "Dias até ao vencimento"
+          },
+          "next_due": {
+            "name": "Próximo vencimento"
+          },
+          "parent_object": {
+            "name": "Objeto principal"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Limpeza",
+        "inspection": "Inspeção",
+        "replacement": "Substituição",
+        "calibration": "Calibração",
+        "service": "Serviço",
+        "custom": "Personalizado"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Baseado no tempo",
+        "sensor_based": "Baseado em sensor",
+        "manual": "Manual"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Limiar",
+        "counter": "Contador",
+        "state_change": "Mudança de Estado",
+        "runtime": "Tempo de Execução",
+        "compound": "Composto (Múltiplas Condições)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "AND (todas as condições devem ser acionadas)",
+        "or": "OR (qualquer condição aciona)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Qualquer entidade aciona",
+        "all": "Todas as entidades devem acionar"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Concluir Manutenção",
+      "description": "Marcar uma tarefa de manutenção como concluída.",
+      "fields": {
+        "entity_id": {
+          "name": "Entidade",
+          "description": "A entidade do sensor de manutenção a concluir."
+        },
+        "notes": {
+          "name": "Notas",
+          "description": "Notas opcionais sobre a manutenção realizada."
+        },
+        "cost": {
+          "name": "Custo",
+          "description": "Custo da manutenção realizada."
+        },
+        "duration": {
+          "name": "Duração",
+          "description": "Duração da manutenção em minutos."
+        }
+      }
+    },
+    "reset": {
+      "name": "Repor Manutenção",
+      "description": "Repor a data da última realização de uma tarefa de manutenção.",
+      "fields": {
+        "entity_id": {
+          "name": "Entidade",
+          "description": "A entidade do sensor de manutenção a repor."
+        },
+        "date": {
+          "name": "Data",
+          "description": "A data a definir como última realização. Por predefinição é hoje."
+        }
+      }
+    },
+    "skip": {
+      "name": "Saltar Manutenção",
+      "description": "Saltar o ciclo de manutenção atual.",
+      "fields": {
+        "entity_id": {
+          "name": "Entidade",
+          "description": "A entidade do sensor de manutenção a saltar."
+        },
+        "reason": {
+          "name": "Motivo",
+          "description": "Motivo opcional para saltar a manutenção."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Exportar Dados",
+      "description": "Exportar todos os dados de manutenção como JSON ou YAML.",
+      "fields": {
+        "format": {
+          "name": "Formato",
+          "description": "Formato de saída para os dados exportados (json ou yaml)."
+        },
+        "include_history": {
+          "name": "Incluir Histórico",
+          "description": "Se deve incluir as entradas do histórico de tarefas na exportação."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Sensor de acionamento não encontrado: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Entidade de acionamento em falta",
+            "description": "A entidade do sensor `{entity_id}` configurada como acionamento para a tarefa \"{task_name}\" no objeto \"{object_name}\" já não está disponível.\n\nEscolha como resolver este problema:",
+            "menu_options": {
+              "replace_entity": "Substituir por uma entidade diferente",
+              "remove_trigger": "Remover o acionamento por sensor",
+              "dismiss": "Dispensar (reaparecerá)"
+            }
+          },
+          "replace_entity": {
+            "title": "Substituir entidade de acionamento",
+            "description": "Selecione uma nova entidade para substituir `{entity_id}` como acionamento para a tarefa \"{task_name}\" em \"{object_name}\".",
+            "data": {
+              "new_entity_id": "Nova entidade de acionamento"
+            },
+            "data_description": {
+              "new_entity_id": "Selecione a nova entidade do sensor a utilizar como acionamento."
+            }
+          },
+          "remove_trigger": {
+            "title": "Remover acionamento por sensor",
+            "description": "Isto removerá o acionamento por sensor da tarefa \"{task_name}\" em \"{object_name}\" e converterá o agendamento para baseado no tempo ou manual. O histórico de manutenção será preservado.\n\nEntidade de acionamento anterior: `{entity_id}`"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Nenhum coordenador de manutenção encontrado para a entidade {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "Nenhuma tarefa de manutenção encontrada para a entidade {entity_id}."
+    }
+  }
+}
