@@ -399,6 +399,10 @@ The init script is idempotent — safe to run again on an existing setup.
 
 See [Architecture — Development & Testing Infrastructure](docs/ARCHITECTURE.md#development--testing-infrastructure) for details on faketime, test entities, and the full demo object reference.
 
+## Community
+
+Questions, feedback, or want to share your setup? Join the discussion on the [Home Assistant Community Forum](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556).
+
 ## License
 
 MIT
