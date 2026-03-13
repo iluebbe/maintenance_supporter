@@ -60,6 +60,7 @@ const browser = await chromium.launch({ headless: true });
 
 const ctx = await browser.newContext({
   viewport: { width: 1400, height: 900 },
+  deviceScaleFactor: 2,
   colorScheme: "dark",
   locale: "en-US",
 });
@@ -327,6 +328,7 @@ await shot(page, "config-flow.png", 2000);
 console.log("13) Mobile Overview…");
 const mobileCtx = await browser.newContext({
   viewport: { width: 375, height: 812 },
+  deviceScaleFactor: 2,
   colorScheme: "dark",
   locale: "en-US",
 });
