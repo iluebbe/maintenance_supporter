@@ -86,7 +86,8 @@ export class MaintenanceObjectDialog extends LitElement {
     const L = this._lang;
     const title = this._entryId ? t("edit_object", L) : t("new_object", L);
     return html`
-      <ha-dialog open @closed=${this._close} .heading=${title}>
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${title}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           <ha-textfield
@@ -117,26 +118,38 @@ export class MaintenanceObjectDialog extends LitElement {
             @input=${(e: Event) => (this._installationDate = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
         </div>
-        <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>
-          ${t("cancel", this._lang)}
-        </ha-button>
-        <ha-button
-          slot="primaryAction"
-          @click=${this._save}
-          .disabled=${this._loading || !this._name.trim()}
-        >
-          ${this._loading ? t("saving", this._lang) : t("save", this._lang)}
-        </ha-button>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${t("cancel", this._lang)}
+          </ha-button>
+          <ha-button
+            @click=${this._save}
+            .disabled=${this._loading || !this._name.trim()}
+          >
+            ${this._loading ? t("saving", this._lang) : t("save", this._lang)}
+          </ha-button>
+        </div>
       </ha-dialog>
     `;
   }
 
   static styles = css`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
     .content {
       display: flex;
       flex-direction: column;
       gap: 16px;
       min-width: 300px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
     }
     ha-textfield {
       display: block;

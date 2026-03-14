@@ -216,7 +216,8 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
       : `${t("qr_code", L)}: ${this._objectName}`;
     const hasResults = !!this._viewResult;
     return html`
-      <ha-dialog open @closed=${this._close} .heading=${heading}>
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${heading}</div>
         <div class="content">
           ${this._loading
             ? html`<div class="loading">${t("qr_generating", L)}</div>`
@@ -271,27 +272,39 @@ ${safeSub ? `<div class="sub">${safeSub}</div>` : ""}
             </div>
           </div>
         </div>
-        <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>
-          ${t("cancel", L)}
-        </ha-button>
-        <ha-button
-          slot="primaryAction"
-          @click=${this._print}
-          .disabled=${!hasResults}
-        >
-          ${t("qr_print", L)}
-        </ha-button>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${t("cancel", L)}
+          </ha-button>
+          <ha-button
+            @click=${this._print}
+            .disabled=${!hasResults}
+          >
+            ${t("qr_print", L)}
+          </ha-button>
+        </div>
       </ha-dialog>
     `;
   }
 
   static styles = css`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
     .content {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 16px;
       min-width: 300px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
     }
     .qr-pair {
       display: flex;

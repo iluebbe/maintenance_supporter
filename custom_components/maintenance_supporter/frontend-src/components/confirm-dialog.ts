@@ -92,7 +92,8 @@ export class MaintenanceConfirmDialog extends LitElement {
     if (!this._open) return nothing;
     const lang = this.hass?.language || "en";
     return html`
-      <ha-dialog open @closed=${this._cancel} .heading=${this._title}>
+      <ha-dialog open @closed=${this._cancel}>
+        <div class="dialog-title">${this._title}</div>
         <div class="content">
           ${this._message}
           ${this._inputLabel ? html`
@@ -104,21 +105,27 @@ export class MaintenanceConfirmDialog extends LitElement {
             ></ha-textfield>
           ` : nothing}
         </div>
-        <ha-button slot="secondaryAction" appearance="plain" @click=${this._cancel}>
-          ${t("cancel", lang)}
-        </ha-button>
-        <ha-button
-          slot="primaryAction"
-          class="${this._danger ? "danger" : ""}"
-          @click=${this._confirmAction}
-        >
-          ${this._confirmText}
-        </ha-button>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._cancel}>
+            ${t("cancel", lang)}
+          </ha-button>
+          <ha-button
+            class="${this._danger ? "danger" : ""}"
+            @click=${this._confirmAction}
+          >
+            ${this._confirmText}
+          </ha-button>
+        </div>
       </ha-dialog>
     `;
   }
 
   static styles = css`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
     .content {
       padding: 8px 0;
       min-width: 280px;
@@ -126,6 +133,12 @@ export class MaintenanceConfirmDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
     }
     ha-textfield {
       display: block;

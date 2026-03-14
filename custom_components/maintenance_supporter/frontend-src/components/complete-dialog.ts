@@ -87,11 +87,8 @@ export class MaintenanceCompleteDialog extends LitElement {
     if (!this._open) return html``;
     const L = this.lang || this.hass?.language || "en";
     return html`
-      <ha-dialog
-        open
-        @closed=${this._close}
-        .heading=${t("complete_title", L) + this.taskName}
-      >
+      <ha-dialog open @closed=${this._close}>
+        <div class="dialog-title">${t("complete_title", L)}${this.taskName}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
           ${this.checklist.length > 0 ? html`
@@ -143,26 +140,38 @@ export class MaintenanceCompleteDialog extends LitElement {
             </div>
           ` : nothing}
         </div>
-        <ha-button slot="secondaryAction" appearance="plain" @click=${this._close}>
-          ${t("cancel", L)}
-        </ha-button>
-        <ha-button
-          slot="primaryAction"
-          @click=${this._complete}
-          .disabled=${this._loading}
-        >
-          ${this._loading ? t("completing", L) : t("complete", L)}
-        </ha-button>
+        <div class="dialog-actions">
+          <ha-button appearance="plain" @click=${this._close}>
+            ${t("cancel", L)}
+          </ha-button>
+          <ha-button
+            @click=${this._complete}
+            .disabled=${this._loading}
+          >
+            ${this._loading ? t("completing", L) : t("complete", L)}
+          </ha-button>
+        </div>
       </ha-dialog>
     `;
   }
 
   static styles = css`
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+      padding-bottom: 12px;
+    }
     .content {
       display: flex;
       flex-direction: column;
       gap: 16px;
       min-width: 300px;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 16px;
     }
     .error {
       color: var(--error-color, #f44336);
