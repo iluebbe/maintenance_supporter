@@ -47,6 +47,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    call_ws_handler,
     OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
@@ -484,7 +485,7 @@ async def test_object_deletion_cleans_up_device_and_entities(
 
     # Delete object via WS
     conn = _mock_connection()
-    await ws_delete_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_object, hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/delete",
         "entry_id": obj_entry.entry_id,
     })
@@ -533,7 +534,7 @@ async def test_task_deletion_removes_entities(
 
     # Delete one task via WS
     conn = _mock_connection()
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/delete",
         "entry_id": obj_entry.entry_id,
         "task_id": TASK_ID_2,

@@ -23,6 +23,7 @@ from custom_components.maintenance_supporter.websocket.groups import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
@@ -60,7 +61,7 @@ async def test_get_groups_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_groups.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_groups, hass, conn, {
         "id": 1, "type": "maintenance_supporter/groups",
     })
 
@@ -75,7 +76,7 @@ async def test_get_groups_no_global(
     """Test get_groups when no global entry exists."""
     conn = _mock_connection()
 
-    await ws_get_groups.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_groups, hass, conn, {
         "id": 1, "type": "maintenance_supporter/groups",
     })
 
@@ -94,7 +95,7 @@ async def test_create_group_basic(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Monthly Tasks",
     })
@@ -119,7 +120,7 @@ async def test_create_group_with_all_fields(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Pool Maintenance",
         "description": "All pool-related tasks",
@@ -145,7 +146,7 @@ async def test_create_group_no_global(
     """Test creating a group when no global entry exists."""
     conn = _mock_connection()
 
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Test",
     })
@@ -162,7 +163,7 @@ async def _create_group(
 ) -> str:
     """Helper to create a group and return its ID."""
     conn = _mock_connection()
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Original Name",
         "description": "Original desc",
@@ -180,7 +181,7 @@ async def test_update_group_name(
     group_id = await _create_group(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_group, hass, conn, {
         "id": 2, "type": "maintenance_supporter/group/update",
         "group_id": group_id,
         "name": "Updated Name",
@@ -205,7 +206,7 @@ async def test_update_group_task_refs(
     group_id = await _create_group(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_group, hass, conn, {
         "id": 2, "type": "maintenance_supporter/group/update",
         "group_id": group_id,
         "task_refs": [
@@ -226,7 +227,7 @@ async def test_update_group_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/update",
         "group_id": "nonexistent",
         "name": "Test",
@@ -242,7 +243,7 @@ async def test_update_group_no_global(
     """Test updating a group when no global entry exists."""
     conn = _mock_connection()
 
-    await ws_update_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/update",
         "group_id": "any",
         "name": "Test",
@@ -262,7 +263,7 @@ async def test_delete_group(
     group_id = await _create_group(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_delete_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_group, hass, conn, {
         "id": 2, "type": "maintenance_supporter/group/delete",
         "group_id": group_id,
     })
@@ -283,7 +284,7 @@ async def test_delete_group_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_delete_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/delete",
         "group_id": "nonexistent",
     })
@@ -298,7 +299,7 @@ async def test_delete_group_no_global(
     """Test deleting a group when no global entry exists."""
     conn = _mock_connection()
 
-    await ws_delete_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/delete",
         "group_id": "any",
     })
@@ -317,7 +318,7 @@ async def test_group_crud_cycle(
     conn = _mock_connection()
 
     # Create
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Lifecycle Test",
     })
@@ -325,7 +326,7 @@ async def test_group_crud_cycle(
 
     # Get
     conn.reset_mock()
-    await ws_get_groups.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_groups, hass, conn, {
         "id": 2, "type": "maintenance_supporter/groups",
     })
     groups = conn.send_result.call_args[0][1]["groups"]
@@ -334,7 +335,7 @@ async def test_group_crud_cycle(
 
     # Update
     conn.reset_mock()
-    await ws_update_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_group, hass, conn, {
         "id": 3, "type": "maintenance_supporter/group/update",
         "group_id": group_id,
         "name": "Updated Lifecycle",
@@ -342,14 +343,14 @@ async def test_group_crud_cycle(
 
     # Delete
     conn.reset_mock()
-    await ws_delete_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_group, hass, conn, {
         "id": 4, "type": "maintenance_supporter/group/delete",
         "group_id": group_id,
     })
 
     # Verify deleted
     conn.reset_mock()
-    await ws_get_groups.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_groups, hass, conn, {
         "id": 5, "type": "maintenance_supporter/groups",
     })
     groups = conn.send_result.call_args[0][1]["groups"]
@@ -367,7 +368,7 @@ async def test_cleanup_group_refs_by_task_id(
 
     # Create a group with two task refs
     conn = _mock_connection()
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Test Group",
         "task_refs": [
@@ -394,7 +395,7 @@ async def test_cleanup_group_refs_by_entry_id(
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Test Group",
         "task_refs": [
@@ -444,7 +445,7 @@ async def test_cleanup_group_refs_across_multiple_groups(
     conn = _mock_connection()
 
     # Create two groups, both referencing the same task
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1, "type": "maintenance_supporter/group/create",
         "name": "Group A",
         "task_refs": [{"entry_id": "e1", "task_id": TASK_ID_1}],
@@ -452,7 +453,7 @@ async def test_cleanup_group_refs_across_multiple_groups(
     gid_a = conn.send_result.call_args[0][1]["group_id"]
 
     conn.reset_mock()
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 2, "type": "maintenance_supporter/group/create",
         "name": "Group B",
         "task_refs": [

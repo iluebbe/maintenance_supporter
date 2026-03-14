@@ -22,6 +22,7 @@ from custom_components.maintenance_supporter.websocket.users import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -119,7 +120,7 @@ async def test_ws_list_users(
     hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await ws_list_users.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_users, hass, conn, {
         "id": 1, "type": "maintenance_supporter/users/list",
     })
 
@@ -142,7 +143,7 @@ async def test_ws_list_users_excludes_system(
     hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await ws_list_users.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_users, hass, conn, {
         "id": 1, "type": "maintenance_supporter/users/list",
     })
 
@@ -164,7 +165,7 @@ async def test_ws_list_users_excludes_inactive(
     hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await ws_list_users.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_users, hass, conn, {
         "id": 1, "type": "maintenance_supporter/users/list",
     })
 
@@ -184,7 +185,7 @@ async def test_ws_assign_user(
     hass.auth.async_get_user = AsyncMock(return_value=_mock_user("user1"))  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_assign_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -208,7 +209,7 @@ async def test_ws_assign_user_unassign(
     await setup_integration(hass, global_entry, assigned_object_entry)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_assign_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": assigned_object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -228,7 +229,7 @@ async def test_ws_assign_user_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_assign_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -245,7 +246,7 @@ async def test_ws_assign_user_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_assign_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
@@ -263,7 +264,7 @@ async def test_ws_assign_user_invalid(
     hass.auth.async_get_user = AsyncMock(return_value=None)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await ws_assign_user.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_assign_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/assign_user",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -284,7 +285,7 @@ async def test_ws_tasks_by_user(
     await setup_integration(hass, global_entry, assigned_object_entry)
     conn = _mock_connection()
 
-    await ws_tasks_by_user.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_tasks_by_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tasks/by_user",
         "user_id": "user1",
     })
@@ -304,7 +305,7 @@ async def test_ws_tasks_by_user_empty(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_tasks_by_user.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_tasks_by_user, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tasks/by_user",
         "user_id": "user_with_no_tasks",
     })

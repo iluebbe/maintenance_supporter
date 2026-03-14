@@ -16,6 +16,7 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.websocket.tags import ws_list_tags
 
 from .conftest import (
+    call_ws_handler,
     build_global_entry_data,
     setup_integration,
 )
@@ -58,7 +59,7 @@ async def test_ws_list_tags_with_items(
     ]
 
     conn = _mock_connection()
-    await ws_list_tags.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_tags, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tags/list",
     })
 
@@ -90,7 +91,7 @@ async def test_ws_list_tags_with_object_items(
     hass.data["tag"].async_items.return_value = [tag1, tag2]
 
     conn = _mock_connection()
-    await ws_list_tags.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_tags, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tags/list",
     })
 
@@ -111,7 +112,7 @@ async def test_ws_list_tags_no_tag_integration(
     hass.data.pop("tag", None)
 
     conn = _mock_connection()
-    await ws_list_tags.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_tags, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tags/list",
     })
 
@@ -129,7 +130,7 @@ async def test_ws_list_tags_empty_registry(
     hass.data["tag"].async_items.return_value = []
 
     conn = _mock_connection()
-    await ws_list_tags.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_tags, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tags/list",
     })
 
@@ -147,7 +148,7 @@ async def test_ws_list_tags_exception_handling(
     hass.data["tag"].async_items.side_effect = RuntimeError("Tag store broken")
 
     conn = _mock_connection()
-    await ws_list_tags.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_tags, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tags/list",
     })
 
@@ -170,7 +171,7 @@ async def test_ws_list_tags_name_fallback_to_id(
     ]
 
     conn = _mock_connection()
-    await ws_list_tags.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_list_tags, hass, conn, {
         "id": 1, "type": "maintenance_supporter/tags/list",
     })
 

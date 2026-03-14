@@ -26,6 +26,7 @@ from custom_components.maintenance_supporter.websocket.io import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -79,7 +80,7 @@ async def test_get_templates(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_templates.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_templates, hass, conn, {
         "id": 1, "type": "maintenance_supporter/templates",
     })
 
@@ -114,7 +115,7 @@ async def test_export_data_json(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_export_data.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_export_data, hass, conn, {
         "id": 1, "type": "maintenance_supporter/export",
         "format": "json",
         "include_history": True,
@@ -134,7 +135,7 @@ async def test_export_data_yaml(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_export_data.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_export_data, hass, conn, {
         "id": 1, "type": "maintenance_supporter/export",
         "format": "yaml",
         "include_history": True,
@@ -154,7 +155,7 @@ async def test_export_data_no_history(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_export_data.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_export_data, hass, conn, {
         "id": 1, "type": "maintenance_supporter/export",
         "include_history": False,
     })
@@ -174,7 +175,7 @@ async def test_export_csv(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_export_csv.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_export_csv, hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/export",
     })
 
@@ -193,7 +194,7 @@ async def test_export_csv_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_export_csv.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_export_csv, hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/export",
     })
 
@@ -213,7 +214,7 @@ async def test_import_csv_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_csv, hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": "object_name,task_name\n",
     })
@@ -235,7 +236,7 @@ async def test_import_csv_valid(
         "Test Pump,Filter Clean,cleaning,time_based,30,7\n"
     )
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_csv, hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv,
     })
@@ -262,7 +263,7 @@ async def test_import_csv_multiple_objects(
         "Pump B,Filter Clean,cleaning,time_based,30,7\n"
     )
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_csv, hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv,
     })
@@ -317,7 +318,7 @@ async def test_import_json_valid(
         }],
     })
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -347,7 +348,7 @@ async def test_import_json_multiple_objects(
         ],
     })
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -364,7 +365,7 @@ async def test_import_json_invalid_json(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": "not valid json {{{",
     })
@@ -380,7 +381,7 @@ async def test_import_json_missing_objects_key(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": '{"version": 1}',
     })
@@ -396,7 +397,7 @@ async def test_import_json_empty_objects(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": '{"version": 1, "objects": []}',
     })
@@ -418,7 +419,7 @@ async def test_import_json_missing_name(
         "objects": [{"object": {}, "tasks": [{"name": "Task 1"}]}],
     })
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -443,7 +444,7 @@ async def test_import_json_duplicate_name_reports_error(
         "version": 1,
         "objects": [{"object": {"name": "Dup Pump"}, "tasks": [{"name": "T1"}]}],
     })
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -451,7 +452,7 @@ async def test_import_json_duplicate_name_reports_error(
 
     # Second import of same name fails
     conn.reset_mock()
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 2, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -489,7 +490,7 @@ async def test_import_json_skips_computed_fields(
         }],
     })
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -525,7 +526,7 @@ async def test_import_json_with_trigger_config(
         }],
     })
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": "maintenance_supporter/json/import",
         "json_content": json_data,
     })
@@ -552,7 +553,7 @@ async def test_generate_qr_object(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
     })
@@ -575,7 +576,7 @@ async def test_generate_qr_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -596,7 +597,7 @@ async def test_generate_qr_with_base_url(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "base_url": "https://my-ha.example.com",
@@ -613,7 +614,7 @@ async def test_generate_qr_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": "nonexistent",
     })
@@ -629,7 +630,7 @@ async def test_generate_qr_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
@@ -646,7 +647,7 @@ async def test_generate_qr_rejects_global(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": 1, "type": "maintenance_supporter/qr/generate",
         "entry_id": global_entry.entry_id,
     })

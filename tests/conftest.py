@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Callable, Generator
 from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -274,3 +274,19 @@ def set_sensor_state(
 ) -> None:
     """Set a mock sensor state in HA."""
     hass.states.async_set(entity_id, state, attributes or {})
+
+
+# ─── WS handler test helper ─────────────────────────────────────────────
+
+
+async def call_ws_handler(
+    handler: Callable[..., Any],
+    hass: HomeAssistant,
+    connection: Any,
+    msg: dict[str, Any],
+) -> None:
+    """Call a decorated WS handler, unwrapping @require_admin / @websocket_command."""
+    unwrapped: Any = handler
+    while hasattr(unwrapped, "__wrapped__"):
+        unwrapped = unwrapped.__wrapped__
+    await unwrapped(hass, connection, msg)

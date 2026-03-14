@@ -61,6 +61,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
@@ -275,7 +276,7 @@ async def test_create_task_global_entry_rejected(
     """Line 275: creating task on global entry returns not_found."""
     await setup_integration(hass, global_entry)
     conn = _conn()
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/create",
         "entry_id": global_entry.entry_id,
         "name": "Test",
@@ -290,7 +291,7 @@ async def test_create_task_unsafe_url(
     """Lines 301-302: unsafe documentation_url rejected."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Bad URL",
@@ -317,7 +318,7 @@ async def test_create_task_nfc_duplicate_warning(
     conn = _conn()
 
     # Create second task with same NFC tag + checklist
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/create",
         "entry_id": obj_entry.entry_id,
         "name": "New Task",
@@ -344,7 +345,7 @@ async def test_create_task_legacy_store_path(
     rd.store = None
 
     conn = _conn()
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Legacy Task",
@@ -367,7 +368,7 @@ async def test_update_task_invalid_entity_slug(
     """Lines 431-438: invalid entity_slug rejected."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -397,7 +398,7 @@ async def test_update_task_nfc_duplicate_warning(
     conn = _conn()
 
     # Update task2 to have same NFC tag as task1
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/update",
         "entry_id": obj_entry.entry_id,
         "task_id": TASK_ID_2,
@@ -414,7 +415,7 @@ async def test_update_task_unsafe_url(
     """Lines 448-449: unsafe documentation_url on update."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -452,7 +453,7 @@ async def test_complete_task_not_found(
     """Lines 641-642: task not found in ws_complete_task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_complete_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/complete",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task_id_zzz",
@@ -466,7 +467,7 @@ async def test_skip_task_not_found(
     """Lines 677-678: task not found in ws_skip_task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await ws_skip_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_skip_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/skip",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task_id_zzz",
@@ -480,7 +481,7 @@ async def test_reset_task_not_found(
     """Lines 711-712: task not found in ws_reset_task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await ws_reset_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_reset_task, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/task/reset",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task_id_zzz",
@@ -516,7 +517,7 @@ async def test_statistics_triggered_count(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = _conn()
-    await ws_get_statistics.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_statistics, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/statistics",
     })
     result = conn.send_result.call_args[0][1]
@@ -534,7 +535,7 @@ async def test_subscribe_new_entry_callback(
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
 
-    await ws_subscribe.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_subscribe, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/subscribe",
     })
     # Initial send_result + _forward_update
@@ -570,7 +571,7 @@ async def test_subscribe_already_attached_entry(
     conn = _conn()
 
     # Subscribe — this attaches the entry
-    await ws_subscribe.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_subscribe, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/subscribe",
     })
 
@@ -652,7 +653,7 @@ async def test_budget_status_edge_history(
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     conn = _conn()
-    await ws_get_budget_status.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_budget_status, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/budget_status",
     })
     conn.send_result.assert_called_once()
@@ -681,7 +682,7 @@ async def test_notification_invalid_service(
     await setup_integration(hass, global_entry)
 
     conn = _conn()
-    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_test_notification, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/global/test_notification",
     })
     conn.send_result.assert_called_once()
@@ -725,7 +726,7 @@ async def test_notification_with_action_buttons(
         "homeassistant.core.ServiceRegistry.async_call",
         side_effect=mock_async_call,
     ):
-        await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_test_notification, hass, conn, {
             "id": _nid(), "type": "maintenance_supporter/global/test_notification",
         })
 
@@ -751,7 +752,7 @@ async def test_update_settings_invalid_notify_service(
     """Line 414: notify_service validation in global update."""
     await setup_integration(hass, global_entry)
     conn = _conn()
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/global/update",
         "settings": {CONF_NOTIFY_SERVICE: "badprefix.service_name"},
     })
@@ -774,7 +775,7 @@ async def test_seasonal_overrides_legacy_store_none(
     rd.store = None
 
     conn = _conn()
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": _nid(),
         "type": "maintenance_supporter/task/set_seasonal_overrides",
         "entry_id": object_entry.entry_id,
@@ -799,7 +800,7 @@ async def test_environmental_entity_legacy_store_none(
     rd.store = None
 
     conn = _conn()
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": _nid(),
         "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": object_entry.entry_id,
@@ -1161,7 +1162,7 @@ async def test_csv_import_too_large(
     conn = _conn()
     # Create content > 1MB
     large_content = "x" * (1_048_577)
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_csv, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/csv/import",
         "csv_content": large_content,
     })
@@ -1181,7 +1182,7 @@ async def test_csv_import_too_many_objects(
         "custom_components.maintenance_supporter.helpers.csv_handler.import_objects_csv",
         return_value=mock_objects,
     ):
-        await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_import_csv, hass, conn, {
             "id": _nid(), "type": "maintenance_supporter/csv/import",
             "csv_content": "name\nObj1",
         })
@@ -1225,7 +1226,7 @@ async def test_create_object_failure(
         hass.config_entries.flow, "async_init",
         return_value={"type": "abort", "reason": "test"},
     ):
-        await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_create_object, hass, conn, {
             "id": _nid(), "type": "maintenance_supporter/object/create",
             "name": "Test Object",
         })
@@ -1247,7 +1248,7 @@ async def test_update_object_installation_date(
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_object, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/object/update",
         "entry_id": object_entry.entry_id,
         "installation_date": "2023-01-15",
@@ -1273,7 +1274,7 @@ async def test_qr_generate_task_not_found(
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
 
-    await ws_generate_qr.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_generate_qr, hass, conn, {
         "id": _nid(), "type": "maintenance_supporter/qr/generate",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task_zzz",

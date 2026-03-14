@@ -40,6 +40,7 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
@@ -178,7 +179,7 @@ async def test_get_settings_default(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_settings.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_settings, hass, conn, {
         "id": 1, "type": "maintenance_supporter/settings",
     })
 
@@ -198,7 +199,7 @@ async def test_get_settings_with_features(
     await setup_integration(hass, global_entry_with_features)
     conn = _mock_connection()
 
-    await ws_get_settings.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_settings, hass, conn, {
         "id": 1, "type": "maintenance_supporter/settings",
     })
 
@@ -219,7 +220,7 @@ async def test_get_settings_no_global_entry(
     """Test get_settings when no global entry exists."""
     conn = _mock_connection()
 
-    await ws_get_settings.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_settings, hass, conn, {
         "id": 1, "type": "maintenance_supporter/settings",
     })
 
@@ -247,7 +248,7 @@ async def test_get_statistics_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_get_statistics.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_statistics, hass, conn, {
         "id": 1, "type": "maintenance_supporter/statistics",
     })
 
@@ -268,7 +269,7 @@ async def test_get_statistics_empty(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_statistics.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_statistics, hass, conn, {
         "id": 1, "type": "maintenance_supporter/statistics",
     })
 
@@ -307,7 +308,7 @@ async def test_get_statistics_multiple_objects(
     await setup_integration(hass, global_entry, entry1, entry2)
     conn = _mock_connection()
 
-    await ws_get_statistics.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_statistics, hass, conn, {
         "id": 1, "type": "maintenance_supporter/statistics",
     })
 
@@ -326,7 +327,7 @@ async def test_subscribe_registers_listener(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_subscribe.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_subscribe, hass, conn, {
         "id": 1, "type": "maintenance_supporter/subscribe",
     })
 
@@ -345,7 +346,7 @@ async def test_subscribe_unsub_cleans_up(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_subscribe.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_subscribe, hass, conn, {
         "id": 1, "type": "maintenance_supporter/subscribe",
     })
 
@@ -361,7 +362,7 @@ async def test_subscribe_no_objects(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_subscribe.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_subscribe, hass, conn, {
         "id": 1, "type": "maintenance_supporter/subscribe",
     })
 
@@ -379,7 +380,7 @@ async def test_budget_status_default(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_budget_status.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_budget_status, hass, conn, {
         "id": 1, "type": "maintenance_supporter/budget_status",
     })
 
@@ -399,7 +400,7 @@ async def test_budget_status_with_config(
     await setup_integration(hass, global_entry_with_budget)
     conn = _mock_connection()
 
-    await ws_get_budget_status.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_budget_status, hass, conn, {
         "id": 1, "type": "maintenance_supporter/budget_status",
     })
 
@@ -417,7 +418,7 @@ async def test_budget_status_with_costs(
     await setup_integration(hass, global_entry_with_budget, object_entry_with_cost)
     conn = _mock_connection()
 
-    await ws_get_budget_status.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_budget_status, hass, conn, {
         "id": 1, "type": "maintenance_supporter/budget_status",
     })
 
@@ -437,7 +438,7 @@ async def test_get_settings_returns_all_sections(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_get_settings.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_settings, hass, conn, {
         "id": 1, "type": "maintenance_supporter/settings",
     })
 
@@ -471,7 +472,7 @@ async def test_update_global_settings(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -500,7 +501,7 @@ async def test_update_global_settings_filters_unknown_keys(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -521,7 +522,7 @@ async def test_update_global_settings_no_valid_keys(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {"bad_key": True},
@@ -538,7 +539,7 @@ async def test_update_global_settings_type_validation(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -561,7 +562,7 @@ async def test_update_global_settings_invalid_notify_service(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {
@@ -578,7 +579,7 @@ async def test_update_global_settings_no_global_entry(
     """Error when global config entry doesn't exist."""
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {CONF_PANEL_ENABLED: True},
@@ -595,7 +596,7 @@ async def test_update_global_settings_int_for_float(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/global/update",
         "settings": {CONF_BUDGET_MONTHLY: 500},
@@ -615,7 +616,7 @@ async def test_test_notification_no_global_entry(
     """Error when global config entry doesn't exist."""
     conn = _mock_connection()
 
-    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_test_notification, hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 
@@ -630,7 +631,7 @@ async def test_test_notification_no_service(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_test_notification, hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 
@@ -662,7 +663,7 @@ async def test_test_notification_success(
     hass.services.async_register("notify", "test_device", mock_notify)
 
     conn = _mock_connection()
-    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_test_notification, hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 
@@ -693,7 +694,7 @@ async def test_test_notification_service_call_fails(
     hass.services.async_register("notify", "broken", failing_notify)
 
     conn = _mock_connection()
-    await ws_test_notification.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_test_notification, hass, conn, {
         "id": 1, "type": "maintenance_supporter/global/test_notification",
     })
 

@@ -50,6 +50,7 @@ from custom_components.maintenance_supporter.websocket.analysis import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -239,7 +240,7 @@ async def test_task_name_stripped_on_create(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/task/create",
         "entry_id": obj_entry.entry_id,
@@ -288,7 +289,7 @@ async def test_task_name_whitespace_only_rejected(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/task/create",
         "entry_id": obj_entry.entry_id,
@@ -318,7 +319,7 @@ async def test_object_name_stripped_on_create(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_object, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/object/create",
         "name": "  Test Object  ",
@@ -344,7 +345,7 @@ async def test_object_name_whitespace_only_rejected(hass: HomeAssistant) -> None
 
     conn = _mock_connection()
 
-    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_object, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/object/create",
         "name": "   ",
@@ -377,7 +378,7 @@ async def test_object_update_name_stripped(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_object, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/object/update",
         "entry_id": obj_entry.entry_id,
@@ -412,7 +413,7 @@ async def test_object_update_whitespace_name_rejected(hass: HomeAssistant) -> No
 
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_object, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/object/update",
         "entry_id": obj_entry.entry_id,
@@ -444,7 +445,7 @@ async def test_object_installation_date_invalid_rejected(hass: HomeAssistant) ->
 
     conn = _mock_connection()
 
-    await ws_update_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_object, hass, conn, {
         "id": 1,
         "type": "maintenance_supporter/object/update",
         "entry_id": obj_entry.entry_id,
@@ -469,7 +470,7 @@ async def test_group_name_stripped_on_create(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1,
         "type": f"{DOMAIN}/group/create",
         "name": "  My Group  ",
@@ -494,7 +495,7 @@ async def test_group_whitespace_name_rejected(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 1,
         "type": f"{DOMAIN}/group/create",
         "name": "   ",
@@ -523,7 +524,7 @@ async def test_global_settings_negative_warning_days_dropped(hass: HomeAssistant
 
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": f"{DOMAIN}/global/update",
         "settings": {CONF_DEFAULT_WARNING_DAYS: -5},
@@ -548,7 +549,7 @@ async def test_global_settings_huge_max_notifications_dropped(hass: HomeAssistan
 
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": f"{DOMAIN}/global/update",
         "settings": {CONF_MAX_NOTIFICATIONS_PER_DAY: 9999},
@@ -571,7 +572,7 @@ async def test_global_settings_non_finite_budget_dropped(hass: HomeAssistant) ->
 
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": f"{DOMAIN}/global/update",
         "settings": {CONF_BUDGET_MONTHLY: float("nan")},
@@ -594,7 +595,7 @@ async def test_global_settings_valid_passes(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": 1,
         "type": f"{DOMAIN}/global/update",
         "settings": {

@@ -41,7 +41,7 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
     ws_update_global_settings,
 )
 
-from .conftest import build_global_entry_data, setup_integration
+from .conftest import call_ws_handler, build_global_entry_data, setup_integration
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ def _next_id() -> int:
 async def _ws_get(hass: HomeAssistant) -> dict[str, Any]:
     """Call ws_get_settings and return the result dict."""
     conn = _mock_connection()
-    await ws_get_settings.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_settings, hass, conn, {
         "id": _next_id(),
         "type": "maintenance_supporter/settings",
     })
@@ -83,7 +83,7 @@ async def _ws_update(
 ) -> dict[str, Any]:
     """Call ws_update_global_settings and return the result dict."""
     conn = _mock_connection()
-    await ws_update_global_settings.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
         "id": _next_id(),
         "type": "maintenance_supporter/global/update",
         "settings": settings,

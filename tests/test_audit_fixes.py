@@ -40,6 +40,7 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 from custom_components.maintenance_supporter.websocket.io import ws_import_csv, ws_import_json
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -232,7 +233,7 @@ async def test_json_import_exception_logged(
         hass.config_entries.flow, "async_init",
         side_effect=RuntimeError("test boom"),
     ), caplog.at_level(logging.ERROR):
-        await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_import_json, hass, conn, {
             "id": 1, "type": f"{DOMAIN}/json/import",
             "json_content": json_data,
         })
@@ -292,7 +293,7 @@ async def test_json_import_nfc_duplicate_warning(
         }]
     })
 
-    await ws_import_json.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_json, hass, conn, {
         "id": 1, "type": f"{DOMAIN}/json/import",
         "json_content": json_data,
     })
@@ -478,7 +479,7 @@ async def test_csv_import_nfc_duplicate_warning(
         "New CSV Pump,Filter Clean,cleaning,time_based,30,7,TAG_CSV_DUP\n"
     )
 
-    await ws_import_csv.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_import_csv, hass, conn, {
         "id": 1, "type": "maintenance_supporter/csv/import",
         "csv_content": csv_content,
     })

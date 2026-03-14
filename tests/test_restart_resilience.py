@@ -29,6 +29,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
@@ -99,7 +100,7 @@ async def test_store_persists_across_reload(
 
     conn = _mock_connection()
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_complete_task, hass, conn, {
             "id": 1, "type": "maintenance_supporter/task/complete",
             "entry_id": obj_entry.entry_id,
             "task_id": TASK_ID_1,

@@ -50,6 +50,7 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
 )
 
 from .conftest import (
+    call_ws_handler,
     OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
@@ -158,7 +159,7 @@ async def test_full_lifecycle_create_complete_reset(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_complete_task, hass, conn, {
             "id": 1, "type": "maintenance_supporter/task/complete",
             "entry_id": obj_entry.entry_id,
             "task_id": TASK_ID_1,
@@ -181,7 +182,7 @@ async def test_full_lifecycle_create_complete_reset(
 
     # Reset task via WS
     conn2 = _mock_connection()
-    await ws_reset_task.__wrapped__(hass, conn2, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_reset_task, hass, conn2, {
         "id": 2, "type": "maintenance_supporter/task/reset",
         "entry_id": obj_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -310,7 +311,7 @@ async def test_sensor_trigger_lifecycle(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_complete_task, hass, conn, {
             "id": 1, "type": "maintenance_supporter/task/complete",
             "entry_id": obj_entry.entry_id,
             "task_id": TASK_ID_1,
@@ -327,7 +328,7 @@ async def test_create_object_via_ws_then_query(
 
     # Create object
     conn = _mock_connection()
-    await ws_create_object.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_object, hass, conn, {
         "id": 1, "type": "maintenance_supporter/object/create",
         "name": "Test Machine",
     })
@@ -338,7 +339,7 @@ async def test_create_object_via_ws_then_query(
 
     # Query objects → should include the new one
     conn2 = _mock_connection()
-    await ws_get_objects.__wrapped__(hass, conn2, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_objects, hass, conn2, {
         "id": 2, "type": "maintenance_supporter/objects",
     })
     objects = conn2.send_result.call_args[0][1]["objects"]
@@ -347,7 +348,7 @@ async def test_create_object_via_ws_then_query(
 
     # Create task on new object
     conn3 = _mock_connection()
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn3, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn3, {
         "id": 3, "type": "maintenance_supporter/task/create",
         "entry_id": new_entry_id,
         "name": "Oil Change",
@@ -358,7 +359,7 @@ async def test_create_object_via_ws_then_query(
 
     # Delete task
     conn4 = _mock_connection()
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn4, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn4, {
         "id": 4, "type": "maintenance_supporter/task/delete",
         "entry_id": new_entry_id,
         "task_id": task_id,
@@ -368,7 +369,7 @@ async def test_create_object_via_ws_then_query(
 
     # Delete object
     conn5 = _mock_connection()
-    await ws_delete_object.__wrapped__.__wrapped__(hass, conn5, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_object, hass, conn5, {
         "id": 5, "type": "maintenance_supporter/object/delete",
         "entry_id": new_entry_id,
     })
@@ -377,7 +378,7 @@ async def test_create_object_via_ws_then_query(
 
     # Verify gone
     conn6 = _mock_connection()
-    await ws_get_objects.__wrapped__(hass, conn6, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_objects, hass, conn6, {
         "id": 6, "type": "maintenance_supporter/objects",
     })
     objects = conn6.send_result.call_args[0][1]["objects"]
@@ -520,7 +521,7 @@ async def test_budget_alert_flow(
 
         with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
             conn = _mock_connection()
-            await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+            await call_ws_handler(ws_complete_task, hass, conn, {
                 "id": 1, "type": "maintenance_supporter/task/complete",
                 "entry_id": obj_entry.entry_id,
                 "task_id": TASK_ID_1,
@@ -602,7 +603,7 @@ async def test_multi_object_statistics(
 
     # Query statistics
     conn = _mock_connection()
-    await ws_get_statistics.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_get_statistics, hass, conn, {
         "id": 1, "type": "maintenance_supporter/statistics",
     })
     stats = conn.send_result.call_args[0][1]

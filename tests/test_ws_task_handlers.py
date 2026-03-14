@@ -35,6 +35,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    call_ws_handler,
     OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
@@ -94,7 +95,7 @@ async def test_ws_create_task_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Oil Change",
@@ -113,7 +114,7 @@ async def test_ws_create_task_with_all_fields(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Full Task",
@@ -154,7 +155,7 @@ async def test_ws_create_task_with_last_performed(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+        await call_ws_handler(ws_create_task, hass, conn, {
             "id": 1, "type": "maintenance_supporter/task/create",
             "entry_id": object_entry.entry_id,
             "name": "Test Task",
@@ -178,7 +179,7 @@ async def test_ws_create_task_with_trigger_config(
     hass.states.async_set("sensor.test_temp", "25.0")
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Triggered Task",
@@ -201,7 +202,7 @@ async def test_ws_create_task_invalid_trigger(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Bad Trigger",
@@ -219,7 +220,7 @@ async def test_ws_create_task_invalid_entity_slug(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Bad Slug",
@@ -239,7 +240,7 @@ async def test_ws_create_task_dry_run(
 
     initial_task_count = len(object_entry.data.get(CONF_TASKS, {}))
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Dry Run Task",
@@ -262,7 +263,7 @@ async def test_ws_create_task_dry_run_warnings(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": object_entry.entry_id,
         "name": "Dry Run Warnings",
@@ -287,7 +288,7 @@ async def test_ws_create_task_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": "nonexistent",
         "name": "Test",
@@ -304,7 +305,7 @@ async def test_ws_create_task_global_rejected(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_create_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/create",
         "entry_id": global_entry.entry_id,
         "name": "Test",
@@ -323,7 +324,7 @@ async def test_ws_update_task_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -346,7 +347,7 @@ async def test_ws_update_task_multiple_fields(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -374,7 +375,7 @@ async def test_ws_update_task_with_trigger(
     hass.states.async_set("sensor.test_temp", "22.0")
     conn = _mock_connection()
 
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -395,7 +396,7 @@ async def test_ws_update_task_invalid_trigger(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -412,7 +413,7 @@ async def test_ws_update_task_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/update",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -428,7 +429,7 @@ async def test_ws_update_task_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_update_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_update_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/update",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task_id",
@@ -448,7 +449,7 @@ async def test_ws_delete_task_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/delete",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -466,7 +467,7 @@ async def test_ws_delete_task_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/delete",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -482,7 +483,7 @@ async def test_ws_delete_task_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/delete",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task_id",
@@ -504,7 +505,7 @@ async def test_ws_delete_task_cleans_entity_registry(
     assert len(task_entities) >= 1, "Expected at least sensor + binary_sensor entities"
 
     conn = _mock_connection()
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/delete",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -527,7 +528,7 @@ async def test_ws_delete_task_cleans_group_refs(
     conn = _mock_connection()
 
     # Create a group referencing the task we'll delete
-    await ws_create_group.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_create_group, hass, conn, {
         "id": 10, "type": "maintenance_supporter/group/create",
         "name": "Test Group",
         "task_refs": [
@@ -538,7 +539,7 @@ async def test_ws_delete_task_cleans_group_refs(
     conn.reset_mock()
 
     # Delete the task
-    await ws_delete_task.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_delete_task, hass, conn, {
         "id": 11, "type": "maintenance_supporter/task/delete",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -615,7 +616,7 @@ async def test_ws_complete_task_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_complete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/complete",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -632,7 +633,7 @@ async def test_ws_complete_task_with_fields(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_complete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/complete",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -652,7 +653,7 @@ async def test_ws_complete_task_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_complete_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_complete_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/complete",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -671,7 +672,7 @@ async def test_ws_skip_task_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_skip_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_skip_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/skip",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -688,7 +689,7 @@ async def test_ws_skip_task_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_skip_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_skip_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/skip",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -707,7 +708,7 @@ async def test_ws_reset_task_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_reset_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_reset_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/reset",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -724,7 +725,7 @@ async def test_ws_reset_task_with_date(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_reset_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_reset_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/reset",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -741,7 +742,7 @@ async def test_ws_reset_task_invalid_date(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_reset_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_reset_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/reset",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -759,7 +760,7 @@ async def test_ws_reset_task_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_reset_task.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_reset_task, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/reset",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,

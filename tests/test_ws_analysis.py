@@ -23,6 +23,7 @@ from custom_components.maintenance_supporter.websocket.analysis import (
 )
 
 from .conftest import (
+    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -82,7 +83,7 @@ async def test_analyze_interval_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_analyze_interval.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_analyze_interval, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/analyze_interval",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -104,7 +105,7 @@ async def test_analyze_interval_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_analyze_interval.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_analyze_interval, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/analyze_interval",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -121,7 +122,7 @@ async def test_analyze_interval_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_analyze_interval.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_analyze_interval, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/analyze_interval",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
@@ -138,7 +139,7 @@ async def test_analyze_interval_rejects_global(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_analyze_interval.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_analyze_interval, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/analyze_interval",
         "entry_id": global_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -157,7 +158,7 @@ async def test_apply_suggestion_basic(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_apply_suggestion.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_apply_suggestion, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/apply_suggestion",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -176,7 +177,7 @@ async def test_apply_suggestion_not_found(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_apply_suggestion.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_apply_suggestion, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/apply_suggestion",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -197,7 +198,7 @@ async def test_seasonal_overrides_set(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -222,7 +223,7 @@ async def test_seasonal_overrides_clear(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -242,7 +243,7 @@ async def test_seasonal_overrides_invalid_month(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -260,7 +261,7 @@ async def test_seasonal_overrides_invalid_factor(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -278,7 +279,7 @@ async def test_seasonal_overrides_invalid_key_type(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -296,7 +297,7 @@ async def test_seasonal_overrides_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -313,7 +314,7 @@ async def test_seasonal_overrides_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_seasonal_overrides.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
@@ -333,7 +334,7 @@ async def test_set_environmental_entity(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -357,7 +358,7 @@ async def test_set_environmental_entity_with_attribute(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -382,7 +383,7 @@ async def test_clear_environmental_entity(
     conn = _mock_connection()
 
     # First set it
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -391,7 +392,7 @@ async def test_clear_environmental_entity(
 
     # Then clear it
     conn.reset_mock()
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": 2, "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": object_entry.entry_id,
         "task_id": TASK_ID_1,
@@ -411,7 +412,7 @@ async def test_set_environmental_entity_not_found_entry(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": "nonexistent",
         "task_id": TASK_ID_1,
@@ -428,7 +429,7 @@ async def test_set_environmental_entity_not_found_task(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await ws_set_environmental_entity.__wrapped__.__wrapped__(hass, conn, {  # type: ignore[attr-defined]
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
         "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
         "entry_id": object_entry.entry_id,
         "task_id": "nonexistent_task",
