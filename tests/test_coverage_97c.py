@@ -348,7 +348,7 @@ async def test_fallback_no_trigger_config(
     task_obj = list(coord.tasks.values())[0]
     assert task_obj.trigger_config is None
     # Directly call fallback — should just return (line 337)
-    coord._evaluate_trigger_fallback(TASK_ID_1, task_obj)
+    await coord._evaluate_trigger_fallback(task_obj, TASK_ID_1)
 
 
 async def test_fallback_empty_entity_ids(
@@ -375,7 +375,7 @@ async def test_fallback_empty_entity_ids(
     assert entry is not None
     coord = entry.runtime_data.coordinator
     task_obj = list(coord.tasks.values())[0]
-    coord._evaluate_trigger_fallback(TASK_ID_1, task_obj)
+    await coord._evaluate_trigger_fallback(task_obj, TASK_ID_1)
 
 
 async def test_fallback_threshold_value_error(
@@ -410,7 +410,7 @@ async def test_fallback_threshold_value_error(
     coord = entry.runtime_data.coordinator
     task_obj = list(coord.tasks.values())[0]
     # Should not crash despite non-numeric value
-    coord._evaluate_trigger_fallback(TASK_ID_1, task_obj)
+    await coord._evaluate_trigger_fallback(task_obj, TASK_ID_1)
     assert task_obj._trigger_active is False
 
 
