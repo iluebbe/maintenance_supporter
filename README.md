@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1362_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1416_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -363,7 +363,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,362 tests across 67 test files with **96% code coverage**.
+1,416 tests across 67 test files with **96% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -373,7 +373,7 @@ See [Architecture — Test Coverage](docs/ARCHITECTURE.md#test-coverage) for the
 
 ## Requirements
 
-- Home Assistant 2025.1.0 or newer
+- Home Assistant 2025.7.0 or newer
 - No external dependencies required
 
 ## Development
@@ -391,7 +391,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8123
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,362 tests):
+# Run tests (1,416 tests):
 docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 
