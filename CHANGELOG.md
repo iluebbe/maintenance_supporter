@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.19] - 2026-03-14
+
+### Fixed
+- Dialog title and buttons rendered in content area for HA 2026.3+ compatibility (`ha-dialog` breaking change)
+- Correct max history entries 50 → 500 in README
+
+### Added
+- Community section with forum link in README
+
+## [1.0.18] - 2026-03-14
+
+### Changed
+- Refactor: replace `__wrapped__` calls with `call_ws_handler` helper in tests
+- Fix: await async `_evaluate_trigger_fallback` calls in tests
+
 ## [1.0.17] - 2026-03-13
 
 ### Added

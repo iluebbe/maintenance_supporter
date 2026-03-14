@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.17 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,362 tests)
+**Version:** 1.0.19 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,416 tests)
 
 ---
 
@@ -425,7 +425,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,362 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,416 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -447,7 +447,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,362 tests** across **67 test files** with **96% code coverage**.
+**1,416 tests** across **67 test files** with **96% code coverage**.
 
 ### Coverage by Module
 
@@ -593,7 +593,7 @@ Three services in `compose.yaml`:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  ha-dev (:8123)         │  ha-fresh (:8124)    │  playwright │
-│  HA 2026.2.3            │  HA 2026.2.3 stock   │  v1.57.0    │
+│  HA 2026.3.1            │  HA 2026.3.1 stock   │  v1.57.0    │
 │  + libfaketime          │  read-only mounts    │  run-server │
 │  custom_components r/w  │  profile: testing    │  :3000      │
 │  config-dev/ volume     │  config-fresh/       │             │
@@ -613,7 +613,7 @@ The integration's scheduling and predictions are time-dependent. `libfaketime` a
 
 **Build** (`Dockerfile.ha-faketime`):
 1. Alpine stage compiles `libfaketime.so.1` from source
-2. Copies into HA 2026.2.3 image at `/usr/local/lib/faketime/`
+2. Copies into HA 2026.3.1 image at `/usr/local/lib/faketime/`
 3. Replaces HA's s6 run script with `ha-run-faketime.sh`
 
 **Run script** (`ha-run-faketime.sh`):
