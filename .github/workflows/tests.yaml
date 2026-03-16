@@ -15,9 +15,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pytest pytest-cov pytest-homeassistant-custom-component mypy
-      - name: Type check (source)
-        run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
-      - name: Type check (tests)
-        run: mypy tests/ --config-file mypy.ini --ignore-missing-imports --no-warn-unused-ignores --follow-imports=silent
+      - name: Type check
+        run: mypy custom_components/maintenance_supporter/ tests/ --config-file mypy.ini
       - name: Run tests
         run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing
