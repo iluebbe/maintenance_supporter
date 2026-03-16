@@ -18,6 +18,6 @@ jobs:
       - name: Type check (source)
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       - name: Type check (tests)
-        run: mypy tests/ --config-file mypy.ini --ignore-missing-imports --no-warn-unused-ignores
+        run: mypy tests/ --config-file mypy.ini --ignore-missing-imports --no-warn-unused-ignores --follow-imports=silent
       - name: Run tests
         run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing
