@@ -538,11 +538,14 @@ class NotificationManager:
             })
 
         service_data: dict[str, Any] = {"title": title, "message": message}
+        data: dict[str, Any] = {
+            "tag": f"maintenance_{task_id}",
+            "url": f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
+            "clickAction": f"/maintenance-supporter?entry_id={entry_id}&task_id={task_id}",
+        }
         if actions:
-            service_data["data"] = {
-                "actions": actions[:3],  # Android supports max 3
-                "tag": f"maintenance_{task_id}",
-            }
+            data["actions"] = actions[:3]  # Android supports max 3
+        service_data["data"] = data
 
         try:
             service_parts = service.split(".")
@@ -605,7 +608,11 @@ class NotificationManager:
         service_data: dict[str, Any] = {
             "title": title,
             "message": message,
-            "data": {"tag": f"maintenance_bundled_{entry_id}"},
+            "data": {
+                "tag": f"maintenance_bundled_{entry_id}",
+                "url": f"/maintenance-supporter?entry_id={entry_id}",
+                "clickAction": f"/maintenance-supporter?entry_id={entry_id}",
+            },
         }
 
         try:
@@ -663,7 +670,11 @@ class NotificationManager:
         service_data: dict[str, Any] = {
             "title": title,
             "message": message,
-            "data": {"tag": f"maintenance_budget_{period}"},
+            "data": {
+                "tag": f"maintenance_budget_{period}",
+                "url": "/maintenance-supporter",
+                "clickAction": "/maintenance-supporter",
+            },
         }
 
         try:
@@ -703,6 +714,24 @@ class NotificationManager:
             key = f"{entry_id}_{task_id}_{status}"
             self._last_notified.pop(key, None)
             self._snoozed_until.pop(key, None)
+
+    async def async_dismiss_task_notification(self, task_id: str) -> None:
+        """Dismiss a task notification on Companion App devices."""
+        service = self.notify_service
+        if not service:
+            return
+        tag = f"maintenance_{task_id}"
+        try:
+            parts = service.split(".")
+            if len(parts) == 2:
+                await self.hass.services.async_call(
+                    parts[0],
+                    parts[1],
+                    {"message": "clear_notification", "data": {"tag": tag}},
+                    blocking=False,
+                )
+        except (HomeAssistantError, ValueError, TypeError):
+            _LOGGER.debug("Failed to dismiss notification for tag %s", tag)
 
     async def async_unload(self) -> None:
         """Clean up the notification manager."""

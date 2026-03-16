@@ -780,6 +780,66 @@ async def test_action_buttons_included(hass: HomeAssistant) -> None:
         assert any("COMPLETE" in a for a in action_names)
         assert any("SKIP" in a for a in action_names)
         assert any("SNOOZE" in a for a in action_names)
+        # Deep-link URL for Companion App navigation
+        assert call_data["data"]["url"] == "/maintenance-supporter?entry_id=e1&task_id=t1"
+        assert call_data["data"]["clickAction"] == "/maintenance-supporter?entry_id=e1&task_id=t1"
+        assert call_data["data"]["tag"] == "maintenance_t1"
+
+
+async def test_notification_deep_link_without_actions(hass: HomeAssistant) -> None:
+    """Test that deep-link URL is included even without action buttons."""
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        data=build_global_entry_data(
+            notifications_enabled=True,
+            notify_service="notify.mobile_app",
+        ),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
+        options={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.mobile_app",
+            CONF_NOTIFY_DUE_SOON_ENABLED: True,
+            CONF_NOTIFY_DUE_SOON_INTERVAL: 24,
+            CONF_NOTIFY_OVERDUE_ENABLED: True,
+            CONF_NOTIFY_OVERDUE_INTERVAL: 12,
+            CONF_NOTIFY_TRIGGERED_ENABLED: True,
+            CONF_NOTIFY_TRIGGERED_INTERVAL: 4,
+            CONF_QUIET_HOURS_ENABLED: False,
+            CONF_ACTION_COMPLETE_ENABLED: False,
+            CONF_ACTION_SKIP_ENABLED: False,
+            CONF_ACTION_SNOOZE_ENABLED: False,
+        },
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, entry)
+
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_task_status_changed(
+            entry_id="e1", task_id="t1",
+            task_name="Filter", object_name="Pump",
+            new_status=MaintenanceStatus.DUE_SOON,
+            days_until_due=3,
+        )
+
+        mock_hass.services.async_call.assert_called_once()
+        call_data = mock_hass.services.async_call.call_args[0][2]
+        assert "data" in call_data
+        # No action buttons
+        assert "actions" not in call_data["data"]
+        # But deep-link URL is present
+        assert call_data["data"]["url"] == "/maintenance-supporter?entry_id=e1&task_id=t1"
+        assert call_data["data"]["clickAction"] == "/maintenance-supporter?entry_id=e1&task_id=t1"
+        assert call_data["data"]["tag"] == "maintenance_t1"
 
 
 # ─── User-Targeted Notifications ──────────────────────────────────────
@@ -955,3 +1015,51 @@ async def test_service_failure_handled(
         # Key should NOT be in last_notified since send failed
         key = "e1_t1_due_soon"
         assert key not in nm._last_notified
+
+
+# ─── Dismiss Notification ────────────────────────────────────────────
+
+
+async def test_dismiss_task_notification(
+    hass: HomeAssistant,
+    global_with_notifications: ConfigEntry,
+) -> None:
+    """Test that async_dismiss_task_notification sends clear_notification."""
+    await setup_integration(hass, global_with_notifications)
+
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_dismiss_task_notification("t1")
+
+        mock_hass.services.async_call.assert_called_once_with(
+            "notify",
+            "mobile_app",
+            {"message": "clear_notification", "data": {"tag": "maintenance_t1"}},
+            blocking=False,
+        )
+
+
+async def test_dismiss_task_notification_no_service(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Test that dismiss is a no-op when no notify service is configured."""
+    await setup_integration(hass, global_config_entry)
+
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_dismiss_task_notification("t1")
+
+        mock_hass.services.async_call.assert_not_called()

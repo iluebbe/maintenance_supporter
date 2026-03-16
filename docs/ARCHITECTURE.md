@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.19 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,416 tests)
+**Version:** 1.0.20 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,421 tests)
 
 ---
 
@@ -162,7 +162,7 @@ custom_components/maintenance_supporter/
 ├── helpers/                     (3,661 lines)
 │   ├── interval_analyzer.py       (730 lines)  EWA + Weibull + seasonal analysis
 │   ├── sensor_predictor.py        (640 lines)  Degradation + environmental correlation
-│   ├── notification_manager.py    (691 lines)  Multi-channel notification system
+│   ├── notification_manager.py    (~740 lines)  Multi-channel notification system
 │   ├── entity_analyzer.py         (210 lines)  Entity discovery + recorder stats
 │   ├── csv_handler.py             (196 lines)  CSV import/export
 │   ├── entity_attributes.py      (239 lines)  Domain→attribute mapping for trigger setup
@@ -425,7 +425,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,416 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,421 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -447,7 +447,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,416 tests** across **67 test files** with **96% code coverage**.
+**1,421 tests** across **69 test files** with **96% code coverage**.
 
 ### Coverage by Module
 
@@ -515,7 +515,7 @@ All write commands fire events for subscription updates.
 | `test_seasonal_scheduling.py` | 35 | Seasonal factors, hemisphere support |
 | `test_storage.py` | 34 | Store CRUD, merge helpers, extract_dynamic, compound keys |
 | `test_options_flow.py` | 34 | Options flow management |
-| `test_notifications.py` | 29 | Notification delivery, quiet hours, bundling |
+| `test_notifications.py` | 32 | Notification delivery, quiet hours, bundling, dismiss |
 | `test_notification_deep.py` | 29 | Notification edge cases |
 | `test_config_flow.py` | 28 | Config flow steps, validation |
 | `test_interval_anchor.py` | 26 | Interval anchoring: completion vs planned mode, edge cases, serialization |
@@ -549,7 +549,7 @@ All write commands fire events for subscription updates.
 | `test_panel_frontend_integration.py` | 12 | Panel registration, frontend integration |
 | `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
 | `test_entity_removal.py` | 12 | Entity/device/attribute removal |
-| `test_init_services.py` | 11 | Service handlers, unload |
+| `test_init_services.py` | 13 | Service handlers, unload, notification actions |
 | `test_config_flow_trigger.py` | 11 | Trigger config flow steps |
 | `test_binary_sensor.py` | 11 | Binary sensor platform: creation, is_on logic, attributes, lifecycle |
 | `test_ws_users.py` | 10 | WS user management |

@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.20] - 2026-03-16
+
+### Fixed
+- Notification action buttons (Complete, Skip, Snooze) now dismiss the notification after successful execution
+- Notification action handler hardened with try/except — coordinator errors are logged instead of silently swallowed
+- Notification rate-limit state (`clear_task_state`) now reset after completing/skipping a task via notification
+- Deep-link URL (`url`/`clickAction`) added to all task notifications for Companion App navigation
+
+### Added
+- `async_dismiss_task_notification()` method on NotificationManager — sends `clear_notification` to Companion App
+- 5 new tests (1,416 → 1,421 tests)
+
 ## [1.0.19] - 2026-03-14
 
 ### Fixed

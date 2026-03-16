@@ -21,6 +21,7 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.__init__ import NOTIFICATION_MANAGER_KEY
 
 from .conftest import (
     TASK_ID_1,
@@ -165,16 +166,15 @@ async def test_notification_action_complete(
     await setup_integration(hass, global_entry, object_entry)
 
     entry_id = object_entry.entry_id
-    # Pad entry_id to 26 chars and task_id to 32 chars
-    padded_entry = entry_id.ljust(26, "0")[:26]
-    padded_task = TASK_ID_1.ljust(32, "0")[:32]
-    action = f"MS_COMPLETE_{padded_entry}_{padded_task}"
+    action = f"MS_COMPLETE_{entry_id}_{TASK_ID_1}"
+
+    runtime_data = object_entry.runtime_data
+    runtime_data.coordinator.complete_maintenance = AsyncMock()
 
     hass.bus.async_fire("mobile_app_notification_action", {"action": action})
     await hass.async_block_till_done()
 
-    # If coordinator found, complete_maintenance should have been called
-    # (may not work due to entry_id padding, but handler should not crash)
+    runtime_data.coordinator.complete_maintenance.assert_called_once_with(task_id=TASK_ID_1)
 
 
 async def test_notification_action_skip(
@@ -184,12 +184,17 @@ async def test_notification_action_skip(
     await setup_integration(hass, global_entry, object_entry)
 
     entry_id = object_entry.entry_id
-    padded_entry = entry_id.ljust(26, "0")[:26]
-    padded_task = TASK_ID_1.ljust(32, "0")[:32]
-    action = f"MS_SKIP_{padded_entry}_{padded_task}"
+    action = f"MS_SKIP_{entry_id}_{TASK_ID_1}"
+
+    runtime_data = object_entry.runtime_data
+    runtime_data.coordinator.skip_maintenance = AsyncMock()
 
     hass.bus.async_fire("mobile_app_notification_action", {"action": action})
     await hass.async_block_till_done()
+
+    runtime_data.coordinator.skip_maintenance.assert_called_once_with(
+        task_id=TASK_ID_1, reason="Skipped from notification"
+    )
 
 
 async def test_notification_action_snooze(
@@ -199,12 +204,58 @@ async def test_notification_action_snooze(
     await setup_integration(hass, global_entry, object_entry)
 
     entry_id = object_entry.entry_id
-    padded_entry = entry_id.ljust(26, "0")[:26]
-    padded_task = TASK_ID_1.ljust(32, "0")[:32]
-    action = f"MS_SNOOZE_{padded_entry}_{padded_task}"
+    action = f"MS_SNOOZE_{entry_id}_{TASK_ID_1}"
 
-    hass.bus.async_fire("mobile_app_notification_action", {"action": action})
-    await hass.async_block_till_done()
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    with patch.object(nm, "snooze_task") as mock_snooze:
+        hass.bus.async_fire("mobile_app_notification_action", {"action": action})
+        await hass.async_block_till_done()
+
+        mock_snooze.assert_called_once_with(entry_id, TASK_ID_1)
+
+
+async def test_notification_action_complete_dismisses_notification(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Test that successful complete action dismisses notification and clears NM state."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    entry_id = object_entry.entry_id
+    action = f"MS_COMPLETE_{entry_id}_{TASK_ID_1}"
+
+    runtime_data = object_entry.runtime_data
+    runtime_data.coordinator.complete_maintenance = AsyncMock()
+
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    with patch.object(nm, "async_dismiss_task_notification", new_callable=AsyncMock) as mock_dismiss, \
+         patch.object(nm, "clear_task_state") as mock_clear:
+        hass.bus.async_fire("mobile_app_notification_action", {"action": action})
+        await hass.async_block_till_done()
+
+        mock_dismiss.assert_called_once_with(TASK_ID_1)
+        mock_clear.assert_called_once_with(entry_id, TASK_ID_1)
+
+
+async def test_notification_action_complete_error_does_not_dismiss(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Test that failed complete action does NOT dismiss notification."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    entry_id = object_entry.entry_id
+    action = f"MS_COMPLETE_{entry_id}_{TASK_ID_1}"
+
+    runtime_data = object_entry.runtime_data
+    runtime_data.coordinator.complete_maintenance = AsyncMock(side_effect=RuntimeError("store error"))
+
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    with patch.object(nm, "async_dismiss_task_notification", new_callable=AsyncMock) as mock_dismiss, \
+         patch.object(nm, "clear_task_state") as mock_clear:
+        hass.bus.async_fire("mobile_app_notification_action", {"action": action})
+        await hass.async_block_till_done()
+
+        mock_dismiss.assert_not_called()
+        mock_clear.assert_not_called()
 
 
 async def test_notification_action_ignores_non_ms(

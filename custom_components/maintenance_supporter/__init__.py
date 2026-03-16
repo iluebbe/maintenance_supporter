@@ -251,19 +251,34 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             )
             return
 
-        if action_type == "complete":
-            _LOGGER.info("Completing task %s via notification action", task_id)
-            await runtime_data.coordinator.complete_maintenance(task_id=task_id)
-        elif action_type == "skip":
-            _LOGGER.info("Skipping task %s via notification action", task_id)
-            await runtime_data.coordinator.skip_maintenance(
-                task_id=task_id, reason="Skipped from notification"
+        nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+
+        try:
+            if action_type == "complete":
+                _LOGGER.info("Completing task %s via notification action", task_id)
+                await runtime_data.coordinator.complete_maintenance(task_id=task_id)
+            elif action_type == "skip":
+                _LOGGER.info("Skipping task %s via notification action", task_id)
+                await runtime_data.coordinator.skip_maintenance(
+                    task_id=task_id, reason="Skipped from notification"
+                )
+            elif action_type == "snooze":
+                _LOGGER.info("Snoozing task %s via notification action", task_id)
+                if nm is not None:
+                    nm.snooze_task(entry_id, task_id)
+                return  # Snooze: keep notification visible for later reminder
+        except Exception:
+            _LOGGER.exception(
+                "Failed to handle notification action %s for task %s",
+                action_type,
+                task_id,
             )
-        elif action_type == "snooze":
-            _LOGGER.info("Snoozing task %s via notification action", task_id)
-            nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-            if nm is not None:
-                nm.snooze_task(entry_id, task_id)
+            return
+
+        # Action succeeded — dismiss notification and clear NM rate-limit state
+        if nm is not None:
+            await nm.async_dismiss_task_notification(task_id)
+            nm.clear_task_state(entry_id, task_id)
 
     unsub_notification = hass.bus.async_listen(
         "mobile_app_notification_action", _handle_notification_action
