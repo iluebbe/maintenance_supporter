@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.21] - 2026-03-16
+
+### Fixed
+- **Threshold trigger `for_minutes` now survives HA restarts** — `exceeded_since` timestamp persisted to Store; on reload the timer either fires immediately (elapsed ≥ duration) or resumes with remaining time
+- `hass.is_running` guards on all trigger persist/reset calls prevent writes during shutdown
+
+### Added
+- 8 new tests (1,421 → 1,429 tests) — threshold persistence unit tests + E2E restart-recovery integration tests
+- mypy CI: fixed namespace-package resolution for Python 3.14
+
 ## [1.0.20] - 2026-03-16
 
 ### Fixed

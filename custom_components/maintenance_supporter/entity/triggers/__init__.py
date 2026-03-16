@@ -86,6 +86,10 @@ def _inject_per_entity_state(
     elif trigger_type == TriggerType.STATE_CHANGE:
         if "change_count" in entity_state:
             config["trigger_change_count"] = entity_state["change_count"]
+    elif trigger_type == TriggerType.THRESHOLD:
+        tes = entity_state.get("threshold_exceeded_since")
+        if tes:
+            config["trigger_threshold_exceeded_since"] = tes
 
 
 def create_trigger(

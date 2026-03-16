@@ -178,6 +178,143 @@ class TestThresholdTrigger:
         await trigger.async_teardown()
         assert trigger._unsub_listener is None
 
+    async def test_threshold_restart_recovery_immediate(
+        self, hass: HomeAssistant
+    ) -> None:
+        """After restart, if elapsed >= for_minutes → trigger immediately."""
+        entity = _make_mock_entity(hass)
+        exceeded_at = (dt_util.utcnow() - timedelta(minutes=10)).isoformat()
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+            "trigger_threshold_exceeded_since": exceeded_at,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        # Value still exceeds → should trigger immediately (10min > 5min)
+        assert trigger.evaluate(60.0) is True
+        assert trigger._triggered is True
+
+    async def test_threshold_restart_recovery_remaining(
+        self, hass: HomeAssistant
+    ) -> None:
+        """After restart, if elapsed < for_minutes → timer with remaining."""
+        entity = _make_mock_entity(hass)
+        exceeded_at = (dt_util.utcnow() - timedelta(minutes=2)).isoformat()
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+            "trigger_threshold_exceeded_since": exceeded_at,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        # Value still exceeds → NOT triggered yet (2min < 5min), timer started
+        assert trigger.evaluate(60.0) is False
+        assert trigger._threshold_exceeded is True
+        assert trigger._timer_cancel is not None
+        # exceeded_since_dt consumed
+        assert trigger._exceeded_since_dt is None
+
+    async def test_threshold_restart_recovery_value_normal(
+        self, hass: HomeAssistant
+    ) -> None:
+        """After restart, if value is back in range → clear persisted state."""
+        entity = _make_mock_entity(hass)
+        exceeded_at = (dt_util.utcnow() - timedelta(minutes=2)).isoformat()
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+            "trigger_threshold_exceeded_since": exceeded_at,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        # First evaluate with exceeding value to enter the exceeded state
+        trigger.evaluate(60.0)
+        # Now value goes back to normal
+        trigger.evaluate(40.0)
+        assert trigger._exceeded_since is None
+        assert trigger._threshold_exceeded is False
+
+    async def test_threshold_fresh_timer_persists(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Fresh timer start persists exceeded_since timestamp."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        assert trigger.evaluate(60.0) is False
+        assert trigger._exceeded_since is not None
+        # Persistence task was created
+        coordinator = entity.coordinator
+        coordinator.async_persist_trigger_runtime.assert_called()
+        call_args = coordinator.async_persist_trigger_runtime.call_args
+        assert "threshold_exceeded_since" in call_args[0][1]
+        assert call_args[0][1]["threshold_exceeded_since"] == trigger._exceeded_since
+
+    async def test_threshold_for_minutes_zero_no_persistence(
+        self, hass: HomeAssistant
+    ) -> None:
+        """for_minutes=0 triggers immediately without persistence."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 0,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        assert trigger.evaluate(60.0) is True
+        assert trigger._exceeded_since is None
+        entity.coordinator.async_persist_trigger_runtime.assert_not_called()
+
+    async def test_threshold_reset_clears_persisted_state(
+        self, hass: HomeAssistant
+    ) -> None:
+        """reset() clears exceeded_since and persists None."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.test",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        # Start timer to set exceeded_since
+        trigger.evaluate(60.0)
+        assert trigger._exceeded_since is not None
+
+        # Reset
+        entity.coordinator.async_persist_trigger_runtime.reset_mock()
+        trigger.reset()
+        assert trigger._exceeded_since is None
+        assert trigger._exceeded_since_dt is None
+        assert trigger._threshold_exceeded is False
+        # Persisted with None
+        coordinator = entity.coordinator
+        coordinator.async_persist_trigger_runtime.assert_called()
+        call_args = coordinator.async_persist_trigger_runtime.call_args
+        assert call_args[0][1]["threshold_exceeded_since"] is None
+
 
 # ─── 7.2 Counter Trigger ────────────────────────────────────────────────
 

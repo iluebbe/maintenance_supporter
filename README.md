@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1421_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1429_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -291,7 +291,7 @@ template:
 - **Sensor prediction**: Degradation rate analysis requires 10+ hourly recorder data points (approximately 10+ hours of data)
 - **Runtime trigger**: Accumulated hours are persisted every 5 minutes. Up to 5 minutes of runtime may be lost on an unclean shutdown or crash
 - **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
-- **Threshold debounce**: `trigger_for_minutes` timers are not restored across Home Assistant restarts. A restart during the debounce window resets the timer
+- **Threshold debounce**: `trigger_for_minutes` timers are persisted and restored across HA restarts; however, the remaining duration is computed from wall-clock time, so large NTP jumps could cause premature or delayed triggering
 - **Budget tracking**: Numeric values only — the currency symbol can be changed in Budget Settings (default: €). 10 currencies supported: EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL
 - **History pruning**: Maximum 500 history entries per task. Oldest entries are automatically removed when the limit is reached
 - **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
@@ -363,7 +363,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,421 tests across 69 test files with **96% code coverage**.
+1,429 tests across 69 test files with **96% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -391,7 +391,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8123
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,421 tests):
+# Run tests (1,429 tests):
 docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 

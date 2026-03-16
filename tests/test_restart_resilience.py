@@ -12,6 +12,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from homeassistant.helpers import entity_registry as er
+
 from custom_components.maintenance_supporter.const import (
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_OVERDUE_ENABLED,
@@ -257,6 +259,170 @@ async def test_trigger_state_survives_reload(
     assert entry is not None
     assert entry.runtime_data is not None
     assert entry.runtime_data.coordinator is not None
+
+
+async def test_threshold_exceeded_since_survives_reload(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """exceeded_since persists → after reload with elapsed > for_minutes, trigger fires immediately."""
+    set_sensor_state(hass, "sensor.threshold_persist", "20.0")
+
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        interval_days=None,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.threshold_persist",
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Threshold Persist",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Threshold Persist"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_threshold_persist",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    store = entry.runtime_data.store
+
+    # Push sensor above threshold → exceeded_since gets persisted
+    set_sensor_state(hass, "sensor.threshold_persist", "60.0")
+    await hass.async_block_till_done()
+
+    # Force immediate save (bypass 60s debounce)
+    await store.async_save()
+
+    # Verify exceeded_since was persisted in store
+    runtime = store.get_trigger_runtime(TASK_ID_1, "sensor.threshold_persist")
+    assert runtime.get("threshold_exceeded_since") is not None
+
+    # Manipulate store: set exceeded_since to 10 minutes ago (> 5 min for_minutes)
+    ten_min_ago = (dt_util.utcnow() - timedelta(minutes=10)).isoformat()
+    store.set_trigger_runtime(
+        TASK_ID_1, "sensor.threshold_persist",
+        {"threshold_exceeded_since": ten_min_ago},
+    )
+    await store.async_save()
+
+    # Unload
+    await hass.config_entries.async_unload(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Sensor still above threshold before reload
+    set_sensor_state(hass, "sensor.threshold_persist", "60.0")
+
+    # Reload
+    await hass.config_entries.async_setup(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Verify: trigger should have recovered and fired immediately
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+
+    # Get the sensor entity object via entity registry
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
+    sensors = [e for e in entities if e.domain == "sensor"]
+    assert sensors, "No sensor entities found for entry"
+    sensor_entity = hass.data["entity_components"]["sensor"].get_entity(
+        sensors[0].entity_id
+    )
+    assert sensor_entity is not None, "Sensor entity object not found"
+    assert len(sensor_entity._triggers) == 1
+    trigger = sensor_entity._triggers[0]
+    assert trigger._triggered is True, (
+        "Trigger should be active after reload with elapsed > for_minutes"
+    )
+
+
+async def test_threshold_exceeded_since_cleared_on_normal_after_reload(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """exceeded_since cleared when value returns to normal → trigger must NOT recover after reload."""
+    set_sensor_state(hass, "sensor.threshold_clear", "20.0")
+
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        interval_days=None,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.threshold_clear",
+            "trigger_above": 50.0,
+            "trigger_for_minutes": 5,
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Threshold Clear",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Threshold Clear"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_threshold_clear",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    store = entry.runtime_data.store
+
+    # Push sensor above threshold → exceeded_since gets persisted
+    set_sensor_state(hass, "sensor.threshold_clear", "60.0")
+    await hass.async_block_till_done()
+    await store.async_save()
+
+    # Verify exceeded_since was set
+    runtime = store.get_trigger_runtime(TASK_ID_1, "sensor.threshold_clear")
+    assert runtime.get("threshold_exceeded_since") is not None
+
+    # Push sensor back below threshold → exceeded_since gets cleared
+    set_sensor_state(hass, "sensor.threshold_clear", "20.0")
+    await hass.async_block_till_done()
+    await store.async_save()
+
+    # Verify exceeded_since was cleared
+    runtime = store.get_trigger_runtime(TASK_ID_1, "sensor.threshold_clear")
+    assert runtime.get("threshold_exceeded_since") is None
+
+    # Unload
+    await hass.config_entries.async_unload(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Sensor below threshold
+    set_sensor_state(hass, "sensor.threshold_clear", "20.0")
+
+    # Reload
+    await hass.config_entries.async_setup(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Verify: trigger should NOT be active
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
+    sensors = [e for e in entities if e.domain == "sensor"]
+    assert sensors, "No sensor entities found for entry"
+    sensor_entity = hass.data["entity_components"]["sensor"].get_entity(
+        sensors[0].entity_id
+    )
+    assert sensor_entity is not None, "Sensor entity object not found"
+    assert len(sensor_entity._triggers) == 1
+    trigger = sensor_entity._triggers[0]
+    assert trigger._triggered is False, (
+        "Trigger must NOT be active after reload when value returned to normal"
+    )
 
 
 async def test_previous_statuses_seeded_on_startup(

@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.20 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,421 tests)
+**Version:** 1.0.21 | **~26,000 lines** across 70 source files (51 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,429 tests)
 
 ---
 
@@ -289,6 +289,7 @@ All triggers share:
 - Automatic recovery when entity reappears
 - Retry logic when entity is unavailable at setup (30s delay)
 - Debounce via `trigger_for_minutes` (threshold only)
+- Threshold triggers with `trigger_for_minutes` persist their `exceeded_since` timestamp to the Store. On HA restart, the recovery path in `ThresholdTrigger.__init__` computes elapsed time and either triggers immediately or starts a timer with the remaining duration
 - Fallback evaluation in coordinator during periodic refresh
 - Attribute-based triggering (monitor an entity attribute instead of state)
 
@@ -425,7 +426,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,421 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,429 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -447,7 +448,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,421 tests** across **69 test files** with **96% code coverage**.
+**1,429 tests** across **69 test files** with **96% code coverage**.
 
 ### Coverage by Module
 
