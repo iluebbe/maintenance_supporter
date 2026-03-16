@@ -2003,6 +2003,17 @@ export function formatDueDays(days: number | null | undefined, lang?: string): s
   return `${days} ${days === 1 ? t("day", l) : t("days", l)}`;
 }
 
+/** Dispatch HA native "More Info" dialog for an entity. */
+export function fireMoreInfo(ev: Event, entityId: string) {
+  (ev.currentTarget as HTMLElement).dispatchEvent(
+    new CustomEvent("hass-more-info", {
+      detail: { entityId },
+      bubbles: true,
+      composed: true,
+    })
+  );
+}
+
 export const sharedStyles = css`
   :host {
     --maint-ok-color: var(--success-color, #4caf50);
@@ -2222,6 +2233,16 @@ export const sharedStyles = css`
 
   .trigger-entity-name { font-weight: 500; font-size: 14px; }
   .trigger-entity-id { font-size: 11px; color: var(--secondary-text-color); font-family: monospace; }
+
+  .entity-link {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+  }
+  .entity-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline solid;
+  }
 
   .trigger-value-row {
     display: flex;

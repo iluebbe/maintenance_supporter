@@ -1,7 +1,7 @@
 /** Trigger section and sparkline chart renderers. */
 
 import { html, svg, nothing } from "lit";
-import { t } from "../styles";
+import { t, fireMoreInfo } from "../styles";
 import type { MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
 
 const DETAIL_SPARKLINE_W = 300;
@@ -39,10 +39,10 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         <div>
           ${isMultiEntity ? html`
             <div class="trigger-entity-name">${entityIds.length} ${t("entities", L)} (${tc.entity_logic || "any"})</div>
-            <div class="trigger-entity-id">${entityIds.join(", ")}${tc.attribute ? ` \u2192 ${tc.attribute}` : ""}</div>
+            <div class="trigger-entity-id">${entityIds.map((eid, i) => html`${i > 0 ? ", " : ""}<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, eid)}>${eid}</span>`)}${tc.attribute ? ` \u2192 ${tc.attribute}` : ""}</div>
           ` : html`
             <div class="trigger-entity-name">${friendlyName}</div>
-            <div class="trigger-entity-id">${entityId}${tc.attribute ? ` \u2192 ${tc.attribute}` : ""}</div>
+            <div class="trigger-entity-id">${entityId ? html`<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, entityId)}>${entityId}</span>` : ""}${tc.attribute ? ` \u2192 ${tc.attribute}` : ""}</div>
           `}
         </div>
         <span class="status-badge ${task.trigger_active ? "triggered" : "ok"}" style="margin-left: auto;">
@@ -77,7 +77,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         ${triggerType === "compound" ? html`
           <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${tc.compound_logic || (tc as any).operator || "AND"}</span>
           ${(tc.conditions || []).map((cond: any, i: number) => html`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type || "unknown", L)}: ${cond.entity_id || ""}</span>
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type || "unknown", L)}: ${cond.entity_id ? html`<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, cond.entity_id)}>${cond.entity_id}</span>` : ""}</span>
           `)}
         ` : nothing}
         ${info?.min != null ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("min", L)}: ${info.min} ${unit}</span>` : nothing}
@@ -87,7 +87,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
       ${infos && infos.length > 1 ? html`
         <div class="trigger-entity-list">
           ${infos.map(info => html`
-            <span class="trigger-entity-id">${info.friendly_name} (${info.entity_id})</span>
+            <span class="trigger-entity-id">${info.friendly_name} (<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, info.entity_id)}>${info.entity_id}</span>)</span>
           `)}
         </div>
       ` : nothing}

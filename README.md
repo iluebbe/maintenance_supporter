@@ -115,6 +115,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **Lovelace card** for dashboard integration
 - **Calendar** integration with status-emoji events
 - **Binary sensor** entities for automation triggers
+- **Clickable entity IDs**: entity IDs in trigger sections, compound conditions, and environmental correlations open HA's "More Info" dialog on click
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
 - Localized UI: English, Spanish, Portuguese, French, German, Italian, Dutch
