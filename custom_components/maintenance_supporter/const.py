@@ -111,6 +111,7 @@ CONF_OBJECT_NAME = "name"
 CONF_OBJECT_AREA = "area_id"
 CONF_OBJECT_MANUFACTURER = "manufacturer"
 CONF_OBJECT_MODEL = "model"
+CONF_OBJECT_SERIAL_NUMBER = "serial_number"
 CONF_OBJECT_INSTALLATION_DATE = "installation_date"
 
 # --- Config Keys: Task ---

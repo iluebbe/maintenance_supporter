@@ -30,6 +30,7 @@ from .const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_OBJECT_SERIAL_NUMBER,
     CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_NAME,
@@ -240,6 +241,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     CONF_OBJECT_AREA: user_input.get(CONF_OBJECT_AREA),
                     CONF_OBJECT_MANUFACTURER: user_input.get(CONF_OBJECT_MANUFACTURER),
                     CONF_OBJECT_MODEL: user_input.get(CONF_OBJECT_MODEL),
+                    CONF_OBJECT_SERIAL_NUMBER: user_input.get(CONF_OBJECT_SERIAL_NUMBER),
                 }
 
                 # Build tasks from template
@@ -288,6 +290,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             type=selector.TextSelectorType.TEXT
                         )
                     ),
+                    vol.Optional(CONF_OBJECT_SERIAL_NUMBER): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
+                        )
+                    ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
@@ -329,6 +336,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 obj_data["area_id"] = user_input.get(CONF_OBJECT_AREA)
                 obj_data["manufacturer"] = user_input.get(CONF_OBJECT_MANUFACTURER)
                 obj_data["model"] = user_input.get(CONF_OBJECT_MODEL)
+                obj_data["serial_number"] = user_input.get(CONF_OBJECT_SERIAL_NUMBER)
                 obj_data["installation_date"] = user_input.get(
                     CONF_OBJECT_INSTALLATION_DATE
                 )
@@ -343,6 +351,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             CONF_OBJECT_NAME: obj_data.get("name", ""),
             CONF_OBJECT_MANUFACTURER: obj_data.get("manufacturer", ""),
             CONF_OBJECT_MODEL: obj_data.get("model", ""),
+            CONF_OBJECT_SERIAL_NUMBER: obj_data.get("serial_number", ""),
         }
         if obj_data.get("area_id"):
             suggested[CONF_OBJECT_AREA] = obj_data["area_id"]
@@ -358,6 +367,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(CONF_OBJECT_AREA): selector.AreaSelector(),
                     vol.Optional(CONF_OBJECT_MANUFACTURER): str,
                     vol.Optional(CONF_OBJECT_MODEL): str,
+                    vol.Optional(CONF_OBJECT_SERIAL_NUMBER): str,
                     vol.Optional(
                         CONF_OBJECT_INSTALLATION_DATE,
                     ): selector.DateSelector(),
@@ -424,6 +434,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     CONF_OBJECT_AREA: user_input.get(CONF_OBJECT_AREA),
                     CONF_OBJECT_MANUFACTURER: user_input.get(CONF_OBJECT_MANUFACTURER),
                     CONF_OBJECT_MODEL: user_input.get(CONF_OBJECT_MODEL),
+                    CONF_OBJECT_SERIAL_NUMBER: user_input.get(
+                        CONF_OBJECT_SERIAL_NUMBER
+                    ),
                     CONF_OBJECT_INSTALLATION_DATE: user_input.get(
                         CONF_OBJECT_INSTALLATION_DATE
                     ),
@@ -447,6 +460,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         )
                     ),
                     vol.Optional(CONF_OBJECT_MODEL): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
+                        )
+                    ),
+                    vol.Optional(CONF_OBJECT_SERIAL_NUMBER): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT
                         )

@@ -32,6 +32,7 @@ from .const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_OBJECT_SERIAL_NUMBER,
     CONF_RESPONSIBLE_USER_ID,
     CONF_SENSOR_PREDICTION_ENABLED,
     CONF_TASK_DOCUMENTATION_URL,
@@ -1360,6 +1361,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             obj[CONF_OBJECT_NAME] = user_input.get(CONF_OBJECT_NAME, obj.get("name"))
             obj[CONF_OBJECT_MANUFACTURER] = user_input.get(CONF_OBJECT_MANUFACTURER)
             obj[CONF_OBJECT_MODEL] = user_input.get(CONF_OBJECT_MODEL)
+            obj[CONF_OBJECT_SERIAL_NUMBER] = user_input.get(CONF_OBJECT_SERIAL_NUMBER)
             obj[CONF_OBJECT_AREA] = user_input.get(CONF_OBJECT_AREA)
             if user_input.get(CONF_OBJECT_INSTALLATION_DATE):
                 obj[CONF_OBJECT_INSTALLATION_DATE] = str(
@@ -1406,6 +1408,12 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ),
                     vol.Optional(
                         CONF_OBJECT_MODEL, default=obj.get("model", "")
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                    vol.Optional(
+                        CONF_OBJECT_SERIAL_NUMBER,
+                        default=obj.get("serial_number") or "",
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),

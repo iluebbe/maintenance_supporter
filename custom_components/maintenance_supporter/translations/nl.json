@@ -40,6 +40,7 @@
           "area_id": "Ruimte",
           "manufacturer": "Fabrikant",
           "model": "Model",
+          "serial_number": "Serienummer",
           "go_back": "Terug"
         },
         "data_description": {
@@ -47,6 +48,7 @@
           "area_id": "De ruimte waar dit object zich bevindt.",
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
+          "serial_number": "Het serienummer van het object.",
           "go_back": "Terug naar sjabloonselectie zonder op te slaan."
         }
       },
@@ -72,6 +74,7 @@
           "area_id": "Ruimte",
           "manufacturer": "Fabrikant",
           "model": "Model",
+          "serial_number": "Serienummer",
           "installation_date": "Installatiedatum",
           "go_back": "Terug"
         },
@@ -80,6 +83,7 @@
           "area_id": "De ruimte in uw huis waar dit object zich bevindt.",
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
+          "serial_number": "Het serienummer van het object.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
@@ -365,6 +369,7 @@
           "area_id": "Gebied",
           "manufacturer": "Fabrikant",
           "model": "Model",
+          "serial_number": "Serienummer",
           "installation_date": "Installatiedatum"
         },
         "data_description": {
@@ -372,6 +377,7 @@
           "area_id": "Het gebied waar dit object zich bevindt.",
           "manufacturer": "De fabrikant van dit object.",
           "model": "Het model van dit object.",
+          "serial_number": "Het serienummer van dit object.",
           "installation_date": "Wanneer dit object is geïnstalleerd."
         }
       }
@@ -920,6 +926,7 @@
           "name": "Objectnaam",
           "manufacturer": "Fabrikant",
           "model": "Model",
+          "serial_number": "Serienummer",
           "area_id": "Gebied",
           "installation_date": "Installatiedatum",
           "go_back": "Terug"
@@ -928,6 +935,7 @@
           "name": "Een unieke naam voor dit onderhoudsobject (bijv. 'Zwembadpomp', 'Auto').",
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
+          "serial_number": "Het serienummer van het object.",
           "area_id": "Het gebied in uw huis waar dit object zich bevindt.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "go_back": "Terug naar het hoofdmenu zonder opslaan."

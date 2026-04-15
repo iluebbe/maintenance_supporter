@@ -40,6 +40,7 @@
           "area_id": "Area",
           "manufacturer": "Manufacturer",
           "model": "Model",
+          "serial_number": "Serial number",
           "go_back": "Go back"
         },
         "data_description": {
@@ -47,6 +48,7 @@
           "area_id": "The area where this object is located.",
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
+          "serial_number": "The serial number of the object.",
           "go_back": "Return to template selection without saving."
         }
       },
@@ -72,6 +74,7 @@
           "area_id": "Area",
           "manufacturer": "Manufacturer",
           "model": "Model",
+          "serial_number": "Serial number",
           "installation_date": "Installation date",
           "go_back": "Go back"
         },
@@ -80,6 +83,7 @@
           "area_id": "The area in your home where this object is located.",
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
+          "serial_number": "The serial number of the object.",
           "installation_date": "When this object was installed or purchased.",
           "go_back": "Return to the main menu without saving."
         }
@@ -365,6 +369,7 @@
           "area_id": "Area",
           "manufacturer": "Manufacturer",
           "model": "Model",
+          "serial_number": "Serial number",
           "installation_date": "Installation date"
         },
         "data_description": {
@@ -372,6 +377,7 @@
           "area_id": "The area where this object is located.",
           "manufacturer": "The manufacturer of this object.",
           "model": "The model of this object.",
+          "serial_number": "The serial number of this object.",
           "installation_date": "When this object was installed."
         }
       }
@@ -920,6 +926,7 @@
           "name": "Object name",
           "manufacturer": "Manufacturer",
           "model": "Model",
+          "serial_number": "Serial number",
           "area_id": "Area",
           "installation_date": "Installation date",
           "go_back": "Go back"
@@ -928,6 +935,7 @@
           "name": "A unique name for this maintenance object (e.g., 'Pool Pump', 'Car').",
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
+          "serial_number": "The serial number of the object.",
           "area_id": "The area in your home where this object is located.",
           "installation_date": "When this object was installed or purchased.",
           "go_back": "Return to the main menu without saving."

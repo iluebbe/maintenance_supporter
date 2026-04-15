@@ -41,6 +41,8 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
             device_info["manufacturer"] = obj["manufacturer"]
         if obj.get("model"):
             device_info["model"] = obj["model"]
+        if obj.get("serial_number"):
+            device_info["serial_number"] = obj["serial_number"]
         if obj.get("area_id"):
             device_info["suggested_area"] = obj["area_id"]
 

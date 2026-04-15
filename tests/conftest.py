@@ -101,6 +101,7 @@ def build_object_data(
     area_id: str | None = None,
     manufacturer: str | None = None,
     model: str | None = None,
+    serial_number: str | None = None,
 ) -> dict[str, Any]:
     """Build an object data dict."""
     return {
@@ -109,6 +110,7 @@ def build_object_data(
         "area_id": area_id,
         "manufacturer": manufacturer,
         "model": model,
+        "serial_number": serial_number,
         "task_ids": [],
     }
 

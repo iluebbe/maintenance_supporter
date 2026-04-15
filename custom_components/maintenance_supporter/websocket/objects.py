@@ -17,6 +17,7 @@ from ..const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_OBJECT_SERIAL_NUMBER,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -77,6 +78,7 @@ async def ws_get_object(
         vol.Optional("area_id"): vol.Any(str, None),
         vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=20)), None),
         vol.Optional("dry_run", default=False): bool,
     }
@@ -96,6 +98,7 @@ async def ws_create_object(
 
     manufacturer = (msg.get("manufacturer") or "").strip() or None
     model = (msg.get("model") or "").strip() or None
+    serial_number = (msg.get("serial_number") or "").strip() or None
 
     # Validate installation_date format if provided
     installation_date = msg.get("installation_date")
@@ -123,6 +126,7 @@ async def ws_create_object(
                 CONF_OBJECT_AREA: msg.get("area_id"),
                 CONF_OBJECT_MANUFACTURER: manufacturer,
                 CONF_OBJECT_MODEL: model,
+                CONF_OBJECT_SERIAL_NUMBER: serial_number,
                 CONF_OBJECT_INSTALLATION_DATE: installation_date,
                 "task_ids": [],
             },
@@ -149,6 +153,7 @@ async def ws_create_object(
         vol.Optional("area_id"): vol.Any(str, None),
         vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=20)), None),
     }
 )
@@ -172,11 +177,13 @@ async def ws_update_object(
             connection.send_error(msg["id"], "invalid_input", "Name must not be empty")
             return
 
-    # Strip manufacturer/model
+    # Strip manufacturer/model/serial_number
     if "manufacturer" in msg and msg["manufacturer"]:
         msg["manufacturer"] = msg["manufacturer"].strip() or None
     if "model" in msg and msg["model"]:
         msg["model"] = msg["model"].strip() or None
+    if "serial_number" in msg and msg["serial_number"]:
+        msg["serial_number"] = msg["serial_number"].strip() or None
 
     # Validate installation_date format if provided
     if "installation_date" in msg and msg["installation_date"]:
@@ -199,6 +206,8 @@ async def ws_update_object(
         obj[CONF_OBJECT_MANUFACTURER] = msg["manufacturer"]
     if "model" in msg:
         obj[CONF_OBJECT_MODEL] = msg["model"]
+    if "serial_number" in msg:
+        obj[CONF_OBJECT_SERIAL_NUMBER] = msg["serial_number"]
     if "installation_date" in msg:
         obj[CONF_OBJECT_INSTALLATION_DATE] = msg["installation_date"]
 

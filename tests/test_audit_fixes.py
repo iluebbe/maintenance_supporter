@@ -356,6 +356,39 @@ async def test_diagnostics_redacts_nfc_and_user_id(
             assert task_data["responsible_user_id"] == "**REDACTED**"
 
 
+async def test_diagnostics_redacts_serial_number(
+    hass: HomeAssistant,
+) -> None:
+    """serial_number should be redacted in diagnostics as PII."""
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+
+    obj_data = build_object_data(name="Serial Test", serial_number="SN-SECRET-9999")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Serial Test",
+        data=build_object_entry_data(
+            object_data=obj_data,
+            tasks={TASK_ID_1: build_task_data(last_performed="2024-06-01")},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_serial_test",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    diag_str = json.dumps(diag)
+    assert "SN-SECRET-9999" not in diag_str
+    obj = diag["data"].get("object", {})
+    assert obj.get("serial_number") == "**REDACTED**"
+
+
 # ─── Fix G: Options flow — NFC duplicate check ───────────────────────
 
 

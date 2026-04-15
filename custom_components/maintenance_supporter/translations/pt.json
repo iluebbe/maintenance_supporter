@@ -40,6 +40,7 @@
           "area_id": "Área",
           "manufacturer": "Fabricante",
           "model": "Modelo",
+          "serial_number": "Número de série",
           "go_back": "Voltar"
         },
         "data_description": {
@@ -47,6 +48,7 @@
           "area_id": "A área onde este objeto se encontra.",
           "manufacturer": "O fabricante do objeto.",
           "model": "O nome ou número do modelo.",
+          "serial_number": "O número de série do objeto.",
           "go_back": "Regressar à seleção de modelo sem guardar."
         }
       },
@@ -72,6 +74,7 @@
           "area_id": "Área",
           "manufacturer": "Fabricante",
           "model": "Modelo",
+          "serial_number": "Número de série",
           "installation_date": "Data de instalação",
           "go_back": "Voltar"
         },
@@ -80,6 +83,7 @@
           "area_id": "A área da sua casa onde este objeto se encontra.",
           "manufacturer": "O fabricante do objeto.",
           "model": "O nome ou número do modelo.",
+          "serial_number": "O número de série do objeto.",
           "installation_date": "Quando este objeto foi instalado ou adquirido.",
           "go_back": "Regressar ao menu principal sem guardar."
         }
@@ -365,6 +369,7 @@
           "area_id": "Área",
           "manufacturer": "Fabricante",
           "model": "Modelo",
+          "serial_number": "Número de série",
           "installation_date": "Data de instalação"
         },
         "data_description": {
@@ -372,6 +377,7 @@
           "area_id": "A área onde este objeto se encontra.",
           "manufacturer": "O fabricante deste objeto.",
           "model": "O modelo deste objeto.",
+          "serial_number": "O número de série deste objeto.",
           "installation_date": "Quando este objeto foi instalado."
         }
       }
@@ -920,6 +926,7 @@
           "name": "Nome do objeto",
           "manufacturer": "Fabricante",
           "model": "Modelo",
+          "serial_number": "Número de série",
           "area_id": "Área",
           "installation_date": "Data de instalação",
           "go_back": "Voltar"
@@ -928,6 +935,7 @@
           "name": "Um nome único para este objeto de manutenção (ex.: 'Bomba da Piscina', 'Carro').",
           "manufacturer": "O fabricante do objeto.",
           "model": "O nome ou número do modelo.",
+          "serial_number": "O número de série do objeto.",
           "area_id": "A área da sua casa onde este objeto se encontra.",
           "installation_date": "Quando este objeto foi instalado ou adquirido.",
           "go_back": "Regressar ao menu principal sem guardar."

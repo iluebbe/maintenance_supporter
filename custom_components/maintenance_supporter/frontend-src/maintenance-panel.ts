@@ -1029,6 +1029,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${o.manufacturer || o.model
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}
+        ${o.serial_number ? html`<p class="meta">${t("serial_number_label", L)}: ${o.serial_number}</p>` : nothing}
         ${o.installation_date ? html`<p class="meta">${t("installed", L)}: ${formatDate(o.installation_date, L)}</p>` : nothing}
 
         <h3>${t("tasks", L)} (${obj.tasks.length})</h3>

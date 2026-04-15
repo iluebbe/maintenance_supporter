@@ -6,6 +6,7 @@ export interface MaintenanceObject {
   area_id?: string | null;
   manufacturer?: string | null;
   model?: string | null;
+  serial_number?: string | null;
   installation_date?: string | null;
 }
 

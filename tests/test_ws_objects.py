@@ -183,9 +183,14 @@ async def test_ws_create_object_all_fields(
         "area_id": "garage",
         "manufacturer": "Bosch",
         "model": "X100",
+        "serial_number": "SN-12345",
     })
 
     conn.send_result.assert_called_once()
+    # Verify serial_number persisted to the new config entry
+    entries = [e for e in hass.config_entries.async_entries("maintenance_supporter") if e.title == "Full Object"]
+    assert len(entries) == 1
+    assert entries[0].data[CONF_OBJECT]["serial_number"] == "SN-12345"
 
 
 async def test_ws_create_object_dry_run(
@@ -241,6 +246,7 @@ async def test_ws_update_object_multiple(
         "entry_id": object_entry.entry_id,
         "manufacturer": "Hayward",
         "model": "MaxFlo",
+        "serial_number": "ABC-789",
         "area_id": "pool_house",
     })
 
@@ -250,6 +256,7 @@ async def test_ws_update_object_multiple(
     obj = entry.data[CONF_OBJECT]
     assert obj["manufacturer"] == "Hayward"
     assert obj["model"] == "MaxFlo"
+    assert obj["serial_number"] == "ABC-789"
     assert obj["area_id"] == "pool_house"
 
 
@@ -488,3 +495,4 @@ def test_build_object_response_structure(
     assert "tasks" in result
     assert result["object"]["name"] == "Pool Pump"
     assert result["object"]["manufacturer"] == "Pentair"
+    assert "serial_number" in result["object"]

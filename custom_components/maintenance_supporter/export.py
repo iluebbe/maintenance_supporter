@@ -76,6 +76,7 @@ def _build_export_object(
             "area_id": obj_data.get("area_id"),
             "manufacturer": obj_data.get("manufacturer"),
             "model": obj_data.get("model"),
+            "serial_number": obj_data.get("serial_number"),
             "installation_date": obj_data.get("installation_date"),
         },
         "tasks": tasks,

@@ -254,6 +254,7 @@ async def ws_import_json(
             "name": obj_name,
             "manufacturer": obj_data.get("manufacturer"),
             "model": obj_data.get("model"),
+            "serial_number": obj_data.get("serial_number"),
             "area_id": obj_data.get("area_id"),
             "installation_date": obj_data.get("installation_date"),
             "task_ids": [],

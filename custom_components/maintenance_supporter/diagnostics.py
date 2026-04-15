@@ -30,6 +30,7 @@ TO_REDACT = {
     "nfc_tag_id",
     "notify_service",
     "responsible_user_id",
+    "serial_number",
 }
 
 

@@ -13,6 +13,7 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _name = "";
   @state() private _manufacturer = "";
   @state() private _model = "";
+  @state() private _serialNumber = "";
   @state() private _areaId = "";
   @state() private _installationDate = "";
   @state() private _entryId: string | null = null; // null = create, string = update
@@ -26,6 +27,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._name = "";
     this._manufacturer = "";
     this._model = "";
+    this._serialNumber = "";
     this._areaId = "";
     this._installationDate = "";
     this._error = "";
@@ -37,6 +39,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._name = obj.name || "";
     this._manufacturer = obj.manufacturer || "";
     this._model = obj.model || "";
+    this._serialNumber = obj.serial_number || "";
     this._areaId = obj.area_id || "";
     this._installationDate = obj.installation_date || "";
     this._error = "";
@@ -55,6 +58,7 @@ export class MaintenanceObjectDialog extends LitElement {
           name: this._name,
           manufacturer: this._manufacturer || null,
           model: this._model || null,
+          serial_number: this._serialNumber || null,
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
         });
@@ -64,6 +68,7 @@ export class MaintenanceObjectDialog extends LitElement {
           name: this._name,
           manufacturer: this._manufacturer || null,
           model: this._model || null,
+          serial_number: this._serialNumber || null,
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
         });
@@ -105,6 +110,11 @@ export class MaintenanceObjectDialog extends LitElement {
             label="${t("model_optional", L)}"
             .value=${this._model}
             @input=${(e: Event) => (this._model = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
+            label="${t("serial_number_optional", L)}"
+            .value=${this._serialNumber}
+            @input=${(e: Event) => (this._serialNumber = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
           <ha-textfield
             label="${t("area_id_optional", L)}"

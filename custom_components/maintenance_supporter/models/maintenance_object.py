@@ -21,6 +21,7 @@ class MaintenanceObject:
     area_id: str | None = None
     manufacturer: str | None = None
     model: str | None = None
+    serial_number: str | None = None
     installation_date: str | None = None  # ISO format YYYY-MM-DD
     task_ids: list[str] = field(default_factory=list)
 
@@ -32,6 +33,7 @@ class MaintenanceObject:
             "area_id": self.area_id,
             "manufacturer": self.manufacturer,
             "model": self.model,
+            "serial_number": self.serial_number,
             "installation_date": self.installation_date,
             "task_ids": self.task_ids,
         }
@@ -45,6 +47,7 @@ class MaintenanceObject:
             area_id=data.get("area_id"),
             manufacturer=data.get("manufacturer"),
             model=data.get("model"),
+            serial_number=data.get("serial_number"),
             installation_date=data.get("installation_date"),
             task_ids=data.get("task_ids", []),
         )

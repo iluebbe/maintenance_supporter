@@ -40,6 +40,7 @@
           "area_id": "Bereich",
           "manufacturer": "Hersteller",
           "model": "Modell",
+          "serial_number": "Seriennummer",
           "go_back": "Zurück"
         },
         "data_description": {
@@ -47,6 +48,7 @@
           "area_id": "Der Bereich, in dem sich dieses Objekt befindet.",
           "manufacturer": "Der Hersteller des Objekts.",
           "model": "Die Modellbezeichnung oder -nummer.",
+          "serial_number": "Die Seriennummer des Objekts.",
           "go_back": "Zurück zur Vorlagenauswahl ohne zu speichern."
         }
       },
@@ -72,6 +74,7 @@
           "area_id": "Bereich",
           "manufacturer": "Hersteller",
           "model": "Modell",
+          "serial_number": "Seriennummer",
           "installation_date": "Installationsdatum",
           "go_back": "Zurück"
         },
@@ -80,6 +83,7 @@
           "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
           "manufacturer": "Der Hersteller des Objekts.",
           "model": "Die Modellbezeichnung oder -nummer.",
+          "serial_number": "Die Seriennummer des Objekts.",
           "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
           "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
@@ -365,6 +369,7 @@
           "area_id": "Bereich",
           "manufacturer": "Hersteller",
           "model": "Modell",
+          "serial_number": "Seriennummer",
           "installation_date": "Installationsdatum"
         },
         "data_description": {
@@ -372,6 +377,7 @@
           "area_id": "Der Bereich, in dem sich dieses Objekt befindet.",
           "manufacturer": "Der Hersteller dieses Objekts.",
           "model": "Das Modell dieses Objekts.",
+          "serial_number": "Die Seriennummer dieses Objekts.",
           "installation_date": "Wann dieses Objekt installiert wurde."
         }
       }
@@ -920,6 +926,7 @@
           "name": "Objektname",
           "manufacturer": "Hersteller",
           "model": "Modell",
+          "serial_number": "Seriennummer",
           "area_id": "Bereich",
           "installation_date": "Installationsdatum",
           "go_back": "Zurück"
@@ -928,6 +935,7 @@
           "name": "Ein eindeutiger Name für dieses Wartungsobjekt (z.B. 'Poolpumpe', 'Auto').",
           "manufacturer": "Der Hersteller des Objekts.",
           "model": "Die Modellbezeichnung oder -nummer.",
+          "serial_number": "Die Seriennummer des Objekts.",
           "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
           "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
           "go_back": "Zurück zum Hauptmenü ohne Speichern."
