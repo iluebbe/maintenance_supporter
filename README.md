@@ -387,13 +387,13 @@ A Docker Compose environment provides a complete dev setup with faketime time ma
 pip install requests                    # Required for setup script
 
 # First-time setup (creates config, onboards HA, seeds demo data):
-bash scripts/init-dev.sh                # Login: dev / dev at :8123
+bash scripts/init-dev.sh                # Login: dev / dev at :8125
 
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,429 tests):
-docker exec ha-dev sh -c "cd /config && python -m pytest tests/ -x -q"
+# Run tests (1,430 tests):
+docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 
 The init script is idempotent — safe to run again on an existing setup.
