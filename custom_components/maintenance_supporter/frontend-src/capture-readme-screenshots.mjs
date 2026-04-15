@@ -2,7 +2,7 @@
  * Capture README screenshots for the Maintenance Supporter integration.
  *
  * Prerequisites:
- *   docker compose up -d                           # ha-dev
+ *   docker compose up -d                           # ha-maint
  *   docker compose --profile testing up -d          # playwright
  *   python scripts/setup_demo.py && python scripts/seed_history.py
  *   docker compose restart homeassistant-dev

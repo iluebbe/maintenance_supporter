@@ -29,7 +29,7 @@ DOCKER_DIR="docker"
 CONFIG_DIR="$DOCKER_DIR/config-dev"
 SEED_DIR="$DOCKER_DIR/config-seed"
 ENV_FILE="$DOCKER_DIR/.env"
-HA_URL="${HA_URL:-http://localhost:8123}"
+HA_URL="${HA_URL:-http://localhost:8125}"
 
 # ---------------------------------------------------------------------------
 # 1. Populate config-dev from seed
@@ -61,7 +61,7 @@ echo "Waiting for HA to become ready..."
 MAX_WAIT=120
 ELAPSED=0
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-    if docker exec ha-dev wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
+    if docker exec ha-maint wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
         echo "  HA is ready (${ELAPSED}s)."
         break
     fi
@@ -119,7 +119,7 @@ if [ "$ONBOARDING_STATUS" = "200" ]; then
         -d '{"client_id":"http://localhost:8123/","redirect_uri":"http://localhost:8123/"}' > /dev/null 2>&1 || true
 
     # Step 4: Create a long-lived access token via WS (runs inside HA container)
-    LONG_TOKEN=$(docker exec ha-dev python3 -c "
+    LONG_TOKEN=$(docker exec ha-maint python3 -c "
 import asyncio, aiohttp, json
 async def get_llat():
     async with aiohttp.ClientSession() as s:
@@ -170,7 +170,7 @@ docker compose -f "$DOCKER_DIR/compose.yaml" restart homeassistant-dev
 echo "Waiting for HA to become ready after restart..."
 ELAPSED=0
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-    if docker exec ha-dev wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
+    if docker exec ha-maint wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
         echo "  HA is ready (${ELAPSED}s)."
         break
     fi
@@ -203,7 +203,7 @@ docker compose -f "$DOCKER_DIR/compose.yaml" up -d homeassistant-dev
 echo "Waiting for HA to become ready..."
 ELAPSED=0
 while [ $ELAPSED -lt $MAX_WAIT ]; do
-    if docker exec ha-dev wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
+    if docker exec ha-maint wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
         echo "  HA is ready (${ELAPSED}s)."
         break
     fi

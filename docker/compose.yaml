@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ha-faketime
-    container_name: ha-dev
+    container_name: ha-maint
     volumes:
       - ./config-dev:/config
       - ../custom_components:/config/custom_components
@@ -11,7 +11,7 @@ services:
       - ../pytest.ini:/config/pytest.ini:ro
       - ./faketime.txt:/config/faketime.txt:ro
     ports:
-      - "${HA_DEV_PORT:-8123}:8123"
+      - "${HA_MAINT_PORT:-8125}:8123"
     environment:
       TZ: Europe/Berlin
       # Faketime: the custom run script (ha-run-faketime.sh) adds libfaketime
@@ -32,13 +32,13 @@ services:
 
   homeassistant-fresh:
     image: "ghcr.io/home-assistant/home-assistant:2026.4.1"
-    container_name: ha-fresh
+    container_name: ha-maint-fresh
     profiles: ["testing"]
     volumes:
       - ./config-fresh:/config
       - ../custom_components:/config/custom_components:ro
     ports:
-      - "${HA_FRESH_PORT:-8124}:8123"
+      - "${HA_FRESH_PORT:-8126}:8123"
     environment:
       TZ: Europe/Berlin
     restart: "no"
