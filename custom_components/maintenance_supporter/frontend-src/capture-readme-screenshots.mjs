@@ -76,27 +76,29 @@ async function login(page) {
 }
 
 /** Returns true if page is still alive, false if it crashed. */
-async function setEnglish(page) {
-  // Set language to English via WS — fire and forget, don't await the WS result
+async function setEnglishDark(page) {
   try {
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       const ha = document.querySelector("home-assistant");
       const hass = ha && (ha.__hass || ha.hass);
       if (hass && hass.connection) {
-        hass.connection.sendMessage({
+        await hass.connection.sendMessagePromise({
           type: "frontend/set_user_data",
           key: "language",
           value: { language: "en", number_format: "language" },
         });
+        await hass.connection.sendMessagePromise({
+          type: "frontend/set_user_data",
+          key: "core",
+          value: { selectedTheme: { theme: "default", dark: true } },
+        });
       }
     });
-    // Reload panel to apply language
     await page.goto(HA + "/maintenance-supporter");
     await page.waitForTimeout(8000);
     return true;
   } catch {
-    // If language change fails, page may be crashed
-    console.log("  (language change crashed, will recover)");
+    console.log("  (language/theme change crashed, will recover)");
     return false;
   }
 }
@@ -150,10 +152,10 @@ const browser = await chromium.connect("ws://localhost:3000");
 console.log("Connected to Playwright server\n");
 
 // ======================== DESKTOP (1280×900) ========================
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "en" });
+const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "en", colorScheme: "dark" });
 let page = await ctx.newPage();
 await login(page);
-const langOk = await setEnglish(page);
+const langOk = await setEnglishDark(page);
 if (!langOk) {
   // Language change crashed the page — recreate and re-login
   try { await page.close(); } catch { /* already dead */ }
@@ -380,10 +382,10 @@ await ctx.close();
 // ======================== MOBILE (375×812) ========================
 console.log("\nMobile screenshots:");
 try {
-  const mCtx = await browser.newContext({ viewport: { width: 375, height: 812 }, locale: "en", isMobile: true });
+  const mCtx = await browser.newContext({ viewport: { width: 375, height: 812 }, locale: "en", isMobile: true, colorScheme: "dark" });
   const mPage = await mCtx.newPage();
   await login(mPage);
-  // Skip setEnglish for mobile — sendMessage can crash mobile contexts
+  // Skip setEnglishDark for mobile — sendMessage can crash mobile contexts
 
   const mObjects = await getObjectData(mPage);
 

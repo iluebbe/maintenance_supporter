@@ -116,6 +116,9 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **Calendar** integration with status-emoji events
 - **Binary sensor** entities for automation triggers
 - **Clickable entity IDs**: entity IDs in trigger sections, compound conditions, and environmental correlations open HA's "More Info" dialog on click
+- **Serial number** field on objects — displayed in panel, Device Registry, and export/import
+- **Task sorting**: sort by due date, object name, type, or task name (persisted)
+- **All Objects view**: clickable KPI card shows all objects including empty ones
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
 - Localized UI: English, Spanish, Portuguese, French, German, Italian, Dutch
@@ -364,7 +367,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,429 tests across 69 test files with **96% code coverage**.
+1,433 tests across 70 test files with **96% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -392,7 +395,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8125
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,430 tests):
+# Run tests (1,433 tests):
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 
