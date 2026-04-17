@@ -444,7 +444,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         entry_id: entryId,
         task_id: taskId,
       };
-      if (resetDate) msg.reset_date = resetDate;
+      if (resetDate) msg.date = resetDate;
       await this.hass.connection.sendMessagePromise(msg);
       await this._loadData();
     } catch {

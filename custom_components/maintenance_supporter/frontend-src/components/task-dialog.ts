@@ -471,7 +471,7 @@ export class MaintenanceTaskDialog extends LitElement {
               @change=${(e: Event) => (this._type = (e.target as HTMLSelectElement).value)}
             >
               ${MAINTENANCE_TYPE_KEYS.map(
-                (key) => html`<option value=${key}>${t(key, L)}</option>`
+                (key) => html`<option value=${key} ?selected=${key === this._type}>${t(key, L)}</option>`
               )}
             </select>
           </div>
@@ -482,7 +482,7 @@ export class MaintenanceTaskDialog extends LitElement {
               @change=${(e: Event) => (this._scheduleType = (e.target as HTMLSelectElement).value)}
             >
               ${SCHEDULE_TYPE_KEYS.map(
-                (key) => html`<option value=${key}>${t(key, L)}</option>`
+                (key) => html`<option value=${key} ?selected=${key === this._scheduleType}>${t(key, L)}</option>`
               )}
             </select>
           </div>

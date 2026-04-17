@@ -246,6 +246,7 @@ def _validate_compound_trigger(
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
+        vol.Optional("enabled", default=True): bool,
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -273,7 +274,7 @@ async def ws_create_task(
         "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
         "name": name,
         "type": msg.get("task_type", "custom"),
-        "enabled": True,
+        "enabled": msg.get("enabled", True),
         "schedule_type": msg.get("schedule_type", "time_based"),
         "warning_days": msg.get("warning_days", 7),
     }
