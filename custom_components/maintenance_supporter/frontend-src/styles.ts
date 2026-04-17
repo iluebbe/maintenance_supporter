@@ -125,6 +125,14 @@ const DE: Translations = {
   model_optional: "Modell (optional)",
   serial_number_optional: "Seriennummer (optional)",
   serial_number_label: "S/N",
+  sort_due_date: "Fälligkeit",
+  sort_object: "Objekt-Name",
+  sort_type: "Typ",
+  sort_task_name: "Aufgaben-Name",
+  all_objects: "Alle Objekte",
+  tasks_lower: "Aufgaben",
+  no_tasks_yet: "Noch keine Aufgaben",
+  add_first_task: "Erste Aufgabe hinzufügen",
   // Trigger dialog labels
   trigger_configuration: "Trigger-Konfiguration",
   entity_id: "Entitäts-ID",
@@ -409,6 +417,14 @@ const EN: Translations = {
   model_optional: "Model (optional)",
   serial_number_optional: "Serial number (optional)",
   serial_number_label: "S/N",
+  sort_due_date: "Due date",
+  sort_object: "Object name",
+  sort_type: "Type",
+  sort_task_name: "Task name",
+  all_objects: "All objects",
+  tasks_lower: "tasks",
+  no_tasks_yet: "No tasks yet",
+  add_first_task: "Add first task",
   // Trigger dialog labels
   trigger_configuration: "Trigger Configuration",
   entity_id: "Entity ID",
@@ -692,6 +708,14 @@ const NL: Translations = {
   model_optional: "Model (optioneel)",
   serial_number_optional: "Serienummer (optioneel)",
   serial_number_label: "S/N",
+  sort_due_date: "Vervaldatum",
+  sort_object: "Objectnaam",
+  sort_type: "Type",
+  sort_task_name: "Taaknaam",
+  all_objects: "Alle objecten",
+  tasks_lower: "taken",
+  no_tasks_yet: "Nog geen taken",
+  add_first_task: "Eerste taak toevoegen",
   trigger_configuration: "Triggerconfiguratie",
   entity_id: "Entiteits-ID",
   comma_separated: "kommagescheiden",
@@ -965,6 +989,14 @@ const FR: Translations = {
   model_optional: "Mod\u00E8le (optionnel)",
   serial_number_optional: "Num\u00E9ro de s\u00E9rie (optionnel)",
   serial_number_label: "N/S",
+  sort_due_date: "Échéance",
+  sort_object: "Nom de l'objet",
+  sort_type: "Type",
+  sort_task_name: "Nom de la tâche",
+  all_objects: "Tous les objets",
+  tasks_lower: "tâches",
+  no_tasks_yet: "Pas encore de tâches",
+  add_first_task: "Ajouter la première tâche",
   trigger_configuration: "Configuration du d\u00E9clencheur",
   entity_id: "ID d\u0027entit\u00E9",
   comma_separated: "s\u00E9par\u00E9 par des virgules",
@@ -1238,6 +1270,14 @@ const IT: Translations = {
   model_optional: "Modello (opzionale)",
   serial_number_optional: "Numero di serie (opzionale)",
   serial_number_label: "N/S",
+  sort_due_date: "Scadenza",
+  sort_object: "Nome oggetto",
+  sort_type: "Tipo",
+  sort_task_name: "Nome attività",
+  all_objects: "Tutti gli oggetti",
+  tasks_lower: "attività",
+  no_tasks_yet: "Nessuna attività",
+  add_first_task: "Aggiungi prima attività",
   trigger_configuration: "Configurazione trigger",
   entity_id: "ID entit\u00E0",
   comma_separated: "separati da virgola",
@@ -1511,6 +1551,14 @@ const ES: Translations = {
   model_optional: "Modelo (opcional)",
   serial_number_optional: "Número de serie (opcional)",
   serial_number_label: "N/S",
+  sort_due_date: "Vencimiento",
+  sort_object: "Nombre del objeto",
+  sort_type: "Tipo",
+  sort_task_name: "Nombre de la tarea",
+  all_objects: "Todos los objetos",
+  tasks_lower: "tareas",
+  no_tasks_yet: "Aún no hay tareas",
+  add_first_task: "Agregar primera tarea",
   trigger_configuration: "Configuraci\u00F3n del disparador",
   entity_id: "ID de entidad",
   comma_separated: "separados por comas",
@@ -1784,6 +1832,14 @@ const PT: Translations = {
   model_optional: "Modelo (opcional)",
   serial_number_optional: "Número de série (opcional)",
   serial_number_label: "N/S",
+  sort_due_date: "Vencimento",
+  sort_object: "Nome do objeto",
+  sort_type: "Tipo",
+  sort_task_name: "Nome da tarefa",
+  all_objects: "Todos os objetos",
+  tasks_lower: "tarefas",
+  no_tasks_yet: "Ainda sem tarefas",
+  add_first_task: "Adicionar primeira tarefa",
   trigger_configuration: "Configuração do acionador",
   entity_id: "ID da entidade",
   comma_separated: "separados por vírgulas",
@@ -2066,6 +2122,32 @@ export const sharedStyles = css`
     align-items: center;
     min-width: 80px;
   }
+  .stat-item.clickable { cursor: pointer; border-radius: 8px; padding: 4px 8px; transition: background 0.15s; }
+  .stat-item.clickable:hover { background: var(--secondary-background-color); }
+
+  .objects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+  }
+  .object-card {
+    padding: 16px;
+    background: var(--card-background-color);
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--divider-color);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .object-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .object-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .object-card-name { font-weight: 500; font-size: 16px; }
+  .object-card-count { color: var(--secondary-text-color); font-size: 13px; }
+  .object-card-meta { color: var(--secondary-text-color); font-size: 13px; margin-top: 4px; }
+  .object-card-empty { color: var(--warning-color); font-size: 13px; margin-top: 8px; font-style: italic; }
+
+  .empty-state-centered { text-align: center; padding: 32px 16px; }
+  .empty-state-centered ha-button { margin-top: 16px; }
 
   .stat-value {
     font-size: 24px;

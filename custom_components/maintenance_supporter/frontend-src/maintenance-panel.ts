@@ -36,7 +36,8 @@ import { renderWeibullSection } from "./renderers/weibull";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./renderers/seasonal";
 import { renderCostDurationCard } from "./renderers/charts";
 
-type View = "overview" | "object" | "task";
+type View = "overview" | "object" | "task" | "all_objects";
+type SortMode = "due_date" | "object" | "type" | "task_name";
 
 // Chart dimension constants for mini sparklines (overview)
 const MINI_SPARKLINE_W = 60;
@@ -75,6 +76,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _activeTab: "overview" | "history" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
+  @state() private _sortMode: SortMode = "due_date";
 
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
@@ -90,6 +92,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     window.addEventListener("popstate", this._popstateHandler);
+    const saved = localStorage.getItem("maintenance_supporter_sort");
+    if (saved && ["due_date", "object", "type", "task_name"].includes(saved)) {
+      this._sortMode = saved as SortMode;
+    }
   }
 
   disconnectedCallback(): void {
@@ -290,8 +296,17 @@ export class MaintenanceSupporterPanel extends LitElement {
         });
       }
     }
-    const order: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
-    rows.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
+    const statusOrder: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
+    const byStatus = (a: TaskRow, b: TaskRow) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9);
+    const byDays = (a: TaskRow, b: TaskRow) => (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
+    const byDue = (a: TaskRow, b: TaskRow) => byStatus(a, b) || byDays(a, b);
+    const sorts: Record<SortMode, (a: TaskRow, b: TaskRow) => number> = {
+      due_date: byDue,
+      object: (a, b) => a.object_name.localeCompare(b.object_name) || byDue(a, b),
+      type: (a, b) => a.type.localeCompare(b.type) || byDue(a, b),
+      task_name: (a, b) => a.task_name.localeCompare(b.task_name),
+    };
+    rows.sort(sorts[this._sortMode]);
     return rows;
   }
 
@@ -339,6 +354,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedEntryId = null;
     this._selectedTaskId = null;
     this._moreMenuOpen = false;
+  }
+
+  private _showAllObjects(): void {
+    this._pushPanelState("all_objects");
+    this._view = "all_objects";
+    this._selectedEntryId = null;
+    this._selectedTaskId = null;
   }
 
   private _showObject(entryId: string): void {
@@ -538,6 +560,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="content">
           ${this._view === "overview"
             ? this._renderOverview()
+            : this._view === "all_objects"
+            ? this._renderAllObjects()
             : this._view === "object"
             ? this._renderObjectDetail()
             : this._renderTaskDetail()}
@@ -642,7 +666,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ${s
         ? html`
             <div class="stats-bar">
-              <div class="stat-item">
+              <div class="stat-item clickable" @click=${() => this._showAllObjects()}>
                 <span class="stat-value">${s.total_objects}</span>
                 <span class="stat-label">${t("objects", L)}</span>
               </div>
@@ -688,6 +712,18 @@ export class MaintenanceSupporterPanel extends LitElement {
           <option value="">${t("all_users", L)}</option>
           <option value="current_user">${t("my_tasks", L)}</option>
         </select>
+        <select
+          .value=${this._sortMode}
+          @change=${(e: Event) => {
+            this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
+            localStorage.setItem("maintenance_supporter_sort", this._sortMode);
+          }}
+        >
+          <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
+          <option value="object" ?selected=${this._sortMode === "object"}>${t("sort_object", L)}</option>
+          <option value="type" ?selected=${this._sortMode === "type"}>${t("sort_type", L)}</option>
+          <option value="task_name" ?selected=${this._sortMode === "task_name"}>${t("sort_task_name", L)}</option>
+        </select>
         <ha-button
           @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
         >
@@ -709,6 +745,34 @@ export class MaintenanceSupporterPanel extends LitElement {
           `}
 
       ${this._features.groups ? this._renderGroupsSection() : nothing}
+    `;
+  }
+
+  private _renderAllObjects() {
+    const L = this._lang;
+    return html`
+      <div class="breadcrumb">
+        <ha-icon-button @click=${() => this._showOverview()}>
+          <ha-icon icon="mdi:arrow-left"></ha-icon>
+        </ha-icon-button>
+        <span>${t("all_objects", L)}</span>
+      </div>
+      <div class="objects-grid">
+        ${this._objects.map(obj => html`
+          <div class="object-card" @click=${() => this._showObject(obj.entry_id)}>
+            <div class="object-card-header">
+              <span class="object-card-name">${obj.object.name}</span>
+              <span class="object-card-count">${obj.tasks.length} ${t("tasks_lower", L)}</span>
+            </div>
+            ${obj.object.manufacturer || obj.object.model
+              ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
+              : nothing}
+            ${obj.tasks.length === 0
+              ? html`<div class="object-card-empty">${t("no_tasks_yet", L)}</div>`
+              : nothing}
+          </div>
+        `)}
+      </div>
     `;
   }
 
@@ -1034,7 +1098,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
         <h3>${t("tasks", L)} (${obj.tasks.length})</h3>
         ${obj.tasks.length === 0
-          ? html`<p class="empty">${t("no_tasks_short", L)}</p>`
+          ? html`<div class="empty-state-centered">
+              <p class="empty">${t("no_tasks_yet", L)}</p>
+              <ha-button appearance="filled" @click=${() => {
+                const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
+                dlg?.openCreate(obj.entry_id);
+              }}>${t("add_first_task", L)}</ha-button>
+            </div>`
           : obj.tasks.map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="status-badge ${task.status}">${t(task.status, L)}</span>
