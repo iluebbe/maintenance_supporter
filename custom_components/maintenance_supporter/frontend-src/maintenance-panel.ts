@@ -1105,7 +1105,10 @@ export class MaintenanceSupporterPanel extends LitElement {
                 dlg?.openCreate(obj.entry_id);
               }}>${t("add_first_task", L)}</ha-button>
             </div>`
-          : obj.tasks.map((task) => html`
+          : [...obj.tasks].sort((a, b) => {
+              const so: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
+              return (so[a.status] ?? 9) - (so[b.status] ?? 9) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
+            }).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="status-badge ${task.status}">${t(task.status, L)}</span>
                 ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}

@@ -521,9 +521,9 @@ export class MaintenanceTaskDialog extends LitElement {
                 this._responsibleUserId = val || null;
               }}
             >
-              <option value="">${t("no_user_assigned", L)}</option>
+              <option value="" ?selected=${!this._responsibleUserId}>${t("no_user_assigned", L)}</option>
               ${this._availableUsers.map(
-                (user) => html`<option value=${user.id}>${user.name}</option>`
+                (user) => html`<option value=${user.id} ?selected=${user.id === this._responsibleUserId}>${user.name}</option>`
               )}
             </select>
           </div>
