@@ -316,8 +316,8 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._triggerEntityLogic}
             @change=${(e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all")}
           >
-            <option value="any">${t("entity_logic_any", L)}</option>
-            <option value="all">${t("entity_logic_all", L)}</option>
+            <option value="any" ?selected=${this._triggerEntityLogic === "any"}>${t("entity_logic_any", L)}</option>
+            <option value="all" ?selected=${this._triggerEntityLogic === "all"}>${t("entity_logic_all", L)}</option>
           </select>
         </div>
       ` : nothing}
@@ -329,14 +329,14 @@ export class MaintenanceTaskDialog extends LitElement {
               .value=${this._triggerAttribute}
               @change=${(e: Event) => (this._triggerAttribute = (e.target as HTMLSelectElement).value)}
             >
-              <option value="">${t("use_entity_state", L)}</option>
+              <option value="" ?selected=${!this._triggerAttribute}>${t("use_entity_state", L)}</option>
               ${this._suggestedAttributes.map(
-                (attr) => html`<option value=${attr}>${attr} ★</option>`
+                (attr) => html`<option value=${attr} ?selected=${attr === this._triggerAttribute}>${attr} ★</option>`
               )}
               ${this._availableAttributes
                 .filter((a) => !this._suggestedAttributes.includes(a.name))
                 .map(
-                  (a) => html`<option value=${a.name}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
+                  (a) => html`<option value=${a.name} ?selected=${a.name === this._triggerAttribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
                 )}
             </select>
           </div>
@@ -356,7 +356,7 @@ export class MaintenanceTaskDialog extends LitElement {
           @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value)}
         >
           ${TRIGGER_TYPE_KEYS.map(
-            (key) => html`<option value=${key}>${t(key, L)}</option>`
+            (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${t(key, L)}</option>`
           )}
         </select>
       </div>
@@ -500,8 +500,8 @@ export class MaintenanceTaskDialog extends LitElement {
                     .value=${this._intervalAnchor}
                     @change=${(e: Event) => (this._intervalAnchor = (e.target as HTMLSelectElement).value as "completion" | "planned")}
                   >
-                    <option value="completion">${t("anchor_completion", L)}</option>
-                    <option value="planned">${t("anchor_planned", L)}</option>
+                    <option value="completion" ?selected=${this._intervalAnchor === "completion"}>${t("anchor_completion", L)}</option>
+                    <option value="planned" ?selected=${this._intervalAnchor === "planned"}>${t("anchor_planned", L)}</option>
                   </select>
                 </div>
               `
@@ -521,9 +521,9 @@ export class MaintenanceTaskDialog extends LitElement {
                 this._responsibleUserId = val || null;
               }}
             >
-              <option value="">${t("no_user_assigned", L)}</option>
+              <option value="" ?selected=${!this._responsibleUserId}>${t("no_user_assigned", L)}</option>
               ${this._availableUsers.map(
-                (user) => html`<option value=${user.id}>${user.name}</option>`
+                (user) => html`<option value=${user.id} ?selected=${user.id === this._responsibleUserId}>${user.name}</option>`
               )}
             </select>
           </div>
@@ -551,9 +551,9 @@ export class MaintenanceTaskDialog extends LitElement {
                   .value=${this._nfcTagId}
                   @change=${(e: Event) => (this._nfcTagId = (e.target as HTMLSelectElement).value)}
                 >
-                  <option value="">${t("no_nfc_tag", L)}</option>
+                  <option value="" ?selected=${!this._nfcTagId}>${t("no_nfc_tag", L)}</option>
                   ${this._availableTags.map(
-                    (tag) => html`<option value=${tag.id}>${tag.name}</option>`
+                    (tag) => html`<option value=${tag.id} ?selected=${tag.id === this._nfcTagId}>${tag.name}</option>`
                   )}
                 </select>
               </div>
