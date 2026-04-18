@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.32] - 2026-04-19
+
+### Fixed
+- **Task update failing when editing warning days or other fields (#29)** — `last_performed` field was rejected by backend update schema; now accepted so users can also manually correct the date
+- **ZeroDivisionError with `interval_days <= 0`** — `next_due` property now returns `None` instead of crashing
+- **Trigger stays active when entity becomes unavailable** — trigger now deactivates and fires deactivation event when monitored entity goes unavailable/unknown
+- **`warning_days` exceeding `interval_days` caused permanent DUE_SOON status** — status computation now caps warning period to interval length
+
+### Security
+- **`last_performed` date format validated** — rejects malformed date strings on both create and update (must be YYYY-MM-DD)
+- **JSON/CSV import data sanitized** — type and range checks for `interval_days`, `last_performed`, `warning_days`
+- **`trigger_config` key whitelist** — unknown keys stripped to prevent data pollution
+
+### Changed
+- **CI: added ruff linting** with tuned config (vendored `qrcodegen.py` excluded)
+- **CI: Python 3.13 + 3.14 test matrix** with 90% coverage minimum enforced
+- **CI: GitHub Actions bumped to v6** (checkout, setup-python, setup-node) — fixes Node.js 20 deprecation
+- **CI: Dependabot** enabled for GitHub Actions and npm dependencies
+- Removed 22 unused imports across 14 source files
+
+### Dependencies
+- esbuild 0.25 → 0.28
+- TypeScript 5.9 → 6.0
+
 ## [1.0.29] - 2026-04-18
 
 ### Added
