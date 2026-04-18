@@ -2027,7 +2027,7 @@ const PT: Translations = {
   settings_saved: "Definição guardada.",
   settings_include_history: "Incluir histórico",
 };
-const UA: Translations = {
+const UK: Translations = {
   maintenance: "Обслуговування",
   objects: "Об'єкти",
   tasks: "Завдання",
@@ -2118,6 +2118,7 @@ const UA: Translations = {
   model_optional: "Модель (необов'язково)",
   serial_number_optional: "Серійний номер (необов'язково)",
   serial_number_label: "С/Н",
+  last_performed_optional: "Останнé виконання (необов'язково)",
   sort_due_date: "Дата терміну",
   sort_object: "Назва об'єкта",
   sort_type: "Тип",
@@ -2319,7 +2320,6 @@ const UA: Translations = {
   settings_include_history: "Включити історію",
 };
 
-<<<<<<< HEAD
 const RU: Translations = {
   maintenance: "Обслуживание",
   objects: "Объекты",
@@ -2411,6 +2411,15 @@ const RU: Translations = {
   model_optional: "Модель (опционально)",
   serial_number_optional: "Серийный номер (опционально)",
   serial_number_label: "С/Н",
+  sort_due_date: "Срок",
+  sort_object: "Имя объекта",
+  sort_type: "Тип",
+  sort_task_name: "Имя задачи",
+  all_objects: "Все объекты",
+  tasks_lower: "задач",
+  no_tasks_yet: "Пока нет задач",
+  add_first_task: "Добавить первую задачу",
+  last_performed_optional: "Последнее выполнение (опционально)",
   // Trigger dialog labels
   trigger_configuration: "Настройка триггера",
   entity_id: "ID сущности",
@@ -2604,10 +2613,7 @@ const RU: Translations = {
   settings_include_history: "Включать историю",
 };
 
-const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES, pt: PT, ru: RU };
-=======
-const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES, pt: PT, ua: UA };
->>>>>>> ua-translation
+const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES, pt: PT, ru: RU, uk: UK };
 
 /** Get a localized string. Falls back to English, then to key. */
 export function t(key: string, lang?: string): string {
@@ -2619,7 +2625,7 @@ export function t(key: string, lang?: string): string {
 function langToLocale(lang?: string): string {
   const l = (lang || "en").substring(0, 2).toLowerCase();
   const map: Record<string, string> = {
-    de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", ua: "ua-UA"
+    de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", uk: "uk-UA"
   };
   return map[l] ?? "en-US";
 }
