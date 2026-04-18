@@ -11,7 +11,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import Event, HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import (
     config_validation as cv,
     device_registry as dr,
@@ -30,7 +30,6 @@ from .const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_GROUPS,
-    CONF_NOTIFICATIONS_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_TASKS,
     DOMAIN,
@@ -535,7 +534,7 @@ def _get_task_id_for_entity(
         return None
 
     # The task_id is the last 32 characters (UUID hex)
-    remainder = unique_id[len(prefix):]
+    _remainder = unique_id[len(prefix):]
     # Find the task_id: last part after the object slug
     # Object slug could have underscores, so we find the task_id
     # by looking at what config entry this entity belongs to

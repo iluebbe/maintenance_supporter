@@ -6,8 +6,6 @@ import logging
 import statistics as py_stats
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any
-
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 

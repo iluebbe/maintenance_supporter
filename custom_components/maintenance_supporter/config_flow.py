@@ -19,7 +19,7 @@ from homeassistant.helpers import selector
 
 from .config_flow_options_global import validate_notify_service
 from .config_flow_trigger import TriggerConfigMixin
-from .templates import TEMPLATE_CATEGORIES, TEMPLATES, ObjectTemplate, get_template_by_id, get_templates_by_category
+from .templates import TEMPLATE_CATEGORIES, ObjectTemplate, get_template_by_id, get_templates_by_category
 from .const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_NOTIFICATIONS_ENABLED,

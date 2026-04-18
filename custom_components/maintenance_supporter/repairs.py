@@ -16,12 +16,11 @@ import voluptuous as vol
 from homeassistant import data_entry_flow
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import issue_registry as ir, selector
+from homeassistant.helpers import selector
 
 from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
 from .const import (
     CONF_TASKS,
-    DOMAIN,
     HistoryEntryType,
     ScheduleType,
 )

@@ -15,7 +15,6 @@ from .const import (
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_ENTITY_LOGIC,
-    DOMAIN,
     GLOBAL_UNIQUE_ID,
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
@@ -318,7 +317,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             if task:
                 task["_trigger_active"] = False
                 task["_trigger_current_value"] = None
-                old_status = task.get("_status")
+                _old_status = task.get("_status")
                 new_status = self._compute_live_status(task)
                 task["_status"] = new_status
                 self.async_write_ha_state()

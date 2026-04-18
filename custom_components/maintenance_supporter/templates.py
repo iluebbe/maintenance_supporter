@@ -49,7 +49,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_it": "Casa & HVAC",
         "name_es": "Hogar & HVAC",
         "name_ru": "Дом и климат",
-        "name_uk": "Житло та кліматичні системи", 
+        "name_uk": "Житло та кліматичні системи",
     },
     "pool": {
         "icon": "mdi:pool",
