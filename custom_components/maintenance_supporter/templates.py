@@ -36,7 +36,11 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fr": "Véhicule",
         "name_it": "Veicolo",
         "name_es": "Vehículo",
+<<<<<<< HEAD
         "name_ru": "Транспорт",
+=======
+        "name_ua": "Транспорт",
+>>>>>>> ua-translation
     },
     "home": {
         "icon": "mdi:home",
@@ -46,7 +50,11 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fr": "Maison & CVC",
         "name_it": "Casa & HVAC",
         "name_es": "Hogar & HVAC",
+<<<<<<< HEAD
         "name_ru": "Дом и климат",
+=======
+        "name_ua": "Житло та кліматичні системи", 
+>>>>>>> ua-translation
     },
     "pool": {
         "icon": "mdi:pool",
@@ -56,7 +64,11 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fr": "Piscine & Jardin",
         "name_it": "Piscina & Giardino",
         "name_es": "Piscina & Jardín",
+<<<<<<< HEAD
         "name_ru": "Бассейн и сад",
+=======
+        "name_ua": "Басейн та сад",
+>>>>>>> ua-translation
     },
     "appliance": {
         "icon": "mdi:washing-machine",
@@ -66,7 +78,11 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_fr": "Appareils ménagers",
         "name_it": "Elettrodomestici",
         "name_es": "Electrodomésticos",
+<<<<<<< HEAD
         "name_ru": "Бытовая техника",
+=======
+        "name_ua": "Побутова техніка",
+>>>>>>> ua-translation
     },
 }
 
