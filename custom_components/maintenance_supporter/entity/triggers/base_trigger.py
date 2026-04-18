@@ -183,6 +183,10 @@ class BaseTrigger(ABC):
                     new_state.state,
                 )
                 self._logged_unavailable = True
+            # Deactivate trigger when entity becomes unavailable
+            if self._triggered:
+                self._triggered = False
+                self._on_trigger_deactivated(self._current_value or 0.0)
             return
 
         # Entity is back to a valid state
