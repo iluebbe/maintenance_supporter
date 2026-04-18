@@ -136,6 +136,13 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "failed": "❌ Failed to send the test notification. Please verify your service configuration.",
         "push_message": "🔧 Test notification — your notification setup is working!",
     },
+    "ru": {
+        "success": "✅ Тестовое уведомление успешно отправлено! Проверьте ваше устройство.",
+        "no_service": "⚠️ Сервис уведомлений не настроен. Сначала настройте сервис в Основных настройках.",
+        "invalid_service": "❌ Неверный формат сервиса уведомлений. Используйте 'notify.имя_сервиса'.",
+        "failed": "❌ Не удалось отправить тестовое уведомление. Проверьте настройки сервиса.",
+        "push_message": "🔧 Тестовое уведомление — ваша система уведомлений работает!",
+    },
 }
 
 
