@@ -178,6 +178,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_title": "Предупреждение о бюджете обслуживания",
         "budget_alert_monthly": "Месячный бюджет: {pct}% ({spent} из {budget})",
         "budget_alert_yearly": "Годовой бюджет: {pct}% ({spent} из {budget})",
+    },
     "uk": {
         "due_soon_title": "Незабаром термін обслуговування",
         "due_soon_message": "{task} для {object} через {days} день(днів) (Термін: {due}).",
