@@ -16,8 +16,6 @@ from ...const import (
     CONF_COMPOUND_LOGIC,
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
-    HistoryEntryType,
-    TriggerType,
 )
 from .base_trigger import BaseTrigger
 

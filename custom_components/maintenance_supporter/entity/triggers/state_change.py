@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,

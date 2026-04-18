@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
-    HistoryEntryType,
 )
 
 _LOGGER = logging.getLogger(__name__)
