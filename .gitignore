@@ -10,6 +10,9 @@ build/
 node_modules/
 frontend-src/node_modules/
 
+# Test artifacts
+test-results/
+
 # IDE
 .vscode/
 .idea/
