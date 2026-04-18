@@ -7,8 +7,8 @@ from .maintenance_task import MaintenanceTask
 from .maintenance_type import PREDEFINED_TYPES, MaintenanceType
 
 __all__ = [
+    "PREDEFINED_TYPES",
     "MaintenanceObject",
     "MaintenanceTask",
     "MaintenanceType",
-    "PREDEFINED_TYPES",
 ]

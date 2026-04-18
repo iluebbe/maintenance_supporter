@@ -47,7 +47,7 @@ def _is_safe_url(url: str | None) -> bool:
     if url.startswith("//"):
         return False
     try:
-        from urllib.parse import urlparse  # noqa: PLC0415
+        from urllib.parse import urlparse
         scheme = urlparse(url).scheme.lower()
         return scheme in _SAFE_URL_SCHEMES
     except Exception:

@@ -457,7 +457,7 @@ class TestEnvironmentalAnalysis:
         base = datetime(2026, 1, 1, tzinfo=timezone.utc)
         history: list[dict[str, str]] = []
         current = base
-        for interval in [0] + intervals:
+        for interval in [0, *intervals]:
             current += timedelta(days=interval)
             history.append({
                 "type": "completed",

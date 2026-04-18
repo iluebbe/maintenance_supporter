@@ -497,7 +497,7 @@ class SensorPredictor:
                     {"mean", "state"},
                 )
             )
-        except (Exception,):  # noqa: BLE001
+        except Exception:
             _LOGGER.debug(
                 "Failed to fetch statistics for %s", entity_id, exc_info=True
             )
@@ -601,7 +601,7 @@ class SensorPredictor:
         mean_x = sum(x_vals) / n
         mean_y = sum(y_vals) / n
 
-        cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(x_vals, y_vals))
+        cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(x_vals, y_vals, strict=True))
         var_x = sum((x - mean_x) ** 2 for x in x_vals)
         var_y = sum((y - mean_y) ** 2 for y in y_vals)
 

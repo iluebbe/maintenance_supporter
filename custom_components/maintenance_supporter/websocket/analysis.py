@@ -31,7 +31,7 @@ async def ws_analyze_interval(
     msg: dict[str, Any],
 ) -> None:
     """Return full interval analysis for a task (on-demand)."""
-    from ..helpers.interval_analyzer import IntervalAnalyzer  # noqa: PLC0415
+    from ..helpers.interval_analyzer import IntervalAnalyzer
 
     entry = hass.config_entries.async_get_entry(msg["entry_id"])
     if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -48,7 +48,7 @@ async def ws_analyze_interval(
     adaptive_config = dict(task_data.get("adaptive_config", {}))
 
     # Inject hemisphere and current month for seasonal awareness
-    from homeassistant.util import dt as dt_util  # noqa: PLC0415
+    from homeassistant.util import dt as dt_util
 
     adaptive_config["hemisphere"] = (
         "south" if hass.config.latitude < 0 else "north"

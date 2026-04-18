@@ -451,7 +451,7 @@ class IntervalAnalyzer:
         n_pts = len(x_vals)
         sum_x = sum(x_vals)
         sum_y = sum(y_vals)
-        sum_xy = sum(x * y for x, y in zip(x_vals, y_vals))
+        sum_xy = sum(x * y for x, y in zip(x_vals, y_vals, strict=True))
         sum_x2 = sum(x * x for x in x_vals)
 
         denom = n_pts * sum_x2 - sum_x * sum_x
@@ -478,7 +478,7 @@ class IntervalAnalyzer:
         ss_tot = sum((y - mean_y) ** 2 for y in y_vals)
         ss_res = sum(
             (y - (beta * x + b)) ** 2
-            for x, y in zip(x_vals, y_vals)
+            for x, y in zip(x_vals, y_vals, strict=True)
         )
         r_squared = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
 

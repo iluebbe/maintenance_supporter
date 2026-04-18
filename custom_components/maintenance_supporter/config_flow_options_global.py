@@ -601,7 +601,7 @@ class GlobalOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """List and manage maintenance groups."""
-        from .const import CONF_GROUPS  # noqa: PLC0415
+        from .const import CONF_GROUPS
 
         current = self._current
         groups = current.get(CONF_GROUPS, {})
@@ -646,7 +646,7 @@ class GlobalOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Add a new maintenance group."""
-        from .const import CONF_GROUPS  # noqa: PLC0415
+        from .const import CONF_GROUPS
 
         if user_input is not None:
             group_name = user_input.get("group_name", "").strip()
@@ -689,7 +689,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     async def _delete_group(self, group_id: str) -> ConfigFlowResult:
         """Delete a group and return to menu."""
-        from .const import CONF_GROUPS  # noqa: PLC0415
+        from .const import CONF_GROUPS
 
         merged = self._current
         groups = dict(merged.get(CONF_GROUPS, {}))

@@ -24,7 +24,7 @@ async def ws_get_groups(
     msg: dict[str, Any],
 ) -> None:
     """Return all maintenance groups."""
-    from ..const import CONF_GROUPS  # noqa: PLC0415
+    from ..const import CONF_GROUPS
 
     global_entry = _get_global_entry(hass)
     if global_entry is None:
@@ -57,7 +57,7 @@ async def ws_create_group(
     msg: dict[str, Any],
 ) -> None:
     """Create a new maintenance group."""
-    from ..const import CONF_GROUPS  # noqa: PLC0415
+    from ..const import CONF_GROUPS
 
     global_entry = _get_global_entry(hass)
     if global_entry is None:
@@ -105,7 +105,7 @@ async def ws_update_group(
     msg: dict[str, Any],
 ) -> None:
     """Update an existing maintenance group."""
-    from ..const import CONF_GROUPS  # noqa: PLC0415
+    from ..const import CONF_GROUPS
 
     global_entry = _get_global_entry(hass)
     if global_entry is None:
@@ -149,7 +149,7 @@ async def ws_delete_group(
     msg: dict[str, Any],
 ) -> None:
     """Delete a maintenance group."""
-    from ..const import CONF_GROUPS  # noqa: PLC0415
+    from ..const import CONF_GROUPS
 
     global_entry = _get_global_entry(hass)
     if global_entry is None:
