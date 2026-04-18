@@ -10,6 +10,43 @@ on:
 permissions: {}
 
 jobs:
+  syntax-and-translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Validate Python syntax
+        run: find custom_components/ -name "*.py" -exec python -m py_compile {} +
+      - name: Validate JSON translations
+        run: |
+          for f in custom_components/maintenance_supporter/translations/*.json; do
+            python -m json.tool "$f" > /dev/null || { echo "INVALID: $f"; exit 1; }
+          done
+          python -m json.tool custom_components/maintenance_supporter/strings.json > /dev/null
+          echo "All JSON files valid."
+      - name: Check translation completeness
+        run: |
+          python -c "
+          import json, sys, pathlib
+          base = pathlib.Path('custom_components/maintenance_supporter/translations')
+          en = json.loads((base / 'en.json').read_text())
+          def count(d):
+              return sum(count(v) if isinstance(v, dict) else 1 for v in d.values())
+          en_count = count(en)
+          ok = True
+          for f in sorted(base.glob('*.json')):
+              n = count(json.loads(f.read_text()))
+              status = 'OK' if n == en_count else 'MISMATCH'
+              print(f'{f.name}: {n} keys ({status})')
+              if n != en_count:
+                  ok = False
+          if not ok:
+              print('ERROR: Translation key counts do not match en.json')
+              sys.exit(1)
+          "
+
   validate-hacs:
     runs-on: ubuntu-latest
     steps:
