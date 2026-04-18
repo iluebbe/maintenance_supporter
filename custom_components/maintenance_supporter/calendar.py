@@ -129,6 +129,21 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "service": "Service",
         "custom": "Custom",
     },
+    "ru": {
+        "type": "Тип",
+        "interval": "Интервал",
+        "interval_days": "{days} дней",
+        "last_performed": "Последнее выполнение",
+        "never": "Никогда",
+        "manually_triggered": "Задача обслуживания запущена вручную",
+        "sensor_triggered": "Триггер датчика активирован для {name}",
+        "cleaning": "Очистка",
+        "inspection": "Осмотр",
+        "replacement": "Замена",
+        "calibration": "Калибровка",
+        "service": "Обслуживание",
+        "custom": "Пользовательский",
+    },
 }
 
 
