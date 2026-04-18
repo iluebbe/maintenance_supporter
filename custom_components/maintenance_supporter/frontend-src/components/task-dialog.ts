@@ -242,7 +242,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.documentation_url = this._documentationUrl || null;
       data.custom_icon = this._customIcon || null;
       data.enabled = this._enabled;
-      if (!this._taskId) data.last_performed = this._lastPerformed || null;
+      data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.responsible_user_id = this._responsibleUserId;
 
