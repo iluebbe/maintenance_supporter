@@ -129,6 +129,21 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "service": "Service",
         "custom": "Custom",
     },
+    "ua": {
+        "type": "Тип",
+        "interval": "Інтервал",
+        "interval_days": "{days} днів",
+        "last_performed": "Останнє виконання",
+        "never": "Ніколи",
+        "manually_triggered": "Завдання обслуговування запущено вручну",
+        "sensor_triggered": "Спрацював сенсорний тригер для {name}",
+        "cleaning": "Очищення",
+        "inspection": "Огляд",
+        "replacement": "Заміна",
+        "calibration": "Калібрування",
+        "service": "Сервіс",
+        "custom": "Власний",
+    },
 }
 
 
