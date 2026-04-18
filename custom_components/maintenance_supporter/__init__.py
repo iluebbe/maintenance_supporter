@@ -533,8 +533,6 @@ def _get_task_id_for_entity(
     if not unique_id.startswith(prefix):
         return None
 
-    # The task_id is the last 32 characters (UUID hex)
-    _remainder = unique_id[len(prefix):]
     # Find the task_id: last part after the object slug
     # Object slug could have underscores, so we find the task_id
     # by looking at what config entry this entity belongs to
