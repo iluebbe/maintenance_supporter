@@ -160,7 +160,6 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_monthly": "Monthly budget at {pct}% ({spent} of {budget})",
         "budget_alert_yearly": "Yearly budget at {pct}% ({spent} of {budget})",
     },
-<<<<<<< HEAD
     "ru": {
         "due_soon_title": "Обслуживание скоро требуется",
         "due_soon_message": "{task} для {object} требуется через {days} дн. (Срок: {due}).",
@@ -179,7 +178,6 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_title": "Предупреждение о бюджете обслуживания",
         "budget_alert_monthly": "Месячный бюджет: {pct}% ({spent} из {budget})",
         "budget_alert_yearly": "Годовой бюджет: {pct}% ({spent} из {budget})",
-=======
     "uk": {
         "due_soon_title": "Незабаром термін обслуговування",
         "due_soon_message": "{task} для {object} через {days} день(днів) (Термін: {due}).",
@@ -198,7 +196,25 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_title": "Попередження про бюджет обслуговування",
         "budget_alert_monthly": "Щомісячний бюджет використано на {pct}% ({spent} з {budget})",
         "budget_alert_yearly": "Щорічний бюджет використано на {pct}% ({spent} з {budget})",
->>>>>>> ua-translation
+    },
+    "pt": {
+        "due_soon_title": "Manutenção em breve",
+        "due_soon_message": "{task} para {object} é necessário em {days} dia(s) (Prazo: {due}).",
+        "overdue_title": "Manutenção atrasada!",
+        "overdue_message": "{task} para {object} está atrasado em {days} dia(s)!",
+        "triggered_title": "Manutenção acionada",
+        "triggered_message": "{task} para {object} foi acionado por dados do sensor.",
+        "action_complete": "Concluir",
+        "action_skip": "Ignorar",
+        "action_snooze": "Adiar",
+        "bundled_title": "Manutenção: {count} tarefas",
+        "bundled_message": "{object}: {task_list}",
+        "bundled_overdue": "{task} (atrasado)",
+        "bundled_due_soon": "{task} (em breve)",
+        "bundled_triggered": "{task} (acionado)",
+        "budget_alert_title": "Alerta de orçamento de manutenção",
+        "budget_alert_monthly": "Orçamento mensal em {pct}% ({spent} de {budget})",
+        "budget_alert_yearly": "Orçamento anual em {pct}% ({spent} de {budget})",
     },
 }
 

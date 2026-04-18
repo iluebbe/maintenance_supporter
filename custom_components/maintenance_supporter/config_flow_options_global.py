@@ -136,21 +136,25 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "failed": "❌ Failed to send the test notification. Please verify your service configuration.",
         "push_message": "🔧 Test notification — your notification setup is working!",
     },
-<<<<<<< HEAD
     "ru": {
         "success": "✅ Тестовое уведомление успешно отправлено! Проверьте ваше устройство.",
         "no_service": "⚠️ Сервис уведомлений не настроен. Сначала настройте сервис в Основных настройках.",
         "invalid_service": "❌ Неверный формат сервиса уведомлений. Используйте 'notify.имя_сервиса'.",
         "failed": "❌ Не удалось отправить тестовое уведомление. Проверьте настройки сервиса.",
         "push_message": "🔧 Тестовое уведомление — ваша система уведомлений работает!",
-=======
     "uk": {
         "success": "✅ Тестове сповіщення успішно надіслано! Перевірте свій пристрій.",
         "no_service": "⚠️ Службу сповіщень не налаштовано. Спочатку вкажіть службу в загальних налаштуваннях.",
         "invalid_service": "❌ Невірний формат служби сповіщень. Використовуйте 'notify.service_name'.",
         "failed": "❌ Не вдалося надіслати тестове сповіщення. Перевірте конфігурацію служби.",
         "push_message": "🔧 Тестове сповіщення — ваші сповіщення працюють!",
->>>>>>> ua-translation
+    },
+    "pt": {
+        "success": "✅ Notificação de teste enviada com sucesso! Verifique o seu dispositivo.",
+        "no_service": "⚠️ Serviço de notificação não configurado. Configure primeiro nas Configurações Gerais.",
+        "invalid_service": "❌ Formato inválido do serviço de notificação. Use 'notify.nome_do_servico'.",
+        "failed": "❌ Falha ao enviar a notificação de teste. Verifique a configuração do serviço.",
+        "push_message": "🔧 Notificação de teste — as suas notificações estão a funcionar!",
     },
 }
 
