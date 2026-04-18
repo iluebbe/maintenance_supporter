@@ -148,7 +148,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-card-editor.ts  (86 lines)
 │   ├── panel-styles.ts            (891 lines)  Panel-specific CSS
 │   ├── statistics-service.ts      (215 lines)  WS statistics cache
-│   ├── styles.ts                (2,676 lines)  Shared CSS, i18n (7 languages), shared helpers
+│   ├── styles.ts                (2,676 lines)  Shared CSS, i18n (9 languages), shared helpers
 │   ├── types.ts                   (286 lines)  TypeScript interfaces
 │   ├── user-service.ts            (125 lines)  HA user list cache
 │   └── components/              (2,145 lines)
@@ -184,7 +184,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt}.json    7 languages (backend config flow)
+└── translations/{en,de,nl,fr,it,es,pt,ru,uk}.json  9 languages (backend config flow)
 ```
 
 ---
@@ -426,7 +426,7 @@ All write commands fire events for subscription updates.
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,429 tests) |
+| test-coverage (>95%) | Silver | Yes (96%, 1,433 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -448,7 +448,7 @@ All write commands fire events for subscription updates.
 
 ## Test Coverage
 
-**1,429 tests** across **69 test files** with **96% code coverage**.
+**1,433 tests** across **70 test files** with **96% code coverage**.
 
 ### Coverage by Module
 

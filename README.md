@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1429_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1433_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -121,7 +121,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **All Objects view**: clickable KPI card shows all objects including empty ones
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
-- Localized UI: English, Spanish, Portuguese, French, German, Italian, Dutch
+- Localized UI: English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian (9 languages)
 
 ### WebSocket API
 - 37 commands for full CRUD operations on objects, tasks, triggers, and groups
