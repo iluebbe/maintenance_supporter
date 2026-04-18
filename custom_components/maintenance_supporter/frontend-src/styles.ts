@@ -2312,7 +2312,7 @@ const UA: Translations = {
   settings_include_history: "Включити історію",
 };
 
-const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES, pt: PT };
+const TRANSLATIONS: Record<string, Translations> = { de: DE, en: EN, nl: NL, fr: FR, it: IT, es: ES, pt: PT, ua: UA };
 
 /** Get a localized string. Falls back to English, then to key. */
 export function t(key: string, lang?: string): string {
@@ -2324,7 +2324,7 @@ export function t(key: string, lang?: string): string {
 function langToLocale(lang?: string): string {
   const l = (lang || "en").substring(0, 2).toLowerCase();
   const map: Record<string, string> = {
-    de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT",
+    de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", ua: "ua-UA"
   };
   return map[l] ?? "en-US";
 }
