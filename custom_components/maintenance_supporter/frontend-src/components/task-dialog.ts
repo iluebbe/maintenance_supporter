@@ -52,6 +52,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _entityDomain = "";
 
   // NFC
+  @state() private _lastPerformed = "";
   @state() private _nfcTagId = "";
   @state() private _availableTags: Array<{id: string; name: string}> = [];
 
@@ -87,6 +88,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
     this._enabled = task.enabled !== false;
+    this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
     this._responsibleUserId = task.responsible_user_id || null;
 
@@ -130,6 +132,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._documentationUrl = "";
     this._customIcon = "";
     this._enabled = true;
+    this._lastPerformed = "";
     this._nfcTagId = "";
     this._responsibleUserId = null;
     this._resetTriggerFields();
@@ -239,6 +242,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.documentation_url = this._documentationUrl || null;
       data.custom_icon = this._customIcon || null;
       data.enabled = this._enabled;
+      data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.responsible_user_id = this._responsibleUserId;
 
@@ -511,6 +515,12 @@ export class MaintenanceTaskDialog extends LitElement {
             type="number"
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
+            label="${t("last_performed_optional", L)}"
+            type="date"
+            .value=${this._lastPerformed}
+            @input=${(e: Event) => (this._lastPerformed = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
           <div class="select-row">
             <label>${t("responsible_user", L)}</label>

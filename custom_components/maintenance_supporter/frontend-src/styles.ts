@@ -116,6 +116,7 @@ const DE: Translations = {
   schedule_type: "Planungsart",
   interval_days: "Intervall (Tage)",
   warning_days: "Warntage",
+  last_performed_optional: "Zuletzt durchgeführt (optional)",
   interval_anchor: "Intervall-Anker",
   anchor_completion: "Ab Erledigung",
   anchor_planned: "Ab geplantem Datum (kein Drift)",
@@ -408,6 +409,7 @@ const EN: Translations = {
   schedule_type: "Schedule type",
   interval_days: "Interval (days)",
   warning_days: "Warning days",
+  last_performed_optional: "Last performed (optional)",
   interval_anchor: "Interval anchor",
   anchor_completion: "From completion date",
   anchor_planned: "From planned date (no drift)",
@@ -699,6 +701,7 @@ const NL: Translations = {
   schedule_type: "Planningstype",
   interval_days: "Interval (dagen)",
   warning_days: "Waarschuwingsdagen",
+  last_performed_optional: "Laatst uitgevoerd (optioneel)",
   interval_anchor: "Interval-anker",
   anchor_completion: "Vanaf voltooiing",
   anchor_planned: "Vanaf geplande datum (geen drift)",
@@ -980,6 +983,7 @@ const FR: Translations = {
   schedule_type: "Type de planification",
   interval_days: "Intervalle (jours)",
   warning_days: "Jours d\u0027avertissement",
+  last_performed_optional: "Dernière exécution (optionnel)",
   interval_anchor: "Ancrage de l\u0027intervalle",
   anchor_completion: "Depuis la date de r\u00E9alisation",
   anchor_planned: "Depuis la date pr\u00E9vue (sans d\u00E9rive)",
@@ -1261,6 +1265,7 @@ const IT: Translations = {
   schedule_type: "Tipo di pianificazione",
   interval_days: "Intervallo (giorni)",
   warning_days: "Giorni di avviso",
+  last_performed_optional: "Ultima esecuzione (opzionale)",
   interval_anchor: "Ancoraggio intervallo",
   anchor_completion: "Dalla data di completamento",
   anchor_planned: "Dalla data pianificata (nessuna deriva)",
@@ -1542,6 +1547,7 @@ const ES: Translations = {
   schedule_type: "Tipo de planificaci\u00F3n",
   interval_days: "Intervalo (d\u00EDas)",
   warning_days: "D\u00EDas de aviso",
+  last_performed_optional: "Última ejecución (opcional)",
   interval_anchor: "Anclaje del intervalo",
   anchor_completion: "Desde la fecha de finalizaci\u00F3n",
   anchor_planned: "Desde la fecha planificada (sin desviaci\u00F3n)",
@@ -1823,6 +1829,7 @@ const PT: Translations = {
   schedule_type: "Tipo de agendamento",
   interval_days: "Intervalo (dias)",
   warning_days: "Dias de aviso",
+  last_performed_optional: "Última execução (opcional)",
   interval_anchor: "Âncora do intervalo",
   anchor_completion: "A partir da data de conclusão",
   anchor_planned: "A partir da data planeada (sem desvio)",
@@ -2038,11 +2045,13 @@ function langToLocale(lang?: string): string {
   return map[l] ?? "en-US";
 }
 
-/** Format a date string (ISO) in the user's locale. */
+/** Format a date string (ISO) in the user's locale.
+ *  Appends T00:00:00 to date-only strings so JS parses them as local time, not UTC. */
 export function formatDate(iso: string | null | undefined, lang?: string): string {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleDateString(langToLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
+    const local = iso.includes("T") ? iso : iso + "T00:00:00";
+    return new Date(local).toLocaleDateString(langToLocale(lang), { day: "2-digit", month: "2-digit", year: "numeric" });
   } catch {
     return iso;
   }
