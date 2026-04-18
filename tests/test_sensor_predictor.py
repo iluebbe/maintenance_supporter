@@ -648,7 +648,13 @@ async def test_fetch_statistics_parses_rows(
         {"start": now.timestamp() - 10800, "mean": None, "state": None},  # No value → skipped
     ]
 
+    mock_instance = MagicMock()
+    mock_instance.async_add_executor_job = AsyncMock(side_effect=lambda fn: fn())
+
     with patch(
+        "homeassistant.components.recorder.get_instance",
+        return_value=mock_instance,
+    ), patch(
         "homeassistant.components.recorder.statistics.statistics_during_period",
         return_value={"sensor.test": mock_rows},
     ):

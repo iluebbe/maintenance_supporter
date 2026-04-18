@@ -252,17 +252,17 @@ async def test_parse_statistics_bad_start_and_bad_value(
         ]
     }
 
-    # Mock async_add_executor_job to return raw_stats directly
-    original_job = hass.async_add_executor_job
+    # Mock recorder's async_add_executor_job to return raw_stats directly
+    from unittest.mock import AsyncMock, patch, MagicMock
 
-    async def mock_executor_job(func: Any, *args: Any) -> Any:
-        return raw_stats
+    mock_instance = MagicMock()
+    mock_instance.async_add_executor_job = AsyncMock(return_value=raw_stats)
 
-    hass.async_add_executor_job = mock_executor_job  # type: ignore[assignment]
-    try:
+    with patch(
+        "homeassistant.components.recorder.get_instance",
+        return_value=mock_instance,
+    ):
         result = await sp._async_fetch_statistics_points("sensor.test", 30)
-    finally:
-        hass.async_add_executor_job = original_job  # type: ignore[assignment]
 
     # Only the valid row should remain
     assert len(result) == 1
