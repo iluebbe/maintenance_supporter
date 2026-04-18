@@ -86,6 +86,7 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 | `area_id` | string | `""` | Home Assistant area to associate the object with |
 | `manufacturer` | string | `""` | Manufacturer name (shown in device info) |
 | `model` | string | `""` | Model name (shown in device info) |
+| `serial_number` | string | `""` | Serial number (shown in device info, redacted in diagnostics) |
 | `installation_date` | date | `""` | Date the object was installed or purchased |
 
 ---

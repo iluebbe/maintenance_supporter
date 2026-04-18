@@ -2,6 +2,58 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.29] - 2026-04-18
+
+### Added
+- **Russian (ru) translation** — contributed by @vmakeev (#19)
+- **Ukrainian (uk) translation** — contributed by @rodion981 (#23)
+- Portuguese (pt) added to all hardcoded Python translation dicts (calendar, notifications, templates)
+- Integration now supports **9 languages**: en, de, es, fr, it, nl, pt, ru, uk
+
+## [1.0.28] - 2026-04-18
+
+### Fixed
+- **Date off by one day for US users (#21)** — date-only strings parsed as UTC caused timezone offset; fixed by parsing as local time
+- **"Last performed" field missing in panel task dialog (#20)** — date picker now available in create/edit dialog
+
+## [1.0.27] - 2026-04-17
+
+### Added
+- **Mobile hamburger menu button (#18)** — standard HA `ha-menu-button` in panel header on narrow screens for sidebar access
+
+## [1.0.26] - 2026-04-17
+
+### Fixed
+- **User dropdown not showing assigned user (#16)** — Lit render timing fix with `?selected` attribute on all `<select>` dropdowns (entity logic, attribute, trigger type, interval anchor, NFC tag, responsible user)
+- **Object detail task sorting (#17)** — tasks now sorted by status + due date, matching overview behavior
+
+## [1.0.25] - 2026-04-17
+
+### Added
+- **Task sorting (#15)** — dropdown with 4 sort modes (due date, object name, type, task name); persisted to localStorage
+- **All Objects view (#13)** — clickable KPI card opens grid of all objects including those without tasks; improved empty state with "Add first task" button
+
+## [1.0.24] - 2026-04-17
+
+### Fixed
+- **Task creation from panel UI (#14)** — `enabled` field added to `ws_create_task` schema
+- **Task reset with date (#12)** — frontend field name `reset_date` → `date` to match backend schema
+- **Type dropdown resets to "cleaning" (#11)** — `?selected` attribute on `<option>` elements for Lit render timing
+
+### Added
+- 3 bug reproduction tests (1,430 → 1,433 tests)
+
+## [1.0.23] - 2026-04-15
+
+### Added
+- **Serial number field (#10)** — optional `serial_number` on MaintenanceObject; displayed in panel, HA Device Registry, JSON/CSV export-import; redacted in diagnostics as PII
+- 1 new diagnostics test (1,429 → 1,430 tests)
+
+## [1.0.22] - 2026-03-16
+
+### Added
+- **Clickable entity IDs** in trigger views — entity IDs in threshold, counter, runtime, state-change triggers, compound conditions, and environmental correlations open HA's "More Info" dialog on click
+
 ## [1.0.21] - 2026-03-16
 
 ### Fixed
