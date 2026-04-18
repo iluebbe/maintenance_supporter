@@ -475,6 +475,7 @@ class SensorPredictor:
         Returns sorted list of (timestamp_seconds, value) tuples.
         """
         try:
+            from homeassistant.components.recorder import get_instance
             from homeassistant.components.recorder.statistics import (
                 statistics_during_period,
             )
@@ -485,7 +486,7 @@ class SensorPredictor:
         start_time = dt_util.now() - timedelta(days=days)
 
         try:
-            result = await self.hass.async_add_executor_job(
+            result = await get_instance(self.hass).async_add_executor_job(
                 lambda: statistics_during_period(
                     self.hass,
                     start_time,
