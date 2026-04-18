@@ -18,9 +18,28 @@ jobs:
           find custom_components/ -name "*.py" -exec python -m py_compile {} +
           echo "All Python files are syntactically valid."
 
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend dependencies
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: npm ci
+      - name: Build frontend
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: node esbuild.mjs
+      - name: Verify build output exists
+        run: |
+          test -f custom_components/maintenance_supporter/frontend/maintenance-panel.js || { echo "FAIL: maintenance-panel.js not built"; exit 1; }
+          test -f custom_components/maintenance_supporter/frontend/maintenance-card.js || { echo "FAIL: maintenance-card.js not built"; exit 1; }
+          echo "Frontend build OK"
+
   pytest:
     runs-on: ubuntu-latest
-    needs: syntax-check
+    needs: [syntax-check, frontend-build]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
