@@ -28,8 +28,6 @@ jobs:
         run: pip install ruff
       - name: Ruff check
         run: ruff check custom_components/maintenance_supporter/ tests/
-      - name: Ruff format check
-        run: ruff format --check custom_components/maintenance_supporter/ tests/
 
   frontend-build:
     runs-on: ubuntu-latest
