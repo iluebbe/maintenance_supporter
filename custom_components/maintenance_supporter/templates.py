@@ -39,7 +39,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
 <<<<<<< HEAD
         "name_ru": "Транспорт",
 =======
-        "name_ua": "Транспорт",
+        "name_uk": "Транспорт",
 >>>>>>> ua-translation
     },
     "home": {
@@ -53,7 +53,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
 <<<<<<< HEAD
         "name_ru": "Дом и климат",
 =======
-        "name_ua": "Житло та кліматичні системи", 
+        "name_uk": "Житло та кліматичні системи", 
 >>>>>>> ua-translation
     },
     "pool": {
@@ -67,7 +67,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
 <<<<<<< HEAD
         "name_ru": "Бассейн и сад",
 =======
-        "name_ua": "Басейн та сад",
+        "name_uk": "Басейн та сад",
 >>>>>>> ua-translation
     },
     "appliance": {
@@ -81,7 +81,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
 <<<<<<< HEAD
         "name_ru": "Бытовая техника",
 =======
-        "name_ua": "Побутова техніка",
+        "name_uk": "Побутова техніка",
 >>>>>>> ua-translation
     },
 }

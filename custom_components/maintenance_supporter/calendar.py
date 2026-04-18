@@ -145,7 +145,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "service": "Обслуживание",
         "custom": "Пользовательский",
 =======
-    "ua": {
+    "uk": {
         "type": "Тип",
         "interval": "Інтервал",
         "interval_days": "{days} днів",
