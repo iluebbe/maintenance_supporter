@@ -1,6 +1,9 @@
 [tool.ruff]
 target-version = "py313"
 line-length = 130
+extend-exclude = [
+    "custom_components/maintenance_supporter/helpers/qrcodegen.py",
+]
 
 [tool.ruff.lint]
 select = [
@@ -18,7 +21,19 @@ ignore = [
     "SIM108", # ternary operator (readability preference)
     "RUF012", # mutable class variables (HA pattern)
     "UP007",  # X | Y union syntax (keep compatibility)
+    "RUF100", # unused noqa directives
+    "RUF059", # unused function parameters (HA callbacks)
+    "RUF015", # unnecessary iterable allocation
+    "SIM117", # combine with statements
+    "SIM102", # collapsible if (readability preference)
+    "B007",   # unused loop variable
+    "UP017",  # use datetime.UTC (keep compat)
+    "I001",   # import sorting (enable after ruff --fix pass)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["F401", "F811", "F841"]
+"tests/conftest.py" = ["F401", "F811"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components.maintenance_supporter"]
