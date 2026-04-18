@@ -143,6 +143,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "calibration": "Калибровка",
         "service": "Обслуживание",
         "custom": "Пользовательский",
+    },
     "uk": {
         "type": "Тип",
         "interval": "Інтервал",
