@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Any
 from uuid import uuid4
 
@@ -93,6 +94,15 @@ _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
     "compound": [],  # conditions validated separately
 }
 
+_TRIGGER_ALLOWED_KEYS: set[str] = {
+    "type", "entity_id", "entity_ids", "entity_logic",
+    "trigger_above", "trigger_below",
+    "trigger_target_value", "trigger_reset_on_complete",
+    "trigger_runtime_hours", "trigger_on_states",
+    "trigger_target_changes",
+    "compound_logic", "conditions",
+}
+
 
 def _validate_trigger_config(
     hass: HomeAssistant,
@@ -177,6 +187,11 @@ def _validate_trigger_config(
                     "trigger_config.trigger_on_states must not be empty "
                     "when provided"
                 )
+
+    # Strip unknown keys to prevent data pollution
+    unknown = set(trigger_config) - _TRIGGER_ALLOWED_KEYS
+    for key in unknown:
+        del trigger_config[key]
 
     return errors, warnings
 
@@ -288,6 +303,11 @@ async def ws_create_task(
     if msg.get("interval_anchor", "completion") != "completion":
         task_data["interval_anchor"] = msg["interval_anchor"]
     if msg.get("last_performed") is not None:
+        try:
+            date.fromisoformat(msg["last_performed"])
+        except (ValueError, TypeError):
+            connection.send_error(msg["id"], "invalid_format", "last_performed must be a valid date (YYYY-MM-DD)")
+            return
         initial_last_performed = msg["last_performed"]
         # Add initial history entry so times_performed reflects the value
         initial_history.append({
@@ -467,6 +487,14 @@ async def ws_update_task(
             nfc_warn = _check_nfc_tag_duplicate(hass, msg["nfc_tag_id"], exclude_task_id=task_id)
             if nfc_warn:
                 tc_warnings.append(nfc_warn)
+
+    # Validate last_performed date format if provided
+    if "last_performed" in msg and msg["last_performed"] is not None:
+        try:
+            date.fromisoformat(msg["last_performed"])
+        except (ValueError, TypeError):
+            connection.send_error(msg["id"], "invalid_format", "last_performed must be a valid date (YYYY-MM-DD)")
+            return
 
     # Validate documentation_url if provided
     if "documentation_url" in msg and not _is_safe_url(msg["documentation_url"]):

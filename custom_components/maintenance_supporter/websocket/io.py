@@ -287,6 +287,21 @@ async def ws_import_json(
                 if val is not None:
                     task_data[key] = val
 
+            # Sanitize critical fields from import data
+            iv = task_data.get("interval_days")
+            if iv is not None and (not isinstance(iv, int) or iv < 1):
+                task_data.pop("interval_days", None)
+            lp = task_data.get("last_performed")
+            if lp is not None:
+                try:
+                    from datetime import date
+                    date.fromisoformat(lp)
+                except (ValueError, TypeError):
+                    task_data.pop("last_performed", None)
+            wd = task_data.get("warning_days")
+            if not isinstance(wd, int) or wd < 0 or wd > 365:
+                task_data["warning_days"] = 7
+
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
 

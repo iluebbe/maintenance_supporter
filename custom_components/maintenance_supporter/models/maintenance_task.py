@@ -80,7 +80,7 @@ class MaintenanceTask:
           - Completed March 5 → next due: March 31 (not April 4)
           - If the task has not been completed, the date may be in the past, correctly showing OVERDUE status.
         """
-        if self.interval_days is None:
+        if not self.interval_days or self.interval_days <= 0:
             return None
         if self.last_performed is None:
             return dt_util.now().date()
@@ -133,7 +133,8 @@ class MaintenanceTask:
 
         if days < 0:
             return MaintenanceStatus.OVERDUE
-        if days <= self.warning_days:
+        effective_warning = min(self.warning_days, self.interval_days) if self.interval_days else self.warning_days
+        if days <= effective_warning:
             return MaintenanceStatus.DUE_SOON
         return MaintenanceStatus.OK
 
