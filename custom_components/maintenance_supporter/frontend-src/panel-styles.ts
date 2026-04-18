@@ -25,6 +25,10 @@ export const panelStyles = css`
     font-size: 16px;
   }
 
+  .header ha-menu-button {
+    margin-right: 4px;
+    color: var(--app-header-text-color, white);
+  }
   .header ha-icon-button {
     --mdc-icon-button-size: 36px;
     --mdc-icon-size: 20px;

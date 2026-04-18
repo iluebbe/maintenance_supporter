@@ -998,6 +998,10 @@ var jt=Object.defineProperty;var Dt=Object.getOwnPropertyDescriptor;var _=(r,a,e
     font-size: 16px;
   }
 
+  .header ha-menu-button {
+    margin-right: 4px;
+    color: var(--app-header-text-color, white);
+  }
   .header ha-icon-button {
     --mdc-icon-button-size: 36px;
     --mdc-icon-size: 20px;
@@ -3336,6 +3340,7 @@ ${J}`,e.setTooltip)}
       ${this._toastMessage?l`<div class="toast">${this._toastMessage}</div>`:c}
     `}_renderHeader(){let e=[{label:n("maintenance",this._lang),action:()=>this._showOverview()}];if(this._view==="object"&&this._selectedEntryId){let t=this._getObject(this._selectedEntryId);e.push({label:t?.object.name||"Object"})}if(this._view==="task"&&this._selectedEntryId&&this._selectedTaskId){let t=this._getObject(this._selectedEntryId);e.push({label:t?.object.name||"Object",action:()=>this._showObject(this._selectedEntryId)});let i=this._getTask(this._selectedEntryId,this._selectedTaskId);e.push({label:i?.name||"Task"})}return l`
       <div class="header">
+        ${this.narrow?l`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>`:c}
         ${this._view!=="overview"?l`<ha-icon-button
               .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
               @click=${()=>{this._view==="task"?this._showObject(this._selectedEntryId):this._showOverview()}}

@@ -610,6 +610,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="header">
+        ${this.narrow ? html`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>` : nothing}
         ${this._view !== "overview"
           ? html`<ha-icon-button
               .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
