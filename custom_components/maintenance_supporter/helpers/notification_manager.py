@@ -160,6 +160,25 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "budget_alert_monthly": "Monthly budget at {pct}% ({spent} of {budget})",
         "budget_alert_yearly": "Yearly budget at {pct}% ({spent} of {budget})",
     },
+    "ua": {
+        "due_soon_title": "Незабаром термін обслуговування",
+        "due_soon_message": "{task} для {object} через {days} день(днів) (Термін: {due}).",
+        "overdue_title": "Обслуговування прострочено!",
+        "overdue_message": "{task} для {object} прострочено на {days} день(днів)!",
+        "triggered_title": "Обслуговування спрацювало",
+        "triggered_message": "{task} для {object} спрацювало за даними сенсора.",
+        "action_complete": "Виконати",
+        "action_skip": "Пропустити",
+        "action_snooze": "Відкласти",
+        "bundled_title": "Обслуговування: {count} завдань",
+        "bundled_message": "{object}: {task_list}",
+        "bundled_overdue": "{task} (прострочено)",
+        "bundled_due_soon": "{task} (незабаром)",
+        "bundled_triggered": "{task} (спрацювало)",
+        "budget_alert_title": "Попередження про бюджет обслуговування",
+        "budget_alert_monthly": "Щомісячний бюджет використано на {pct}% ({spent} з {budget})",
+        "budget_alert_yearly": "Щорічний бюджет використано на {pct}% ({spent} з {budget})",
+    },
 }
 
 
