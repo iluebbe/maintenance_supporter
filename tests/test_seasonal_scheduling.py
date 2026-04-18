@@ -316,7 +316,7 @@ class TestAnalyzeWithSeasonal:
         base = datetime(2024, 1, 1)
         # Generate ~24 completions spanning 2 years with seasonal pattern
         current = base
-        for i in range(24):
+        for _ in range(24):
             dates.append(current.strftime("%Y-%m-%d"))
             month = current.month
             if month in [6, 7, 8]:  # Summer: every 14 days
@@ -384,7 +384,7 @@ class TestAnalyzeWithSeasonal:
         dates = []
         base = datetime(2024, 1, 1)
         current = base
-        for i in range(20):
+        for _ in range(20):
             dates.append(current.strftime("%Y-%m-%d"))
             current += timedelta(days=30)
         history = _make_history_with_feedback(dates)

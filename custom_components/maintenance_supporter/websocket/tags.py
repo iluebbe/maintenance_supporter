@@ -35,7 +35,7 @@ async def ws_list_tags(
                 tag_id = item.get("id", "") if isinstance(item, dict) else getattr(item, "id", "")
                 tag_name = item.get("name", "") if isinstance(item, dict) else getattr(item, "name", "")
                 tags.append({"id": tag_id, "name": tag_name or tag_id})
-        except Exception:  # noqa: BLE001
+        except Exception:
             _LOGGER.warning("Failed to read NFC tag registry", exc_info=True)
 
     connection.send_result(msg["id"], {"tags": tags})

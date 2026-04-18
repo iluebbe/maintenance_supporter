@@ -55,7 +55,7 @@ def build_qr_url(
                 raise ValueError(
                     "No Home Assistant URL configured. "
                     "Set an external or internal URL in Settings → System → Network."
-                )
+                ) from None
 
     params: dict[str, str] = {"entry_id": entry_id}
     if task_id:

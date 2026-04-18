@@ -120,7 +120,7 @@ def serialize_export(data: dict[str, Any], fmt: str = "json") -> str:
     """
     if fmt == "yaml":
         try:
-            import yaml  # type: ignore[import-untyped]  # noqa: PLC0415
+            import yaml  # type: ignore[import-untyped]
 
             return str(yaml.safe_dump(data, default_flow_style=False, allow_unicode=True))
         except ImportError:

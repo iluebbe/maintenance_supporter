@@ -289,7 +289,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                     1,
                                     int(si * env.adjustment_factor),
                                 )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     _LOGGER.debug(
                         "Sensor prediction failed for task %s",
                         task_id,
@@ -306,7 +306,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # the NotificationManager's _last_notified to avoid a burst of stale
         # alerts while still allowing future repeat reminders.
         if not self._previous_statuses:
-            from .helpers.notification_manager import NotificationManager  # noqa: PLC0415
+            from .helpers.notification_manager import NotificationManager
 
             nm = self.hass.data.get(DOMAIN, {}).get("_notification_manager")
             notify_statuses = {

@@ -199,7 +199,7 @@ async def ws_get_statistics(
         tasks_data = entry.data.get(CONF_TASKS, {})
         total_tasks += len(tasks_data)
 
-        for tid, ct in ct_tasks.items():
+        for _tid, ct in ct_tasks.items():
             status = ct.get("_status", "ok")
             if status == "overdue":
                 overdue += 1
@@ -296,9 +296,9 @@ async def ws_get_budget_status(
     msg: dict[str, Any],
 ) -> None:
     """Return current budget status (monthly/yearly spent vs budget)."""
-    from datetime import datetime as dt_cls  # noqa: PLC0415
+    from datetime import datetime as dt_cls
 
-    from homeassistant.util import dt as dt_util  # noqa: PLC0415
+    from homeassistant.util import dt as dt_util
 
     global_entry = _get_global_entry(hass)
     global_options: Mapping[str, Any] = (
@@ -438,7 +438,7 @@ async def ws_update_global_settings(
 
     # Validate notify_service if provided
     if CONF_NOTIFY_SERVICE in filtered:
-        from ..config_flow_options_global import validate_notify_service  # noqa: PLC0415
+        from ..config_flow_options_global import validate_notify_service
 
         normalized, error = validate_notify_service(filtered[CONF_NOTIFY_SERVICE])
         if error:
@@ -472,7 +472,7 @@ async def ws_test_notification(
     msg: dict[str, Any],
 ) -> None:
     """Send a test notification using the configured service."""
-    from ..config_flow_options_global import (  # noqa: PLC0415
+    from ..config_flow_options_global import (
         _get_test_result_text,
         validate_notify_service,
     )

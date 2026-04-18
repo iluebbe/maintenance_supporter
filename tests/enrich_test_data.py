@@ -204,7 +204,7 @@ def generate_family_car_tire_rotation():
         (datetime(2026, 2, 9, 10, 0, tzinfo=TZ),   140, 55.0, 40, "not_sure",   "Early rotation, new tires on rear"),
     ]
 
-    for i, (dt, interval, cost, duration, feedback, notes) in enumerate(scenarios):
+    for _i, (dt, _interval, cost, duration, feedback, notes) in enumerate(scenarios):
         if notes is None:
             # This is a skip entry
             history.append(make_skipped(dt, notes="Postponed - tires still look fine"))
@@ -364,7 +364,7 @@ def generate_washing_machine_drum_cleaning():
 
 def main():
     print("Reading HA config entries storage...")
-    with open(STORAGE_PATH, "r") as f:
+    with open(STORAGE_PATH) as f:
         storage = json.load(f)
 
     entries = storage.get("data", {}).get("entries", [])
@@ -462,7 +462,7 @@ def main():
         title = entry.get("title", "")
         if title in task_map:
             tasks_dict = {}
-            for tname, tinfo in task_map[title]["tasks"].items():
+            for _tname, tinfo in task_map[title]["tasks"].items():
                 tasks_dict[tinfo["id"]] = tinfo["data"]
             entry["data"]["tasks"] = tasks_dict
 

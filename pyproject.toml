@@ -21,29 +21,20 @@ ignore = [
     "SIM108", # ternary operator (readability preference)
     "RUF012", # mutable class variables (HA pattern)
     "UP007",  # X | Y union syntax (keep compatibility)
-    "RUF100", # unused noqa directives
     "RUF059", # unused function parameters (HA callbacks)
     "RUF015", # unnecessary iterable allocation
     "SIM117", # combine with statements
     "SIM102", # collapsible if (readability preference)
-    "B007",   # unused loop variable
-    "UP017",  # use datetime.UTC (keep compat)
+    "UP017",  # use datetime.UTC (16 occurrences, enable after bulk fix)
     "I001",   # import sorting (enable after ruff --fix pass)
     "RUF001", # ambiguous unicode (Cyrillic in translations)
     "RUF002", # ambiguous unicode in docstrings
     "RUF003", # ambiguous unicode in comments
-    "RUF005", # collection concatenation
-    "RUF019", # unnecessary key check
-    "RUF022", # unsorted __all__
-    "B905",   # zip without strict
-    "B904",   # raise from in except
-    "B013",   # length-one tuple in except
-    "B011",   # assert False
+    "B011",   # assert False (test pattern)
     "SIM103", # return bool directly
     "SIM105", # contextlib.suppress
     "SIM114", # combine if branches
     "SIM118", # key in dict vs dict.keys()
-    "UP015",  # unnecessary open mode
     "F541",   # f-string without placeholders
     "E402",   # module-level import not at top
 ]

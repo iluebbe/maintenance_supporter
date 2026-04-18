@@ -174,7 +174,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def _handle_export(call: ServiceCall) -> None:
         """Handle the export_data service call."""
-        from .export import build_export_data, serialize_export_to_file  # noqa: PLC0415
+        from .export import build_export_data, serialize_export_to_file
 
         fmt = call.data.get("format", "json")
         include_history = call.data.get("include_history", True)
@@ -421,7 +421,7 @@ async def async_setup_entry(
         await coordinator.async_config_entry_first_refresh()
 
         # Notify WS subscribers that a new object entry is available
-        from homeassistant.helpers.dispatcher import async_dispatcher_send  # noqa: PLC0415
+        from homeassistant.helpers.dispatcher import async_dispatcher_send
 
         async_dispatcher_send(hass, SIGNAL_NEW_OBJECT_ENTRY, entry.entry_id)
 

@@ -87,7 +87,7 @@ async def ws_export_data(
     msg: dict[str, Any],
 ) -> None:
     """Export all maintenance data as JSON or YAML."""
-    from ..export import build_export_data, serialize_export  # noqa: PLC0415
+    from ..export import build_export_data, serialize_export
 
     fmt = msg.get("format", "json")
     include_history = msg.get("include_history", True)
@@ -111,7 +111,7 @@ async def ws_export_csv(
     msg: dict[str, Any],
 ) -> None:
     """Export all maintenance data as CSV."""
-    from ..helpers.csv_handler import export_objects_csv  # noqa: PLC0415
+    from ..helpers.csv_handler import export_objects_csv
 
     csv_data = export_objects_csv(hass)
     connection.send_result(msg["id"], {"csv": csv_data})
@@ -131,7 +131,7 @@ async def ws_import_csv(
     msg: dict[str, Any],
 ) -> None:
     """Import maintenance objects from CSV content."""
-    from ..helpers.csv_handler import import_objects_csv  # noqa: PLC0415
+    from ..helpers.csv_handler import import_objects_csv
 
     csv_content = msg["csv_content"]
     # Guard against oversized payloads (max 1MB / 1000 objects)
@@ -169,7 +169,7 @@ async def ws_import_csv(
                     CONF_TASKS: obj_data["tasks"],
                 },
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             obj_name = obj_data.get("object", {}).get("name", f"row {idx + 1}")
             _LOGGER.exception("CSV import failed for %s", obj_name)
             errors.append({"name": obj_name, "reason": "unexpected error"})
@@ -323,7 +323,7 @@ async def ws_import_json(
                     CONF_TASKS: import_tasks,
                 },
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             _LOGGER.exception("JSON import failed for %s", obj_name)
             errors.append({"name": obj_name, "reason": "unexpected error"})
             continue
@@ -396,7 +396,7 @@ async def ws_generate_qr(
     except ValueError as err:
         connection.send_error(msg["id"], "no_url", str(err))
         return
-    from functools import partial  # noqa: PLC0415
+    from functools import partial
 
     icon = _ACTION_ICON_MAP.get(action)
     gen_fn = partial(generate_qr_svg_data_uri, url, border=2, icon=icon)

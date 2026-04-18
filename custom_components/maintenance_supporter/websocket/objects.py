@@ -103,7 +103,7 @@ async def ws_create_object(
     # Validate installation_date format if provided
     installation_date = msg.get("installation_date")
     if installation_date:
-        from datetime import date as date_cls  # noqa: PLC0415
+        from datetime import date as date_cls
 
         try:
             date_cls.fromisoformat(installation_date)
@@ -178,16 +178,16 @@ async def ws_update_object(
             return
 
     # Strip manufacturer/model/serial_number
-    if "manufacturer" in msg and msg["manufacturer"]:
+    if msg.get("manufacturer"):
         msg["manufacturer"] = msg["manufacturer"].strip() or None
-    if "model" in msg and msg["model"]:
+    if msg.get("model"):
         msg["model"] = msg["model"].strip() or None
-    if "serial_number" in msg and msg["serial_number"]:
+    if msg.get("serial_number"):
         msg["serial_number"] = msg["serial_number"].strip() or None
 
     # Validate installation_date format if provided
-    if "installation_date" in msg and msg["installation_date"]:
-        from datetime import date as date_cls  # noqa: PLC0415
+    if msg.get("installation_date"):
+        from datetime import date as date_cls
 
         try:
             date_cls.fromisoformat(msg["installation_date"])

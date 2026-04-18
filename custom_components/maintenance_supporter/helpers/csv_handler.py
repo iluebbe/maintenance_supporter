@@ -176,7 +176,7 @@ def import_objects_csv(
             task_data["enabled"] = False
         doc_url = (row.get("documentation_url") or "").strip()
         if doc_url:
-            from urllib.parse import urlparse  # noqa: PLC0415
+            from urllib.parse import urlparse
             scheme = urlparse(doc_url).scheme.lower()
             if scheme in ("", "http", "https"):
                 task_data["documentation_url"] = doc_url

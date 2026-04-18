@@ -243,7 +243,10 @@ def cleanup_group_refs(
 # Re-exports for backward compatibility (used by tests)
 # ---------------------------------------------------------------------------
 
-from .tasks import _validate_compound_trigger, _validate_trigger_config  # noqa: E402, F401
+from .tasks import (  # noqa: F401
+    _validate_compound_trigger,
+    _validate_trigger_config,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -254,13 +257,13 @@ from .tasks import _validate_compound_trigger, _validate_trigger_config  # noqa:
 @callback
 def async_register_commands(hass: HomeAssistant) -> None:
     """Register all WebSocket commands."""
-    from .analysis import (  # noqa: PLC0415
+    from .analysis import (
         ws_analyze_interval,
         ws_apply_suggestion,
         ws_seasonal_overrides,
         ws_set_environmental_entity,
     )
-    from .dashboard import (  # noqa: PLC0415
+    from .dashboard import (
         ws_get_budget_status,
         ws_get_settings,
         ws_get_statistics,
@@ -268,13 +271,13 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_test_notification,
         ws_update_global_settings,
     )
-    from .groups import (  # noqa: PLC0415
+    from .groups import (
         ws_create_group,
         ws_delete_group,
         ws_get_groups,
         ws_update_group,
     )
-    from .io import (  # noqa: PLC0415
+    from .io import (
         ws_export_csv,
         ws_export_data,
         ws_generate_qr,
@@ -282,7 +285,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_import_csv,
         ws_import_json,
     )
-    from .objects import (  # noqa: PLC0415
+    from .objects import (
         ws_create_object,
         ws_delete_object,
         ws_entity_attributes,
@@ -290,7 +293,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_get_objects,
         ws_update_object,
     )
-    from .tasks import (  # noqa: PLC0415
+    from .tasks import (
         ws_complete_task,
         ws_create_task,
         ws_delete_task,
@@ -299,8 +302,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_skip_task,
         ws_update_task,
     )
-    from .tags import ws_list_tags  # noqa: PLC0415
-    from .users import ws_assign_user, ws_list_users, ws_tasks_by_user  # noqa: PLC0415
+    from .tags import ws_list_tags
+    from .users import ws_assign_user, ws_list_users, ws_tasks_by_user
 
     websocket_api.async_register_command(hass, ws_get_objects)
     websocket_api.async_register_command(hass, ws_get_object)
