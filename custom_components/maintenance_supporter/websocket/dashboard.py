@@ -49,7 +49,6 @@ from ..const import (
     CONF_SNOOZE_DURATION_HOURS,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     SIGNAL_NEW_OBJECT_ENTRY,
 )
 from . import (

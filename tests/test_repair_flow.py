@@ -449,7 +449,7 @@ async def test_delete_task_cleans_up_repair_issues(
     mock_conn.send_result = MagicMock()
     mock_conn.send_error = MagicMock()
 
-    await call_ws_handler(ws_delete_task, 
+    await call_ws_handler(ws_delete_task,
         hass, mock_conn,
         {"id": 1, "type": "maintenance_supporter/task/delete",
          "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
