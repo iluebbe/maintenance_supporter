@@ -14,9 +14,22 @@ jobs:
           python-version: "3.14"
       - name: Validate Python syntax
         run: |
-          echo "Checking all Python files for syntax errors..."
-          find custom_components/ -name "*.py" -exec python -m py_compile {} +
-          echo "All Python files are syntactically valid."
+          find custom_components/ tests/ -name "*.py" -exec python -m py_compile {} +
+          echo "All Python files syntactically valid."
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Ruff check
+        run: ruff check custom_components/maintenance_supporter/ tests/
+      - name: Ruff format check
+        run: ruff format --check custom_components/maintenance_supporter/ tests/
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -31,24 +44,25 @@ jobs:
       - name: Build frontend
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: node esbuild.mjs
-      - name: Verify build output exists
+      - name: Verify build output
         run: |
-          test -f custom_components/maintenance_supporter/frontend/maintenance-panel.js || { echo "FAIL: maintenance-panel.js not built"; exit 1; }
-          test -f custom_components/maintenance_supporter/frontend/maintenance-card.js || { echo "FAIL: maintenance-card.js not built"; exit 1; }
-          echo "Frontend build OK"
+          test -f custom_components/maintenance_supporter/frontend/maintenance-panel.js || exit 1
+          test -f custom_components/maintenance_supporter/frontend/maintenance-card.js || exit 1
 
   pytest:
     runs-on: ubuntu-latest
-    needs: [syntax-check, frontend-build]
+    needs: [syntax-check, lint]
+    strategy:
+      matrix:
+        python-version: ["3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          pip install pytest pytest-cov pytest-homeassistant-custom-component mypy
+        run: pip install pytest pytest-cov pytest-homeassistant-custom-component mypy
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       - name: Run tests
-        run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing
+        run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=90

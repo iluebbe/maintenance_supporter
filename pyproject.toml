@@ -1,0 +1,27 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 130
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "SIM108", # ternary operator (readability preference)
+    "RUF012", # mutable class variables (HA pattern)
+    "UP007",  # X | Y union syntax (keep compatibility)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components.maintenance_supporter"]
+
+[tool.ruff.format]
+quote-style = "double"
