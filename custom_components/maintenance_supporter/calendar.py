@@ -129,7 +129,6 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "service": "Service",
         "custom": "Custom",
     },
-<<<<<<< HEAD
     "ru": {
         "type": "Тип",
         "interval": "Интервал",
@@ -144,7 +143,6 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "calibration": "Калибровка",
         "service": "Обслуживание",
         "custom": "Пользовательский",
-=======
     "uk": {
         "type": "Тип",
         "interval": "Інтервал",
@@ -159,7 +157,21 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "calibration": "Калібрування",
         "service": "Сервіс",
         "custom": "Власний",
->>>>>>> ua-translation
+    },
+    "pt": {
+        "type": "Tipo",
+        "interval": "Intervalo",
+        "interval_days": "{days} dias",
+        "last_performed": "Última execução",
+        "never": "Nunca",
+        "manually_triggered": "Tarefa de manutenção acionada manualmente",
+        "sensor_triggered": "Gatilho do sensor ativado para {name}",
+        "cleaning": "Limpeza",
+        "inspection": "Inspeção",
+        "replacement": "Substituição",
+        "calibration": "Calibração",
+        "service": "Serviço",
+        "custom": "Personalizado",
     },
 }
 
