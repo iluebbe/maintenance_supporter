@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.33] - 2026-04-19
+
+### Fixed
+- **Compound triggers: missing entities now create repair issues** — `normalize_entity_ids()` was flat-only, so deleted sensors referenced by compound trigger conditions were silently ignored. Now recursively collects entity IDs from all conditions (with dedup, preserving order)
+- Removed duplicate compound-unpacking workaround in `_build_task_summary`
+
+### Tests
+- 6 new tests for `normalize_entity_ids` compound cases (collect, dedup, nested trigger_config, multi-entity, empty, missing conditions)
+- 2 new coordinator tests for compound missing-entity repair-issue creation
+
 ## [1.0.32] - 2026-04-19
 
 ### Fixed
