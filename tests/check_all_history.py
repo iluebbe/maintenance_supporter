@@ -1,6 +1,7 @@
 """Check history data for ALL tasks."""
 import asyncio
 import os
+
 import aiohttp
 
 TOKEN = os.environ["HA_TOKEN"]

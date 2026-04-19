@@ -11,7 +11,6 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry

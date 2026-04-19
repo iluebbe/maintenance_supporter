@@ -3,22 +3,18 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.const import (
-    CONF_TASKS,
     DOMAIN,
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
     MaintenanceStatus,
-    ScheduleType,
     TriggerType,
 )
 from custom_components.maintenance_supporter.entity.triggers import (
@@ -51,7 +47,6 @@ from .conftest import (
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 

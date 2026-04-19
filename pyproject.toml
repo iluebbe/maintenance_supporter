@@ -25,8 +25,6 @@ ignore = [
     "RUF015", # unnecessary iterable allocation
     "SIM117", # combine with statements
     "SIM102", # collapsible if (readability preference)
-    "UP017",  # use datetime.UTC (16 occurrences, enable after bulk fix)
-    "I001",   # import sorting (enable after ruff --fix pass)
     "RUF001", # ambiguous unicode (Cyrillic in translations)
     "RUF002", # ambiguous unicode in docstrings
     "RUF003", # ambiguous unicode in comments

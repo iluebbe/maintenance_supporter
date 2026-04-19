@@ -1,6 +1,7 @@
 """Quick check of adaptive scheduling state."""
 import asyncio
 import os
+
 import aiohttp
 
 TOKEN = os.environ["HA_TOKEN"]

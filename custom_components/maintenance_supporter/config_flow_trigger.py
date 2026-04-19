@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant, State
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
 
@@ -58,7 +57,6 @@ from .const import (
     ScheduleType,
     TriggerType,
 )
-
 
 # Domains allowed for trigger entity selection.
 # Includes all domains from entity_attributes.DOMAIN_ATTRIBUTE_MAP plus

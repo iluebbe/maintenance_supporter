@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
@@ -24,7 +23,6 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
     ScheduleType,
-    TriggerEntityState,
 )
 
 from .conftest import (
@@ -36,7 +34,6 @@ from .conftest import (
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
 

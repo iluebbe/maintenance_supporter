@@ -13,17 +13,13 @@ import logging
 import time
 from datetime import date, timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant, State
-from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     slugify_object_name,
@@ -40,15 +36,14 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 from custom_components.maintenance_supporter.websocket.io import ws_import_csv, ws_import_json
 
 from .conftest import (
-    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
     setup_integration,
 )
-
 
 # ─── Fix A: NaN/Infinity guard in _get_numeric_value ─────────────────
 

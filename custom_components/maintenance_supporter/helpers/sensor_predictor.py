@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.util import dt as dt_util
+
 from ..const import (
     DEFAULT_DEGRADATION_LOOKBACK_DAYS,
     DEFAULT_DEGRADATION_MIN_POINTS,
@@ -25,8 +27,6 @@ from ..const import (
     DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS,
     DEFAULT_ENVIRONMENTAL_MIN_COMPLETIONS,
 )
-
-from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -475,7 +475,9 @@ class SensorPredictor:
         Returns sorted list of (timestamp_seconds, value) tuples.
         """
         try:
-            from homeassistant.components.recorder import get_instance  # type: ignore[attr-defined]
+            from homeassistant.components.recorder import (
+                get_instance,  # type: ignore[attr-defined]
+            )
             from homeassistant.components.recorder.statistics import (
                 statistics_during_period,
             )

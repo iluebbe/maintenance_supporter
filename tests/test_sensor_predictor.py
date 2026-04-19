@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 
 from custom_components.maintenance_supporter.helpers.sensor_predictor import (
     DegradationAnalysis,
-    EnvironmentalAnalysis,
     SensorPredictor,
-    ThresholdPrediction,
 )
-
 
 # ─── SensorPredictor._linear_regression ──────────────────────────────
 
@@ -445,7 +440,7 @@ async def test_analyze_with_degradation(
 ) -> None:
     """Test full async_analyze with degradation data from recorder."""
     # Generate enough data points (> DEFAULT_DEGRADATION_MIN_POINTS=5)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_points = [
         (now.timestamp() - i * 3600, 20.0 + i * 0.1)
         for i in range(20)
@@ -506,7 +501,7 @@ async def test_analyze_with_environmental(
     """Test async_analyze with environmental entity."""
     hass.states.async_set("sensor.humidity", "65")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     task_points = [(now.timestamp() - i * 3600, 20.0 + i * 0.1) for i in range(20)]
     task_points.reverse()
 
@@ -566,7 +561,7 @@ async def test_compute_degradation_trend_classification(
     predictor: SensorPredictor,
 ) -> None:
     """Test degradation trend classification: stable, rising, falling."""
-    now_ts = datetime.now(timezone.utc).timestamp()
+    now_ts = datetime.now(UTC).timestamp()
 
     # Stable: very small slope relative to mean
     stable_points = [
@@ -639,7 +634,7 @@ async def test_fetch_statistics_parses_rows(
     hass: HomeAssistant, predictor: SensorPredictor,
 ) -> None:
     """Test fetch statistics parses different row formats."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     mock_rows = [
         {"start": now.timestamp(), "mean": 25.0},
         {"start": int(now.timestamp() - 3600), "state": 20.0},  # int start, state value
@@ -692,7 +687,7 @@ async def test_environmental_insufficient_completions(
 ) -> None:
     """Test environmental analysis with < 2 completions."""
     hass.states.async_set("sensor.env", "25")
-    now_ts = datetime.now(timezone.utc).timestamp()
+    now_ts = datetime.now(UTC).timestamp()
     env_points = [(now_ts - i * 3600, 20.0) for i in range(20)]
 
     with patch.object(
@@ -701,7 +696,7 @@ async def test_environmental_insufficient_completions(
     ):
         result = await predictor._async_analyze_environmental(
             "sensor.env", None,
-            {"history": [{"type": "completed", "timestamp": datetime.now(timezone.utc).isoformat()}]},
+            {"history": [{"type": "completed", "timestamp": datetime.now(UTC).isoformat()}]},
         )
 
     assert result.has_sufficient_data is False
@@ -712,7 +707,7 @@ async def test_environmental_with_sufficient_data(
 ) -> None:
     """Test environmental analysis with sufficient data computes correlation."""
     hass.states.async_set("sensor.env", "30")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     now_ts = now.timestamp()
 
     # Generate env points covering 90 days (one per day)
@@ -746,7 +741,7 @@ async def test_environmental_attribute_based(
 ) -> None:
     """Test environmental analysis reads from attribute."""
     hass.states.async_set("sensor.device", "on", {"temperature": 28.5})
-    now_ts = datetime.now(timezone.utc).timestamp()
+    now_ts = datetime.now(UTC).timestamp()
     env_points = [(now_ts - i * 3600, 20.0) for i in range(5)]
 
     with patch.object(
@@ -766,7 +761,7 @@ async def test_environmental_non_numeric_value(
 ) -> None:
     """Test environmental analysis with non-numeric state."""
     hass.states.async_set("sensor.env", "not_a_number")
-    now_ts = datetime.now(timezone.utc).timestamp()
+    now_ts = datetime.now(UTC).timestamp()
     env_points = [(now_ts - i * 3600, 20.0) for i in range(5)]
 
     with patch.object(

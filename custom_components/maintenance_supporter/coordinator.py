@@ -19,12 +19,12 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    BUDGET_CURRENCIES,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
-    BUDGET_CURRENCIES,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
@@ -644,8 +644,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Check if bundling is enabled and threshold met
         from .const import (
-            CONF_NOTIFICATION_BUNDLING_ENABLED,
             CONF_NOTIFICATION_BUNDLE_THRESHOLD,
+            CONF_NOTIFICATION_BUNDLING_ENABLED,
             GLOBAL_UNIQUE_ID,
         )
 

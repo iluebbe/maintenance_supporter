@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 import statistics as py_stats
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
@@ -109,7 +110,9 @@ class EntityAnalyzer:
     async def _async_fetch_statistics(self, entity_id: str) -> StatisticsInfo | None:
         """Fetch long-term statistics from the HA recorder."""
         try:
-            from homeassistant.components.recorder import get_instance  # type: ignore[attr-defined]
+            from homeassistant.components.recorder import (
+                get_instance,  # type: ignore[attr-defined]
+            )
             from homeassistant.components.recorder.statistics import (
                 statistics_during_period,
             )
@@ -117,7 +120,7 @@ class EntityAnalyzer:
             _LOGGER.debug("Recorder statistics module not available")
             return None
 
-        start_time = datetime.now(timezone.utc) - timedelta(days=_STATISTICS_LOOKBACK_DAYS)
+        start_time = datetime.now(UTC) - timedelta(days=_STATISTICS_LOOKBACK_DAYS)
 
         try:
             result = await get_instance(self.hass).async_add_executor_job(

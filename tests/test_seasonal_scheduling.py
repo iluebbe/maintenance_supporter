@@ -7,24 +7,21 @@ manual overrides, and integration with the existing analyze()/update_on_completi
 
 from __future__ import annotations
 
-from typing import Any
 from datetime import datetime, timedelta
+from typing import Any
 
-import pytest
-
-from custom_components.maintenance_supporter.helpers.interval_analyzer import (
-    IntervalAnalyzer,
-    SeasonalAnalysis,
-)
 from custom_components.maintenance_supporter.const import (
     DEFAULT_ADAPTIVE_EWA_ALPHA,
-    DEFAULT_ADAPTIVE_MIN_INTERVAL,
     DEFAULT_ADAPTIVE_MAX_INTERVAL,
+    DEFAULT_ADAPTIVE_MIN_INTERVAL,
     DEFAULT_SEASONAL_FACTOR_MAX,
     DEFAULT_SEASONAL_FACTOR_MIN,
     DEFAULT_SEASONAL_MIN_DATA,
     NORTHERN_SEASONS,
     SOUTHERN_SEASONS,
+)
+from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+    IntervalAnalyzer,
 )
 
 

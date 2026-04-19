@@ -6,38 +6,33 @@ from datetime import datetime, timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Event, HomeAssistant
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_ALERT_THRESHOLD,
+    CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
     ScheduleType,
 )
 
 from .conftest import (
     TASK_ID_1,
-    TASK_ID_2,
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── __init__.py helper functions ────────────────────────────────────────
 
@@ -561,7 +556,6 @@ async def test_sensor_runtime_fallback_attributes(
     global_config_entry: ConfigEntry,
 ) -> None:
     """Sensor shows runtime fallback attributes when trigger instance is missing."""
-    from custom_components.maintenance_supporter.sensor import MaintenanceSensor
 
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(
@@ -994,6 +988,7 @@ class TestCompoundProxyImmediate:
     def test_proxy_accepts_immediate_parameter(self) -> None:
         """async_persist_trigger_runtime accepts immediate=True without TypeError."""
         import asyncio
+
         from custom_components.maintenance_supporter.entity.triggers.compound import (
             _CompoundCoordinatorProxy,
         )
@@ -1017,6 +1012,7 @@ class TestCompoundProxyImmediate:
     def test_proxy_deferred_save_without_immediate(self) -> None:
         """Without immediate, proxy uses async_delay_save."""
         import asyncio
+
         from custom_components.maintenance_supporter.entity.triggers.compound import (
             _CompoundCoordinatorProxy,
         )

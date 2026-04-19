@@ -4,23 +4,17 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
-
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 
 from .conftest import (
-    OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
     build_object_data,
@@ -28,7 +22,6 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
-
 
 # ─── 5.1 Unique ID Stability ────────────────────────────────────────────
 

@@ -9,12 +9,11 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
-from homeassistant.core import State
-
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
-from homeassistant.helpers import entity_registry as er, selector
+from homeassistant.core import State
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import selector
 
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (

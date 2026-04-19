@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -36,7 +35,6 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
-
 
 # ─── Fixtures ────────────────────────────────────────────────────────────
 

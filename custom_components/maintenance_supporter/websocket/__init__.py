@@ -248,7 +248,6 @@ from .tasks import (  # noqa: F401
     _validate_trigger_config,
 )
 
-
 # ---------------------------------------------------------------------------
 # Registration
 # ---------------------------------------------------------------------------
@@ -293,6 +292,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_get_objects,
         ws_update_object,
     )
+    from .tags import ws_list_tags
     from .tasks import (
         ws_complete_task,
         ws_create_task,
@@ -302,7 +302,6 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_skip_task,
         ws_update_task,
     )
-    from .tags import ws_list_tags
     from .users import ws_assign_user, ws_list_users, ws_tasks_by_user
 
     websocket_api.async_register_command(hass, ws_get_objects)

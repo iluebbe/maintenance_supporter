@@ -4,23 +4,19 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_ALERT_THRESHOLD,
+    CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
-    CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
-    CONF_NOTIFICATIONS_ENABLED,
-    CONF_NOTIFY_SERVICE,
+    CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,

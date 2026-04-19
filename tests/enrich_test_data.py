@@ -13,7 +13,6 @@ Run inside Docker:
 import json
 import random
 from datetime import datetime, timedelta, timezone
-from copy import deepcopy
 
 STORAGE_PATH = "/config/.storage/core.config_entries"
 

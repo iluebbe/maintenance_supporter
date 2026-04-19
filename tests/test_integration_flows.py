@@ -3,18 +3,16 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_ALERT_THRESHOLD,
+    CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_MONTHLY,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
@@ -24,14 +22,15 @@ from custom_components.maintenance_supporter.const import (
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
-    CONF_OBJECT,
     CONF_QUIET_HOURS_ENABLED,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    HistoryEntryType,
     MaintenanceStatus,
     ScheduleType,
+)
+from custom_components.maintenance_supporter.websocket.dashboard import (
+    ws_get_statistics,
 )
 from custom_components.maintenance_supporter.websocket.objects import (
     ws_create_object,
@@ -43,26 +42,19 @@ from custom_components.maintenance_supporter.websocket.tasks import (
     ws_create_task,
     ws_delete_task,
     ws_reset_task,
-    ws_update_task,
-)
-from custom_components.maintenance_supporter.websocket.dashboard import (
-    ws_get_statistics,
 )
 
 from .conftest import (
-    call_ws_handler,
-    OBJECT_ID_1,
     TASK_ID_1,
-    TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
     get_task_store_state,
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
 

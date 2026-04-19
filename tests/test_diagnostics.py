@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-import pytest
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.diagnostics import (
     async_get_config_entry_diagnostics,
@@ -25,7 +21,6 @@ from .conftest import (
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── 11.1 Global Entry Diagnostics ──────────────────────────────────────
 

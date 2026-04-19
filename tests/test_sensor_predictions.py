@@ -11,27 +11,21 @@ Tests the SensorPredictor module including:
 from __future__ import annotations
 
 import math
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+from custom_components.maintenance_supporter.const import (
+    DEFAULT_ENVIRONMENTAL_FACTOR_MAX,
+    DEFAULT_ENVIRONMENTAL_FACTOR_MIN,
+)
 from custom_components.maintenance_supporter.helpers.sensor_predictor import (
     DegradationAnalysis,
     EnvironmentalAnalysis,
     SensorPredictor,
-    ThresholdPrediction,
 )
-from custom_components.maintenance_supporter.const import (
-    DEFAULT_DEGRADATION_MIN_POINTS,
-    DEFAULT_DEGRADATION_SIGNIFICANCE,
-    DEFAULT_ENVIRONMENTAL_CORRELATION_MIN,
-    DEFAULT_ENVIRONMENTAL_FACTOR_MAX,
-    DEFAULT_ENVIRONMENTAL_FACTOR_MIN,
-    DEFAULT_ENVIRONMENTAL_MIN_COMPLETIONS,
-)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -440,7 +434,7 @@ class TestEnvironmentalAnalysis:
         self, avg: float = 20.0, n_days: int = 90
     ) -> list[tuple[float, float]]:
         """Create env sensor points (hourly, centered around avg)."""
-        base_ts = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
+        base_ts = datetime(2026, 1, 1, tzinfo=UTC).timestamp()
         points: list[tuple[float, float]] = []
         for i in range(n_days * 24):
             ts = base_ts + i * 3600
@@ -454,7 +448,7 @@ class TestEnvironmentalAnalysis:
         self, intervals: list[int], env_values: list[float]
     ) -> dict[str, Any]:
         """Create task_data with completion history that correlates with env values."""
-        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        base = datetime(2026, 1, 1, tzinfo=UTC)
         history: list[dict[str, str]] = []
         current = base
         for interval in [0, *intervals]:
@@ -496,7 +490,7 @@ class TestEnvironmentalAnalysis:
     async def test_no_correlation_no_adjustment(self, predictor: SensorPredictor) -> None:
         """When correlation is weak → factor stays 1.0."""
         # Create env points with constant value → no correlation possible with varying intervals
-        base_ts = datetime(2026, 1, 1, tzinfo=timezone.utc).timestamp()
+        base_ts = datetime(2026, 1, 1, tzinfo=UTC).timestamp()
         env_points: list[tuple[float, float]] = [(base_ts + i * 3600, 20.0 + (i % 2) * 0.01) for i in range(2160)]
 
         # Task with varying intervals

@@ -12,16 +12,13 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_OVERDUE_ENABLED,
-    CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
     CONF_QUIET_HOURS_ENABLED,
     CONF_TASKS,
@@ -30,14 +27,9 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
     MaintenanceStatus,
-    MaintenanceTypeEnum,
-    ScheduleType,
 )
 
 from .conftest import (
-    OBJECT_ID_1,
-    TASK_ID_1,
-    TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,

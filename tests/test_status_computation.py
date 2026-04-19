@@ -4,15 +4,11 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-import pytest
-from freezegun import freeze_time
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.const import (
-    CONF_TASKS,
     DOMAIN,
     MaintenanceStatus,
 )
@@ -21,13 +17,9 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 )
 
 from .conftest import (
-    TASK_ID_1,
-    build_object_data,
-    build_object_entry_data,
     build_task_data,
     setup_integration,
 )
-
 
 # ─── 6.1 Unit Tests for MaintenanceTask.status ──────────────────────────
 

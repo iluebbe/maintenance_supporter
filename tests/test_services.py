@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 
 import pytest
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -13,13 +12,12 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.const import (
-    CONF_TASKS,
     DOMAIN,
-    HistoryEntryType,
-    MaintenanceStatus,
     SERVICE_COMPLETE,
     SERVICE_RESET,
     SERVICE_SKIP,
+    HistoryEntryType,
+    MaintenanceStatus,
 )
 
 from .conftest import (
@@ -27,7 +25,6 @@ from .conftest import (
     get_task_store_state,
     setup_integration,
 )
-
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 

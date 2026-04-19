@@ -8,15 +8,7 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-from custom_components.maintenance_supporter.helpers.interval_analyzer import (
-    FEEDBACK_MULTIPLIERS,
-    IntervalAnalysis,
-    IntervalAnalyzer,
-)
 from custom_components.maintenance_supporter.const import (
     DEFAULT_ADAPTIVE_EWA_ALPHA,
     DEFAULT_ADAPTIVE_MAX_INTERVAL,
@@ -26,10 +18,14 @@ from custom_components.maintenance_supporter.const import (
     DEFAULT_ADAPTIVE_WEIBULL_MIN,
     MaintenanceFeedback,
 )
+from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+    FEEDBACK_MULTIPLIERS,
+    IntervalAnalysis,
+    IntervalAnalyzer,
+)
 from custom_components.maintenance_supporter.models.maintenance_task import (
     MaintenanceTask,
 )
-
 
 # ============================================================================
 # Test IntervalAnalyzer — Pure Unit Tests (no HA)

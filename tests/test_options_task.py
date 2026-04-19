@@ -4,25 +4,23 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.maintenance_supporter.config_flow_options_task import (
+    MaintenanceOptionsFlow,
+)
 from custom_components.maintenance_supporter.const import (
-    CONF_ADAPTIVE_CONFIG,
     CONF_ADAPTIVE_ENABLED,
     CONF_ADAPTIVE_EWA_ALPHA,
     CONF_ADAPTIVE_MAX_INTERVAL,
     CONF_ADAPTIVE_MIN_INTERVAL,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_CHECKLISTS,
-    CONF_ENVIRONMENTAL_ENTITY,
-    CONF_OBJECT,
     CONF_SENSOR_PREDICTION_ENABLED,
     CONF_TASK_ENABLED,
     CONF_TASK_INTERVAL_DAYS,
@@ -32,21 +30,15 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
     CONF_TASKS,
-    DEFAULT_INTERVAL_DAYS,
-    DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
     TriggerType,
 )
-from custom_components.maintenance_supporter.config_flow_options_task import (
-    MaintenanceOptionsFlow,
-)
 
 from .conftest import (
     TASK_ID_1,
-    TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,

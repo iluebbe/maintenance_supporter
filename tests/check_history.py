@@ -1,7 +1,7 @@
 """Check history data for Family Car tasks."""
 import asyncio
 import os
-import json
+
 import aiohttp
 
 TOKEN = os.environ["HA_TOKEN"]

@@ -2,38 +2,29 @@
 
 from __future__ import annotations
 
-import time
 from datetime import date, timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_BUDGET_ALERTS_ENABLED,
-    CONF_BUDGET_ALERT_THRESHOLD,
-    CONF_BUDGET_MONTHLY,
-    CONF_BUDGET_YEARLY,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    MISSING_ENTITY_THRESHOLD_REFRESHES,
     HistoryEntryType,
     MaintenanceStatus,
     ScheduleType,
     TriggerEntityState,
 )
-from custom_components.maintenance_supporter.coordinator import MaintenanceCoordinator
 
 from .conftest import (
-    OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,

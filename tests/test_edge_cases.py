@@ -4,13 +4,11 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
@@ -31,7 +29,6 @@ from .conftest import (
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── 12.1 History Trimming ──────────────────────────────────────────────
 
@@ -272,6 +269,7 @@ class TestNumericValueExtraction:
     async def test_extracts_state(self, hass: HomeAssistant) -> None:
         """Test extracting numeric value from state."""
         from unittest.mock import MagicMock
+
         from custom_components.maintenance_supporter.entity.triggers.threshold import (
             ThresholdTrigger,
         )
@@ -295,6 +293,7 @@ class TestNumericValueExtraction:
     async def test_extracts_attribute(self, hass: HomeAssistant) -> None:
         """Test extracting numeric value from attribute."""
         from unittest.mock import MagicMock
+
         from custom_components.maintenance_supporter.entity.triggers.threshold import (
             ThresholdTrigger,
         )
@@ -318,6 +317,7 @@ class TestNumericValueExtraction:
     async def test_non_numeric_returns_none(self, hass: HomeAssistant) -> None:
         """Test that non-numeric values return None."""
         from unittest.mock import MagicMock
+
         from custom_components.maintenance_supporter.entity.triggers.threshold import (
             ThresholdTrigger,
         )

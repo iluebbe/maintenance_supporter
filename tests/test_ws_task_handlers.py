@@ -2,22 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
-    ScheduleType,
 )
 from custom_components.maintenance_supporter.websocket.groups import (
     ws_create_group,
@@ -35,14 +31,11 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
-    call_ws_handler,
-    OBJECT_ID_1,
     TASK_ID_1,
-    TASK_ID_2,
     build_global_entry_data,
-    build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
     get_task_store_state,
     setup_integration,
 )

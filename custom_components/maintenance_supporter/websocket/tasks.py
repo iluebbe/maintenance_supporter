@@ -8,10 +8,10 @@ from typing import Any
 from uuid import uuid4
 
 import voluptuous as vol
-
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er, issue_registry as ir
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 
 from ..const import (
     CONF_OBJECT,
@@ -19,7 +19,6 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    HistoryEntryType,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_ICON_LENGTH,
@@ -28,9 +27,15 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
+    HistoryEntryType,
 )
-from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data, cleanup_group_refs
-
+from . import (
+    _build_task_summary,
+    _get_merged_tasks,
+    _get_object_entries,
+    _get_runtime_data,
+    cleanup_group_refs,
+)
 
 # ---------------------------------------------------------------------------
 # Validation helpers

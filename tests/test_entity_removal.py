@@ -16,26 +16,27 @@ from __future__ import annotations
 import time
 from datetime import timedelta
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import (
     device_registry as dr,
+)
+from homeassistant.helpers import (
     entity_registry as er,
+)
+from homeassistant.helpers import (
     issue_registry as ir,
 )
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
-    MaintenanceStatus,
     ScheduleType,
     TriggerEntityState,
 )
@@ -47,18 +48,16 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
-    call_ws_handler,
-    OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
     set_sensor_state,
     setup_integration,
 )
-
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
 

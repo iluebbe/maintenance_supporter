@@ -12,7 +12,6 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -41,8 +40,7 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
     ws_update_global_settings,
 )
 
-from .conftest import call_ws_handler, build_global_entry_data, setup_integration
-
+from .conftest import build_global_entry_data, call_ws_handler, setup_integration
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
 
