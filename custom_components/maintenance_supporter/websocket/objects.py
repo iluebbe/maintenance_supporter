@@ -6,7 +6,6 @@ from typing import Any
 from uuid import uuid4
 
 import voluptuous as vol
-
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
@@ -24,7 +23,12 @@ from ..const import (
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
 )
-from . import _build_object_response, _get_object_entries, _get_runtime_data, cleanup_group_refs
+from . import (
+    _build_object_response,
+    _get_object_entries,
+    _get_runtime_data,
+    cleanup_group_refs,
+)
 
 
 @websocket_api.websocket_command(

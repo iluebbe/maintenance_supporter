@@ -1,5 +1,4 @@
 """Integration load smoke test — verifies the integration loads without errors."""
-import logging
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant

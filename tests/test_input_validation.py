@@ -2,27 +2,23 @@
 
 from __future__ import annotations
 
-import math
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 import voluptuous as vol
-
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_BUDGET_MONTHLY,
-    CONF_BUDGET_YEARLY,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    MAX_CHECKLIST_ITEMS,
     MAX_CHECKLIST_ITEM_LENGTH,
+    MAX_CHECKLIST_ITEMS,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
 )
@@ -42,20 +38,14 @@ from custom_components.maintenance_supporter.websocket.objects import (
 )
 from custom_components.maintenance_supporter.websocket.tasks import (
     ws_create_task,
-    ws_complete_task,
-    ws_skip_task,
-)
-from custom_components.maintenance_supporter.websocket.analysis import (
-    ws_apply_suggestion,
 )
 
 from .conftest import (
-    call_ws_handler,
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
     setup_integration,
 )
 

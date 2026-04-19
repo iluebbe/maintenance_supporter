@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
@@ -16,10 +13,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
-    CONF_DEFAULT_WARNING_DAYS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
-    CONF_NOTIFICATIONS_ENABLED,
-    CONF_NOTIFY_SERVICE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -349,7 +343,6 @@ async def test_notification_with_action_buttons(hass: HomeAssistant) -> None:
 
 async def test_notification_service_failure(hass: HomeAssistant) -> None:
     """Test notification returns False on service failure (HomeAssistantError)."""
-    from homeassistant.exceptions import HomeAssistantError
 
     _create_global_entry(hass)
 

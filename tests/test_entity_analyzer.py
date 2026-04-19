@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -16,7 +14,6 @@ from custom_components.maintenance_supporter.helpers.entity_analyzer import (
     EntityAnalyzer,
     StatisticsInfo,
 )
-
 
 # ─── async_analyze_entity ────────────────────────────────────────────────
 
@@ -130,7 +127,6 @@ async def _mock_fetch(
     mock_result: dict[str, Any],
 ) -> StatisticsInfo | None:
     """Helper to call _async_fetch_statistics with mocked recorder."""
-    import asyncio
 
     async def _mock_executor(fn: Any) -> Any:
         return fn()
@@ -239,7 +235,6 @@ async def test_fetch_statistics_null_means_uses_mins(hass: HomeAssistant) -> Non
 
 async def test_fetch_statistics_error_handled(hass: HomeAssistant) -> None:
     """Test that statistics fetch errors are handled gracefully."""
-    import asyncio
 
     analyzer = EntityAnalyzer(hass)
 

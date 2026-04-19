@@ -3,26 +3,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import DOMAIN, GLOBAL_UNIQUE_ID
+from custom_components.maintenance_supporter.const import DOMAIN
 from custom_components.maintenance_supporter.helpers.threshold_calculator import (
     ThresholdCalculator,
-    ThresholdSuggestions,
 )
 from custom_components.maintenance_supporter.panel import (
     _async_file_hash,
     async_register_panel,
     async_unregister_panel,
 )
-
-from .conftest import build_global_entry_data, setup_integration
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Panel Tests
@@ -31,7 +24,6 @@ from .conftest import build_global_entry_data, setup_integration
 
 async def test_register_panel(hass: HomeAssistant) -> None:
     """Test that panel registration calls static path and panel_custom."""
-    from custom_components.maintenance_supporter.const import DOMAIN
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -50,7 +42,6 @@ async def test_register_panel(hass: HomeAssistant) -> None:
 
 async def test_register_panel_idempotent(hass: HomeAssistant) -> None:
     """Test that second registration is a no-op."""
-    from custom_components.maintenance_supporter.const import DOMAIN
 
     hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True
 
@@ -64,7 +55,6 @@ async def test_register_panel_idempotent(hass: HomeAssistant) -> None:
 
 async def test_unregister_panel(hass: HomeAssistant) -> None:
     """Test that panel is removed."""
-    from custom_components.maintenance_supporter.const import DOMAIN
 
     hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True
 
@@ -79,7 +69,6 @@ async def test_unregister_panel(hass: HomeAssistant) -> None:
 
 async def test_unregister_panel_idempotent(hass: HomeAssistant) -> None:
     """Test that unregister when not registered is a no-op."""
-    from custom_components.maintenance_supporter.const import DOMAIN
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -108,7 +97,6 @@ async def test_file_hash_missing_file(hass: HomeAssistant) -> None:
 
 async def test_panel_url_versioned(hass: HomeAssistant) -> None:
     """Test that panel URL includes version hash."""
-    from custom_components.maintenance_supporter.const import DOMAIN
 
     hass.data.setdefault(DOMAIN, {})
 

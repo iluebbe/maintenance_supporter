@@ -14,7 +14,7 @@ from __future__ import annotations
 import math
 import statistics
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ..const import (
@@ -352,7 +352,7 @@ class IntervalAnalyzer:
             try:
                 dt = datetime.fromisoformat(ts)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
+                    dt = dt.replace(tzinfo=UTC)
                 completed_dates.append(dt)
             except (ValueError, TypeError):
                 continue
@@ -550,7 +550,7 @@ class IntervalAnalyzer:
             try:
                 dt = datetime.fromisoformat(ts)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
+                    dt = dt.replace(tzinfo=UTC)
                 completed_dates.append(dt)
             except (ValueError, TypeError):
                 continue

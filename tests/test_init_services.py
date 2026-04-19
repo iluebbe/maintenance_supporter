@@ -3,30 +3,23 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
-
-from homeassistant.core import Event, HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from homeassistant.util import dt as dt_util
-
+from custom_components.maintenance_supporter.__init__ import NOTIFICATION_MANAGER_KEY
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from custom_components.maintenance_supporter.__init__ import NOTIFICATION_MANAGER_KEY
 
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
     build_object_entry_data,
     build_task_data,
     get_task_store_state,

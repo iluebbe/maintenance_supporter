@@ -10,7 +10,6 @@ Run inside Docker container:
 
 import asyncio
 import os
-import json
 from datetime import date, timedelta
 
 TOKEN = os.environ["HA_TOKEN"]

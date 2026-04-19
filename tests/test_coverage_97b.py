@@ -4,19 +4,12 @@ and remaining small gaps in other modules.
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import MagicMock, patch
-
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_ADVANCED_ADAPTIVE,
-    CONF_ADVANCED_CHECKLISTS,
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -26,14 +19,12 @@ from custom_components.maintenance_supporter.const import (
 
 from .conftest import (
     TASK_ID_1,
-    TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
     setup_integration,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────
 

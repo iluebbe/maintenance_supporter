@@ -3,22 +3,13 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.core import HomeAssistant
-from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASKS,
-    DOMAIN,
     HistoryEntryType,
     TriggerType,
-)
-from custom_components.maintenance_supporter.entity.triggers.base_trigger import (
-    BaseTrigger,
 )
 from custom_components.maintenance_supporter.entity.triggers.runtime import (
     RuntimeTrigger,
@@ -32,12 +23,8 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 
 from .conftest import (
     TASK_ID_1,
-    build_object_data,
-    build_object_entry_data,
-    build_task_data,
     set_sensor_state,
 )
-
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 

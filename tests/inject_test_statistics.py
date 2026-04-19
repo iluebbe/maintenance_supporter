@@ -13,7 +13,7 @@ import math
 import random
 import sqlite3
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "config-dev" / "home-assistant_v2.db"
@@ -23,7 +23,7 @@ DAYS = 90
 # How many days of 5-min short-term data
 SHORT_TERM_DAYS = 10
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 START = NOW - timedelta(days=DAYS)
 
 # Entity definitions with time series generators

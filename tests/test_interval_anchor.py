@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
@@ -25,7 +22,6 @@ from custom_components.maintenance_supporter.models.maintenance_task import (
 )
 
 from .conftest import (
-    OBJECT_ID_1,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -33,7 +29,6 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
-
 
 # ─── Unit tests for MaintenanceTask.next_due ─────────────────────────────
 

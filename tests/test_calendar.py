@@ -2,22 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
-
-import pytest
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
-    MaintenanceStatus,
     ScheduleType,
 )
 
@@ -29,7 +23,6 @@ from .conftest import (
     build_task_data,
     setup_integration,
 )
-
 
 # ─── 8.1 Calendar Entity Exists ─────────────────────────────────────────
 

@@ -8,13 +8,10 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_NOTIFICATIONS_ENABLED,
-    CONF_NOTIFY_SERVICE,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -23,12 +20,10 @@ from custom_components.maintenance_supporter.const import (
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
-    build_object_data,
     build_object_entry_data,
     build_task_data,
     setup_integration,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────
 
@@ -230,7 +225,6 @@ async def test_fetch_statistics_import_error(hass: HomeAssistant) -> None:
         pass
 
     # Easier: patch the import to raise
-    import importlib
     with patch("builtins.__import__", side_effect=ImportError("no recorder")):
         result = await sp._async_fetch_statistics_points("sensor.test", 30)
     assert result == []
@@ -253,7 +247,7 @@ async def test_parse_statistics_bad_start_and_bad_value(
     }
 
     # Mock recorder's async_add_executor_job to return raw_stats directly
-    from unittest.mock import AsyncMock, patch, MagicMock
+    from unittest.mock import AsyncMock, patch
 
     mock_instance = MagicMock()
     mock_instance.async_add_executor_job = AsyncMock(return_value=raw_stats)

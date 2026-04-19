@@ -4,26 +4,21 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    MaintenanceStatus,
     ScheduleType,
 )
 
 from .conftest import (
-    OBJECT_ID_1,
     TASK_ID_1,
     build_global_entry_data,
     build_object_data,
@@ -281,7 +276,6 @@ async def test_weibull_beta_interpretation(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
     """Test Weibull beta interpretation ranges."""
-    from custom_components.maintenance_supporter.sensor import MaintenanceSensor
 
     # Create a mock task dict with various beta values and test interpretation
     test_cases = [

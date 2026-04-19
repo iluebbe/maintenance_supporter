@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Any
-from unittest.mock import MagicMock, patch
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -16,11 +14,8 @@ from custom_components.maintenance_supporter.calendar import (
     MaintenanceCalendar,
 )
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
-    MaintenanceStatus,
     ScheduleType,
 )
 from custom_components.maintenance_supporter.models.maintenance_task import (

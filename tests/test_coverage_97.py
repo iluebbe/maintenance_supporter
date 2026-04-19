@@ -8,11 +8,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
@@ -27,7 +26,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_GROUPS,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -61,16 +59,15 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
-    call_ws_handler,
     TASK_ID_1,
     TASK_ID_2,
     build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
+    call_ws_handler,
     setup_integration,
 )
-
 
 # ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -578,6 +575,7 @@ async def test_subscribe_already_attached_entry(
     # Manually trigger _on_new_entry for the already-attached entry
     # by dispatching the signal
     from homeassistant.helpers.dispatcher import async_dispatcher_send
+
     from custom_components.maintenance_supporter.const import SIGNAL_NEW_OBJECT_ENTRY
 
     msg_count_before = conn.send_message.call_count

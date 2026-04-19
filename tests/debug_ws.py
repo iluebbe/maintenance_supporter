@@ -1,7 +1,7 @@
 """Debug WS response format."""
 import asyncio
-import os
 import json
+import os
 
 TOKEN = os.environ["HA_TOKEN"]
 BASE = "http://localhost:8123"

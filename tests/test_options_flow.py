@@ -12,7 +12,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -38,22 +37,20 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     CONF_TRIGGER_ABOVE,
     CONF_TRIGGER_ATTRIBUTE,
+    CONF_TRIGGER_DELTA_MODE,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_FOR_MINUTES,
-    CONF_TRIGGER_TARGET_VALUE,
-    CONF_TRIGGER_DELTA_MODE,
     CONF_TRIGGER_FROM_STATE,
-    CONF_TRIGGER_TO_STATE,
     CONF_TRIGGER_TARGET_CHANGES,
+    CONF_TRIGGER_TARGET_VALUE,
+    CONF_TRIGGER_TO_STATE,
     CONF_TRIGGER_TYPE,
-    DOMAIN,
     MaintenanceTypeEnum,
     ScheduleType,
     TriggerType,
 )
 
 from .conftest import setup_integration
-
 
 # ─── 4.1 Global Options Flow ────────────────────────────────────────────
 

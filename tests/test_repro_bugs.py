@@ -2,6 +2,10 @@
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.maintenance_supporter.websocket.tasks import (
+    ws_create_task,
+    ws_reset_task,
+)
 from tests.conftest import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -11,10 +15,6 @@ from tests.conftest import (
     build_object_entry_data,
     build_task_data,
     setup_integration,
-)
-from custom_components.maintenance_supporter.websocket.tasks import (
-    ws_create_task,
-    ws_reset_task,
 )
 from tests.test_ws_objects import _mock_connection, call_ws_handler
 

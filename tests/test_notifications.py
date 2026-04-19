@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
-from typing import Any
+from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_ACTION_COMPLETE_ENABLED,
@@ -30,7 +28,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
-    CONF_SNOOZE_DURATION_HOURS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
@@ -41,7 +38,6 @@ from custom_components.maintenance_supporter.helpers.notification_manager import
 )
 
 from .conftest import build_global_entry_data, setup_integration
-
 
 # ─── Fixtures ────────────────────────────────────────────────────────────
 

@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
 
 from custom_components.maintenance_supporter.storage import (
+    _DYNAMIC_TASK_FIELDS,
     STORE_SAVE_DELAY,
     MaintenanceStore,
-    _DYNAMIC_TASK_FIELDS,
-    _LEGACY_TRIGGER_RUNTIME_KEYS,
     extract_dynamic_from_task,
 )
-
 
 # ─── MaintenanceStore unit tests ─────────────────────────────────────
 

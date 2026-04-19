@@ -11,22 +11,17 @@ Tests cover:
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import pytest
-
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
-    CONF_OBJECT,
-    CONF_OBJECT_AREA,
-    CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
@@ -38,7 +33,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     CONF_TRIGGER_ABOVE,
     CONF_TRIGGER_ATTRIBUTE,
-    CONF_TRIGGER_BELOW,
     CONF_TRIGGER_DELTA_MODE,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_FOR_MINUTES,
@@ -49,22 +43,16 @@ from custom_components.maintenance_supporter.const import (
     CONF_TRIGGER_TYPE,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
     TriggerType,
 )
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from .conftest import (
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
-    build_task_data,
     setup_integration,
 )
-
 
 # ─── 3.1 Global Setup ───────────────────────────────────────────────────
 

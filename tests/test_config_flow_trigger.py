@@ -5,15 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
-    CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_NAME,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
@@ -21,17 +18,10 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     CONF_TRIGGER_ABOVE,
     CONF_TRIGGER_ATTRIBUTE,
-    CONF_TRIGGER_BELOW,
-    CONF_TRIGGER_DELTA_MODE,
     CONF_TRIGGER_ENTITY,
     CONF_TRIGGER_ENTITY_LOGIC,
-    CONF_TRIGGER_FOR_MINUTES,
-    CONF_TRIGGER_FROM_STATE,
     CONF_TRIGGER_ON_STATES,
     CONF_TRIGGER_RUNTIME_HOURS,
-    CONF_TRIGGER_TARGET_CHANGES,
-    CONF_TRIGGER_TARGET_VALUE,
-    CONF_TRIGGER_TO_STATE,
     CONF_TRIGGER_TYPE,
     DOMAIN,
     GLOBAL_UNIQUE_ID,

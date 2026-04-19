@@ -11,8 +11,6 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import dt as dt_util
@@ -26,11 +24,10 @@ from custom_components.maintenance_supporter.const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_GROUPS,
-    CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
+    CONF_NOTIFICATION_BUNDLING_ENABLED,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
-    CONF_OBJECT,
     CONF_QUIET_HOURS_ENABLED,
     CONF_TASKS,
     DOMAIN,
@@ -48,7 +45,6 @@ from .conftest import (
     get_task_store_state,
     setup_integration,
 )
-
 
 # ════════════════════════════════════════════════════════════════════════
 # Fixtures

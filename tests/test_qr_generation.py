@@ -12,7 +12,6 @@ from custom_components.maintenance_supporter.helpers.qr_generator import (
     generate_qr_svg_data_uri,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

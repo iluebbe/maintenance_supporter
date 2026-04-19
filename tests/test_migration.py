@@ -7,40 +7,30 @@ and legacy trigger runtime keys.
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
-from unittest.mock import AsyncMock, patch
-
-import pytest
 
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
-    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
 )
 from custom_components.maintenance_supporter.storage import (
     MaintenanceStore,
     async_migrate_to_store,
-    extract_dynamic_from_task,
 )
 
 from .conftest import (
-    OBJECT_ID_1,
     TASK_ID_1,
     TASK_ID_2,
-    build_global_entry_data,
     build_object_data,
     build_object_entry_data,
     build_task_data,
     setup_integration,
 )
-
 
 # ─── async_migrate_to_store unit tests ───────────────────────────────
 

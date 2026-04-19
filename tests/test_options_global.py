@@ -2,19 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-
-from homeassistant.core import ServiceCall
-
 import pytest
-
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.config_flow_options_global import (
-    GlobalOptionsFlow,
     _get_test_result_text,
     validate_notify_service,
 )
@@ -22,8 +15,6 @@ from custom_components.maintenance_supporter.const import (
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_GROUPS,
-    CONF_ADVANCED_PREDICTIONS,
-    CONF_ADVANCED_SEASONAL,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
@@ -507,8 +498,8 @@ async def test_options_flow_notification_settings_submit(
     """Test notification settings form submit."""
     from custom_components.maintenance_supporter.const import (
         CONF_MAX_NOTIFICATIONS_PER_DAY,
-        CONF_NOTIFICATION_BUNDLING_ENABLED,
         CONF_NOTIFICATION_BUNDLE_THRESHOLD,
+        CONF_NOTIFICATION_BUNDLING_ENABLED,
         CONF_NOTIFY_DUE_SOON_ENABLED,
         CONF_NOTIFY_DUE_SOON_INTERVAL,
         CONF_NOTIFY_OVERDUE_ENABLED,

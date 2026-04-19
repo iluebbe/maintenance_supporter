@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
@@ -15,7 +14,12 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
-from . import _build_task_summary, _get_merged_tasks, _get_object_entries, _get_runtime_data
+from . import (
+    _build_task_summary,
+    _get_merged_tasks,
+    _get_object_entries,
+    _get_runtime_data,
+)
 
 
 @websocket_api.websocket_command(

@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -16,8 +15,8 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.websocket.tags import ws_list_tags
 
 from .conftest import (
-    call_ws_handler,
     build_global_entry_data,
+    call_ws_handler,
     setup_integration,
 )
 

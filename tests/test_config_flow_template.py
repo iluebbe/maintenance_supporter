@@ -2,19 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import patch
-
 import pytest
-
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_OBJECT,
-    CONF_OBJECT_AREA,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
@@ -29,10 +23,6 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     MaintenanceTypeEnum,
     ScheduleType,
-)
-from custom_components.maintenance_supporter.templates import (
-    TEMPLATE_CATEGORIES,
-    TEMPLATES,
 )
 
 from .conftest import build_global_entry_data, setup_integration
