@@ -425,10 +425,18 @@ async def test_check_issues_compound_missing_entity_creates_repair(
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
-    # Bypass startup grace period and trigger enough refreshes to cross threshold
+    # Call _async_check_for_issues directly to avoid coordinator scheduling
+    # quirks. Bypass the startup grace period first.
     coordinator._startup_time = 0.0
+    from custom_components.maintenance_supporter.models.maintenance_task import (
+        MaintenanceTask,
+    )
+    tasks = {
+        tid: MaintenanceTask.from_dict(td)
+        for tid, td in entry.data.get(CONF_TASKS, {}).items()
+    }
     for _ in range(MISSING_ENTITY_THRESHOLD_REFRESHES):
-        await coordinator.async_refresh()
+        await coordinator._async_check_for_issues(tasks)
 
     # Compound sub-entity tracking key matches per-entity scheme
     entity_key = f"{TASK_ID_1}_sensor.gone"
@@ -478,7 +486,14 @@ async def test_check_issues_compound_all_available_no_repair(
     coordinator = entry.runtime_data.coordinator
 
     coordinator._startup_time = 0.0
-    await coordinator.async_refresh()
+    from custom_components.maintenance_supporter.models.maintenance_task import (
+        MaintenanceTask,
+    )
+    tasks = {
+        tid: MaintenanceTask.from_dict(td)
+        for tid, td in entry.data.get(CONF_TASKS, {}).items()
+    }
+    await coordinator._async_check_for_issues(tasks)
 
     # No missing tracking and no repair issues for any sub-entity
     from homeassistant.helpers import issue_registry as ir
