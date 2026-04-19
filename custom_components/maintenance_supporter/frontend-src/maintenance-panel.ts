@@ -556,7 +556,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   render() {
     return html`
       <div class="panel">
-        ${this._renderHeader()}
+        ${this.narrow || this._view !== "overview" ? this._renderHeader() : nothing}
         <div class="content">
           ${this._view === "overview"
             ? this._renderOverview()

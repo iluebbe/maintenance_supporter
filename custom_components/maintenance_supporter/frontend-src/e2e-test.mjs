@@ -132,6 +132,20 @@ await runTest("Reset with date field (Bug #12 regression)", async () => {
   }
 });
 
+await runTest("Desktop header bar hidden on overview", async () => {
+  await page.goto("http://homeassistant-dev:8123/maintenance-supporter");
+  await page.waitForTimeout(3000);
+  const headerVisible = await page.evaluate(() => {
+    const ha = document.querySelector("home-assistant");
+    const sr = ha?.shadowRoot?.querySelector("home-assistant-main")?.shadowRoot?.querySelector("ha-drawer")?.querySelector("partial-panel-resolver")?.querySelector("ha-panel-custom")?.querySelector("maintenance-supporter-panel")?.shadowRoot;
+    const header = sr?.querySelector(".header");
+    if (!header) return false;
+    const style = window.getComputedStyle(header);
+    return style.display !== "none" && header.offsetHeight > 0;
+  });
+  check("header NOT visible on desktop overview", !headerVisible);
+});
+
 await cleanup(browser, ctx);
 
 // Reconnect for timezone + mobile tests
