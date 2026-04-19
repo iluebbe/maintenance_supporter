@@ -427,7 +427,10 @@ async def test_check_issues_compound_missing_entity_creates_repair(
 
     # Call _async_check_for_issues directly to avoid coordinator scheduling
     # quirks. Bypass the startup grace period first.
-    coordinator._startup_time = 0.0
+    # Bypass grace period by setting startup time far in the past
+    import time
+
+    coordinator._startup_time = time.monotonic() - 10_000
     from custom_components.maintenance_supporter.models.maintenance_task import (
         MaintenanceTask,
     )
@@ -485,7 +488,10 @@ async def test_check_issues_compound_all_available_no_repair(
     assert entry is not None
     coordinator = entry.runtime_data.coordinator
 
-    coordinator._startup_time = 0.0
+    # Bypass grace period by setting startup time far in the past
+    import time
+
+    coordinator._startup_time = time.monotonic() - 10_000
     from custom_components.maintenance_supporter.models.maintenance_task import (
         MaintenanceTask,
     )
