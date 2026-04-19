@@ -1661,6 +1661,76 @@ class TestNormalizeEntityIds:
         result = normalize_entity_ids(config)
         assert result == ["sensor.fallback"]
 
+    def test_compound_collects_from_conditions(self) -> None:
+        """Test compound trigger collects entity_ids from all conditions."""
+        config = {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {"type": "threshold", "entity_id": "sensor.temp", "trigger_above": 30},
+                {"type": "counter", "entity_id": "sensor.cycles", "trigger_target_value": 100},
+            ],
+        }
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.temp", "sensor.cycles"]
+
+    def test_compound_dedupes_entity_ids(self) -> None:
+        """Test compound trigger removes duplicate entity_ids while preserving order."""
+        config = {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {"type": "threshold", "entity_id": "sensor.shared", "trigger_above": 30},
+                {"type": "counter", "entity_id": "sensor.shared", "trigger_target_value": 100},
+                {"type": "threshold", "entity_id": "sensor.other", "trigger_above": 50},
+            ],
+        }
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.shared", "sensor.other"]
+
+    def test_compound_with_nested_trigger_config(self) -> None:
+        """Test compound conditions can have entity nested in trigger_config sub-dict."""
+        config = {
+            "type": "compound",
+            "compound_logic": "OR",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "trigger_config": {"entity_id": "sensor.nested", "trigger_above": 10},
+                },
+                {"type": "counter", "entity_id": "sensor.flat", "trigger_target_value": 5},
+            ],
+        }
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.nested", "sensor.flat"]
+
+    def test_compound_with_entity_ids_list(self) -> None:
+        """Test compound conditions can have multi-entity entity_ids lists."""
+        config = {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {
+                    "type": "threshold",
+                    "entity_ids": ["sensor.a", "sensor.b"],
+                    "trigger_above": 30,
+                },
+                {"type": "counter", "entity_id": "sensor.c", "trigger_target_value": 100},
+            ],
+        }
+        result = normalize_entity_ids(config)
+        assert result == ["sensor.a", "sensor.b", "sensor.c"]
+
+    def test_compound_empty_conditions(self) -> None:
+        """Test compound trigger with empty conditions list returns empty list."""
+        config = {"type": "compound", "compound_logic": "AND", "conditions": []}
+        assert normalize_entity_ids(config) == []
+
+    def test_compound_missing_conditions_key(self) -> None:
+        """Test compound trigger with no conditions key returns empty list (defensive)."""
+        config = {"type": "compound", "compound_logic": "AND"}
+        assert normalize_entity_ids(config) == []
+
 
 # ─── 7.7 create_triggers ──────────────────────────────────────────────
 
