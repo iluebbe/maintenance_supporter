@@ -110,8 +110,8 @@ class EntityAnalyzer:
     async def _async_fetch_statistics(self, entity_id: str) -> StatisticsInfo | None:
         """Fetch long-term statistics from the HA recorder."""
         try:
-            from homeassistant.components.recorder import (
-                get_instance,  # type: ignore[attr-defined]
+            from homeassistant.components.recorder import (  # type: ignore[attr-defined]
+                get_instance,
             )
             from homeassistant.components.recorder.statistics import (
                 statistics_during_period,
