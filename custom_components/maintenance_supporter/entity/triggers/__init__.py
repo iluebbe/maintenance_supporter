@@ -19,17 +19,38 @@ if TYPE_CHECKING:
 
 
 def normalize_entity_ids(trigger_config: dict[str, Any]) -> list[str]:
-    """Return a list of entity IDs from trigger_config.
+    """Return all entity IDs referenced by a trigger config.
 
-    Handles both the new ``entity_ids`` list and the legacy ``entity_id``
-    string.  Always returns a list (possibly empty).
+    For non-compound triggers, reads the new ``entity_ids`` list or legacy
+    ``entity_id`` string from the root.
+
+    For compound triggers (``type == "compound"``), recursively collects
+    entity IDs from all conditions. A condition may have ``entity_id`` /
+    ``entity_ids`` at top level OR nested inside a ``trigger_config`` sub-dict.
+    Order is preserved, duplicates are removed.
+
+    Always returns a list (possibly empty). Recursion depth is bounded since
+    nested compound triggers are rejected by validation.
     """
+    if trigger_config.get("type") == "compound":
+        seen: set[str] = set()
+        result: list[str] = []
+        for cond in trigger_config.get("conditions", []):
+            cond_ids = normalize_entity_ids(cond)
+            if not cond_ids:
+                cond_ids = normalize_entity_ids(cond.get("trigger_config", {}))
+            for cond_eid in cond_ids:
+                if cond_eid not in seen:
+                    seen.add(cond_eid)
+                    result.append(cond_eid)
+        return result
+
     ids = trigger_config.get("entity_ids")
     if isinstance(ids, list) and ids:
         return list(ids)
-    eid = trigger_config.get("entity_id")
-    if eid:
-        return [eid]
+    flat_eid = trigger_config.get("entity_id")
+    if flat_eid:
+        return [flat_eid]
     return []
 
 

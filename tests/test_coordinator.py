@@ -392,6 +392,103 @@ async def test_check_issues_unavailable_logs_once(
     assert coordinator._entity_unavailable_logged.get(entity_key) is True
 
 
+async def test_check_issues_compound_missing_entity_creates_repair(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test that a missing entity in a compound trigger condition creates a repair issue.
+
+    Regression test: previously normalize_entity_ids returned [] for compound
+    triggers, causing _async_check_for_issues to silently skip them.
+    """
+    from custom_components.maintenance_supporter.const import (
+        MISSING_ENTITY_THRESHOLD_REFRESHES,
+    )
+
+    # sensor.present exists but sensor.gone does not
+    hass.states.async_set("sensor.present", "20.0")
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {"type": "threshold", "entity_id": "sensor.present", "trigger_above": 10},
+                {"type": "threshold", "entity_id": "sensor.gone", "trigger_above": 10},
+            ],
+        },
+    )
+    obj_entry = _make_object_entry(hass, {TASK_ID_1: task}, unique_id="issues_compound_missing")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coordinator = entry.runtime_data.coordinator
+
+    # Bypass startup grace period and trigger enough refreshes to cross threshold
+    coordinator._startup_time = 0.0
+    for _ in range(MISSING_ENTITY_THRESHOLD_REFRESHES):
+        await coordinator.async_refresh()
+
+    # Compound sub-entity tracking key matches per-entity scheme
+    entity_key = f"{TASK_ID_1}_sensor.gone"
+    assert coordinator._entity_missing_refresh_count.get(entity_key) is not None
+    assert (
+        coordinator._entity_missing_refresh_count[entity_key]
+        >= MISSING_ENTITY_THRESHOLD_REFRESHES
+    )
+    # Repair issue should exist for the missing sub-entity
+    from homeassistant.helpers import issue_registry as ir
+
+    issue_id = f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_sensor.gone"
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    # No issue for the present entity
+    assert (
+        ir.async_get(hass).async_get_issue(
+            DOMAIN, f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_sensor.present"
+        )
+        is None
+    )
+
+
+async def test_check_issues_compound_all_available_no_repair(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test that a compound trigger with all sub-entities available creates no repair issue."""
+    hass.states.async_set("sensor.a", "20.0")
+    hass.states.async_set("sensor.b", "30.0")
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "compound",
+            "compound_logic": "OR",
+            "conditions": [
+                {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+                {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 10},
+            ],
+        },
+    )
+    obj_entry = _make_object_entry(hass, {TASK_ID_1: task}, unique_id="issues_compound_avail")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coordinator = entry.runtime_data.coordinator
+
+    coordinator._startup_time = 0.0
+    await coordinator.async_refresh()
+
+    # No missing tracking and no repair issues for any sub-entity
+    from homeassistant.helpers import issue_registry as ir
+
+    for eid in ("sensor.a", "sensor.b"):
+        assert coordinator._entity_missing_refresh_count.get(f"{TASK_ID_1}_{eid}") is None
+        issue_id = f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_{eid}"
+        assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+
 # ─── _async_check_budget Tests ────────────────────────────────────────────
 
 
