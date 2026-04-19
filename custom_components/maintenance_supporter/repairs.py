@@ -28,6 +28,74 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _replace_entity_in_dict(
+    cfg: dict[str, Any], old: str, new: str
+) -> dict[str, Any]:
+    """Return a copy of ``cfg`` with entity_id/entity_ids replaced if matching."""
+    cfg = dict(cfg)
+    eids = cfg.get("entity_ids")
+    if isinstance(eids, list) and old in eids:
+        cfg["entity_ids"] = [new if e == old else e for e in eids]
+    if cfg.get("entity_id") == old:
+        cfg["entity_id"] = new
+    return cfg
+
+
+def _replace_entity_in_condition(
+    cond: dict[str, Any], old: str, new: str
+) -> dict[str, Any]:
+    """Replace ``old`` entity with ``new`` in a compound trigger condition.
+
+    Conditions may have entity references at top level OR in a nested
+    ``trigger_config`` sub-dict.
+    """
+    cond = _replace_entity_in_dict(cond, old, new)
+    nested = cond.get("trigger_config")
+    if isinstance(nested, dict):
+        cond["trigger_config"] = _replace_entity_in_dict(nested, old, new)
+    return cond
+
+
+def _strip_entity_from_dict(
+    cfg: dict[str, Any], target: str
+) -> tuple[dict[str, Any], bool]:
+    """Strip ``target`` from a flat trigger config dict.
+
+    Returns (modified copy, has_remaining_entity).
+    """
+    cfg = dict(cfg)
+    eids = cfg.get("entity_ids")
+    if isinstance(eids, list):
+        eids = [e for e in eids if e != target]
+        if eids:
+            cfg["entity_ids"] = eids
+            if cfg.get("entity_id") == target:
+                cfg["entity_id"] = eids[0]
+            return cfg, True
+        cfg.pop("entity_ids", None)
+    if cfg.get("entity_id") == target:
+        cfg.pop("entity_id", None)
+    has_remaining = bool(cfg.get("entity_id") or cfg.get("entity_ids"))
+    return cfg, has_remaining
+
+
+def _strip_entity_from_condition(
+    cond: dict[str, Any], target: str
+) -> tuple[dict[str, Any], bool]:
+    """Strip ``target`` from a compound condition.
+
+    Returns (modified copy, keep_condition). The condition is kept if it
+    still references at least one entity (top-level or nested).
+    """
+    cond, top_has = _strip_entity_from_dict(cond, target)
+    nested = cond.get("trigger_config")
+    nested_has = False
+    if isinstance(nested, dict):
+        nested_stripped, nested_has = _strip_entity_from_dict(nested, target)
+        cond["trigger_config"] = nested_stripped
+    return cond, top_has or nested_has
+
+
 class MissingTriggerEntityRepairFlow(RepairsFlow):
     """Handle repair for a missing trigger entity.
 
@@ -159,20 +227,28 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         task_dict = dict(tasks_data[task_id])
         trigger_config = dict(task_dict.get("trigger_config", {}))
 
-        # Update entity_ids list if present
-        entity_ids = trigger_config.get("entity_ids", [])
-        if entity_ids and old_entity_id in entity_ids:
-            entity_ids = [
-                new_entity_id if eid == old_entity_id else eid
-                for eid in entity_ids
+        if trigger_config.get("type") == "compound":
+            # Recurse into conditions
+            new_conditions = [
+                _replace_entity_in_condition(cond, old_entity_id, new_entity_id)
+                for cond in trigger_config.get("conditions", [])
             ]
-            trigger_config["entity_ids"] = entity_ids
+            trigger_config["conditions"] = new_conditions
+        else:
+            # Flat trigger: update entity_ids list if present
+            entity_ids = trigger_config.get("entity_ids", [])
+            if entity_ids and old_entity_id in entity_ids:
+                entity_ids = [
+                    new_entity_id if eid == old_entity_id else eid
+                    for eid in entity_ids
+                ]
+                trigger_config["entity_ids"] = entity_ids
 
-        # Update entity_id (for backwards compat / single-entity)
-        if trigger_config.get("entity_id") == old_entity_id:
-            trigger_config["entity_id"] = new_entity_id
-        if entity_ids:
-            trigger_config["entity_id"] = entity_ids[0]
+            # Update entity_id (for backwards compat / single-entity)
+            if trigger_config.get("entity_id") == old_entity_id:
+                trigger_config["entity_id"] = new_entity_id
+            if entity_ids:
+                trigger_config["entity_id"] = entity_ids[0]
 
         # Reset runtime values
         trigger_config.pop("trigger_baseline_value", None)
@@ -249,34 +325,15 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         task_dict = dict(tasks_data[task_id])
         trigger_config = dict(task_dict.get("trigger_config", {}))
 
-        entity_ids = trigger_config.get("entity_ids", [])
-        remaining = [eid for eid in entity_ids if eid != missing_entity_id]
-
         history_notes: str
-        if remaining:
-            trigger_config["entity_ids"] = remaining
-            trigger_config["entity_id"] = remaining[0]
-            task_dict["trigger_config"] = trigger_config
-            history_notes = (
-                f"Entity {missing_entity_id} removed from multi-entity trigger. "
-                f"Remaining: {', '.join(remaining)}"
+
+        if trigger_config.get("type") == "compound":
+            history_notes = self._remove_from_compound(
+                task_dict, trigger_config, missing_entity_id
             )
         else:
-            old_entity_id = trigger_config.get("entity_id", missing_entity_id)
-            safety_interval = trigger_config.get("interval_days")
-
-            task_dict.pop("trigger_config", None)
-
-            if safety_interval or task_dict.get("interval_days"):
-                task_dict["schedule_type"] = ScheduleType.TIME_BASED
-                if safety_interval and not task_dict.get("interval_days"):
-                    task_dict["interval_days"] = safety_interval
-            else:
-                task_dict["schedule_type"] = ScheduleType.MANUAL
-
-            history_notes = (
-                f"Sensor trigger removed (entity was: {old_entity_id}). "
-                f"Schedule converted to {task_dict.get('schedule_type', 'manual')}."
+            history_notes = self._remove_from_flat(
+                task_dict, trigger_config, missing_entity_id
             )
 
         # Write static changes to ConfigEntry
@@ -321,6 +378,97 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             missing_entity_id,
             issue_data.get("task_name"),
         )
+
+    def _remove_from_flat(
+        self,
+        task_dict: dict[str, Any],
+        trigger_config: dict[str, Any],
+        missing_entity_id: str,
+    ) -> str:
+        """Remove ``missing_entity_id`` from a flat trigger config.
+
+        Mutates ``task_dict`` in place. Returns a history notes string.
+        """
+        entity_ids = trigger_config.get("entity_ids", [])
+        remaining = [eid for eid in entity_ids if eid != missing_entity_id]
+
+        if remaining:
+            trigger_config["entity_ids"] = remaining
+            trigger_config["entity_id"] = remaining[0]
+            task_dict["trigger_config"] = trigger_config
+            return (
+                f"Entity {missing_entity_id} removed from multi-entity trigger. "
+                f"Remaining: {', '.join(remaining)}"
+            )
+
+        old_entity_id = trigger_config.get("entity_id", missing_entity_id)
+        safety_interval = trigger_config.get("interval_days")
+        task_dict.pop("trigger_config", None)
+
+        if safety_interval or task_dict.get("interval_days"):
+            task_dict["schedule_type"] = ScheduleType.TIME_BASED
+            if safety_interval and not task_dict.get("interval_days"):
+                task_dict["interval_days"] = safety_interval
+        else:
+            task_dict["schedule_type"] = ScheduleType.MANUAL
+
+        return (
+            f"Sensor trigger removed (entity was: {old_entity_id}). "
+            f"Schedule converted to {task_dict.get('schedule_type', 'manual')}."
+        )
+
+    def _remove_from_compound(
+        self,
+        task_dict: dict[str, Any],
+        trigger_config: dict[str, Any],
+        missing_entity_id: str,
+    ) -> str:
+        """Remove ``missing_entity_id`` from a compound trigger config.
+
+        Walks each condition; if a condition still references at least one
+        entity it is kept (with the missing entity stripped). Otherwise the
+        condition is dropped.
+
+        Resulting condition count handling:
+          - ``>= 2``: stays compound
+          - ``== 1``: demoted to a flat trigger using the remaining condition
+          - ``== 0``: trigger removed entirely (delegate to flat fallback)
+
+        Mutates ``task_dict`` in place. Returns a history notes string.
+        """
+        new_conditions = []
+        for cond in trigger_config.get("conditions", []):
+            stripped, keep = _strip_entity_from_condition(cond, missing_entity_id)
+            if keep:
+                new_conditions.append(stripped)
+
+        if len(new_conditions) >= 2:
+            trigger_config["conditions"] = new_conditions
+            task_dict["trigger_config"] = trigger_config
+            return (
+                f"Entity {missing_entity_id} removed from compound trigger; "
+                f"{len(new_conditions)} conditions remain."
+            )
+
+        if len(new_conditions) == 1:
+            sole = new_conditions[0]
+            # Conditions may carry their config nested under "trigger_config"
+            nested = sole.get("trigger_config")
+            if isinstance(nested, dict):
+                new_tc = dict(nested)
+                if "type" not in new_tc and sole.get("type"):
+                    new_tc["type"] = sole["type"]
+            else:
+                new_tc = dict(sole)
+            task_dict["trigger_config"] = new_tc
+            return (
+                f"Entity {missing_entity_id} removed; compound trigger "
+                f"demoted to single trigger ({new_tc.get('type', 'unknown')})."
+            )
+
+        # 0 conditions remain — fall back to the flat removal path
+        # (uses the original trigger_config to determine schedule_type)
+        return self._remove_from_flat(task_dict, trigger_config, missing_entity_id)
 
 
 async def async_create_fix_flow(

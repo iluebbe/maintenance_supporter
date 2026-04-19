@@ -468,3 +468,210 @@ async def test_create_fix_flow_returns_instance(hass: HomeAssistant) -> None:
     """Test that async_create_fix_flow returns the correct instance."""
     flow = await async_create_fix_flow(hass, "test_issue", None)
     assert isinstance(flow, MissingTriggerEntityRepairFlow)
+
+
+# ─── Compound Trigger Repair Tests ────────────────────────────────────────
+
+
+def _make_compound_entry(
+    hass: HomeAssistant,
+    conditions: list[dict[str, Any]],
+    interval_days: int | None = 30,
+    unique_id: str = "repair_compound",
+) -> MockConfigEntry:
+    """Create an entry with a compound trigger task."""
+    tc: dict[str, Any] = {
+        "type": "compound",
+        "compound_logic": "AND",
+        "conditions": conditions,
+    }
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        interval_days=interval_days,
+        trigger_config=tc,
+    )
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Compound Object",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Compound Object"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id=f"maintenance_supporter_{unique_id}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def test_repair_replace_in_compound_single_entity_condition(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test replacing entity in a compound condition with single entity_id."""
+    obj_entry = _make_compound_entry(
+        hass,
+        conditions=[
+            {"type": "threshold", "entity_id": "sensor.old_temp", "trigger_above": 30.0},
+            {"type": "counter", "entity_id": "sensor.cycles", "trigger_target_value": 100},
+        ],
+        unique_id="compound_replace_single",
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.old_temp")
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new_temp"})
+
+    assert result["type"] == "create_entry"
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
+    assert tc["type"] == "compound"
+    assert tc["conditions"][0]["entity_id"] == "sensor.new_temp"
+    # Other condition untouched
+    assert tc["conditions"][1]["entity_id"] == "sensor.cycles"
+
+
+async def test_repair_replace_in_compound_multi_entity_condition(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test replacing entity in a compound condition with multi-entity entity_ids."""
+    obj_entry = _make_compound_entry(
+        hass,
+        conditions=[
+            {
+                "type": "threshold",
+                "entity_ids": ["sensor.a", "sensor.old", "sensor.b"],
+                "entity_id": "sensor.a",
+                "trigger_above": 30.0,
+            },
+            {"type": "counter", "entity_id": "sensor.cycles", "trigger_target_value": 100},
+        ],
+        unique_id="compound_replace_multi",
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.old")
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new"})
+
+    assert result["type"] == "create_entry"
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    cond0 = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]["conditions"][0]
+    assert cond0["entity_ids"] == ["sensor.a", "sensor.new", "sensor.b"]
+
+
+async def test_repair_replace_in_compound_nested_trigger_config(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test replacing entity nested inside condition.trigger_config."""
+    obj_entry = _make_compound_entry(
+        hass,
+        conditions=[
+            {
+                "type": "threshold",
+                "trigger_config": {"entity_id": "sensor.nested_old", "trigger_above": 10},
+            },
+            {"type": "counter", "entity_id": "sensor.cycles", "trigger_target_value": 100},
+        ],
+        unique_id="compound_replace_nested",
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.nested_old")
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.nested_new"})
+
+    assert result["type"] == "create_entry"
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    cond0 = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]["conditions"][0]
+    assert cond0["trigger_config"]["entity_id"] == "sensor.nested_new"
+
+
+async def test_repair_remove_from_compound_keeps_two_conditions(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test removing entity from 3-condition compound leaves 2 conditions (still compound)."""
+    obj_entry = _make_compound_entry(
+        hass,
+        conditions=[
+            {"type": "threshold", "entity_id": "sensor.gone", "trigger_above": 30.0},
+            {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 40.0},
+            {"type": "counter", "entity_id": "sensor.c", "trigger_target_value": 100},
+        ],
+        unique_id="compound_remove_keeps",
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.gone")
+    result = await flow.async_step_remove_trigger({})
+
+    assert result["type"] == "create_entry"
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
+    assert tc["type"] == "compound"
+    assert len(tc["conditions"]) == 2
+    remaining_eids = {c.get("entity_id") for c in tc["conditions"]}
+    assert remaining_eids == {"sensor.b", "sensor.c"}
+
+
+async def test_repair_remove_from_compound_demotes_to_flat(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test removing entity from 2-condition compound demotes to flat single trigger."""
+    obj_entry = _make_compound_entry(
+        hass,
+        conditions=[
+            {"type": "threshold", "entity_id": "sensor.gone", "trigger_above": 30.0},
+            {"type": "counter", "entity_id": "sensor.alive", "trigger_target_value": 100},
+        ],
+        unique_id="compound_remove_demote",
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.gone")
+    result = await flow.async_step_remove_trigger({})
+
+    assert result["type"] == "create_entry"
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
+    # Demoted: no longer compound, became the surviving condition
+    assert tc["type"] == "counter"
+    assert tc["entity_id"] == "sensor.alive"
+    assert tc["trigger_target_value"] == 100
+
+
+async def test_repair_remove_from_compound_multi_entity_keeps_condition(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Test removing entity from a multi-entity condition keeps the condition with remaining entities."""
+    obj_entry = _make_compound_entry(
+        hass,
+        conditions=[
+            {
+                "type": "threshold",
+                "entity_ids": ["sensor.a", "sensor.gone", "sensor.b"],
+                "entity_id": "sensor.a",
+                "trigger_above": 30.0,
+            },
+            {"type": "counter", "entity_id": "sensor.cycles", "trigger_target_value": 100},
+        ],
+        unique_id="compound_remove_multi",
+    )
+    await setup_integration(hass, global_entry, obj_entry)
+
+    flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.gone")
+    result = await flow.async_step_remove_trigger({})
+
+    assert result["type"] == "create_entry"
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
+    # Compound stays intact (still 2 conditions)
+    assert tc["type"] == "compound"
+    assert len(tc["conditions"]) == 2
+    cond0 = tc["conditions"][0]
+    assert cond0["entity_ids"] == ["sensor.a", "sensor.b"]
+    assert "sensor.gone" not in cond0["entity_ids"]
