@@ -167,6 +167,15 @@ const DE: Translations = {
   budget_monthly: "Monatsbudget",
   budget_yearly: "Jahresbudget",
   groups: "Gruppen",
+  new_group: "Neue Gruppe",
+  edit_group: "Gruppe bearbeiten",
+  no_groups: "Keine Gruppen vorhanden",
+  delete_group: "Gruppe löschen",
+  delete_group_confirm: "Gruppe '{name}' wirklich löschen?",
+  group_select_tasks: "Aufgaben auswählen",
+  group_name_required: "Name erforderlich",
+  description_optional: "Beschreibung (optional)",
+  selected: "Ausgewählt",
   loading_chart: "Daten werden geladen...",
   // Adaptive scheduling
   was_maintenance_needed: "War diese Wartung nötig?",
@@ -478,6 +487,15 @@ const EN: Translations = {
   budget_monthly: "Monthly budget",
   budget_yearly: "Yearly budget",
   groups: "Groups",
+  new_group: "New group",
+  edit_group: "Edit group",
+  no_groups: "No groups yet",
+  delete_group: "Delete group",
+  delete_group_confirm: "Delete group '{name}'?",
+  group_select_tasks: "Select tasks",
+  group_name_required: "Name is required",
+  description_optional: "Description (optional)",
+  selected: "Selected",
   loading_chart: "Loading chart data...",
   // Adaptive scheduling
   was_maintenance_needed: "Was this maintenance needed?",
@@ -786,6 +804,15 @@ const NL: Translations = {
   budget_monthly: "Maandbudget",
   budget_yearly: "Jaarbudget",
   groups: "Groepen",
+  new_group: "Nieuwe groep",
+  edit_group: "Groep bewerken",
+  no_groups: "Nog geen groepen",
+  delete_group: "Groep verwijderen",
+  delete_group_confirm: "Groep '{name}' verwijderen?",
+  group_select_tasks: "Taken selecteren",
+  group_name_required: "Naam vereist",
+  description_optional: "Beschrijving (optioneel)",
+  selected: "Geselecteerd",
   loading_chart: "Grafiekgegevens laden...",
   was_maintenance_needed: "Was dit onderhoud nodig?",
   feedback_needed: "Nodig",
@@ -1086,6 +1113,15 @@ const FR: Translations = {
   budget_monthly: "Budget mensuel",
   budget_yearly: "Budget annuel",
   groups: "Groupes",
+  new_group: "Nouveau groupe",
+  edit_group: "Modifier le groupe",
+  no_groups: "Aucun groupe pour l'instant",
+  delete_group: "Supprimer le groupe",
+  delete_group_confirm: "Supprimer le groupe '{name}' ?",
+  group_select_tasks: "Sélectionner les tâches",
+  group_name_required: "Nom requis",
+  description_optional: "Description (optionnel)",
+  selected: "Sélectionné",
   loading_chart: "Chargement des donn\u00E9es...",
   was_maintenance_needed: "Cette maintenance \u00E9tait-elle n\u00E9cessaire ?",
   feedback_needed: "N\u00E9cessaire",
@@ -1386,6 +1422,15 @@ const IT: Translations = {
   budget_monthly: "Budget mensile",
   budget_yearly: "Budget annuale",
   groups: "Gruppi",
+  new_group: "Nuovo gruppo",
+  edit_group: "Modifica gruppo",
+  no_groups: "Nessun gruppo",
+  delete_group: "Elimina gruppo",
+  delete_group_confirm: "Eliminare il gruppo '{name}'?",
+  group_select_tasks: "Seleziona attività",
+  group_name_required: "Nome richiesto",
+  description_optional: "Descrizione (opzionale)",
+  selected: "Selezionato",
   loading_chart: "Caricamento dati...",
   was_maintenance_needed: "Questa manutenzione era necessaria?",
   feedback_needed: "Necessaria",
@@ -1686,6 +1731,15 @@ const ES: Translations = {
   budget_monthly: "Presupuesto mensual",
   budget_yearly: "Presupuesto anual",
   groups: "Grupos",
+  new_group: "Nuevo grupo",
+  edit_group: "Editar grupo",
+  no_groups: "Sin grupos todav\u00EDa",
+  delete_group: "Eliminar grupo",
+  delete_group_confirm: "\u00BFEliminar el grupo '{name}'?",
+  group_select_tasks: "Seleccionar tareas",
+  group_name_required: "Nombre requerido",
+  description_optional: "Descripci\u00F3n (opcional)",
+  selected: "Seleccionado",
   loading_chart: "Cargando datos...",
   was_maintenance_needed: "\u00BFEra necesario este mantenimiento?",
   feedback_needed: "Necesario",
@@ -1986,6 +2040,15 @@ const PT: Translations = {
   budget_monthly: "Orçamento mensal",
   budget_yearly: "Orçamento anual",
   groups: "Grupos",
+  new_group: "Novo grupo",
+  edit_group: "Editar grupo",
+  no_groups: "Ainda sem grupos",
+  delete_group: "Eliminar grupo",
+  delete_group_confirm: "Eliminar o grupo '{name}'?",
+  group_select_tasks: "Selecionar tarefas",
+  group_name_required: "Nome obrigatório",
+  description_optional: "Descrição (opcional)",
+  selected: "Selecionado",
   loading_chart: "A carregar dados...",
   was_maintenance_needed: "Esta manutenção era necessária?",
   feedback_needed: "Necessária",
@@ -2286,6 +2349,15 @@ const UK: Translations = {
   budget_monthly: "Щомісячний бюджет",
   budget_yearly: "Щорічний бюджет",
   groups: "Групи",
+  new_group: "Нова група",
+  edit_group: "Редагувати групу",
+  no_groups: "Груп ще немає",
+  delete_group: "Видалити групу",
+  delete_group_confirm: "Видалити групу '{name}'?",
+  group_select_tasks: "Обрати завдання",
+  group_name_required: "Потрібна назва",
+  description_optional: "Опис (необов'язково)",
+  selected: "Обрано",
   loading_chart: "Завантаження даних графіка...",
   // Адаптивне планування
   was_maintenance_needed: "Чи було потрібне це обслуговування?",
@@ -2597,6 +2669,15 @@ const RU: Translations = {
   budget_monthly: "Месячный бюджет",
   budget_yearly: "Годовой бюджет",
   groups: "Группы",
+  new_group: "Новая группа",
+  edit_group: "Редактировать группу",
+  no_groups: "Групп пока нет",
+  delete_group: "Удалить группу",
+  delete_group_confirm: "Удалить группу '{name}'?",
+  group_select_tasks: "Выбрать задачи",
+  group_name_required: "Требуется имя",
+  description_optional: "Описание (опционально)",
+  selected: "Выбрано",
   loading_chart: "Загрузка данных графика...",
   // Adaptive scheduling
   was_maintenance_needed: "Требовалось ли это обслуживание?",
@@ -3356,10 +3437,42 @@ export const sharedStyles = css`
     cursor: default;
   }
 
+  .group-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
   .group-card-name {
     font-weight: 500;
     font-size: 14px;
     margin-bottom: 4px;
+  }
+
+  .group-card-actions {
+    display: flex;
+    gap: 0;
+  }
+  .group-card-actions mwc-icon-button {
+    --mdc-icon-button-size: 28px;
+    --mdc-icon-size: 16px;
+    color: var(--secondary-text-color);
+  }
+
+  .groups-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .groups-header h3 { margin: 0; }
+
+  .seasonal-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 0;
   }
 
   .group-card-desc {

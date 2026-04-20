@@ -207,6 +207,84 @@ await runTest("Seasonal overrides: dialog + button strings shipped", async () =>
 });
 
 // =====================================================================
+// Batch D: Groups CRUD UI
+// =====================================================================
+
+await runTest("Groups: WS roundtrip create + update + delete", async () => {
+  // Need an object + task to reference
+  const obj = await ws(page, { type: "maintenance_supporter/object/create", name: `grp-obj ${Date.now().toString(36)}` });
+  const task = await ws(page, {
+    type: "maintenance_supporter/task/create",
+    entry_id: obj.entry_id, name: "grp-task",
+    schedule_type: "time_based", interval_days: 30, enabled: true,
+  });
+
+  // Create group
+  const create = await ws(page, {
+    type: "maintenance_supporter/group/create",
+    name: "E2E Group",
+    description: "created by e2e",
+    task_refs: [{ entry_id: obj.entry_id, task_id: task.task_id }],
+  });
+  check("group/create returns group_id", typeof create.group_id === "string",
+    JSON.stringify(create));
+  const gid = create.group_id;
+
+  // Read back
+  const list = await ws(page, { type: "maintenance_supporter/groups" });
+  check("group appears in list", !!list.groups[gid],
+    `got ${Object.keys(list.groups).join(",")}`);
+  check("task_refs persisted",
+    list.groups[gid].task_refs.length === 1,
+    JSON.stringify(list.groups[gid]));
+
+  // Update
+  const update = await ws(page, {
+    type: "maintenance_supporter/group/update",
+    group_id: gid,
+    name: "E2E Group renamed",
+    task_refs: [],
+  });
+  check("group/update succeeds", update.success === true);
+
+  const list2 = await ws(page, { type: "maintenance_supporter/groups" });
+  check("group renamed", list2.groups[gid].name === "E2E Group renamed");
+  check("task_refs cleared", list2.groups[gid].task_refs.length === 0);
+
+  // Delete
+  const del = await ws(page, {
+    type: "maintenance_supporter/group/delete", group_id: gid,
+  });
+  check("group/delete succeeds", del.success === true);
+
+  const list3 = await ws(page, { type: "maintenance_supporter/groups" });
+  check("group gone", !list3.groups[gid]);
+
+  // Cleanup object
+  try {
+    await page.evaluate(async (eid) => {
+      const ha = document.querySelector("home-assistant");
+      await ha.hass.connection.sendMessagePromise({
+        type: "config_entries/remove", entry_id: eid,
+      });
+    }, obj.entry_id);
+  } catch { /* best-effort */ }
+});
+
+await runTest("Groups: dialog + buttons strings shipped", async () => {
+  const { readFile } = await import("fs/promises");
+  const js = await readFile(
+    new URL("../frontend/maintenance-panel.js", import.meta.url),
+    "utf-8",
+  );
+  check("EN new_group", js.includes("New group"));
+  check("EN edit_group", js.includes("Edit group"));
+  check("EN no_groups", js.includes("No groups yet"));
+  check("EN group_select_tasks", js.includes("Select tasks"));
+  check("DE new_group", js.includes("Neue Gruppe"));
+});
+
+// =====================================================================
 await cleanup(browser, ctx);
 console.log("\n" + "═".repeat(50));
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);

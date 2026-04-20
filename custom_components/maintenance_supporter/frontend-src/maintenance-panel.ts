@@ -32,6 +32,8 @@ import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
 import "./components/settings-view";
 import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
+import "./components/group-dialog";
+import type { MaintenanceGroupDialog } from "./components/group-dialog";
 import { renderTriggerSection, type SparklineContext } from "./renderers/sparkline";
 import { renderPredictionSection } from "./renderers/prediction";
 import { renderWeibullSection } from "./renderers/weibull";
@@ -625,6 +627,11 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         @overrides-saved=${this._onDialogEvent}
       ></maintenance-seasonal-overrides-dialog>
+      <maintenance-group-dialog
+        .hass=${this.hass}
+        .objects=${this._objects}
+        @group-saved=${this._onDialogEvent}
+      ></maintenance-group-dialog>
       ${this._toastMessage ? html`<div class="toast">${this._toastMessage}</div>` : nothing}
     `;
   }
@@ -821,33 +828,83 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   private _renderGroupsSection() {
+    if (!this._features.groups) return nothing;
     const entries = Object.entries(this._groups);
-    if (entries.length === 0) return nothing;
     const L = this._lang;
 
     return html`
       <div class="groups-section">
-        <h3>${t("groups", L)}</h3>
-        <div class="groups-grid">
-          ${entries.map(([_gid, group]) => {
-            const taskNames = group.task_refs
-              .map((ref) => this._getTask(ref.entry_id, ref.task_id)?.name)
-              .filter(Boolean);
-            return html`
-              <div class="group-card">
-                <div class="group-card-name">${group.name}</div>
-                ${group.description ? html`<div class="group-card-desc">${group.description}</div>` : nothing}
-                <div class="group-card-tasks">
-                  ${taskNames.length > 0
-                    ? taskNames.map((n) => html`<span class="group-task-chip">${n}</span>`)
-                    : html`<span style="font-size:12px;color:var(--secondary-text-color)">${t("no_tasks_short", L)}</span>`}
-                </div>
-              </div>
-            `;
-          })}
+        <div class="groups-header">
+          <h3>${t("groups", L)}</h3>
+          <ha-button appearance="plain" @click=${() => this._openGroupCreate()}>
+            ${t("new_group", L)}
+          </ha-button>
         </div>
+        ${entries.length === 0
+          ? html`<div class="hint">${t("no_groups", L)}</div>`
+          : html`
+            <div class="groups-grid">
+              ${entries.map(([gid, group]) => {
+                const taskNames = group.task_refs
+                  .map((ref) => this._getTask(ref.entry_id, ref.task_id)?.name)
+                  .filter(Boolean);
+                return html`
+                  <div class="group-card">
+                    <div class="group-card-head">
+                      <div class="group-card-name">${group.name}</div>
+                      <div class="group-card-actions">
+                        <mwc-icon-button title="${t("edit", L)}" @click=${() => this._openGroupEdit(gid)}>
+                          <ha-svg-icon path="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"></ha-svg-icon>
+                        </mwc-icon-button>
+                        <mwc-icon-button title="${t("delete", L)}" @click=${() => this._deleteGroup(gid, group.name)}>
+                          <ha-svg-icon path="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"></ha-svg-icon>
+                        </mwc-icon-button>
+                      </div>
+                    </div>
+                    ${group.description ? html`<div class="group-card-desc">${group.description}</div>` : nothing}
+                    <div class="group-card-tasks">
+                      ${taskNames.length > 0
+                        ? taskNames.map((n) => html`<span class="group-task-chip">${n}</span>`)
+                        : html`<span style="font-size:12px;color:var(--secondary-text-color)">${t("no_tasks_short", L)}</span>`}
+                    </div>
+                  </div>
+                `;
+              })}
+            </div>
+          `}
       </div>
     `;
+  }
+
+  private _openGroupCreate(): void {
+    this.shadowRoot!.querySelector<MaintenanceGroupDialog>("maintenance-group-dialog")?.openCreate();
+  }
+
+  private _openGroupEdit(groupId: string): void {
+    const group = this._groups[groupId];
+    if (!group) return;
+    this.shadowRoot!.querySelector<MaintenanceGroupDialog>("maintenance-group-dialog")?.openEdit(groupId, group);
+  }
+
+  private async _deleteGroup(groupId: string, name: string): Promise<void> {
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const ok = dlg
+      ? await dlg.confirm({
+          title: t("delete_group", this._lang),
+          message: t("delete_group_confirm", this._lang).replace("{name}", name),
+          confirmText: t("delete", this._lang),
+        })
+      : confirm(`${t("delete_group_confirm", this._lang).replace("{name}", name)}`);
+    if (!ok) return;
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/group/delete",
+        group_id: groupId,
+      });
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
   }
 
   private _renderBudgetBar() {
