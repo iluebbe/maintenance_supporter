@@ -5,10 +5,11 @@ from __future__ import annotations
 import logging
 import statistics as py_stats
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util import dt as dt_util
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,7 +121,7 @@ class EntityAnalyzer:
             _LOGGER.debug("Recorder statistics module not available")
             return None
 
-        start_time = datetime.now(UTC) - timedelta(days=_STATISTICS_LOOKBACK_DAYS)
+        start_time = dt_util.utcnow() - timedelta(days=_STATISTICS_LOOKBACK_DAYS)
 
         try:
             result = await get_instance(self.hass).async_add_executor_job(

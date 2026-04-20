@@ -14,7 +14,7 @@ from __future__ import annotations
 import math
 import statistics
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 from homeassistant.util import dt as dt_util
@@ -354,7 +354,10 @@ class IntervalAnalyzer:
             try:
                 dt = datetime.fromisoformat(ts)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=UTC)
+                    # Naive timestamps from legacy entries: treat as HA local TZ
+                    # to keep month boundaries (used for seasonal analysis)
+                    # consistent with the rest of the codebase.
+                    dt = dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 completed_dates.append(dt)
             except (ValueError, TypeError):
                 continue
@@ -552,7 +555,10 @@ class IntervalAnalyzer:
             try:
                 dt = datetime.fromisoformat(ts)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=UTC)
+                    # Naive timestamps from legacy entries: treat as HA local TZ
+                    # to keep month boundaries (used for seasonal analysis)
+                    # consistent with the rest of the codebase.
+                    dt = dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 completed_dates.append(dt)
             except (ValueError, TypeError):
                 continue
