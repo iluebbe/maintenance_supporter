@@ -49,7 +49,13 @@ class ThresholdTrigger(BaseTrigger):
         self._exceeded_since_dt: datetime | None = None
         if exceeded_since:
             try:
-                self._exceeded_since_dt = datetime.fromisoformat(exceeded_since)
+                parsed = datetime.fromisoformat(exceeded_since)
+                # Older payloads may be naive — assume UTC since live writes
+                # use dt_util.utcnow().isoformat() (TZ-aware).
+                if parsed.tzinfo is None:
+                    from datetime import UTC
+                    parsed = parsed.replace(tzinfo=UTC)
+                self._exceeded_since_dt = parsed
                 self._exceeded_since = exceeded_since
             except (ValueError, TypeError):
                 pass

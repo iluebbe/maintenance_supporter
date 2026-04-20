@@ -318,9 +318,14 @@ async def ws_create_task(
             connection.send_error(msg["id"], "invalid_format", "last_performed must be a valid date (YYYY-MM-DD)")
             return
         initial_last_performed = msg["last_performed"]
-        # Add initial history entry so times_performed reflects the value
+        # Add initial history entry so times_performed reflects the value.
+        # Use HA-TZ-aware midnight to keep interval_analyzer consistent.
+        from datetime import datetime, time
+
+        lp_date = date.fromisoformat(msg["last_performed"])
+        lp_dt = datetime.combine(lp_date, time.min, tzinfo=dt_util.DEFAULT_TIME_ZONE)
         initial_history.append({
-            "timestamp": msg["last_performed"] + "T00:00:00",
+            "timestamp": lp_dt.isoformat(),
             "type": HistoryEntryType.COMPLETED,
             "notes": "Initial value set during task creation",
         })
