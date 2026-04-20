@@ -401,6 +401,13 @@ class SensorPredictor:
                 ts_curr = datetime.fromisoformat(completed[i]["timestamp"])
             except (ValueError, TypeError):
                 continue
+            # Defensive TZ handling: legacy entries may be naive — assume HA
+            # local TZ. Mixing naive/aware datetimes raises TypeError on
+            # subtraction below.
+            if ts_prev.tzinfo is None:
+                ts_prev = ts_prev.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+            if ts_curr.tzinfo is None:
+                ts_curr = ts_curr.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
 
             interval_days = (ts_curr - ts_prev).total_seconds() / _SECONDS_PER_DAY
             if interval_days <= 0:

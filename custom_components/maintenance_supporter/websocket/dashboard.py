@@ -334,6 +334,11 @@ async def ws_get_budget_status(
                     entry_dt = dt_cls.fromisoformat(ts)
                 except (ValueError, TypeError):
                     continue
+                # Naive timestamps from older entries: treat as HA local TZ,
+                # then normalise so year/month boundaries match `now`.
+                if entry_dt.tzinfo is None:
+                    entry_dt = entry_dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+                entry_dt = dt_util.as_local(entry_dt)
                 if entry_dt.year == now.year:
                     yearly_spent += cost
                     if entry_dt.month == now.month:

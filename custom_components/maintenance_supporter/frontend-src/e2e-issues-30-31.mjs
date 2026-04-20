@@ -180,6 +180,111 @@ await runTest("#31 — Reset-Prompt Label sagt 'Last performed date'", async () 
 });
 
 // =====================================================================
+// EDGE CASES: TZ + lifecycle interaction
+// =====================================================================
+
+await runTest("EDGE — Lifecycle: create → complete → next_due aktualisiert", async () => {
+  const { entryId, taskId } = await createScenarioObject(`E2E Edge LC ${RUN}`, {
+    name: "Lifecycle Task", task_type: "cleaning",
+    schedule_type: "time_based", interval_days: 30, warning_days: 7, enabled: true,
+  });
+  // Initial state: no last_performed, days_until_due == interval_days
+  const t1 = await readTask(entryId, taskId);
+  check("initial days_until_due == interval_days", t1.days_until_due === 30,
+    `got ${t1.days_until_due}`);
+  check("initial last_performed is null", t1.last_performed === null,
+    `got ${t1.last_performed}`);
+
+  // Complete via WS
+  await ws(page, {
+    type: "maintenance_supporter/task/complete",
+    entry_id: entryId, task_id: taskId,
+  });
+  const t2 = await readTask(entryId, taskId);
+  check("after complete: last_performed set", t2.last_performed !== null,
+    `got ${t2.last_performed}`);
+  check("after complete: days_until_due == interval", t2.days_until_due === 30,
+    `got ${t2.days_until_due}`);
+  // History entry written
+  check("after complete: history has entry", t2.history.length === 1,
+    `len=${t2.history.length}`);
+  // Timestamp must be TZ-aware
+  const ts = t2.history[0].timestamp;
+  check("history timestamp has TZ suffix",
+    /[+-]\d{2}:\d{2}$|Z$/.test(ts),
+    `ts=${ts}`);
+
+  await deleteEntry(entryId);
+});
+
+await runTest("EDGE — Reset zu vergangenem Datum: last_performed + history", async () => {
+  const { entryId, taskId } = await createScenarioObject(`E2E Edge RST ${RUN}`, {
+    name: "Reset Edge", task_type: "cleaning",
+    schedule_type: "time_based", interval_days: 30, enabled: true,
+  });
+  const past = "2025-01-15";
+  await ws(page, {
+    type: "maintenance_supporter/task/reset",
+    entry_id: entryId, task_id: taskId, date: past,
+  });
+  const t = await readTask(entryId, taskId);
+  check("reset: last_performed = past date", t.last_performed === past,
+    `got ${t.last_performed}`);
+  check("reset: next_due = past + interval (overdue)",
+    t.next_due === "2025-02-14",
+    `got ${t.next_due}`);
+  check("reset: status is overdue", t.status === "overdue",
+    `got ${t.status}`);
+  check("reset: history has reset entry",
+    t.history.some(h => h.type === "reset"),
+    `types=${t.history.map(h => h.type).join(",")}`);
+
+  await deleteEntry(entryId);
+});
+
+await runTest("EDGE — Skip via WS: history entry + last_performed bumped", async () => {
+  const { entryId, taskId } = await createScenarioObject(`E2E Edge SKP ${RUN}`, {
+    name: "Skip Edge", task_type: "cleaning",
+    schedule_type: "time_based", interval_days: 14, enabled: true,
+  });
+  await ws(page, {
+    type: "maintenance_supporter/task/skip",
+    entry_id: entryId, task_id: taskId, reason: "user busy",
+  });
+  const t = await readTask(entryId, taskId);
+  check("skip: last_performed set (today)", t.last_performed !== null);
+  check("skip: history has skip entry",
+    t.history.some(h => h.type === "skipped"),
+    `types=${t.history.map(h => h.type).join(",")}`);
+  check("skip: next_due == today + interval (14)",
+    t.days_until_due === 14,
+    `got ${t.days_until_due}`);
+
+  await deleteEntry(entryId);
+});
+
+await runTest("EDGE — Update last_performed setzt next_due neu", async () => {
+  const { entryId, taskId } = await createScenarioObject(`E2E Edge UPD ${RUN}`, {
+    name: "Update Edge", task_type: "cleaning",
+    schedule_type: "time_based", interval_days: 30, enabled: true,
+  });
+  const past = "2024-06-01";
+  await ws(page, {
+    type: "maintenance_supporter/task/update",
+    entry_id: entryId, task_id: taskId,
+    last_performed: past,
+  });
+  const t = await readTask(entryId, taskId);
+  check("update: last_performed reflected", t.last_performed === past,
+    `got ${t.last_performed}`);
+  check("update: next_due = last + interval",
+    t.next_due === "2024-07-01",
+    `got ${t.next_due}`);
+
+  await deleteEntry(entryId);
+});
+
+// =====================================================================
 await cleanup(browser, ctx);
 console.log("\n" + "═".repeat(50));
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);
