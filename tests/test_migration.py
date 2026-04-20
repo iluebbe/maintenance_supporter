@@ -417,6 +417,7 @@ async def test_migrate_entry_backfills_created_at_for_new_task(
 ) -> None:
     """Task without history and without last_performed gets created_at=today."""
     from homeassistant.util import dt as dt_util
+
     from custom_components.maintenance_supporter import async_migrate_entry
 
     task = build_task_data(last_performed=None, history=[])
@@ -540,8 +541,9 @@ async def test_create_task_sets_created_at(
     entry.add_to_hass(hass)
     await setup_integration(hass, global_config_entry, entry)
 
-    from .conftest import call_ws_handler
     from unittest.mock import MagicMock
+
+    from .conftest import call_ws_handler
 
     conn = MagicMock()
     conn.send_result = MagicMock()
