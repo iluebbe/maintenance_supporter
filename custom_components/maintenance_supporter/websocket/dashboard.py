@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -232,7 +232,7 @@ async def ws_subscribe(
 ) -> None:
     """Subscribe to real-time maintenance updates."""
     attached_entry_ids: set[str] = set()
-    unsub_callbacks: list = []
+    unsub_callbacks: list[Callable[[], None]] = []
 
     @callback
     def _forward_update() -> None:
