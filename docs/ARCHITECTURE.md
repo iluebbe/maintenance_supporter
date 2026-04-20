@@ -65,7 +65,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 This enables per-object lifecycle management (add/remove objects independently) while sharing resources like the NotificationManager and panel registration.
 
 ### Two-Tier Storage (ConfigEntry + Store)
-Static task configuration (name, type, interval, trigger thresholds) lives in `ConfigEntry.data` and is only written on explicit user edits. Frequently-changing dynamic state (history, last_performed, adaptive_config, trigger_runtime) lives in per-entry Store files (`.storage/maintenance_supporter.<entry_id>`), using debounced 60-second writes to minimize SD-card wear on Raspberry Pi.
+Static task configuration (name, type, interval, trigger thresholds, `created_at`) lives in `ConfigEntry.data` and is only written on explicit user edits or via `async_migrate_entry` on schema bumps (e.g. minor_version 1 → 2 backfilled `created_at`). Frequently-changing dynamic state (history, last_performed, adaptive_config, trigger_runtime) lives in per-entry Store files (`.storage/maintenance_supporter.<entry_id>`), using debounced 60-second writes to minimize SD-card wear on Raspberry Pi.
 
 One-time idempotent migration on first load extracts dynamic fields from ConfigEntry.data into the Store. All consumers use `store.merge_all_tasks()` to recombine static + dynamic data at read time.
 
@@ -198,6 +198,8 @@ Coordinator refresh (every 5 min)
       ├─ If disabled → OK (skip further evaluation)
       ├─ If trigger_active → TRIGGERED
       ├─ Compute days_until_due = next_due - today
+      │   (next_due anchor = last_performed if set, else created_at,
+      │    else today; + interval_days)
       │   ├─ days < 0 → OVERDUE
       │   ├─ days <= warning_days → DUE_SOON
       │   └─ else → OK
@@ -251,6 +253,10 @@ Entity state changes → _handle_state_change_event()
 Entity unavailable for 6+ refreshes (~30 min):
   └─> Mark TriggerEntityState.MISSING
       └─> Create repair issue (replace / remove / dismiss)
+          ├─ Works for flat triggers AND compound trigger sub-entities
+          ├─ Replace updates entity_id inside conditions (top-level or
+          │  nested trigger_config sub-dict)
+          └─ Remove from compound: <2 conditions left → demoted to flat
 ```
 
 ### Service/WS Action Flow

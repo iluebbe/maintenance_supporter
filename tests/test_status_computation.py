@@ -75,7 +75,11 @@ class TestMaintenanceTaskStatus:
         assert status_after == MaintenanceStatus.TRIGGERED
 
     def test_never_performed_with_interval(self) -> None:
-        """Task never performed but with interval should be immediately due."""
+        """Task never performed schedules from creation date (issue #30 fix).
+
+        Without last_performed, next_due anchors on created_at + interval_days.
+        Falls back to today + interval when created_at is also missing (legacy).
+        """
         task = MaintenanceTask.from_dict(
             build_task_data(
                 interval_days=30,
@@ -83,10 +87,10 @@ class TestMaintenanceTaskStatus:
                 last_performed=None,
             )
         )
-        # days_until_due should be 0 (immediately due)
-        assert task.days_until_due == 0
-        # Status with 0 days until due and warning_days=7 → DUE_SOON
-        assert task.status == MaintenanceStatus.DUE_SOON
+        # Legacy fallback: anchor=today → next_due = today + 30 days
+        assert task.days_until_due == 30
+        # 30 days out, warning_days=7 → OK
+        assert task.status == MaintenanceStatus.OK
 
     def test_manual_no_interval_is_ok(self) -> None:
         """Manual task without interval should be OK."""
@@ -162,11 +166,53 @@ class TestNextDue:
         assert task.next_due == date(2024, 7, 1)
 
     def test_no_last_performed(self) -> None:
-        """Test next_due with no last_performed — never performed means due today."""
+        """Test next_due falls back to today + interval when no anchor known."""
         task = MaintenanceTask.from_dict(
             build_task_data(interval_days=30, last_performed=None)
         )
-        assert task.next_due == dt_util.now().date()
+        from datetime import timedelta
+        assert task.next_due == dt_util.now().date() + timedelta(days=30)
+
+    def test_next_due_uses_created_at_when_no_last_performed(self) -> None:
+        """created_at is used as anchor when last_performed is None (issue #30)."""
+        from datetime import timedelta
+
+        created = (dt_util.now().date() - timedelta(days=10)).isoformat()
+        task = MaintenanceTask.from_dict(
+            {
+                **build_task_data(interval_days=7, last_performed=None),
+                "created_at": created,
+            }
+        )
+        # Anchor=created, interval=7 → next_due = created + 7 days (3 days ago)
+        from datetime import date as _date
+
+        assert task.next_due == _date.fromisoformat(created) + timedelta(days=7)
+        # Should be OVERDUE since next_due is in the past
+        assert task.days_until_due == -3
+        assert task.status == MaintenanceStatus.OVERDUE
+
+    def test_invalid_created_at_falls_back_to_today(self) -> None:
+        """Invalid created_at strings are tolerated and fall back to today."""
+        from datetime import timedelta
+
+        task = MaintenanceTask.from_dict(
+            {
+                **build_task_data(interval_days=7, last_performed=None),
+                "created_at": "not-a-date",
+            }
+        )
+        assert task.next_due == dt_util.now().date() + timedelta(days=7)
+
+    def test_last_performed_takes_precedence_over_created_at(self) -> None:
+        """When last_performed is set, created_at is ignored."""
+        task = MaintenanceTask.from_dict(
+            {
+                **build_task_data(interval_days=30, last_performed="2024-06-01"),
+                "created_at": "2020-01-01",
+            }
+        )
+        assert task.next_due == date(2024, 7, 1)
 
 
 # ─── 6.4 Integration Status via Coordinator ─────────────────────────────

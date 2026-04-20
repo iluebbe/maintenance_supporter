@@ -106,7 +106,8 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `interval_days` | int | 30 | 1–3650 | Days between maintenance cycles (time-based and sensor-based) |
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
 | `warning_days` | int | 7 | 1–365 | Days before due date when status changes to `due_soon` |
-| `last_performed` | date | *(today)* | — | Date the task was last completed |
+| `last_performed` | date | *(none)* | — | Date the task was last completed. When unset, `next_due` is anchored on `created_at` (set to today on creation), so the task transitions to OVERDUE after `interval_days` instead of being due "today" forever. |
+| `created_at` | date | *(today on create)* | — | Anchor date for `next_due` when `last_performed` is unset. Set automatically; serialized in ConfigEntry. Migrated from earliest history timestamp for pre-v1.0.34 entries. |
 | `notes` | string | `""` | — | General notes about the task |
 | `documentation_url` | string | `""` | — | URL to external documentation or manual |
 | `responsible_user_id` | string | `""` | — | HA user ID of the person responsible for this task |

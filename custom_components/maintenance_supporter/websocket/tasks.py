@@ -7,6 +7,8 @@ from datetime import date
 from typing import Any
 from uuid import uuid4
 
+from homeassistant.util import dt as dt_util
+
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
@@ -297,6 +299,9 @@ async def ws_create_task(
         "enabled": msg.get("enabled", True),
         "schedule_type": msg.get("schedule_type", "time_based"),
         "warning_days": msg.get("warning_days", 7),
+        # Anchor for next_due fallback when last_performed is None (issue #30).
+        # Use HA's timezone-aware "today" to match next_due computation.
+        "created_at": dt_util.now().date().isoformat(),
     }
 
     # Dynamic state (last_performed, history) for Store initialization
