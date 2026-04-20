@@ -445,6 +445,22 @@ Multi-channel notification with:
 
 All write commands fire events for subscription updates.
 
+### Frontend Coverage
+
+Out of 37 backend endpoints, 28 are consumed by the Lit panel today. The remaining 9 split cleanly into two groups — **architecturally planned but without UI yet** (tied to `CONF_ADVANCED_*` feature flags) and **genuinely obsolete**.
+
+| Endpoint | Status | Linked Feature Flag | Notes |
+|---|---|---|---|
+| `task/analyze_interval` | **Planned** | `advanced_adaptive_visible` | Backend returns Weibull/EWA analysis; panel already reads the cached result from coordinator sensor attributes, so this endpoint is only needed for an on-demand "re-analyze" button that is not yet built. |
+| `task/seasonal_overrides` | **Planned** | `advanced_seasonal_visible` | Lets users edit the 12 monthly factors. No editor UI yet — panel currently only visualises the seasonal chart. |
+| `task/set_environmental_entity` | **Planned** | `advanced_environmental_visible` | Attaches an environmental sensor (humidity, temperature, …) to a task. Panel lacks the selector — currently only settable through the initial config flow. |
+| `group/create`, `group/update`, `group/delete` | **Planned** | `advanced_groups_visible` | Group-management UI is absent; panel only lists groups (`groups` endpoint). Full CRUD available via external API / automations. |
+| `global/test_notification` | **Planned** | — (part of Settings) | Backend sends a test notification; a "Send test notification" button in the Settings view would consume it. |
+| `task/list` | **Obsolete** | — | Superseded by `objects`, which already returns each object's tasks nested. Left in place for legacy tests / external consumers but nothing in the panel or the config flow calls it. |
+| `templates` | **Obsolete** (for the panel) | — | The config flow imports `templates.py` directly when offering preset templates; the panel never browses templates at runtime. Endpoint remains as a public read-only catalogue for external tools. |
+
+None of these are **missing/broken** — every frontend call has a matching backend handler. They mark either incremental UX gaps for advanced features that the architecture explicitly supports via the `CONF_ADVANCED_*` flags, or thin public-API surfaces. Before deleting `task/list` or `templates`, check whether any automation/script relies on them (the issue tracker has no such reports as of v1.0.34).
+
 ---
 
 ## Quality Scale Compliance
