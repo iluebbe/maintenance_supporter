@@ -148,6 +148,65 @@ await runTest("Environmental entity: dialog strings shipped", async () => {
 });
 
 // =====================================================================
+// Batch C: Seasonal Overrides Dialog
+// =====================================================================
+
+await runTest("Seasonal overrides: WS roundtrip set + clear", async () => {
+  const obj = await ws(page, { type: "maintenance_supporter/object/create", name: `seas ${Date.now().toString(36)}` });
+  const task = await ws(page, {
+    type: "maintenance_supporter/task/create",
+    entry_id: obj.entry_id, name: "seas-task",
+    schedule_type: "time_based", interval_days: 30, enabled: true,
+  });
+
+  // Set overrides for Jan + Jul
+  const r1 = await ws(page, {
+    type: "maintenance_supporter/task/seasonal_overrides",
+    entry_id: obj.entry_id, task_id: task.task_id,
+    overrides: { 1: 2.0, 7: 0.5 },
+  });
+  check("set succeeds", r1.success === true, JSON.stringify(r1));
+
+  const detail = await ws(page, {
+    type: "maintenance_supporter/object", entry_id: obj.entry_id,
+  });
+  const t = detail.tasks.find(x => x.id === task.task_id);
+  const ov = t?.adaptive_config?.seasonal_overrides;
+  check("adaptive_config has overrides",
+    ov && (ov["1"] === 2.0 || ov[1] === 2.0) && (ov["7"] === 0.5 || ov[7] === 0.5),
+    `got ${JSON.stringify(ov)}`);
+
+  // Clear
+  const r2 = await ws(page, {
+    type: "maintenance_supporter/task/seasonal_overrides",
+    entry_id: obj.entry_id, task_id: task.task_id,
+    overrides: {},
+  });
+  check("clear succeeds", r2.success === true);
+
+  try {
+    await page.evaluate(async (eid) => {
+      const ha = document.querySelector("home-assistant");
+      await ha.hass.connection.sendMessagePromise({
+        type: "config_entries/remove", entry_id: eid,
+      });
+    }, obj.entry_id);
+  } catch { /* best-effort */ }
+});
+
+await runTest("Seasonal overrides: dialog + button strings shipped", async () => {
+  const { readFile } = await import("fs/promises");
+  const js = await readFile(
+    new URL("../frontend/maintenance-panel.js", import.meta.url),
+    "utf-8",
+  );
+  check("EN edit button", js.includes("Edit seasonal factors"));
+  check("EN title", js.includes("Seasonal factors (override)"));
+  check("clear_all string", js.includes("Clear all"));
+  check("DE title", js.includes("Saisonale Faktoren"));
+});
+
+// =====================================================================
 await cleanup(browser, ctx);
 console.log("\n" + "═".repeat(50));
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);
