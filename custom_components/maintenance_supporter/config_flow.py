@@ -396,6 +396,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle object creation from the WebSocket API (no UI)."""
+        from homeassistant.util import dt as dt_util
+
         if user_input is None:
             return self.async_abort(reason="missing_data")
 
@@ -408,11 +410,22 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
         obj_data.setdefault("task_ids", [])
 
+        # Stamp `created_at` on imported tasks that lack it so next_due has a
+        # stable anchor (issue #30). Imports from CSV/JSON go through this
+        # chokepoint regardless of format.
+        today_iso = dt_util.now().date().isoformat()
+        tasks = dict(user_input.get(CONF_TASKS, {}))
+        for task_id, td in list(tasks.items()):
+            if isinstance(td, dict) and "created_at" not in td:
+                new_td = dict(td)
+                new_td["created_at"] = today_iso
+                tasks[task_id] = new_td
+
         return self.async_create_entry(
             title=object_name,
             data={
                 CONF_OBJECT: obj_data,
-                CONF_TASKS: user_input.get(CONF_TASKS, {}),
+                CONF_TASKS: tasks,
             },
         )
 
