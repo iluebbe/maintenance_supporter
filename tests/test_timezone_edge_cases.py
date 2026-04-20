@@ -15,8 +15,7 @@ budget recalculation, threshold trigger restore).
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, timedelta, timezone
-from typing import Any
+from datetime import date, datetime, timedelta
 
 import pytest
 from freezegun import freeze_time
@@ -30,7 +29,6 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     HistoryEntryType,
     MaintenanceStatus,
-    ScheduleType,
 )
 from custom_components.maintenance_supporter.helpers.interval_analyzer import (
     IntervalAnalyzer,
@@ -46,7 +44,6 @@ from .conftest import (
     build_object_entry_data,
     build_task_data,
 )
-
 
 # ---------------------------------------------------------------------------
 # 1. MaintenanceTask.next_due — date-arithmetic edge cases
@@ -410,6 +407,7 @@ async def test_budget_naive_timestamp_at_year_boundary(
     from custom_components.maintenance_supporter.coordinator import (
         MaintenanceCoordinator,
     )
+
     from .conftest import setup_integration
 
     history = [
@@ -450,6 +448,7 @@ async def test_budget_naive_timestamp_at_year_boundary(
 def test_threshold_trigger_restore_naive_isoformat() -> None:
     """ThresholdTrigger.__init__ tolerates a naive persisted exceeded_since."""
     from unittest.mock import MagicMock
+
     from custom_components.maintenance_supporter.entity.triggers.threshold import (
         ThresholdTrigger,
     )
@@ -470,6 +469,7 @@ def test_threshold_trigger_restore_naive_isoformat() -> None:
 def test_threshold_trigger_restore_aware_isoformat() -> None:
     """Already TZ-aware persisted exceeded_since is preserved."""
     from unittest.mock import MagicMock
+
     from custom_components.maintenance_supporter.entity.triggers.threshold import (
         ThresholdTrigger,
     )
