@@ -1,11 +1,10 @@
 /** Card editor for the Maintenance Supporter Lovelace card. */
 
 import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
 import { t } from "./styles";
 import type { HomeAssistant, CardConfig } from "./types";
 
-@customElement("maintenance-supporter-card-editor")
 export class MaintenanceSupporterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
@@ -83,4 +82,15 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       display: block;
     }
   `;
+}
+
+// Module-bottom registration so esbuild's tree-shaker doesn't drop the
+// element class when the only reference looks "type-only" (the
+// @customElement decorator pattern triggered exactly that bug for the
+// dialog components — same fix applied here for the card editor).
+if (!customElements.get("maintenance-supporter-card-editor")) {
+  customElements.define(
+    "maintenance-supporter-card-editor",
+    MaintenanceSupporterCardEditor,
+  );
 }

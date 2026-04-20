@@ -116,11 +116,13 @@ export class MaintenanceObjectDialog extends LitElement {
             .value=${this._serialNumber}
             @input=${(e: Event) => (this._serialNumber = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
-          <ha-textfield
+          <ha-area-picker
+            .hass=${this.hass}
             label="${t("area_id_optional", L)}"
             .value=${this._areaId}
-            @input=${(e: Event) => (this._areaId = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+            @value-changed=${(e: CustomEvent) =>
+              (this._areaId = (e.detail.value as string) || "")}
+          ></ha-area-picker>
           <ha-textfield
             label="${t("installation_date_optional", L)}"
             type="date"

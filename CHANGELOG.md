@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.38] - 2026-04-21
+
+### Fixed
+- **Lovelace card disappeared from the card picker (issue #32, item 4).** `maintenance-card.ts` and `maintenance-card-editor.ts` registered themselves with the `@customElement(...)` decorator, but esbuild's tree-shaker dropped both classes because nothing else in the bundle held a value-level reference — the same pattern that already broke `object-dialog` and `task-dialog` and was fixed there with explicit `customElements.define()` at the bottom. Same fix applied to both card files. Verified by `grep -oE 'customElements\.define\("[^"]+"' frontend/maintenance-card.js`: all 3 expected elements now appear (was missing the two card classes).
+- Picker UX in dialogs:
+  - **Object dialog "Area" field is now an `<ha-area-picker>`** (drop-down of Home Assistant areas) instead of a free-text field. Prevents typos that would otherwise silently land in `area_id` and break HA's area-based logic.
+  - **Task dialog "Custom icon" field is now an `<ha-icon-picker>`** (browseable icon search) instead of a free-text `mdi:…` field (issue #32, item 3).
+
+### Added — Build pipeline
+- **`docker-smoke` CI job** in `.github/workflows/tests.yaml`: spins up the pinned HA image with our integration mounted, waits for `/manifest.json`, imports our top-level modules from inside the container, and grep-fails the build on any `ERROR.*maintenance_supporter` / `Setup failed for maintenance_supporter` / `Traceback`. Runs after `frontend-build` + `pytest` so a green pipeline now means "HA actually starts with this code", not just "tests pass against mocks". This is the signal that would have caught a release-time setup failure before HACS users saw it.
+- **`docker/smoke-test.sh`**: local mirror of the CI job. Run before pushing a release. Handles git-bash path-mangling quirks (`MSYS_NO_PATHCONV=1` for the volume mount, in-container `PYTHONPATH=/config` for the import test, shell redirect instead of `curl -o /dev/null` so the wait loop works on Windows).
+
+### Closed issues
+- #32 (4 reported items): items 3 and 4 are bug fixes shipped here; items 1 (checklist editing visibility) and 2 (where to set the time) are documented as the existing `advanced_checklists_visible` toggle and the per-task `interval_days` / trigger configuration — both already exposed in the panel since v1.0.36/37.
+
 ## [1.0.37] - 2026-04-21
 
 ### Fixed

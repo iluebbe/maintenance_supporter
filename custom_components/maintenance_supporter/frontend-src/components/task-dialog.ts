@@ -635,11 +635,13 @@ export class MaintenanceTaskDialog extends LitElement {
             .value=${this._documentationUrl}
             @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
-          <ha-textfield
+          <ha-icon-picker
+            .hass=${this.hass}
             label="${t("custom_icon_optional", L)}"
             .value=${this._customIcon}
-            @input=${(e: Event) => (this._customIcon = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+            @value-changed=${(e: CustomEvent) =>
+              (this._customIcon = (e.detail.value as string) || "")}
+          ></ha-icon-picker>
           ${this._availableTags.length > 0
             ? html`
               <div class="select-row">

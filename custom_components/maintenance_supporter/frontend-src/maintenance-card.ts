@@ -1,7 +1,7 @@
 /** Maintenance Supporter Lovelace Card. */
 
 import { LitElement, html, css, nothing } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, t } from "./styles";
 import type {
   HomeAssistant,
@@ -19,7 +19,6 @@ interface FlatTask {
   task: MaintenanceTask;
 }
 
-@customElement("maintenance-supporter-card")
 export class MaintenanceSupporterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
@@ -277,7 +276,15 @@ export class MaintenanceSupporterCard extends LitElement {
   ];
 }
 
-// Register as custom card
+// Module-bottom registration so esbuild's tree-shaker doesn't drop the
+// element class when the only reference is the @customElement decorator
+// (which triggered this exact bug for the dialog components — issue #32:
+// "card not showing in the card selector, busy spinner only").
+if (!customElements.get("maintenance-supporter-card")) {
+  customElements.define("maintenance-supporter-card", MaintenanceSupporterCard);
+}
+
+// Register as custom card so the Lovelace card picker lists it.
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
   type: "maintenance-supporter-card",
