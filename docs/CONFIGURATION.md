@@ -30,7 +30,7 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 | `advanced_seasonal_visible` | bool | `false` | Show seasonal scheduling adjustment options |
 | `advanced_environmental_visible` | bool | `false` | Show environmental correlation options |
 | `advanced_budget_visible` | bool | `false` | Show budget tracking settings and dashboard |
-| `advanced_groups_visible` | bool | `false` | Show task grouping management |
+| `advanced_groups_visible` | bool | `false` | Show task grouping management section in the panel with create / edit / delete controls |
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
 
 ### Notification Settings
@@ -51,6 +51,8 @@ Visible only when `notifications_enabled` is `true`.
 | `max_notifications_per_day` | int | 0 | 0–100 | Maximum notifications per day across all tasks. 0 = unlimited |
 | `notification_bundling_enabled` | bool | `false` | — | Bundle multiple due tasks into a single notification |
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
+
+Also exposed: a **"Send test"** button next to the notify service field. It calls `maintenance_supporter/global/test_notification` and surfaces the backend message as a toast — useful for verifying the notify service without waiting for a real due event.
 
 ### Notification Actions
 
@@ -131,8 +133,11 @@ Available when `advanced_adaptive_visible` is enabled globally. Configured per t
 | `min_interval_days` | int | 7 | 1–365 | Floor for adaptive interval recommendations |
 | `max_interval_days` | int | 365 | 1–3650 | Ceiling for adaptive interval recommendations |
 | `sensor_prediction_enabled` | bool | `false` | — | Enable sensor degradation analysis from recorder data |
-| `environmental_entity` | string | `""` | — | Entity ID of an environmental sensor (temperature, humidity) for correlation analysis |
+| `environmental_entity` | string | `""` | — | Entity ID of an environmental sensor (temperature, humidity) for correlation analysis. Editable in the **task dialog** for sensor-based tasks; persisted via `maintenance_supporter/task/set_environmental_entity`. |
 | `environmental_attribute` | string | `""` | — | Attribute name if monitoring an attribute instead of the entity state |
+| `seasonal_overrides` | dict | `{}` | month 1–12 → 0.1–5.0 | Manual per-month factor overrides. Editable via the "Edit seasonal factors" dialog opened below the seasonal chart; persisted via `maintenance_supporter/task/seasonal_overrides`. Empty = learned from history. |
+
+**On-demand analysis:** The recommendation card has a **Re-analyze** button (v1.0.35+) that calls `maintenance_supporter/task/analyze_interval` and returns the current Weibull/EWA/seasonal result — useful to refresh the view without waiting for the next coordinator cycle.
 
 **Adaptive thresholds** (not directly configurable — determined by history depth):
 
