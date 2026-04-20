@@ -68,7 +68,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
 - Checklists for multi-step procedures
-- Task grouping for logical organization
+- Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
 - 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
 ### Sensor-Based Triggers
@@ -85,13 +85,15 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Adaptive Scheduling
 - Learns from your maintenance history using Exponential Weighted Averaging (EWA)
 - Weibull reliability analysis for failure prediction (after 5+ completions)
-- Seasonal awareness with hemisphere detection and per-month multipliers
-- Environmental correlation with external sensors (temperature, humidity, etc.)
+- On-demand **Re-analyze** button (task detail) — shows recommended interval, confidence and data-point count as a toast without having to wait for the next coordinator refresh
+- Seasonal awareness with hemisphere detection and per-month multipliers; manual 12-month **seasonal factor override editor** available below the seasonal chart (0.1–5.0 per month, empty = learned)
+- Environmental correlation with external sensors (temperature, humidity, etc.) — bound via an entity picker in the task dialog for sensor-based tasks
 - Sensor degradation rate analysis and threshold prediction
 - User feedback loop (needed / not needed / not sure) to improve recommendations
 
 ### Notifications
 - Configurable notification service (any `notify.*` service)
+- **"Send test" button** in Settings to verify the notify service without having to wait for a real due event
 - Per-user notifications for tasks with a responsible user assigned
 - Rate limiting per status level (due soon, overdue, triggered)
 - Quiet hours support
