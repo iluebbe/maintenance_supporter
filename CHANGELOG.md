@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.36] - 2026-04-20
+
+### Fixed
+- **Issue #30 redux — new tasks created via Config Flow never transitioned to OVERDUE.** `created_at` was stamped only by `ws_create_task`; the three Config-Flow task-creation paths (`_save_task_and_return` in the initial setup wizard, `async_step_template_customize` for template tasks, `_save_new_task` in per-entry Options → Add task) silently omitted the field. Without it, `next_due` fell back to `today + interval` and shifted forward every day forever. All three paths now set `"created_at": dt_util.now().date().isoformat()` consistently with the WebSocket path.
+- **Test-notification drift between panel button and Integration-Options menu.** The WebSocket handler included `MS_TEST_COMPLETE/SKIP/SNOOZE` action buttons when actions were enabled; the Config-Flow step sent plain title+message. Both now share a single `send_test_notification(hass, options)` helper in `config_flow_options_global.py`, so the rendered notification is identical regardless of entry point.
+- **Environmental-attribute-only change silently dropped in the task dialog.** When `_environmentalEntity` was unchanged but `_environmentalAttribute` changed, the `set_environmental_entity` WebSocket call never fired because change detection compared only the entity field. Both fields are tracked now, and their "initial" shadows are synced after a successful save so repeated saves don't re-submit identical payloads.
+
+### Added
+- **Checklist editing in the panel task dialog.** Behind the `advanced_checklists_visible` feature flag. Textarea-based editor (one step per line, empty lines stripped, max 100 items, max 500 chars per item). Previously checklist editing was Config-Flow-only; the panel and config flow are now at parity. 3 new i18n keys × 9 languages (`checklist_steps_optional`, `checklist_placeholder`, `checklist_help`).
+
+### Tests
+- 3 regression asserts added for `created_at` stamping in Config-Flow task creation (initial setup, template customize, options-flow add_task).
+- All 1485 tests continue to pass; ruff + mypy strict clean across 51 source files.
+
 ## [1.0.35] - 2026-04-20
 
 ### Added — UI for previously backend-only advanced features

@@ -81,6 +81,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
 
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
+        from homeassistant.util import dt as dt_util
+
         task_id = uuid4().hex
         task_data: dict[str, Any] = {
             "id": task_id,
@@ -94,6 +96,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             "warning_days": self._current_task.get(
                 CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
             ),
+            # Anchor for next_due fallback when last_performed is None (issue #30).
+            "created_at": dt_util.now().date().isoformat(),
         }
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:

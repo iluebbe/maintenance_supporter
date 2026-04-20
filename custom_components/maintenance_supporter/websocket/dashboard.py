@@ -478,7 +478,7 @@ async def ws_test_notification(
     """Send a test notification using the configured service."""
     from ..config_flow_options_global import (
         _get_test_result_text,
-        validate_notify_service,
+        send_test_notification,
     )
 
     global_entry = _get_global_entry(hass)
@@ -486,62 +486,12 @@ async def ws_test_notification(
         connection.send_error(msg["id"], "not_found", "Global config entry not found")
         return
 
-    options = global_entry.options or global_entry.data
-    notify_service = str(options.get(CONF_NOTIFY_SERVICE, ""))
-
-    if not notify_service:
-        connection.send_result(
-            msg["id"],
-            {"success": False, "message": _get_test_result_text(hass, "no_service")},
-        )
-        return
-
-    normalized, error = validate_notify_service(notify_service)
-    if error:
-        connection.send_result(
-            msg["id"],
-            {
-                "success": False,
-                "message": _get_test_result_text(hass, "invalid_service"),
-            },
-        )
-        return
-
-    try:
-        parts = normalized.split(".")
-        push_msg = _get_test_result_text(hass, "push_message")
-        service_data: dict[str, Any] = {
-            "title": "Maintenance Supporter",
-            "message": push_msg,
-        }
-
-        # Add action buttons so users can verify their notification layout
-        actions_enabled = options.get(CONF_ACTION_COMPLETE_ENABLED, False)
-        skip_enabled = options.get(CONF_ACTION_SKIP_ENABLED, False)
-        snooze_enabled = options.get(CONF_ACTION_SNOOZE_ENABLED, False)
-        if actions_enabled or skip_enabled or snooze_enabled:
-            test_actions: list[dict[str, str]] = []
-            if actions_enabled:
-                test_actions.append({"action": "MS_TEST_COMPLETE", "title": "\u2705 Complete"})
-            if skip_enabled:
-                test_actions.append({"action": "MS_TEST_SKIP", "title": "\u23ed\ufe0f Skip"})
-            if snooze_enabled:
-                test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
-            service_data["data"] = {"actions": test_actions}
-
-        await hass.services.async_call(
-            parts[0],
-            parts[1],
-            service_data,
-            blocking=True,
-        )
-        connection.send_result(
-            msg["id"],
-            {"success": True, "message": _get_test_result_text(hass, "success")},
-        )
-    except Exception:
-        _LOGGER.debug("Test notification failed for %s", notify_service, exc_info=True)
-        connection.send_result(
-            msg["id"],
-            {"success": False, "message": _get_test_result_text(hass, "failed")},
-        )
+    options = dict(global_entry.options or global_entry.data)
+    result_key = await send_test_notification(hass, options)
+    connection.send_result(
+        msg["id"],
+        {
+            "success": result_key == "success",
+            "message": _get_test_result_text(hass, result_key),
+        },
+    )

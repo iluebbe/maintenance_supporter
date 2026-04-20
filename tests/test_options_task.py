@@ -710,6 +710,13 @@ async def test_add_task_time_based_full_flow(
     assert entry is not None
     assert len(entry.data[CONF_TASKS]) == 2
 
+    # Regression (issue #30): options-flow task creation must stamp
+    # `created_at` so next_due has a stable anchor for tasks without
+    # last_performed.
+    today_iso = dt_util.now().date().isoformat()
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t["name"] == "New Task")
+    assert new_task["created_at"] == today_iso
+
 
 async def test_add_task_go_back(
     hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,

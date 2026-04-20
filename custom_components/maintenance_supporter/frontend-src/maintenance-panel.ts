@@ -610,6 +610,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ></maintenance-object-dialog>
       <maintenance-task-dialog
         .hass=${this.hass}
+        .checklistsEnabled=${this._features.checklists}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
       <maintenance-complete-dialog

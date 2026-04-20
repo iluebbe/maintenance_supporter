@@ -214,6 +214,13 @@ async def test_template_customize_submit_creates_entry(
     # Should have tasks from the car template
     tasks = result["data"][CONF_TASKS]
     assert len(tasks) >= 3  # Car template has 5 tasks
+    # Regression (issue #30): template tasks must stamp `created_at` so
+    # next_due has a stable anchor for tasks without last_performed.
+    from homeassistant.util import dt as dt_util
+
+    today_iso = dt_util.now().date().isoformat()
+    for task in tasks.values():
+        assert task["created_at"] == today_iso
 
 
 async def test_template_customize_duplicate_name(

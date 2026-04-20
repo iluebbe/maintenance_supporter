@@ -165,6 +165,52 @@ def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
     return texts.get(key, texts.get("failed", key))
 
 
+async def send_test_notification(
+    hass: HomeAssistant, options: dict[str, Any]
+) -> str:
+    """Send a test notification using the configured notify service.
+
+    Returns a result key ("success", "no_service", "invalid_service", "failed")
+    that callers map to localized text. Action buttons are included whenever
+    the corresponding action-feature toggles are enabled, so the rendered
+    notification matches the real layout users see for actual tasks.
+    """
+    notify_service = str(options.get(CONF_NOTIFY_SERVICE, ""))
+    if not notify_service:
+        return "no_service"
+
+    # Format-only validation — existence is left to the async_call below so
+    # notify services registered lazily (e.g. mobile_app_*) still test cleanly.
+    normalized, error = validate_notify_service(notify_service)
+    if error:
+        return "invalid_service"
+
+    try:
+        parts = normalized.split(".")
+        push_msg = _get_test_result_text(hass, "push_message")
+        service_data: dict[str, Any] = {
+            "title": "Maintenance Supporter",
+            "message": push_msg,
+        }
+        actions_enabled = options.get(CONF_ACTION_COMPLETE_ENABLED, False)
+        skip_enabled = options.get(CONF_ACTION_SKIP_ENABLED, False)
+        snooze_enabled = options.get(CONF_ACTION_SNOOZE_ENABLED, False)
+        if actions_enabled or skip_enabled or snooze_enabled:
+            test_actions: list[dict[str, str]] = []
+            if actions_enabled:
+                test_actions.append({"action": "MS_TEST_COMPLETE", "title": "\u2705 Complete"})
+            if skip_enabled:
+                test_actions.append({"action": "MS_TEST_SKIP", "title": "\u23ed\ufe0f Skip"})
+            if snooze_enabled:
+                test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
+            service_data["data"] = {"actions": test_actions}
+        await hass.services.async_call(parts[0], parts[1], service_data, blocking=True)
+        return "success"
+    except Exception:
+        _LOGGER.debug("Test notification failed for %s", notify_service, exc_info=True)
+        return "failed"
+
+
 class GlobalOptionsFlow(OptionsFlow):
     """Handle global options with menu-based navigation."""
 
@@ -482,38 +528,9 @@ class GlobalOptionsFlow(OptionsFlow):
                 menu_options=self._menu_options(),
             )
 
-        # First call: send the test notification
-        current = self._current
-        notify_service = current.get(CONF_NOTIFY_SERVICE, "")
-
-        if not notify_service:
-            result_key = "no_service"
-        else:
-            normalized, error = validate_notify_service(
-                notify_service, hass=self.hass
-            )
-            if error:
-                result_key = "invalid_service"
-            else:
-                try:
-                    parts = normalized.split(".")
-                    push_msg = _get_test_result_text(self.hass, "push_message")
-                    await self.hass.services.async_call(
-                        parts[0],
-                        parts[1],
-                        {
-                            "title": "Maintenance Supporter",
-                            "message": push_msg,
-                        },
-                        blocking=True,
-                    )
-                    result_key = "success"
-                except Exception:
-                    _LOGGER.debug(
-                        "Test notification failed for %s", notify_service, exc_info=True
-                    )
-                    result_key = "failed"
-
+        # First call: send the test notification via shared helper so the
+        # same actions appear here as from the panel WS call.
+        result_key = await send_test_notification(self.hass, self._current)
         result_text = _get_test_result_text(self.hass, result_key)
 
         return self.async_show_form(

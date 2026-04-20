@@ -12,6 +12,7 @@ const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+  @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -60,10 +61,14 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _responsibleUserId: string | null = null;
   @state() private _availableUsers: HAUser[] = [];
 
+  // Checklist (newline-separated steps, one per line)
+  @state() private _checklistText = "";
+
   // Environmental entity (adaptive_config)
   @state() private _environmentalEntity = "";
   @state() private _environmentalAttribute = "";
   private _environmentalInitial = ""; // for change detection on save
+  private _environmentalAttributeInitial = "";
   private _userService: UserService | null = null;
 
   private get _lang(): string {
@@ -97,10 +102,13 @@ export class MaintenanceTaskDialog extends LitElement {
     this._nfcTagId = task.nfc_tag_id || "";
     this._responsibleUserId = task.responsible_user_id || null;
 
+    this._checklistText = (task.checklist || []).join("\n");
+
     const ac = task.adaptive_config || {};
     this._environmentalEntity = (ac.environmental_entity as string) || "";
     this._environmentalAttribute = (ac.environmental_attribute as string) || "";
     this._environmentalInitial = this._environmentalEntity;
+    this._environmentalAttributeInitial = this._environmentalAttribute;
 
     if (task.trigger_config) {
       const tc = task.trigger_config;
@@ -145,9 +153,11 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = "";
     this._nfcTagId = "";
     this._responsibleUserId = null;
+    this._checklistText = "";
     this._environmentalEntity = "";
     this._environmentalAttribute = "";
     this._environmentalInitial = "";
+    this._environmentalAttributeInitial = "";
     this._resetTriggerFields();
   }
 
@@ -295,16 +305,28 @@ export class MaintenanceTaskDialog extends LitElement {
         data.trigger_config = null;
       }
 
+      if (this.checklistsEnabled) {
+        const items = this._checklistText
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean)
+          .slice(0, 100);
+        data.checklist = items.length ? items : null;
+      }
+
       const result = await this.hass.connection.sendMessagePromise(data) as { task_id?: string };
       const savedTaskId = this._taskId || result?.task_id;
 
       // Environmental entity lives in adaptive_config (Store-managed),
       // so it has a dedicated endpoint. Only call it when something
       // actually changed, and only for sensor_based tasks.
+      const envChanged =
+        this._environmentalEntity !== this._environmentalInitial
+        || this._environmentalAttribute !== this._environmentalAttributeInitial;
       if (
         savedTaskId
         && this._scheduleType === "sensor_based"
-        && this._environmentalEntity !== this._environmentalInitial
+        && envChanged
       ) {
         try {
           await this.hass.connection.sendMessagePromise({
@@ -314,6 +336,8 @@ export class MaintenanceTaskDialog extends LitElement {
             environmental_entity: this._environmentalEntity || null,
             environmental_attribute: this._environmentalAttribute || null,
           });
+          this._environmentalInitial = this._environmentalEntity;
+          this._environmentalAttributeInitial = this._environmentalAttribute;
         } catch {
           /* non-fatal — task itself saved */
         }
@@ -589,6 +613,18 @@ export class MaintenanceTaskDialog extends LitElement {
               ></ha-textfield>
             ` : nothing}
           ` : nothing}
+          ${this.checklistsEnabled ? html`
+            <label class="field-label" for="checklist-textarea">${t("checklist_steps_optional", L)}</label>
+            <textarea
+              id="checklist-textarea"
+              class="checklist-textarea"
+              rows="5"
+              placeholder="${t("checklist_placeholder", L)}"
+              .value=${this._checklistText}
+              @input=${(e: Event) => (this._checklistText = (e.target as HTMLTextAreaElement).value)}
+            ></textarea>
+            <div class="field-help">${t("checklist_help", L)}</div>
+          ` : nothing}
           <ha-textfield
             label="${t("notes_optional", L)}"
             .value=${this._notes}
@@ -671,6 +707,27 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     ha-textfield {
       display: block;
+    }
+    .field-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .checklist-textarea {
+      width: 100%;
+      min-height: 88px;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .field-help {
+      font-size: 12px;
+      color: var(--secondary-text-color);
     }
     h3 {
       margin: 8px 0 0;

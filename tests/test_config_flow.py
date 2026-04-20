@@ -250,6 +250,11 @@ async def test_time_based_task_flow(
     assert task["name"] == "Filter Cleaning"
     assert task["interval_days"] == 30
     assert task["schedule_type"] == ScheduleType.TIME_BASED
+    # Regression (issue #30): config-flow task creation must stamp `created_at`
+    # so next_due has a stable anchor when last_performed is None.
+    from homeassistant.util import dt as dt_util
+
+    assert task["created_at"] == dt_util.now().date().isoformat()
 
 
 async def test_time_based_invalid_interval(

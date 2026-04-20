@@ -116,11 +116,11 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 
 ### Checklist
 
-Available when `advanced_checklists_visible` is enabled globally. Checklists are ordered lists of steps that must be checked off during task completion.
+Available when `advanced_checklists_visible` is enabled globally. Checklists are ordered lists of steps that must be checked off during task completion. Editable both in the **panel task dialog** (textarea, one step per line) and in the **Integration Options** per-task Edit Checklist step.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `checklist` | list[string] | Ordered list of step descriptions |
+| `checklist` | list[string] | Ordered list of step descriptions (max 100 items, 500 chars/item) |
 
 ### Adaptive Scheduling
 

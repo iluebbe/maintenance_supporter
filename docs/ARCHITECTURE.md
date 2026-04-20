@@ -447,7 +447,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-As of v1.0.35, 35 of the 37 backend endpoints are consumed by the Lit panel. The remaining 2 are genuinely obsolete for the panel but kept as public API.
+As of v1.0.36, 35 of the 37 backend endpoints are consumed by the Lit panel. The remaining 2 are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
@@ -455,11 +455,21 @@ As of v1.0.35, 35 of the 37 backend endpoints are consumed by the Lit panel. The
 | `task/seasonal_overrides` | Wired | `advanced_seasonal_visible` | "Edit seasonal factors" button under the expanded seasonal chart — opens a 12-month editor dialog with validation (0.1–5.0 per month, empty = learned). |
 | `task/set_environmental_entity` | Wired | `advanced_environmental_visible` | Environmental sensor + optional attribute fields in the task dialog (only shown for `schedule_type == "sensor_based"`). Saved via dedicated endpoint after the main task update. |
 | `group/create`, `group/update`, `group/delete` | Wired | `advanced_groups_visible` | Full CRUD in the groups section of the panel: "New group" header button, per-card edit/delete icons, unified group dialog with multi-checkbox task selector grouped by object. |
-| `global/test_notification` | Wired | — (part of Settings) | "Send test" button next to the notify_service field in Settings (disabled when no service configured). |
+| `global/test_notification` | Wired | — (part of Settings) | "Send test" button next to the notify_service field in Settings (disabled when no service configured). Shared helper `send_test_notification()` guarantees the payload (including action buttons) matches the Integration-Options test step. |
+| Task `checklist` field | Wired | `advanced_checklists_visible` | Textarea editor in the task dialog (one step per line, trimmed, max 100 items, max 500 chars per item). Previously Config-Flow-only; panel ↔ config flow now at parity. |
 | `task/list` | **Obsolete** | — | Superseded by `objects`, which already returns each object's tasks nested. Left in place for legacy tests / external consumers; nothing in the panel or the config flow calls it. |
 | `templates` | **Obsolete** (for the panel) | — | The config flow imports `templates.py` directly when offering preset templates; the panel never browses templates at runtime. Endpoint remains as a public read-only catalogue for external tools. |
 
 None of these are **missing/broken** — every frontend call has a matching backend handler, and every advanced-feature flag now has a working UI binding. Before deleting `task/list` or `templates`, check whether any automation/script relies on them.
+
+Two remaining Config-Flow-only surfaces are design choices, not drift: **adaptive tuning knobs** (`adaptive_enabled`, `ewa_alpha`, `min/max_interval_days`, `seasonal_enabled`, `sensor_prediction_enabled`) and **compound-trigger editing** are exposed only via per-task Options → Adaptive Scheduling / Edit Trigger steps. The panel reads them but does not edit them.
+
+### Three-surface sync audit (v1.0.36)
+
+A schema-level audit compared every WebSocket handler, Config-Flow step, and panel call. Two genuine sync bugs surfaced and were fixed:
+
+1. **`created_at` missing in 3 Config-Flow task-creation paths** (`_save_task_and_return`, `async_step_template_customize`, `_save_new_task`). The field was set only by `ws_create_task`, and the one-shot migration (`minor_version 1 → 2`) did not run for newly-created entries, so any task created via Config Flow after installation reproduced issue #30 (`next_due` fell back to `today + interval` and shifted forward every day). All three paths now stamp `"created_at": dt_util.now().date().isoformat()`, matching the WebSocket path exactly. Regression asserts added to `test_time_based_task_flow`, `test_template_customize_submit_creates_entry`, and `test_add_task_time_based_full_flow`.
+2. **Test notification drift.** `ws_test_notification` included `MS_TEST_COMPLETE/SKIP/SNOOZE` action buttons; `async_step_test_notification` sent plain title+message. Both callers now route through `send_test_notification(hass, options)` in `config_flow_options_global.py` so the rendered notification is identical regardless of entry point.
 
 ---
 

@@ -250,6 +250,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 }
 
                 # Build tasks from template
+                from homeassistant.util import dt as dt_util
+
+                today_iso = dt_util.now().date().isoformat()
                 self._tasks = {}
                 for tt in template.tasks:
                     task_id = uuid4().hex
@@ -262,6 +265,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         "schedule_type": tt.schedule_type,
                         "warning_days": tt.warning_days,
                         "history": [],
+                        "created_at": today_iso,
                     }
                     if tt.interval_days is not None:
                         task_data["interval_days"] = tt.interval_days
@@ -871,6 +875,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     def _save_task_and_return(self) -> ConfigFlowResult:
         """Save the current task and return to task menu."""
+        from homeassistant.util import dt as dt_util
+
         task_id = self._current_task.get("id", uuid4().hex)
         task_data = {
             "id": task_id,
@@ -885,6 +891,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
             ),
             "history": [],
+            # Anchor for next_due fallback when last_performed is None (issue #30).
+            "created_at": dt_util.now().date().isoformat(),
         }
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:

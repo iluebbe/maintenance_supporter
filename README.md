@@ -67,7 +67,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Assign tasks to responsible Home Assistant users with per-user notification routing
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
-- Checklists for multi-step procedures
+- Checklists for multi-step procedures — editable in the panel task dialog (and in the Integration Options)
 - Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
 - 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
