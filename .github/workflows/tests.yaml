@@ -64,3 +64,112 @@ jobs:
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       - name: Run tests
         run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=90
+
+  docker-smoke:
+    name: Docker smoke (HA starts with integration)
+    runs-on: ubuntu-latest
+    needs: [frontend-build, pytest]
+    timeout-minutes: 8
+    env:
+      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.4.3
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      # The release zip ships the pre-built frontend bundle, so the smoke
+      # test must also build it before mounting into the container.
+      - name: Build frontend bundle
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: |
+          npm ci
+          node esbuild.mjs
+
+      - name: Prepare HA config dir
+        run: |
+          mkdir -p ha-test-config/custom_components
+          cp -r custom_components/maintenance_supporter \
+            ha-test-config/custom_components/maintenance_supporter
+          # Minimal HA config — enough to load the integration without
+          # paying the default_config startup tax (which can blow past
+          # 180s on a CI runner).
+          cat > ha-test-config/configuration.yaml <<'YAML'
+          http:
+          api:
+          frontend:
+          websocket_api:
+          config:
+          panel_custom:
+          lovelace:
+          recorder:
+            db_url: "sqlite:///:memory:"
+          logger:
+            default: warning
+            logs:
+              custom_components.maintenance_supporter: debug
+              homeassistant.loader: info
+              homeassistant.setup: info
+          YAML
+
+      - name: Start Home Assistant
+        run: |
+          docker run -d --name ha-test \
+            -v "${GITHUB_WORKSPACE}/ha-test-config:/config" \
+            -e TZ=UTC \
+            -p 8123:8123 \
+            "${HA_IMAGE}"
+
+      - name: Wait for HA API (up to 300s)
+        run: |
+          for i in $(seq 1 150); do
+            if curl -sf http://localhost:8123/manifest.json >/dev/null 2>&1; then
+              echo "HA API up after $((i*2))s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::HA did not respond within 300s"
+          docker logs ha-test --tail 200
+          exit 1
+
+      # Integrations with config_flow only are discovered but not set up
+      # until an entry exists. Their Python modules are still imported by
+      # the loader — that's enough to catch syntax/import/manifest bugs
+      # before HACS users hit them.
+      - name: Verify integration discovery + module import
+        run: |
+          # HA puts custom components on its own loader path, not sys.path.
+          # PYTHONPATH is set inside the container shell so it survives
+          # regardless of host shell path translation (matters for the
+          # matching local smoke-test.sh on Windows/git-bash).
+          docker exec ha-test sh -c 'PYTHONPATH=/config python -c "
+          from custom_components.maintenance_supporter import __init__, config_flow, coordinator
+          from custom_components.maintenance_supporter.websocket import __init__ as ws_init
+          print(\"OK — all top-level modules import cleanly\")
+          "'
+
+      # Any ERROR or traceback mentioning our integration at startup is a
+      # showstopper — this is the exact signal that would have caught
+      # a broken release from reaching HACS users.
+      - name: Fail on ERROR / Traceback from our integration
+        run: |
+          if docker logs ha-test 2>&1 \
+               | grep -E 'ERROR.*maintenance_supporter|Setup failed for maintenance_supporter|Traceback \(most recent call last\):' \
+               | grep -v 'trigger_runtime_hours not configured' \
+               > /tmp/ms_errors.log; then
+            echo "::error::Integration setup errors detected"
+            cat /tmp/ms_errors.log
+            echo "--- full HA log (tail 300) ---"
+            docker logs ha-test --tail 300
+            exit 1
+          fi
+          echo "No integration setup errors."
+
+      - name: HA log summary (always)
+        if: always()
+        run: docker logs ha-test --tail 200
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f ha-test || true
