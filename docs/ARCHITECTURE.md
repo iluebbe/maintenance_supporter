@@ -95,6 +95,31 @@ Trigger sensors update immediately via HA state_change events, but the coordinat
 ### Pure Python Helpers
 `interval_analyzer` has zero HA dependencies, enabling isolated unit testing and reuse outside HA. `sensor_predictor` and `entity_analyzer` depend on the HA recorder and state machine for data access, but their core algorithms (linear regression, Pearson correlation, Weibull analysis) are pure Python.
 
+### Time & Date Handling
+All time/date code uses `homeassistant.util.dt` (`dt_util`) — never `datetime.now()`, `datetime.utcnow()`, or `date.today()` from stdlib. This ensures consistency between the running HA timezone and the values written/compared in code, regardless of what the host system clock reports.
+
+| Use case | Helper |
+|---|---|
+| "Now" in HA timezone | `dt_util.now()` (returns aware `datetime`) |
+| "Now" in UTC for storage | `dt_util.utcnow()` |
+| Today's date in HA timezone | `dt_util.now().date()` |
+| Convert aware → HA-local | `dt_util.as_local(dt)` |
+
+**Reads from history/storage** must defensively reattach a timezone to naive ISO strings (legacy data may exist). The pattern used throughout the codebase:
+```python
+dt = datetime.fromisoformat(ts)
+if dt.tzinfo is None:
+    dt = dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+```
+**Writes** always produce TZ-aware ISO strings via `dt_util.now().isoformat()` so subsequent reads get a `tzinfo`.
+
+**`next_due` anchor chain** (in priority order):
+1. `last_performed` — when the task was actually performed
+2. `created_at` — when the task was created (added in v1.0.34, schema-migrated for legacy entries)
+3. `dt_util.now().date()` — defensive fallback only
+
+This order ensures a task without history schedules from creation date instead of "today" on every refresh.
+
 ---
 
 ## File Structure

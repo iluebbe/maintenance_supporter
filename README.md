@@ -167,7 +167,7 @@ For a complete list of all configurable parameters, see [docs/CONFIGURATION.md](
 
 Each sensor entity exposes attributes grouped by function:
 
-- **Schedule**: `interval_days`, `warning_days`, `days_until_due`, `next_due_date`, `last_performed`, `schedule_type`
+- **Schedule**: `interval_days`, `warning_days`, `days_until_due`, `next_due_date`, `last_performed`, `created_at`, `schedule_type`
 - **Trigger**: `trigger_type`, `trigger_active`, `trigger_current_value`, `trigger_entity_state` (per-entity availability)
 - **Adaptive**: `adaptive_enabled`, `suggested_interval`, `weibull_beta`, `weibull_reliability`, `seasonal_factor`
 - **Prediction**: `degradation_rate`, `predicted_trigger_date`, `environmental_factor`
@@ -343,7 +343,7 @@ logger:
 | Service | Description |
 |---------|-------------|
 | `maintenance_supporter.complete` | Mark a task as complete (with optional notes, cost, duration) |
-| `maintenance_supporter.reset` | Reset a task's last performed date |
+| `maintenance_supporter.reset` | Mark a task as last performed on a specific date (`date` parameter, defaults to today). The next due date is then computed as `date + interval_days`. |
 | `maintenance_supporter.skip` | Skip the current maintenance cycle |
 | `maintenance_supporter.export_data` | Export all maintenance data |
 
