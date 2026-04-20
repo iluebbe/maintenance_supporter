@@ -38,6 +38,7 @@ class MaintenanceTask:
     interval_days: int | None = None
     warning_days: int = DEFAULT_WARNING_DAYS
     last_performed: str | None = None  # ISO format YYYY-MM-DD
+    created_at: str | None = None  # ISO date: fallback anchor for next_due when last_performed is None
     interval_anchor: str = "completion"  # "completion" or "planned"
     last_planned_due: str | None = None  # ISO date: anchor for planned mode
 
@@ -83,7 +84,18 @@ class MaintenanceTask:
         if not self.interval_days or self.interval_days <= 0:
             return None
         if self.last_performed is None:
-            return dt_util.now().date()
+            # First-time anchor: use created_at if known, else today.
+            # Without this fallback the next_due would always be "today" and
+            # the task would never transition to OVERDUE (issue #30).
+            try:
+                anchor_date = (
+                    date.fromisoformat(self.created_at)
+                    if self.created_at
+                    else dt_util.now().date()
+                )
+            except (ValueError, TypeError):
+                anchor_date = dt_util.now().date()
+            return anchor_date + timedelta(days=self.interval_days)
         try:
             last = date.fromisoformat(self.last_performed)
         except (ValueError, TypeError):
@@ -299,6 +311,8 @@ class MaintenanceTask:
             data["last_planned_due"] = self.last_planned_due
         if self.last_performed is not None:
             data["last_performed"] = self.last_performed
+        if self.created_at is not None:
+            data["created_at"] = self.created_at
         if self.trigger_config is not None:
             data["trigger_config"] = self.trigger_config
         if self.notes is not None:
@@ -330,6 +344,7 @@ class MaintenanceTask:
             interval_days=data.get("interval_days"),
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             last_performed=data.get("last_performed"),
+            created_at=data.get("created_at"),
             interval_anchor=data.get("interval_anchor", "completion"),
             last_planned_due=data.get("last_planned_due"),
             trigger_config=data.get("trigger_config"),

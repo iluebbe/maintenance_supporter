@@ -403,3 +403,161 @@ async def test_migration_multi_entry(
 
     assert rd1.store.get_last_performed(TASK_ID_1) == lp1
     assert rd2.store.get_last_performed(TASK_ID_1) == lp2
+
+
+# ─── async_migrate_entry (minor_version 1 → 2): created_at backfill ───
+# Issue #30: Tasks without last_performed and without created_at had
+# next_due "moving" each refresh because the fallback returned today.
+# Migration locks the anchor by writing created_at.
+
+
+async def test_migrate_entry_backfills_created_at_for_new_task(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """Task without history and without last_performed gets created_at=today."""
+    from homeassistant.util import dt as dt_util
+    from custom_components.maintenance_supporter import async_migrate_entry
+
+    task = build_task_data(last_performed=None, history=[])
+    # Strip created_at if conftest set it (we want to test backfill)
+    task.pop("created_at", None)
+
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Mig Test", data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_mig_v2_a",
+    )
+    entry.add_to_hass(hass)
+
+    result = await async_migrate_entry(hass, entry)
+    assert result is True
+
+    refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
+    assert refreshed.minor_version == 2
+    migrated_task = refreshed.data[CONF_TASKS][TASK_ID_1]
+    assert migrated_task["created_at"] == dt_util.now().date().isoformat()
+
+
+async def test_migrate_entry_uses_earliest_history_timestamp(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """Task with history but no last_performed/created_at: created_at = earliest history."""
+    from custom_components.maintenance_supporter import async_migrate_entry
+
+    history = [
+        {"type": "completed", "timestamp": "2025-08-15T10:00:00+00:00"},
+        {"type": "completed", "timestamp": "2025-06-01T09:00:00+00:00"},  # earliest
+        {"type": "completed", "timestamp": "2025-12-20T11:00:00+00:00"},
+    ]
+    task = build_task_data(last_performed=None, history=history)
+    task.pop("created_at", None)
+
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Mig Hist", data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_mig_v2_b",
+    )
+    entry.add_to_hass(hass)
+
+    await async_migrate_entry(hass, entry)
+    refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
+    assert refreshed.data[CONF_TASKS][TASK_ID_1]["created_at"] == "2025-06-01"
+
+
+async def test_migrate_entry_skips_tasks_with_last_performed(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """Tasks that already have last_performed don't need created_at."""
+    from custom_components.maintenance_supporter import async_migrate_entry
+
+    task = build_task_data(last_performed="2025-01-15", history=[])
+    task.pop("created_at", None)
+
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Mig LP", data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_mig_v2_c",
+    )
+    entry.add_to_hass(hass)
+
+    await async_migrate_entry(hass, entry)
+    refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
+    # last_performed is the anchor, so created_at is not added
+    assert "created_at" not in refreshed.data[CONF_TASKS][TASK_ID_1]
+    assert refreshed.minor_version == 2
+
+
+async def test_migrate_entry_idempotent(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """Running migration twice is a no-op once minor_version >= 2."""
+    from custom_components.maintenance_supporter import async_migrate_entry
+
+    task = build_task_data(last_performed=None, history=[])
+    task.pop("created_at", None)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Idem", data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_mig_v2_d",
+    )
+    entry.add_to_hass(hass)
+
+    await async_migrate_entry(hass, entry)
+    refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
+    first_created = refreshed.data[CONF_TASKS][TASK_ID_1]["created_at"]
+
+    # Second call: short-circuits because minor_version is already 2
+    await async_migrate_entry(hass, refreshed)
+    refreshed2 = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed2 is not None
+    assert refreshed2.data[CONF_TASKS][TASK_ID_1]["created_at"] == first_created
+
+
+async def test_create_task_sets_created_at(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """ws_create_task writes created_at = today on new tasks (issue #30)."""
+    from homeassistant.util import dt as dt_util
+
+    from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
+
+    entry = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="Create CA",
+        data=build_object_entry_data(tasks={}),
+        source="user",
+        unique_id="maintenance_supporter_create_ca",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_config_entry, entry)
+
+    from .conftest import call_ws_handler
+    from unittest.mock import MagicMock
+
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    await call_ws_handler(
+        ws_create_task, hass, conn,
+        {
+            "id": 1, "type": "maintenance_supporter/task/create",
+            "entry_id": entry.entry_id, "name": "Created Task",
+            "interval_days": 30, "enabled": True,
+        },
+    )
+    conn.send_result.assert_called_once()
+    new_task_id = conn.send_result.call_args[0][1]["task_id"]
+
+    refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
+    assert refreshed.data[CONF_TASKS][new_task_id]["created_at"] == dt_util.now().date().isoformat()
+

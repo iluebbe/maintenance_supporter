@@ -66,7 +66,12 @@ export async function ws(page, cmd) {
   return page.evaluate(async (c) => {
     const ha = document.querySelector("home-assistant");
     if (!ha?.hass?.connection) throw new Error("no hass connection");
-    return ha.hass.connection.sendMessagePromise(c);
+    try {
+      return await ha.hass.connection.sendMessagePromise(c);
+    } catch (e) {
+      // Surface backend errors as readable JSON
+      throw new Error("WS error: " + JSON.stringify(e));
+    }
   }, cmd);
 }
 

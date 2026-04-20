@@ -378,6 +378,64 @@ def _detect_advanced_feature_usage(
     }
 
 
+async def async_migrate_entry(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> bool:
+    """Migrate a config entry forward in version (HA pattern).
+
+    minor_version 1 → 2 (issue #30): backfill ``created_at`` for tasks that
+    were created before the field existed. Uses the earliest history entry
+    timestamp when available, otherwise today. This locks the next_due
+    fallback anchor so the schedule advances normally instead of always
+    pointing at "today".
+    """
+    if entry.version > 1 or entry.minor_version >= 2:
+        return True
+
+    if entry.unique_id != GLOBAL_UNIQUE_ID:
+        from homeassistant.util import dt as dt_util
+
+        tasks_data = entry.data.get(CONF_TASKS, {})
+        if tasks_data:
+            today_iso = dt_util.now().date().isoformat()
+            new_tasks: dict[str, dict[str, Any]] = {}
+            for task_id, td in tasks_data.items():
+                if "created_at" in td or td.get("last_performed"):
+                    new_tasks[task_id] = td
+                    continue
+                # Try to recover creation date from earliest history entry
+                anchor: str = today_iso
+                history = td.get("history") or []
+                if isinstance(history, list) and history:
+                    timestamps: list[str] = [
+                        ts
+                        for h in history
+                        if isinstance(h, dict)
+                        and isinstance((ts := h.get("timestamp")), str)
+                        and ts
+                    ]
+                    if timestamps:
+                        # ISO timestamps sort lexicographically; take YYYY-MM-DD
+                        anchor = min(timestamps)[:10]
+                new_td = dict(td)
+                new_td["created_at"] = anchor
+                new_tasks[task_id] = new_td
+            new_data = dict(entry.data)
+            new_data[CONF_TASKS] = new_tasks
+            hass.config_entries.async_update_entry(
+                entry, data=new_data, minor_version=2
+            )
+            _LOGGER.info(
+                "Migrated entry %s to minor_version 2 (created_at backfilled)",
+                entry.entry_id,
+            )
+            return True
+
+    # Global entry or no tasks: just bump the version
+    hass.config_entries.async_update_entry(entry, minor_version=2)
+    return True
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry
 ) -> bool:

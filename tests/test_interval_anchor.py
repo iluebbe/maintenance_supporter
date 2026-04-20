@@ -201,15 +201,21 @@ class TestIntervalAnchorEdgeCases:
         )
         assert task.next_due is None
 
-    def test_no_last_performed_returns_today(self) -> None:
-        """No last_performed → next_due is today."""
+    def test_no_last_performed_returns_today_plus_interval(self) -> None:
+        """No last_performed → next_due is today + interval (issue #30 fix).
+
+        Without an anchor, the legacy fallback uses today + interval_days so
+        the task does not appear due immediately on every refresh.
+        """
+        from datetime import timedelta
+
         task = MaintenanceTask(
             id=TASK_ID_1,
             name="Test",
             interval_days=30,
             interval_anchor="planned",
         )
-        assert task.next_due == dt_util.now().date()
+        assert task.next_due == dt_util.now().date() + timedelta(days=30)
 
     def test_invalid_last_performed(self) -> None:
         """Invalid last_performed → next_due is None."""

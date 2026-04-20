@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.34] - 2026-04-20
+
+### Fixed
+- **Task without `last_performed` no longer "due today" forever (#30)** — `next_due` now anchors on a new `created_at` field set when the task is created. Previously, a task without history would compute `next_due = today` on every refresh, never transitioning to OVERDUE and never firing notifications.
+- **Compound trigger repair flow handles sub-entities (Phase 2)** — replace/remove inside compound conditions (top-level or nested `trigger_config`); remove demotes compound to flat trigger when only 1 condition survives.
+
+### Changed
+- **Reset prompt strings clarified (#31)** — old "Reset this task? / New date" was ambiguous (next due date vs. last performed date). Now reads "Mark task as performed? / Last performed date (optional, defaults to today)" in all 9 supported languages.
+
+### Added
+- ConfigEntry schema migration: minor_version 1 → 2 backfills `created_at` for existing tasks (prefers earliest history timestamp, falls back to today).
+- 8 new tests: 3 for `next_due` with `created_at`, 5 for migration (backfill, history anchor, idempotent, skip, create-task).
+- 5 new repair tests: replace in compound (single, multi, nested), remove demote to flat, remove keeps multi-entity condition.
+
 ## [1.0.33] - 2026-04-19
 
 ### Fixed
