@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.37] - 2026-04-21
+
+### Fixed
+- **CSV / JSON imports didn't stamp `created_at` on imported tasks (issue #30 follow-up).** After v1.0.36 closed the three Config-Flow task-creation paths, a critical review of the open GitHub issues turned up two more sources of the same bug class: `ws_import_csv` (via `csv_handler.import_objects_csv()`) and `ws_import_json` both built task dicts without `created_at`. Imported tasks that had no `last_performed` in the source file reproduced the "due today forever" behavior from issue #30. Fix applied at the chokepoint `async_step_websocket` in `config_flow.py`: every task lacking `created_at` is now stamped with today's date before the entry is persisted. Preserves any user-supplied `created_at` from the import source.
+
+### Tests
+- Regression assert added to `test_import_json_valid` verifying every imported task has `created_at` set.
+
+### Closed issues
+- #30 (fixed in v1.0.34; follow-up in this release covers imports).
+- #31 (fixed in v1.0.34 via clarified reset-prompt strings).
+
 ## [1.0.36] - 2026-04-20
 
 ### Fixed

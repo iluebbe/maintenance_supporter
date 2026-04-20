@@ -327,6 +327,17 @@ async def test_import_json_valid(
     assert result["imported"][0]["name"] == "JSON Pump"
     assert result["imported"][0]["task_count"] == 2
 
+    # Regression (issue #30): imported tasks must have `created_at` stamped
+    # so next_due has a stable anchor (not a moving today+interval).
+    from homeassistant.util import dt as dt_util
+
+    entry_id = result["imported"][0]["entry_id"]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    today_iso = dt_util.now().date().isoformat()
+    for task in entry.data[CONF_TASKS].values():
+        assert task["created_at"] == today_iso
+
 
 async def test_import_json_multiple_objects(
     hass: HomeAssistant, global_entry: MockConfigEntry,
