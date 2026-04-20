@@ -59,6 +59,11 @@ export class MaintenanceTaskDialog extends LitElement {
   // User assignment
   @state() private _responsibleUserId: string | null = null;
   @state() private _availableUsers: HAUser[] = [];
+
+  // Environmental entity (adaptive_config)
+  @state() private _environmentalEntity = "";
+  @state() private _environmentalAttribute = "";
+  private _environmentalInitial = ""; // for change detection on save
   private _userService: UserService | null = null;
 
   private get _lang(): string {
@@ -91,6 +96,11 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
     this._responsibleUserId = task.responsible_user_id || null;
+
+    const ac = task.adaptive_config || {};
+    this._environmentalEntity = (ac.environmental_entity as string) || "";
+    this._environmentalAttribute = (ac.environmental_attribute as string) || "";
+    this._environmentalInitial = this._environmentalEntity;
 
     if (task.trigger_config) {
       const tc = task.trigger_config;
@@ -135,6 +145,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = "";
     this._nfcTagId = "";
     this._responsibleUserId = null;
+    this._environmentalEntity = "";
+    this._environmentalAttribute = "";
+    this._environmentalInitial = "";
     this._resetTriggerFields();
   }
 
@@ -282,7 +295,30 @@ export class MaintenanceTaskDialog extends LitElement {
         data.trigger_config = null;
       }
 
-      await this.hass.connection.sendMessagePromise(data);
+      const result = await this.hass.connection.sendMessagePromise(data) as { task_id?: string };
+      const savedTaskId = this._taskId || result?.task_id;
+
+      // Environmental entity lives in adaptive_config (Store-managed),
+      // so it has a dedicated endpoint. Only call it when something
+      // actually changed, and only for sensor_based tasks.
+      if (
+        savedTaskId
+        && this._scheduleType === "sensor_based"
+        && this._environmentalEntity !== this._environmentalInitial
+      ) {
+        try {
+          await this.hass.connection.sendMessagePromise({
+            type: "maintenance_supporter/task/set_environmental_entity",
+            entry_id: this._entryId,
+            task_id: savedTaskId,
+            environmental_entity: this._environmentalEntity || null,
+            environmental_attribute: this._environmentalAttribute || null,
+          });
+        } catch {
+          /* non-fatal — task itself saved */
+        }
+      }
+
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-saved"));
     } catch {
@@ -538,6 +574,21 @@ export class MaintenanceTaskDialog extends LitElement {
             </select>
           </div>
           ${this._renderTriggerFields()}
+          ${this._scheduleType === "sensor_based" ? html`
+            <ha-textfield
+              label="${t("environmental_entity_optional", L)}"
+              helper="${t("environmental_entity_helper", L)}"
+              .value=${this._environmentalEntity}
+              @input=${(e: Event) => (this._environmentalEntity = (e.target as HTMLInputElement).value.trim())}
+            ></ha-textfield>
+            ${this._environmentalEntity ? html`
+              <ha-textfield
+                label="${t("environmental_attribute_optional", L)}"
+                .value=${this._environmentalAttribute}
+                @input=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLInputElement).value.trim())}
+              ></ha-textfield>
+            ` : nothing}
+          ` : nothing}
           <ha-textfield
             label="${t("notes_optional", L)}"
             .value=${this._notes}
