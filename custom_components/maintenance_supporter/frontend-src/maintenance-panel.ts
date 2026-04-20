@@ -30,6 +30,8 @@ import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
 import "./components/settings-view";
+import "./components/seasonal-overrides-dialog";
+import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
 import { renderTriggerSection, type SparklineContext } from "./renderers/sparkline";
 import { renderPredictionSection } from "./renderers/prediction";
 import { renderWeibullSection } from "./renderers/weibull";
@@ -490,6 +492,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  private _openSeasonalOverrides(task: MaintenanceTask): void {
+    const dlg = this.shadowRoot!.querySelector<SeasonalOverridesDialog>("maintenance-seasonal-overrides-dialog");
+    if (!dlg || !this._selectedEntryId) return;
+    const overrides = task.adaptive_config?.seasonal_overrides as Record<number, number> | null | undefined;
+    dlg.open(this._selectedEntryId, task.id, overrides);
+  }
+
   private async _reanalyzeInterval(entryId: string, taskId: string): Promise<void> {
     try {
       const res = await this.hass.connection.sendMessagePromise({
@@ -612,6 +621,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       <maintenance-confirm-dialog
         .hass=${this.hass}
       ></maintenance-confirm-dialog>
+      <maintenance-seasonal-overrides-dialog
+        .hass=${this.hass}
+        @overrides-saved=${this._onDialogEvent}
+      ></maintenance-seasonal-overrides-dialog>
       ${this._toastMessage ? html`<div class="toast">${this._toastMessage}</div>` : nothing}
     `;
   }
@@ -1324,7 +1337,14 @@ export class MaintenanceSupporterPanel extends LitElement {
           </div>
         </div>
         ${hasWeibullData ? renderWeibullSection(task, L) : nothing}
-        ${hasSeasonalData ? renderSeasonalCardExpanded(task, L) : nothing}
+        ${hasSeasonalData ? html`
+          ${renderSeasonalCardExpanded(task, L)}
+          <div class="seasonal-actions">
+            <ha-button appearance="plain" @click=${() => this._openSeasonalOverrides(task)}>
+              ${t("edit_seasonal_overrides", L)}
+            </ha-button>
+          </div>
+        ` : nothing}
         ${this._renderRecentActivities(task)}
       </div>
     `;
