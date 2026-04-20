@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
+from homeassistant.util import dt as dt_util
+
 from ..const import (
     DEFAULT_ADAPTIVE_EWA_ALPHA,
     DEFAULT_ADAPTIVE_MAX_INTERVAL,
@@ -194,7 +196,7 @@ class IntervalAnalyzer:
             hemisphere = adaptive_config.get("hemisphere", "north")
             manual_overrides = adaptive_config.get("seasonal_overrides")
 
-            current_month = adaptive_config.get("_current_month") or datetime.now().month
+            current_month = adaptive_config.get("_current_month") or dt_util.now().month
 
             seasonal = self._compute_monthly_factors(
                 intervals_with_months, hemisphere, manual_overrides, current_month
@@ -316,7 +318,7 @@ class IntervalAnalyzer:
             seasonal_enabled = config.get("seasonal_enabled", True)
             stored_factors = config.get("_seasonal_factors")
             if seasonal_enabled and stored_factors and len(stored_factors) == 12:
-                current_month = config.get("_current_month") or datetime.now().month
+                current_month = config.get("_current_month") or dt_util.now().month
                 factor = stored_factors[current_month - 1]
                 recommended = self._apply_seasonal_adjustment(
                     recommended, factor, min_interval, max_interval
@@ -326,7 +328,7 @@ class IntervalAnalyzer:
 
         config["current_recommendation"] = recommended
         config["recommendation_reason"] = reason
-        config["last_analysis_date"] = config.get("_current_date") or datetime.now().date().isoformat()
+        config["last_analysis_date"] = config.get("_current_date") or dt_util.now().date().isoformat()
 
         return config
 

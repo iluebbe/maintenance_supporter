@@ -732,6 +732,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         entry_dt = datetime.fromisoformat(ts)
                     except (ValueError, TypeError):
                         continue
+                    # Ensure TZ-aware so year/month boundaries are evaluated
+                    # in HA's local timezone (otherwise off-by-one near midnight).
+                    if entry_dt.tzinfo is None:
+                        entry_dt = entry_dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+                    entry_dt = dt_util.as_local(entry_dt)
                     if entry_dt.year == now.year:
                         yearly += cost_val
                         if entry_dt.month == now.month:
