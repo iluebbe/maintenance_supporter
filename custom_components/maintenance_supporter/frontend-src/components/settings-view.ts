@@ -59,6 +59,7 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _importLoading = false;
   @state() private _includeHistory = true;
   @state() private _toast = "";
+  @state() private _testingNotification = false;
 
   private _loaded = false;
 
@@ -100,6 +101,22 @@ export class MaintenanceSettingsView extends LitElement {
       this._showToast(t("action_error", this._lang));
     }
   }
+
+  private _sendTestNotification = async (): Promise<void> => {
+    this._testingNotification = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/global/test_notification",
+      }) as { success: boolean; message?: string };
+      const msg = res.message
+        || (res.success ? t("test_notification_success", this._lang) : t("test_notification_failed", this._lang));
+      this._showToast(msg);
+    } catch {
+      this._showToast(t("test_notification_failed", this._lang));
+    } finally {
+      this._testingNotification = false;
+    }
+  };
 
   private _showToast(msg: string): void {
     this._toast = msg;
@@ -197,6 +214,14 @@ export class MaintenanceSettingsView extends LitElement {
             <input type="text" .value=${g.notify_service}
               @change=${(e: Event) => this._updateSetting("notify_service", (e.target as HTMLInputElement).value.trim())} />
           </label>
+          <div class="setting-row">
+            <span class="setting-label">${t("test_notification", L)}</span>
+            <button class="ha-button secondary"
+              ?disabled=${!g.notify_service || this._testingNotification}
+              @click=${this._sendTestNotification}>
+              ${this._testingNotification ? t("testing", L) : t("send_test", L)}
+            </button>
+          </div>
         ` : nothing}
       </div>
     `;
