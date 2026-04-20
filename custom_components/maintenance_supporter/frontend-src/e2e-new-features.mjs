@@ -87,6 +87,67 @@ await runTest("Re-analyze: Button strings shipped", async () => {
 });
 
 // =====================================================================
+// Batch B.2: Environmental Entity Selector (Task Dialog, sensor_based)
+// =====================================================================
+
+await runTest("Environmental entity: WS endpoint persists adaptive_config", async () => {
+  // Create a sensor-based task, then set and clear the env entity.
+  const obj = await ws(page, { type: "maintenance_supporter/object/create", name: `env ${Date.now().toString(36)}` });
+  const task = await ws(page, {
+    type: "maintenance_supporter/task/create",
+    entry_id: obj.entry_id, name: "env-task",
+    schedule_type: "sensor_based", interval_days: 30,
+    trigger_config: { type: "threshold", entity_id: "sensor.dummy", trigger_above: 10 },
+    enabled: true,
+  });
+
+  // Set
+  const r1 = await ws(page, {
+    type: "maintenance_supporter/task/set_environmental_entity",
+    entry_id: obj.entry_id, task_id: task.task_id,
+    environmental_entity: "sensor.outdoor_temperature",
+    environmental_attribute: null,
+  });
+  check("set succeeds", r1.success === true, JSON.stringify(r1));
+
+  const detail = await ws(page, {
+    type: "maintenance_supporter/object", entry_id: obj.entry_id,
+  });
+  const t = detail.tasks.find(x => x.id === task.task_id);
+  check("adaptive_config reflects env entity",
+    t?.adaptive_config?.environmental_entity === "sensor.outdoor_temperature",
+    `got ${JSON.stringify(t?.adaptive_config)}`);
+
+  // Clear
+  await ws(page, {
+    type: "maintenance_supporter/task/set_environmental_entity",
+    entry_id: obj.entry_id, task_id: task.task_id,
+    environmental_entity: null,
+  });
+
+  // Cleanup (as admin via config_entries)
+  try {
+    await page.evaluate(async (eid) => {
+      const ha = document.querySelector("home-assistant");
+      await ha.hass.connection.sendMessagePromise({
+        type: "config_entries/remove", entry_id: eid,
+      });
+    }, obj.entry_id);
+  } catch { /* best-effort */ }
+});
+
+await runTest("Environmental entity: dialog strings shipped", async () => {
+  const { readFile } = await import("fs/promises");
+  const js = await readFile(
+    new URL("../frontend/maintenance-panel.js", import.meta.url),
+    "utf-8",
+  );
+  check("EN environmental_entity label", js.includes("Environmental sensor"));
+  check("DE environmental_entity label", js.includes("Umgebungs-Sensor"));
+  check("helper text shipped", js.includes("adjusts the interval"));
+});
+
+// =====================================================================
 await cleanup(browser, ctx);
 console.log("\n" + "═".repeat(50));
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);
