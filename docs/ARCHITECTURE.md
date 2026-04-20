@@ -447,19 +447,19 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-Out of 37 backend endpoints, 28 are consumed by the Lit panel today. The remaining 9 split cleanly into two groups — **architecturally planned but without UI yet** (tied to `CONF_ADVANCED_*` feature flags) and **genuinely obsolete**.
+As of v1.0.35, 35 of the 37 backend endpoints are consumed by the Lit panel. The remaining 2 are genuinely obsolete for the panel but kept as public API.
 
-| Endpoint | Status | Linked Feature Flag | Notes |
+| Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
-| `task/analyze_interval` | **Planned** | `advanced_adaptive_visible` | Backend returns Weibull/EWA analysis; panel already reads the cached result from coordinator sensor attributes, so this endpoint is only needed for an on-demand "re-analyze" button that is not yet built. |
-| `task/seasonal_overrides` | **Planned** | `advanced_seasonal_visible` | Lets users edit the 12 monthly factors. No editor UI yet — panel currently only visualises the seasonal chart. |
-| `task/set_environmental_entity` | **Planned** | `advanced_environmental_visible` | Attaches an environmental sensor (humidity, temperature, …) to a task. Panel lacks the selector — currently only settable through the initial config flow. |
-| `group/create`, `group/update`, `group/delete` | **Planned** | `advanced_groups_visible` | Group-management UI is absent; panel only lists groups (`groups` endpoint). Full CRUD available via external API / automations. |
-| `global/test_notification` | **Planned** | — (part of Settings) | Backend sends a test notification; a "Send test notification" button in the Settings view would consume it. |
-| `task/list` | **Obsolete** | — | Superseded by `objects`, which already returns each object's tasks nested. Left in place for legacy tests / external consumers but nothing in the panel or the config flow calls it. |
+| `task/analyze_interval` | Wired | `advanced_adaptive_visible` | "Re-analyze" button in the recommendation card (task detail) — shows fresh analysis as a toast. |
+| `task/seasonal_overrides` | Wired | `advanced_seasonal_visible` | "Edit seasonal factors" button under the expanded seasonal chart — opens a 12-month editor dialog with validation (0.1–5.0 per month, empty = learned). |
+| `task/set_environmental_entity` | Wired | `advanced_environmental_visible` | Environmental sensor + optional attribute fields in the task dialog (only shown for `schedule_type == "sensor_based"`). Saved via dedicated endpoint after the main task update. |
+| `group/create`, `group/update`, `group/delete` | Wired | `advanced_groups_visible` | Full CRUD in the groups section of the panel: "New group" header button, per-card edit/delete icons, unified group dialog with multi-checkbox task selector grouped by object. |
+| `global/test_notification` | Wired | — (part of Settings) | "Send test" button next to the notify_service field in Settings (disabled when no service configured). |
+| `task/list` | **Obsolete** | — | Superseded by `objects`, which already returns each object's tasks nested. Left in place for legacy tests / external consumers; nothing in the panel or the config flow calls it. |
 | `templates` | **Obsolete** (for the panel) | — | The config flow imports `templates.py` directly when offering preset templates; the panel never browses templates at runtime. Endpoint remains as a public read-only catalogue for external tools. |
 
-None of these are **missing/broken** — every frontend call has a matching backend handler. They mark either incremental UX gaps for advanced features that the architecture explicitly supports via the `CONF_ADVANCED_*` flags, or thin public-API surfaces. Before deleting `task/list` or `templates`, check whether any automation/script relies on them (the issue tracker has no such reports as of v1.0.34).
+None of these are **missing/broken** — every frontend call has a matching backend handler, and every advanced-feature flag now has a working UI binding. Before deleting `task/list` or `templates`, check whether any automation/script relies on them.
 
 ---
 
