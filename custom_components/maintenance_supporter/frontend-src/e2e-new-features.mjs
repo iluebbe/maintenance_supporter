@@ -54,6 +54,39 @@ await runTest("Test-Notification: Button renders in Settings view", async () => 
 });
 
 // =====================================================================
+// Batch B: Re-analyze Button in Task Detail view
+// =====================================================================
+
+await runTest("Re-analyze: WS endpoint returns analysis", async () => {
+  const objs = await ws(page, { type: "maintenance_supporter/objects" });
+  const obj = objs.objects[0];
+  const t1 = obj.tasks[0];
+  if (!t1) { console.log("  SKIP: no task in first object"); return; }
+
+  const res = await ws(page, {
+    type: "maintenance_supporter/task/analyze_interval",
+    entry_id: obj.entry_id, task_id: t1.id,
+  });
+  check("analysis has current_interval field",
+    "current_interval" in res, `got keys=${Object.keys(res).join(",")}`);
+  check("analysis has confidence field", typeof res.confidence === "string");
+  check("analysis has data_points number", typeof res.data_points === "number");
+});
+
+await runTest("Re-analyze: Button strings shipped", async () => {
+  const { readFile } = await import("fs/promises");
+  const js = await readFile(
+    new URL("../frontend/maintenance-panel.js", import.meta.url),
+    "utf-8",
+  );
+  check("EN reanalyze label shipped", js.includes("Re-analyze"));
+  check("DE reanalyze label shipped", js.includes("Neu analysieren"));
+  check("reanalyze_result string shipped", js.includes("New analysis"));
+  check("reanalyze_insufficient_data shipped",
+    js.includes("Not enough data to produce"));
+});
+
+// =====================================================================
 await cleanup(browser, ctx);
 console.log("\n" + "═".repeat(50));
 console.log(`RESULTS: ${passed} passed, ${failed} failed`);

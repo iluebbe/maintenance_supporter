@@ -490,6 +490,32 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  private async _reanalyzeInterval(entryId: string, taskId: string): Promise<void> {
+    try {
+      const res = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/analyze_interval",
+        entry_id: entryId,
+        task_id: taskId,
+      }) as {
+        recommended_interval: number | null;
+        confidence: string;
+        data_points: number;
+        recommendation_reason: string | null;
+      };
+      if (res.recommended_interval) {
+        this._showToast(
+          `${t("reanalyze_result", this._lang)}: ${res.recommended_interval} ${t("days", this._lang)} ` +
+          `(${t(`confidence_${res.confidence}`, this._lang)}, ${res.data_points} ${t("data_points", this._lang)})`,
+        );
+      } else {
+        this._showToast(t("reanalyze_insufficient_data", this._lang));
+      }
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
   private async _promptSkipTask(entryId: string, taskId: string): Promise<void> {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
     if (!dlg) return;
@@ -1430,6 +1456,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="recommendation-actions">
           <ha-button appearance="filled" @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, suggested)}>
             ${t("apply_suggestion", L)}
+          </ha-button>
+          <ha-button appearance="plain" @click=${() => this._reanalyzeInterval(this._selectedEntryId!, this._selectedTaskId!)}>
+            ${t("reanalyze", L)}
           </ha-button>
           <ha-button appearance="plain" @click=${() => this._dismissSuggestion(this._selectedEntryId!, this._selectedTaskId!)}>
             ${t("dismiss_suggestion", L)}
