@@ -4,6 +4,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 
 import { t } from "../styles";
+import { describeWsError } from "../ws-errors";
 import type { HomeAssistant } from "../types";
 
 const MONTH_KEYS = [
@@ -79,7 +80,7 @@ export class SeasonalOverridesDialog extends LitElement {
       this._open = false;
       this.dispatchEvent(new CustomEvent("overrides-saved"));
     } catch (e) {
-      this._error = (e as { message?: string })?.message || t("save_error", this._lang);
+      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
     } finally {
       this._loading = false;
     }
@@ -99,7 +100,7 @@ export class SeasonalOverridesDialog extends LitElement {
       this._open = false;
       this.dispatchEvent(new CustomEvent("overrides-saved"));
     } catch (e) {
-      this._error = (e as { message?: string })?.message || t("save_error", this._lang);
+      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
     } finally {
       this._loading = false;
     }
