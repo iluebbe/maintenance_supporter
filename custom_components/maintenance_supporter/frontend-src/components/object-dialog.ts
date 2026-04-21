@@ -5,6 +5,14 @@ import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceObject } from "../types";
 import { t } from "../styles";
 
+function _wsErrorMessage(e: unknown, fallback: string): string {
+  if (typeof e === "object" && e !== null) {
+    const err = e as { message?: string; error?: { message?: string }; code?: string };
+    return err.message || err.error?.message || err.code || fallback;
+  }
+  return typeof e === "string" ? e : fallback;
+}
+
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _open = false;
@@ -75,8 +83,8 @@ export class MaintenanceObjectDialog extends LitElement {
       }
       this._open = false;
       this.dispatchEvent(new CustomEvent("object-saved"));
-    } catch {
-      this._error = t("save_error", this._lang);
+    } catch (e) {
+      this._error = _wsErrorMessage(e, t("save_error", this._lang));
     } finally {
       this._loading = false;
     }

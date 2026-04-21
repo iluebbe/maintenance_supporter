@@ -12,6 +12,9 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_ENTITY_ID_LENGTH,
+    MAX_ID_LENGTH,
+    MAX_META_LENGTH,
 )
 from . import _get_merged_tasks, _get_runtime_data
 
@@ -19,8 +22,8 @@ from . import _get_merged_tasks, _get_runtime_data
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/analyze_interval",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
 @websocket_api.async_response
@@ -85,8 +88,8 @@ async def ws_analyze_interval(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/apply_suggestion",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
     }
 )
@@ -113,8 +116,8 @@ async def ws_apply_suggestion(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/seasonal_overrides",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("overrides"): dict,
     }
 )
@@ -201,10 +204,10 @@ async def ws_seasonal_overrides(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/set_environmental_entity",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
-        vol.Optional("environmental_entity"): vol.Any(str, None),
-        vol.Optional("environmental_attribute"): vol.Any(str, None),
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("environmental_entity"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)), None),
+        vol.Optional("environmental_attribute"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     }
 )
 @websocket_api.require_admin

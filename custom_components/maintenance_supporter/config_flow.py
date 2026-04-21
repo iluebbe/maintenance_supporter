@@ -252,6 +252,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 # Build tasks from template
                 from homeassistant.util import dt as dt_util
 
+                from .helpers.sanitize import cap_object_fields, cap_task_fields
+
                 today_iso = dt_util.now().date().isoformat()
                 self._tasks = {}
                 for tt in template.tasks:
@@ -271,7 +273,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         task_data["interval_days"] = tt.interval_days
                     if tt.notes:
                         task_data["notes"] = tt.notes
+                    cap_task_fields(task_data)
                     self._tasks[task_id] = task_data
+                cap_object_fields(self._object_data)
 
                 self._object_data["task_ids"] = list(self._tasks.keys())
 
@@ -398,10 +402,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         """Handle object creation from the WebSocket API (no UI)."""
         from homeassistant.util import dt as dt_util
 
+        from .helpers.sanitize import cap_object_fields, cap_task_fields
+
         if user_input is None:
             return self.async_abort(reason="missing_data")
 
-        obj_data = user_input.get(CONF_OBJECT, {})
+        obj_data = dict(user_input.get(CONF_OBJECT, {}))
+        cap_object_fields(obj_data)
         object_name = obj_data.get(CONF_OBJECT_NAME, "Unknown")
         object_slug = slugify_object_name(object_name)
 
@@ -412,14 +419,18 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
         # Stamp `created_at` on imported tasks that lack it so next_due has a
         # stable anchor (issue #30). Imports from CSV/JSON go through this
-        # chokepoint regardless of format.
+        # chokepoint regardless of format. Cap every task's strings so
+        # imports can't bypass the WS-schema length limits.
         today_iso = dt_util.now().date().isoformat()
         tasks = dict(user_input.get(CONF_TASKS, {}))
         for task_id, td in list(tasks.items()):
-            if isinstance(td, dict) and "created_at" not in td:
-                new_td = dict(td)
+            if not isinstance(td, dict):
+                continue
+            new_td = dict(td)
+            if "created_at" not in new_td:
                 new_td["created_at"] = today_iso
-                tasks[task_id] = new_td
+            cap_task_fields(new_td)
+            tasks[task_id] = new_td
 
         return self.async_create_entry(
             title=object_name,
@@ -450,6 +461,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             if name.lower() in existing_names:
                 errors[CONF_OBJECT_NAME] = "name_exists"
             else:
+                from .helpers.sanitize import cap_object_fields
+
                 self._object_data = {
                     "id": uuid4().hex,
                     CONF_OBJECT_NAME: name,
@@ -463,6 +476,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         CONF_OBJECT_INSTALLATION_DATE
                     ),
                 }
+                cap_object_fields(self._object_data)
                 self._tasks = {}
                 return await self.async_step_task_menu()
 
@@ -890,6 +904,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         """Save the current task and return to task menu."""
         from homeassistant.util import dt as dt_util
 
+        from .helpers.sanitize import cap_task_fields
+
         task_id = self._current_task.get("id", uuid4().hex)
         task_data = {
             "id": task_id,
@@ -921,6 +937,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         if CONF_TASK_ICON in self._current_task:
             task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
 
+        cap_task_fields(task_data)
         self._tasks[task_id] = task_data
         self._current_task = {}
 

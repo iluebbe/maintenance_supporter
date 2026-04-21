@@ -72,8 +72,9 @@ export class MaintenanceCompleteDialog extends LitElement {
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
-    } catch {
-      this._error = t("save_error", this.lang);
+    } catch (e) {
+      const err = e as { message?: string; error?: { message?: string } };
+      this._error = err?.message || err?.error?.message || t("save_error", this.lang);
     } finally {
       this._loading = false;
     }

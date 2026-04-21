@@ -308,11 +308,17 @@ MAX_NAME_LENGTH = 200
 MAX_TEXT_LENGTH = 2000          # notes, reason, feedback, description
 MAX_URL_LENGTH = 2048
 MAX_ICON_LENGTH = 100           # "mdi:icon-name"
-MAX_META_LENGTH = 200           # manufacturer, model, user_id, etc.
+MAX_META_LENGTH = 200           # manufacturer, model, user_id, area_id, etc.
 MAX_TYPE_LENGTH = 50            # task_type, schedule_type
 MAX_CHECKLIST_ITEMS = 100
 MAX_CHECKLIST_ITEM_LENGTH = 500
 MAX_GROUP_TASK_REFS = 200
+MAX_ID_LENGTH = 64              # entry_id, task_id, group_id (uuid hex = 32)
+MAX_DATE_LENGTH = 20            # ISO 8601 date strings (e.g. 2026-04-21)
+MAX_ENTITY_ID_LENGTH = 255      # HA entity_id max
+MAX_ENTITY_SLUG_LENGTH = 64     # task entity_slug
+MAX_INTERVAL_DAYS = 3650        # 10 years — caps date arithmetic overflow
+MAX_IMPORT_PAYLOAD_BYTES = 1_048_576  # 1 MB for csv_content / json_content
 
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes

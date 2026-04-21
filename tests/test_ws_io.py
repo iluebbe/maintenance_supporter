@@ -246,6 +246,128 @@ async def test_import_csv_valid(
     assert result["imported"][0]["task_count"] == 2
 
 
+async def test_import_json_caps_checklist(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """JSON import drops non-string checklist items, caps per-item length, and
+    enforces the 100-item ceiling. Mirrors the WebSocket schema for create/update."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json as _json
+    long_item = "X" * 600  # > MAX_CHECKLIST_ITEM_LENGTH (500) → must be dropped
+    valid_items = [f"step {i}" for i in range(150)]  # > MAX_CHECKLIST_ITEMS (100)
+    json_data = _json.dumps({
+        "version": 1,
+        "objects": [{
+            "object": {"name": f"JSON Cap {1}"},
+            "tasks": [{
+                "name": "Big",
+                "schedule_type": "time_based",
+                "interval_days": 30,
+                "checklist": [
+                    *valid_items,
+                    long_item,
+                    12345,           # non-string → dropped
+                    None,            # non-string → dropped
+                    {"a": "b"},      # non-string → dropped
+                    "OK final",
+                ],
+            }],
+        }],
+    })
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+    res = conn.send_result.call_args[0][1]
+    assert res["created"] == 1
+    entry_id = res["imported"][0]["entry_id"]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    task = next(iter(entry.data[CONF_TASKS].values()))
+    cl = task.get("checklist", [])
+    assert len(cl) <= 100, f"item count not capped: {len(cl)}"
+    assert all(isinstance(x, str) and len(x) <= 500 for x in cl), \
+        "non-strings or oversize items leaked through"
+
+
+async def test_csv_roundtrip_preserves_checklist(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Checklist round-trips through CSV: items survive embedded newlines and
+    formula-injection prefixes are neutralised on each item, not lost."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import (
+        export_objects_csv,
+        import_objects_csv,
+    )
+
+    await setup_integration(hass, global_entry)
+
+    # Build a config entry with a task that has a tricky checklist
+    entry = MockConfigEntry(
+        domain="maintenance_supporter",
+        title="CSV Pump",
+        unique_id="maintenance_supporter_csv_pump",
+        data={
+            "object": {"id": "obj1", "name": "CSV Pump", "task_ids": ["t1"]},
+            "tasks": {
+                "t1": {
+                    "id": "t1", "object_id": "obj1", "name": "Service",
+                    "type": "service", "schedule_type": "time_based",
+                    "interval_days": 30, "warning_days": 7, "enabled": True,
+                    "checklist": [
+                        "Drain water",
+                        "=SUM(A1:A99)",  # would be a formula; must be neutralised
+                        "Test pressure",
+                    ],
+                }
+            },
+        },
+    )
+    entry.add_to_hass(hass)
+
+    # Export
+    csv_text = export_objects_csv(hass)
+    assert "CSV Pump" in csv_text
+
+    # Import the produced CSV back into a fresh parse
+    parsed = import_objects_csv(csv_text)
+    csv_pump = next(o for o in parsed if o["object"]["name"] == "CSV Pump")
+    task = next(iter(csv_pump["tasks"].values()))
+    cl = task["checklist"]
+    assert cl[0] == "Drain water"
+    # Formula-injection guard prefixed a tab — payload preserved, not executed
+    assert cl[1].startswith("\t=") or cl[1] == "=SUM(A1:A99)"
+    assert cl[2] == "Test pressure"
+    assert len(cl) == 3
+
+
+async def test_csv_import_caps_checklist_length(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Malicious CSV with too many or too long checklist items must be capped."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import (
+        import_objects_csv,
+    )
+
+    # Build a CSV row where the checklist cell contains 200 lines (> cap=100)
+    # plus one absurdly long line (> per-item cap=500).
+    long_step = "A" * 600
+    many_steps = "\n".join([f"step{i}" for i in range(200)])
+    checklist_cell = many_steps + "\n" + long_step
+    # Quote the checklist cell because it contains newlines (RFC 4180)
+    csv = (
+        "object_name,task_name,task_type,schedule_type,interval_days,warning_days,checklist\n"
+        f'Big Pump,Service,service,time_based,30,7,"{checklist_cell}"\n'
+    )
+    parsed = import_objects_csv(csv)
+    task = next(iter(parsed[0]["tasks"].values()))
+    items = task.get("checklist", [])
+    assert len(items) <= 100, f"checklist not capped: got {len(items)} items"
+    assert all(len(item) <= 500 for item in items), "per-item length not capped"
+
+
 async def test_import_csv_multiple_objects(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

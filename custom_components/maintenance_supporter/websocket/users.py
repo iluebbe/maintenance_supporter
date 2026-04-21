@@ -13,6 +13,8 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_ID_LENGTH,
+    MAX_META_LENGTH,
 )
 from . import (
     _build_task_summary,
@@ -56,9 +58,9 @@ async def ws_list_users(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/task/assign_user",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
-        vol.Optional("user_id"): vol.Any(str, None),  # None = unassign
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),  # None = unassign
     }
 )
 @websocket_api.require_admin
@@ -112,7 +114,7 @@ async def ws_assign_user(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/tasks/by_user",
-        vol.Required("user_id"): str,
+        vol.Required("user_id"): vol.All(str, vol.Length(max=MAX_META_LENGTH)),
     }
 )
 @websocket_api.async_response

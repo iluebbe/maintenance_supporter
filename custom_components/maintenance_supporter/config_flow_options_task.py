@@ -54,6 +54,8 @@ from .const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_CHECKLIST_ITEM_LENGTH,
+    MAX_CHECKLIST_ITEMS,
     MaintenanceTypeEnum,
     ScheduleType,
     TriggerType,
@@ -82,6 +84,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
         from homeassistant.util import dt as dt_util
+
+        from .helpers.sanitize import cap_task_fields
 
         task_id = uuid4().hex
         task_data: dict[str, Any] = {
@@ -112,6 +116,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         if CONF_TASK_ICON in self._current_task:
             task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
 
+        cap_task_fields(task_data)
         new_data = dict(self.config_entry.data)
         new_tasks = dict(new_data.get(CONF_TASKS, {}))
         new_tasks[task_id] = task_data
@@ -326,6 +331,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 else:
                     updated_task.pop(CONF_TASK_NFC_TAG, None)
 
+                from .helpers.sanitize import cap_task_fields
+
+                cap_task_fields(updated_task)
                 new_tasks[self._selected_task_id or ""] = updated_task
                 new_data[CONF_TASKS] = new_tasks
                 self._update_config_entry(new_data)
@@ -744,9 +752,15 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             if user_input.get("go_back"):
                 return self._show_task_action_menu()
 
-            # Parse textarea: one step per line, strip empty lines
+            # Parse textarea: one step per line, strip empty lines.
+            # Per-item length and total-count caps mirror the WS schema so
+            # neither path can grow ConfigEntry.data without bound.
             raw = user_input.get("checklist_text", "")
-            items = [line.strip() for line in raw.splitlines() if line.strip()]
+            items = [
+                line.strip()[:MAX_CHECKLIST_ITEM_LENGTH]
+                for line in raw.splitlines()
+                if line.strip()
+            ][:MAX_CHECKLIST_ITEMS]
 
             new_data = dict(self.config_entry.data)
             new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -1359,6 +1373,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         if user_input is not None:
             if user_input.get("go_back"):
                 return self._show_init_menu()
+            from .helpers.sanitize import cap_object_fields
+
             new_data = dict(self.config_entry.data)
             obj = dict(new_data.get(CONF_OBJECT, {}))
             obj[CONF_OBJECT_NAME] = user_input.get(CONF_OBJECT_NAME, obj.get("name"))
@@ -1370,6 +1386,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 obj[CONF_OBJECT_INSTALLATION_DATE] = str(
                     user_input[CONF_OBJECT_INSTALLATION_DATE]
                 )
+            cap_object_fields(obj)
             new_data[CONF_OBJECT] = obj
 
             self.hass.config_entries.async_update_entry(

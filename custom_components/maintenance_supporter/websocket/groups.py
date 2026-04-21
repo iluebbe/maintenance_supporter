@@ -9,7 +9,13 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN, MAX_GROUP_TASK_REFS, MAX_NAME_LENGTH, MAX_TEXT_LENGTH
+from ..const import (
+    DOMAIN,
+    MAX_GROUP_TASK_REFS,
+    MAX_ID_LENGTH,
+    MAX_NAME_LENGTH,
+    MAX_TEXT_LENGTH,
+)
 from . import _get_global_entry
 
 
@@ -42,8 +48,8 @@ async def ws_get_groups(
         vol.Optional("description", default=""): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
         vol.Optional("task_refs", default=[]): vol.All([
             {
-                vol.Required("entry_id"): str,
-                vol.Required("task_id"): str,
+                vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
             }
         ], vol.Length(max=MAX_GROUP_TASK_REFS)),
     }
@@ -85,13 +91,13 @@ async def ws_create_group(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/group/update",
-        vol.Required("group_id"): str,
+        vol.Required("group_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
         vol.Optional("task_refs"): vol.All([
             {
-                vol.Required("entry_id"): str,
-                vol.Required("task_id"): str,
+                vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
             }
         ], vol.Length(max=MAX_GROUP_TASK_REFS)),
     }
@@ -137,7 +143,7 @@ async def ws_update_group(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/group/delete",
-        vol.Required("group_id"): str,
+        vol.Required("group_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
 @websocket_api.require_admin
