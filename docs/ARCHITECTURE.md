@@ -447,7 +447,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-As of v1.0.36, 35 of the 37 backend endpoints are consumed by the Lit panel. The remaining 2 are genuinely obsolete for the panel but kept as public API.
+As of v1.0.41, 35 of the 37 backend endpoints are consumed by the Lit panel. The remaining 2 are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
@@ -457,6 +457,7 @@ As of v1.0.36, 35 of the 37 backend endpoints are consumed by the Lit panel. The
 | `group/create`, `group/update`, `group/delete` | Wired | `advanced_groups_visible` | Full CRUD in the groups section of the panel: "New group" header button, per-card edit/delete icons, unified group dialog with multi-checkbox task selector grouped by object. |
 | `global/test_notification` | Wired | — (part of Settings) | "Send test" button next to the notify_service field in Settings (disabled when no service configured). Shared helper `send_test_notification()` guarantees the payload (including action buttons) matches the Integration-Options test step. |
 | Task `checklist` field | Wired | `advanced_checklists_visible` | Textarea editor in the task dialog (one step per line, trimmed, max 100 items, max 500 chars per item). Previously Config-Flow-only; panel ↔ config flow now at parity. |
+| Task `schedule_time` field | Wired | `advanced_schedule_time_visible` | `<ha-textfield type="time">` in the task dialog (only for `time_based` tasks). Coordinator strips the field when the flag is off so tasks revert to midnight semantics; calendar events become 30-min timed blocks when the flag is on. Config-Flow edit_task exposes the same field when the flag is on. |
 | `task/list` | **Obsolete** | — | Superseded by `objects`, which already returns each object's tasks nested. Left in place for legacy tests / external consumers; nothing in the panel or the config flow calls it. |
 | `templates` | **Obsolete** (for the panel) | — | The config flow imports `templates.py` directly when offering preset templates; the panel never browses templates at runtime. Endpoint remains as a public read-only catalogue for external tools. |
 
@@ -470,6 +471,16 @@ A schema-level audit compared every WebSocket handler, Config-Flow step, and pan
 
 1. **`created_at` missing in 3 Config-Flow task-creation paths** (`_save_task_and_return`, `async_step_template_customize`, `_save_new_task`). The field was set only by `ws_create_task`, and the one-shot migration (`minor_version 1 → 2`) did not run for newly-created entries, so any task created via Config Flow after installation reproduced issue #30 (`next_due` fell back to `today + interval` and shifted forward every day). All three paths now stamp `"created_at": dt_util.now().date().isoformat()`, matching the WebSocket path exactly. Regression asserts added to `test_time_based_task_flow`, `test_template_customize_submit_creates_entry`, and `test_add_task_time_based_full_flow`.
 2. **Test notification drift.** `ws_test_notification` included `MS_TEST_COMPLETE/SKIP/SNOOZE` action buttons; `async_step_test_notification` sent plain title+message. Both callers now route through `send_test_notification(hass, options)` in `config_flow_options_global.py` so the rendered notification is identical regardless of entry point.
+
+### Time-of-day scheduling (v1.0.41)
+
+The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) is a sub-day refinement of the OVERDUE transition. Key architectural decisions:
+
+- **`next_due` stays a `date`, not a `datetime`.** A new helper `_is_past_schedule_time()` is invoked from the `status` property only when `days_until_due == 0`. This keeps every consumer of `next_due` (calendar, sensors, websocket) untouched — no migration of downstream code required.
+- **Feature-flag gating happens in the coordinator, not in the model.** The model is pure: given a `schedule_time`, it honours it. When the global flag is off, `_async_update_data()` mutates the in-memory task instance to `schedule_time = None` before calling `task.status`. Disk state is unaffected. The trade-off: enabling or disabling the feature takes effect on the next coordinator refresh (≤ 5 min), which is acceptable for maintenance scheduling.
+- **Calendar renders timed events only when both the flag is on AND a value is set.** `_create_event_for_task` gates via `self._is_schedule_time_feature_enabled()` (helper that reads the global entry's options). All-day events are the default and the fallback for malformed values.
+- **No `async_track_point_in_time` timers** per task — the 5-minute coordinator poll is the transition mechanism. Simpler lifecycle management, and the latency is well below any notification-interval setting anyway.
+- **Weekday recurrence** ("every Tuesday at 19:00") is not a separate schedule type; users compose it from existing fields: task creation on the target weekday → `interval_days=7` → `schedule_time="19:00"` → `interval_anchor="planned"` (so a late completion doesn't shift the weekday).
 
 ---
 
