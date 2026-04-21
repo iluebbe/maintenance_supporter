@@ -12,6 +12,8 @@ frontend-src/node_modules/
 
 # Test artifacts
 test-results/
+custom_components/maintenance_supporter/frontend-src/*.png
+docker/.smoke-config/
 
 # IDE
 .vscode/

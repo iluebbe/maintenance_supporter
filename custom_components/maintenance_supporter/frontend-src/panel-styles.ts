@@ -474,6 +474,37 @@ export const panelStyles = css`
     border-color: var(--primary-color);
   }
 
+  /* Checklist preview card (read-only display in task overview) */
+  .checklist-preview-card {
+    background: var(--card-background-color, #fff);
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid var(--divider-color);
+    margin-top: 8px;
+  }
+  .checklist-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+    margin-bottom: 8px;
+  }
+  .checklist-preview-header ha-icon {
+    --mdc-icon-size: 18px;
+  }
+  .checklist-preview-list {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--primary-text-color);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .checklist-preview-list li {
+    padding: 1px 0;
+  }
+
   /* Recommendation Card */
   .recommendation-card {
     background: var(--card-background-color, #fff);

@@ -19,6 +19,9 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_CHECKLIST_ITEM_LENGTH,
+    MAX_CHECKLIST_ITEMS,
+    MAX_ID_LENGTH,
 )
 from ..websocket.tasks import _check_nfc_tag_duplicate
 
@@ -300,6 +303,22 @@ async def ws_import_json(
             wd = task_data.get("warning_days")
             if not isinstance(wd, int) or wd < 0 or wd > 365:
                 task_data["warning_days"] = 7
+            # Sanitize checklist: only keep string items within length budget,
+            # cap total items. Drops malformed entries silently rather than
+            # rejecting the whole import — same forgiving model as the other
+            # fields above.
+            cl = task_data.get("checklist")
+            if cl is not None:
+                if not isinstance(cl, list):
+                    task_data.pop("checklist", None)
+                else:
+                    cleaned = [
+                        item.strip()
+                        for item in cl
+                        if isinstance(item, str) and len(item) <= MAX_CHECKLIST_ITEM_LENGTH
+                    ]
+                    cleaned = [c for c in cleaned if c]
+                    task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)
@@ -351,8 +370,8 @@ async def ws_import_json(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/qr/generate",
-        vol.Required("entry_id"): str,
-        vol.Optional("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("action", default="view"): vol.In(["view", "complete"]),
         vol.Optional("url_mode", default="server"): vol.In(
             ["server", "local", "companion"]

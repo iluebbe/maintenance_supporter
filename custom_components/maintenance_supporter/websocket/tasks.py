@@ -22,7 +22,11 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
+    MAX_DATE_LENGTH,
+    MAX_ENTITY_SLUG_LENGTH,
     MAX_ICON_LENGTH,
+    MAX_ID_LENGTH,
+    MAX_INTERVAL_DAYS,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
@@ -251,19 +255,19 @@ def _validate_compound_trigger(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/create",
-        vol.Required("entry_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("task_type", default="custom"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("schedule_type", default="time_based"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1)), None),
+        vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1, max=MAX_INTERVAL_DAYS)), None),
         vol.Optional("interval_anchor", default="completion"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days", default=7): vol.All(int, vol.Range(min=0, max=365)),
-        vol.Optional("last_performed"): vol.Any(str, None),
+        vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("entity_slug"): vol.Any(str, None),
+        vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
@@ -423,21 +427,21 @@ async def ws_create_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/update",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("task_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("enabled"): bool,
         vol.Optional("schedule_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1)), None),
+        vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1, max=MAX_INTERVAL_DAYS)), None),
         vol.Optional("interval_anchor"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
-        vol.Optional("last_performed"): vol.Any(str, None),
+        vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("entity_slug"): vol.Any(str, None),
+        vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
@@ -569,8 +573,8 @@ async def ws_update_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/delete",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
 @websocket_api.require_admin
@@ -653,7 +657,7 @@ async def ws_delete_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/list",
-        vol.Optional("entry_id"): str,
+        vol.Optional("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
 @callback
@@ -697,12 +701,21 @@ def ws_list_tasks(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/complete",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
         vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)), None),
-        vol.Optional("checklist_state"): vol.Any(dict, None),
+        # Restrict checklist_state to {string-key (≤500): bool, ...} with
+        # a hard cap on entries. Without this, attackers (or bad clients)
+        # could inflate the per-task history with arbitrarily large dicts.
+        vol.Optional("checklist_state"): vol.Any(
+            vol.All(
+                {vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH)): bool},
+                vol.Length(max=MAX_CHECKLIST_ITEMS),
+            ),
+            None,
+        ),
         vol.Optional("feedback"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
@@ -737,8 +750,8 @@ async def ws_complete_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/skip",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("reason"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
@@ -769,9 +782,9 @@ async def ws_skip_task(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/reset",
-        vol.Required("entry_id"): str,
-        vol.Required("task_id"): str,
-        vol.Optional("date"): vol.Any(str, None),
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
     }
 )
 @websocket_api.async_response

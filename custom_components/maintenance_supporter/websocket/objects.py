@@ -20,6 +20,9 @@ from ..const import (
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_DATE_LENGTH,
+    MAX_ENTITY_ID_LENGTH,
+    MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
 )
@@ -54,7 +57,7 @@ async def ws_get_objects(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object",
-        vol.Required("entry_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
 @websocket_api.async_response
@@ -79,11 +82,11 @@ async def ws_get_object(
     {
         vol.Required("type"): "maintenance_supporter/object/create",
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("area_id"): vol.Any(str, None),
+        vol.Optional("area_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=20)), None),
+        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -152,13 +155,13 @@ async def ws_create_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/update",
-        vol.Required("entry_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("area_id"): vol.Any(str, None),
+        vol.Optional("area_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=20)), None),
+        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
     }
 )
 @websocket_api.require_admin
@@ -225,7 +228,7 @@ async def ws_update_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/delete",
-        vol.Required("entry_id"): str,
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
 @websocket_api.require_admin
@@ -249,7 +252,7 @@ async def ws_delete_object(
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/entity/attributes",
-        vol.Required("entity_id"): str,
+        vol.Required("entity_id"): vol.All(str, vol.Length(max=MAX_ENTITY_ID_LENGTH)),
     }
 )
 @callback

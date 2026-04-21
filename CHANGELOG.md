@@ -2,6 +2,26 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.39] - 2026-04-21
+
+### Security / Hardening
+- **Length caps on every WS string input** (defense against storage bloat / DoS via oversized payloads). Newly capped: `entry_id`, `task_id`, `group_id` (≤64), `area_id` (≤200), `last_performed`/`date` (≤20), `entity_slug` (≤64, also stops regex DoS on the slug check), `user_id` (≤200), `entity_id` (≤255), `environmental_entity` (≤255), `environmental_attribute` (≤200).
+- **`interval_days` upper bound** added (`max=3650`). Without this, an attacker (or buggy client) could submit `10**18` and crash `next_due` via `timedelta(days=…)` OverflowError.
+- **`checklist_state`** schema tightened from `vol.Any(dict, None)` to `{str(≤500): bool}` with `Length(max=100)` so completion history can't be inflated by oversized dicts.
+- **JSON import** now sanitizes `checklist`: drops non-string items, caps per-item length to 500, caps total items to 100. Mirrors WS schema.
+- **CSV import/export** now round-trips `checklist` (cell with `\n`-separated items, RFC 4180 quoting). Each item runs through `_csv_safe()` for formula-injection mitigation, length capped to 500, max 100 items.
+- **Config-flow defensive truncation** — new `helpers/sanitize.py` with `cap_task_fields()`/`cap_object_fields()`/`cap_group_fields()` is called at every save site (initial setup, template wizard, options-flow add/edit task, object settings, add group, websocket-source step). Stops a programmatic config-flow caller from bypassing the WS-schema length limits.
+
+### Changed — UX
+- **Checklist editor moved higher in task dialog** (right after `Warning days`) so it's visible without scrolling — reported as not findable in [#32](https://github.com/iluebbe/maintenance_supporter/issues/32). Verified with Playwright E2E: textarea now at offsetTop=604px in a 630px dialog viewport (was 738px → off-screen).
+- **New read-only checklist preview card** in the task detail (Overview tab) — shows a numbered list of the configured steps. Renders only when the Checklists feature flag is enabled and the task actually has steps.
+- **Frontend dialogs surface the real WS error message** instead of a generic "save failed" toast. So when a length cap or value range rejects the input, the user now sees something like `length of value must be at most 200 for dictionary value @ data['name']` instead of guessing.
+
+### Tests
+- 5 new tests: `test_csv_roundtrip_preserves_checklist`, `test_csv_import_caps_checklist_length`, `test_import_json_caps_checklist`, `test_ws_create_task_rejects_oversize_strings` (4 oversize payloads incl. `interval_days=10**18`).
+- 2 new E2E suites in `frontend-src/`: `e2e-checklist-visibility.mjs` (reproduces #32 item 1 — verifies textarea visible in both create + edit dialogs) and `e2e-checklist-preview.mjs` (verifies new read-only preview card).
+- 1489 unit tests pass; ruff + mypy strict clean across 52 source files; Docker smoke test green.
+
 ## [1.0.38] - 2026-04-21
 
 ### Fixed

@@ -10,7 +10,14 @@ from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
 
-from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from ..const import (
+    CONF_OBJECT,
+    CONF_TASKS,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    MAX_CHECKLIST_ITEM_LENGTH,
+    MAX_CHECKLIST_ITEMS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +45,9 @@ _COLUMNS = [
     "status",
     "times_performed",
     "total_cost",
+    # Checklist exported as a single cell with steps separated by literal "\n".
+    # The csv module handles the embedded newlines via RFC 4180 field quoting.
+    "checklist",
 ]
 
 
@@ -101,6 +111,12 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "status": ct.get("_status", "ok"),
                     "times_performed": ct.get("_times_performed", 0),
                     "total_cost": ct.get("_total_cost", 0.0),
+                    # Each item is _csv_safe()-prefixed individually so a step
+                    # starting with "=" can't trigger a formula in Excel after
+                    # the cell is unpacked.
+                    "checklist": "\n".join(
+                        _csv_safe(item) for item in tdata.get("checklist", []) if item
+                    ),
                 }
             )
 
@@ -189,6 +205,19 @@ def import_objects_csv(
         resp_user = (row.get("responsible_user_id") or "").strip()
         if resp_user:
             task_data["responsible_user_id"] = resp_user
+
+        # Checklist round-trips via a single cell with "\n" between items.
+        # Apply the same hard caps as the WebSocket schema so a malicious or
+        # accidental CSV can't bloat the entry.
+        checklist_raw = row.get("checklist") or ""
+        if checklist_raw:
+            items = [
+                line.strip()[:MAX_CHECKLIST_ITEM_LENGTH]
+                for line in checklist_raw.splitlines()
+                if line.strip()
+            ][:MAX_CHECKLIST_ITEMS]
+            if items:
+                task_data["checklist"] = items
 
         objects_map[obj_name]["tasks"][task_id] = task_data
         objects_map[obj_name]["object"]["task_ids"].append(task_id)

@@ -662,6 +662,7 @@ class GlobalOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         """Add a new maintenance group."""
         from .const import CONF_GROUPS
+        from .helpers.sanitize import cap_group_fields
 
         if user_input is not None:
             group_name = user_input.get("group_name", "").strip()
@@ -669,11 +670,13 @@ class GlobalOptionsFlow(OptionsFlow):
                 group_id = uuid4().hex
                 merged = self._current
                 groups = dict(merged.get(CONF_GROUPS, {}))
-                groups[group_id] = {
+                new_group = {
                     "name": group_name,
                     "description": user_input.get("group_description", ""),
                     "task_refs": [],
                 }
+                cap_group_fields(new_group)
+                groups[group_id] = new_group
                 merged[CONF_GROUPS] = groups
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, options=merged

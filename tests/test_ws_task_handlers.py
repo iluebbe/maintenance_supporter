@@ -224,6 +224,44 @@ async def test_ws_create_task_invalid_entity_slug(
     assert "entity_slug" in conn.send_error.call_args[0][2]
 
 
+async def test_ws_create_task_rejects_oversize_strings(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Voluptuous schema must reject oversized inputs at the boundary so they
+    can never reach storage. Covers the hardening pass that added length caps
+    to all formerly-unbounded str fields (entry_id, last_performed,
+    entity_slug) and the interval_days overflow guard."""
+    import voluptuous as vol_mod
+    await setup_integration(hass, global_entry, object_entry)
+
+    # The schema dict is attached by HA's @websocket_command decorator and is
+    # what the websocket dispatcher applies BEFORE invoking the handler. Run
+    # it directly so we test the boundary, not the handler body.
+    schema = vol_mod.Schema(ws_create_task._ws_schema, extra=vol_mod.PREVENT_EXTRA)  # type: ignore[attr-defined]
+
+    payloads_that_must_fail = [
+        # interval_days overflow attempt — would crash next_due via timedelta
+        {"name": "X", "interval_days": 10**18},
+        # last_performed wildly oversized
+        {"name": "X", "last_performed": "2026-04-21" + "X" * 1000},
+        # entity_slug oversized — cap stops the regex DoS earlier
+        {"name": "X", "entity_slug": "a" * 10_000},
+        # entry_id oversized
+        {"entry_id": "a" * 10_000, "name": "X"},
+    ]
+    for extra in payloads_that_must_fail:
+        msg = {
+            "id": 1, "type": "maintenance_supporter/task/create",
+            "entry_id": extra.get("entry_id", object_entry.entry_id),
+            **{k: v for k, v in extra.items() if k != "entry_id"},
+        }
+        try:
+            schema(msg)
+        except vol_mod.Invalid:
+            continue
+        raise AssertionError(f"schema accepted oversize payload: {extra}")
+
+
 async def test_ws_create_task_dry_run(
     hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
 ) -> None:

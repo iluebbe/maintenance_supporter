@@ -1403,7 +1403,31 @@ export class MaintenanceSupporterPanel extends LitElement {
             </ha-button>
           </div>
         ` : nothing}
+        ${this._renderChecklistCard(task)}
         ${this._renderRecentActivities(task)}
+      </div>
+    `;
+  }
+
+  /**
+   * Read-only preview of the configured checklist steps so users can see
+   * the steps without having to open the Edit or Complete dialog. Only
+   * rendered when the Checklists feature is enabled and steps are set.
+   */
+  private _renderChecklistCard(task: MaintenanceTask) {
+    if (!this._features.checklists) return nothing;
+    const items = task.checklist || [];
+    if (items.length === 0) return nothing;
+    const L = this._lang;
+    return html`
+      <div class="checklist-preview-card">
+        <div class="checklist-preview-header">
+          <ha-icon icon="mdi:format-list-checks"></ha-icon>
+          <span>${t("checklist", L)} (${items.length})</span>
+        </div>
+        <ol class="checklist-preview-list">
+          ${items.map((item) => html`<li>${item}</li>`)}
+        </ol>
       </div>
     `;
   }
