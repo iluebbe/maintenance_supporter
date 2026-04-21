@@ -44,13 +44,13 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
     "HVAC System": {
         "Filter Replacement": {
             "history": [
-                {"timestamp": days_ago(322, 9, 30), "type": "completed", "notes": "Filter stark verschmutzt",
+                {"timestamp": days_ago(322, 9, 30), "type": "completed", "notes": "Filter very dirty",
                  "cost": 28.90, "duration": 20, "feedback": "needed", "trigger_value": 57},
-                {"timestamp": days_ago(235, 14, 0), "type": "completed", "notes": "Normaler Verschleiß",
+                {"timestamp": days_ago(235, 14, 0), "type": "completed", "notes": "Normal wear",
                  "cost": 28.90, "duration": 15, "feedback": "needed", "trigger_value": 62},
-                {"timestamp": days_ago(146, 10, 15), "type": "completed", "notes": "Noch ok, vorsorglich gewechselt",
+                {"timestamp": days_ago(146, 10, 15), "type": "completed", "notes": "Still OK, replaced preventively",
                  "cost": 32.50, "duration": 20, "feedback": "not_sure", "trigger_value": 68},
-                {"timestamp": days_ago(59, 11, 0), "type": "completed", "notes": "Winterbetrieb, Filter verschmutzt",
+                {"timestamp": days_ago(59, 11, 0), "type": "completed", "notes": "Winter operation, filter dirty",
                  "cost": 32.50, "duration": 25, "feedback": "needed", "trigger_value": 55},
             ],
         },
@@ -58,7 +58,7 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
     "Family Car": {
         "Oil Change": {
             "history": [
-                {"timestamp": days_ago(261, 8, 0), "type": "completed", "notes": "Werkstatt, 5W-30 Longlife",
+                {"timestamp": days_ago(261, 8, 0), "type": "completed", "notes": "Workshop, 5W-30 Longlife",
                  "cost": 89.90, "duration": 45, "feedback": "needed", "trigger_value": 45000},
             ],
             "trigger_runtime": {
@@ -67,9 +67,9 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
         },
         "Tire Rotation": {
             "history": [
-                {"timestamp": days_ago(311, 10, 0), "type": "completed", "notes": "Winter auf Sommer getauscht",
+                {"timestamp": days_ago(311, 10, 0), "type": "completed", "notes": "Winter-to-summer swap",
                  "cost": 45.00, "duration": 30, "feedback": "needed"},
-                {"timestamp": days_ago(127, 9, 30), "type": "completed", "notes": "Sommer auf Winter getauscht",
+                {"timestamp": days_ago(127, 9, 30), "type": "completed", "notes": "Summer-to-winter swap",
                  "cost": 49.00, "duration": 35, "feedback": "needed"},
             ],
         },
@@ -77,14 +77,22 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
     "Washing Machine": {
         "Drum Cleaning": {
             "history": [
-                {"timestamp": days_ago(250, 18, 0), "type": "completed", "cost": 5.50, "duration": 5, "feedback": "needed"},
-                {"timestamp": days_ago(219, 17, 30), "type": "completed", "cost": 5.50, "duration": 5, "feedback": "needed"},
-                {"timestamp": days_ago(186, 19, 0), "type": "completed", "cost": 5.50, "duration": 8, "feedback": "needed"},
-                {"timestamp": days_ago(153, 18, 15), "type": "completed", "cost": 5.50, "duration": 5, "feedback": "not_sure"},
-                {"timestamp": days_ago(118, 17, 0), "type": "completed", "cost": 5.50, "duration": 5, "feedback": "needed"},
-                {"timestamp": days_ago(83, 18, 30), "type": "completed", "cost": 5.50, "duration": 10, "feedback": "needed"},
-                {"timestamp": days_ago(49, 17, 45), "type": "completed", "cost": 5.50, "duration": 5, "feedback": "needed"},
-                {"timestamp": days_ago(14, 18, 0), "type": "completed", "cost": 5.50, "duration": 5, "feedback": "not_needed"},
+                {"timestamp": days_ago(250, 18, 0), "type": "completed", "notes": "Quarterly descaling — minor residue",
+                 "cost": 5.50, "duration": 5, "feedback": "needed"},
+                {"timestamp": days_ago(219, 17, 30), "type": "completed", "notes": "Eco cycle with descaler tablet",
+                 "cost": 5.50, "duration": 5, "feedback": "needed"},
+                {"timestamp": days_ago(186, 19, 0), "type": "completed", "notes": "Buildup near door seal — wiped down",
+                 "cost": 5.50, "duration": 8, "feedback": "needed"},
+                {"timestamp": days_ago(153, 18, 15), "type": "completed", "notes": "Switched detergent brand — works fine",
+                 "cost": 5.50, "duration": 5, "feedback": "not_sure"},
+                {"timestamp": days_ago(118, 17, 0), "type": "completed", "notes": "Descaled after heavy-load week",
+                 "cost": 5.50, "duration": 5, "feedback": "needed"},
+                {"timestamp": days_ago(83, 18, 30), "type": "completed", "notes": "Gasket mold spots — ran hot empty cycle",
+                 "cost": 5.50, "duration": 10, "feedback": "needed"},
+                {"timestamp": days_ago(49, 17, 45), "type": "completed", "notes": "Routine descale + filter clean",
+                 "cost": 5.50, "duration": 5, "feedback": "needed"},
+                {"timestamp": days_ago(14, 18, 0), "type": "completed", "notes": "Last cycle before vacation",
+                 "cost": 5.50, "duration": 5, "feedback": "not_needed"},
             ],
             "trigger_runtime": {
                 "input_boolean.washing_machine_running": {"change_count": 6},
@@ -94,16 +102,16 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
     "Water Softener": {
         "Refill Salt": {
             "history": [
-                {"timestamp": days_ago(302, 10, 0), "type": "completed", "notes": "25kg Sack",
+                {"timestamp": days_ago(302, 10, 0), "type": "completed", "notes": "25kg bag",
                  "cost": 15.90, "duration": 10, "feedback": "needed", "trigger_value": 32},
                 {"timestamp": days_ago(256, 9, 30), "type": "completed",
                  "cost": 15.90, "duration": 12, "feedback": "needed", "trigger_value": 24},
                 {"timestamp": days_ago(212, 11, 0), "type": "completed",
                  "cost": 18.50, "duration": 10, "feedback": "needed", "trigger_value": 12},
-                {"timestamp": days_ago(170, 0, 0), "type": "skipped", "notes": "Im Urlaub"},
+                {"timestamp": days_ago(170, 0, 0), "type": "skipped", "notes": "On vacation"},
                 {"timestamp": days_ago(155, 10, 30), "type": "completed",
                  "cost": 18.50, "duration": 15, "feedback": "needed", "trigger_value": 8},
-                {"timestamp": days_ago(110, 9, 0), "type": "completed", "notes": "Doppelpack gekauft",
+                {"timestamp": days_ago(110, 9, 0), "type": "completed", "notes": "Bought double pack",
                  "cost": 22.00, "duration": 10, "feedback": "needed", "trigger_value": 28},
                 {"timestamp": days_ago(52, 10, 0), "type": "completed",
                  "cost": 18.50, "duration": 12, "feedback": "needed", "trigger_value": 16},
@@ -134,13 +142,13 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
     "Water Filter System": {
         "Cartridge Replacement": {
             "history": [
-                {"timestamp": days_ago(663, 10, 0), "type": "completed", "notes": "Erster Wechsel nach Einbau",
+                {"timestamp": days_ago(663, 10, 0), "type": "completed", "notes": "First change after install",
                  "cost": 48.00, "duration": 15, "feedback": "needed", "trigger_value": 2.1},
-                {"timestamp": days_ago(474, 11, 0), "type": "completed", "notes": "Zu lange gewartet, Durchfluss sehr niedrig",
+                {"timestamp": days_ago(474, 11, 0), "type": "completed", "notes": "Waited too long, flow very low",
                  "cost": 50.00, "duration": 18, "feedback": "needed", "trigger_value": 1.5},
-                {"timestamp": days_ago(293, 11, 0), "type": "completed", "notes": "Durchfluss bei 1.8 L/min",
+                {"timestamp": days_ago(293, 11, 0), "type": "completed", "notes": "Flow at 1.8 L/min",
                  "cost": 52.00, "duration": 20, "feedback": "needed", "trigger_value": 1.8},
-                {"timestamp": days_ago(118, 10, 30), "type": "completed", "notes": "Zähler bei 14500L",
+                {"timestamp": days_ago(118, 10, 30), "type": "completed", "notes": "Counter at 14500L",
                  "cost": 55.00, "duration": 18, "feedback": "needed", "trigger_value": 1.9},
             ],
             "trigger_runtime": {
@@ -162,11 +170,14 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
                 {"timestamp": days_ago(237, 10, 0), "type": "completed", "cost": 4.20, "duration": 8},
                 {"timestamp": days_ago(223, 10, 30), "type": "completed", "cost": 4.20, "duration": 10, "feedback": "needed"},
                 {"timestamp": days_ago(209, 9, 30), "type": "completed", "cost": 4.20, "duration": 8},
-                {"timestamp": days_ago(195, 10, 0), "type": "completed", "cost": 4.20, "duration": 10, "feedback": "needed",
+                {"timestamp": days_ago(195, 10, 0), "type": "completed", "notes": "pH 7.6, chlorine 1.2 — adjusted",
+                 "cost": 4.20, "duration": 10, "feedback": "needed",
                  "checklist_state": {"pH-Wert messen": True, "Chlorgehalt prüfen": True, "Wasserstand kontrollieren": True}},
-                {"timestamp": days_ago(181, 10, 15), "type": "completed", "cost": 4.20, "duration": 8},
-                {"timestamp": days_ago(167, 10, 0), "type": "completed", "cost": 4.20, "duration": 10, "feedback": "needed"},
-                {"timestamp": days_ago(153, 10, 30), "type": "completed", "notes": "Saison-Ende, Wintervorbereitung",
+                {"timestamp": days_ago(181, 10, 15), "type": "completed", "notes": "pH 7.4, chlorine stable",
+                 "cost": 4.20, "duration": 8},
+                {"timestamp": days_ago(167, 10, 0), "type": "completed", "notes": "After heavy rain — pH dropped to 7.0",
+                 "cost": 4.20, "duration": 10, "feedback": "needed"},
+                {"timestamp": days_ago(153, 10, 30), "type": "completed", "notes": "End of season, winter prep",
                  "cost": 4.20, "duration": 15, "feedback": "needed"},
             ],
         },
@@ -187,7 +198,7 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
                 {"timestamp": days_ago(230, 10, 30), "type": "completed", "cost": 11.50, "duration": 15},
                 {"timestamp": days_ago(223, 11, 0), "type": "completed", "cost": 11.50, "duration": 18},
                 {"timestamp": days_ago(216, 11, 30), "type": "completed", "cost": 11.50, "duration": 15},
-                {"timestamp": days_ago(209, 10, 45), "type": "completed", "notes": "Algenbehandlung extra",
+                {"timestamp": days_ago(209, 10, 45), "type": "completed", "notes": "Extra algae treatment",
                  "cost": 15.00, "duration": 25},
             ],
         },
@@ -204,7 +215,7 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
         },
         "Lubrication": {
             "history": [
-                {"timestamp": days_ago(266, 20, 0), "type": "completed", "notes": "Achsen + Spindel",
+                {"timestamp": days_ago(266, 20, 0), "type": "completed", "notes": "Axes + lead screw",
                  "cost": 4.50, "duration": 10, "feedback": "needed"},
                 {"timestamp": days_ago(206, 19, 30), "type": "completed",
                  "cost": 4.50, "duration": 10, "feedback": "needed"},
@@ -219,18 +230,18 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
         "Tire Pressure Check": {
             "history": [
                 {"timestamp": days_ago(113, 9, 0), "type": "completed",
-                 "notes": "Alle 4 Reifen ok, aufgefüllt auf 2.5",
+                 "notes": "All 4 tires OK, inflated to 2.5",
                  "cost": 0, "duration": 10, "feedback": "needed", "trigger_value": 2.4,
                  "checklist_state": {"VL prüfen": True, "VR prüfen": True, "HL prüfen": True, "HR prüfen": True, "Profiltiefe kontrollieren": True}},
                 {"timestamp": days_ago(78, 10, 0), "type": "completed",
-                 "notes": "VL leicht niedrig (2.3), alle aufgefüllt auf 2.5",
+                 "notes": "FL slightly low (2.3), all inflated to 2.5",
                  "cost": 0, "duration": 12, "feedback": "needed", "trigger_value": 2.3,
                  "checklist_state": {"VL prüfen": True, "VR prüfen": True, "HL prüfen": True, "HR prüfen": True, "Profiltiefe kontrollieren": True}},
                 {"timestamp": days_ago(42, 9, 30), "type": "completed",
-                 "notes": "Alle bei ~2.3 bar, aufgefüllt",
+                 "notes": "All at ~2.3 bar, inflated",
                  "cost": 0, "duration": 10, "feedback": "not_sure", "trigger_value": 2.3},
                 {"timestamp": days_ago(8, 10, 15), "type": "completed",
-                 "notes": "Kaltes Wetter, VL bei 2.2, alle aufgefüllt",
+                 "notes": "Cold weather, FL at 2.2, all inflated",
                  "cost": 0, "duration": 10, "feedback": "needed", "trigger_value": 2.2,
                  "checklist_state": {"VL prüfen": True, "VR prüfen": True, "HL prüfen": True, "HR prüfen": True, "Profiltiefe kontrollieren": False}},
             ],
@@ -238,13 +249,13 @@ HISTORY_DATA: dict[str, dict[str, dict]] = {
         "Brake Pad Inspection": {
             "history": [
                 {"timestamp": days_ago(158, 8, 30), "type": "completed",
-                 "notes": "8.5mm, noch viel Reserve",
+                 "notes": "8.5mm, plenty of reserve",
                  "cost": 0, "duration": 15, "feedback": "not_needed", "trigger_value": 8.5},
             ],
         },
         "Cabin Air Filter": {
             "history": [
-                {"timestamp": days_ago(174, 14, 0), "type": "completed", "notes": "HEPA Filter gewechselt",
+                {"timestamp": days_ago(174, 14, 0), "type": "completed", "notes": "HEPA filter replaced",
                  "cost": 35.00, "duration": 20, "feedback": "needed"},
             ],
         },

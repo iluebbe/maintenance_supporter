@@ -4120,7 +4120,7 @@ ${Y}`,e.setTooltip)}
           </ha-button>
         </div>
       </div>
-    `}_renderRecentActivities(e){let t=this._lang,i=e.history.slice(0,3);if(i.length===0)return d;let s=l=>{switch(l){case"completed":return"\u2713";case"triggered":return"\u2297";case"skipped":return"\u21B7";case"reset":return"\u21BA";default:return"\xB7"}};return o`
+    `}_renderRecentActivities(e){let t=this._lang,i=e.history.slice(-3).reverse();if(i.length===0)return d;let s=l=>{switch(l){case"completed":return"\u2713";case"triggered":return"\u2297";case"skipped":return"\u21B7";case"reset":return"\u21BA";default:return"\xB7"}};return o`
       <div class="recent-activities">
         <h3>${a("recent_activities",t)}</h3>
         ${i.map(l=>o`
