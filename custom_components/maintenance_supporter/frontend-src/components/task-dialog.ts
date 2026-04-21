@@ -15,6 +15,7 @@ const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
+  @property({ type: Boolean, attribute: "schedule-time-enabled" }) public scheduleTimeEnabled = false;
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -66,6 +67,9 @@ export class MaintenanceTaskDialog extends LitElement {
   // Checklist (newline-separated steps, one per line)
   @state() private _checklistText = "";
 
+  // Schedule time (HH:MM, advanced feature)
+  @state() private _scheduleTime = "";
+
   // Environmental entity (adaptive_config)
   @state() private _environmentalEntity = "";
   @state() private _environmentalAttribute = "";
@@ -105,6 +109,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._responsibleUserId = task.responsible_user_id || null;
 
     this._checklistText = (task.checklist || []).join("\n");
+    this._scheduleTime = task.schedule_time || "";
 
     const ac = task.adaptive_config || {};
     this._environmentalEntity = (ac.environmental_entity as string) || "";
@@ -156,6 +161,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._nfcTagId = "";
     this._responsibleUserId = null;
     this._checklistText = "";
+    this._scheduleTime = "";
     this._environmentalEntity = "";
     this._environmentalAttribute = "";
     this._environmentalInitial = "";
@@ -305,6 +311,12 @@ export class MaintenanceTaskDialog extends LitElement {
         data.trigger_config = triggerConfig;
       } else if (this._taskId) {
         data.trigger_config = null;
+      }
+
+      // Schedule time only sent when feature is enabled — empty string clears.
+      if (this.scheduleTimeEnabled && this._scheduleType === "time_based") {
+        const t = this._scheduleTime.trim();
+        data.schedule_time = /^([01]\d|2[0-3]):[0-5]\d$/.test(t) ? t : null;
       }
 
       if (this.checklistsEnabled) {
@@ -570,6 +582,15 @@ export class MaintenanceTaskDialog extends LitElement {
                     <option value="planned" ?selected=${this._intervalAnchor === "planned"}>${t("anchor_planned", L)}</option>
                   </select>
                 </div>
+                ${this.scheduleTimeEnabled ? html`
+                  <ha-textfield
+                    label="${t("schedule_time_optional", L)}"
+                    type="time"
+                    .value=${this._scheduleTime}
+                    helper="${t("schedule_time_help", L)}"
+                    @input=${(e: Event) => (this._scheduleTime = (e.target as HTMLInputElement).value)}
+                  ></ha-textfield>
+                ` : nothing}
               `
             : nothing}
           <ha-textfield

@@ -439,7 +439,8 @@
           "advanced_environmental_visible": "Correlación ambiental",
           "advanced_budget_visible": "Seguimiento de presupuesto",
           "advanced_groups_visible": "Grupos",
-          "advanced_checklists_visible": "Listas de verificación"
+          "advanced_checklists_visible": "Listas de verificación",
+          "advanced_schedule_time_visible": "Programación por hora"
         },
         "data_description": {
           "advanced_adaptive_visible": "Mostrar análisis EWA, Weibull y sugerencias de intervalo para las tareas.",
@@ -448,7 +449,8 @@
           "advanced_environmental_visible": "Mostrar ajustes de correlación ambiental (temperatura, humedad).",
           "advanced_budget_visible": "Mostrar seguimiento de presupuesto mensual/anual y alertas.",
           "advanced_groups_visible": "Mostrar la gestión de grupos de mantenimiento.",
-          "advanced_checklists_visible": "Mostrar listas de verificación para la realización paso a paso de las tareas."
+          "advanced_checklists_visible": "Mostrar listas de verificación para la realización paso a paso de las tareas.",
+          "advanced_schedule_time_visible": "Permite que las tareas venzan a una hora específica en lugar de medianoche."
         }
       },
       "general_settings": {

@@ -113,6 +113,69 @@ class TestMaintenanceTaskStatus:
         assert task.enabled is False
 
 
+class TestScheduleTimeStatus:
+    """Sub-day OVERDUE transition: schedule_time makes 'today, past HH:MM'
+    behave as overdue instead of waiting until midnight."""
+
+    def test_due_today_before_schedule_time_is_due_soon(self, freezer) -> None:
+        """Clock at local 08:30, schedule_time=20:00 → DUE_SOON (not yet past time)."""
+        # Freeze to a fixed local-TZ-independent offset: 2026-05-01 15:30 UTC
+        # is safely in-hours regardless of HA test TZ.
+        freezer.move_to("2026-05-01 15:30:00+00:00")
+        now = dt_util.now()
+        # schedule_time is 4 hours after the frozen local "now"
+        future_time = (now + timedelta(hours=4)).time().strftime("%H:%M")
+        last = (now.date() - timedelta(days=30)).isoformat()
+        task = MaintenanceTask.from_dict(
+            build_task_data(
+                interval_days=30, warning_days=7,
+                last_performed=last, schedule_time=future_time,
+            )
+        )
+        assert task.days_until_due == 0
+        assert task.status == MaintenanceStatus.DUE_SOON
+
+    def test_due_today_after_schedule_time_is_overdue(self, freezer) -> None:
+        """Clock at local midday, schedule_time 4h earlier → OVERDUE."""
+        freezer.move_to("2026-05-01 15:30:00+00:00")
+        now = dt_util.now()
+        past_time = (now - timedelta(hours=4)).time().strftime("%H:%M")
+        last = (now.date() - timedelta(days=30)).isoformat()
+        task = MaintenanceTask.from_dict(
+            build_task_data(
+                interval_days=30, warning_days=7,
+                last_performed=last, schedule_time=past_time,
+            )
+        )
+        assert task.days_until_due == 0
+        assert task.status == MaintenanceStatus.OVERDUE
+
+    def test_schedule_time_is_none_preserves_midnight_semantic(self) -> None:
+        """No schedule_time → status never flips on 'today' regardless of clock."""
+        last = (dt_util.now().date() - timedelta(days=30)).isoformat()
+        task = MaintenanceTask.from_dict(
+            build_task_data(
+                interval_days=30, warning_days=7,
+                last_performed=last,
+            )
+        )
+        assert task.schedule_time is None
+        # days == 0 without schedule_time → DUE_SOON (historical behaviour)
+        assert task.status == MaintenanceStatus.DUE_SOON
+
+    def test_malformed_schedule_time_falls_back_to_midnight(self) -> None:
+        """A garbage schedule_time value must NOT raise — it's silently ignored."""
+        last = (dt_util.now().date() - timedelta(days=30)).isoformat()
+        task = MaintenanceTask.from_dict(
+            build_task_data(
+                interval_days=30, warning_days=7,
+                last_performed=last, schedule_time="9a:bc",
+            )
+        )
+        # _is_past_schedule_time() → False, so status stays DUE_SOON (not OVERDUE)
+        assert task.status == MaintenanceStatus.DUE_SOON
+
+
 # ─── 6.2 Days Until Due ─────────────────────────────────────────────────
 
 

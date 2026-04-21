@@ -163,6 +163,7 @@ export class MaintenanceSettingsView extends LitElement {
       { key: "budget", settingKey: "advanced_budget_visible", label: t("feat_budget", L), desc: t("feat_budget_desc", L) },
       { key: "groups", settingKey: "advanced_groups_visible", label: t("feat_groups", L), desc: t("feat_groups_desc", L) },
       { key: "checklists", settingKey: "advanced_checklists_visible", label: t("feat_checklists", L), desc: t("feat_checklists_desc", L) },
+      { key: "schedule_time", settingKey: "advanced_schedule_time_visible", label: t("feat_schedule_time", L), desc: t("feat_schedule_time_desc", L) },
     ];
 
     return html`

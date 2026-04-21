@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json as json_mod
 import logging
+import re
 from typing import Any
 from uuid import uuid4
 
@@ -283,7 +284,7 @@ async def ws_import_json(
                 "last_performed", "notes", "documentation_url",
                 "custom_icon", "nfc_tag_id", "responsible_user_id",
                 "entity_slug", "trigger_config", "adaptive_config",
-                "checklist",
+                "checklist", "schedule_time",
             ):
                 val = task_entry.get(key)
                 if val is not None:
@@ -319,6 +320,14 @@ async def ws_import_json(
                     ]
                     cleaned = [c for c in cleaned if c]
                     task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
+
+            # schedule_time: strict HH:MM, otherwise drop
+            st = task_data.get("schedule_time")
+            if st is not None:
+                if not isinstance(st, str) or not re.fullmatch(
+                    r"^([01]\d|2[0-3]):[0-5]\d$", st
+                ):
+                    task_data.pop("schedule_time", None)
 
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)

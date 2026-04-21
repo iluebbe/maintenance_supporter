@@ -27,6 +27,7 @@ from .const import (
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
     CONF_ADVANCED_PREDICTIONS,
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
@@ -322,6 +323,10 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_ADVANCED_CHECKLISTS,
                         default=current.get(CONF_ADVANCED_CHECKLISTS, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADVANCED_SCHEDULE_TIME,
+                        default=current.get(CONF_ADVANCED_SCHEDULE_TIME, False),
                     ): selector.BooleanSelector(),
                 }
             ),

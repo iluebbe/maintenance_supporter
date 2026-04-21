@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
+import re
 from typing import Any
 from uuid import uuid4
 
@@ -34,6 +35,7 @@ _COLUMNS = [
     "schedule_type",
     "interval_days",
     "interval_anchor",
+    "schedule_time",
     "warning_days",
     "last_performed",
     "notes",
@@ -100,6 +102,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "schedule_type": tdata.get("schedule_type", "time_based"),
                     "interval_days": tdata.get("interval_days", ""),
                     "interval_anchor": tdata.get("interval_anchor", "completion"),
+                    "schedule_time": tdata.get("schedule_time", ""),
                     "warning_days": tdata.get("warning_days", 7),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": _csv_safe(tdata.get("notes", "")),
@@ -178,6 +181,12 @@ def import_objects_csv(
         anchor = (row.get("interval_anchor") or "").strip()
         if anchor in ("planned", "completion"):
             task_data["interval_anchor"] = anchor
+
+        # schedule_time round-trip with strict HH:MM validation; malformed
+        # values are dropped silently (consistent with other CSV import fields).
+        sched_time = (row.get("schedule_time") or "").strip()
+        if sched_time and re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", sched_time):
+            task_data["schedule_time"] = sched_time
 
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:

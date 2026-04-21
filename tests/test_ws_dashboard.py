@@ -232,6 +232,7 @@ async def test_get_settings_no_global_entry(
         "budget": False,
         "groups": False,
         "checklists": False,
+        "schedule_time": False,
     }
 
 

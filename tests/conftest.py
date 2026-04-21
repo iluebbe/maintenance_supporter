@@ -124,6 +124,7 @@ def build_task_data(
     history: list[dict[str, Any]] | None = None,
     enabled: bool = True,
     object_id: str = OBJECT_ID_1,
+    schedule_time: str | None = None,
 ) -> dict[str, Any]:
     """Build a task data dict."""
     data: dict[str, Any] = {
@@ -142,6 +143,8 @@ def build_task_data(
         data["last_performed"] = last_performed
     if trigger_config is not None:
         data["trigger_config"] = trigger_config
+    if schedule_time is not None:
+        data["schedule_time"] = schedule_time
     return data
 
 

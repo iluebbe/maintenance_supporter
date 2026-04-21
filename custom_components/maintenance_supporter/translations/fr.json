@@ -439,7 +439,8 @@
           "advanced_environmental_visible": "Corrélation environnementale",
           "advanced_budget_visible": "Suivi du budget",
           "advanced_groups_visible": "Groupes",
-          "advanced_checklists_visible": "Listes de contrôle"
+          "advanced_checklists_visible": "Listes de contrôle",
+          "advanced_schedule_time_visible": "Planification à l'heure"
         },
         "data_description": {
           "advanced_adaptive_visible": "Afficher l'analyse EWA, Weibull et les suggestions d'intervalle pour les tâches.",
@@ -448,7 +449,8 @@
           "advanced_environmental_visible": "Afficher les ajustements de corrélation environnementale (température, humidité).",
           "advanced_budget_visible": "Afficher le suivi de budget mensuel/annuel et les alertes.",
           "advanced_groups_visible": "Afficher la gestion des groupes de maintenance.",
-          "advanced_checklists_visible": "Afficher les listes de contrôle pour la réalisation étape par étape des tâches."
+          "advanced_checklists_visible": "Afficher les listes de contrôle pour la réalisation étape par étape des tâches.",
+          "advanced_schedule_time_visible": "Permettre aux tâches d'arriver à échéance à une heure précise plutôt qu'à minuit."
         }
       },
       "general_settings": {

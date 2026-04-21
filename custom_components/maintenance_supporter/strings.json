@@ -439,7 +439,8 @@
           "advanced_environmental_visible": "Environmental Correlation",
           "advanced_budget_visible": "Budget Tracking",
           "advanced_groups_visible": "Groups",
-          "advanced_checklists_visible": "Checklists"
+          "advanced_checklists_visible": "Checklists",
+          "advanced_schedule_time_visible": "Time-of-day scheduling"
         },
         "data_description": {
           "advanced_adaptive_visible": "Show EWA, Weibull analysis, and interval suggestions for tasks.",
@@ -448,7 +449,8 @@
           "advanced_environmental_visible": "Show environmental correlation (temperature, humidity) adjustments.",
           "advanced_budget_visible": "Show monthly/yearly budget tracking and alerts.",
           "advanced_groups_visible": "Show maintenance group management.",
-          "advanced_checklists_visible": "Show task checklists for step-by-step completion."
+          "advanced_checklists_visible": "Show task checklists for step-by-step completion.",
+          "advanced_schedule_time_visible": "Allow tasks to become overdue at a specific time of day instead of midnight."
         }
       },
       "general_settings": {

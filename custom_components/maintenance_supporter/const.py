@@ -71,6 +71,7 @@ CONF_ADVANCED_ENVIRONMENTAL = "advanced_environmental_visible"
 CONF_ADVANCED_BUDGET = "advanced_budget_visible"
 CONF_ADVANCED_GROUPS = "advanced_groups_visible"
 CONF_ADVANCED_CHECKLISTS = "advanced_checklists_visible"
+CONF_ADVANCED_SCHEDULE_TIME = "advanced_schedule_time_visible"
 
 # --- Config Keys: Notification Per-Status ---
 CONF_NOTIFY_DUE_SOON_ENABLED = "notify_due_soon_enabled"
@@ -128,6 +129,7 @@ CONF_TASK_DOCUMENTATION_URL = "documentation_url"
 CONF_TASK_ICON = "custom_icon"
 CONF_TASK_NFC_TAG = "nfc_tag_id"
 CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
+CONF_TASK_SCHEDULE_TIME = "schedule_time"
 
 # --- Config Keys: User Assignment ---
 CONF_RESPONSIBLE_USER_ID = "responsible_user_id"
@@ -319,6 +321,7 @@ MAX_ENTITY_ID_LENGTH = 255      # HA entity_id max
 MAX_ENTITY_SLUG_LENGTH = 64     # task entity_slug
 MAX_INTERVAL_DAYS = 3650        # 10 years — caps date arithmetic overflow
 MAX_IMPORT_PAYLOAD_BYTES = 1_048_576  # 1 MB for csv_content / json_content
+MAX_SCHEDULE_TIME_LENGTH = 5    # "HH:MM"
 
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes

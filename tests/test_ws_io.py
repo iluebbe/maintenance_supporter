@@ -292,6 +292,102 @@ async def test_import_json_caps_checklist(
         "non-strings or oversize items leaked through"
 
 
+async def test_csv_roundtrip_preserves_schedule_time(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """schedule_time round-trips through CSV. Malformed values are dropped."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import (
+        export_objects_csv,
+        import_objects_csv,
+    )
+
+    await setup_integration(hass, global_entry)
+
+    entry = MockConfigEntry(
+        domain="maintenance_supporter",
+        title="CSV SchedTime",
+        unique_id="maintenance_supporter_csv_schedtime",
+        data={
+            "object": {"id": "obj1", "name": "CSV SchedTime", "task_ids": ["t1"]},
+            "tasks": {
+                "t1": {
+                    "id": "t1", "object_id": "obj1", "name": "Timed",
+                    "type": "service", "schedule_type": "time_based",
+                    "interval_days": 7, "warning_days": 1, "enabled": True,
+                    "schedule_time": "09:30",
+                }
+            },
+        },
+    )
+    entry.add_to_hass(hass)
+
+    csv_text = export_objects_csv(hass)
+    assert "09:30" in csv_text
+
+    parsed = import_objects_csv(csv_text)
+    entry_parsed = next(o for o in parsed if o["object"]["name"] == "CSV SchedTime")
+    task = next(iter(entry_parsed["tasks"].values()))
+    assert task.get("schedule_time") == "09:30"
+
+
+async def test_csv_import_drops_malformed_schedule_time(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Garbage in schedule_time column must be dropped, not persisted."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import (
+        import_objects_csv,
+    )
+
+    csv = (
+        "object_name,task_name,task_type,schedule_type,interval_days,"
+        "interval_anchor,schedule_time,warning_days\n"
+        "Pump,Svc,service,time_based,7,completion,25:00,1\n"  # hour 25 invalid
+    )
+    parsed = import_objects_csv(csv)
+    task = next(iter(parsed[0]["tasks"].values()))
+    assert "schedule_time" not in task
+
+
+async def test_json_import_drops_malformed_schedule_time(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """JSON import sanitizes schedule_time via the same HH:MM regex."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    import json as _json
+    data = _json.dumps({
+        "version": 1,
+        "objects": [{
+            "object": {"name": "JSON Sched 1"},
+            "tasks": [{
+                "name": "Good",
+                "schedule_type": "time_based",
+                "interval_days": 7,
+                "schedule_time": "14:00",
+            }, {
+                "name": "Bad",
+                "schedule_type": "time_based",
+                "interval_days": 7,
+                "schedule_time": "nope",
+            }],
+        }],
+    })
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": data,
+    })
+    res = conn.send_result.call_args[0][1]
+    entry_id = res["imported"][0]["entry_id"]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    tasks = list(entry.data[CONF_TASKS].values())
+    good = next(t for t in tasks if t["name"] == "Good")
+    bad = next(t for t in tasks if t["name"] == "Bad")
+    assert good.get("schedule_time") == "14:00"
+    assert "schedule_time" not in bad
+
+
 async def test_csv_roundtrip_preserves_checklist(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

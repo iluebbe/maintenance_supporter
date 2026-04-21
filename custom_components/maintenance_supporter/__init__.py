@@ -29,6 +29,7 @@ from .const import (
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
     CONF_ADVANCED_PREDICTIONS,
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
@@ -343,6 +344,7 @@ def _detect_advanced_feature_usage(
     seasonal = False
     environmental = False
     checklists = False
+    schedule_time = False
 
     for entry in hass.config_entries.async_entries(DOMAIN):
         if entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -360,6 +362,8 @@ def _detect_advanced_feature_usage(
                 environmental = True
             if task_data.get("checklist"):
                 checklists = True
+            if task_data.get("schedule_time"):
+                schedule_time = True
 
     budget = (
         global_options.get(CONF_BUDGET_MONTHLY, 0) > 0
@@ -375,6 +379,7 @@ def _detect_advanced_feature_usage(
         CONF_ADVANCED_BUDGET: budget,
         CONF_ADVANCED_GROUPS: groups,
         CONF_ADVANCED_CHECKLISTS: checklists,
+        CONF_ADVANCED_SCHEDULE_TIME: schedule_time,
     }
 
 
