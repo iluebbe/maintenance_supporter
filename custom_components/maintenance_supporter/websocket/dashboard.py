@@ -23,6 +23,7 @@ from ..const import (
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
     CONF_ADVANCED_PREDICTIONS,
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
@@ -73,6 +74,7 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_ADVANCED_BUDGET: bool,
     CONF_ADVANCED_GROUPS: bool,
     CONF_ADVANCED_CHECKLISTS: bool,
+    CONF_ADVANCED_SCHEDULE_TIME: bool,
     # Notification per-status
     CONF_NOTIFY_DUE_SOON_ENABLED: bool,
     CONF_NOTIFY_DUE_SOON_INTERVAL: int,
@@ -114,6 +116,7 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "budget": options.get(CONF_ADVANCED_BUDGET, False),
             "groups": options.get(CONF_ADVANCED_GROUPS, False),
             "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
+            "schedule_time": options.get(CONF_ADVANCED_SCHEDULE_TIME, False),
         },
         "general": {
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),

@@ -439,7 +439,8 @@
           "advanced_environmental_visible": "Omgevingscorrelatie",
           "advanced_budget_visible": "Budgetbeheer",
           "advanced_groups_visible": "Groepen",
-          "advanced_checklists_visible": "Checklists"
+          "advanced_checklists_visible": "Checklists",
+          "advanced_schedule_time_visible": "Tijd-van-dag-planning"
         },
         "data_description": {
           "advanced_adaptive_visible": "Toon EWA-, Weibull-analyse en intervalsuggesties voor taken.",
@@ -448,7 +449,8 @@
           "advanced_environmental_visible": "Toon omgevingscorrelatie (temperatuur, vochtigheid) aanpassingen.",
           "advanced_budget_visible": "Toon maandelijks/jaarlijks budgetbeheer en waarschuwingen.",
           "advanced_groups_visible": "Toon onderhoudsgroepbeheer.",
-          "advanced_checklists_visible": "Toon taakchecklists voor stapsgewijze voltooiing."
+          "advanced_checklists_visible": "Toon taakchecklists voor stapsgewijze voltooiing.",
+          "advanced_schedule_time_visible": "Laat taken op een specifieke tijd vervallen in plaats van om middernacht."
         }
       },
       "general_settings": {

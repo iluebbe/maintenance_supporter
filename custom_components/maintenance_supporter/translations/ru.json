@@ -439,7 +439,8 @@
           "advanced_environmental_visible": "Экологическая корреляция",
           "advanced_budget_visible": "Отслеживание бюджета",
           "advanced_groups_visible": "Группы",
-          "advanced_checklists_visible": "Контрольные списки"
+          "advanced_checklists_visible": "Контрольные списки",
+          "advanced_schedule_time_visible": "Планирование по времени"
         },
         "data_description": {
           "advanced_adaptive_visible": "Показывать EWA, анализ Вейбулла и предложения интервалов для задач.",
@@ -448,7 +449,8 @@
           "advanced_environmental_visible": "Показывать корректировки экологической корреляции (температура, влажность).",
           "advanced_budget_visible": "Показывать ежемесячное/годовое отслеживание бюджета и оповещения.",
           "advanced_groups_visible": "Показывать управление группами обслуживания.",
-          "advanced_checklists_visible": "Показывать контрольные списки задач для пошагового выполнения."
+          "advanced_checklists_visible": "Показывать контрольные списки задач для пошагового выполнения.",
+          "advanced_schedule_time_visible": "Позволяет задачам становиться просроченными в определённое время дня, а не в полночь."
         }
       },
       "general_settings": {

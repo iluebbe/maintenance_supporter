@@ -224,6 +224,50 @@ async def test_ws_create_task_invalid_entity_slug(
     assert "entity_slug" in conn.send_error.call_args[0][2]
 
 
+async def test_ws_create_task_accepts_valid_schedule_time(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Voluptuous schema accepts HH:MM strings in the valid range."""
+    import voluptuous as vol_mod
+    await setup_integration(hass, global_entry, object_entry)
+    schema = vol_mod.Schema(ws_create_task._ws_schema, extra=vol_mod.PREVENT_EXTRA)  # type: ignore[attr-defined]
+
+    for good in ("00:00", "09:30", "13:45", "23:59"):
+        schema({
+            "id": 1, "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id, "name": "X",
+            "schedule_time": good,
+        })
+
+    # None also accepted (clears the time → back to midnight semantic)
+    schema({
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": object_entry.entry_id, "name": "X",
+        "schedule_time": None,
+    })
+
+
+async def test_ws_create_task_rejects_malformed_schedule_time(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Voluptuous schema rejects malformed HH:MM inputs."""
+    import voluptuous as vol_mod
+    await setup_integration(hass, global_entry, object_entry)
+    schema = vol_mod.Schema(ws_create_task._ws_schema, extra=vol_mod.PREVENT_EXTRA)  # type: ignore[attr-defined]
+
+    bad_inputs = ("25:00", "9:00", "99:99", "abc", "12:5", "", "12:00:00")
+    for bad in bad_inputs:
+        try:
+            schema({
+                "id": 1, "type": "maintenance_supporter/task/create",
+                "entry_id": object_entry.entry_id, "name": "X",
+                "schedule_time": bad,
+            })
+        except vol_mod.Invalid:
+            continue
+        raise AssertionError(f"schema accepted bad schedule_time={bad!r}")
+
+
 async def test_ws_create_task_rejects_oversize_strings(
     hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
 ) -> None:

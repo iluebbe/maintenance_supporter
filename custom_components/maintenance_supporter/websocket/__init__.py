@@ -102,6 +102,7 @@ def _build_task_summary(
         "interval_days": task_data.get("interval_days"),
         "interval_anchor": task_data.get("interval_anchor", "completion"),
         "last_planned_due": task_data.get("last_planned_due"),
+        "schedule_time": task_data.get("schedule_time"),
         "warning_days": task_data.get("warning_days", 7),
         "last_performed": task_data.get("last_performed"),
         "notes": task_data.get("notes"),

@@ -24,6 +24,7 @@ from .const import (
     CONF_ADAPTIVE_MIN_INTERVAL,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_CHECKLISTS,
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ENVIRONMENTAL_ENTITY,
     CONF_OBJECT,
     CONF_OBJECT_AREA,
@@ -43,6 +44,7 @@ from .const import (
     CONF_TASK_NAME,
     CONF_TASK_NFC_TAG,
     CONF_TASK_NOTES,
+    CONF_TASK_SCHEDULE_TIME,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -302,6 +304,13 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])
                 if CONF_TASK_INTERVAL_ANCHOR in user_input:
                     updated_task["interval_anchor"] = user_input[CONF_TASK_INTERVAL_ANCHOR]
+                # schedule_time only present when global advanced flag is on; clear by submitting "".
+                if CONF_TASK_SCHEDULE_TIME in user_input:
+                    sched = (user_input.get(CONF_TASK_SCHEDULE_TIME) or "").strip()
+                    if sched:
+                        updated_task["schedule_time"] = sched
+                    else:
+                        updated_task.pop("schedule_time", None)
                 updated_task["warning_days"] = int(
                     user_input.get(CONF_TASK_WARNING_DAYS, updated_task.get("warning_days", DEFAULT_WARNING_DAYS))
                 )
@@ -424,6 +433,18 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                                     ],
                                     mode=selector.SelectSelectorMode.DROPDOWN,
                                 )
+                            ),
+                            **(
+                                {
+                                    vol.Optional(
+                                        CONF_TASK_SCHEDULE_TIME,
+                                        default=task.get("schedule_time", ""),
+                                    ): selector.TimeSelector(),
+                                }
+                                if self._get_global_options().get(
+                                    CONF_ADVANCED_SCHEDULE_TIME, False
+                                )
+                                else dict[Any, Any]()
                             ),
                         }
                         if task.get("schedule_type") == ScheduleType.TIME_BASED

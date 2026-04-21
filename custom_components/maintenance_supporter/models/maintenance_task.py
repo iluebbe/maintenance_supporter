@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -41,6 +41,7 @@ class MaintenanceTask:
     created_at: str | None = None  # ISO date: fallback anchor for next_due when last_performed is None
     interval_anchor: str = "completion"  # "completion" or "planned"
     last_planned_due: str | None = None  # ISO date: anchor for planned mode
+    schedule_time: str | None = None  # "HH:MM" in HA's configured TZ; None = midnight (default)
 
     # --- Trigger ---
     trigger_config: dict[str, Any] | None = None
@@ -131,6 +132,23 @@ class MaintenanceTask:
             return None
         return (due - dt_util.now().date()).days
 
+    def _is_past_schedule_time(self) -> bool:
+        """True iff a `schedule_time` is set AND current local time is past it.
+
+        Used as a sub-day refinement of the OVERDUE transition: when `days_until_due`
+        is exactly 0, the task is considered overdue once the configured HH:MM has
+        passed (in HA's configured TZ). Returns False when no `schedule_time` is set
+        — that preserves the historical "due at midnight" semantic.
+        """
+        if not self.schedule_time:
+            return False
+        try:
+            hh, mm = self.schedule_time.split(":", 1)
+            target = time(int(hh), int(mm))
+        except (ValueError, TypeError):
+            return False
+        return dt_util.now().time() >= target
+
     @property
     def status(self) -> MaintenanceStatus:
         """Determine the current status of this task."""
@@ -144,6 +162,10 @@ class MaintenanceTask:
             return MaintenanceStatus.OK
 
         if days < 0:
+            return MaintenanceStatus.OVERDUE
+        # Sub-day refinement: same-day past schedule_time also counts as overdue.
+        # Without this, a task with schedule_time="09:00" would only flip at midnight.
+        if days == 0 and self._is_past_schedule_time():
             return MaintenanceStatus.OVERDUE
         effective_warning = min(self.warning_days, self.interval_days) if self.interval_days else self.warning_days
         if days <= effective_warning:
@@ -309,6 +331,8 @@ class MaintenanceTask:
             data["interval_anchor"] = self.interval_anchor
         if self.last_planned_due is not None:
             data["last_planned_due"] = self.last_planned_due
+        if self.schedule_time is not None:
+            data["schedule_time"] = self.schedule_time
         if self.last_performed is not None:
             data["last_performed"] = self.last_performed
         if self.created_at is not None:
@@ -347,6 +371,7 @@ class MaintenanceTask:
             created_at=data.get("created_at"),
             interval_anchor=data.get("interval_anchor", "completion"),
             last_planned_due=data.get("last_planned_due"),
+            schedule_time=data.get("schedule_time"),
             trigger_config=data.get("trigger_config"),
             notes=data.get("notes"),
             documentation_url=data.get("documentation_url"),

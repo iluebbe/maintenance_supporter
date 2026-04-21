@@ -214,6 +214,114 @@ async def test_async_get_events(
 # ─── _create_event_for_task unit tests ─────────────────────────────────
 
 
+def test_create_event_all_day_without_schedule_time(
+    hass: HomeAssistant,
+    calendar_entity: MaintenanceCalendar,
+) -> None:
+    """Default behaviour: no schedule_time → all-day event (start/end are date)."""
+    from datetime import datetime as _dt
+    task = MaintenanceTask.from_dict({
+        "id": TASK_ID_1,
+        "name": "Timed",
+        "type": "service",
+        "enabled": True,
+        "schedule_type": ScheduleType.TIME_BASED,
+        "interval_days": 7,
+        "warning_days": 1,
+        "last_performed": dt_util.now().date().isoformat(),
+        "history": [],
+    })
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(
+        task, "Object", today, today + timedelta(days=30)
+    )
+    assert event is not None
+    # Without schedule_time, event.start is a plain `date` (all-day)
+    assert not isinstance(event.start, _dt)
+
+
+def test_create_event_timed_when_schedule_time_and_flag_on(
+    hass: HomeAssistant,
+    calendar_entity: MaintenanceCalendar,
+) -> None:
+    """schedule_time + flag ON → timed event (start/end are datetime, 30min block)."""
+    from datetime import datetime as _dt
+    from custom_components.maintenance_supporter.const import (
+        CONF_ADVANCED_SCHEDULE_TIME,
+        GLOBAL_UNIQUE_ID,
+    )
+    # Simulate the global flag being on via a matching config entry
+    global_entry = MockConfigEntry(
+        domain="maintenance_supporter",
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={},
+        options={CONF_ADVANCED_SCHEDULE_TIME: True},
+    )
+    global_entry.add_to_hass(hass)
+
+    task = MaintenanceTask.from_dict({
+        "id": TASK_ID_1,
+        "name": "At09",
+        "type": "service",
+        "enabled": True,
+        "schedule_type": ScheduleType.TIME_BASED,
+        "interval_days": 7,
+        "warning_days": 1,
+        "last_performed": dt_util.now().date().isoformat(),
+        "schedule_time": "09:00",
+        "history": [],
+    })
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(
+        task, "Object", today, today + timedelta(days=30)
+    )
+    assert event is not None
+    assert isinstance(event.start, _dt), "start must be datetime when schedule_time is set"
+    assert isinstance(event.end, _dt)
+    assert event.start.hour == 9 and event.start.minute == 0
+    # 30-minute window
+    assert (event.end - event.start) == timedelta(minutes=30)
+
+
+def test_create_event_all_day_when_flag_off(
+    hass: HomeAssistant,
+    calendar_entity: MaintenanceCalendar,
+) -> None:
+    """schedule_time set but global flag OFF → falls back to all-day."""
+    from datetime import datetime as _dt
+    from custom_components.maintenance_supporter.const import (
+        CONF_ADVANCED_SCHEDULE_TIME,
+        GLOBAL_UNIQUE_ID,
+    )
+    global_entry = MockConfigEntry(
+        domain="maintenance_supporter",
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={},
+        options={CONF_ADVANCED_SCHEDULE_TIME: False},
+    )
+    global_entry.add_to_hass(hass)
+
+    task = MaintenanceTask.from_dict({
+        "id": TASK_ID_1,
+        "name": "At09",
+        "type": "service",
+        "enabled": True,
+        "schedule_type": ScheduleType.TIME_BASED,
+        "interval_days": 7,
+        "warning_days": 1,
+        "last_performed": dt_util.now().date().isoformat(),
+        "schedule_time": "09:00",
+        "history": [],
+    })
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(
+        task, "Object", today, today + timedelta(days=30)
+    )
+    assert event is not None
+    # Flag off: even though schedule_time is set, event stays all-day
+    assert not isinstance(event.start, _dt)
+
+
 def test_create_event_manual_not_triggered(
     hass: HomeAssistant,
     calendar_entity: MaintenanceCalendar,

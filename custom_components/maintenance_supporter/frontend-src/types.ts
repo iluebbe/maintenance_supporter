@@ -95,6 +95,7 @@ export interface MaintenanceTask {
   schedule_type: string; // "time_based" | "sensor_based" | "manual"
   interval_days?: number | null;
   interval_anchor?: "completion" | "planned";
+  schedule_time?: string | null;  // "HH:MM" or null/undefined = midnight
   warning_days: number;
   last_performed?: string | null;
   notes?: string | null;
@@ -195,6 +196,7 @@ export interface AdvancedFeatures {
   budget: boolean;
   groups: boolean;
   checklists: boolean;
+  schedule_time: boolean;
 }
 
 /** A single point in a recorder statistics time series. */

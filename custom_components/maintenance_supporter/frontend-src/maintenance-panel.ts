@@ -68,7 +68,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
-  @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false };
+  @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false };
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _toastMessage = "";
@@ -611,6 +611,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <maintenance-task-dialog
         .hass=${this.hass}
         .checklistsEnabled=${this._features.checklists}
+        .scheduleTimeEnabled=${this._features.schedule_time}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
       <maintenance-complete-dialog
@@ -1486,6 +1487,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="kpi-card">
           <div class="kpi-label">${t("next_due", L)}</div>
           <div class="kpi-value">${task.next_due ? formatDate(task.next_due, L) : "—"}</div>
+          ${this._features.schedule_time && task.schedule_time
+            ? html`<div class="kpi-subtext">${t("at_time", L)} ${task.schedule_time}</div>`
+            : nothing}
         </div>
         <div class="kpi-card ${daysClass}">
           <div class="kpi-label">${t("days_until_due", L)}</div>

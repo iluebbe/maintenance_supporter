@@ -19,6 +19,7 @@ from ..const import (
     MAX_INTERVAL_DAYS,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
+    MAX_SCHEDULE_TIME_LENGTH,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
@@ -40,6 +41,7 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "responsible_user_id": MAX_META_LENGTH,
     "entity_slug": MAX_ENTITY_SLUG_LENGTH,
     "created_at": MAX_DATE_LENGTH,
+    "schedule_time": MAX_SCHEDULE_TIME_LENGTH,
 }
 
 _OBJECT_STR_LIMITS: dict[str, int] = {

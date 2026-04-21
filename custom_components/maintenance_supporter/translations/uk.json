@@ -439,7 +439,8 @@
           "advanced_environmental_visible": "Кореляція з довкіллям",
           "advanced_budget_visible": "Відстеження бюджету",
           "advanced_groups_visible": "Групи",
-          "advanced_checklists_visible": "Чеклісти"
+          "advanced_checklists_visible": "Чеклісти",
+          "advanced_schedule_time_visible": "Планування за часом доби"
         },
         "data_description": {
           "advanced_adaptive_visible": "Показувати EWA, аналіз Вейбулла та рекомендації щодо інтервалів для завдань.",
@@ -448,7 +449,8 @@
           "advanced_environmental_visible": "Показувати корекції кореляції з довкіллям (температура, вологість).",
           "advanced_budget_visible": "Показувати щомісячне/щорічне відстеження бюджету та сповіщення.",
           "advanced_groups_visible": "Показувати керування групами обслуговування.",
-          "advanced_checklists_visible": "Показувати чеклісти завдань для покрокового виконання."
+          "advanced_checklists_visible": "Показувати чеклісти завдань для покрокового виконання.",
+          "advanced_schedule_time_visible": "Дозволяє задачам ставати простроченими у певний час доби, а не опівночі."
         }
       },
       "general_settings": {

@@ -2,6 +2,34 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.41] - 2026-04-21
+
+### Added — Time-of-day scheduling (advanced feature)
+- **New advanced feature flag `advanced_schedule_time_visible`** (default OFF). When enabled, time-based tasks can carry an optional `schedule_time` (HH:MM) so they flip from DUE_SOON to OVERDUE **at that time** on the due date instead of at midnight. Resolves the "how do I schedule a task at 9:00?" ask from [#32](https://github.com/iluebbe/maintenance_supporter/issues/32) item 2.
+- **Off-behaviour is gating, not just hiding.** When the flag is OFF, the coordinator strips any stored `schedule_time` from in-memory tasks before computing status, so a task configured for 09:00 behaves like the legacy midnight task until the feature is re-enabled. Data stays on disk — flipping the flag back on re-applies the time immediately.
+- **Calendar events become timed when the feature is on and `schedule_time` is set** — 30-minute block starting at HH:MM in HA's configured timezone (instead of the default all-day event). Calendar apps can now set proper reminders. With the flag off, events fall back to all-day.
+- **Scope:** `schedule_time` is a field on `time_based` tasks only. `sensor_based` and `manual` tasks are unaffected.
+- **UX:** Task dialog shows the new field right after "Interval anchor", only for time-based tasks and only when the global flag is on. Task detail Overview tab surfaces "at HH:MM" next to the Next Due date.
+- Auto-enable: a task with a stored `schedule_time` automatically flips the global flag on at first startup (symmetric to the existing `checklists`/`adaptive`/etc. detection).
+
+### Hardened
+- WebSocket schemas (`ws_create_task`, `ws_update_task`, `ws_complete_task`) validate `schedule_time` as strict `HH:MM` (00–23 : 00–59). Malformed values rejected at the boundary.
+- CSV and JSON imports sanitize the field: non-string or malformed entries are silently dropped instead of polluting `ConfigEntry.data`.
+- Config-flow save handlers apply the existing `cap_task_fields` helper with a new 5-char cap on `schedule_time`, so neither the WS nor the UI path can bypass the format restriction.
+- **Precision:** the 5-minute coordinator refresh means OVERDUE fires between HH:MM and HH:MM+5min. No `async_track_point_in_time` timer per task — kept simple as agreed.
+
+### Tests
+- 4 new model-level tests (`TestScheduleTimeStatus`) covering before/after sub-day transition, absent `schedule_time` preserves legacy behaviour, malformed values fall back gracefully.
+- 2 new WS schema tests (valid + malformed HH:MM acceptance/rejection).
+- 3 CSV/JSON round-trip + sanitize tests.
+- 3 calendar unit tests (all-day without time, timed with flag on, all-day when flag off overrides).
+- New Playwright E2E suite `e2e-schedule-time.mjs` — 8 checks covering feature-off → hidden field, feature-on → visible field, WS round-trip, WS rejecting malformed payloads.
+- 1501 unit tests pass; ruff + mypy strict clean across 52 source files; Docker smoke test green.
+
+### i18n
+- 5 new translation keys × 9 languages for the panel (feat_schedule_time / desc, schedule_time_optional, schedule_time_help, at_time).
+- Config-Flow translations: `advanced_schedule_time_visible` label + description in `strings.json` + all 9 translation files. Parity: 320/320/320/320/320/320/320/320/320 keys.
+
 ## [1.0.40] - 2026-04-21
 
 ### Added — Error-message UX

@@ -20,6 +20,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     BUDGET_CURRENCIES,
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
@@ -73,7 +74,20 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._entity_unavailable_logged: dict[str, bool] = {}  # task_id -> logged?
         self._trigger_entity_states: dict[str, str] = {}  # task_id -> TriggerEntityState
 
-    @property
+    def _is_schedule_time_feature_enabled(self) -> bool:
+        """Return True iff the global advanced flag for time-of-day scheduling is on.
+
+        Reads the global config entry's options on every call. Cheap (just a
+        dict lookup over the small list of integration entries) and means a
+        toggle in Settings takes effect on the next coordinator refresh
+        without needing a restart.
+        """
+        for ce in self.hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID:
+                opts = ce.options or ce.data
+                return bool(opts.get(CONF_ADVANCED_SCHEDULE_TIME, False))
+        return False
+
     def _in_startup_grace_period(self) -> bool:
         """Return True if still within the startup grace period."""
         return (
@@ -117,6 +131,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             CONF_TASKS: {},
         }
 
+        # Read the global advanced-feature flag once per refresh. When the
+        # `schedule_time` feature is disabled, we strip it from each task
+        # before computing status so behaviour reverts to the historical
+        # midnight semantic — even though the value stays persisted on disk
+        # and re-applies the moment the flag is re-enabled.
+        schedule_time_enabled = self._is_schedule_time_feature_enabled()
+
         for task_id, task in tasks.items():
             if not task.enabled:
                 result[CONF_TASKS][task_id] = task.to_dict()
@@ -138,6 +159,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 and task.trigger_config
             ):
                 await self._evaluate_trigger_fallback(task, task_id)
+
+            # Feature-flag gate: zero out schedule_time so the model's
+            # _is_past_schedule_time() short-circuits to False. Mutate the
+            # in-memory model directly (next refresh re-instantiates fresh
+            # tasks anyway, so disk state is unaffected).
+            if not schedule_time_enabled:
+                task.schedule_time = None
 
             # Compute status
             status = task.status
@@ -538,7 +566,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
                     ir.async_delete_issue(self.hass, DOMAIN, issue_id)
 
-                elif self._in_startup_grace_period:
+                elif self._in_startup_grace_period():
                     # Entity missing during startup
                     if worst_state in (
                         TriggerEntityState.AVAILABLE,

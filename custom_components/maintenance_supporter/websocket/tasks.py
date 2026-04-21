@@ -271,6 +271,11 @@ def _validate_compound_trigger(
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
+        # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
+        vol.Optional("schedule_time"): vol.Any(
+            vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
+            None,
+        ),
         vol.Optional("enabled", default=True): bool,
         vol.Optional("dry_run", default=False): bool,
     }
@@ -376,6 +381,8 @@ async def ws_create_task(
                 tc_warnings.append(nfc_warn)
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
+    if msg.get("schedule_time"):
+        task_data["schedule_time"] = msg["schedule_time"]
 
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
@@ -445,6 +452,10 @@ async def ws_create_task(
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
+        vol.Optional("schedule_time"): vol.Any(
+            vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
+            None,
+        ),
     }
 )
 @websocket_api.require_admin
@@ -537,6 +548,7 @@ async def ws_update_task(
         "custom_icon": "custom_icon",
         "nfc_tag_id": "nfc_tag_id",
         "checklist": "checklist",
+        "schedule_time": "schedule_time",
     }
     for msg_key, data_key in field_map.items():
         if msg_key in msg:
