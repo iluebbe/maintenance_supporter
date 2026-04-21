@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -14,6 +14,7 @@ from custom_components.maintenance_supporter.calendar import (
     MaintenanceCalendar,
 )
 from custom_components.maintenance_supporter.const import (
+    CONF_ADVANCED_SCHEDULE_TIME,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     ScheduleType,
@@ -219,7 +220,6 @@ def test_create_event_all_day_without_schedule_time(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Default behaviour: no schedule_time → all-day event (start/end are date)."""
-    from datetime import datetime as _dt
     task = MaintenanceTask.from_dict({
         "id": TASK_ID_1,
         "name": "Timed",
@@ -237,7 +237,7 @@ def test_create_event_all_day_without_schedule_time(
     )
     assert event is not None
     # Without schedule_time, event.start is a plain `date` (all-day)
-    assert not isinstance(event.start, _dt)
+    assert not isinstance(event.start, datetime)
 
 
 def test_create_event_timed_when_schedule_time_and_flag_on(
@@ -245,11 +245,6 @@ def test_create_event_timed_when_schedule_time_and_flag_on(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """schedule_time + flag ON → timed event (start/end are datetime, 30min block)."""
-    from datetime import datetime as _dt
-    from custom_components.maintenance_supporter.const import (
-        CONF_ADVANCED_SCHEDULE_TIME,
-        GLOBAL_UNIQUE_ID,
-    )
     # Simulate the global flag being on via a matching config entry
     global_entry = MockConfigEntry(
         domain="maintenance_supporter",
@@ -276,8 +271,8 @@ def test_create_event_timed_when_schedule_time_and_flag_on(
         task, "Object", today, today + timedelta(days=30)
     )
     assert event is not None
-    assert isinstance(event.start, _dt), "start must be datetime when schedule_time is set"
-    assert isinstance(event.end, _dt)
+    assert isinstance(event.start, datetime), "start must be datetime when schedule_time is set"
+    assert isinstance(event.end, datetime)
     assert event.start.hour == 9 and event.start.minute == 0
     # 30-minute window
     assert (event.end - event.start) == timedelta(minutes=30)
@@ -288,11 +283,6 @@ def test_create_event_all_day_when_flag_off(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """schedule_time set but global flag OFF → falls back to all-day."""
-    from datetime import datetime as _dt
-    from custom_components.maintenance_supporter.const import (
-        CONF_ADVANCED_SCHEDULE_TIME,
-        GLOBAL_UNIQUE_ID,
-    )
     global_entry = MockConfigEntry(
         domain="maintenance_supporter",
         unique_id=GLOBAL_UNIQUE_ID,
@@ -319,7 +309,7 @@ def test_create_event_all_day_when_flag_off(
     )
     assert event is not None
     # Flag off: even though schedule_time is set, event stays all-day
-    assert not isinstance(event.start, _dt)
+    assert not isinstance(event.start, datetime)
 
 
 def test_create_event_manual_not_triggered(
