@@ -2313,6 +2313,12 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
       max-height: 70vh;
       overflow-y: auto;
     }
+    @media (max-width: 600px) {
+      .content {
+        min-width: 0;
+        max-height: none;
+      }
+    }
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
@@ -3276,6 +3282,13 @@ ${_?`<div class="sub">${_}</div>`:""}
       max-width: 520px;
       max-height: 60vh;
       overflow-y: auto;
+    }
+    @media (max-width: 600px) {
+      .content {
+        min-width: 0;
+        max-width: none;
+        max-height: none;
+      }
     }
     ha-textfield { display: block; }
     .error {
