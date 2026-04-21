@@ -80,6 +80,26 @@ export const panelStyles = css`
   .cell.task-name { flex: 1; font-weight: 500; }
   .cell.type { min-width: 80px; color: var(--secondary-text-color); }
 
+  /* Task subline chips (group / area / assigned user) — desktop shows inline, mobile wraps below */
+  .task-sub {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--secondary-text-color);
+    flex-wrap: wrap;
+  }
+  .sub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+  }
+  .sub-chip ha-icon {
+    --mdc-icon-size: 14px;
+    opacity: 0.75;
+  }
+
   .detail-section { padding: 16px 0; }
 
   .detail-header {
@@ -764,6 +784,12 @@ export const panelStyles = css`
   :host([narrow]) .cell.type { display: none; }
   :host([narrow]) .cell.object-name { min-width: auto; }
   :host([narrow]) .cell.task-name { flex-basis: 100%; order: -1; }
+  :host([narrow]) .task-sub {
+    flex-basis: 100%;
+    order: 10;
+    font-size: 11px;
+    gap: 6px;
+  }
 
   :host([narrow]) .detail-header {
     flex-direction: column;

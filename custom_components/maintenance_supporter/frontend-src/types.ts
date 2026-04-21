@@ -249,6 +249,9 @@ export interface TaskRow {
   history: HistoryEntry[];
   enabled: boolean;
   nfc_tag_id: string | null;
+  area_id: string | null;
+  responsible_user_id: string | null;
+  group_names: string[];
 }
 
 // HomeAssistant type (minimal for our needs)
@@ -275,6 +278,7 @@ export interface HomeAssistant {
     data?: Record<string, unknown>
   ): Promise<void>;
   states: Record<string, HassEntity>;
+  areas?: Record<string, { area_id: string; name: string; icon?: string | null }>;
   language: string;
   locale?: { language: string; number_format?: string };
   localize(key: string, ...args: unknown[]): string;
