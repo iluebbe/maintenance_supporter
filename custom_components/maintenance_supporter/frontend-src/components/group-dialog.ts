@@ -177,6 +177,13 @@ export class MaintenanceGroupDialog extends LitElement {
       max-height: 60vh;
       overflow-y: auto;
     }
+    @media (max-width: 600px) {
+      .content {
+        min-width: 0;
+        max-width: none;
+        max-height: none;
+      }
+    }
     ha-textfield { display: block; }
     .error {
       color: var(--error-color, #f44336);

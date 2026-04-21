@@ -724,6 +724,12 @@ export class MaintenanceTaskDialog extends LitElement {
       max-height: 70vh;
       overflow-y: auto;
     }
+    @media (max-width: 600px) {
+      .content {
+        min-width: 0;
+        max-height: none;
+      }
+    }
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
