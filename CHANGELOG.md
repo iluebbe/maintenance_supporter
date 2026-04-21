@@ -2,6 +2,15 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.40] - 2026-04-21
+
+### Added — Error-message UX
+- **Validation errors are now localized for the user.** When the WS schema rejects an input (e.g. a name over 200 chars, an `interval_days` above 3650), the dialog previously surfaced the raw voluptuous text like `length of value must be at most 200 for dictionary value @ data['name']`. Now it reads **"Name: too long (max 200 characters)"** in EN, **"Name: zu lang (max. 200 Zeichen)"** in DE, etc. The translation covers the 6 most common voluptuous error shapes (too long / too short / value too high / value too low / required / wrong type / invalid choice / invalid value) across all 9 supported languages.
+- New `frontend-src/ws-errors.ts` with `describeWsError(e, lang, fallback)` parses the voluptuous message, extracts the field name + constraint parameter, and renders a localized template with the translated field label (falls back to the raw field name when no label is registered, and to the raw message when the error shape isn't recognised — so debugging info is never lost).
+- 8 new i18n keys × 9 languages (72 strings).
+- Every dialog (`task-dialog`, `object-dialog`, `group-dialog`, `complete-dialog`, `seasonal-overrides-dialog`) now routes its catch-block through `describeWsError`.
+- Verified end-to-end via Playwright in Docker (`e2e-error-messages.mjs`): oversize name → dialog shows `Name: too long (max 200 characters)`, raw voluptuous text never reaches the user.
+
 ## [1.0.39] - 2026-04-21
 
 ### Security / Hardening

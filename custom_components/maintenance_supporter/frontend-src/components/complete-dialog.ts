@@ -4,6 +4,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
 import { t } from "../styles";
+import { describeWsError } from "../ws-errors";
 
 export class MaintenanceCompleteDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -73,8 +74,7 @@ export class MaintenanceCompleteDialog extends LitElement {
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
     } catch (e) {
-      const err = e as { message?: string; error?: { message?: string } };
-      this._error = err?.message || err?.error?.message || t("save_error", this.lang);
+      this._error = describeWsError(e, this.lang, t("save_error", this.lang));
     } finally {
       this._loading = false;
     }

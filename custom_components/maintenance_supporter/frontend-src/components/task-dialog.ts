@@ -6,17 +6,7 @@ import type { HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../t
 import { t } from "../styles";
 import { UserService } from "../user-service";
 
-/** Extract a human-readable error message from a WS-promise rejection.
- * HA's connection rejects with `{code, message}` (sometimes nested in
- * `error.message`). Surface it instead of swallowing into a generic toast
- * — that's what users need to learn _why_ a save was rejected. */
-function _wsErrorMessage(e: unknown, fallback: string): string {
-  if (typeof e === "object" && e !== null) {
-    const err = e as { message?: string; error?: { message?: string }; code?: string };
-    return err.message || err.error?.message || err.code || fallback;
-  }
-  return typeof e === "string" ? e : fallback;
-}
+import { describeWsError } from "../ws-errors";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "manual"];
@@ -358,7 +348,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-saved"));
     } catch (e) {
-      this._error = _wsErrorMessage(e, t("save_error", this._lang));
+      this._error = describeWsError(e, this._lang, t("save_error", this._lang));
     } finally {
       this._loading = false;
     }
