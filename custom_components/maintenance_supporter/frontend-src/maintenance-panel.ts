@@ -275,6 +275,14 @@ export class MaintenanceSupporterPanel extends LitElement {
           if (task.responsible_user_id !== userId) continue;
         }
 
+        // Collect groups that contain this task
+        const groupNames: string[] = [];
+        for (const group of Object.values(this._groups)) {
+          if (group.task_refs?.some((r) => r.entry_id === obj.entry_id && r.task_id === task.id)) {
+            groupNames.push(group.name);
+          }
+        }
+
         rows.push({
           entry_id: obj.entry_id,
           task_id: task.id,
@@ -297,6 +305,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           history: task.history || [],
           enabled: task.enabled,
           nfc_tag_id: task.nfc_tag_id ?? null,
+          area_id: obj.object.area_id ?? null,
+          responsible_user_id: task.responsible_user_id ?? null,
+          group_names: groupNames,
         });
       }
     }
@@ -955,6 +966,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       else if (row.status === "due_soon") barColor = STATUS_COLORS.due_soon;
     }
 
+    const areaName = row.area_id ? this.hass?.areas?.[row.area_id]?.name : null;
+    const userName = row.responsible_user_id ? this._userService?.getUserName(row.responsible_user_id) : null;
+    const hasSub = row.group_names.length > 0 || areaName || userName;
+
     return html`
       <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
         <span class="status-badge ${row.status}">${t(row.status, L)}</span>
@@ -962,6 +977,22 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
         <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
         <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
+        ${hasSub ? html`
+          <span class="task-sub">
+            ${row.group_names.length > 0 ? html`
+              <span class="sub-chip" title="${t("groups", L)}">
+                <ha-icon icon="mdi:folder-outline"></ha-icon>${row.group_names.join(", ")}
+              </span>` : nothing}
+            ${areaName ? html`
+              <span class="sub-chip">
+                <ha-icon icon="mdi:map-marker-outline"></ha-icon>${areaName}
+              </span>` : nothing}
+            ${userName ? html`
+              <span class="sub-chip" title="${t("responsible_user", L)}">
+                <ha-icon icon="mdi:account-outline"></ha-icon>${userName}
+              </span>` : nothing}
+          </span>
+        ` : nothing}
         <span class="cell type">${t(row.type, L)}</span>
         <span class="due-cell" @click=${() => this._showTask(row.entry_id, row.task_id)}>
           <span class="due-text">${formatDueDays(row.days_until_due, L)}</span>
