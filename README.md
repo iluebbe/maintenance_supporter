@@ -64,6 +64,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Task status tracking: OK, Due Soon, Overdue, Triggered
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
 - **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift
+- **Time-of-day scheduling** (optional, advanced): tasks flip to OVERDUE at a configured `HH:MM` in HA's timezone instead of at midnight. Calendar events become timed 30-min blocks so mobile calendars can set real reminders. Enable under Settings → Features.
 - Assign tasks to responsible Home Assistant users with per-user notification routing
 - Custom task icons (any `mdi:*` icon via the HA icon picker)
 - NFC tag linking — scan an NFC tag to complete a task
@@ -169,7 +170,7 @@ For a complete list of all configurable parameters, see [docs/CONFIGURATION.md](
 
 Each sensor entity exposes attributes grouped by function:
 
-- **Schedule**: `interval_days`, `warning_days`, `days_until_due`, `next_due_date`, `last_performed`, `created_at`, `schedule_type`
+- **Schedule**: `interval_days`, `warning_days`, `days_until_due`, `next_due_date`, `last_performed`, `created_at`, `schedule_type`, `schedule_time`
 - **Trigger**: `trigger_type`, `trigger_active`, `trigger_current_value`, `trigger_entity_state` (per-entity availability)
 - **Adaptive**: `adaptive_enabled`, `suggested_interval`, `weibull_beta`, `weibull_reliability`, `seasonal_factor`
 - **Prediction**: `degradation_rate`, `predicted_trigger_date`, `environmental_factor`

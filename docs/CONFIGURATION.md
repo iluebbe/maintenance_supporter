@@ -32,6 +32,7 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 | `advanced_budget_visible` | bool | `false` | Show budget tracking settings and dashboard |
 | `advanced_groups_visible` | bool | `false` | Show task grouping management section in the panel with create / edit / delete controls |
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
+| `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on time-based tasks. When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
 
 ### Notification Settings
 
@@ -107,6 +108,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `manual` |
 | `interval_days` | int | 30 | 1–3650 | Days between maintenance cycles (time-based and sensor-based) |
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
+| `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
 | `warning_days` | int | 7 | 1–365 | Days before due date when status changes to `due_soon` |
 | `last_performed` | date | *(none)* | — | Date the task was last completed. When unset, `next_due` is anchored on `created_at` (set to today on creation), so the task transitions to OVERDUE after `interval_days` instead of being due "today" forever. |
 | `created_at` | date | *(today on create)* | — | Anchor date for `next_due` when `last_performed` is unset. Set automatically; serialized in ConfigEntry. Migrated from earliest history timestamp for pre-v1.0.34 entries. |
@@ -121,6 +123,28 @@ Available when `advanced_checklists_visible` is enabled globally. Checklists are
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `checklist` | list[string] | Ordered list of step descriptions (max 100 items, 500 chars/item) |
+
+### Time-of-day Scheduling
+
+Available when `advanced_schedule_time_visible` is enabled globally. Applies to `time_based` tasks only. Editable in the **panel task dialog** (HH:MM picker directly under "Interval anchor") and in the **Integration Options** per-task Edit Task step.
+
+**Behaviour:**
+- On the due date, the task flips from `due_soon` to `overdue` at the configured `HH:MM` in HA's configured timezone (instead of at midnight).
+- Coordinator refresh cadence is 5 minutes, so the status change lands between `HH:MM` and `HH:MM+5min`.
+- Calendar events become 30-minute timed blocks starting at `HH:MM` (instead of all-day), so mobile calendar apps can fire reminders.
+
+**Off-behaviour:** When the feature flag is toggled **off**, the coordinator strips `schedule_time` before computing status — tasks revert to the legacy midnight semantic. The stored value stays on disk and re-applies the moment the flag is toggled back on.
+
+**Composing a weekday pattern** (no extra feature required):
+
+| Field | Value | Why |
+|---|---|---|
+| Task creation date | desired weekday (e.g. Tuesday) | `created_at` anchors the first `next_due` on the same weekday |
+| `interval_days` | `7` | Weekly recurrence |
+| `schedule_time` | `"19:00"` (any HH:MM) | Sub-day transition to OVERDUE |
+| `interval_anchor` | `planned` | Anchors from the previously *planned* due date, so a late completion on Wednesday doesn't drag the next cycle into Wednesday territory — the task stays on Tuesdays |
+
+With `interval_anchor = completion` (the default), the schedule drifts whenever you complete late. Pick the anchor based on whether staying on a specific weekday matters more than guaranteeing a full interval between completions.
 
 ### Adaptive Scheduling
 
