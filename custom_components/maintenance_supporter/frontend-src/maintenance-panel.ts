@@ -1576,7 +1576,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _renderRecentActivities(task: MaintenanceTask) {
     const L = this._lang;
-    const recent = task.history.slice(0, 3);
+    const recent = task.history.slice(-3).reverse();
 
     if (recent.length === 0) {
       return nothing;
