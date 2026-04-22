@@ -53,10 +53,10 @@ from .const import (
     CONF_TRIGGER_TO_STATE,
     CONF_TRIGGER_TYPE,
     DEFAULT_ENTITY_LOGIC,
-    DEFAULT_WARNING_DAYS,
     ScheduleType,
     TriggerType,
 )
+from .helpers.global_options import get_default_warning_days
 
 # Domains allowed for trigger entity selection.
 # Includes all domains from entity_attributes.DOMAIN_ATTRIBUTE_MAP plus
@@ -394,7 +394,7 @@ class TriggerConfigMixin:
                 if interval and interval > 0:
                     self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                    CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
 
                 return on_complete()
@@ -454,7 +454,8 @@ class TriggerConfigMixin:
                 )
             ),
             vol.Optional(
-                CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS,
+                default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
@@ -500,7 +501,7 @@ class TriggerConfigMixin:
             if interval and interval > 0:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
 
             return on_complete()
@@ -556,7 +557,8 @@ class TriggerConfigMixin:
                 )
             ),
             vol.Optional(
-                CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS,
+                default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
@@ -609,7 +611,7 @@ class TriggerConfigMixin:
             if interval and interval > 0:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
 
             return on_complete()
@@ -663,7 +665,8 @@ class TriggerConfigMixin:
                 )
             ),
             vol.Optional(
-                CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS,
+                default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
@@ -718,7 +721,7 @@ class TriggerConfigMixin:
             if interval and interval > 0:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
 
             return on_complete()
@@ -773,7 +776,8 @@ class TriggerConfigMixin:
                 )
             ),
             vol.Optional(
-                CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS,
+                default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
