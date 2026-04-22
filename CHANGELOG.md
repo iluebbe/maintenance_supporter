@@ -2,6 +2,35 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.50] - 2026-04-22
+
+### Tests — WebSocket save→read-back roundtrip suite
+
+The bugs in #37 and #38 were both "field silently dropped between save and read" — a class that the existing test layers didn't directly cover (unit tests mock most of the WS layer; the Playwright E2E suites click through the panel UI but don't assert what gets persisted). The new `tests/test_ws_roundtrip.py` (8 tests) plugs that gap by exercising the real WS handlers against an actual `MockConfigEntry` and reading the persisted task back out of `entry.data`.
+
+Each test follows the same shape:
+
+1. Set up the integration (global entry + per-object entry).
+2. Call `ws_create_task` via the unwrapped WS handler with a maximal payload covering every optional field for the variant under test.
+3. Read the persisted task from `entry.data[CONF_TASKS][task_id]`.
+4. Assert what was sent equals what was persisted (modulo documented transformations like state_change lowercasing).
+
+Variants covered:
+
+- **state_change**: `trigger_from_state` / `trigger_to_state` (with uppercase → lowercase normalisation pinned) + `trigger_target_changes`
+- **threshold**: `trigger_for_minutes` hold-time
+- **counter**: `trigger_delta_mode`
+- **attribute** (used by base_trigger across all types)
+- **runtime**: `trigger_on_states` list
+- **compound**: recursive validation preserves inner-condition fields (one threshold + one state_change condition)
+- **default_warning_days flow-through** (#38 regression): explicit value persists; documented schema-default behaviour pinned
+
+These complement the existing static guard in `tests/test_trigger_allowlist.py` (which scans trigger source for `trigger_config.get('…')` calls and asserts each key is in the allowlist). Together they form a defence-in-depth: the static guard fails fast at the syntactic layer if a new key is read but not whitelisted; the roundtrip suite catches semantic regressions like normalisation drift, recursive validator changes, or new endpoints that bypass `_validate_trigger_config`.
+
+**1,520 unit tests pass** (was 1,512); ruff ✓ · mypy strict ✓ across 53 source files.
+
+No production code changed.
+
 ## [1.0.49] - 2026-04-22
 
 ### Fixed — Trigger save-path silently dropped 5 fields ([#37](https://github.com/iluebbe/maintenance_supporter/issues/37))
