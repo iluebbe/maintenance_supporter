@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Verweesde gebruiker in paneel-toegangslijst",
-            "description": "Gebruiker `{user_id}…` staat in de paneel-toegangslijst maar bestaat niet meer in Home Assistant. Waarschijnlijk is de gebruiker verwijderd.\n\nKies hoe op te lossen:",
-            "menu_options": {
-              "remove_user_id": "Uit paneel-toegangslijst verwijderen",
-              "dismiss": "Negeren"
-            }
+            "description": "Gebruiker `{user_id}…` staat in de paneel-toegangslijst maar bestaat niet meer in Home Assistant. Waarschijnlijk is de gebruiker verwijderd.\n\nKlik **Verzenden** om de gebruiker uit de lijst te verwijderen. (Wil je het issue laten staan: gebruik de **Negeren**-knop op de Reparaties-pagina van Home Assistant.)"
           }
         }
       }

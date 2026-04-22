@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Utilisateur orphelin dans la liste d'accès",
-            "description": "L'utilisateur `{user_id}…` est dans la liste d'accès au panneau Maintenance Supporter mais n'existe plus dans Home Assistant. L'utilisateur a probablement été supprimé.\n\nChoisissez comment résoudre :",
-            "menu_options": {
-              "remove_user_id": "Retirer de la liste d'accès au panneau",
-              "dismiss": "Ignorer"
-            }
+            "description": "L'utilisateur `{user_id}…` est dans la liste d'accès au panneau Maintenance Supporter mais n'existe plus dans Home Assistant. L'utilisateur a probablement été supprimé.\n\nCliquez sur **Envoyer** pour retirer cet utilisateur de la liste. (Pour laisser le problème en place, utilisez plutôt le bouton **Ignorer** sur la page Réparations de Home Assistant.)"
           }
         }
       }

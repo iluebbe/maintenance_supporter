@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.47] - 2026-04-22
+
+### Fixed — Deep bug audit patch release
+
+Seven bugs surfaced by a critical code audit, all shipped together:
+
+1. **Repair "Dismiss" no longer silently reappears** — `repairs.py` previously exposed a `dismiss` menu option that closed the issue via HA's built-in delete but couldn't prevent the next `async_update_entry` from recreating it. The menu is removed; the repair flow now uses a single confirmation form that delegates to the `remove_user_id` step on submit. Users who want to keep the orphan entry can use HA's native **Ignore** button (which persists). 10 translation files updated.
+2. **Card editor entity-picker shows all HA sensors** — `<ha-entities-picker>` received `include-domains` as an HTML attribute, which Lit did not reliably JSON-parse. Switched to property syntax (`.includeDomains=${[...]}`) and added `.includeEntities=${ourEntities}` built from the live `sensor_entity_id` / `binary_sensor_entity_id` per task, so the picker only lists maintenance_supporter entities.
+3. **Card editor couldn't tell "no objects yet" from "WS failed"** — added `@state() _loadError` set by `_loadObjects()` catch. The picker list now renders a 4-arm ternary (loading → error → empty → list) with a localized red error message (`card_load_error`) if the WS call threw.
+4. **Card empty state was a bare "no tasks" string** — replaced with a title + localized link CTA pointing to `/maintenance-supporter`, so a first-time user lands on the panel instead of staring at an empty card.
+5. **WS dashboard accepted whitespace-only IDs** — `websocket/dashboard.py` sanitization loop now `.strip()`s every entry and skips empties, still enforces the 64-char + 50-entry caps and de-dupes via `seen`.
+6. **`__init__.py` issue-registry cleanup iterated the whole registry** — stale orphan-issue IDs are now filtered by `dom == DOMAIN` before checking the prefix, preventing accidental matches against other integrations' issue IDs that happen to share the prefix.
+7. **Mobile long object names overflowed the grid** — `panel-styles.ts` now line-clamps `.cell.object-name` to 2 lines with ellipsis via `-webkit-line-clamp: 2` on both `:host([narrow])` and the `@media (max-width: 600px)` fallback.
+
+3 new i18n keys × 12 languages (`card_load_error`, `card_no_tasks_title`, `card_no_tasks_cta`) — audit: 349 keys in sync across all languages.
+
 ## [1.0.46] - 2026-04-22
 
 ### Fixed — Mobile due-cell + actions still drifted across rows

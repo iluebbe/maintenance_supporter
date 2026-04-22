@@ -541,14 +541,12 @@ async def _check_admin_panel_user_orphans(
 
     # 1) Drop any pre-existing orphan issue whose target id is no longer
     #    in the list (admin removed it) OR is now valid (user re-created).
+    #    Scope the iteration to OUR domain via the (domain, issue_id) tuple
+    #    keys instead of scanning every integration's issues.
     issue_reg = ir.async_get(hass)
     stale_issue_ids = [
-        issue.issue_id
-        for issue in list(issue_reg.issues.values())
-        if (
-            issue.domain == DOMAIN
-            and issue.issue_id.startswith(_ORPHAN_ISSUE_PREFIX)
-        )
+        iid for (dom, iid) in issue_reg.issues
+        if dom == DOMAIN and iid.startswith(_ORPHAN_ISSUE_PREFIX)
     ]
     for issue_id in stale_issue_ids:
         target_uid = issue_id[len(_ORPHAN_ISSUE_PREFIX):]

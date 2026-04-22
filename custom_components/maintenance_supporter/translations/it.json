@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Utente orfano nell'elenco di accesso al pannello",
-            "description": "L'utente `{user_id}…` è nell'elenco di accesso al pannello Maintenance Supporter ma non esiste più in Home Assistant. Probabilmente l'utente è stato eliminato.\n\nScegli come risolvere:",
-            "menu_options": {
-              "remove_user_id": "Rimuovi dall'elenco di accesso al pannello",
-              "dismiss": "Ignora"
-            }
+            "description": "L'utente `{user_id}…` è nell'elenco di accesso al pannello Maintenance Supporter ma non esiste più in Home Assistant. Probabilmente l'utente è stato eliminato.\n\nClicca **Invia** per rimuovere l'utente dall'elenco. (Per lasciare il problema in pace: usa il pulsante **Ignora** sulla pagina Riparazioni di Home Assistant.)"
           }
         }
       }

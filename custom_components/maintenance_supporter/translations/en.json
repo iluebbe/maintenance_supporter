@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Orphaned user in panel-access list",
-            "description": "User `{user_id}…` is in the Maintenance Supporter panel-access list but no longer exists in Home Assistant. Probably the user was deleted.\n\nChoose how to resolve this:",
-            "menu_options": {
-              "remove_user_id": "Remove from panel-access list",
-              "dismiss": "Dismiss"
-            }
+            "description": "User `{user_id}…` is in the Maintenance Supporter panel-access list but no longer exists in Home Assistant. Probably the user was deleted.\n\nClick **Submit** to remove this user from the list. (To leave the issue alone, use Home Assistant's **Ignore** button on the Repairs page instead.)"
           }
         }
       }

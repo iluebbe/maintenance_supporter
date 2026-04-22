@@ -826,6 +826,14 @@ export const panelStyles = css`
     grid-column: 2;
     grid-row: 2;
     min-width: 0;
+    /* Cap long object names at 2 lines with ellipsis instead of growing
+       unbounded vertically. The full name is still readable via the panel
+       object-detail view (one tap on the object). */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
   }
   :host([narrow]) .due-cell {
     grid-column: 3;
@@ -980,7 +988,7 @@ export const panelStyles = css`
     .cell.type { display: none; }
     .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
     .cell-badges { grid-column: 1; grid-row: 2; }
-    .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; }
+    .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
     .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
     .row-actions { grid-column: 4; grid-row: 2; }
     .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }

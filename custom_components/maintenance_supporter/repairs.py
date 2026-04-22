@@ -475,10 +475,10 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 class OrphanAdminPanelUserRepairFlow(RepairsFlow):
     """Repair flow for an admin_panel_user_ids entry pointing at a deleted HA user.
 
-    Two options:
-    1. Remove — drop the orphaned id from the panel-access list
-    2. Dismiss — close the issue (admin acknowledges, will reappear on the
-       next options change if the id is still in the list)
+    Single action: remove the orphaned id from the panel-access list. There's
+    no scenario where keeping an invalid user_id makes sense — if an admin
+    really wants to silence the issue without fixing it, they can use HA's
+    built-in "Ignore issue" UI on the Repairs page.
 
     `self.data` is populated by ``async_create_issue(data=...)`` and contains::
 
@@ -491,10 +491,13 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
     async def async_step_init(
         self, user_input: dict[str, str] | None = None
     ) -> data_entry_flow.FlowResult:
+        """Show a confirmation form, then remove on submit."""
         issue_data = self.data or {}
-        return self.async_show_menu(
+        if user_input is not None:
+            return await self.async_step_remove_user_id()
+        return self.async_show_form(
             step_id="init",
-            menu_options=["remove_user_id", "dismiss"],
+            data_schema=vol.Schema({}),
             description_placeholders={
                 "user_id": str(issue_data.get("user_id", "?"))[:8],
             },
@@ -518,12 +521,6 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
                 entry,
                 options={**entry.options, CONF_ADMIN_PANEL_USER_IDS: ids},
             )
-        return self.async_create_entry(data={})
-
-    async def async_step_dismiss(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
-        """Acknowledge without removing — admin may want to keep the id."""
         return self.async_create_entry(data={})
 
 
