@@ -814,6 +814,18 @@ export const panelStyles = css`
     justify-content: flex-start;
   }
   :host([narrow]) .task-sub-empty { display: none; }
+  /* Mobile: anchor due-cell + actions to the right edge so the X-position is
+     consistent across rows regardless of how much content (sparkline, bar, %)
+     the due-cell carries. Without margin-left:auto the cell floats wherever
+     the flex-wrap leaves it, sometimes pulling left when narrow content. */
+  :host([narrow]) .due-cell {
+    margin-left: auto;
+    min-width: 75px;
+    max-width: 130px;
+    align-items: flex-end;
+  }
+  :host([narrow]) .row-actions { flex-shrink: 0; }
+  :host([narrow]) .mini-sparkline { width: 50px; }
 
   :host([narrow]) .detail-header {
     flex-direction: column;
@@ -941,6 +953,9 @@ export const panelStyles = css`
     .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
     .task-sub { flex-basis: 100%; order: 10; font-size: 11px; gap: 6px; justify-content: flex-start; }
     .task-sub-empty { display: none; }
+    .due-cell { margin-left: auto; min-width: 75px; max-width: 130px; align-items: flex-end; }
+    .row-actions { flex-shrink: 0; }
+    .mini-sparkline { width: 50px; }
     .detail-header { flex-direction: column; align-items: flex-start; }
     .info-grid { grid-template-columns: 1fr; }
     .history-filters-new { flex-direction: column; }

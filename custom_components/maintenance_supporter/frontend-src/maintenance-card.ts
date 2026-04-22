@@ -35,7 +35,17 @@ export class MaintenanceSupporterCard extends LitElement {
   }
 
   static getStubConfig() {
-    return { type: "custom:maintenance-supporter-card", show_header: true, show_actions: true };
+    // Opinionated default: when a user picks "Maintenance Supporter" from the
+    // card picker, show only the actionable tasks (overdue + triggered + due
+    // soon, max 10) — not the full task list which is overwhelming on first
+    // add. The user can broaden the filter via the editor afterwards.
+    return {
+      type: "custom:maintenance-supporter-card",
+      show_header: true,
+      show_actions: true,
+      filter_status: ["overdue", "triggered", "due_soon"],
+      max_items: 10,
+    };
   }
 
   setConfig(config: CardConfig): void {
@@ -112,12 +122,21 @@ export class MaintenanceSupporterCard extends LitElement {
 
   private get _flatTasks(): FlatTask[] {
     const tasks: FlatTask[] = [];
-    const { filter_status, filter_objects, max_items } = this._config;
+    const { filter_status, filter_objects, entity_ids, max_items } = this._config;
+    const entityFilter = entity_ids?.length ? new Set(entity_ids) : null;
 
     for (const obj of this._objects) {
       if (filter_objects?.length && !filter_objects.includes(obj.object.name)) continue;
       for (const task of obj.tasks) {
         if (filter_status?.length && !filter_status.includes(task.status)) continue;
+        // entity_ids: HA-native filter — match the task's sensor or
+        // binary_sensor entity_id. Both fields come pre-resolved from the
+        // backend WS response (see _build_task_summary in websocket/__init__.py).
+        if (entityFilter) {
+          const matches = (task.sensor_entity_id && entityFilter.has(task.sensor_entity_id))
+            || (task.binary_sensor_entity_id && entityFilter.has(task.binary_sensor_entity_id));
+          if (!matches) continue;
+        }
         tasks.push({ entry_id: obj.entry_id, object_name: obj.object.name, task });
       }
     }

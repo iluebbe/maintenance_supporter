@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.45] - 2026-04-22
+
+### Added — Lovelace card UX overhaul
+
+- **Smart `getStubConfig`** — when a user picks "Maintenance Supporter" from the card picker, the new card now starts with `filter_status: ["overdue", "triggered", "due_soon"]` and `max_items: 10` instead of an empty config. First-add experience shows the actionable tasks immediately rather than a flood of OK rows. The user can broaden the filter via the editor.
+- **Visual editor with object + status pickers** — the `Edit Card` UI now includes:
+  - **Status chip-row** (Overdue / Triggered / Due Soon / OK) — click to toggle, multi-select. Empty selection = show all statuses.
+  - **Object multi-checkbox list** — populated live from the WS `/objects` endpoint. Empty selection = show all objects.
+  - **Entity-id multi-picker** (`<ha-entities-picker>`) — HA's native sensor / binary_sensor picker, filtered to maintenance_supporter entities.
+  - Existing controls (title, show_header, show_actions, compact, max_items) unchanged.
+- **`entity_ids:` config support** — the card now also accepts the HA-native `entity_ids: [sensor.x, binary_sensor.y, ...]` config key. Combines additively with `filter_status` / `filter_objects`. The backend WS response now includes `sensor_entity_id` and `binary_sensor_entity_id` per task (resolved through HA's entity registry by `unique_id`) so the frontend can match without re-implementing slugify logic.
+- 8 new i18n keys × 12 languages (96 strings) for the editor labels and helper texts. Also adds a previously-missing `no_objects` key (was falling back to the literal string in `group-dialog.ts`).
+
+### Fixed — Mobile panel due-cell alignment
+
+- The `.due-cell` (days remaining + progress bar + sparkline) had no anchor on mobile, so its X-position drifted depending on how much content the cell carried — narrow rows left-leaning, sparkline-heavy rows pushing actions over. Added `margin-left: auto`, `min-width: 75px`, `max-width: 130px`, `align-items: flex-end` on `:host([narrow]) .due-cell` (plus matching `@media (max-width: 600px)` fallback). Sparkline width also tightened from 60px to 50px on mobile to fit. All days values + actions now anchor to the right edge consistently across rows.
+
 ## [1.0.44] - 2026-04-22
 
 ### Added — Sort & Group-By for both views ([#35](https://github.com/iluebbe/maintenance_supporter/issues/35), [#36](https://github.com/iluebbe/maintenance_supporter/issues/36))

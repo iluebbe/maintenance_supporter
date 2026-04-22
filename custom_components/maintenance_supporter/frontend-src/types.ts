@@ -140,6 +140,10 @@ export interface MaintenanceTask {
   responsible_user_id?: string | null;
   custom_icon?: string | null;
   nfc_tag_id?: string | null;
+  entity_slug?: string | null;
+  // Auto-derived sensor + binary_sensor entity_ids (since 1.0.45)
+  sensor_entity_id?: string | null;
+  binary_sensor_entity_id?: string | null;
 }
 
 export interface MaintenanceObjectResponse {
@@ -164,6 +168,10 @@ export interface CardConfig {
   max_items?: number;
   filter_status?: string[];
   filter_objects?: string[];
+  // HA-native entity_ids: pattern (since 1.0.45). When set, only tasks whose
+  // sensor or binary_sensor entity_id matches one of these are shown. Combines
+  // additively with filter_status / filter_objects.
+  entity_ids?: string[];
   compact?: boolean;
   show_actions?: boolean;
 }
