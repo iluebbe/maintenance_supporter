@@ -972,27 +972,27 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
-        <span class="status-badge ${row.status}">${t(row.status, L)}</span>
-        ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
-        ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+        <span class="cell-badges">
+          <span class="status-badge ${row.status}">${t(row.status, L)}</span>
+          ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
+          ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+        </span>
         <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
         <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>
-        ${hasSub ? html`
-          <span class="task-sub">
-            ${row.group_names.length > 0 ? html`
-              <span class="sub-chip" title="${t("groups", L)}">
-                <ha-icon icon="mdi:folder-outline"></ha-icon>${row.group_names.join(", ")}
-              </span>` : nothing}
-            ${areaName ? html`
-              <span class="sub-chip">
-                <ha-icon icon="mdi:map-marker-outline"></ha-icon>${areaName}
-              </span>` : nothing}
-            ${userName ? html`
-              <span class="sub-chip" title="${t("responsible_user", L)}">
-                <ha-icon icon="mdi:account-outline"></ha-icon>${userName}
-              </span>` : nothing}
-          </span>
-        ` : nothing}
+        <span class="task-sub${hasSub ? '' : ' task-sub-empty'}">
+          ${row.group_names.length > 0 ? html`
+            <span class="sub-chip" title="${t("groups", L)}">
+              <ha-icon icon="mdi:folder-outline"></ha-icon>${row.group_names.join(", ")}
+            </span>` : nothing}
+          ${areaName ? html`
+            <span class="sub-chip">
+              <ha-icon icon="mdi:map-marker-outline"></ha-icon>${areaName}
+            </span>` : nothing}
+          ${userName ? html`
+            <span class="sub-chip" title="${t("responsible_user", L)}">
+              <ha-icon icon="mdi:account-outline"></ha-icon>${userName}
+            </span>` : nothing}
+        </span>
         <span class="cell type">${t(row.type, L)}</span>
         <span class="due-cell" @click=${() => this._showTask(row.entry_id, row.task_id)}>
           <span class="due-text">${formatDueDays(row.days_until_due, L)}</span>

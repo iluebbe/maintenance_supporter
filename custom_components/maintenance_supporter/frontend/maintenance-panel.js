@@ -1085,7 +1085,17 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
   .task-table { display: flex; flex-direction: column; }
 
   .task-row {
-    display: flex;
+    /* Desktop: 7-column grid keeps every column aligned across rows regardless
+       of which optional chips/badges this particular row carries. */
+    display: grid;
+    grid-template-columns:
+      auto                         /* badges */
+      minmax(100px, 180px)         /* object-name */
+      minmax(120px, 1fr)           /* task-name */
+      minmax(0, 220px)             /* task-sub (chips) */
+      100px                        /* type */
+      150px                        /* due-cell */
+      auto;                        /* row-actions */
     align-items: center;
     gap: 12px;
     padding: 10px 12px;
@@ -1098,10 +1108,17 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
 
+  /* Wrapper for status + optional disabled/NFC badges so they share one grid column */
+  .cell-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .cell { font-size: 14px; }
-  .cell.object-name { color: var(--primary-color); cursor: pointer; min-width: 100px; }
-  .cell.task-name { flex: 1; font-weight: 500; }
-  .cell.type { min-width: 80px; color: var(--secondary-text-color); }
+  .cell.object-name { color: var(--primary-color); cursor: pointer; }
+  .cell.task-name { font-weight: 500; }
+  .cell.type { color: var(--secondary-text-color); }
 
   /* Task subline chips (group / area / assigned user) — desktop shows inline, mobile wraps below */
   .task-sub {
@@ -1111,7 +1128,10 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
     font-size: 12px;
     color: var(--secondary-text-color);
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
+  /* Empty subline still occupies its grid slot so neighbouring columns line up */
+  .task-sub-empty { min-height: 1px; }
   .sub-chip {
     display: inline-flex;
     align-items: center;
@@ -1799,6 +1819,8 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
   }
 
   :host([narrow]) .task-row {
+    /* Mobile: drop the desktop grid and flex-wrap with task-name as own line */
+    display: flex;
     flex-wrap: wrap;
     gap: 8px;
     padding: 12px;
@@ -1806,13 +1828,15 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
 
   :host([narrow]) .cell.type { display: none; }
   :host([narrow]) .cell.object-name { min-width: auto; }
-  :host([narrow]) .cell.task-name { flex-basis: 100%; order: -1; }
+  :host([narrow]) .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
   :host([narrow]) .task-sub {
     flex-basis: 100%;
     order: 10;
     font-size: 11px;
     gap: 6px;
+    justify-content: flex-start;
   }
+  :host([narrow]) .task-sub-empty { display: none; }
 
   :host([narrow]) .detail-header {
     flex-direction: column;
@@ -1934,10 +1958,12 @@ Testar press\xE3o`,checklist_help:"Um passo por linha. M\xE1x. 100 itens.",err_t
     .task-header-actions { width: 100%; justify-content: flex-start; }
     .filter-bar { flex-wrap: wrap; }
     .filter-bar select { flex: 1; min-width: 0; }
-    .task-row { flex-wrap: wrap; gap: 8px; padding: 12px; }
+    .task-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
     .cell.type { display: none; }
     .cell.object-name { min-width: auto; }
-    .cell.task-name { flex-basis: 100%; order: -1; }
+    .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
+    .task-sub { flex-basis: 100%; order: 10; font-size: 11px; gap: 6px; justify-content: flex-start; }
+    .task-sub-empty { display: none; }
     .detail-header { flex-direction: column; align-items: flex-start; }
     .info-grid { grid-template-columns: 1fr; }
     .history-filters-new { flex-direction: column; }
@@ -3894,27 +3920,27 @@ ${Y}`,e.setTooltip)}
       </div>
     `}_renderOverviewRow(e){let t=this._lang,i=e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0,s=0,l=Ee.ok,c=!1;if(i&&e.days_until_due!==null){let h=(e.interval_days-e.days_until_due)/e.interval_days*100;s=Math.max(0,Math.min(100,h)),c=h>100,e.status==="overdue"?l=Ee.overdue:e.status==="due_soon"&&(l=Ee.due_soon)}let _=e.area_id?this.hass?.areas?.[e.area_id]?.name:null,p=e.responsible_user_id?this._userService?.getUserName(e.responsible_user_id):null,m=e.group_names.length>0||_||p;return o`
       <div class="task-row${e.enabled?"":" task-disabled"}">
-        <span class="status-badge ${e.status}">${a(e.status,t)}</span>
-        ${e.enabled?d:o`<span class="badge-disabled">${a("disabled",t)}</span>`}
-        ${e.nfc_tag_id?o`<span class="nfc-badge" title="${a("nfc_linked",t)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:d}
+        <span class="cell-badges">
+          <span class="status-badge ${e.status}">${a(e.status,t)}</span>
+          ${e.enabled?d:o`<span class="badge-disabled">${a("disabled",t)}</span>`}
+          ${e.nfc_tag_id?o`<span class="nfc-badge" title="${a("nfc_linked",t)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:d}
+        </span>
         <span class="cell object-name" @click=${h=>{h.stopPropagation(),this._showObject(e.entry_id)}}>${e.object_name}</span>
         <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,e.task_id)}>${e.task_name}</span>
-        ${m?o`
-          <span class="task-sub">
-            ${e.group_names.length>0?o`
-              <span class="sub-chip" title="${a("groups",t)}">
-                <ha-icon icon="mdi:folder-outline"></ha-icon>${e.group_names.join(", ")}
-              </span>`:d}
-            ${_?o`
-              <span class="sub-chip">
-                <ha-icon icon="mdi:map-marker-outline"></ha-icon>${_}
-              </span>`:d}
-            ${p?o`
-              <span class="sub-chip" title="${a("responsible_user",t)}">
-                <ha-icon icon="mdi:account-outline"></ha-icon>${p}
-              </span>`:d}
-          </span>
-        `:d}
+        <span class="task-sub${m?"":" task-sub-empty"}">
+          ${e.group_names.length>0?o`
+            <span class="sub-chip" title="${a("groups",t)}">
+              <ha-icon icon="mdi:folder-outline"></ha-icon>${e.group_names.join(", ")}
+            </span>`:d}
+          ${_?o`
+            <span class="sub-chip">
+              <ha-icon icon="mdi:map-marker-outline"></ha-icon>${_}
+            </span>`:d}
+          ${p?o`
+            <span class="sub-chip" title="${a("responsible_user",t)}">
+              <ha-icon icon="mdi:account-outline"></ha-icon>${p}
+            </span>`:d}
+        </span>
         <span class="cell type">${a(e.type,t)}</span>
         <span class="due-cell" @click=${()=>this._showTask(e.entry_id,e.task_id)}>
           <span class="due-text">${Ae(e.days_until_due,t)}</span>
