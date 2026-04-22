@@ -256,6 +256,25 @@ Each condition in the list is a complete trigger configuration (entity, type, ty
 
 ---
 
+## Lovelace Card Config (`custom:maintenance-supporter-card`)
+
+The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it always reflects the current task state without polling. All config keys are optional — empty / unset means "show all".
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `title` | string | `"Maintenance"` (i18n) | Card header |
+| `show_header` | bool | `true` | Show the count badges (Overdue / Due Soon / Triggered) |
+| `show_actions` | bool | `true` | Show the "Complete" button on each task row |
+| `compact` | bool | `false` | Hide task metadata (interval, last performed) |
+| `max_items` | int | `0` (unlimited) | Cap on the number of tasks shown |
+| `filter_status` | string[] | `[]` | Show only tasks whose `status` is in the list. Values: `overdue`, `triggered`, `due_soon`, `ok` |
+| `filter_objects` | string[] | `[]` | Show only tasks whose parent object name is in the list |
+| `entity_ids` | string[] | `[]` | **(1.0.45+)** HA-native filter — show only tasks whose `sensor_entity_id` or `binary_sensor_entity_id` matches. Combines additively with the other filters. |
+
+**Adding the card from the picker (1.0.45+)** auto-populates `filter_status: ["overdue", "triggered", "due_soon"]` and `max_items: 10` so the new card immediately shows the actionable subset rather than every task.
+
+**Visual editor** lets you set all of the above without touching YAML — status chip-row, object multi-checkbox-list, HA-native entity-multi-picker.
+
 ## Constants & Internal Defaults
 
 These values are not user-configurable but affect behavior:

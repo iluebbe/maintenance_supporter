@@ -276,10 +276,17 @@ automation:
 
 ### Lovelace Card
 
+When you add the card from the Lovelace card picker (1.0.45+), it auto-fills with sensible defaults — `filter_status: ["overdue", "triggered", "due_soon"]` + `max_items: 10` — so the first impression is "the 10 things that need attention" rather than every task. The visual editor exposes status chips, an object multi-checkbox, an HA-native entity picker, and the usual show_header / show_actions / compact / max_items toggles.
+
 ```yaml
 type: custom:maintenance-supporter-card
 title: Maintenance Overview
 show_header: true
+# All filters are optional and additive. Empty / unset = show all.
+filter_status: [overdue, triggered, due_soon]
+filter_objects: [Family Car, Electric Car]
+entity_ids: [sensor.hvac_system_filter_change, binary_sensor.family_car_oil_change_overdue]
+max_items: 10
 ```
 
 ### Template Sensor: Count Overdue Tasks
