@@ -105,11 +105,16 @@ _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
 }
 
 _TRIGGER_ALLOWED_KEYS: set[str] = {
-    "type", "entity_id", "entity_ids", "entity_logic",
-    "trigger_above", "trigger_below",
-    "trigger_target_value", "trigger_reset_on_complete",
+    "type", "entity_id", "entity_ids", "entity_logic", "attribute",
+    # threshold
+    "trigger_above", "trigger_below", "trigger_for_minutes",
+    # counter
+    "trigger_target_value", "trigger_delta_mode",
+    # runtime
     "trigger_runtime_hours", "trigger_on_states",
-    "trigger_target_changes",
+    # state_change
+    "trigger_from_state", "trigger_to_state", "trigger_target_changes",
+    # compound
     "compound_logic", "conditions",
 }
 
@@ -202,6 +207,19 @@ def _validate_trigger_config(
     unknown = set(trigger_config) - _TRIGGER_ALLOWED_KEYS
     for key in unknown:
         del trigger_config[key]
+
+    # Normalise state_change from/to: HA's state machine stores values lowercase
+    # ("on"/"off"/"home"/...). Users typing "ON"/"OFF" expect a match — same
+    # forgiving treatment as the runtime trigger, which lowercases trigger_on_states.
+    if trigger_type == "state_change":
+        for key in ("trigger_from_state", "trigger_to_state"):
+            val = trigger_config.get(key)
+            if isinstance(val, str):
+                stripped = val.strip().lower()
+                if stripped:
+                    trigger_config[key] = stripped
+                else:
+                    trigger_config.pop(key, None)
 
     return errors, warnings
 

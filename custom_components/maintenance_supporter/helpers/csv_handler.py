@@ -19,6 +19,7 @@ from ..const import (
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
 )
+from .global_options import get_default_warning_days
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -128,12 +129,19 @@ def export_objects_csv(hass: HomeAssistant) -> str:
 
 def import_objects_csv(
     csv_content: str,
+    hass: HomeAssistant | None = None,
 ) -> list[dict[str, Any]]:
     """Parse CSV content into a list of object dicts ready for creation.
+
+    When *hass* is supplied, missing per-row ``warning_days`` columns fall back
+    to the integration-wide default from the global config entry. Without
+    *hass* (e.g. in unit tests that exercise the parser in isolation), the
+    bare constant ``7`` is used.
 
     Returns a list of objects, each with 'object' and 'tasks' dicts
     matching the format expected by the config flow.
     """
+    default_warning_days = get_default_warning_days(hass) if hass is not None else 7
     reader = csv.DictReader(io.StringIO(csv_content))
 
     # Group rows by object name
@@ -170,7 +178,7 @@ def import_objects_csv(
             "type": (row.get("task_type") or "custom").strip(),
             "enabled": True,
             "schedule_type": (row.get("schedule_type") or "time_based").strip(),
-            "warning_days": _safe_int(row.get("warning_days"), 7),
+            "warning_days": _safe_int(row.get("warning_days"), default_warning_days),
             "history": [],
         }
 

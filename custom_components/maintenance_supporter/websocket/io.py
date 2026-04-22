@@ -24,15 +24,15 @@ from ..const import (
     MAX_CHECKLIST_ITEMS,
     MAX_ID_LENGTH,
 )
-from ..websocket.tasks import _check_nfc_tag_duplicate
-
-_LOGGER = logging.getLogger(__name__)
-
+from ..helpers.global_options import get_default_warning_days
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
     build_qr_url,
     generate_qr_svg_data_uri,
 )
+from ..websocket.tasks import _check_nfc_tag_duplicate
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @websocket_api.websocket_command(
@@ -142,7 +142,7 @@ async def ws_import_csv(
         connection.send_error(msg["id"], "too_large", "CSV content exceeds 1MB limit")
         return
 
-    objects = import_objects_csv(csv_content)
+    objects = import_objects_csv(csv_content, hass=hass)
     if len(objects) > 1000:
         connection.send_error(msg["id"], "too_many", "CSV contains more than 1000 objects")
         return
@@ -276,7 +276,7 @@ async def ws_import_json(
                 "type": task_entry.get("type", "custom"),
                 "enabled": task_entry.get("enabled", True),
                 "schedule_type": task_entry.get("schedule_type", "time_based"),
-                "warning_days": task_entry.get("warning_days", 7),
+                "warning_days": task_entry.get("warning_days", get_default_warning_days(hass)),
                 "history": task_entry.get("history", []),
             }
             for key in (
@@ -303,7 +303,7 @@ async def ws_import_json(
                     task_data.pop("last_performed", None)
             wd = task_data.get("warning_days")
             if not isinstance(wd, int) or wd < 0 or wd > 365:
-                task_data["warning_days"] = 7
+                task_data["warning_days"] = get_default_warning_days(hass)
             # Sanitize checklist: only keep string items within length budget,
             # cap total items. Drops malformed entries silently rather than
             # rejecting the whole import — same forgiving model as the other
