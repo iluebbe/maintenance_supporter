@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Verwaister User in Panel-Zugriffsliste",
-            "description": "User `{user_id}…` ist in der Panel-Zugriffsliste, existiert aber nicht mehr in Home Assistant. Wahrscheinlich wurde der User gelöscht.\n\nWähle, wie du das beheben willst:",
-            "menu_options": {
-              "remove_user_id": "Aus Panel-Zugriffsliste entfernen",
-              "dismiss": "Verwerfen"
-            }
+            "description": "User `{user_id}…` ist in der Panel-Zugriffsliste, existiert aber nicht mehr in Home Assistant. Wahrscheinlich wurde der User gelöscht.\n\nKlicke **Senden** um den User aus der Liste zu entfernen. (Soll das Issue offen bleiben: nutze stattdessen den **Ignorieren**-Button auf der Repairs-Seite von Home Assistant.)"
           }
         }
       }

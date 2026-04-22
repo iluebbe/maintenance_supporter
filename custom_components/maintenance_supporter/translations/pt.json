@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Utilizador órfão na lista de acesso ao painel",
-            "description": "O utilizador `{user_id}…` está na lista de acesso ao painel Maintenance Supporter mas já não existe no Home Assistant. Provavelmente o utilizador foi eliminado.\n\nEscolha como resolver:",
-            "menu_options": {
-              "remove_user_id": "Remover da lista de acesso ao painel",
-              "dismiss": "Ignorar"
-            }
+            "description": "O utilizador `{user_id}…` está na lista de acesso ao painel Maintenance Supporter mas já não existe no Home Assistant. Provavelmente o utilizador foi eliminado.\n\nClique em **Enviar** para remover o utilizador da lista. (Para deixar o problema em paz, utilize o botão **Ignorar** na página de Reparações do Home Assistant.)"
           }
         }
       }

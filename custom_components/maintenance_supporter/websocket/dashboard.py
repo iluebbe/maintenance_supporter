@@ -444,19 +444,23 @@ async def ws_update_global_settings(
         if key in filtered and len(filtered[key]) > max_len:
             del filtered[key]
 
-    # Sanitise admin_panel_user_ids: drop non-string entries, cap each at
-    # 64 chars (HA user UUIDs are 32), cap list at 50 entries, dedupe.
+    # Sanitise admin_panel_user_ids: drop non-string entries + whitespace-only
+    # entries, cap each at 64 chars (HA user UUIDs are 32), cap list at 50
+    # entries, dedupe.
     if CONF_ADMIN_PANEL_USER_IDS in filtered:
         raw = filtered[CONF_ADMIN_PANEL_USER_IDS]
         cleaned: list[str] = []
         seen: set[str] = set()
         for v in raw:
-            if not isinstance(v, str) or not v or len(v) > 64:
+            if not isinstance(v, str):
                 continue
-            if v in seen:
+            stripped = v.strip()
+            if not stripped or len(stripped) > 64:
                 continue
-            seen.add(v)
-            cleaned.append(v)
+            if stripped in seen:
+                continue
+            seen.add(stripped)
+            cleaned.append(stripped)
             if len(cleaned) >= 50:
                 break
         filtered[CONF_ADMIN_PANEL_USER_IDS] = cleaned

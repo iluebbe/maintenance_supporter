@@ -178,7 +178,10 @@ export class MaintenanceSupporterCard extends LitElement {
             : nothing}
         </div>
         ${tasks.length === 0
-          ? html`<div class="empty-card">${t("no_tasks_short", L)}</div>`
+          ? html`<div class="empty-card">
+              <div>${t("card_no_tasks_title", L)}</div>
+              <a class="empty-link" href="/maintenance-supporter">${t("card_no_tasks_cta", L)}</a>
+            </div>`
           : html`
               <div class="task-list ${compact ? "compact" : ""}">
                 ${tasks.map(
@@ -265,7 +268,21 @@ export class MaintenanceSupporterCard extends LitElement {
       .badge.due_soon { background: var(--warning-color, #ff9800); }
       .badge.triggered { background: #ff5722; }
 
-      .empty-card { padding: 16px; text-align: center; color: var(--secondary-text-color); }
+      .empty-card {
+        padding: 24px 16px;
+        text-align: center;
+        color: var(--secondary-text-color);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+      .empty-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .empty-link:hover { text-decoration: underline; }
       .task-list { padding: 0 16px 16px; }
 
       .task-item {

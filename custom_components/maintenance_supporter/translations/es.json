@@ -1356,11 +1356,7 @@
         "step": {
           "init": {
             "title": "Usuario huérfano en la lista de acceso al panel",
-            "description": "El usuario `{user_id}…` está en la lista de acceso al panel de Maintenance Supporter pero ya no existe en Home Assistant. Probablemente el usuario fue eliminado.\n\nElige cómo resolver:",
-            "menu_options": {
-              "remove_user_id": "Quitar de la lista de acceso al panel",
-              "dismiss": "Descartar"
-            }
+            "description": "El usuario `{user_id}…` está en la lista de acceso al panel de Maintenance Supporter pero ya no existe en Home Assistant. Probablemente el usuario fue eliminado.\n\nHaz clic en **Enviar** para quitar al usuario de la lista. (Para dejar el problema sin resolver, usa el botón **Ignorar** en la página de Reparaciones de Home Assistant.)"
           }
         }
       }

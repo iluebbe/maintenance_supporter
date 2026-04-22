@@ -12,6 +12,7 @@ export class MaintenanceSupporterCardEditor extends LitElement {
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _loadingObjects = true;
+  @state() private _loadError = false;
 
   private _objectsLoaded = false;
 
@@ -37,8 +38,10 @@ export class MaintenanceSupporterCardEditor extends LitElement {
         type: "maintenance_supporter/objects",
       }) as { objects: MaintenanceObjectResponse[] };
       this._objects = result.objects || [];
+      this._loadError = false;
     } catch {
       this._objects = [];
+      this._loadError = true;
     }
     this._loadingObjects = false;
   }
@@ -78,6 +81,16 @@ export class MaintenanceSupporterCardEditor extends LitElement {
     const objectNames = [...this._objects]
       .map((o) => o.object.name)
       .sort((a, b) => a.localeCompare(b));
+    // Build the list of OUR sensor + binary_sensor entity_ids so the
+    // ha-entities-picker only shows maintenance_supporter entities, not
+    // every sensor in HA.
+    const ourEntities: string[] = [];
+    for (const o of this._objects) {
+      for (const t of o.tasks) {
+        if (t.sensor_entity_id) ourEntities.push(t.sensor_entity_id);
+        if (t.binary_sensor_entity_id) ourEntities.push(t.binary_sensor_entity_id);
+      }
+    }
 
     return html`
       <div class="editor">
@@ -109,9 +122,11 @@ export class MaintenanceSupporterCardEditor extends LitElement {
           <div class="field-label">${t("card_filter_objects", L)}</div>
           ${this._loadingObjects
             ? html`<div class="field-help">${t("card_loading_objects", L)}</div>`
-            : objectNames.length === 0
-              ? html`<div class="field-help">${t("no_objects", L)}</div>`
-              : html`
+            : this._loadError
+              ? html`<div class="field-help error-text">${t("card_load_error", L)}</div>`
+              : objectNames.length === 0
+                ? html`<div class="field-help">${t("no_objects", L)}</div>`
+                : html`
                 <div class="object-list">
                   ${objectNames.map((name) => html`
                     <label class="object-row">
@@ -123,16 +138,20 @@ export class MaintenanceSupporterCardEditor extends LitElement {
                   `)}
                 </div>
                 <div class="field-help">${t("card_filter_objects_help", L)}</div>
-              `}
+              `
+          }
         </div>
 
-        <!-- Entity-id filter (HA-native pattern) -->
+        <!-- Entity-id filter (HA-native pattern). Limited to our integration's
+             sensor + binary_sensor entities via includeEntities so the picker
+             stays usable on installs with thousands of entities. -->
         <div class="field">
           <div class="field-label">${t("card_filter_entities", L)}</div>
           <ha-entities-picker
             .hass=${this.hass}
             .value=${this._config.entity_ids || []}
-            include-domains='["sensor", "binary_sensor"]'
+            .includeDomains=${["sensor", "binary_sensor"]}
+            .includeEntities=${ourEntities}
             @value-changed=${this._onEntitiesChanged}
           ></ha-entities-picker>
           <div class="field-help">${t("card_filter_entities_help", L)}</div>
@@ -196,6 +215,10 @@ export class MaintenanceSupporterCardEditor extends LitElement {
       font-size: 12px;
       color: var(--secondary-text-color);
       font-style: italic;
+    }
+    .field-help.error-text {
+      color: var(--error-color, #f44336);
+      font-style: normal;
     }
     .chip-row {
       display: flex;
