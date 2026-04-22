@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.51] - 2026-04-22
+
+### Polish bundle — closes user-reported UX papercuts
+
+Three small issues reported by [@wxym5nnh6h-prog](https://github.com/wxym5nnh6h-prog) after the v1.0.44/v1.0.49 shipments, bundled into one release since all three are frontend-only cosmetic fixes.
+
+- **#34 — "New Maintenance Task" button shape now matches "New Object"**: the task-create button carried `appearance="plain"` while the object-create button did not, making them read as two visually different controls. Dropped the `plain` appearance so both buttons share the default filled shape.
+
+- **#36 — Sort / Filter / Group-by dropdowns now have labels**: on both the Tasks view (4 dropdowns: Filter, User, Sort, Group by) and the Objects view (2 dropdowns: Sort, Group by), each select now carries a small uppercase label above it. Scales on mobile via `.filter-field` flex wrapping.
+
+- **#36 — Sub-line chips (group / area / user) are now proper pills**: previously rendered as bare icon+text with only 2px internal gap and 8px inter-chip gap, which made them "stick together" per the reporter. Now: 8px horizontal padding, 10px border-radius, light `--secondary-background-color` fill, 4px internal icon-text gap. Each chip reads as its own unit at a glance.
+
+- **#37 — Help text added under state_change trigger fields**: The "Changements cibles" (Target changes) field was opaque — the reporter wrote "I don't understand what you exactly mean by those". Added two helper strings, one explaining the count semantic (default 1) and one under the from-state explaining the HA-state-value convention + that case is normalised on save. 6 new i18n keys × 12 languages (72 strings): `filter_label`, `user_label`, `sort_label`, `group_by_label`, `state_value_help`, `target_changes_help`.
+
+### No production-logic changes
+
+Audit: 355 keys × 12 languages in sync. Ruff ✓ · mypy strict ✓ (53 source files) · 1,520 unit tests pass (unchanged from v1.0.50).
+
 ## [1.0.50] - 2026-04-22
 
 ### Tests — WebSocket save→read-back roundtrip suite

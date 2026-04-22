@@ -512,6 +512,7 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._triggerFromState}
           @input=${(e: Event) => (this._triggerFromState = (e.target as HTMLInputElement).value)}
         ></ha-textfield>
+        <div class="field-help">${t("state_value_help", L)}</div>
         <ha-textfield
           label="${t("to_state_optional", L)}"
           .value=${this._triggerToState}
@@ -520,9 +521,11 @@ export class MaintenanceTaskDialog extends LitElement {
         <ha-textfield
           label="${t("target_changes", L)}"
           type="number"
+          min="1"
           .value=${this._triggerTargetChanges}
           @input=${(e: Event) => (this._triggerTargetChanges = (e.target as HTMLInputElement).value)}
         ></ha-textfield>
+        <div class="field-help">${t("target_changes_help", L)}</div>
       `;
     }
     if (this._triggerType === "runtime") {
