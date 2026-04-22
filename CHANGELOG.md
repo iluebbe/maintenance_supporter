@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.46] - 2026-04-22
+
+### Fixed — Mobile due-cell + actions still drifted across rows
+
+The 1.0.45 attempt anchored the due-cell with `margin-left: auto` but kept the row on flex-wrap. That left the due-cell's X-position content-dependent (sparkline rows wrapped differently from text-only rows), so e.g. `dueRight` ranged from 273-355px across visible rows on a 375-wide viewport.
+
+Switched the mobile `.task-row` from flex-wrap to a 4-column CSS grid (`auto | 1fr | 100px | auto`), explicit grid-row placement for every cell:
+- task-name spans the full top row
+- badges + object-name + due-cell + actions form the middle row at deterministic columns
+- chips sub-line spans the full bottom row
+
+Verified across 8 representative rows: all `dueRight=303`, all `actionsRight=355` — zero drift. Same fallback applied in the `@media (max-width: 600px)` block for narrow desktop windows that don't get the `narrow` host attribute.
+
 ## [1.0.45] - 2026-04-22
 
 ### Added — Lovelace card UX overhaul

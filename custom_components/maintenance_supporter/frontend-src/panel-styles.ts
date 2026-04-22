@@ -796,35 +796,56 @@ export const panelStyles = css`
   }
 
   :host([narrow]) .task-row {
-    /* Mobile: drop the desktop grid and flex-wrap with task-name as own line */
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    /* Mobile: 4-column grid keeps due-cell + actions at deterministic
+       X-positions across rows regardless of content (sparkline, bar, %).
+       Earlier flex-wrap-based layouts let the row wrap unpredictably so
+       "X days" sometimes sat near the middle, sometimes at the right edge.
+       Grid template:
+         [badges auto | task-name 1fr | due-cell 100px | actions auto]
+       Task-name spans the full top row (own row above), chips span the
+       full bottom row.  */
+    display: grid;
+    grid-template-columns: auto minmax(80px, 1fr) 100px auto;
+    grid-template-rows: auto auto auto;
+    column-gap: 8px;
+    row-gap: 4px;
     padding: 12px;
   }
 
   :host([narrow]) .cell.type { display: none; }
-  :host([narrow]) .cell.object-name { min-width: auto; }
-  :host([narrow]) .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
+  :host([narrow]) .cell.task-name {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  :host([narrow]) .cell-badges {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  :host([narrow]) .cell.object-name {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+  }
+  :host([narrow]) .due-cell {
+    grid-column: 3;
+    grid-row: 2;
+    align-items: flex-end;
+    min-width: 0;
+  }
+  :host([narrow]) .row-actions {
+    grid-column: 4;
+    grid-row: 2;
+  }
   :host([narrow]) .task-sub {
-    flex-basis: 100%;
-    order: 10;
+    grid-column: 1 / -1;
+    grid-row: 3;
     font-size: 11px;
     gap: 6px;
     justify-content: flex-start;
+    flex-wrap: wrap;
   }
   :host([narrow]) .task-sub-empty { display: none; }
-  /* Mobile: anchor due-cell + actions to the right edge so the X-position is
-     consistent across rows regardless of how much content (sparkline, bar, %)
-     the due-cell carries. Without margin-left:auto the cell floats wherever
-     the flex-wrap leaves it, sometimes pulling left when narrow content. */
-  :host([narrow]) .due-cell {
-    margin-left: auto;
-    min-width: 75px;
-    max-width: 130px;
-    align-items: flex-end;
-  }
-  :host([narrow]) .row-actions { flex-shrink: 0; }
   :host([narrow]) .mini-sparkline { width: 50px; }
 
   :host([narrow]) .detail-header {
@@ -947,14 +968,23 @@ export const panelStyles = css`
     .task-header-actions { width: 100%; justify-content: flex-start; }
     .filter-bar { flex-wrap: wrap; }
     .filter-bar select { flex: 1; min-width: 0; }
-    .task-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
+    /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
+    .task-row {
+      display: grid;
+      grid-template-columns: auto minmax(80px, 1fr) 100px auto;
+      grid-template-rows: auto auto auto;
+      column-gap: 8px;
+      row-gap: 4px;
+      padding: 12px;
+    }
     .cell.type { display: none; }
-    .cell.object-name { min-width: auto; }
-    .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
-    .task-sub { flex-basis: 100%; order: 10; font-size: 11px; gap: 6px; justify-content: flex-start; }
+    .cell.task-name { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
+    .cell-badges { grid-column: 1; grid-row: 2; }
+    .cell.object-name { grid-column: 2; grid-row: 2; min-width: 0; }
+    .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
+    .row-actions { grid-column: 4; grid-row: 2; }
+    .task-sub { grid-column: 1 / -1; grid-row: 3; font-size: 11px; gap: 6px; justify-content: flex-start; flex-wrap: wrap; }
     .task-sub-empty { display: none; }
-    .due-cell { margin-left: auto; min-width: 75px; max-width: 130px; align-items: flex-end; }
-    .row-actions { flex-shrink: 0; }
     .mini-sparkline { width: 50px; }
     .detail-header { flex-direction: column; align-items: flex-start; }
     .info-grid { grid-template-columns: 1fr; }
