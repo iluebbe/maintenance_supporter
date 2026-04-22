@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.48] - 2026-04-22
+
+### Fixed — General Settings "Default warning days" actually flows through to new tasks ([#38](https://github.com/iluebbe/maintenance_supporter/issues/38))
+
+When a user changed Settings → General → "Default warning days" from 7 to e.g. 1, every newly created task still defaulted to 7. The setting was stored, surfaced via WS `/settings`, and the panel's settings UI displayed the saved value — but the task-create dialog initialised `_warningDays = "7"` as a hardcoded literal and the integration's options-flow form schemas defaulted to the constant `DEFAULT_WARNING_DAYS = 7` rather than the per-entry option.
+
+Fixed at every task-create entry point:
+
+- **Panel task-dialog** (`task-dialog.ts`): added `defaultWarningDays` property; `_resetFields()` (called from `openCreate`) now seeds `_warningDays` from it. `openEdit` is unaffected — it keeps loading the existing task's stored value.
+- **Panel main view** (`maintenance-panel.ts`): the `/settings` response handler now extracts `general.default_warning_days` (with `[0..365]` validation) and passes it to `<maintenance-task-dialog>`.
+- **Config Flow + Options Flow** (`config_flow.py`, `config_flow_options_task.py`, `config_flow_trigger.py`): all 18 task-create fallback sites now resolve the default via a new `get_default_warning_days(hass)` helper that reads the global config entry's options. The 2 sites that *set* the global default itself (initial setup form) continue to use the constant — they're seeding, not consuming.
+
+New helper module `helpers/global_options.py` centralises the cross-entry lookup with sane bounds-checking (rejects non-int and out-of-[0,365] values, falls back to the constant). Existing notification_manager has its own equivalent — left untouched to avoid touching unrelated code.
+
+Ruff ✓ · mypy ✓ (53 source files) · 12-language i18n unchanged (no new strings).
+
 ## [1.0.47] - 2026-04-22
 
 ### Fixed — Deep bug audit patch release

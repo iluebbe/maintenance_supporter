@@ -73,6 +73,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false };
   // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
   @state() private _adminPanelUserIds: string[] = [];
+  // Default warning_days from the global config entry — used as the initial
+  // value in the task-create dialog so the Settings → General → "Default
+  // warning days" choice actually flows through to new tasks.
+  @state() private _defaultWarningDays = 7;
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _toastMessage = "";
@@ -198,9 +202,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
     if (settingsResult) {
-      const sr = settingsResult as { features: AdvancedFeatures; admin_panel_user_ids?: string[] };
+      const sr = settingsResult as {
+        features: AdvancedFeatures;
+        admin_panel_user_ids?: string[];
+        general?: { default_warning_days?: number };
+      };
       this._features = sr.features;
       this._adminPanelUserIds = sr.admin_panel_user_ids || [];
+      const dwd = sr.general?.default_warning_days;
+      if (typeof dwd === "number" && dwd >= 0 && dwd <= 365) {
+        this._defaultWarningDays = dwd;
+      }
     }
 
     // Fetch mini-sparkline data for overview (non-blocking)
@@ -684,6 +696,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         .checklistsEnabled=${this._features.checklists}
         .scheduleTimeEnabled=${this._features.schedule_time}
+        .defaultWarningDays=${this._defaultWarningDays}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
       <maintenance-complete-dialog

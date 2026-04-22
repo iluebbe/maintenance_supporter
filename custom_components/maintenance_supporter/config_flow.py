@@ -45,6 +45,7 @@ from .const import (
     ScheduleType,
     slugify_object_name,
 )
+from .helpers.global_options import get_default_warning_days
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -607,7 +608,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             else:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                    CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
                 last_performed = user_input.get("last_performed")
                 if last_performed:
@@ -631,7 +632,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     ),
                     vol.Optional("last_performed"): selector.DateSelector(),
                     vol.Optional(
-                        CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                        CONF_TASK_WARNING_DAYS,
+                        default=get_default_warning_days(self.hass),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0,
@@ -839,7 +841,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.MANUAL
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
-                CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
             if user_input.get(CONF_TASK_NOTES):
                 self._current_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
@@ -851,7 +853,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        CONF_TASK_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
+                        CONF_TASK_WARNING_DAYS,
+                        default=get_default_warning_days(self.hass),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
@@ -917,7 +920,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED
             ),
             "warning_days": self._current_task.get(
-                CONF_TASK_WARNING_DAYS, DEFAULT_WARNING_DAYS
+                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             ),
             "history": [],
             # Anchor for next_due fallback when last_performed is None (issue #30).

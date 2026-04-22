@@ -16,6 +16,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
   @property({ type: Boolean, attribute: "schedule-time-enabled" }) public scheduleTimeEnabled = false;
+  @property({ type: Number, attribute: "default-warning-days" }) public defaultWarningDays = 7;
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -162,7 +163,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._type = "custom";
     this._scheduleType = "time_based";
     this._intervalDays = "30";
-    this._warningDays = "7";
+    this._warningDays = String(this.defaultWarningDays);
     this._intervalAnchor = "completion";
     this._notes = "";
     this._documentationUrl = "";
