@@ -34,14 +34,23 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.websocket.dashboard import (
+    _ALLOWED_SETTING_KEYS,
+    ws_get_settings,
     ws_update_global_settings,
 )
-from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
+from custom_components.maintenance_supporter.websocket.tasks import (
+    ws_complete_task,
+    ws_create_task,
+    ws_reset_task,
+    ws_skip_task,
+    ws_update_task,
+)
 
 from .conftest import (
     build_global_entry_data,
     build_object_entry_data,
     call_ws_handler,
+    get_task_store_state,
     setup_integration,
 )
 
@@ -402,3 +411,519 @@ async def test_explicit_warning_days_persisted(
         },
     )
     assert task["warning_days"] == 3
+
+
+# ─── Module A: task/update roundtrips ───────────────────────────────────
+
+
+async def _update_task_via_ws(
+    hass: HomeAssistant,
+    entry_id: str,
+    task_id: str,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Apply an update via the WS handler and return the persisted task."""
+    conn = _conn()
+    msg = {
+        "id": 1,
+        "type": "maintenance_supporter/task/update",
+        "entry_id": entry_id,
+        "task_id": task_id,
+        **payload,
+    }
+    await call_ws_handler(ws_update_task, hass, conn, msg)
+    _result_payload(conn)
+    return _persisted_task(hass, entry_id, task_id)
+
+
+async def test_update_swap_trigger_type_preserves_new_fields(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Update state_change → threshold: new trigger fields must survive the same
+    allowlist the create path goes through."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Swapping trigger type",
+            "schedule_type": "sensor_based",
+            "trigger_config": {
+                "type": "state_change",
+                "entity_id": "binary_sensor.fault",
+                "trigger_from_state": "off",
+                "trigger_to_state": "on",
+            },
+        },
+    )
+
+    task = await _update_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        task_id,
+        {
+            "trigger_config": {
+                "type": "threshold",
+                "entity_id": "sensor.temp",
+                "trigger_above": 40.0,
+                "trigger_for_minutes": 15,
+            },
+        },
+    )
+
+    tc = task["trigger_config"]
+    assert tc["type"] == "threshold"
+    assert tc["trigger_above"] == 40.0
+    # Would regress if _TRIGGER_ALLOWED_KEYS drifted again — update path is
+    # separate from create but shares the same validator.
+    assert tc["trigger_for_minutes"] == 15
+    # state_change keys must be fully gone, not "just hidden".
+    assert "trigger_from_state" not in tc
+    assert "trigger_to_state" not in tc
+
+
+async def test_update_warning_days_persists(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Updating warning_days via ws_update_task persists the new value."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Changing warning",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "warning_days": 7,
+        },
+    )
+
+    task = await _update_task_via_ws(
+        hass, object_entry.entry_id, task_id, {"warning_days": 2}
+    )
+    assert task["warning_days"] == 2
+
+
+async def test_update_preserves_unrelated_fields(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Updating one field must not zero out the others (patch, not replace)."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, created = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Keep everything",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "warning_days": 5,
+            "notes": "Remember the filter kit",
+            "documentation_url": "https://example.com/filter-manual",
+            "custom_icon": "mdi:air-filter",
+        },
+    )
+    assert created["notes"] == "Remember the filter kit"
+
+    # Touch only `name` — every other field must survive untouched.
+    task = await _update_task_via_ws(
+        hass, object_entry.entry_id, task_id, {"name": "Renamed"}
+    )
+    assert task["name"] == "Renamed"
+    assert task["warning_days"] == 5
+    assert task["notes"] == "Remember the filter kit"
+    assert task["documentation_url"] == "https://example.com/filter-manual"
+    assert task["custom_icon"] == "mdi:air-filter"
+
+
+async def test_update_clears_optional_field_with_none(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Sending null for an optional field clears it in the persisted task."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Clearable notes",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "notes": "Delete me",
+        },
+    )
+
+    task = await _update_task_via_ws(
+        hass, object_entry.entry_id, task_id, {"notes": None}
+    )
+    assert task.get("notes") is None
+
+
+# ─── Module C: global settings roundtrips ───────────────────────────────
+
+
+async def _read_settings(hass: HomeAssistant) -> dict[str, Any]:
+    """Fetch the full settings dict the panel sees."""
+    conn = _conn()
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/settings"},
+    )
+    return _result_payload(conn)
+
+
+async def _write_settings(hass: HomeAssistant, settings: dict[str, Any]) -> None:
+    conn = _conn()
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": settings,
+        },
+    )
+    _result_payload(conn)
+
+
+# Value samples the WS update handler will accept (pass range + type checks).
+# Keys that do not round-trip directly through _build_full_settings (e.g.
+# CONF_ADMIN_PANEL_USER_IDS → admin_panel_user_ids nested at the top level)
+# are excluded here; they are covered by test_ws_dashboard.py individually.
+_SETTING_SAMPLES: dict[str, Any] = {
+    "default_warning_days": 3,
+    "notifications_enabled": True,
+    # notify_service is normalised on save via validate_notify_service
+    # (bare "persistent_notification" gets rewritten to "notify.…"); the
+    # already-qualified form round-trips unchanged, which is what we pin.
+    "notify_service": "notify.persistent_notification",
+    "panel_enabled": True,
+    "advanced_adaptive_visible": True,
+    "advanced_predictions_visible": True,
+    "advanced_seasonal_visible": True,
+    "advanced_environmental_visible": True,
+    "advanced_budget_visible": True,
+    "advanced_groups_visible": True,
+    "advanced_checklists_visible": True,
+    "advanced_schedule_time_visible": True,
+    "notify_due_soon_enabled": False,
+    "notify_due_soon_interval_hours": 36,
+    "notify_overdue_enabled": False,
+    "notify_overdue_interval_hours": 6,
+    "notify_triggered_enabled": False,
+    "notify_triggered_interval_hours": 3,
+    "quiet_hours_enabled": False,
+    "quiet_hours_start": "23:30",
+    "quiet_hours_end": "07:15",
+    "max_notifications_per_day": 12,
+    "notification_bundling_enabled": True,
+    "notification_bundle_threshold": 4,
+    "action_complete_enabled": True,
+    "action_skip_enabled": True,
+    "action_snooze_enabled": True,
+    "snooze_duration_hours": 8,
+    "budget_monthly": 42.50,
+    "budget_yearly": 500.0,
+    "budget_alerts_enabled": True,
+    "budget_alert_threshold": 75,
+    "budget_currency": "USD",
+}
+
+
+async def test_every_allowlisted_setting_round_trips(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """For every key in _ALLOWED_SETTING_KEYS: write → read → assert preserved.
+
+    Direct analogue of the trigger-allowlist regression (#37) for the settings
+    surface. If a new allowlisted key is added but `_build_full_settings`
+    doesn't expose it, or vice versa, this test fails.
+    """
+    await setup_integration(hass, global_entry)
+
+    # Sanity: our sample covers every allowlisted settings key except the
+    # top-level admin_panel_user_ids (list, validated separately in ws_io).
+    sample_keys = set(_SETTING_SAMPLES) | {"admin_panel_user_ids"}
+    allowlist_keys = set(_ALLOWED_SETTING_KEYS)
+    unsampled = allowlist_keys - sample_keys
+    assert not unsampled, (
+        f"Settings allowlist drifted — these keys are accepted by the WS "
+        f"handler but this test does not cover them: {sorted(unsampled)}. "
+        f"Add a representative value to _SETTING_SAMPLES."
+    )
+
+    await _write_settings(hass, _SETTING_SAMPLES)
+    settings = await _read_settings(hass)
+
+    # Flatten the nested structure that _build_full_settings returns so we
+    # can look up each key in O(1). Values marked `_allowed_drift` below are
+    # renamed between the save shape (CONF_*) and the read shape (nested).
+    flat: dict[str, Any] = {
+        "default_warning_days": settings["general"]["default_warning_days"],
+        "notifications_enabled": settings["general"]["notifications_enabled"],
+        "notify_service": settings["general"]["notify_service"],
+        "panel_enabled": settings["general"]["panel_enabled"],
+        **{f"advanced_{k}_visible": v for k, v in settings["features"].items()
+           if k in {"adaptive", "predictions", "seasonal", "environmental",
+                    "budget", "groups", "checklists"}},
+        "advanced_schedule_time_visible": settings["features"]["schedule_time"],
+        "notify_due_soon_enabled": settings["notifications"]["due_soon_enabled"],
+        "notify_due_soon_interval_hours": settings["notifications"]["due_soon_interval_hours"],
+        "notify_overdue_enabled": settings["notifications"]["overdue_enabled"],
+        "notify_overdue_interval_hours": settings["notifications"]["overdue_interval_hours"],
+        "notify_triggered_enabled": settings["notifications"]["triggered_enabled"],
+        "notify_triggered_interval_hours": settings["notifications"]["triggered_interval_hours"],
+        "quiet_hours_enabled": settings["notifications"]["quiet_hours_enabled"],
+        "quiet_hours_start": settings["notifications"]["quiet_hours_start"],
+        "quiet_hours_end": settings["notifications"]["quiet_hours_end"],
+        "max_notifications_per_day": settings["notifications"]["max_per_day"],
+        "notification_bundling_enabled": settings["notifications"]["bundling_enabled"],
+        "notification_bundle_threshold": settings["notifications"]["bundle_threshold"],
+        "action_complete_enabled": settings["actions"]["complete_enabled"],
+        "action_skip_enabled": settings["actions"]["skip_enabled"],
+        "action_snooze_enabled": settings["actions"]["snooze_enabled"],
+        "snooze_duration_hours": settings["actions"]["snooze_duration_hours"],
+        "budget_monthly": settings["budget"]["monthly"],
+        "budget_yearly": settings["budget"]["yearly"],
+        "budget_alerts_enabled": settings["budget"]["alerts_enabled"],
+        "budget_alert_threshold": settings["budget"]["alert_threshold_pct"],
+        "budget_currency": settings["budget"]["currency"],
+    }
+
+    for key, expected in _SETTING_SAMPLES.items():
+        assert flat[key] == expected, (
+            f"Setting {key!r} did not round-trip: sent {expected!r}, "
+            f"read back {flat[key]!r}"
+        )
+
+
+# ─── Module H: max-payload task ─────────────────────────────────────────
+
+
+async def test_task_create_with_every_optional_field(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Create a task with every optional field populated and verify each survives.
+
+    Single-field tests catch their own key being stripped, but an interaction
+    bug ("field X clobbers field Y on save") only shows up when many fields
+    are set at once.
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    _task_id, task = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Maximal task",
+            "task_type": "replacement",
+            "schedule_type": "time_based",
+            "interval_days": 90,
+            "interval_anchor": "planned",
+            "warning_days": 4,
+            "last_performed": "2025-12-01",
+            "notes": "Check gaskets for cracks before refit.",
+            "documentation_url": "https://example.com/service-manual.pdf",
+            "responsible_user_id": "user-uuid-abc",
+            "entity_slug": "maximal_task_sensor",
+            "custom_icon": "mdi:wrench",
+            "nfc_tag_id": "NFC-MAX-001",
+            "checklist": ["Drain coolant", "Swap gasket", "Refill & bleed"],
+            "schedule_time": "08:30",
+            "enabled": True,
+        },
+    )
+
+    assert task["name"] == "Maximal task"
+    assert task["type"] == "replacement"
+    assert task["schedule_type"] == "time_based"
+    assert task["interval_days"] == 90
+    assert task["interval_anchor"] == "planned"
+    assert task["warning_days"] == 4
+    assert task["notes"] == "Check gaskets for cracks before refit."
+    assert task["documentation_url"] == "https://example.com/service-manual.pdf"
+    assert task["responsible_user_id"] == "user-uuid-abc"
+    assert task["entity_slug"] == "maximal_task_sensor"
+    assert task["custom_icon"] == "mdi:wrench"
+    assert task["nfc_tag_id"] == "NFC-MAX-001"
+    assert task["checklist"] == ["Drain coolant", "Swap gasket", "Refill & bleed"]
+    assert task["schedule_time"] == "08:30"
+    assert task["enabled"] is True
+    # last_performed lives in the Store (dynamic), not the static task dict.
+    dynamic = get_task_store_state(hass, object_entry.entry_id, _task_id)
+    assert dynamic.get("last_performed") == "2025-12-01"
+
+
+# ─── Module J: completion lifecycle ─────────────────────────────────────
+
+
+async def test_complete_writes_last_performed_and_history(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """ws_complete_task writes last_performed and appends a history entry."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Cycle: complete",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+        },
+    )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+            "notes": "Everything nominal",
+            "cost": 12.50,
+            "duration": 30,
+        },
+    )
+    _result_payload(conn)
+
+    dynamic = get_task_store_state(hass, object_entry.entry_id, task_id)
+    assert dynamic.get("last_performed"), "last_performed must be set after complete"
+    history = dynamic.get("history") or []
+    assert history, "history must have at least one entry after complete"
+    latest = history[-1]
+    # History entries use `type` (matches HistoryEntryType enum), not `action`.
+    assert latest.get("type") == "completed"
+    assert latest.get("notes") == "Everything nominal"
+    assert latest.get("cost") == 12.50
+    assert latest.get("duration") == 30
+
+
+async def test_skip_appends_history_with_reason(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """ws_skip_task records a `skipped` history entry with the supplied reason.
+
+    Note: skip does stamp `last_performed` to today (by design — restarts the
+    cycle even though the task wasn't actually performed), so we don't pin
+    last_performed here. The history row is what makes it distinguishable
+    from a real completion downstream (budget, adaptive scheduling).
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Cycle: skip",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+        },
+    )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_skip_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/skip",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+            "reason": "Not needed this cycle",
+        },
+    )
+    _result_payload(conn)
+
+    after = get_task_store_state(hass, object_entry.entry_id, task_id)
+    history = after.get("history") or []
+    assert history, "history must record the skip"
+    assert history[-1].get("type") == "skipped"
+    # The reason is stored as `notes` (skip reuses the generic notes field).
+    assert history[-1].get("notes") == "Not needed this cycle"
+
+
+async def test_reset_keeps_history_and_sets_explicit_date(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """ws_reset_task stamps last_performed at the supplied date (issue #31
+    wording clarification — "reset" means "mark as performed on this date"),
+    and history keeps its previous entries.
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Cycle: reset",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+        },
+    )
+
+    # Complete once so we have an existing history entry.
+    conn = _conn()
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+        },
+    )
+    _result_payload(conn)
+    history_before = list(
+        get_task_store_state(hass, object_entry.entry_id, task_id).get("history") or []
+    )
+    assert history_before, "sanity: must have a completion to test reset against"
+
+    # Reset to an explicit historical date.
+    conn = _conn()
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+            "date": "2025-10-15",
+        },
+    )
+    _result_payload(conn)
+
+    after = get_task_store_state(hass, object_entry.entry_id, task_id)
+    assert after.get("last_performed") == "2025-10-15"
+    # Old history survives; reset adds its own entry.
+    history_after = after.get("history") or []
+    assert len(history_after) >= len(history_before)
