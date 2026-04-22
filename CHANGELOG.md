@@ -2,6 +2,13 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.43] - 2026-04-22
+
+### Fixed — Task-row columns now align across rows
+- The 1.0.42 chip change kept the existing flex-based row layout, where `.task-name` had `flex:1` and every other cell was content-sized. As soon as some rows had chips and others didn't (or had wider/narrower trigger text in the days column), the type / due / actions columns shifted by a few pixels per row and the table looked ragged.
+- Switched `.task-row` to a 7-column CSS grid with explicit tracks (`badges | object | task | chips | type | due | actions`). Empty chip cells still occupy their grid slot (`.task-sub-empty`), so all seven columns line up perfectly across rows regardless of which optional badges or chips a particular task carries.
+- Mobile (`:host([narrow])`) and the `@media(max-width:600px)` fallback both override `.task-row` back to the previous flex+wrap layout, so the existing single-column-stack mobile design is unchanged. `.task-sub-empty` is `display:none` on mobile so it doesn't take a wrap slot.
+
 ## [1.0.42] - 2026-04-22
 
 ### Added — Group / area / responsible-user chips on each task row ([#36](https://github.com/iluebbe/maintenance_supporter/issues/36))
