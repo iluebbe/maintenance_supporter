@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.42] - 2026-04-22
+
+### Added — Group / area / responsible-user chips on each task row ([#36](https://github.com/iluebbe/maintenance_supporter/issues/36))
+- The task list in the panel Overview now surfaces three sub-line chips next to each task: 📁 **Group(s)** (if the task is in any maintenance group), 📍 **Area** (from the parent object's HA area), 👤 **Responsible user** (from the existing user-assignment feature). Chips render only when the corresponding data is present, so unconfigured tasks look exactly as before — no visual noise on a fresh install.
+- **Strategy B layout** (collapse-to-subline on narrow viewports): on desktop the chips sit inline between the task name and the type column, filling the whitespace that previous releases had. On mobile (`:host([narrow])`) the same chips wrap onto a smaller-font sub-line below the object+task name, preserving one "visual row" per task.
+- All three data points were already in the model — this release just exposes them.
+
+### Fixed — "Recent Activities" showed oldest entries instead of newest
+- `_renderRecentActivities` was using `task.history.slice(0, 3)`, but the backend appends new entries to the end of the history array. The first three entries were therefore the **oldest** completions, often with stale notes/cost data. Now `slice(-3).reverse()` so the section matches its label.
+
+### Fixed — Mobile dialogs clipped to ~60% of viewport height
+- The task and group dialogs both had hard `max-height: 70vh` / `60vh` caps on the inner content pane. On a fullscreen mobile sheet (HA Android app) the inner scroll area was effectively limited to ~2/3 of the screen even though the outer `ha-dialog` was already maximised. Added `@media (max-width: 600px)` rules that drop the height + width caps on narrow viewports.
+
+### Docs
+- 14 README screenshots re-captured against a freshly seeded `ha-maint` (English locale, dark theme, populated demo data). Calendar shot now navigates one month forward so the Filter Replacement and Drum Cleaning events are actually visible in the grid.
+- All German completion notes in `scripts/seed_history.py` translated to English; 8 new Drum Cleaning notes and 3 new pH Test notes added so the `task-history` and `complete-dialog` screenshots demonstrate per-completion notes instead of rendering "—" placeholders.
+
 ## [1.0.41] - 2026-04-21
 
 ### Added — Time-of-day scheduling (advanced feature)
