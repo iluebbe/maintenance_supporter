@@ -835,52 +835,64 @@ export class MaintenanceSupporterPanel extends LitElement {
       ${this._features.budget ? this._renderBudgetBar() : nothing}
 
       <div class="filter-bar">
-        <select
-          @change=${(e: Event) => (this._filterStatus = (e.target as HTMLSelectElement).value)}
-        >
-          <option value="">${t("all", L)}</option>
-          <option value="overdue">${t("overdue", L)}</option>
-          <option value="due_soon">${t("due_soon", L)}</option>
-          <option value="triggered">${t("triggered", L)}</option>
-          <option value="ok">${t("ok", L)}</option>
-        </select>
-        <select
-          .value=${this._filterUser || ""}
-          @change=${(e: Event) => {
-            const val = (e.target as HTMLSelectElement).value;
-            this._filterUser = val || null;
-          }}
-        >
-          <option value="">${t("all_users", L)}</option>
-          <option value="current_user">${t("my_tasks", L)}</option>
-        </select>
-        <select
-          .value=${this._sortMode}
-          @change=${(e: Event) => {
-            this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
-            localStorage.setItem("maintenance_supporter_sort", this._sortMode);
-          }}
-        >
-          <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
-          <option value="object" ?selected=${this._sortMode === "object"}>${t("sort_object", L)}</option>
-          <option value="type" ?selected=${this._sortMode === "type"}>${t("sort_type", L)}</option>
-          <option value="task_name" ?selected=${this._sortMode === "task_name"}>${t("sort_task_name", L)}</option>
-          <option value="area" ?selected=${this._sortMode === "area"}>${t("sort_area", L)}</option>
-          <option value="assigned_user" ?selected=${this._sortMode === "assigned_user"}>${t("sort_assigned_user", L)}</option>
-          <option value="group" ?selected=${this._sortMode === "group"}>${t("sort_group", L)}</option>
-        </select>
-        <select
-          .value=${this._groupByMode}
-          @change=${(e: Event) => {
-            this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-            localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
-          }}
-        >
-          <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
-          <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
-          ${this._features.groups ? html`<option value="group" ?selected=${this._groupByMode === "group"}>${t("groupby_group", L)}</option>` : nothing}
-          <option value="user" ?selected=${this._groupByMode === "user"}>${t("groupby_user", L)}</option>
-        </select>
+        <label class="filter-field">
+          <span class="filter-label">${t("filter_label", L)}</span>
+          <select
+            @change=${(e: Event) => (this._filterStatus = (e.target as HTMLSelectElement).value)}
+          >
+            <option value="">${t("all", L)}</option>
+            <option value="overdue">${t("overdue", L)}</option>
+            <option value="due_soon">${t("due_soon", L)}</option>
+            <option value="triggered">${t("triggered", L)}</option>
+            <option value="ok">${t("ok", L)}</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span class="filter-label">${t("user_label", L)}</span>
+          <select
+            .value=${this._filterUser || ""}
+            @change=${(e: Event) => {
+              const val = (e.target as HTMLSelectElement).value;
+              this._filterUser = val || null;
+            }}
+          >
+            <option value="">${t("all_users", L)}</option>
+            <option value="current_user">${t("my_tasks", L)}</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span class="filter-label">${t("sort_label", L)}</span>
+          <select
+            .value=${this._sortMode}
+            @change=${(e: Event) => {
+              this._sortMode = (e.target as HTMLSelectElement).value as SortMode;
+              localStorage.setItem("maintenance_supporter_sort", this._sortMode);
+            }}
+          >
+            <option value="due_date" ?selected=${this._sortMode === "due_date"}>${t("sort_due_date", L)}</option>
+            <option value="object" ?selected=${this._sortMode === "object"}>${t("sort_object", L)}</option>
+            <option value="type" ?selected=${this._sortMode === "type"}>${t("sort_type", L)}</option>
+            <option value="task_name" ?selected=${this._sortMode === "task_name"}>${t("sort_task_name", L)}</option>
+            <option value="area" ?selected=${this._sortMode === "area"}>${t("sort_area", L)}</option>
+            <option value="assigned_user" ?selected=${this._sortMode === "assigned_user"}>${t("sort_assigned_user", L)}</option>
+            <option value="group" ?selected=${this._sortMode === "group"}>${t("sort_group", L)}</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span class="filter-label">${t("group_by_label", L)}</span>
+          <select
+            .value=${this._groupByMode}
+            @change=${(e: Event) => {
+              this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
+              localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
+            }}
+          >
+            <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
+            <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
+            ${this._features.groups ? html`<option value="group" ?selected=${this._groupByMode === "group"}>${t("groupby_group", L)}</option>` : nothing}
+            <option value="user" ?selected=${this._groupByMode === "user"}>${t("groupby_user", L)}</option>
+          </select>
+        </label>
         ${!isOperator ? html`
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
@@ -888,7 +900,6 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${t("new_object", L)}
           </ha-button>
           <ha-button
-            appearance="plain"
             @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}
           >
             ${t("new_task", L)}
@@ -1021,27 +1032,33 @@ export class MaintenanceSupporterPanel extends LitElement {
         <span>${t("all_objects", L)}</span>
       </div>
       <div class="filter-bar">
-        <select
-          .value=${this._objectSortMode}
-          @change=${(e: Event) => {
-            this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
-            localStorage.setItem("maintenance_supporter_object_sort", this._objectSortMode);
-          }}
-        >
-          <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
-          <option value="due_soonest" ?selected=${this._objectSortMode === "due_soonest"}>${t("sort_due_soonest", L)}</option>
-          <option value="task_count" ?selected=${this._objectSortMode === "task_count"}>${t("sort_task_count", L)}</option>
-        </select>
-        <select
-          .value=${this._groupByMode}
-          @change=${(e: Event) => {
-            this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
-            localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
-          }}
-        >
-          <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
-          <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
-        </select>
+        <label class="filter-field">
+          <span class="filter-label">${t("sort_label", L)}</span>
+          <select
+            .value=${this._objectSortMode}
+            @change=${(e: Event) => {
+              this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
+              localStorage.setItem("maintenance_supporter_object_sort", this._objectSortMode);
+            }}
+          >
+            <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
+            <option value="due_soonest" ?selected=${this._objectSortMode === "due_soonest"}>${t("sort_due_soonest", L)}</option>
+            <option value="task_count" ?selected=${this._objectSortMode === "task_count"}>${t("sort_task_count", L)}</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span class="filter-label">${t("group_by_label", L)}</span>
+          <select
+            .value=${this._groupByMode}
+            @change=${(e: Event) => {
+              this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
+              localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
+            }}
+          >
+            <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
+            <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
+          </select>
+        </label>
         ${!isOperator ? html`
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}

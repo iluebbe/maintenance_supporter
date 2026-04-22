@@ -46,9 +46,24 @@ export const panelStyles = css`
   .filter-bar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     padding: 8px 0;
     gap: 8px;
+  }
+
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .filter-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--secondary-text-color);
+    padding-left: 2px;
   }
 
   .filter-bar select {
@@ -100,7 +115,7 @@ export const panelStyles = css`
   /* Task subline chips (group / area / assigned user) — desktop shows inline, mobile wraps below */
   .task-sub {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     font-size: 12px;
     color: var(--secondary-text-color);
@@ -112,8 +127,12 @@ export const panelStyles = css`
   .sub-chip {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     white-space: nowrap;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--secondary-background-color, rgba(127, 127, 127, 0.1));
+    line-height: 1.4;
   }
   .sub-chip ha-icon {
     --mdc-icon-size: 14px;
@@ -790,9 +809,15 @@ export const panelStyles = css`
     flex-wrap: wrap;
   }
 
+  :host([narrow]) .filter-field {
+    flex: 1;
+    min-width: 48%;
+  }
+
   :host([narrow]) .filter-bar select {
     flex: 1;
     min-width: 0;
+    width: 100%;
   }
 
   :host([narrow]) .task-row {
