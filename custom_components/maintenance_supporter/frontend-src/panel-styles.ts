@@ -62,7 +62,17 @@ export const panelStyles = css`
   .task-table { display: flex; flex-direction: column; }
 
   .task-row {
-    display: flex;
+    /* Desktop: 7-column grid keeps every column aligned across rows regardless
+       of which optional chips/badges this particular row carries. */
+    display: grid;
+    grid-template-columns:
+      auto                         /* badges */
+      minmax(100px, 180px)         /* object-name */
+      minmax(120px, 1fr)           /* task-name */
+      minmax(0, 220px)             /* task-sub (chips) */
+      100px                        /* type */
+      150px                        /* due-cell */
+      auto;                        /* row-actions */
     align-items: center;
     gap: 12px;
     padding: 10px 12px;
@@ -75,10 +85,17 @@ export const panelStyles = css`
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
 
+  /* Wrapper for status + optional disabled/NFC badges so they share one grid column */
+  .cell-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .cell { font-size: 14px; }
-  .cell.object-name { color: var(--primary-color); cursor: pointer; min-width: 100px; }
-  .cell.task-name { flex: 1; font-weight: 500; }
-  .cell.type { min-width: 80px; color: var(--secondary-text-color); }
+  .cell.object-name { color: var(--primary-color); cursor: pointer; }
+  .cell.task-name { font-weight: 500; }
+  .cell.type { color: var(--secondary-text-color); }
 
   /* Task subline chips (group / area / assigned user) — desktop shows inline, mobile wraps below */
   .task-sub {
@@ -88,7 +105,10 @@ export const panelStyles = css`
     font-size: 12px;
     color: var(--secondary-text-color);
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
+  /* Empty subline still occupies its grid slot so neighbouring columns line up */
+  .task-sub-empty { min-height: 1px; }
   .sub-chip {
     display: inline-flex;
     align-items: center;
@@ -776,6 +796,8 @@ export const panelStyles = css`
   }
 
   :host([narrow]) .task-row {
+    /* Mobile: drop the desktop grid and flex-wrap with task-name as own line */
+    display: flex;
     flex-wrap: wrap;
     gap: 8px;
     padding: 12px;
@@ -783,13 +805,15 @@ export const panelStyles = css`
 
   :host([narrow]) .cell.type { display: none; }
   :host([narrow]) .cell.object-name { min-width: auto; }
-  :host([narrow]) .cell.task-name { flex-basis: 100%; order: -1; }
+  :host([narrow]) .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
   :host([narrow]) .task-sub {
     flex-basis: 100%;
     order: 10;
     font-size: 11px;
     gap: 6px;
+    justify-content: flex-start;
   }
+  :host([narrow]) .task-sub-empty { display: none; }
 
   :host([narrow]) .detail-header {
     flex-direction: column;
@@ -911,10 +935,12 @@ export const panelStyles = css`
     .task-header-actions { width: 100%; justify-content: flex-start; }
     .filter-bar { flex-wrap: wrap; }
     .filter-bar select { flex: 1; min-width: 0; }
-    .task-row { flex-wrap: wrap; gap: 8px; padding: 12px; }
+    .task-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; }
     .cell.type { display: none; }
     .cell.object-name { min-width: auto; }
-    .cell.task-name { flex-basis: 100%; order: -1; }
+    .cell.task-name { flex-basis: 100%; order: -1; flex: 1 1 100%; }
+    .task-sub { flex-basis: 100%; order: 10; font-size: 11px; gap: 6px; justify-content: flex-start; }
+    .task-sub-empty { display: none; }
     .detail-header { flex-direction: column; align-items: flex-start; }
     .info-grid { grid-template-columns: 1fr; }
     .history-filters-new { flex-direction: column; }
