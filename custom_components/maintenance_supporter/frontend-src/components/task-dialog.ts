@@ -21,6 +21,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _error = "";
   @state() private _entryId = "";
   @state() private _taskId: string | null = null; // null = create
+  // When openCreate is called without an entry_id and a list of objects is supplied,
+  // the dialog renders an Object selector dropdown so the user can pick the parent.
+  @state() private _objectChoices: Array<{ entry_id: string; name: string }> = [];
 
   // Task fields
   @state() private _name = "";
@@ -81,10 +84,18 @@ export class MaintenanceTaskDialog extends LitElement {
     return this.hass?.language ?? navigator.language.split("-")[0] ?? "en";
   }
 
-  public async openCreate(entryId: string): Promise<void> {
+  public async openCreate(entryId: string, objects?: Array<{ entry_id: string; object: { name: string } }>): Promise<void> {
     this._entryId = entryId;
     this._taskId = null;
     this._error = "";
+    // If no entryId is preset but caller passed objects, expose them as a dropdown.
+    // First object becomes the default selection so save can work without forced UI.
+    if (!entryId && objects && objects.length > 0) {
+      this._objectChoices = objects.map(o => ({ entry_id: o.entry_id, name: o.object.name }));
+      this._entryId = objects[0].entry_id;
+    } else {
+      this._objectChoices = [];
+    }
     this._resetFields();
     await Promise.all([this._loadUsers(), this._loadTags()]);
     this._open = true;
@@ -536,6 +547,19 @@ export class MaintenanceTaskDialog extends LitElement {
         <div class="dialog-title">${title}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+          ${this._objectChoices.length > 0 ? html`
+            <div class="select-row">
+              <label>${t("object", L)}</label>
+              <select
+                .value=${this._entryId}
+                @change=${(e: Event) => (this._entryId = (e.target as HTMLSelectElement).value)}
+              >
+                ${this._objectChoices.map(
+                  (o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === this._entryId}>${o.name}</option>`
+                )}
+              </select>
+            </div>
+          ` : nothing}
           <ha-textfield
             label="${t("task_name", L)}"
             required

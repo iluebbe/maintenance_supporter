@@ -17,6 +17,7 @@ from ..const import (
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
+    CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
@@ -75,6 +76,9 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_ADVANCED_GROUPS: bool,
     CONF_ADVANCED_CHECKLISTS: bool,
     CONF_ADVANCED_SCHEDULE_TIME: bool,
+    # Type-validated as a list here; element + length caps applied below in
+    # ws_update_global_settings (HA installs rarely exceed ~10 entries).
+    CONF_ADMIN_PANEL_USER_IDS: list,
     # Notification per-status
     CONF_NOTIFY_DUE_SOON_ENABLED: bool,
     CONF_NOTIFY_DUE_SOON_INTERVAL: int,
@@ -118,6 +122,9 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
             "schedule_time": options.get(CONF_ADVANCED_SCHEDULE_TIME, False),
         },
+        # Top-level (not a feature toggle, not a bool): list of HA user IDs
+        # whose UI gets the full admin panel even though they're not HA admins.
+        "admin_panel_user_ids": options.get(CONF_ADMIN_PANEL_USER_IDS, []),
         "general": {
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
@@ -436,6 +443,23 @@ async def ws_update_global_settings(
     for key, max_len in _STR_MAX_LENGTHS.items():
         if key in filtered and len(filtered[key]) > max_len:
             del filtered[key]
+
+    # Sanitise admin_panel_user_ids: drop non-string entries, cap each at
+    # 64 chars (HA user UUIDs are 32), cap list at 50 entries, dedupe.
+    if CONF_ADMIN_PANEL_USER_IDS in filtered:
+        raw = filtered[CONF_ADMIN_PANEL_USER_IDS]
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for v in raw:
+            if not isinstance(v, str) or not v or len(v) > 64:
+                continue
+            if v in seen:
+                continue
+            seen.add(v)
+            cleaned.append(v)
+            if len(cleaned) >= 50:
+                break
+        filtered[CONF_ADMIN_PANEL_USER_IDS] = cleaned
 
     if not filtered:
         connection.send_error(

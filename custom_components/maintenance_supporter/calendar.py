@@ -248,7 +248,14 @@ class MaintenanceCalendar(CalendarEntity):
             now, now + timedelta(days=365)
         )
         if events:
-            events.sort(key=lambda e: e.start)
+            # Events mix all-day (date) and timed (datetime) starts since v1.0.41.
+            # Normalise to datetime for comparison so sort doesn't TypeError.
+            def _key(e: CalendarEvent) -> datetime:
+                s = e.start
+                if isinstance(s, datetime):
+                    return s if s.tzinfo else s.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
+                return datetime.combine(s, time.min, tzinfo=dt_util.DEFAULT_TIME_ZONE)
+            events.sort(key=_key)
             self._cached_next_event = events[0]
         else:
             self._cached_next_event = None

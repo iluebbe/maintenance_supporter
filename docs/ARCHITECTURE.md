@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.30 | **~27,000 lines** across 70 source files (50 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,433 tests)
+**Version:** 1.0.44 | **~28,000 lines** across 70 source files (50 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,501 tests)
 
 ---
 
@@ -173,7 +173,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-card-editor.ts  (86 lines)
 │   ├── panel-styles.ts            (891 lines)  Panel-specific CSS
 │   ├── statistics-service.ts      (215 lines)  WS statistics cache
-│   ├── styles.ts                (2,676 lines)  Shared CSS, i18n (9 languages), shared helpers
+│   ├── styles.ts                (~3,200 lines) Shared CSS, panel i18n (12 languages — en/de/nl/fr/it/es/pt/ru/uk/pl/cs/sv), shared helpers
 │   ├── types.ts                   (286 lines)  TypeScript interfaces
 │   ├── user-service.ts            (125 lines)  HA user list cache
 │   └── components/              (2,145 lines)
@@ -209,7 +209,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt,ru,uk}.json  9 languages (backend config flow)
+└── translations/{en,de,nl,fr,it,es,pt,ru,uk}.json  9 languages (HA config flow). pl/cs/sv fall back to en.json automatically via HA's translation framework; full pl/cs/sv HA-flow files planned for v1.0.45.
 ```
 
 ---
@@ -389,9 +389,47 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 ### Panel Views
 1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter
-2. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, JSON/CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options)
+2. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, JSON/CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options). Hidden when Operator mode is on.
 3. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
 4. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
+5. **All Objects**: Card grid with per-object overdue indicator (red dot + left border), sort dropdown (alphabetical / due-soonest / task-count), and group-by-area collapsible sections (1.0.44+)
+
+### Sort & Group-By (1.0.44+)
+- **Tasks view sort modes:** `due_date / object / type / task_name / area / assigned_user / group`. Comparator built in `_taskRows` getter; reuses TaskRow's `area_id`, `responsible_user_id`, and `group_names` fields populated by 1.0.42's chip work — no extra server data plumbing.
+- **Objects view sort modes:** `alphabetical (default) / due_soonest / task_count`.
+- **Group-by:** `none (default) / area / group / user`. Tasks/objects render inside `<details>` blocks with icon + count, all open by default. Empty/unassigned items collected into a trailing "Unassigned" / "No area" section. Selection persists in `localStorage`.
+
+### Operator Mode + Per-User Panel Access (1.0.44+)
+Read-only end-user view derived from a combination of HA user role and an explicit per-user override list:
+
+```
+isOperator = !user.is_admin && !admin_panel_user_ids.includes(user.id)
+```
+
+| User class | Sees |
+|---|---|
+| Admin / Owner | Full panel (always) |
+| Non-admin **listed** in `admin_panel_user_ids` | Full panel |
+| Non-admin **not** listed | Operator mode (Complete / Skip / QR only) |
+
+When operator mode is active, the panel hides every create/edit/delete control:
+- Settings tab in the Overview tab-bar
+- Both `+ New Object` buttons (Overview filter-bar + All Objects header)
+- `New Maintenance Task` button on the Tasks view
+- Object detail Edit / Add Task / Delete buttons
+- Per-task more-menu (which holds Edit / Reset / Delete)
+- The "click NFC icon to link a tag" affordance on task headers
+
+Only `Complete`, `Skip`, and `QR Code` (read-only deeplink generator) remain on each task. The Lovelace card is unaffected (it never exposed edit actions in the first place). All gating is frontend-only — the WS API still accepts write commands so admins can edit via the config flow or scripts even from a non-admin device.
+
+**Storage:** `admin_panel_user_ids: list[str]` lives in the global ConfigEntry options. Default `[]`. Validated server-side as a list of strings (max 50 entries, each ≤64 chars). Editable via:
+
+1. **Panel Settings tab → Panel Access section** — multi-checkbox listing all non-admin HA users (filtered to `is_active=True, system_generated=False`).
+2. **HA Settings → Devices & services → Maintenance Supporter → Configure → Panel Access** — same data, exposed through the config flow's options menu (`async_step_panel_access` in `config_flow_options_global.py`).
+
+**Repair flow for orphaned ids:** if a user listed in `admin_panel_user_ids` is later deleted from HA, the integration creates a fixable repair issue (`orphan_admin_panel_user_<uuid>`) via `homeassistant.helpers.issue_registry`. The fix flow (`OrphanAdminPanelUserRepairFlow` in `repairs.py`) offers `remove_user_id` (drops the orphaned id from the list and persists) or `dismiss`. Issues are auto-cleaned when the id is removed or the user is recreated. The check runs once at boot (`async_setup_entry` for the global entry) and on every options update (`add_update_listener` callback).
+
+**Implementation:** single derived getter `_isOperator` on `MaintenanceSupporterPanel` reads `this.hass?.user?.is_admin` plus `this._adminPanelUserIds` (loaded from `maintenance_supporter/settings` WS response). Five render call-sites use the getter for conditional rendering.
 
 ### Real-Time Updates
 - WebSocket subscription (`maintenance_supporter/subscribe`)
@@ -400,7 +438,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 ### Dialogs
 - Object create/edit
-- Task create/edit (with trigger configuration, responsible user assignment)
+- Task create/edit (with trigger configuration, responsible user assignment). Since 1.0.44 the dialog accepts an optional list of objects; when no entry_id is preset the dialog renders an Object selector dropdown so a task can be created from the Tasks view without first navigating into a specific object
 - Complete task (notes, cost, duration, checklist)
 - QR code generation (print, download SVG)
 

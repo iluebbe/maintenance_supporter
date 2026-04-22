@@ -421,6 +421,7 @@
         "menu_options": {
           "general_settings": "Paramètres généraux",
           "advanced_features": "Fonctionnalités avancées",
+          "panel_access": "Accès au panneau",
           "budget_settings": "Paramètres de budget",
           "manage_groups": "Gérer les groupes",
           "notification_settings": "Paramètres de notification",
@@ -451,6 +452,16 @@
           "advanced_groups_visible": "Afficher la gestion des groupes de maintenance.",
           "advanced_checklists_visible": "Afficher les listes de contrôle pour la réalisation étape par étape des tâches.",
           "advanced_schedule_time_visible": "Permettre aux tâches d'arriver à échéance à une heure précise plutôt qu'à minuit."
+        }
+      },
+      "panel_access": {
+        "title": "Accès au panneau",
+        "description": "Sélectionnez les utilisateurs Home Assistant non administrateurs qui doivent également voir le panneau Maintenance Supporter complet (créer / modifier / supprimer). Les administrateurs voient toujours le panneau complet. {user_count} utilisateur(s) non administrateur(s) trouvé(s).",
+        "data": {
+          "admin_panel_user_ids": "Utilisateurs avec accès complet au panneau"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Les utilisateurs sélectionnés voient le panneau complet ; tous les autres ne voient que Terminer et Ignorer."
         }
       },
       "general_settings": {
@@ -1335,6 +1346,21 @@
           "remove_trigger": {
             "title": "Supprimer le déclencheur capteur",
             "description": "Cela supprimera le déclencheur capteur de la tâche « {task_name} » sur « {object_name} » et convertira la planification en temporelle ou manuelle. L'historique de maintenance sera conservé.\n\nEntité déclencheur précédente : `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "L'utilisateur de la liste d'accès au panneau n'existe plus",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Utilisateur orphelin dans la liste d'accès",
+            "description": "L'utilisateur `{user_id}…` est dans la liste d'accès au panneau Maintenance Supporter mais n'existe plus dans Home Assistant. L'utilisateur a probablement été supprimé.\n\nChoisissez comment résoudre :",
+            "menu_options": {
+              "remove_user_id": "Retirer de la liste d'accès au panneau",
+              "dismiss": "Ignorer"
+            }
           }
         }
       }

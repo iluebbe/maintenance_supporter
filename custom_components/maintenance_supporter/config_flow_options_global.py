@@ -21,6 +21,7 @@ from .const import (
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
+    CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
@@ -235,7 +236,7 @@ class GlobalOptionsFlow(OptionsFlow):
     def _menu_options(self) -> list[str]:
         """Build dynamic menu options."""
         current = self._current
-        options = ["general_settings", "advanced_features"]
+        options = ["general_settings", "advanced_features", "panel_access"]
         if current.get(CONF_ADVANCED_BUDGET, False):
             options.append("budget_settings")
         if current.get(CONF_ADVANCED_GROUPS, False):
@@ -330,6 +331,54 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.BooleanSelector(),
                 }
             ),
+        )
+
+    # --- Panel Access (per-user override) ---
+
+    async def async_step_panel_access(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Pick non-admin HA users who should also see the full admin panel.
+
+        Admins always see the full panel. Non-admins listed here also get it;
+        all other non-admins see the read-only operator view (Complete / Skip).
+        """
+        if user_input is not None:
+            return self._save_and_return(user_input)
+
+        # Build the multi-select option list from the HA auth registry,
+        # mirroring the panel's own users/list filter (active humans only).
+        users = await self.hass.auth.async_get_users()
+        non_admin = [
+            u for u in users
+            if not u.is_admin and not u.system_generated and u.is_active
+        ]
+        options = [
+            selector.SelectOptionDict(
+                value=u.id,
+                label=(u.name or u.id[:8]),
+            )
+            for u in non_admin
+        ]
+
+        current = self._current
+        return self.async_show_form(
+            step_id="panel_access",
+            data_schema=vol.Schema({
+                vol.Optional(
+                    CONF_ADMIN_PANEL_USER_IDS,
+                    default=current.get(CONF_ADMIN_PANEL_USER_IDS, []),
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=options,
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.LIST,
+                    ),
+                ),
+            }),
+            description_placeholders={
+                "user_count": str(len(non_admin)),
+            },
         )
 
     # --- General Settings ---

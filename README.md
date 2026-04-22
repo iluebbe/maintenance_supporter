@@ -70,6 +70,10 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - NFC tag linking — scan an NFC tag to complete a task
 - Checklists for multi-step procedures — editable in the panel task dialog (and in the Integration Options)
 - Task grouping for logical organization — **full CRUD UI** (create, edit, delete) with multi-checkbox task selector grouped by object
+- **Sort & group-by** in the Tasks/Objects views — sort by due date, area, assigned user, or group; group into collapsible sections by area, group, or user (1.0.44+)
+- **Overdue indicator** — object cards show a red dot the moment any of their tasks is overdue (1.0.44+)
+- **Quick task creation** — `New Maintenance Task` button on the Tasks view opens the task dialog with an Object selector dropdown, no need to navigate into the parent first (1.0.44+)
+- **Operator mode** for non-admin HA users — hides every create/edit/delete control in the panel so household members can complete tasks without changing settings. Admins can grant full panel access to selected non-admin users via the new **Panel Access** section (Settings tab or config flow). Orphaned ids surface as a fixable repair issue. Useful for shared/family/hotel setups (1.0.44+)
 - 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
 ### Sensor-Based Triggers
@@ -124,7 +128,7 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - **All Objects view**: clickable KPI card shows all objects including empty ones
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
-- Localized UI: English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian (9 languages)
+- Localized UI: English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish (12 languages — panel UI; HA config flow falls back to English for the latter three until v1.0.45)
 
 ### WebSocket API
 - 37 commands for full CRUD operations on objects, tasks, triggers, and groups

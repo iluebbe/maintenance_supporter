@@ -421,6 +421,7 @@
         "menu_options": {
           "general_settings": "Impostazioni generali",
           "advanced_features": "Funzionalità avanzate",
+          "panel_access": "Accesso al pannello",
           "budget_settings": "Impostazioni budget",
           "manage_groups": "Gestisci gruppi",
           "notification_settings": "Impostazioni notifiche",
@@ -451,6 +452,16 @@
           "advanced_groups_visible": "Mostra la gestione dei gruppi di manutenzione.",
           "advanced_checklists_visible": "Mostra liste di controllo per il completamento passo per passo delle attività.",
           "advanced_schedule_time_visible": "Consente alle attività di scadere a un'ora specifica anziché a mezzanotte."
+        }
+      },
+      "panel_access": {
+        "title": "Accesso al pannello",
+        "description": "Seleziona gli utenti Home Assistant non amministratori che dovrebbero anche vedere il pannello Maintenance Supporter completo (crea / modifica / elimina). Gli amministratori vedono sempre il pannello completo. Trovati {user_count} utenti non amministratori.",
+        "data": {
+          "admin_panel_user_ids": "Utenti con accesso completo al pannello"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Gli utenti selezionati vedono il pannello completo; tutti gli altri vedono solo Completa e Salta."
         }
       },
       "general_settings": {
@@ -1335,6 +1346,21 @@
           "remove_trigger": {
             "title": "Rimuovi trigger sensore",
             "description": "Questo rimuoverà il trigger sensore dall'attività \"{task_name}\" su \"{object_name}\" e convertirà la pianificazione in temporale o manuale. La cronologia della manutenzione sarà conservata.\n\nEntità trigger precedente: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "L'utente nell'elenco di accesso al pannello non esiste più",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Utente orfano nell'elenco di accesso al pannello",
+            "description": "L'utente `{user_id}…` è nell'elenco di accesso al pannello Maintenance Supporter ma non esiste più in Home Assistant. Probabilmente l'utente è stato eliminato.\n\nScegli come risolvere:",
+            "menu_options": {
+              "remove_user_id": "Rimuovi dall'elenco di accesso al pannello",
+              "dismiss": "Ignora"
+            }
           }
         }
       }

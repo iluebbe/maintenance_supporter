@@ -421,6 +421,7 @@
         "menu_options": {
           "general_settings": "Configuración general",
           "advanced_features": "Funciones avanzadas",
+          "panel_access": "Acceso al panel",
           "budget_settings": "Configuración de presupuesto",
           "manage_groups": "Gestionar grupos",
           "notification_settings": "Configuración de notificaciones",
@@ -451,6 +452,16 @@
           "advanced_groups_visible": "Mostrar la gestión de grupos de mantenimiento.",
           "advanced_checklists_visible": "Mostrar listas de verificación para la realización paso a paso de las tareas.",
           "advanced_schedule_time_visible": "Permite que las tareas venzan a una hora específica en lugar de medianoche."
+        }
+      },
+      "panel_access": {
+        "title": "Acceso al panel",
+        "description": "Selecciona los usuarios de Home Assistant no administradores que también deben ver el panel completo de Maintenance Supporter (crear / editar / eliminar). Los administradores siempre ven el panel completo. Encontrados {user_count} usuario(s) no administrador(es).",
+        "data": {
+          "admin_panel_user_ids": "Usuarios con acceso completo al panel"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Los usuarios seleccionados ven el panel completo; todos los demás solo ven Completar y Omitir."
         }
       },
       "general_settings": {
@@ -1335,6 +1346,21 @@
           "remove_trigger": {
             "title": "Eliminar disparador de sensor",
             "description": "Esto eliminará el disparador de sensor de la tarea \"{task_name}\" en \"{object_name}\" y convertirá la programación a temporal o manual. El historial de mantenimiento se conservará.\n\nEntidad disparador anterior: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "El usuario en la lista de acceso al panel ya no existe",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Usuario huérfano en la lista de acceso al panel",
+            "description": "El usuario `{user_id}…` está en la lista de acceso al panel de Maintenance Supporter pero ya no existe en Home Assistant. Probablemente el usuario fue eliminado.\n\nElige cómo resolver:",
+            "menu_options": {
+              "remove_user_id": "Quitar de la lista de acceso al panel",
+              "dismiss": "Descartar"
+            }
           }
         }
       }

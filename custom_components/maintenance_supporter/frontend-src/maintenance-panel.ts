@@ -41,7 +41,9 @@ import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./rendere
 import { renderCostDurationCard } from "./renderers/charts";
 
 type View = "overview" | "object" | "task" | "all_objects";
-type SortMode = "due_date" | "object" | "type" | "task_name";
+type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
+type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
+type GroupByMode = "none" | "area" | "group" | "user";
 
 // Chart dimension constants for mini sparklines (overview)
 const MINI_SPARKLINE_W = 60;
@@ -69,6 +71,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false };
+  // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
+  @state() private _adminPanelUserIds: string[] = [];
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _toastMessage = "";
@@ -81,6 +85,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
   @state() private _sortMode: SortMode = "due_date";
+  @state() private _objectSortMode: ObjectSortMode = "alphabetical";
+  @state() private _groupByMode: GroupByMode = "none";
 
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
@@ -91,14 +97,41 @@ export class MaintenanceSupporterPanel extends LitElement {
     return this.hass?.language || "en";
   }
 
+  /**
+   * Operator mode = read-only end-user mode (hides every create/edit/delete action).
+   *
+   * Gating (OR of exceptions flips to full panel):
+   *   - admins (incl. the owner) always see the full panel
+   *   - non-admin users whose ID is in the `admin_panel_user_ids` setting
+   *     also see the full panel (per-user override)
+   *   - everyone else sees operator mode (Complete / Skip only)
+   *
+   * The user list is managed by an admin under Settings → Panel Access
+   * (either in the panel's Settings tab or HA Config Flow).
+   */
+  private get _isOperator(): boolean {
+    const u = this.hass?.user;
+    if (!u) return true; // pre-hass state: render safe default
+    if (u.is_admin) return false;
+    return !this._adminPanelUserIds.includes(u.id);
+  }
+
   private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);
 
   connectedCallback(): void {
     super.connectedCallback();
     window.addEventListener("popstate", this._popstateHandler);
     const saved = localStorage.getItem("maintenance_supporter_sort");
-    if (saved && ["due_date", "object", "type", "task_name"].includes(saved)) {
+    if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
       this._sortMode = saved as SortMode;
+    }
+    const savedObj = localStorage.getItem("maintenance_supporter_object_sort");
+    if (savedObj && ["alphabetical", "due_soonest", "task_count"].includes(savedObj)) {
+      this._objectSortMode = savedObj as ObjectSortMode;
+    }
+    const savedGroup = localStorage.getItem("maintenance_supporter_groupby");
+    if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
+      this._groupByMode = savedGroup as GroupByMode;
     }
   }
 
@@ -164,7 +197,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) this._budget = budgetResult as BudgetStatus;
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
-    if (settingsResult) this._features = (settingsResult as { features: AdvancedFeatures }).features;
+    if (settingsResult) {
+      const sr = settingsResult as { features: AdvancedFeatures; admin_panel_user_ids?: string[] };
+      this._features = sr.features;
+      this._adminPanelUserIds = sr.admin_panel_user_ids || [];
+    }
 
     // Fetch mini-sparkline data for overview (non-blocking)
     this._fetchMiniStatsForOverview();
@@ -315,11 +352,35 @@ export class MaintenanceSupporterPanel extends LitElement {
     const byStatus = (a: TaskRow, b: TaskRow) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9);
     const byDays = (a: TaskRow, b: TaskRow) => (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
     const byDue = (a: TaskRow, b: TaskRow) => byStatus(a, b) || byDays(a, b);
+    const areaName = (r: TaskRow) =>
+      r.area_id ? this.hass?.areas?.[r.area_id]?.name || "" : "";
+    const userName = (r: TaskRow) =>
+      r.responsible_user_id ? this._userService?.getUserName(r.responsible_user_id) || "" : "";
+    const groupName = (r: TaskRow) => r.group_names[0] || "";
     const sorts: Record<SortMode, (a: TaskRow, b: TaskRow) => number> = {
       due_date: byDue,
       object: (a, b) => a.object_name.localeCompare(b.object_name) || byDue(a, b),
       type: (a, b) => a.type.localeCompare(b.type) || byDue(a, b),
       task_name: (a, b) => a.task_name.localeCompare(b.task_name),
+      area: (a, b) => {
+        const an = areaName(a), bn = areaName(b);
+        // Empty areas at end
+        if (!an && bn) return 1;
+        if (an && !bn) return -1;
+        return an.localeCompare(bn) || byDue(a, b);
+      },
+      assigned_user: (a, b) => {
+        const an = userName(a), bn = userName(b);
+        if (!an && bn) return 1;
+        if (an && !bn) return -1;
+        return an.localeCompare(bn) || byDue(a, b);
+      },
+      group: (a, b) => {
+        const an = groupName(a), bn = groupName(b);
+        if (!an && bn) return 1;
+        if (an && !bn) return -1;
+        return an.localeCompare(bn) || byDue(a, b);
+      },
     };
     rows.sort(sorts[this._sortMode]);
     return rows;
@@ -695,17 +756,24 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _renderOverview() {
     const L = this._lang;
+    const isOperator = this._isOperator;
+    // Operator mode: hide the Settings tab so end-users can't toggle features
+    if (isOperator && this._overviewTab === "settings") {
+      this._overviewTab = "dashboard";
+    }
     return html`
-      <div class="tab-bar">
-        <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
-          @click=${() => { this._overviewTab = "dashboard"; }}>
-          ${t("dashboard", L)}
+      ${!isOperator ? html`
+        <div class="tab-bar">
+          <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
+            @click=${() => { this._overviewTab = "dashboard"; }}>
+            ${t("dashboard", L)}
+          </div>
+          <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
+            @click=${() => { this._overviewTab = "settings"; }}>
+            ${t("settings", L)}
+          </div>
         </div>
-        <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
-          @click=${() => { this._overviewTab = "settings"; }}>
-          ${t("settings", L)}
-        </div>
-      </div>
+      ` : nothing}
       ${this._overviewTab === "dashboard"
         ? this._renderDashboard()
         : html`<maintenance-settings-view
@@ -721,6 +789,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const s = this._stats;
     const rows = this._taskRows;
     const L = this._lang;
+    const isOperator = this._isOperator;
 
     return html`
       ${s
@@ -783,12 +852,35 @@ export class MaintenanceSupporterPanel extends LitElement {
           <option value="object" ?selected=${this._sortMode === "object"}>${t("sort_object", L)}</option>
           <option value="type" ?selected=${this._sortMode === "type"}>${t("sort_type", L)}</option>
           <option value="task_name" ?selected=${this._sortMode === "task_name"}>${t("sort_task_name", L)}</option>
+          <option value="area" ?selected=${this._sortMode === "area"}>${t("sort_area", L)}</option>
+          <option value="assigned_user" ?selected=${this._sortMode === "assigned_user"}>${t("sort_assigned_user", L)}</option>
+          <option value="group" ?selected=${this._sortMode === "group"}>${t("sort_group", L)}</option>
         </select>
-        <ha-button
-          @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
+        <select
+          .value=${this._groupByMode}
+          @change=${(e: Event) => {
+            this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
+            localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
+          }}
         >
-          ${t("new_object", L)}
-        </ha-button>
+          <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
+          <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
+          ${this._features.groups ? html`<option value="group" ?selected=${this._groupByMode === "group"}>${t("groupby_group", L)}</option>` : nothing}
+          <option value="user" ?selected=${this._groupByMode === "user"}>${t("groupby_user", L)}</option>
+        </select>
+        ${!isOperator ? html`
+          <ha-button
+            @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
+          >
+            ${t("new_object", L)}
+          </ha-button>
+          <ha-button
+            appearance="plain"
+            @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}
+          >
+            ${t("new_task", L)}
+          </ha-button>
+        ` : nothing}
       </div>
 
       ${rows.length === 0
@@ -798,18 +890,116 @@ export class MaintenanceSupporterPanel extends LitElement {
               <p>${t("no_tasks", L)}</p>
             </div>
           `
-        : html`
-            <div class="task-table">
-              ${rows.map((row) => this._renderOverviewRow(row))}
-            </div>
-          `}
+        : this._groupByMode === "none"
+          ? html`
+              <div class="task-table">
+                ${rows.map((row) => this._renderOverviewRow(row))}
+              </div>
+            `
+          : this._renderGroupedTasks(rows, L)}
 
-      ${this._features.groups ? this._renderGroupsSection() : nothing}
+      ${this._features.groups && !isOperator ? this._renderGroupsSection() : nothing}
+    `;
+  }
+
+  private _renderGroupedTasks(rows: TaskRow[], L: string) {
+    const groups = new Map<string, TaskRow[]>();
+    const noneLabel = t("unassigned", L);
+    for (const row of rows) {
+      let keys: string[] = [];
+      if (this._groupByMode === "area") {
+        const a = row.area_id ? this.hass?.areas?.[row.area_id]?.name : null;
+        keys = [a || noneLabel];
+      } else if (this._groupByMode === "user") {
+        const u = row.responsible_user_id ? this._userService?.getUserName(row.responsible_user_id) : null;
+        keys = [u || noneLabel];
+      } else if (this._groupByMode === "group") {
+        keys = row.group_names.length > 0 ? row.group_names : [noneLabel];
+      }
+      for (const k of keys) {
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k)!.push(row);
+      }
+    }
+    const sorted = [...groups.entries()].sort(([a], [b]) => {
+      // Push "unassigned" / "no area" to bottom
+      if (a === noneLabel && b !== noneLabel) return 1;
+      if (b === noneLabel && a !== noneLabel) return -1;
+      return a.localeCompare(b);
+    });
+    const icon = this._groupByMode === "area" ? "mdi:map-marker-outline"
+      : this._groupByMode === "group" ? "mdi:folder-outline"
+      : "mdi:account-outline";
+    return html`
+      ${sorted.map(([key, taskRows]) => html`
+        <details class="group-section" open>
+          <summary class="group-section-header">
+            <ha-icon icon="${icon}"></ha-icon>
+            <span>${key}</span>
+            <span class="group-section-count">(${taskRows.length})</span>
+          </summary>
+          <div class="task-table">
+            ${taskRows.map((row) => this._renderOverviewRow(row))}
+          </div>
+        </details>
+      `)}
     `;
   }
 
   private _renderAllObjects() {
     const L = this._lang;
+    const isOperator = this._isOperator;
+
+    // Sort + group helpers
+    const minDays = (obj: MaintenanceObjectResponse): number => {
+      let m = Infinity;
+      for (const t of obj.tasks) {
+        const d = t.days_until_due;
+        if (d !== null && d !== undefined && d < m) m = d;
+      }
+      return m;
+    };
+    const sorted = [...this._objects];
+    if (this._objectSortMode === "alphabetical") {
+      sorted.sort((a, b) => a.object.name.localeCompare(b.object.name));
+    } else if (this._objectSortMode === "task_count") {
+      sorted.sort((a, b) => b.tasks.length - a.tasks.length || a.object.name.localeCompare(b.object.name));
+    } else {
+      // due_soonest
+      sorted.sort((a, b) => minDays(a) - minDays(b) || a.object.name.localeCompare(b.object.name));
+    }
+
+    // Group by area for objects view
+    const groupedByArea = (): Map<string, MaintenanceObjectResponse[]> => {
+      const map = new Map<string, MaintenanceObjectResponse[]>();
+      for (const obj of sorted) {
+        const areaId = obj.object.area_id;
+        const key = areaId ? this.hass?.areas?.[areaId]?.name || t("unassigned", L) : t("no_area", L);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(obj);
+      }
+      return new Map([...map.entries()].sort(([a], [b]) => a.localeCompare(b)));
+    };
+
+    const renderObject = (obj: MaintenanceObjectResponse) => {
+      const overdue = obj.tasks.some(t => t.status === "overdue" || t.status === "triggered");
+      return html`
+        <div class="object-card${overdue ? ' object-card-overdue' : ''}" @click=${() => this._showObject(obj.entry_id)}>
+          ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
+          <div class="object-card-header">
+            <span class="object-card-name">${obj.object.name}</span>
+            <span class="object-card-count">${obj.tasks.length} ${t("tasks_lower", L)}</span>
+          </div>
+          ${obj.object.manufacturer || obj.object.model
+            ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
+            : nothing}
+          ${obj.tasks.length === 0
+            ? html`<div class="object-card-empty">${t("no_tasks_yet", L)}</div>`
+            : nothing}
+        </div>
+      `;
+    };
+
     return html`
       <div class="breadcrumb">
         <ha-icon-button @click=${() => this._showOverview()}>
@@ -817,22 +1007,50 @@ export class MaintenanceSupporterPanel extends LitElement {
         </ha-icon-button>
         <span>${t("all_objects", L)}</span>
       </div>
-      <div class="objects-grid">
-        ${this._objects.map(obj => html`
-          <div class="object-card" @click=${() => this._showObject(obj.entry_id)}>
-            <div class="object-card-header">
-              <span class="object-card-name">${obj.object.name}</span>
-              <span class="object-card-count">${obj.tasks.length} ${t("tasks_lower", L)}</span>
-            </div>
-            ${obj.object.manufacturer || obj.object.model
-              ? html`<div class="object-card-meta">${[obj.object.manufacturer, obj.object.model].filter(Boolean).join(" ")}</div>`
-              : nothing}
-            ${obj.tasks.length === 0
-              ? html`<div class="object-card-empty">${t("no_tasks_yet", L)}</div>`
-              : nothing}
-          </div>
-        `)}
+      <div class="filter-bar">
+        <select
+          .value=${this._objectSortMode}
+          @change=${(e: Event) => {
+            this._objectSortMode = (e.target as HTMLSelectElement).value as ObjectSortMode;
+            localStorage.setItem("maintenance_supporter_object_sort", this._objectSortMode);
+          }}
+        >
+          <option value="alphabetical" ?selected=${this._objectSortMode === "alphabetical"}>${t("sort_alphabetical", L)}</option>
+          <option value="due_soonest" ?selected=${this._objectSortMode === "due_soonest"}>${t("sort_due_soonest", L)}</option>
+          <option value="task_count" ?selected=${this._objectSortMode === "task_count"}>${t("sort_task_count", L)}</option>
+        </select>
+        <select
+          .value=${this._groupByMode}
+          @change=${(e: Event) => {
+            this._groupByMode = (e.target as HTMLSelectElement).value as GroupByMode;
+            localStorage.setItem("maintenance_supporter_groupby", this._groupByMode);
+          }}
+        >
+          <option value="none" ?selected=${this._groupByMode === "none"}>${t("groupby_none", L)}</option>
+          <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
+        </select>
+        ${!isOperator ? html`
+          <ha-button
+            @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
+          >
+            ${t("new_object", L)}
+          </ha-button>
+        ` : nothing}
       </div>
+      ${this._groupByMode === "area"
+        ? html`
+          ${[...groupedByArea().entries()].map(([area, objs]) => html`
+            <details class="group-section" open>
+              <summary class="group-section-header">
+                <ha-icon icon="mdi:map-marker-outline"></ha-icon>
+                <span>${area}</span>
+                <span class="group-section-count">(${objs.length})</span>
+              </summary>
+              <div class="objects-grid">${objs.map(renderObject)}</div>
+            </details>
+          `)}
+        `
+        : html`<div class="objects-grid">${sorted.map(renderObject)}</div>`}
     `;
   }
 
@@ -1203,20 +1421,24 @@ export class MaintenanceSupporterPanel extends LitElement {
     const o = obj.object;
     const L = this._lang;
 
+    const isOperator = this._isOperator;
+
     return html`
       <div class="detail-section">
         <div class="detail-header">
           <h2>${o.name}</h2>
           <div class="action-buttons">
-            <ha-button appearance="plain" @click=${() => {
-              const dlg = this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog");
-              dlg?.openEdit(obj.entry_id, o);
-            }}>${t("edit", L)}</ha-button>
-            <ha-button appearance="filled" @click=${() => {
-              const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
-              dlg?.openCreate(obj.entry_id);
-            }}>${t("add_task", L)}</ha-button>
-            <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
+            ${!isOperator ? html`
+              <ha-button appearance="plain" @click=${() => {
+                const dlg = this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog");
+                dlg?.openEdit(obj.entry_id, o);
+              }}>${t("edit", L)}</ha-button>
+              <ha-button appearance="filled" @click=${() => {
+                const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
+                dlg?.openCreate(obj.entry_id);
+              }}>${t("add_task", L)}</ha-button>
+              <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
+            ` : nothing}
             <ha-button appearance="plain" @click=${() => this._openQrForObject(obj.entry_id, o.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
           </div>
         </div>
@@ -1274,6 +1496,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     const obj = this._getObject(this._selectedEntryId!);
     const objName = obj?.object.name || "";
+    const isOperator = this._isOperator;
 
     // Determine status chip — use the backend-computed status
     const statusClass = task.status === "due_soon" ? "warning" : (task.status || "ok");
@@ -1289,27 +1512,29 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${this._renderUserBadge(task)}
           ${task.nfc_tag_id
             ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
-            : html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"
+            : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"
                 @click=${() => { this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>
                 <ha-icon icon="mdi:nfc-variant"></ha-icon>
-              </span>`
+              </span>` : nothing
           }
         </div>
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
           <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._promptSkipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
-          <div class="more-menu-wrapper">
-            <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${this._toggleMoreMenu}></ha-icon-button>
-            ${this._moreMenuOpen ? html`
-              <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
-                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
-                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
-                <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</div>
-                <div class="popup-menu-divider"></div>
-                <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
-              </div>
-            ` : nothing}
-          </div>
+          <ha-button appearance="plain" @click=${() => { const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
+          ${!isOperator ? html`
+            <div class="more-menu-wrapper">
+              <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${this._toggleMoreMenu}></ha-icon-button>
+              ${this._moreMenuOpen ? html`
+                <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
+                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
+                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
+                  <div class="popup-menu-divider"></div>
+                  <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
+                </div>
+              ` : nothing}
+            </div>
+          ` : nothing}
         </div>
       </div>
     `;
