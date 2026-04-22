@@ -2,6 +2,43 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.49] - 2026-04-22
+
+### Fixed — Trigger save-path silently dropped 5 fields ([#37](https://github.com/iluebbe/maintenance_supporter/issues/37))
+
+`websocket/tasks.py:_TRIGGER_ALLOWED_KEYS` is the WS validator's allowlist for `trigger_config` keys — anything not in the set is deleted from the payload before persistence. The set drifted out of sync with the trigger classes: 5 keys actively read by the trigger code were missing from the allowlist and got silently stripped on every save. The dead `trigger_reset_on_complete` is removed in the same pass.
+
+| Missing key | Read by | Symptom when stripped |
+|---|---|---|
+| `trigger_from_state` | `state_change.py:38` | Filter ignored → every transition counted (the user-reported #37 case) |
+| `trigger_to_state` | `state_change.py:39` | Same |
+| `trigger_for_minutes` | `threshold.py:41`, `coordinator.py:397` | Threshold trigger fires immediately instead of after the configured hold time |
+| `trigger_delta_mode` | `counter.py:36`, `coordinator.py:453` | Counter trigger silently falls back from delta to absolute mode |
+| `attribute` | `base_trigger.py:44`, `coordinator.py:393`, `helpers/sensor_predictor.py:133` | Trigger evaluates the entity state instead of the configured attribute |
+
+The allowlist is recursively applied to compound-trigger sub-conditions too, so the same 5 fields used to vanish inside any compound condition. Same fix covers both surfaces.
+
+### Fixed — `state_change` trigger compared case-sensitively against lowercase HA states
+
+`HA's state machine stores values lowercase ("on" / "off" / "home" / ...). The state_change trigger compared `effective_old != self._from_state` exactly, so a user typing `OFF` / `ON` (the natural casing of "off" / "on" as nouns in many languages, including French) silently never matched even after the allowlist fix above. Symmetric to how `runtime` already handles `trigger_on_states` (auto-lowercased on save in `config_flow_trigger.py` and via `state_value.lower()` at evaluation time), the WS save path and the config-flow save path now both `.strip().lower()` `trigger_from_state` / `trigger_to_state` before persistence. Whitespace-only values are dropped (= "no filter").
+
+### Fixed — JSON / CSV import hardcoded `warning_days = 7` instead of honouring the global default ([#38](https://github.com/iluebbe/maintenance_supporter/issues/38) follow-up)
+
+v1.0.48 fixed the panel + config-flow paths to honour `Settings → General → "Default warning days"` for new tasks. Three import sites still defaulted to the bare constant `7`:
+
+- `websocket/io.py:279` — JSON import: missing `warning_days` field now falls back to `get_default_warning_days(hass)`.
+- `websocket/io.py:304-306` — JSON import sanitisation: out-of-range values likewise.
+- `helpers/csv_handler.py:173` — CSV import: missing/invalid column likewise. Function signature gained an optional `hass=None` kwarg so unit tests that exercise the parser in isolation keep working.
+
+### Tests
+
+New `tests/test_trigger_allowlist.py` (11 checks):
+
+- **Static**: scans every `trigger_config.get("…")` call site in `entity/triggers/*.py` and asserts the key is in `_TRIGGER_ALLOWED_KEYS` (or in an explicit `_RUNTIME_INJECTED_KEYS` exclusion list for per-entity runtime state). The next missing key is caught at test time, not by a user.
+- **Functional**: pins the 5 critical keys in the allowlist, verifies state_change `OFF`/` ON ` round-trip becomes `off`/`on` (with whitespace dropped), and pins `trigger_for_minutes` (threshold) + `trigger_delta_mode` (counter) preservation.
+
+1,512 unit tests pass (was 1,501); ruff + mypy strict clean across 53 source files.
+
 ## [1.0.48] - 2026-04-22
 
 ### Fixed — General Settings "Default warning days" actually flows through to new tasks ([#38](https://github.com/iluebbe/maintenance_supporter/issues/38))
