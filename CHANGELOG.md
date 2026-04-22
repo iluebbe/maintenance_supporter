@@ -2,6 +2,31 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.52] - 2026-04-22
+
+### Tests — WebSocket roundtrip suite extended
+
+9 additional tests in `tests/test_ws_roundtrip.py` cover the WS surfaces that v1.0.50 did not reach. No production code changes.
+
+**Module A — `ws_update_task` roundtrips (4 tests):**
+Update is a separate handler from create but shares `_validate_trigger_config`; an allowlist drift (class of bug in #37) could regress through update without failing any create-path test. Covered: swap trigger type (state_change → threshold) with new fields preserved + old fields dropped, `warning_days` update persists, partial update preserves unrelated fields, `None` clears an optional field.
+
+**Module C — global settings roundtrip (1 test):**
+Direct analogue to #37 for the settings surface. Sends every allowlisted `CONF_*` key via `ws_update_global_settings` with a representative value, reads back via `ws_get_settings`, and asserts each round-trips. Guard at the top of the test: if `_ALLOWED_SETTING_KEYS` grows, the coverage sample must grow with it (the test fails if a new allowlisted key has no sample).
+
+**Module H — max-payload task (1 test):**
+One task created with every optional field set at once (checklist, schedule_time, nfc, responsible_user, documentation_url, custom_icon, interval_anchor=planned, entity_slug, notes, last_performed, enabled). Single-field tests catch their own key being stripped; an interaction bug — "field X clobbers field Y on save" — only shows up when many fields collide in one payload.
+
+**Module J — completion lifecycle (3 tests):**
+`ws_complete_task`: writes `last_performed` + appends a `type: "completed"` history entry with notes/cost/duration. `ws_skip_task`: appends `type: "skipped"` with the reason stored as `notes` (documented that skip does stamp `last_performed` — by design, to advance the cycle). `ws_reset_task`: stamps `last_performed` at the supplied date (matches issue #31 semantics clarification), existing history survives.
+
+### Incidental wins from writing the tests
+
+- Pinned the concrete history-entry shape (`type` field, `duration` not `duration_minutes`, skip's reason stored as `notes`) against future coordinator refactors.
+- Pinned `notify_service` normalisation on save (`persistent_notification` → `notify.persistent_notification` via `validate_notify_service`).
+
+1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
+
 ## [1.0.51] - 2026-04-22
 
 ### Polish bundle — closes user-reported UX papercuts
