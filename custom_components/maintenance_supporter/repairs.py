@@ -20,6 +20,7 @@ from homeassistant.helpers import selector
 
 from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
 from .const import (
+    CONF_ADMIN_PANEL_USER_IDS,
     CONF_TASKS,
     HistoryEntryType,
     ScheduleType,
@@ -471,10 +472,67 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         return self._remove_from_flat(task_dict, trigger_config, missing_entity_id)
 
 
+class OrphanAdminPanelUserRepairFlow(RepairsFlow):
+    """Repair flow for an admin_panel_user_ids entry pointing at a deleted HA user.
+
+    Two options:
+    1. Remove — drop the orphaned id from the panel-access list
+    2. Dismiss — close the issue (admin acknowledges, will reappear on the
+       next options change if the id is still in the list)
+
+    `self.data` is populated by ``async_create_issue(data=...)`` and contains::
+
+        {
+            "user_id": str,    # the orphaned HA user UUID
+            "entry_id": str,   # the global config entry ID
+        }
+    """
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        issue_data = self.data or {}
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["remove_user_id", "dismiss"],
+            description_placeholders={
+                "user_id": str(issue_data.get("user_id", "?"))[:8],
+            },
+        )
+
+    async def async_step_remove_user_id(
+        self, user_input: dict[str, Any] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Remove the orphaned id from admin_panel_user_ids and persist."""
+        issue_data = self.data or {}
+        entry = self.hass.config_entries.async_get_entry(
+            str(issue_data.get("entry_id", ""))
+        )
+        if entry is None:
+            return self.async_abort(reason="entry_gone")
+        target_uid = str(issue_data.get("user_id", ""))
+        ids = list(entry.options.get(CONF_ADMIN_PANEL_USER_IDS, []) or [])
+        if target_uid in ids:
+            ids.remove(target_uid)
+            self.hass.config_entries.async_update_entry(
+                entry,
+                options={**entry.options, CONF_ADMIN_PANEL_USER_IDS: ids},
+            )
+        return self.async_create_entry(data={})
+
+    async def async_step_dismiss(
+        self, user_input: dict[str, Any] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Acknowledge without removing — admin may want to keep the id."""
+        return self.async_create_entry(data={})
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
     data: dict[str, Any] | None,
 ) -> RepairsFlow:
     """Create a repair flow for the given issue."""
+    if issue_id.startswith("orphan_admin_panel_user_"):
+        return OrphanAdminPanelUserRepairFlow()
     return MissingTriggerEntityRepairFlow()

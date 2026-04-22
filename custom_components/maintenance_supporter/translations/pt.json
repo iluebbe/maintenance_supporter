@@ -421,6 +421,7 @@
         "menu_options": {
           "general_settings": "Definições Gerais",
           "advanced_features": "Funcionalidades Avançadas",
+          "panel_access": "Acesso ao painel",
           "budget_settings": "Definições de Orçamento",
           "manage_groups": "Gerir Grupos",
           "notification_settings": "Definições de Notificação",
@@ -451,6 +452,16 @@
           "advanced_groups_visible": "Mostrar gestão de grupos de manutenção.",
           "advanced_checklists_visible": "Mostrar listas de verificação de tarefas para conclusão passo a passo.",
           "advanced_schedule_time_visible": "Permite que tarefas vençam num horário específico em vez de meia-noite."
+        }
+      },
+      "panel_access": {
+        "title": "Acesso ao painel",
+        "description": "Selecione utilizadores Home Assistant não administradores que também devem ver o painel completo do Maintenance Supporter (criar / editar / eliminar). Os administradores sempre veem o painel completo. Encontrados {user_count} utilizador(es) não administrador(es).",
+        "data": {
+          "admin_panel_user_ids": "Utilizadores com acesso completo ao painel"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Os utilizadores selecionados veem o painel completo; todos os outros só veem Concluir e Ignorar."
         }
       },
       "general_settings": {
@@ -1335,6 +1346,21 @@
           "remove_trigger": {
             "title": "Remover acionamento por sensor",
             "description": "Isto removerá o acionamento por sensor da tarefa \"{task_name}\" em \"{object_name}\" e converterá o agendamento para baseado no tempo ou manual. O histórico de manutenção será preservado.\n\nEntidade de acionamento anterior: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Utilizador na lista de acesso ao painel já não existe",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Utilizador órfão na lista de acesso ao painel",
+            "description": "O utilizador `{user_id}…` está na lista de acesso ao painel Maintenance Supporter mas já não existe no Home Assistant. Provavelmente o utilizador foi eliminado.\n\nEscolha como resolver:",
+            "menu_options": {
+              "remove_user_id": "Remover da lista de acesso ao painel",
+              "dismiss": "Ignorar"
+            }
           }
         }
       }

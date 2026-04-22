@@ -421,6 +421,7 @@
         "menu_options": {
           "general_settings": "Allgemeine Einstellungen",
           "advanced_features": "Erweiterte Funktionen",
+          "panel_access": "Panel-Zugriff",
           "budget_settings": "Budgeteinstellungen",
           "manage_groups": "Gruppen verwalten",
           "notification_settings": "Benachrichtigungseinstellungen",
@@ -451,6 +452,16 @@
           "advanced_groups_visible": "Wartungsgruppen-Verwaltung anzeigen.",
           "advanced_checklists_visible": "Aufgaben-Checklisten für schrittweise Erledigung anzeigen.",
           "advanced_schedule_time_visible": "Erlaubt Tasks, zu einer festen Uhrzeit fällig zu werden statt um Mitternacht."
+        }
+      },
+      "panel_access": {
+        "title": "Panel-Zugriff",
+        "description": "Wähle Non-Admin-User von Home Assistant aus, die auch das vollständige Maintenance-Supporter-Panel sehen sollen (Erstellen / Bearbeiten / Löschen). Admins sehen immer das volle Panel. {user_count} Non-Admin-User gefunden.",
+        "data": {
+          "admin_panel_user_ids": "User mit Vollzugriff"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Ausgewählte User sehen das volle Panel, alle anderen nur Abhaken und Überspringen."
         }
       },
       "general_settings": {
@@ -1335,6 +1346,21 @@
           "remove_trigger": {
             "title": "Sensor-Trigger entfernen",
             "description": "Dies entfernt den Sensor-Trigger von Aufgabe \"{task_name}\" an \"{object_name}\" und konvertiert den Zeitplan zu zeitbasiert oder manuell. Die Wartungshistorie bleibt erhalten.\n\nBisherige Trigger-Entität: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "User aus Panel-Zugriff existiert nicht mehr",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Verwaister User in Panel-Zugriffsliste",
+            "description": "User `{user_id}…` ist in der Panel-Zugriffsliste, existiert aber nicht mehr in Home Assistant. Wahrscheinlich wurde der User gelöscht.\n\nWähle, wie du das beheben willst:",
+            "menu_options": {
+              "remove_user_id": "Aus Panel-Zugriffsliste entfernen",
+              "dismiss": "Verwerfen"
+            }
           }
         }
       }

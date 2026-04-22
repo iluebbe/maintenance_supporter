@@ -34,6 +34,20 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
 | `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on time-based tasks. When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
 
+> **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
+>
+> - **Admins** (and the HA owner) always see the full panel.
+> - **Non-admin** users see Operator mode by default — only `Complete` and `Skip` on each task; Settings tab + every create/edit/delete control hidden.
+> - Admins can grant non-admin users full panel access by adding their HA user IDs to the `admin_panel_user_ids` list. This is editable through:
+>   - the panel's **Settings → Panel Access** section (multi-checkbox with all non-admin users), or
+>   - HA Settings → Devices & services → Maintenance Supporter → Configure → **Panel Access**.
+>
+> If a listed user is later deleted in HA, an "orphaned panel-access user" repair issue appears with a one-click `Remove from list` action. The issue clears automatically when the id is removed or the user is recreated.
+
+| Setting key | Type | Default | Description |
+|---|---|---|---|
+| `admin_panel_user_ids` | list[string] | `[]` | HA user UUIDs (max 50, each ≤64 chars) granted full panel access despite not being HA admins. Empty list = only admins see full panel. |
+
 ### Notification Settings
 
 Visible only when `notifications_enabled` is `true`.

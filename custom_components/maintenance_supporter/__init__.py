@@ -23,6 +23,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    CONF_ADMIN_PANEL_USER_IDS,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
@@ -468,6 +469,10 @@ async def async_setup_entry(
             entry.add_update_listener(_async_global_options_updated)
         )
 
+        # Initial orphan check for admin_panel_user_ids (HA users deleted
+        # while the integration was offline land here as repair issues).
+        await _check_admin_panel_user_orphans(hass, entry)
+
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
         # Maintenance object entry: create Store + coordinator
@@ -510,6 +515,60 @@ async def _async_global_options_updated(
         await async_register_panel(hass)
     else:
         await async_unregister_panel(hass)
+    await _check_admin_panel_user_orphans(hass, entry)
+
+
+_ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"
+
+
+async def _check_admin_panel_user_orphans(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Surface admin_panel_user_ids entries pointing at deleted HA users.
+
+    Each orphaned id becomes a fixable repair issue. The repair flow lets
+    the admin remove the entry from the list with one click. Issues for
+    ids that have been validated, removed from the list, or restored are
+    cleared automatically.
+    """
+    from homeassistant.helpers import issue_registry as ir
+
+    user_ids_raw = entry.options.get(CONF_ADMIN_PANEL_USER_IDS, []) or []
+    if not isinstance(user_ids_raw, list):
+        user_ids_raw = []
+    user_ids: set[str] = {u for u in user_ids_raw if isinstance(u, str)}
+    valid_ids = {u.id for u in await hass.auth.async_get_users()}
+
+    # 1) Drop any pre-existing orphan issue whose target id is no longer
+    #    in the list (admin removed it) OR is now valid (user re-created).
+    issue_reg = ir.async_get(hass)
+    stale_issue_ids = [
+        issue.issue_id
+        for issue in list(issue_reg.issues.values())
+        if (
+            issue.domain == DOMAIN
+            and issue.issue_id.startswith(_ORPHAN_ISSUE_PREFIX)
+        )
+    ]
+    for issue_id in stale_issue_ids:
+        target_uid = issue_id[len(_ORPHAN_ISSUE_PREFIX):]
+        if target_uid not in user_ids or target_uid in valid_ids:
+            ir.async_delete_issue(hass, DOMAIN, issue_id)
+
+    # 2) Create issues for ids in the list that no longer match a HA user.
+    for uid in user_ids:
+        if uid in valid_ids:
+            continue
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            f"{_ORPHAN_ISSUE_PREFIX}{uid}",
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="orphan_admin_panel_user",
+            translation_placeholders={"user_id": uid[:8]},
+            data={"user_id": uid, "entry_id": entry.entry_id},
+        )
 
 
 async def async_unload_entry(

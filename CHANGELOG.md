@@ -2,6 +2,41 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.0.44] - 2026-04-22
+
+### Added — Sort & Group-By for both views ([#35](https://github.com/iluebbe/maintenance_supporter/issues/35), [#36](https://github.com/iluebbe/maintenance_supporter/issues/36))
+- **Tasks view sort dropdown** gained three new modes: `Area`, `Assigned user`, `Group`. The existing `Due date / Object / Type / Task name` modes are unchanged. Selection persists in `localStorage`.
+- **Objects view sort dropdown** is new — `Alphabetical` (default), `Due soonest`, `Task count`. Replaces the previous fixed creation-order list.
+- **Group-by dropdown** on both views: `No grouping` (default), `By area`, `By group` (only when groups feature is on), `By user`. Tasks/objects collapse into per-section `<details>` blocks with icon + count, all open by default. Empty/unassigned items go into a dedicated trailing section.
+
+### Added — Overdue indicator on object cards ([#35](https://github.com/iluebbe/maintenance_supporter/issues/35))
+- Object cards in the Objects view now show a red dot in the top-right corner and a red left border when at least one of their tasks is overdue or triggered. Lets you scan a room/area and immediately see which appliances need attention.
+
+### Added — Quick object & task creation from any view ([#34](https://github.com/iluebbe/maintenance_supporter/issues/34))
+- The Objects view header now has its own `+ New Object` button — no more bouncing back to Overview to add a new appliance while you're already browsing the list.
+- The Tasks view header has a new `New Maintenance Task` button. The dialog auto-renders an Object dropdown when no parent is preset, so you can create a task without first navigating to the object's detail page. This collapses the previous 5-step "leave list → go to objects → create object → return → create task" flow into a single dialog.
+
+### Added — Operator mode + per-user panel access ([#33](https://github.com/iluebbe/maintenance_supporter/issues/33))
+- **Default behaviour:** non-admin Home Assistant users now see a read-only panel — the Settings tab, both `+ New Object` buttons, the `New Maintenance Task` button, the object detail Edit / Add Task / Delete buttons, and the per-task more-menu (Edit / Reset / Delete) are all hidden. Only the **Complete** and **Skip** buttons remain on each task. Admins (and the owner) always see the full panel.
+- **Per-user override:** admins can grant full panel access to specific non-admin users via a new **Panel Access** section in the Settings tab (and in the config flow's global options menu). The QR Code button stays available to everyone since it generates read-only links.
+- **Repair flow** for orphaned ids: if an admin-listed user is later deleted in Home Assistant, the integration surfaces a "Panel-access user no longer exists" repair issue with a one-click `Remove from list` action. Issues clear automatically when the offending id is removed by hand or the user is recreated.
+- Use case: in shared/family setups (e.g. the hotel-manager scenario from #33) the maintainer configures everything once, leaves the household as non-admin users (HA's Settings → People), and grants only the trusted helpers full edit access via Panel Access.
+- Frontend-only gating — the WS API still accepts write commands, so admins can edit via the config flow or scripts even from a non-admin device.
+
+### Fixed — Calendar coordinator crashed with timed events
+- After 1.0.41 introduced timed calendar events for tasks with `schedule_time`, the coordinator could fail to refresh whenever the event list mixed `date` (all-day) and `datetime` (timed) entries — `events.sort(key=lambda e: e.start)` raises `TypeError: '<' not supported between instances of 'datetime.date' and 'datetime.datetime'`. Normalise to a comparable datetime in the sort key.
+
+### Fixed — Status badge width pushed object-name column out of alignment
+- Each `.task-row` in the panel is its own CSS grid, so the `auto`-sized first track sized per row — meaning the narrow `OK` pill (~30px) and the wider `Overdue` pill (~70px) ended up shifting the object-name column by a few pixels per row. Added `min-width: 70px` + `justify-content: center` on `.status-badge` so all status pills are uniform width and the column lines up across rows.
+
+### Polish
+- TaskRow already carried `area_id`, `responsible_user_id`, and `group_names` since 1.0.42 — these new sort/group-by modes reuse those fields without any new server-side data plumbing.
+- 14 new i18n keys × 9 languages (126 strings total) for the new dropdown labels, group-by section headers, and "Has overdue tasks" / "Unassigned" / "No area" placeholders.
+
+### Added — 3 new languages: Polish, Czech, Swedish (panel UI)
+- **Polish (`pl`)**, **Czech (`cs`)**, and **Swedish (`sv`)** — full panel translations (338 keys × 3 languages = 1014 new strings) covering every label, dialog, menu option, error message, settings view, and feature description in the side panel. Auto-detected from HA's user language preference; falls back to English if a key is missing.
+- The HA config flow (the `Add Integration` setup wizard and `Configure` options menu under Settings → Devices & services) **continues to display in English** for Polish/Czech/Swedish users — Home Assistant's own translation framework falls back to `en.json` automatically when no language-specific file exists. Full config-flow translations for these three languages are planned for v1.0.45.
+
 ## [1.0.43] - 2026-04-22
 
 ### Fixed — Task-row columns now align across rows

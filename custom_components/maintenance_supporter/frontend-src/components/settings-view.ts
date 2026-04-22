@@ -2,12 +2,14 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { HomeAssistant, AdvancedFeatures, BudgetStatus } from "../types";
+import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
 import { t } from "../styles";
+import { UserService } from "../user-service";
 
 /* Settings response shape from WS maintenance_supporter/settings */
 interface SettingsResponse {
   features: AdvancedFeatures;
+  admin_panel_user_ids?: string[];
   general: {
     default_warning_days: number;
     notifications_enabled: boolean;
@@ -60,8 +62,10 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _includeHistory = true;
   @state() private _toast = "";
   @state() private _testingNotification = false;
+  @state() private _users: HAUser[] = [];
 
   private _loaded = false;
+  private _userService: UserService | null = null;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -71,7 +75,20 @@ export class MaintenanceSettingsView extends LitElement {
     super.updated(changedProps);
     if (changedProps.has("hass") && this.hass && !this._loaded) {
       this._loaded = true;
+      this._userService = new UserService(this.hass);
       this._loadSettings();
+      this._loadUsers();
+    } else if (changedProps.has("hass") && this.hass && this._userService) {
+      this._userService.updateHass(this.hass);
+    }
+  }
+
+  private async _loadUsers(): Promise<void> {
+    if (!this._userService) return;
+    try {
+      this._users = await this._userService.getUsers();
+    } catch {
+      this._users = [];
     }
   }
 
@@ -143,11 +160,45 @@ export class MaintenanceSettingsView extends LitElement {
 
     return html`
       ${this._renderFeatures(L)}
+      ${this._renderPanelAccess(L)}
       ${this._renderGeneral(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
       ${this._renderImportExport(L)}
       ${this._toast ? html`<div class="settings-toast">${this._toast}</div>` : nothing}
+    `;
+  }
+
+  // --- Section: Panel Access (1.0.44+) ---
+
+  private _renderPanelAccess(L: string) {
+    const selected = new Set(this._settings!.admin_panel_user_ids || []);
+    const nonAdmins = this._users.filter((u) => !u.is_admin);
+
+    const toggle = (uid: string, on: boolean): void => {
+      const next = new Set(selected);
+      if (on) next.add(uid); else next.delete(uid);
+      this._updateSetting("admin_panel_user_ids", [...next]);
+    };
+
+    return html`
+      <div class="settings-section">
+        <h3>${t("settings_panel_access", L)} ${selected.size > 0 ? html`<span class="section-badge">${selected.size}</span>` : nothing}</h3>
+        <p class="section-desc">${t("settings_panel_access_desc", L)}</p>
+        ${nonAdmins.length === 0
+          ? html`<div class="setting-row hint">${t("no_non_admin_users", L)}</div>`
+          : nonAdmins.map((u) => html`
+            <label class="setting-row">
+              <span>
+                <span class="setting-label">${u.name || u.id.slice(0, 8)}</span>
+                <span class="setting-desc">${u.is_owner ? t("owner_label", L) : ""}</span>
+              </span>
+              <input type="checkbox"
+                .checked=${selected.has(u.id)}
+                @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
+            </label>
+          `)}
+      </div>
     `;
   }
 

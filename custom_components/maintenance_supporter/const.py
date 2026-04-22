@@ -73,6 +73,10 @@ CONF_ADVANCED_GROUPS = "advanced_groups_visible"
 CONF_ADVANCED_CHECKLISTS = "advanced_checklists_visible"
 CONF_ADVANCED_SCHEDULE_TIME = "advanced_schedule_time_visible"
 
+# Panel-access overrides: HA user IDs who get the full admin panel despite
+# not being HA admins. Empty list means only admins see the full panel.
+CONF_ADMIN_PANEL_USER_IDS = "admin_panel_user_ids"
+
 # --- Config Keys: Notification Per-Status ---
 CONF_NOTIFY_DUE_SOON_ENABLED = "notify_due_soon_enabled"
 CONF_NOTIFY_DUE_SOON_INTERVAL = "notify_due_soon_interval_hours"

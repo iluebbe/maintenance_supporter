@@ -421,6 +421,7 @@
         "menu_options": {
           "general_settings": "General Settings",
           "advanced_features": "Advanced Features",
+          "panel_access": "Panel Access",
           "budget_settings": "Budget Settings",
           "manage_groups": "Manage Groups",
           "notification_settings": "Notification Settings",
@@ -451,6 +452,16 @@
           "advanced_groups_visible": "Show maintenance group management.",
           "advanced_checklists_visible": "Show task checklists for step-by-step completion.",
           "advanced_schedule_time_visible": "Allow tasks to become overdue at a specific time of day instead of midnight."
+        }
+      },
+      "panel_access": {
+        "title": "Panel Access",
+        "description": "Select non-admin Home Assistant users who should also see the full Maintenance Supporter panel (create / edit / delete actions). Admins always see the full panel. Found {user_count} non-admin user(s).",
+        "data": {
+          "admin_panel_user_ids": "Users with full panel access"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Listed users see the full panel; everyone else sees only Complete and Skip on each task."
         }
       },
       "general_settings": {
@@ -1335,6 +1346,21 @@
           "remove_trigger": {
             "title": "Remove sensor trigger",
             "description": "This will remove the sensor trigger from task \"{task_name}\" on \"{object_name}\" and convert the schedule to time-based or manual. The maintenance history will be preserved.\n\nPrevious trigger entity: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Panel-access user no longer exists",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Orphaned user in panel-access list",
+            "description": "User `{user_id}…` is in the Maintenance Supporter panel-access list but no longer exists in Home Assistant. Probably the user was deleted.\n\nChoose how to resolve this:",
+            "menu_options": {
+              "remove_user_id": "Remove from panel-access list",
+              "dismiss": "Dismiss"
+            }
           }
         }
       }
