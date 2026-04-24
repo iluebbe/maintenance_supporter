@@ -27,7 +27,7 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
-## [1.0.52] - 2026-04-24
+## [1.0.53] - 2026-04-24
 
 ### Fixed — Task/object pickers now sort alphabetically ([#40](https://github.com/iluebbe/maintenance_supporter/issues/40))
 
