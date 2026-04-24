@@ -426,6 +426,14 @@ class NotificationManager:
             _LOGGER.debug("Skipping notification during quiet hours")
             return
 
+        # Vacation mode (v1.2.0): suppress unless task is on the exempt list.
+        # Sensor-triggered notifications use the same path so they're covered.
+        from .vacation import get_vacation_state
+
+        if get_vacation_state(self.hass).is_silent_for(task_id):
+            _LOGGER.debug("Skipping notification — vacation mode active for %s", task_id)
+            return
+
         # Rate limiting / interval
         key = f"{entry_id}_{task_id}_{new_status}"
 

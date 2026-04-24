@@ -45,6 +45,26 @@ interface SettingsResponse {
     currency: string;
     currency_symbol: string;
   };
+  vacation: {
+    enabled: boolean;
+    start: string | null;
+    end: string | null;
+    buffer_days: number;
+    exempt_task_ids: string[];
+    is_active: boolean;
+    window_end: string | null;
+  };
+}
+
+interface VacationPreviewRow {
+  task_id: string;
+  entry_id: string;
+  object_name: string;
+  task_name: string;
+  kind: "time_based" | "sensor_based";
+  confidence: "deterministic" | "estimated" | "unpredictable";
+  events: Array<{ date: string; status: "due_soon" | "overdue" | "triggered_est" }>;
+  will_suppress: boolean;
 }
 
 const CURRENCIES = [
@@ -64,6 +84,19 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _toast = "";
   @state() private _testingNotification = false;
   @state() private _users: HAUser[] = [];
+
+  // Vacation mode section state (v1.2.0)
+  @state() private _vacEnabled = false;
+  @state() private _vacStart = "";
+  @state() private _vacEnd = "";
+  @state() private _vacBuffer = 3;
+  @state() private _vacExempt = new Set<string>();
+  @state() private _vacIsActive = false;
+  @state() private _vacWindowEnd: string | null = null;
+  @state() private _vacAllTasks: Array<{ entry_id: string; object_name: string; task_id: string; task_name: string }> = [];
+  @state() private _vacPreview: VacationPreviewRow[] = [];
+  @state() private _vacPreviewLoading = false;
+  @state() private _vacSaving = false;
 
   // Print QR codes section state
   @state() private _qrObjects: Array<{ entry_id: string; name: string; task_count: number }> = [];
@@ -113,10 +146,23 @@ export class MaintenanceSettingsView extends LitElement {
         type: "maintenance_supporter/settings",
       });
       this._settings = result as SettingsResponse;
+      this._hydrateVacationFromSettings();
     } catch {
       /* ignore */
     }
     this._loading = false;
+  }
+
+  private _hydrateVacationFromSettings(): void {
+    const v = this._settings?.vacation;
+    if (!v) return;
+    this._vacEnabled = v.enabled;
+    this._vacStart = v.start || "";
+    this._vacEnd = v.end || "";
+    this._vacBuffer = v.buffer_days;
+    this._vacExempt = new Set(v.exempt_task_ids || []);
+    this._vacIsActive = v.is_active;
+    this._vacWindowEnd = v.window_end;
   }
 
   private async _updateSetting(key: string, value: unknown): Promise<void> {
@@ -178,6 +224,7 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderGeneral(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
+      ${this._renderVacation(L)}
       ${this._renderPrintQr(L)}
       ${this._renderImportExport(L)}
       ${this._toast ? html`<div class="settings-toast">${this._toast}</div>` : nothing}
@@ -452,6 +499,284 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   // --- Section: Import/Export ---
+
+  // --- Section: Vacation mode (v1.2.0) ---
+
+  private _renderVacation(L: string) {
+    const isStale = this._vacEnabled && !this._vacIsActive && this._vacWindowEnd
+      && new Date(this._vacWindowEnd) < new Date();
+    const exemptCount = this._vacExempt.size;
+    return html`
+      <div class="settings-section vacation-section">
+        <h3>
+          ${t("vacation_title", L)}
+          ${this._vacIsActive
+            ? html`<span class="vac-badge active">${t("vacation_active", L)}</span>`
+            : nothing}
+          ${isStale
+            ? html`<span class="vac-badge stale">${t("vacation_ended", L)}</span>`
+            : nothing}
+        </h3>
+        <p class="section-desc">${t("vacation_desc", L)}</p>
+
+        <label class="vac-toggle">
+          <input type="checkbox" .checked=${this._vacEnabled}
+            @change=${(e: Event) => this._toggleVacationEnabled((e.target as HTMLInputElement).checked)} />
+          ${t("vacation_enable", L)}
+        </label>
+
+        <div class="vac-grid">
+          <label class="vac-field">
+            <span class="filter-label">${t("vacation_start", L)}</span>
+            <input type="date" .value=${this._vacStart}
+              @change=${(e: Event) => this._setVacationDate("start", (e.target as HTMLInputElement).value)} />
+          </label>
+          <label class="vac-field">
+            <span class="filter-label">${t("vacation_end", L)}</span>
+            <input type="date" .value=${this._vacEnd}
+              @change=${(e: Event) => this._setVacationDate("end", (e.target as HTMLInputElement).value)} />
+          </label>
+          <label class="vac-field">
+            <span class="filter-label">${t("vacation_buffer", L)}</span>
+            <input type="number" min="0" max="14" .value=${String(this._vacBuffer)}
+              @change=${(e: Event) => this._setVacationBuffer(parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+          </label>
+        </div>
+
+        <details class="vac-exempt-panel">
+          <summary>
+            ${t("vacation_exempt_title", L)}
+            ${exemptCount > 0 ? html`<span class="section-badge">${exemptCount}</span>` : nothing}
+          </summary>
+          <p class="section-desc">${t("vacation_exempt_desc", L)}</p>
+          ${this._vacAllTasks.length === 0
+            ? html`<button @click=${this._loadAllTasksForVacation}>${t("vacation_load_tasks", L)}</button>`
+            : html`
+              <div class="vac-task-list">
+                ${this._renderVacationTaskList(L)}
+              </div>
+            `}
+        </details>
+
+        ${this._vacStart && this._vacEnd ? html`
+          <div class="vac-preview-toolbar">
+            <button @click=${this._loadVacationPreview} ?disabled=${this._vacPreviewLoading}>
+              ${this._vacPreviewLoading ? "…" : t("vacation_preview_btn", L)}
+            </button>
+            ${this._vacPreview.length > 0
+              ? html`<span class="vac-preview-count">${this._vacPreview.length} ${t("vacation_preview_affected", L)}</span>`
+              : nothing}
+          </div>
+          ${this._vacPreview.length > 0 ? this._renderVacationPreview(L) : nothing}
+        ` : nothing}
+
+        ${this._vacIsActive || isStale
+          ? html`<button class="vac-end-now" @click=${this._endVacationNow}>
+              ${t("vacation_end_now", L)}
+            </button>`
+          : nothing}
+      </div>
+    `;
+  }
+
+  private _renderVacationTaskList(L: string) {
+    // Group by object_name; within each object sort by task_name (alphabetical, #40-style)
+    const byObj = new Map<string, typeof this._vacAllTasks>();
+    for (const t of this._vacAllTasks) {
+      const arr = byObj.get(t.object_name) || [];
+      arr.push(t);
+      byObj.set(t.object_name, arr);
+    }
+    const sortedObjs = [...byObj.entries()]
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    return sortedObjs.map(([objName, tasks]) => html`
+      <div class="vac-task-group">
+        <div class="vac-task-group-name">${objName || t("no_objects", L)}</div>
+        ${tasks
+          .sort((a, b) => a.task_name.localeCompare(b.task_name))
+          .map((task) => html`
+            <label class="vac-task-row">
+              <input type="checkbox"
+                .checked=${this._vacExempt.has(task.task_id)}
+                @change=${(e: Event) => this._toggleVacationExempt(task.task_id, (e.target as HTMLInputElement).checked)} />
+              <span>${task.task_name}</span>
+            </label>
+          `)}
+      </div>
+    `);
+  }
+
+  private _renderVacationPreview(L: string) {
+    return html`
+      <div class="vac-preview-list">
+        ${this._vacPreview.map((row) => {
+          const eventLabel = row.events.map((e) => {
+            const statusKey = `vacation_event_${e.status}`;
+            return `${e.date} (${t(statusKey, L)})`;
+          }).join(" · ");
+          const isExempt = !row.will_suppress;
+          return html`
+            <div class="vac-preview-row ${isExempt ? "exempt" : ""}">
+              <div class="vac-preview-info">
+                <div class="vac-preview-name">
+                  <strong>${row.object_name}</strong> · ${row.task_name}
+                  ${row.kind === "sensor_based"
+                    ? html`<span class="vac-preview-kind">${t("vacation_sensor_based", L)}</span>`
+                    : nothing}
+                </div>
+                <div class="vac-preview-events">${eventLabel}</div>
+              </div>
+              <div class="vac-preview-actions">
+                <button @click=${() => this._previewActionComplete(row)}>${t("qr_action_complete", L)}</button>
+                ${row.kind === "time_based"
+                  ? html`<button @click=${() => this._previewActionSkip(row)}>${t("qr_action_skip", L)}</button>`
+                  : nothing}
+                <button class=${isExempt ? "vac-notify-on" : ""}
+                  @click=${() => this._toggleVacationExempt(row.task_id, !isExempt)}>
+                  ${isExempt ? t("vacation_action_unsilence", L) : t("vacation_action_notify", L)}
+                </button>
+              </div>
+            </div>
+          `;
+        })}
+      </div>
+    `;
+  }
+
+  // --- Vacation actions ---
+
+  private async _loadAllTasksForVacation(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/objects",
+      }) as { objects: Array<{
+        entry_id: string;
+        object: { name: string };
+        tasks: Array<{ id: string; name: string }>;
+      }> };
+      const flat: typeof this._vacAllTasks = [];
+      for (const obj of result.objects || []) {
+        for (const t of obj.tasks || []) {
+          flat.push({
+            entry_id: obj.entry_id,
+            object_name: obj.object.name || "",
+            task_id: t.id,
+            task_name: t.name || "",
+          });
+        }
+      }
+      this._vacAllTasks = flat;
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private async _saveVacation(patch: Record<string, unknown>): Promise<void> {
+    if (this._vacSaving) return;
+    this._vacSaving = true;
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/vacation/update",
+        ...patch,
+      }) as SettingsResponse["vacation"];
+      // Server is the source of truth — re-hydrate from response.
+      this._vacEnabled = result.enabled;
+      this._vacStart = result.start || "";
+      this._vacEnd = result.end || "";
+      this._vacBuffer = result.buffer_days;
+      this._vacExempt = new Set(result.exempt_task_ids || []);
+      this._vacIsActive = result.is_active;
+      this._vacWindowEnd = result.window_end;
+      // Notify the panel (so the Vacation tab can appear/disappear)
+      this.dispatchEvent(new CustomEvent("settings-changed"));
+    } catch (e: unknown) {
+      const msg = (e as { message?: string })?.message || t("action_error", this._lang);
+      this._showToast(msg);
+    } finally {
+      this._vacSaving = false;
+    }
+  }
+
+  private _toggleVacationEnabled(on: boolean): void {
+    this._saveVacation({ enabled: on });
+  }
+
+  private _setVacationDate(which: "start" | "end", value: string): void {
+    const patch: Record<string, unknown> = {};
+    patch[which] = value || null;
+    this._saveVacation(patch);
+  }
+
+  private _setVacationBuffer(value: number): void {
+    if (value < 0 || value > 14) return;
+    this._saveVacation({ buffer_days: value });
+  }
+
+  private _toggleVacationExempt(taskId: string, on: boolean): void {
+    const next = new Set(this._vacExempt);
+    if (on) next.add(taskId); else next.delete(taskId);
+    this._saveVacation({ exempt_task_ids: [...next] });
+  }
+
+  private async _loadVacationPreview(): Promise<void> {
+    this._vacPreviewLoading = true;
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/vacation/preview",
+      }) as { rows: VacationPreviewRow[] };
+      this._vacPreview = result.rows || [];
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._vacPreviewLoading = false;
+    }
+  }
+
+  private async _previewActionComplete(row: VacationPreviewRow): Promise<void> {
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/complete",
+        entry_id: row.entry_id,
+        task_id: row.task_id,
+      });
+      this._showToast(t("vacation_marked_complete", this._lang));
+      await this._loadVacationPreview();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private async _previewActionSkip(row: VacationPreviewRow): Promise<void> {
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/skip",
+        entry_id: row.entry_id,
+        task_id: row.task_id,
+        reason: "Skipped before vacation",
+      });
+      this._showToast(t("vacation_marked_skip", this._lang));
+      await this._loadVacationPreview();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private async _endVacationNow(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/vacation/end_now",
+      }) as SettingsResponse["vacation"];
+      this._vacEnabled = result.enabled;
+      this._vacEnd = result.end || "";
+      this._vacIsActive = result.is_active;
+      this._vacWindowEnd = result.window_end;
+      this.dispatchEvent(new CustomEvent("settings-changed"));
+      this._showToast(t("vacation_ended", this._lang));
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
 
   // --- Section: Print QR codes (v1.1.0) ---
 
@@ -835,6 +1160,155 @@ export class MaintenanceSettingsView extends LitElement {
     @keyframes toast-in {
       from { opacity: 0; transform: translateX(-50%) translateY(16px); }
       to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* ─── Vacation mode section (v1.2.0) ─── */
+
+    .vacation-section h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vac-badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .vac-badge.active {
+      background: var(--success-color, #4caf50);
+      color: #fff;
+    }
+    .vac-badge.stale {
+      background: var(--warning-color, #ff9800);
+      color: #fff;
+    }
+    .vac-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      margin: 8px 0 12px;
+    }
+    .vac-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .vac-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .vac-field input {
+      padding: 6px 8px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+    }
+    .vac-exempt-panel {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 10px;
+      margin: 12px 0;
+    }
+    .vac-exempt-panel summary {
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-badge {
+      background: var(--primary-color, #03a9f4);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 10px;
+    }
+    .vac-task-list {
+      max-height: 280px;
+      overflow-y: auto;
+      margin-top: 8px;
+    }
+    .vac-task-group {
+      margin: 8px 0;
+    }
+    .vac-task-group-name {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--secondary-text-color);
+      padding: 4px 0;
+    }
+    .vac-task-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .vac-task-row:hover { background: var(--secondary-background-color, rgba(127,127,127,0.1)); }
+    .vac-preview-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 12px 0 8px;
+    }
+    .vac-preview-count {
+      color: var(--secondary-text-color);
+      font-size: 13px;
+    }
+    .vac-preview-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .vac-preview-row {
+      display: flex;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--secondary-background-color, rgba(127,127,127,0.08));
+      border-radius: 6px;
+      border-left: 3px solid var(--warning-color, #ff9800);
+    }
+    .vac-preview-row.exempt {
+      border-left-color: var(--success-color, #4caf50);
+    }
+    .vac-preview-info { flex: 1; }
+    .vac-preview-name { font-size: 14px; }
+    .vac-preview-kind {
+      font-size: 11px;
+      color: var(--secondary-text-color);
+      margin-left: 6px;
+    }
+    .vac-preview-events {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      margin-top: 2px;
+    }
+    .vac-preview-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .vac-preview-actions button {
+      font-size: 12px;
+      padding: 4px 10px;
+    }
+    .vac-notify-on { background: var(--success-color, #4caf50) !important; color: #fff; }
+    .vac-end-now {
+      margin-top: 12px;
+      background: var(--error-color, #f44336);
+      color: #fff;
     }
 
     /* ─── Print QR codes section (v1.1.0) ─── */

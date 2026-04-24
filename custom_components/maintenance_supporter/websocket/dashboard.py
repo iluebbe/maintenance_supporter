@@ -161,6 +161,55 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
                 options.get(CONF_BUDGET_CURRENCY, "EUR"), "€"
             ),
         },
+        # Vacation mode (v1.2.0). Mirror the active flag so the panel can
+        # decide whether to show the Vacation tab without a separate WS call.
+        "vacation": _vacation_summary(options),
+    }
+
+
+def _vacation_summary(options: Mapping[str, Any]) -> dict[str, Any]:
+    """Embed-friendly slice of vacation state for the /settings response."""
+    from datetime import date, timedelta
+
+    from ..const import (
+        CONF_VACATION_BUFFER_DAYS,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_END,
+        CONF_VACATION_EXEMPT_TASK_IDS,
+        CONF_VACATION_START,
+        DEFAULT_VACATION_BUFFER_DAYS,
+    )
+
+    def _parse(s: Any) -> date | None:
+        if not s or not isinstance(s, str):
+            return None
+        try:
+            return date.fromisoformat(s)
+        except (TypeError, ValueError):
+            return None
+
+    enabled = bool(options.get(CONF_VACATION_ENABLED, False))
+    start = _parse(options.get(CONF_VACATION_START))
+    end = _parse(options.get(CONF_VACATION_END))
+    buffer_days = int(options.get(CONF_VACATION_BUFFER_DAYS, DEFAULT_VACATION_BUFFER_DAYS))
+    window_end = end + timedelta(days=max(0, buffer_days)) if end else None
+    today = date.today()
+    is_active = (
+        enabled
+        and start is not None
+        and end is not None
+        and start <= today <= (window_end or end)
+    )
+    raw_exempt = options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+    exempt = [x for x in raw_exempt if isinstance(x, str) and x.strip()]
+    return {
+        "enabled": enabled,
+        "start": start.isoformat() if start else None,
+        "end": end.isoformat() if end else None,
+        "buffer_days": buffer_days,
+        "exempt_task_ids": sorted(set(exempt)),
+        "is_active": is_active,
+        "window_end": window_end.isoformat() if window_end else None,
     }
 
 

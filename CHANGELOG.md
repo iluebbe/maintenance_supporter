@@ -27,6 +27,51 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
+## [1.2.0] - 2026-04-24
+
+### Added — Vacation mode
+
+A new **"Vacation mode"** section in Settings lets users plan a vacation, suppress non-critical maintenance notifications during the period plus a buffer, and review which tasks will be affected — with one-click actions to handle them before leaving.
+
+**Workflow:**
+
+1. **Plan** — toggle on, pick start + end dates, set buffer days (default 3, range 0–14). Buffer covers the "I just got back, please don't fire alerts on my arrival day" decompression window.
+2. **Exempt critical tasks** — pick from the full task list (alphabetical by object → task) which tasks should still notify during the vacation. Persistent across vacations: re-used the next time you enable the mode. Use case: pool chemistry that the neighbour checks regardless.
+3. **Preview impact** — projects which tasks will hit `DUE_SOON`, `OVERDUE`, or (for sensor-triggered tasks) become possible-to-fire during `[start, end + buffer]`. Per-row actions:
+   - **Complete** — stamps `last_performed = today` (uses the existing complete endpoint), task moves out of the vacation window naturally.
+   - **Skip** — skips the cycle (time-based only).
+   - **Notify anyway** — adds the task to the exempt list inline, no need to scroll back up.
+   Preview re-fetches automatically after each action.
+4. **End vacation now** — disables the mode immediately and clamps `end` to today (so the historical record reflects when you actually returned). Date config is preserved for next time.
+
+**Notification suppression:**
+
+- Hooks into `notification_manager` after the existing quiet-hours check. Single-line addition; everything that already worked still does.
+- Sensor-triggered notifications (threshold/counter/state-change/runtime/compound) follow the same path → automatically covered. Pool-alert-at-the-beach is prevented.
+- Suppression is *active* iff `enabled && start ≤ today ≤ end + buffer && task not in exempt list`.
+- When the window ends, `is_active` returns `False` automatically — no scheduled-task wiring needed. UI shows an "ended" badge prompting the user to disable.
+
+**Backend:**
+- New `helpers/vacation.py` with `VacationState` dataclass + `get_vacation_state(hass)` + `compute_preview(state, tasks)`. Frozen dataclass so the suppression check can't race with config updates mid-decision.
+- 4 new WS endpoints: `vacation/state`, `vacation/update` (admin-only, partial patches), `vacation/preview`, `vacation/end_now` (admin-only).
+- Schema validation: dates as `YYYY-MM-DD`, buffer 0..14, exempt list capped at 2000 IDs with whitespace-strip + dedup.
+- `_build_full_settings` includes a `vacation` block so the panel can show the active badge / Vacation tab without an extra WS round-trip.
+
+**Frontend:**
+- Settings section with toggle, date pickers, buffer input, exempt-task list (loaded on demand), preview button, per-row action buttons, end-now button, status badges (active / ended).
+- 22 new i18n keys × 12 languages (264 strings). Audit: 392 keys in sync.
+- Reuses existing `qr_action_complete` / `qr_action_skip` translations for the per-row Complete / Skip buttons rather than introducing duplicates.
+
+**Tests:**
+- 9 new roundtrip tests in `test_ws_roundtrip.py`: state default, full update + read-back, end-vs-start rejection, partial update preserves fields, is_active flips inside the window, end_now clamps, preview lists time-based tasks correctly, exempt task marked `will_suppress=False`, sensor-based tasks always appear with `unpredictable` confidence.
+
+**1,544 unit tests pass** (was 1,535); ruff ✓ · mypy strict ✓ across 55 source files.
+
+**Out of scope** for this release (deferred):
+- Multiple scheduled vacations
+- Historical log
+- HA-Calendar integration of vacation periods
+
 ## [1.1.1] - 2026-04-24
 
 ### Tests — WS roundtrip coverage for qr/batch_generate

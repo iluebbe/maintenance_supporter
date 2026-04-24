@@ -20,6 +20,7 @@ suites cover specific reported issues end-to-end.
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -48,6 +49,12 @@ from custom_components.maintenance_supporter.websocket.tasks import (
     ws_reset_task,
     ws_skip_task,
     ws_update_task,
+)
+from custom_components.maintenance_supporter.websocket.vacation import (
+    ws_vacation_end_now,
+    ws_vacation_preview,
+    ws_vacation_state,
+    ws_vacation_update,
 )
 
 from .conftest import (
@@ -1136,3 +1143,259 @@ async def test_batch_qr_empty_result_when_no_tasks(
     result = _result_payload(conn)
     assert result["total"] == 0
     assert result["qrs"] == []
+
+
+# ─── Module L: Vacation mode (v1.2.0) ───────────────────────────────────
+
+
+async def _vac_call(
+    hass: HomeAssistant, handler, payload: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    conn = _conn()
+    msg = {"id": 1, "type": f"maintenance_supporter/vacation/{handler.__name__.removeprefix('ws_vacation_')}"}
+    if payload:
+        msg.update(payload)
+    await call_ws_handler(handler, hass, conn, msg)
+    return _result_payload(conn)
+
+
+async def test_vacation_state_default_disabled(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Fresh global entry returns enabled=False, no dates, default buffer."""
+    await setup_integration(hass, global_entry)
+    state = await _vac_call(hass, ws_vacation_state)
+    assert state["enabled"] is False
+    assert state["start"] is None
+    assert state["end"] is None
+    assert state["buffer_days"] == 3
+    assert state["exempt_task_ids"] == []
+    assert state["is_active"] is False
+
+
+async def test_vacation_update_round_trips_full_state(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Patch enabled+dates+buffer+exempt; read back identical."""
+    await setup_integration(hass, global_entry)
+    result = await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": "2099-06-10",
+            "end": "2099-06-20",
+            "buffer_days": 5,
+            "exempt_task_ids": ["abc123", "  def456  ", "abc123"],  # whitespace + dup
+        },
+    )
+    assert result["enabled"] is True
+    assert result["start"] == "2099-06-10"
+    assert result["end"] == "2099-06-20"
+    assert result["buffer_days"] == 5
+    # Whitespace stripped, duplicate removed, sorted.
+    assert result["exempt_task_ids"] == ["abc123", "def456"]
+    # Future dates → not active today.
+    assert result["is_active"] is False
+    assert result["window_end"] == "2099-06-25"
+
+
+async def test_vacation_update_rejects_end_before_start(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """end < start returns invalid_range error."""
+    await setup_integration(hass, global_entry)
+    conn = _conn()
+    await call_ws_handler(
+        ws_vacation_update,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/vacation/update",
+            "start": "2099-06-20",
+            "end": "2099-06-10",
+        },
+    )
+    assert conn.send_error.call_count == 1
+    assert conn.send_error.call_args[0][1] == "invalid_range"
+
+
+async def test_vacation_partial_update_preserves_unrelated_fields(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Patching only buffer keeps dates and exempt list intact."""
+    await setup_integration(hass, global_entry)
+    await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": "2099-06-10",
+            "end": "2099-06-20",
+            "buffer_days": 3,
+            "exempt_task_ids": ["x"],
+        },
+    )
+    result = await _vac_call(hass, ws_vacation_update, {"buffer_days": 7})
+    assert result["buffer_days"] == 7
+    assert result["start"] == "2099-06-10"
+    assert result["end"] == "2099-06-20"
+    assert result["exempt_task_ids"] == ["x"]
+
+
+async def test_vacation_is_active_inside_window(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """A window that contains today flips is_active to True."""
+    await setup_integration(hass, global_entry)
+    today = date.today()
+    state = await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": (today - timedelta(days=1)).isoformat(),
+            "end": (today + timedelta(days=2)).isoformat(),
+            "buffer_days": 0,
+        },
+    )
+    assert state["is_active"] is True
+
+
+async def test_vacation_end_now_disables_and_clamps_end(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """end_now sets enabled=False and clamps end to today (history record)."""
+    await setup_integration(hass, global_entry)
+    today = date.today()
+    await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": (today - timedelta(days=2)).isoformat(),
+            "end": (today + timedelta(days=10)).isoformat(),
+        },
+    )
+    result = await _vac_call(hass, ws_vacation_end_now)
+    assert result["enabled"] is False
+    assert result["end"] == today.isoformat()
+
+
+async def test_vacation_preview_lists_time_based_tasks_in_window(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Time-based task whose next_due falls in the window appears with overdue event."""
+    await setup_integration(hass, global_entry, object_entry)
+    today = date.today()
+
+    # Task created today with interval 5 → next_due = today + 5
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Pool chemistry",
+            "schedule_type": "time_based",
+            "interval_days": 5,
+            "warning_days": 1,
+        },
+    )
+    # Vacation [today, today+10] covers next_due
+    await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": today.isoformat(),
+            "end": (today + timedelta(days=10)).isoformat(),
+            "buffer_days": 0,
+        },
+    )
+    result = await _vac_call(hass, ws_vacation_preview)
+    rows = result["rows"]
+    matching = [r for r in rows if r["task_id"] == task_id]
+    assert len(matching) == 1
+    row = matching[0]
+    assert row["kind"] == "time_based"
+    assert row["confidence"] == "deterministic"
+    statuses = [e["status"] for e in row["events"]]
+    assert "overdue" in statuses
+    # Not in exempt list → will_suppress True
+    assert row["will_suppress"] is True
+
+
+async def test_vacation_preview_marks_exempt_task_as_will_not_suppress(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Exempt task has will_suppress=False in preview output."""
+    await setup_integration(hass, global_entry, object_entry)
+    today = date.today()
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Critical pool task",
+            "schedule_type": "time_based",
+            "interval_days": 3,
+        },
+    )
+    await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": today.isoformat(),
+            "end": (today + timedelta(days=10)).isoformat(),
+            "exempt_task_ids": [task_id],
+        },
+    )
+    result = await _vac_call(hass, ws_vacation_preview)
+    matching = [r for r in result["rows"] if r["task_id"] == task_id]
+    assert len(matching) == 1
+    assert matching[0]["will_suppress"] is False
+
+
+async def test_vacation_preview_includes_sensor_tasks_as_unpredictable(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Sensor-based tasks always appear in preview with unpredictable confidence."""
+    await setup_integration(hass, global_entry, object_entry)
+    today = date.today()
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "HVAC filter (sensor)",
+            "schedule_type": "sensor_based",
+            "trigger_config": {
+                "type": "threshold",
+                "entity_id": "sensor.hvac_airflow",
+                "trigger_below": 60,
+            },
+        },
+    )
+    await _vac_call(
+        hass,
+        ws_vacation_update,
+        {
+            "enabled": True,
+            "start": today.isoformat(),
+            "end": (today + timedelta(days=7)).isoformat(),
+        },
+    )
+    result = await _vac_call(hass, ws_vacation_preview)
+    matching = [r for r in result["rows"] if r["task_id"] == task_id]
+    assert len(matching) == 1
+    row = matching[0]
+    assert row["kind"] == "sensor_based"
+    assert row["confidence"] == "unpredictable"
+    assert row["events"][0]["status"] == "triggered_est"
