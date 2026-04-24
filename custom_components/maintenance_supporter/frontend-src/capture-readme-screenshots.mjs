@@ -341,6 +341,19 @@ try {
   }).then(r => console.log("  calendar checkbox:", r));
   await page.waitForTimeout(3000);
 } catch (e) { console.log("  calendar checkbox error:", e.message); }
+
+// Advance the calendar by one month — with a freshly-seeded demo setup most
+// tasks' next_due dates are 30-90 days out, so the default "current month"
+// view typically renders empty. Attempt a pixel-click on the "Next" chevron
+// in HA's calendar toolbar (approx. (650, 85) at 1280×900); fall through
+// quietly if the click misses.  If the resulting screenshot lands in an
+// empty month, prefer keeping the previously committed calendar.png over
+// overwriting it — `git checkout HEAD -- docs/images/calendar.png`.
+try {
+  await page.mouse.click(650, 85);
+  await page.waitForTimeout(2500);
+} catch (e) { console.log("  calendar next-month error:", e.message); }
+
 await shot(page, "calendar.png");
 
 // 10. Sensor attributes — Developer Tools States filtered to show one entity with all attributes
