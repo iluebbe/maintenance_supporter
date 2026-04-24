@@ -27,6 +27,17 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
+## [1.0.52] - 2026-04-24
+
+### Fixed — Task/object pickers now sort alphabetically ([#40](https://github.com/iluebbe/maintenance_supporter/issues/40))
+
+Two dropdowns previously rendered their entries in the integration's internal creation order, forcing the user to scan a shuffled list to find a target:
+
+- **Group dialog — task selection list**: objects (top-level section headers) and the tasks within each object are now sorted `A → Z` by `localeCompare`. Previously the order reflected config-entry creation, which on a large household (Philippe's 50-task setup) quickly stopped being navigable.
+- **Task-create dialog — object picker dropdown**: the dropdown shown when clicking `+ New Maintenance Task` from the Tasks view (added in v1.0.44) now lists objects `A → Z`. The default selection is the first object after sort, so a save without explicit user action still works.
+
+Pure frontend sort — no WS round-trip change, no i18n impact. Stable under locale (uses `localeCompare`, so German umlauts and accented characters sort sensibly per the user's browser locale).
+
 ## [1.0.51] - 2026-04-22
 
 ### Polish bundle — closes user-reported UX papercuts
