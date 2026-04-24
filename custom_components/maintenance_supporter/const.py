@@ -77,6 +77,17 @@ CONF_ADVANCED_SCHEDULE_TIME = "advanced_schedule_time_visible"
 # not being HA admins. Empty list means only admins see the full panel.
 CONF_ADMIN_PANEL_USER_IDS = "admin_panel_user_ids"
 
+# --- Vacation mode (v1.2.0) ---
+# When active, suppresses notifications for non-exempt tasks across the
+# vacation window plus an N-day buffer (so a task that comes due the day
+# of return doesn't immediately fire).
+CONF_VACATION_ENABLED = "vacation_enabled"
+CONF_VACATION_START = "vacation_start"           # ISO date "YYYY-MM-DD"
+CONF_VACATION_END = "vacation_end"               # ISO date
+CONF_VACATION_BUFFER_DAYS = "vacation_buffer_days"
+CONF_VACATION_EXEMPT_TASK_IDS = "vacation_exempt_task_ids"
+DEFAULT_VACATION_BUFFER_DAYS = 3
+
 # --- Config Keys: Notification Per-Status ---
 CONF_NOTIFY_DUE_SOON_ENABLED = "notify_due_soon_enabled"
 CONF_NOTIFY_DUE_SOON_INTERVAL = "notify_due_soon_interval_hours"
