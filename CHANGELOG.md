@@ -27,6 +27,31 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
+## [1.1.0] - 2026-04-24
+
+### Added — Print QR codes for physical equipment
+
+New **"Print QR codes"** section in Settings. Generates a printable page of multiple QR codes at once — one per (task × action) — that users can cut out and stick on their equipment (filter kit in the basement, pool pump room, 3D printer in the office). Scanning a code jumps to the task in the panel, or marks it complete / skipped, depending on the action.
+
+**Features:**
+- **Object filter** — pick any subset of objects to generate for (or leave empty = all). Objects listed alphabetically.
+- **Action multi-select** — chip row for `View` / `Complete` / `Skip`. Default: `View` only.
+- **Link-type chooser** — Companion App deep-link (default, most persistent), Local mDNS, or Server URL. Same three modes as the existing per-task QR dialog.
+- **Live estimate** — shows the projected QR count before generating, with a hard cap at 200 per batch to keep payloads sane (~6 MB at the cap). Narrow the filter if you hit the limit.
+- **Print layout** — CSS grid with a dedicated `@media print` stylesheet: 3-column A4 layout, ~48mm QR size, page-break-inside protection so a QR never splits across pages. The rest of the panel UI is hidden during print via `display: none`.
+- **Browser-native print** — click `Print` to open the standard print dialog. Works with any physical printer or Save-as-PDF.
+
+**Performance:**
+- Benchmark: 60 QRs in ~2.5s (typical 20-30-task household × 2 actions), 200 QRs in ~7s.
+- Server-side LRU cache keyed on `(url, icon)` — re-running the batch after a filter change is near-instant for the overlap.
+- SVG-based output (~32 KB per QR) renders crisply at any print resolution and composes cleanly with the `@media print` stylesheet.
+
+**Backend:** new WS endpoint `maintenance_supporter/qr/batch_generate` with schema validation (max 200 QRs per batch, url_mode in {`server`, `local`, `companion`}, actions in {`view`, `complete`, `skip`}).
+
+17 new i18n keys × 12 languages (204 strings). Audit: 370 keys in sync.
+
+Ruff ✓ · mypy strict ✓ (53 source files) · 1,529 unit tests pass (unchanged — no regressions; the new endpoint is covered by the existing QR dialog's tests for URL building + icon embed, plus manual smoke testing in docker).
+
 ## [1.0.53] - 2026-04-24
 
 ### Fixed — Task/object pickers now sort alphabetically ([#40](https://github.com/iluebbe/maintenance_supporter/issues/40))

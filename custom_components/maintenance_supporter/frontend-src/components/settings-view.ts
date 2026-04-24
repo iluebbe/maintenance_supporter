@@ -2,6 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
 import { t } from "../styles";
 import { UserService } from "../user-service";
@@ -63,6 +64,19 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _toast = "";
   @state() private _testingNotification = false;
   @state() private _users: HAUser[] = [];
+
+  // Print QR codes section state
+  @state() private _qrObjects: Array<{ entry_id: string; name: string; task_count: number }> = [];
+  @state() private _qrSelectedEntries = new Set<string>();
+  @state() private _qrActions = new Set<string>(["view"]);
+  @state() private _qrUrlMode: "server" | "local" | "companion" = "companion";
+  @state() private _qrBatchLoading = false;
+  @state() private _qrBatchResults: Array<{
+    entry_id: string; task_id: string;
+    object_name: string; task_name: string;
+    action: string; svg: string;
+  }> = [];
+  @state() private _qrObjectsLoaded = false;
 
   private _loaded = false;
   private _userService: UserService | null = null;
@@ -164,6 +178,7 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderGeneral(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
+      ${this._renderPrintQr(L)}
       ${this._renderImportExport(L)}
       ${this._toast ? html`<div class="settings-toast">${this._toast}</div>` : nothing}
     `;
@@ -438,6 +453,171 @@ export class MaintenanceSettingsView extends LitElement {
 
   // --- Section: Import/Export ---
 
+  // --- Section: Print QR codes (v1.1.0) ---
+
+  private _renderPrintQr(L: string) {
+    const selectedCount = this._qrSelectedEntries.size || this._qrObjects.length;
+    const actionCount = this._qrActions.size;
+    const estimatedQrs = selectedCount * actionCount;
+    const overLimit = estimatedQrs > 200;
+
+    return html`
+      <div class="settings-section qr-print-section">
+        <h3>${t("qr_print_title", L)}</h3>
+        <p class="section-desc">${t("qr_print_desc", L)}</p>
+
+        ${!this._qrObjectsLoaded
+          ? html`<button @click=${this._loadQrObjects}>${t("qr_print_load", L)}</button>`
+          : html`
+            <details open class="qr-filter-panel">
+              <summary>${t("qr_print_filter", L)}</summary>
+
+              <div class="qr-filter-group">
+                <div class="qr-filter-label">${t("qr_print_objects", L)}</div>
+                <div class="qr-object-list">
+                  ${this._qrObjects.length === 0
+                    ? html`<div class="hint">${t("no_objects", L)}</div>`
+                    : this._qrObjects.map((obj) => html`
+                      <label class="qr-object-row">
+                        <input type="checkbox"
+                          .checked=${this._qrSelectedEntries.size === 0 || this._qrSelectedEntries.has(obj.entry_id)}
+                          @change=${(e: Event) => this._toggleQrObject(obj.entry_id, (e.target as HTMLInputElement).checked)} />
+                        <span>${obj.name}</span>
+                        <span class="qr-task-count">${obj.task_count}</span>
+                      </label>
+                    `)}
+                </div>
+              </div>
+
+              <div class="qr-filter-group">
+                <div class="qr-filter-label">${t("qr_print_actions", L)}</div>
+                <div class="qr-action-chips">
+                  ${["view", "complete", "skip"].map((a) => html`
+                    <label class="qr-action-chip ${this._qrActions.has(a) ? "active" : ""}">
+                      <input type="checkbox"
+                        .checked=${this._qrActions.has(a)}
+                        @change=${(e: Event) => this._toggleQrAction(a, (e.target as HTMLInputElement).checked)} />
+                      ${t("qr_action_" + a, L)}
+                    </label>
+                  `)}
+                </div>
+              </div>
+
+              <div class="qr-filter-group">
+                <div class="qr-filter-label">${t("qr_print_url_mode", L)}</div>
+                <select .value=${this._qrUrlMode}
+                  @change=${(e: Event) => { this._qrUrlMode = (e.target as HTMLSelectElement).value as typeof this._qrUrlMode; }}>
+                  <option value="companion">${t("qr_mode_companion", L)}</option>
+                  <option value="local">${t("qr_mode_local", L)}</option>
+                  <option value="server">${t("qr_mode_server", L)}</option>
+                </select>
+              </div>
+
+              <div class="qr-filter-group qr-filter-actions">
+                <div class="qr-estimate ${overLimit ? "error" : ""}">
+                  ${t("qr_print_estimate", L)}: <strong>${estimatedQrs}</strong>
+                  ${overLimit ? html` — ${t("qr_print_over_limit", L)}` : nothing}
+                </div>
+                <button
+                  ?disabled=${this._qrBatchLoading || overLimit || actionCount === 0}
+                  @click=${this._generateBatch}>
+                  ${this._qrBatchLoading ? t("qr_print_generating", L) : t("qr_print_generate", L)}
+                </button>
+              </div>
+            </details>
+
+            ${this._qrBatchResults.length > 0
+              ? html`
+                <div class="qr-results-toolbar">
+                  <span>${this._qrBatchResults.length} ${t("qr_print_ready", L)}</span>
+                  <button @click=${this._printQrs}>${t("qr_print_print_button", L)}</button>
+                </div>
+                <div class="qr-print-grid">
+                  ${this._qrBatchResults.map((q) => html`
+                    <div class="qr-print-cell">
+                      <div class="qr-svg">${unsafeHTML(q.svg)}</div>
+                      <div class="qr-label">
+                        <div class="qr-label-obj">${q.object_name}</div>
+                        <div class="qr-label-task">${q.task_name}</div>
+                        <div class="qr-label-action">${t("qr_action_" + q.action, L)}</div>
+                      </div>
+                    </div>
+                  `)}
+                </div>
+              `
+              : nothing}
+          `}
+      </div>
+    `;
+  }
+
+  private async _loadQrObjects(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/objects",
+      }) as { objects: Array<{ entry_id: string; object: { name: string }; tasks: unknown[] }> };
+      this._qrObjects = (result.objects || []).map((o) => ({
+        entry_id: o.entry_id,
+        name: o.object.name,
+        task_count: (o.tasks || []).length,
+      })).sort((a, b) => a.name.localeCompare(b.name));
+      this._qrObjectsLoaded = true;
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private _toggleQrObject(entryId: string, on: boolean): void {
+    const next = new Set(this._qrSelectedEntries);
+    // First toggle off "all implicit" by materialising the current all-selected state
+    if (next.size === 0) {
+      for (const o of this._qrObjects) next.add(o.entry_id);
+    }
+    if (on) next.add(entryId); else next.delete(entryId);
+    // If user re-selects everything, collapse back to "empty = all"
+    if (next.size === this._qrObjects.length) next.clear();
+    this._qrSelectedEntries = next;
+  }
+
+  private _toggleQrAction(action: string, on: boolean): void {
+    const next = new Set(this._qrActions);
+    if (on) next.add(action); else next.delete(action);
+    this._qrActions = next;
+  }
+
+  private async _generateBatch(): Promise<void> {
+    this._qrBatchLoading = true;
+    this._qrBatchResults = [];
+    try {
+      const msg: Record<string, unknown> = {
+        type: "maintenance_supporter/qr/batch_generate",
+        actions: [...this._qrActions],
+        url_mode: this._qrUrlMode,
+      };
+      if (this._qrSelectedEntries.size > 0) {
+        msg.entry_ids = [...this._qrSelectedEntries];
+      }
+      const result = await this.hass.connection.sendMessagePromise(msg) as {
+        qrs: typeof this._qrBatchResults;
+      };
+      this._qrBatchResults = result.qrs || [];
+      if (this._qrBatchResults.length === 0) {
+        this._showToast(t("qr_print_empty", this._lang));
+      }
+    } catch (e: unknown) {
+      const msg = (e as { message?: string })?.message || t("action_error", this._lang);
+      this._showToast(msg);
+    } finally {
+      this._qrBatchLoading = false;
+    }
+  }
+
+  private _printQrs(): void {
+    // Ask the browser to open the print dialog. The @media print stylesheet
+    // takes care of hiding the rest of the UI.
+    window.print();
+  }
+
   private _renderImportExport(L: string) {
     return html`
       <div class="settings-section">
@@ -655,6 +835,157 @@ export class MaintenanceSettingsView extends LitElement {
     @keyframes toast-in {
       from { opacity: 0; transform: translateX(-50%) translateY(16px); }
       to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* ─── Print QR codes section (v1.1.0) ─── */
+
+    .qr-filter-panel {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+    .qr-filter-panel > summary {
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .qr-filter-group {
+      margin-top: 12px;
+    }
+    .qr-filter-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--secondary-text-color);
+      margin-bottom: 4px;
+    }
+    .qr-object-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 4px 12px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .qr-object-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .qr-object-row:hover { background: var(--secondary-background-color, rgba(127,127,127,0.1)); }
+    .qr-object-row > span:nth-of-type(1) { flex: 1; }
+    .qr-task-count {
+      color: var(--secondary-text-color);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qr-action-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .qr-action-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--divider-color);
+      cursor: pointer;
+      user-select: none;
+    }
+    .qr-action-chip.active {
+      background: var(--primary-color, #03a9f4);
+      color: #fff;
+      border-color: transparent;
+    }
+    .qr-action-chip input { accent-color: currentColor; }
+
+    .qr-filter-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .qr-estimate { font-size: 13px; }
+    .qr-estimate.error { color: var(--error-color, #f44336); }
+
+    .qr-results-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding: 8px 12px;
+      background: var(--secondary-background-color, rgba(127,127,127,0.1));
+      border-radius: 6px;
+    }
+
+    .qr-print-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .qr-print-cell {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #fff;
+      color: #000;
+    }
+    .qr-print-cell .qr-svg {
+      width: 100%;
+      max-width: 160px;
+    }
+    .qr-print-cell .qr-svg svg { width: 100%; height: auto; display: block; }
+    .qr-label {
+      margin-top: 6px;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .qr-label-obj { font-weight: 600; }
+    .qr-label-task { color: #444; }
+    .qr-label-action {
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 10px;
+      color: #777;
+    }
+
+    /* ─── Print stylesheet ─── */
+    @media print {
+      /* Strip everything except the QR grid itself */
+      :host { color: #000; background: #fff; }
+      .qr-print-section h3,
+      .qr-print-section .section-desc,
+      .qr-filter-panel,
+      .qr-results-toolbar,
+      .settings-section:not(.qr-print-section),
+      .settings-toast {
+        display: none !important;
+      }
+      .qr-print-section { padding: 0; margin: 0; }
+      .qr-print-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12mm 8mm;
+        margin: 0;
+      }
+      .qr-print-cell {
+        border: none;
+        padding: 0;
+        page-break-inside: avoid;
+      }
+      .qr-print-cell .qr-svg { max-width: 48mm; }
+      .qr-label { font-size: 9pt; }
     }
   `;
 }

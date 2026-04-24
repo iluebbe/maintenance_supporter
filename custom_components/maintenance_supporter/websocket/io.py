@@ -5,6 +5,7 @@ from __future__ import annotations
 import json as json_mod
 import logging
 import re
+from functools import lru_cache
 from typing import Any
 from uuid import uuid4
 
@@ -28,6 +29,7 @@ from ..helpers.global_options import get_default_warning_days
 from ..helpers.qr_generator import (
     _ACTION_ICON_MAP,
     build_qr_url,
+    generate_qr_svg,
     generate_qr_svg_data_uri,
 )
 from ..websocket.tasks import _check_nfc_tag_duplicate
@@ -442,3 +444,134 @@ async def ws_generate_qr(
             },
         },
     )
+
+
+# Batch QR generation — used by the "Print QR codes" panel section.
+#
+# Typical household: 20-30 tasks × 2 actions = 40-60 QRs. Benchmarked at
+# ~40 ms each with icon embed (HIGH ECC) → 2.5 s for 60, 7 s for 200.
+# The raw SVG is ~32 KB each, so 200 × 32 KB = ~6 MB over the websocket;
+# we cap at 200 to keep the payload bounded and the print layout sane
+# (generous 6 QRs/A4 page = 34 pages).
+_MAX_BATCH_QRS = 200
+
+# LRU cache keyed on (url, icon). Two users printing the same task twice
+# in a session hit this cache; so does re-running the batch after
+# narrowing the filter. Bounded size so long-running HA instances with
+# thousands of task-action combos can't grow the cache forever.
+@lru_cache(maxsize=512)
+def _cached_qr_svg(url: str, icon: str | None) -> str:
+    return generate_qr_svg(url, border=2, icon=icon)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/qr/batch_generate",
+        vol.Optional("entry_ids"): vol.All(
+            [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+            vol.Length(max=1000),
+        ),
+        vol.Optional("task_ids"): vol.All(
+            [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
+            vol.Length(max=2000),
+        ),
+        vol.Required("actions"): vol.All(
+            [vol.In(["view", "complete", "skip"])],
+            vol.Length(min=1, max=3),
+        ),
+        vol.Optional("url_mode", default="server"): vol.In(
+            ["server", "local", "companion"]
+        ),
+        vol.Optional("base_url"): vol.Url(),
+    }
+)
+@websocket_api.async_response
+async def ws_batch_generate_qr(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Generate multiple QR codes in one call for the print-all-QRs page.
+
+    Resolves (entry × task × action) combinations and returns SVG strings
+    ready to inline into a printable grid. Empty ``entry_ids`` / ``task_ids``
+    filters mean "all" at that level.
+    """
+    # Resolve target entries (always exclude the global config entry).
+    all_entries = [
+        entry
+        for entry in hass.config_entries.async_entries(DOMAIN)
+        if entry.unique_id != GLOBAL_UNIQUE_ID
+    ]
+    entry_filter = msg.get("entry_ids")
+    if entry_filter:
+        wanted = set(entry_filter)
+        entries = [e for e in all_entries if e.entry_id in wanted]
+    else:
+        entries = all_entries
+
+    # Build the flat (entry_id, object_name, task_id, task_name) target list,
+    # honouring the optional task_ids filter.
+    task_filter = set(msg["task_ids"]) if msg.get("task_ids") else None
+    targets: list[tuple[str, str, str, str]] = []
+    for entry in entries:
+        obj_name = entry.data.get(CONF_OBJECT, {}).get(CONF_OBJECT_NAME, "")
+        tasks_data = entry.data.get(CONF_TASKS, {})
+        for task_id, task_data in tasks_data.items():
+            if task_filter is not None and task_id not in task_filter:
+                continue
+            targets.append(
+                (entry.entry_id, obj_name, task_id, task_data.get("name", ""))
+            )
+
+    actions: list[str] = msg["actions"]
+    total = len(targets) * len(actions)
+    if total == 0:
+        connection.send_result(msg["id"], {"qrs": [], "total": 0})
+        return
+    if total > _MAX_BATCH_QRS:
+        connection.send_error(
+            msg["id"],
+            "too_many",
+            f"Batch would produce {total} QR codes; the per-request cap is "
+            f"{_MAX_BATCH_QRS}. Narrow the object/task/action filter.",
+        )
+        return
+
+    url_mode = msg.get("url_mode", "server")
+    base_url = msg.get("base_url")
+
+    # Generate URL first (fast), then offload the SVG encoding to the executor
+    # since it's CPU-bound (~30-40 ms/QR). Each SVG passes through the LRU
+    # cache so re-runs after a filter change are near-instant.
+    results: list[dict[str, Any]] = []
+    for entry_id, obj_name, task_id, task_name in targets:
+        for action in actions:
+            try:
+                url = build_qr_url(
+                    hass,
+                    entry_id,
+                    task_id=task_id,
+                    action=action,
+                    base_url_override=base_url,
+                    url_mode=url_mode,
+                )
+            except ValueError:
+                # No HA URL configured — skip this row rather than fail the
+                # whole batch. "server" mode is the only path that raises;
+                # "companion" and "local" always resolve.
+                continue
+            icon = _ACTION_ICON_MAP.get(action)  # None for "skip" (no icon)
+            svg = await hass.async_add_executor_job(_cached_qr_svg, url, icon)
+            results.append(
+                {
+                    "entry_id": entry_id,
+                    "task_id": task_id,
+                    "object_name": obj_name,
+                    "task_name": task_name,
+                    "action": action,
+                    "svg": svg,
+                }
+            )
+
+    connection.send_result(msg["id"], {"qrs": results, "total": len(results)})

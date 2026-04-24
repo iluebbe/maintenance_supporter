@@ -293,6 +293,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_update_group,
     )
     from .io import (
+        ws_batch_generate_qr,
         ws_export_csv,
         ws_export_data,
         ws_generate_qr,
@@ -349,6 +350,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_seasonal_overrides)
     websocket_api.async_register_command(hass, ws_set_environmental_entity)
     websocket_api.async_register_command(hass, ws_generate_qr)
+    websocket_api.async_register_command(hass, ws_batch_generate_qr)
     websocket_api.async_register_command(hass, ws_get_settings)
     websocket_api.async_register_command(hass, ws_update_global_settings)
     websocket_api.async_register_command(hass, ws_test_notification)
