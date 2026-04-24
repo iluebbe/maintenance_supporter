@@ -130,12 +130,16 @@ export class MaintenanceGroupDialog extends LitElement {
             ? html`<div class="hint">${t("no_objects", L)}</div>`
             : html`
               <div class="objects">
-                ${this.objects.map((obj) => html`
+                ${[...this.objects]
+                  .sort((a, b) => a.object.name.localeCompare(b.object.name))
+                  .map((obj) => html`
                   <div class="object-block">
                     <div class="object-name">${obj.object.name}</div>
                     ${obj.tasks.length === 0
                       ? html`<div class="hint small">${t("no_tasks_short", L)}</div>`
-                      : obj.tasks.map((task) => {
+                      : [...obj.tasks]
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((task) => {
                         const key = `${obj.entry_id}:${task.id}`;
                         const checked = this._selected.has(key);
                         return html`

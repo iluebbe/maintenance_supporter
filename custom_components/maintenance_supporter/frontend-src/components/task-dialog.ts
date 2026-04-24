@@ -90,10 +90,14 @@ export class MaintenanceTaskDialog extends LitElement {
     this._taskId = null;
     this._error = "";
     // If no entryId is preset but caller passed objects, expose them as a dropdown.
-    // First object becomes the default selection so save can work without forced UI.
+    // Sort alphabetically by name so the user doesn't have to scan for a target
+    // object in creation order (#40). First object after sort becomes the
+    // default selection so save can work without forced UI.
     if (!entryId && objects && objects.length > 0) {
-      this._objectChoices = objects.map(o => ({ entry_id: o.entry_id, name: o.object.name }));
-      this._entryId = objects[0].entry_id;
+      this._objectChoices = objects
+        .map(o => ({ entry_id: o.entry_id, name: o.object.name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      this._entryId = this._objectChoices[0].entry_id;
     } else {
       this._objectChoices = [];
     }
