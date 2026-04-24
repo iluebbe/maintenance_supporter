@@ -38,6 +38,10 @@ from custom_components.maintenance_supporter.websocket.dashboard import (
     ws_get_settings,
     ws_update_global_settings,
 )
+from custom_components.maintenance_supporter.websocket.io import (
+    _MAX_BATCH_QRS,
+    ws_batch_generate_qr,
+)
 from custom_components.maintenance_supporter.websocket.tasks import (
     ws_complete_task,
     ws_create_task,
@@ -927,3 +931,208 @@ async def test_reset_keeps_history_and_sets_explicit_date(
     # Old history survives; reset adds its own entry.
     history_after = after.get("history") or []
     assert len(history_after) >= len(history_before)
+
+
+# ─── Module K: QR batch-generate roundtrips (v1.1.0) ─────────────────────
+
+
+async def _batch_generate(
+    hass: HomeAssistant,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Call ws_batch_generate_qr and return the payload (or raise on error)."""
+    conn = _conn()
+    await call_ws_handler(
+        ws_batch_generate_qr,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/qr/batch_generate",
+            # Explicit base_url so the test is independent of HA's runtime
+            # get_url() resolution (which may not work in the test harness).
+            "base_url": "http://ha.test:8123",
+            **payload,
+        },
+    )
+    return conn
+
+
+async def test_batch_qr_default_all_tasks_single_action(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Empty entry/task filter + single action = one QR per task in the entry."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Create 3 tasks so we have something to batch over.
+    names = ["Oil change", "Air filter", "Tire rotation"]
+    for name in names:
+        await _create_task_via_ws(
+            hass,
+            object_entry.entry_id,
+            {"name": name, "schedule_type": "time_based", "interval_days": 30},
+        )
+
+    conn = await _batch_generate(hass, {"actions": ["view"]})
+    result = _result_payload(conn)
+
+    assert result["total"] == len(names)
+    assert len(result["qrs"]) == len(names)
+    for qr in result["qrs"]:
+        assert qr["entry_id"] == object_entry.entry_id
+        assert qr["action"] == "view"
+        assert qr["object_name"]  # non-empty
+        assert qr["task_name"] in names
+        # SVG should start with an <svg ...> tag after optional whitespace.
+        assert qr["svg"].lstrip().startswith("<?xml") or qr["svg"].lstrip().startswith("<svg")
+
+
+async def test_batch_qr_entry_filter_narrows(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """entry_ids = [one of two] returns only that entry's tasks."""
+    obj_a = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="Pool", source="user",
+        data=build_object_entry_data(tasks={}),
+        unique_id="maintenance_supporter_batch_a",
+    )
+    obj_a.add_to_hass(hass)
+    obj_b = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="HVAC", source="user",
+        data=build_object_entry_data(tasks={}),
+        unique_id="maintenance_supporter_batch_b",
+    )
+    obj_b.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_a, obj_b)
+
+    await _create_task_via_ws(
+        hass, obj_a.entry_id, {"name": "Pool task", "schedule_type": "time_based", "interval_days": 30}
+    )
+    await _create_task_via_ws(
+        hass, obj_b.entry_id, {"name": "HVAC task", "schedule_type": "time_based", "interval_days": 30}
+    )
+
+    conn = await _batch_generate(
+        hass,
+        {"actions": ["view"], "entry_ids": [obj_a.entry_id]},
+    )
+    result = _result_payload(conn)
+    assert result["total"] == 1
+    assert result["qrs"][0]["entry_id"] == obj_a.entry_id
+    assert result["qrs"][0]["task_name"] == "Pool task"
+
+
+async def test_batch_qr_task_filter_narrows(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """task_ids = [specific] returns only those tasks."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    target_id, _ = await _create_task_via_ws(
+        hass, object_entry.entry_id,
+        {"name": "Target", "schedule_type": "time_based", "interval_days": 30},
+    )
+    await _create_task_via_ws(
+        hass, object_entry.entry_id,
+        {"name": "Other", "schedule_type": "time_based", "interval_days": 30},
+    )
+
+    conn = await _batch_generate(hass, {"actions": ["view"], "task_ids": [target_id]})
+    result = _result_payload(conn)
+    assert result["total"] == 1
+    assert result["qrs"][0]["task_id"] == target_id
+    assert result["qrs"][0]["task_name"] == "Target"
+
+
+async def test_batch_qr_multiple_actions_multiply_rows(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """N tasks × M actions = N*M rows, one per combination, distinct URLs."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    for name in ("A", "B"):
+        await _create_task_via_ws(
+            hass, object_entry.entry_id,
+            {"name": name, "schedule_type": "time_based", "interval_days": 30},
+        )
+
+    conn = await _batch_generate(
+        hass, {"actions": ["view", "complete", "skip"]}
+    )
+    result = _result_payload(conn)
+    # 2 tasks × 3 actions.
+    assert result["total"] == 6
+    assert len(result["qrs"]) == 6
+
+    # Every (task_id, action) pair appears exactly once.
+    pairs = {(qr["task_id"], qr["action"]) for qr in result["qrs"]}
+    assert len(pairs) == 6
+
+    # Skip renders without an embedded icon; pins the no-icon code path.
+    skip_qrs = [qr for qr in result["qrs"] if qr["action"] == "skip"]
+    assert len(skip_qrs) == 2
+    for qr in skip_qrs:
+        # The embedded-icon SVG contains two extra <circle> elements around
+        # the logo; skip has no icon so those must be absent.
+        assert "<circle" not in qr["svg"]
+
+
+async def test_batch_qr_over_limit_errors(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Batches producing more than _MAX_BATCH_QRS rows are rejected with too_many."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Creating _MAX_BATCH_QRS/2 + 1 tasks and asking for 3 actions puts us
+    # over the ceiling without bloating the test runtime (skip action has
+    # no icon; cached after first generation is a fast path anyway).
+    overshoot = _MAX_BATCH_QRS // 3 + 1  # 67 for cap=200
+    for i in range(overshoot):
+        await _create_task_via_ws(
+            hass, object_entry.entry_id,
+            {"name": f"Task {i}", "schedule_type": "time_based", "interval_days": 30},
+        )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_batch_generate_qr,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/qr/batch_generate",
+            "actions": ["view", "complete", "skip"],
+            "base_url": "http://ha.test:8123",
+        },
+    )
+    assert conn.send_error.call_count == 1
+    args = conn.send_error.call_args[0]
+    assert args[1] == "too_many"
+    # Message should mention the actual count and the cap.
+    assert str(overshoot * 3) in args[2]
+    assert str(_MAX_BATCH_QRS) in args[2]
+
+
+async def test_batch_qr_empty_result_when_no_tasks(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Object entry with no tasks returns {qrs: [], total: 0} cleanly."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    conn = await _batch_generate(hass, {"actions": ["view"]})
+    result = _result_payload(conn)
+    assert result["total"] == 0
+    assert result["qrs"] == []

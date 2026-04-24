@@ -27,6 +27,24 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
+## [1.1.1] - 2026-04-24
+
+### Tests — WS roundtrip coverage for qr/batch_generate
+
+6 new tests in `tests/test_ws_roundtrip.py` pin the v1.1.0 batch-QR endpoint against the class of regressions the rest of the suite already covers: silent field drops, filter combinations, limit enforcement, and edge cases.
+
+**Coverage:**
+- **Default filter** — empty `entry_ids` + single action = one QR per task in the entry. Verifies every row carries a valid SVG body and the expected `(entry_id, task_id, object_name, task_name, action)` fields.
+- **Entry filter narrows** — two objects set up, filter names one → only that object's tasks appear.
+- **Task filter narrows** — specific `task_ids` list returns exactly those tasks.
+- **Multiple actions multiply rows** — 2 tasks × 3 actions = 6 distinct `(task_id, action)` combinations. Also pins the no-icon code path for the `skip` action by asserting the embedded-logo `<circle>` elements are absent from skip SVGs.
+- **Over-limit errors** — batches producing more than `_MAX_BATCH_QRS` (200) rows are rejected with `too_many`; error message cites both the actual count and the cap.
+- **Empty result** — object entry with zero tasks returns `{qrs: [], total: 0}` cleanly rather than erroring.
+
+**1,535 unit tests pass** (was 1,529); ruff ✓ · mypy strict ✓ (53 source files).
+
+No production code changed.
+
 ## [1.1.0] - 2026-04-24
 
 ### Added — Print QR codes for physical equipment
