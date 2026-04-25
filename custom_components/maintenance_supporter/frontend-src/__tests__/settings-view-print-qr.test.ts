@@ -91,7 +91,7 @@ async function mount(opts = {}) {
   const features = {
     adaptive: false, predictions: false, seasonal: false,
     environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false,
+    checklists: false, schedule_time: false, completion_actions: false,
   };
   const el = await fixture<MaintenanceSettingsView>(html`
     <maintenance-settings-view .hass=${hass} .features=${features}></maintenance-settings-view>
