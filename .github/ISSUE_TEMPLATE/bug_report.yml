@@ -1,0 +1,86 @@
+name: Bug report
+description: Something broken, crashing, or behaving unexpectedly.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! A few details up-front make the fix much faster.
+
+  - type: input
+    id: version
+    attributes:
+      label: Maintenance Supporter version
+      description: From HACS → Maintenance Supporter, or `manifest.json` → `version`.
+      placeholder: "1.2.2"
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: From Settings → About.
+      placeholder: "2026.4.x"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation method
+      options:
+        - HACS (default repository)
+        - HACS (custom repository)
+        - Manual copy
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, and what did the integration do that was wrong?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Create a task with …
+        2. Click …
+        3. See …
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: From Settings → System → Logs, filtered by `maintenance_supporter`. Mask any tokens.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag-and-drop images of the panel / dialog / error state.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing open and closed issues for duplicates.
+          required: true
+        - label: I am running a recent HA version (≥ the one in `hacs.json`).
+          required: true
