@@ -780,7 +780,9 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     nm = hass.data[DOMAIN].get("_notification_manager")
     assert nm is not None
     event_unsubs = hass.data[DOMAIN].get("_event_unsubs", [])
-    assert len(event_unsubs) == 2
+    # 2 baseline (NM + repair listener) + 1 v1.3.0 (action_listener for
+    # EVENT_TASK_COMPLETED → on_complete_action dispatch).
+    assert len(event_unsubs) == 3
 
     # Spy on the unsub callbacks
     original_unsubs = list(event_unsubs)
@@ -803,8 +805,8 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     assert result is True
     # Domain data should be fully cleaned up
     assert DOMAIN not in hass.data
-    # Both event unsubs should have been called
-    assert sorted(call_tracker) == [0, 1]
+    # All three event unsubs should have been called (NM + repair + action_listener).
+    assert sorted(call_tracker) == [0, 1, 2]
     # NM.async_unload should have been called
     nm_unload_spy.assert_awaited_once()
 
@@ -835,4 +837,5 @@ async def test_partial_unload_preserves_domain_data_and_listeners(
     assert DOMAIN in hass.data
     nm_after = hass.data[DOMAIN].get("_notification_manager")
     assert nm_after is nm_before  # same instance, not recreated
-    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 2
+    # NM + repair + v1.3.0 action_listener — see also other lifecycle test.
+    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 3

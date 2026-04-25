@@ -46,6 +46,7 @@ from custom_components.maintenance_supporter.websocket.io import (
 from custom_components.maintenance_supporter.websocket.tasks import (
     ws_complete_task,
     ws_create_task,
+    ws_quick_complete_task,
     ws_reset_task,
     ws_skip_task,
     ws_update_task,
@@ -630,6 +631,7 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "advanced_groups_visible": True,
     "advanced_checklists_visible": True,
     "advanced_schedule_time_visible": True,
+    "advanced_completion_actions_visible": True,
     "notify_due_soon_enabled": False,
     "notify_due_soon_interval_hours": 36,
     "notify_overdue_enabled": False,
@@ -691,6 +693,7 @@ async def test_every_allowlisted_setting_round_trips(
            if k in {"adaptive", "predictions", "seasonal", "environmental",
                     "budget", "groups", "checklists"}},
         "advanced_schedule_time_visible": settings["features"]["schedule_time"],
+        "advanced_completion_actions_visible": settings["features"]["completion_actions"],
         "notify_due_soon_enabled": settings["notifications"]["due_soon_enabled"],
         "notify_due_soon_interval_hours": settings["notifications"]["due_soon_interval_hours"],
         "notify_overdue_enabled": settings["notifications"]["overdue_enabled"],
@@ -1399,3 +1402,437 @@ async def test_vacation_preview_includes_sensor_tasks_as_unpredictable(
     assert row["kind"] == "sensor_based"
     assert row["confidence"] == "unpredictable"
     assert row["events"][0]["status"] == "triggered_est"
+
+
+# ─── Module M: v1.3.0 completion-action fields & quick_complete ─────────
+
+
+async def test_on_complete_action_persists_full_shape(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """on_complete_action with service+target+data round-trips through create."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    _task_id, task = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Action persistence",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "on_complete_action": {
+                "service": "light.turn_on",
+                "target": {"entity_id": "light.workshop"},
+                "data": {"brightness": 200, "color_name": "green"},
+            },
+        },
+    )
+
+    action = task.get("on_complete_action")
+    assert action == {
+        "service": "light.turn_on",
+        "target": {"entity_id": "light.workshop"},
+        "data": {"brightness": 200, "color_name": "green"},
+    }
+
+
+async def test_on_complete_action_dropped_on_malformed_service(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """A service that is not 'domain.name' is silently dropped by sanitize."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    _task_id, task = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Bad action",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "on_complete_action": {
+                "service": "not-a-service-spec",
+                "target": {"entity_id": "light.x"},
+            },
+        },
+    )
+
+    assert "on_complete_action" not in task
+
+
+async def test_quick_complete_defaults_round_trip(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """quick_complete_defaults persists notes/cost/duration/feedback."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    _task_id, task = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "QC defaults",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "quick_complete_defaults": {
+                "notes": "Auto-completed via QR",
+                "cost": 4.20,
+                "duration": 5,
+                "feedback": "not_needed",
+            },
+        },
+    )
+
+    qc = task.get("quick_complete_defaults")
+    assert qc == {
+        "notes": "Auto-completed via QR",
+        "cost": 4.20,
+        "duration": 5,
+        "feedback": "not_needed",
+    }
+
+
+async def test_quick_complete_defaults_drops_invalid_feedback(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Bogus feedback enum is dropped per-field; the rest survives."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    _task_id, task = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "QC partial",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "quick_complete_defaults": {
+                "notes": "kept",
+                "feedback": "definitely_not_an_enum",
+            },
+        },
+    )
+
+    qc = task.get("quick_complete_defaults") or {}
+    assert qc.get("notes") == "kept"
+    assert "feedback" not in qc
+
+
+async def test_update_preserves_on_complete_action_when_omitted(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """update_task without on_complete_action key keeps the existing action.
+
+    Mirrors the explicit "preserves unrelated fields" guarantee for v1.3.0
+    fields — leaving the key out of the update payload must NOT delete it.
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Update preservation",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "on_complete_action": {
+                "service": "switch.turn_off",
+                "target": {"entity_id": "switch.compressor"},
+            },
+            "quick_complete_defaults": {"notes": "stays"},
+        },
+    )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+            "name": "Update preservation (renamed)",
+        },
+    )
+    _result_payload(conn)
+
+    task = _persisted_task(hass, object_entry.entry_id, task_id)
+    assert task["name"] == "Update preservation (renamed)"
+    assert task.get("on_complete_action", {}).get("service") == "switch.turn_off"
+    assert task.get("quick_complete_defaults", {}).get("notes") == "stays"
+
+
+async def test_update_clears_on_complete_action_with_none(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Explicit None on update removes on_complete_action entirely."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Clear action",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "on_complete_action": {
+                "service": "light.toggle",
+                "target": {"entity_id": "light.x"},
+            },
+        },
+    )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+            "on_complete_action": None,
+        },
+    )
+    _result_payload(conn)
+
+    task = _persisted_task(hass, object_entry.entry_id, task_id)
+    # Following the project convention from test_update_clears_optional_field_with_none:
+    # a None payload clears the field semantically — value is None or key absent.
+    assert task.get("on_complete_action") is None
+
+
+async def test_quick_complete_uses_defaults(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """ws_quick_complete_task records a completion using the saved defaults."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "QC happy path",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "quick_complete_defaults": {
+                "notes": "Quick",
+                "cost": 1.00,
+                "duration": 2,
+            },
+        },
+    )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_quick_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/quick_complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+        },
+    )
+    payload = _result_payload(conn)
+    assert payload.get("via") == "quick"
+
+    dynamic = get_task_store_state(hass, object_entry.entry_id, task_id)
+    history = dynamic.get("history") or []
+    assert history, "quick_complete must append a history entry"
+    latest = history[-1]
+    assert latest.get("type") == "completed"
+    assert latest.get("notes") == "Quick"
+    assert latest.get("cost") == 1.00
+    assert latest.get("duration") == 2
+
+
+async def test_quick_complete_no_defaults_returns_no_defaults_error(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Without quick_complete_defaults the WS endpoint signals the fallback."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "No QC defaults",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+        },
+    )
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_quick_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/quick_complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
+        },
+    )
+
+    assert conn.send_result.call_count == 0
+    assert conn.send_error.call_count == 1
+    err_args = conn.send_error.call_args[0]
+    assert err_args[1] == "no_defaults"
+
+
+async def test_complete_fires_event_with_full_payload(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """ws_complete_task fires EVENT_TASK_COMPLETED with all relevant fields.
+
+    Layer A guarantee — manual Complete, quick_complete, mobile-app action
+    all converge here, so this is the single source of truth for downstream
+    listeners (action_listener and user-written automations).
+    """
+    from custom_components.maintenance_supporter.const import (
+        EVENT_TASK_COMPLETED,
+    )
+
+    await setup_integration(hass, global_entry, object_entry)
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Event payload",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+        },
+    )
+
+    captured: list[dict[str, Any]] = []
+
+    @callback_unwrap_safe
+    def _grab(event: Any) -> None:
+        captured.append(dict(event.data))
+
+    unsub = hass.bus.async_listen(EVENT_TASK_COMPLETED, _grab)
+    try:
+        conn = _conn()
+        await call_ws_handler(
+            ws_complete_task,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/complete",
+                "entry_id": object_entry.entry_id,
+                "task_id": task_id,
+                "notes": "All clean",
+                "cost": 7.50,
+                "duration": 12,
+                "feedback": "needed",
+            },
+        )
+        _result_payload(conn)
+        await hass.async_block_till_done()
+    finally:
+        unsub()
+
+    assert len(captured) == 1, f"expected one event, got {len(captured)}"
+    payload = captured[0]
+    assert payload["entry_id"] == object_entry.entry_id
+    assert payload["task_id"] == task_id
+    assert payload["task_name"] == "Event payload"
+    assert payload["notes"] == "All clean"
+    assert payload["cost"] == 7.50
+    assert payload["duration"] == 12
+    assert payload["feedback"] == "needed"
+
+
+async def test_skip_and_reset_fire_their_events(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Skip and reset paths each emit their own dedicated event."""
+    from custom_components.maintenance_supporter.const import (
+        EVENT_TASK_RESET,
+        EVENT_TASK_SKIPPED,
+    )
+
+    await setup_integration(hass, global_entry, object_entry)
+    task_id, _ = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Skip+Reset events",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+        },
+    )
+
+    skipped: list[dict[str, Any]] = []
+    resets: list[dict[str, Any]] = []
+    unsub_s = hass.bus.async_listen(
+        EVENT_TASK_SKIPPED, lambda e: skipped.append(dict(e.data))
+    )
+    unsub_r = hass.bus.async_listen(
+        EVENT_TASK_RESET, lambda e: resets.append(dict(e.data))
+    )
+    try:
+        conn = _conn()
+        await call_ws_handler(
+            ws_skip_task, hass, conn,
+            {
+                "id": 1, "type": "maintenance_supporter/task/skip",
+                "entry_id": object_entry.entry_id, "task_id": task_id,
+                "reason": "Skipping",
+            },
+        )
+        _result_payload(conn)
+        conn = _conn()
+        await call_ws_handler(
+            ws_reset_task, hass, conn,
+            {
+                "id": 2, "type": "maintenance_supporter/task/reset",
+                "entry_id": object_entry.entry_id, "task_id": task_id,
+                "date": "2025-12-01",
+            },
+        )
+        _result_payload(conn)
+        await hass.async_block_till_done()
+    finally:
+        unsub_s()
+        unsub_r()
+
+    assert len(skipped) == 1
+    assert skipped[0]["task_id"] == task_id
+    assert skipped[0].get("reason") == "Skipping"
+    assert len(resets) == 1
+    assert resets[0]["task_id"] == task_id
+
+
+def callback_unwrap_safe(fn: Any) -> Any:
+    """No-op wrapper used to keep ``@callback`` semantics out of test helpers.
+
+    Defined as a plain identity function so synchronous handlers passed to
+    ``hass.bus.async_listen`` work without importing HA's @callback decorator
+    (the bus accepts plain callables).
+    """
+    return fn
