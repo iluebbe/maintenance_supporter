@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "La acción de finalización referencia una entidad eliminada",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Acción de finalización: {stale_entity} ya no existe",
+            "description": "La tarea **{task_name}** tiene una `on_complete_action` configurada para llamar un servicio en `{stale_entity}`, pero esa entidad ya no está registrada en Home Assistant.\n\nElige cómo reparar:",
+            "menu_options": {
+              "replace_entity": "Reemplazar por otra entidad",
+              "remove_action": "Eliminar la acción de finalización"
+            }
+          },
+          "replace_entity": {
+            "title": "Reemplazar entidad objetivo",
+            "description": "Elige la entidad a usar en lugar de `{stale_entity}` para la tarea **{task_name}**.",
+            "data": {
+              "new_entity": "Nueva entidad objetivo"
+            }
+          },
+          "remove_action": {
+            "title": "Eliminar acción de finalización",
+            "description": "Elimina completamente la `on_complete_action` de la tarea **{task_name}**. La tarea en sí no se ve afectada — solo se elimina la llamada al servicio en la finalización."
+          }
+        }
+      }
     }
   },
   "exceptions": {

@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "Completion action references a deleted entity",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Completion action: {stale_entity} no longer exists",
+            "description": "The task **{task_name}** has an `on_complete_action` configured to call a service on `{stale_entity}`, but that entity is no longer registered in Home Assistant.\n\nChoose how to repair:",
+            "menu_options": {
+              "replace_entity": "Replace with a different entity",
+              "remove_action": "Remove the completion action"
+            }
+          },
+          "replace_entity": {
+            "title": "Replace target entity",
+            "description": "Pick the entity to use instead of `{stale_entity}` for task **{task_name}**.",
+            "data": {
+              "new_entity": "New target entity"
+            }
+          },
+          "remove_action": {
+            "title": "Remove completion action",
+            "description": "Clear the `on_complete_action` from task **{task_name}** entirely. The task itself is unaffected — only the on-complete service-call is removed."
+          }
+        }
+      }
     }
   },
   "exceptions": {

@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "Voltooiings-actie verwijst naar een verwijderde entiteit",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Voltooiings-actie: {stale_entity} bestaat niet meer",
+            "description": "De taak **{task_name}** heeft een `on_complete_action` geconfigureerd die een service op `{stale_entity}` aanroept, maar die entiteit is niet meer geregistreerd in Home Assistant.\n\nKies hoe te repareren:",
+            "menu_options": {
+              "replace_entity": "Vervang door andere entiteit",
+              "remove_action": "Voltooiings-actie verwijderen"
+            }
+          },
+          "replace_entity": {
+            "title": "Doel-entiteit vervangen",
+            "description": "Kies de entiteit die gebruikt moet worden in plaats van `{stale_entity}` voor taak **{task_name}**.",
+            "data": {
+              "new_entity": "Nieuwe doel-entiteit"
+            }
+          },
+          "remove_action": {
+            "title": "Voltooiings-actie verwijderen",
+            "description": "Verwijder de `on_complete_action` van taak **{task_name}** volledig. De taak zelf wordt niet beïnvloed — alleen de service-call bij voltooien wordt verwijderd."
+          }
+        }
+      }
     }
   },
   "exceptions": {

@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "Дія завершення посилається на видалену сутність",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Дія завершення: {stale_entity} більше не існує",
+            "description": "Завдання **{task_name}** має налаштовану `on_complete_action` для виклику сервісу на `{stale_entity}`, але ця сутність більше не зареєстрована в Home Assistant.\n\nВибери як виправити:",
+            "menu_options": {
+              "replace_entity": "Замінити на іншу сутність",
+              "remove_action": "Видалити дію завершення"
+            }
+          },
+          "replace_entity": {
+            "title": "Замінити цільову сутність",
+            "description": "Вибери сутність, яку використовувати замість `{stale_entity}` для завдання **{task_name}**.",
+            "data": {
+              "new_entity": "Нова цільова сутність"
+            }
+          },
+          "remove_action": {
+            "title": "Видалити дію завершення",
+            "description": "Повністю видаляє `on_complete_action` з завдання **{task_name}**. Саме завдання не зачіпається — видаляється лише виклик сервісу при завершенні."
+          }
+        }
+      }
     }
   },
   "exceptions": {

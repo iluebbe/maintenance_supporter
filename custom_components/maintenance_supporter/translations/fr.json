@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "L'action de finalisation référence une entité supprimée",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Action de finalisation : {stale_entity} n'existe plus",
+            "description": "La tâche **{task_name}** a une `on_complete_action` configurée pour appeler un service sur `{stale_entity}`, mais cette entité n'est plus enregistrée dans Home Assistant.\n\nChoisissez comment réparer :",
+            "menu_options": {
+              "replace_entity": "Remplacer par une autre entité",
+              "remove_action": "Supprimer l'action de finalisation"
+            }
+          },
+          "replace_entity": {
+            "title": "Remplacer l'entité cible",
+            "description": "Choisissez l'entité à utiliser à la place de `{stale_entity}` pour la tâche **{task_name}**.",
+            "data": {
+              "new_entity": "Nouvelle entité cible"
+            }
+          },
+          "remove_action": {
+            "title": "Supprimer l'action de finalisation",
+            "description": "Supprime entièrement la `on_complete_action` de la tâche **{task_name}**. La tâche elle-même n'est pas affectée — seul l'appel de service à la finalisation est supprimé."
+          }
+        }
+      }
     }
   },
   "exceptions": {
