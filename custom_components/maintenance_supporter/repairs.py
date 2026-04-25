@@ -524,6 +524,105 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
         return self.async_create_entry(data={})
 
 
+class StaleActionEntityRepairFlow(RepairsFlow):
+    """Repair flow for an `on_complete_action.target.entity_id` that no longer
+    resolves to an entity in HA. Three options:
+
+    1. Replace — pick a new entity to point the action at
+    2. Remove  — clear `on_complete_action` from the task entirely
+    3. Ignore — fall through (user uses HA's Ignore-issue button)
+
+    `self.data` carries::
+        {
+            "entry_id": str,    # the per-object config entry holding the task
+            "task_id": str,     # the task whose action references the dead entity
+            "task_name": str,   # for the description placeholder
+            "stale_entity": str # the now-missing entity_id
+        }
+    """
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> data_entry_flow.FlowResult:
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["replace_entity", "remove_action"],
+            description_placeholders={
+                "task_name": str((self.data or {}).get("task_name", "?")),
+                "stale_entity": str((self.data or {}).get("stale_entity", "?")),
+            },
+        )
+
+    async def async_step_replace_entity(
+        self, user_input: dict[str, Any] | None = None
+    ) -> data_entry_flow.FlowResult:
+        if user_input is not None:
+            entry = self._entry()
+            if entry is None:
+                return self.async_abort(reason="entry_gone")
+            new_eid = str(user_input.get("new_entity", "")).strip()
+            if not new_eid:
+                return self.async_abort(reason="no_entity")
+            self._patch_action_entity(entry, new_eid)
+            return self.async_create_entry(data={})
+        return self.async_show_form(
+            step_id="replace_entity",
+            data_schema=vol.Schema({
+                vol.Required("new_entity"): selector.EntitySelector(),
+            }),
+            description_placeholders={
+                "task_name": str((self.data or {}).get("task_name", "?")),
+                "stale_entity": str((self.data or {}).get("stale_entity", "?")),
+            },
+        )
+
+    async def async_step_remove_action(
+        self, user_input: dict[str, Any] | None = None
+    ) -> data_entry_flow.FlowResult:
+        if user_input is not None:
+            entry = self._entry()
+            if entry is None:
+                return self.async_abort(reason="entry_gone")
+            self._clear_action(entry)
+            return self.async_create_entry(data={})
+        return self.async_show_form(
+            step_id="remove_action",
+            data_schema=vol.Schema({}),
+            description_placeholders={
+                "task_name": str((self.data or {}).get("task_name", "?")),
+            },
+        )
+
+    def _entry(self) -> Any:
+        return self.hass.config_entries.async_get_entry(
+            str((self.data or {}).get("entry_id", ""))
+        )
+
+    def _patch_action_entity(self, entry: Any, new_entity_id: str) -> None:
+        task_id = str((self.data or {}).get("task_id", ""))
+        new_data = dict(entry.data)
+        tasks = dict(new_data.get(CONF_TASKS, {}))
+        task = dict(tasks.get(task_id) or {})
+        action = dict(task.get("on_complete_action") or {})
+        target = dict(action.get("target") or {})
+        target["entity_id"] = new_entity_id
+        action["target"] = target
+        task["on_complete_action"] = action
+        tasks[task_id] = task
+        new_data[CONF_TASKS] = tasks
+        self.hass.config_entries.async_update_entry(entry, data=new_data)
+
+    def _clear_action(self, entry: Any) -> None:
+        task_id = str((self.data or {}).get("task_id", ""))
+        new_data = dict(entry.data)
+        tasks = dict(new_data.get(CONF_TASKS, {}))
+        task = dict(tasks.get(task_id) or {})
+        task.pop("on_complete_action", None)
+        tasks[task_id] = task
+        new_data[CONF_TASKS] = tasks
+        self.hass.config_entries.async_update_entry(entry, data=new_data)
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -532,4 +631,6 @@ async def async_create_fix_flow(
     """Create a repair flow for the given issue."""
     if issue_id.startswith("orphan_admin_panel_user_"):
         return OrphanAdminPanelUserRepairFlow()
+    if issue_id.startswith("stale_action_entity_"):
+        return StaleActionEntityRepairFlow()
     return MissingTriggerEntityRepairFlow()
