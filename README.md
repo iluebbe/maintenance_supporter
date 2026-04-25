@@ -96,6 +96,14 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 - Sensor degradation rate analysis and threshold prediction
 - User feedback loop (needed / not needed / not sure) to improve recommendations
 
+### Completion Actions (1.3.0+, advanced)
+- Per-task **on-complete action** — configure any HA service-call (service + target + data) to run when a task is completed. Failures are logged + swallowed so the completion is always recorded
+- **Test button** in the task dialog fires the configured action immediately so you can verify the wiring before saving
+- **Quick-complete QR codes** — pre-configure `notes / cost / duration / feedback` per task; the lightning-bolt QR records a completion in one tap, no dialog. Falls back to the regular complete dialog when the task has no defaults
+- **Stale-entity repair flow** — if an action's target entity is renamed or removed, a repair issue offers Replace (pick a new entity) or Remove (drop the action)
+- The same lifecycle events (`task_completed / _skipped / _reset`) fire on every completion path, so user-written automations can hook in without having to set `on_complete_action` (see Events below)
+- All gated behind a feature toggle (Settings → Features → Completion Actions). Default OFF
+
 ### Notifications
 - Configurable notification service (any `notify.*` service)
 - **"Send test" button** in Settings to verify the notify service without having to wait for a real due event
@@ -183,6 +191,9 @@ Each sensor entity exposes attributes grouped by function:
 
 - `maintenance_supporter_trigger_activated` — fired when a sensor trigger condition becomes true
 - `maintenance_supporter_trigger_deactivated` — fired when a sensor trigger condition clears
+- `maintenance_supporter_task_completed` — fired on every completion path (panel, complete-QR, quick-complete, mobile action). Payload: `entry_id`, `task_id`, `task_name`, `object_name`, plus optional `notes`, `cost`, `duration`, `feedback`, `completed_by`
+- `maintenance_supporter_task_skipped` — fired when a task is skipped. Payload includes the optional `reason`
+- `maintenance_supporter_task_reset` — fired when a task's `last_performed` is reset to a specific date. Payload includes that `date`
 
 ### Services
 

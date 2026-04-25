@@ -33,6 +33,7 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 | `advanced_groups_visible` | bool | `false` | Show task grouping management section in the panel with create / edit / delete controls |
 | `advanced_checklists_visible` | bool | `false` | Show checklist editing per task |
 | `advanced_schedule_time_visible` | bool | `false` | Expose the `schedule_time` (HH:MM) field on time-based tasks. When off, the coordinator strips stored times before computing status so tasks revert to midnight semantics (but retain the stored value for re-enable) |
+| `advanced_completion_actions_visible` | bool | `false` | (1.3.0+) Expose the `on_complete_action` (HA service-call) and `quick_complete_defaults` sections in the task dialog, plus the new `quick_complete` QR action. When off, existing values stay persisted but the UI hides them — beginners aren't confronted with service-call YAML |
 
 > **Operator mode (read-only end-user view, 1.0.44+)** is not a global flag — it's derived from the HA user role plus an explicit per-user override list:
 >
@@ -159,6 +160,33 @@ Available when `advanced_schedule_time_visible` is enabled globally. Applies to 
 | `interval_anchor` | `planned` | Anchors from the previously *planned* due date, so a late completion on Wednesday doesn't drag the next cycle into Wednesday territory — the task stays on Tuesdays |
 
 With `interval_anchor = completion` (the default), the schedule drifts whenever you complete late. Pick the anchor based on whether staying on a specific weekday matters more than guaranteeing a full interval between completions.
+
+### Completion Actions (1.3.0+)
+
+Available when `advanced_completion_actions_visible` is enabled globally. Configured per task in the **task dialog** under two collapsible sections.
+
+**On-complete action** — fires an HA service call when the task is completed (any path: manual, complete-QR, quick-complete, mobile action). Failures are logged and swallowed; never blocks the completion from being recorded.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `on_complete_action.service` | string | HA service in `domain.name` form (regex `[a-z][a-z0-9_]*\.[a-z0-9_]+`, max 100 chars). Examples: `light.turn_on`, `notify.mobile_app_phone`, `counter.increment` |
+| `on_complete_action.target` | dict | Optional HA target. Supported keys: `entity_id`, `device_id`, `area_id`, `label_id`, `floor_id`. Each value is a string or list of strings (max 200 chars per entry, max 50 entries per list) |
+| `on_complete_action.data` | dict | Optional service data. Capped at 1 KB JSON-serialised. Anything not JSON-serialisable is dropped |
+
+**Test button** — fires the configured action immediately so you can verify the wiring. Doesn't persist anything; result indicator (✓ / ✗) auto-clears after 3 s.
+
+**Stale-entity repair** — coordinator scans `on_complete_action.target.entity_id` on every refresh. If the entity disappears, a repair issue surfaces with two options: **Replace** (pick a new entity via HA's entity picker) or **Remove** (drop the action entirely). Same lifecycle as the existing trigger-entity repair flow.
+
+**Quick-complete defaults** — pre-fills the values used when the user scans the new lightning-bolt `quick_complete` QR code. Schema mirrors `complete_maintenance(...)` kwargs.
+
+| Parameter | Type | Range | Description |
+|-----------|------|-------|-------------|
+| `quick_complete_defaults.notes` | string | ≤ 1000 chars | Notes to record |
+| `quick_complete_defaults.cost` | float | 0–1,000,000 | Cost to record |
+| `quick_complete_defaults.duration` | int (minutes) | 0–525,600 | Duration to record |
+| `quick_complete_defaults.feedback` | enum | `needed` / `not_needed` | Adaptive scheduling feedback |
+
+If a task has **no** `quick_complete_defaults`, scanning a `quick_complete` QR routes back to the regular complete dialog (`no_defaults` error → frontend fallback) — the QR is never a dead-end.
 
 ### Adaptive Scheduling
 

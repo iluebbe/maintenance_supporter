@@ -2,6 +2,49 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.3.0] - 2026-04-25
+
+### New — Run a Home Assistant action when a task is completed (#41)
+
+Tasks can now fire an HA service-call when they are completed: turn on a "filter changed" indicator light, push a custom notification, increment a counter, fire any HA service. Three layers ship together so other automations can join in too:
+
+**Layer A — completion events on the bus**
+The coordinator now fires three integration-scoped events on every completion path: `maintenance_supporter_task_completed`, `_task_skipped`, `_task_reset`. Payload includes `entry_id`, `task_id`, `task_name`, `object_name`, plus the contextual fields that path supplied (`notes`, `cost`, `duration`, `feedback` for completed; `reason` for skipped; `date` for reset). User-written automations can subscribe via the `event` trigger on these names — same names whether the completion came from the panel button, a complete-QR scan, the new quick-complete QR scan, or the mobile-app action.
+
+**Layer B — per-task `on_complete_action` (gated)**
+A new field on each task carries an HA service-call config: `{service: "domain.name", target?: {...}, data?: {...}}`. A dedicated event listener (`helpers/action_listener.py`) subscribes to `EVENT_TASK_COMPLETED` and dispatches the configured call. Service-call failures are logged and swallowed — a broken action must never block a completion from being recorded.
+
+The architecture is deliberately one-event-many-listeners: Layer A is the single source of truth, Layer B is just one of N possible subscribers. No code is duplicated between Layer B and a hypothetical user automation.
+
+**Layer C — quick-complete QR (gated)**
+A new task field, `quick_complete_defaults`, holds pre-filled `notes / cost / duration / feedback` values. New WS endpoint `maintenance_supporter/task/quick_complete` runs `complete_maintenance(...)` with those values — no dialog, no input. New `quick_complete` QR action (lightning-bolt center icon to tell it apart from the regular complete check-mark) deeplinks the panel to fire it. Tasks without `quick_complete_defaults` fall back to the normal complete dialog automatically (`no_defaults` error path).
+
+**Repair-flow for stale `on_complete_action.target.entity_id` refs**
+`StaleActionEntityRepairFlow` (in `repairs.py`) is created whenever the coordinator scan finds an action targeting an entity that no longer exists in HA. Two options offered: replace with a new entity (HA's `EntitySelector`) or remove the action entirely. Mirrors the existing `MissingTriggerEntityRepairFlow` lifecycle.
+
+### UI
+
+`<maintenance-task-dialog>` gets two new collapsible sections (gated behind the new feature flag). The action section has a `Test` button that fires the configured service immediately so the user can verify it before saving. The quick-complete section has the same field set as the complete dialog (notes/cost/duration/feedback) so what gets recorded is fully under user control.
+
+`<settings-view>` adds a feature toggle `Completion actions` (description string `feat_completion_actions_desc`). Default OFF — the field is purely additive and beginners shouldn't be confronted with service-call YAML on first run.
+
+### Sanitization
+
+`helpers/sanitize.py` gets `cap_action_field()` and `cap_quick_complete_defaults_field()`. Service spec is regex-pinned to `[a-z][a-z0-9_]*\.[a-z0-9_]+`, target string fields capped at 200 chars, target lists capped at 50 entries, action data capped at 1 KB JSON-serialised, quick-complete numeric ranges enforced. Anything malformed is dropped silently per-field — never blocks a save.
+
+### Tests
+
+`tests/test_ws_roundtrip.py` gains 10 new round-trip tests in module M (every-field round-trip, sanitize-rejects-bogus, update-preserves-when-omitted, update-clears-with-None, quick-complete happy path, no-defaults error path, every event fires with the right payload). `tests/test_completion_actions.py` (new, 9 tests) exercises the live event listener — service is dispatched, errors are swallowed, unknown services don't break, unknown entry-ids are no-op, and the three repair-flow paths (init/replace/remove) plus the `async_create_fix_flow` dispatch.
+
+`__tests__/task-dialog-completion-actions.test.ts` (new, 5 tests) pins the UI: gating, hydration on `openEdit`, Test-button dispatch, button-disabled-when-empty.
+
+**Backend:** 1,551 unit tests pass (was 1,544); ruff ✓ · mypy strict ✓.
+**Frontend:** 22 component tests pass (was 17).
+
+### Migration
+
+None required. Existing tasks without `on_complete_action` / `quick_complete_defaults` continue to work unchanged. The new feature flag (`advanced_completion_actions_visible`) defaults to `False` so existing dashboards see no UI change until the user opts in.
+
 ## [1.0.52] - 2026-04-22
 
 ### Tests — WebSocket roundtrip suite extended
