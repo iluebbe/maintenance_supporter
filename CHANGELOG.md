@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.3.2] - 2026-04-25
+
+### Refactor — DRY hotspots in coordinator + repairs + tests
+
+Internal cleanup pass after the v1.3.0/1.3.1 feature work — no user-facing behaviour change, but the code that handles task completions, repair flows, and test boilerplate is now meaningfully shorter and harder to drift.
+
+**Production code:**
+- `coordinator.py`: extracted `_persist_and_signal_task_change(task_id, task)` — collapses three near-identical 17-line blocks (`complete_maintenance` / `reset_maintenance` / `skip_maintenance`) into one shared helper. Net `-30 LOC` and one less place where the Store-vs-ConfigEntry split, recently-completed marker, dispatcher signal and refresh request can fall out of sync.
+- `coordinator.py`: extracted `_lifecycle_event_payload(task, task_id, **extra)` — guarantees that every `EVENT_TASK_COMPLETED/SKIPPED/RESET` payload carries the four envelope keys (`entry_id`, `task_id`, `task_name`, `object_name`). Listeners can now rely on them being present; variant-specific fields (`notes`, `cost`, `reason`, `reset_date`, …) ride on top.
+- `repairs.py`: introduced `_entry_for_issue(hass, issue_data)` and `_entry_has_task(entry, task_id)` free helpers. The five inline copies of "look up the entry referenced by the issue and abort if it / its task has been deleted" across `MissingTriggerEntityRepairFlow` (2×), `OrphanAdminPanelUserRepairFlow` (1×) and `StaleActionEntityRepairFlow` (`_entry()` method, now a thin wrapper) all funnel through them.
+
+**Test boilerplate:**
+- `tests/conftest.py`: added `make_ws_connection()`, `assert_ws_success(conn) -> dict`, `assert_ws_error(conn, code?)` — replaces the per-file `_conn()` and result-payload-extraction snippets that were copy-pasted across `test_ws_roundtrip.py` / `test_completion_actions.py` (and ~19 other files for the assertion pattern).
+- `frontend-src/__tests__/_test-utils.ts` (NEW): exports `DEFAULT_FEATURES`, `DEFAULT_SETTINGS_RESPONSE`, `createMockHass(opts)`. Replaces ~175 lines of duplicated `mockHass()` + settings-shape boilerplate that was inline in three test files (`settings-view-vacation`, `settings-view-print-qr`, `task-dialog-completion-actions`).
+
+**Net effect:** ~250 LOC reduction, identical test counts (1551 backend + 24 frontend), ruff ✓ · mypy strict ✓.
+
 ## [1.3.1] - 2026-04-25
 
 ### UX — Service-Picker + schema-driven data form for `on_complete_action`
