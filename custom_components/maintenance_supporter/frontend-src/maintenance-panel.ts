@@ -70,7 +70,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _groups: Record<string, MaintenanceGroup> = {};
   @state() private _detailStatsData: Map<string, StatisticsPoint[]> = new Map();
   @state() private _miniStatsData: Map<string, StatisticsPoint[]> = new Map();
-  @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false };
+  @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false };
   // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
   @state() private _adminPanelUserIds: string[] = [];
   // Default warning_days from the global config entry — used as the initial
@@ -256,6 +256,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (action === "complete") {
         requestAnimationFrame(() => {
           this._openCompleteDialog(entryId, taskId, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled);
+        });
+      } else if (action === "quick_complete") {
+        // v1.3.0: silent complete using pre-configured defaults; falls back
+        // to the normal dialog if the task has none.
+        requestAnimationFrame(() => {
+          this._handleQuickComplete(entryId, taskId, task);
         });
       }
     } else {
@@ -646,6 +652,33 @@ export class MaintenanceSupporterPanel extends LitElement {
     this.requestUpdate();
   }
 
+  // v1.3.0: silent complete-via-QR. Tries the quick endpoint first; if the
+  // task has no quick_complete_defaults configured, falls back to the
+  // normal complete dialog so the user is never stuck after a scan.
+  private async _handleQuickComplete(
+    entryId: string, taskId: string, task: MaintenanceTask,
+  ): Promise<void> {
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/quick_complete",
+        entry_id: entryId, task_id: taskId,
+      });
+      this._showToast(t("quick_complete_success", this._lang));
+    } catch (e: unknown) {
+      const code = (e as { code?: string })?.code || "";
+      if (code === "no_defaults") {
+        // No defaults set — open the dialog so the user can fill them in.
+        this._openCompleteDialog(
+          entryId, taskId, task.name,
+          this._features.checklists ? task.checklist : undefined,
+          this._features.adaptive && !!task.adaptive_config?.enabled,
+        );
+      } else {
+        this._showToast(t("action_error", this._lang));
+      }
+    }
+  }
+
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
     const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog");
     if (!dlg) return;
@@ -696,6 +729,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .hass=${this.hass}
         .checklistsEnabled=${this._features.checklists}
         .scheduleTimeEnabled=${this._features.schedule_time}
+        .completionActionsEnabled=${this._features.completion_actions}
         .defaultWarningDays=${this._defaultWarningDays}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
