@@ -97,7 +97,10 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
   `;
 }
 
-export function renderSparkline(task: MaintenanceTask, unit: string, ctx: SparklineContext) {
+// Module-private — `renderTriggerSection` above is the public entry; this is
+// the chart-rendering helper it delegates to. Drop the keyword so esbuild
+// sees it as internal.
+function renderSparkline(task: MaintenanceTask, unit: string, ctx: SparklineContext) {
   const tc = task.trigger_config;
   if (!tc) return nothing;
   const triggerType = tc.type || "threshold";

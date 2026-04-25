@@ -56,7 +56,10 @@ export function renderSeasonalCardExpanded(task: MaintenanceTask, lang: string) 
   return renderSeasonalChart(task, lang);
 }
 
-export function renderSeasonalChart(task: MaintenanceTask, lang: string) {
+// Module-private — only the `renderSeasonalCardExpanded` wrapper above is part
+// of the renderers/ public surface. Drop the keyword so esbuild sees the
+// symbol as internal and tree-shakes it cleanly when the wrapper changes.
+function renderSeasonalChart(task: MaintenanceTask, lang: string) {
   const factors = task.seasonal_factors
     ?? task.interval_analysis?.seasonal_factors;
   if (!factors || factors.length !== 12) return nothing;

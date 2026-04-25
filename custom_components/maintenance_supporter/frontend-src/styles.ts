@@ -19,15 +19,6 @@ export const STATUS_ICONS: Record<string, string> = {
   reset: "mdi:refresh",
 };
 
-export const TYPE_ICONS: Record<string, string> = {
-  cleaning: "mdi:broom",
-  inspection: "mdi:magnify",
-  replacement: "mdi:swap-horizontal",
-  calibration: "mdi:tune",
-  service: "mdi:wrench",
-  custom: "mdi:cog",
-};
-
 /* ─── i18n ─── */
 
 interface Translations {
