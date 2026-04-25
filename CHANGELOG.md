@@ -27,6 +27,38 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
+## [1.2.2] - 2026-04-25
+
+### Tests — Component test suite expanded
+
+10 new Lit-component tests across two files, exercising UI areas the WS roundtrip suite doesn't reach:
+
+**`__tests__/settings-view-print-qr.test.ts` (6 tests)** — pins the v1.1.0 batch-QR-print Settings section:
+- Renders the section with a `Load objects` button by default.
+- Click `Load objects` → calls `maintenance_supporter/objects` → renders the filter panel with one row per object.
+- Toggling an action chip flips the `active` CSS class on the wrapper.
+- `Generate` button disables when zero actions are selected.
+- Click `Generate` → calls `maintenance_supporter/qr/batch_generate` → renders one `.qr-print-cell` per result with the right object/task/action labels.
+- Filter that would produce >200 QRs marks the estimate with the `error` class and disables `Generate`.
+
+**`__tests__/group-dialog-sort.test.ts` (4 tests)** — pins the v1.0.53 alphabetical sort fix (#40):
+- Object section headers render `A→Z` regardless of the order they arrived in the `.objects` array.
+- Tasks within each object render `A→Z`.
+- Toggling a checkbox stores the composite `entry_id:task_id` key (verified via the rendered selected-count).
+- Checked state survives a property re-render (objects array re-assigned).
+
+**Suite runs in 3.4 s, 17 tests total** (7 from v1.2.1 + 10 new).
+
+### Known gap
+
+A `task-dialog-object-picker.test.ts` was attempted for the v1.0.53 picker sort but the dialog hangs the test runner — likely because it renders nested `ha-*` HA components that don't initialise cleanly outside the HA shell. Documented as TODO; the picker-sort behaviour is still covered by the WS roundtrip + manual browser verification.
+
+### Backend regression
+
+1,544 unit tests pass; ruff ✓ · mypy strict ✓ across 55 source files.
+
+No production code changed.
+
 ## [1.2.1] - 2026-04-25
 
 ### Tests — Lit component test infrastructure
