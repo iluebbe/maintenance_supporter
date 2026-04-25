@@ -21,6 +21,7 @@ from ..const import (
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
+    CONF_ADVANCED_COMPLETION_ACTIONS,
     CONF_ADVANCED_ENVIRONMENTAL,
     CONF_ADVANCED_GROUPS,
     CONF_ADVANCED_PREDICTIONS,
@@ -76,6 +77,7 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_ADVANCED_GROUPS: bool,
     CONF_ADVANCED_CHECKLISTS: bool,
     CONF_ADVANCED_SCHEDULE_TIME: bool,
+    CONF_ADVANCED_COMPLETION_ACTIONS: bool,
     # Type-validated as a list here; element + length caps applied below in
     # ws_update_global_settings (HA installs rarely exceed ~10 entries).
     CONF_ADMIN_PANEL_USER_IDS: list,
@@ -121,6 +123,7 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "groups": options.get(CONF_ADVANCED_GROUPS, False),
             "checklists": options.get(CONF_ADVANCED_CHECKLISTS, False),
             "schedule_time": options.get(CONF_ADVANCED_SCHEDULE_TIME, False),
+            "completion_actions": options.get(CONF_ADVANCED_COMPLETION_ACTIONS, False),
         },
         # Top-level (not a feature toggle, not a bool): list of HA user IDs
         # whose UI gets the full admin panel even though they're not HA admins.
