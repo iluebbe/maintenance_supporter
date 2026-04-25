@@ -59,10 +59,12 @@ from custom_components.maintenance_supporter.websocket.vacation import (
 )
 
 from .conftest import (
+    assert_ws_success,
     build_global_entry_data,
     build_object_entry_data,
     call_ws_handler,
     get_task_store_state,
+    make_ws_connection,
     setup_integration,
 )
 
@@ -70,22 +72,13 @@ from .conftest import (
 
 
 def _conn() -> MagicMock:
-    """Mock WebSocket connection that captures send_result / send_error."""
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
+    """Backward-compatible alias kept for in-file callers; delegates to conftest."""
+    return make_ws_connection()
 
 
 def _result_payload(conn: MagicMock) -> dict[str, Any]:
-    """Extract the dict passed to ``connection.send_result``."""
-    assert conn.send_error.call_count == 0, (
-        f"WS handler returned an error: {conn.send_error.call_args}"
-    )
-    assert conn.send_result.call_count == 1, "Handler did not send a result"
-    # send_result(msg_id, payload) — payload is the second positional arg.
-    return conn.send_result.call_args[0][1]
+    """Backward-compatible alias kept for in-file callers; delegates to conftest."""
+    return assert_ws_success(conn)
 
 
 def _persisted_task(
