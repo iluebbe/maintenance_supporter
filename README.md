@@ -53,6 +53,24 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Mobile Task Detail
 ![Mobile Task Detail](docs/images/mobile-task.png)
 
+### On-Complete Action — Service Picker (1.3.1+)
+![On-Complete Action — empty state](docs/images/task-dialog-action-section-empty.png)
+
+### On-Complete Action — Schema-Driven Form (1.3.1+)
+Pick a service like `light.turn_on` and the data fields render automatically from the service schema (sliders, color pickers, etc.) — no JSON typing.
+
+![On-Complete Action — light.turn_on with ha-form](docs/images/task-dialog-action-form-light.png)
+
+### On-Complete Action — JSON Fallback (1.3.1+)
+For services without a schema (e.g. `button.press` or custom integrations), the data field falls back to a JSON textfield.
+
+![On-Complete Action — JSON fallback](docs/images/task-dialog-action-form-fallback.png)
+
+### Quick-Complete Defaults (1.3.0+)
+Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **quick-complete QR** records the completion in one tap, no dialog.
+
+![Quick-Complete Defaults](docs/images/task-dialog-quick-complete-defaults.png)
+
 </details>
 
 ## Features
@@ -234,6 +252,93 @@ Combine a time-based schedule (7-day interval for manual pressure checks) with a
 ### Washing Machine — Descaling Every 50 Cycles
 
 Use a **state change trigger** monitoring a binary sensor that tracks wash cycles (on → off transitions). Set the target to 50 changes. Each completion resets the counter. A parallel time-based interval of 180 days ensures descaling happens even if the machine is used less frequently than expected.
+
+### On-Complete Actions (1.3.0+) — close the loop with the device
+
+When you complete a maintenance task in HA, your *device* often still thinks it's overdue: the Roborock app keeps nagging that the filter needs replacing, the HVAC controller still has the "filter dirty" flag set, the printer's hour counter keeps climbing. With an **on-complete action** the integration can call the device-side reset for you the moment you mark the task done.
+
+Enable the feature under **Settings → Features → Completion actions** (default OFF). Each task then exposes a *Service* picker (autocomplete over your full HA service registry) and a data form that renders from the service schema — no YAML, no copy-pasting from automations.
+
+#### Roborock vacuum — reset filter consumable counter
+
+The Roborock integration exposes `vacuum.send_command` for sending raw RoboROCK commands. To reset the filter consumable counter when you complete the *Replace HEPA filter* task:
+
+| Field | Value |
+|---|---|
+| **Service** | `vacuum.send_command` |
+| **Target** | `vacuum.s7_max_ultra` *(your vacuum entity)* |
+| **Command** | `reset_consumable` |
+| **Params** | `["filter_work_time"]` |
+
+The mobile-app reset and the HA-side completion now stay in sync. Click *Test* in the dialog before saving to confirm the device responds.
+
+> **Same pattern works for** `["main_brush_work_time"]`, `["side_brush_work_time"]`, `["sensor_dirty_time"]` — one task per consumable, each with its own reset. Or use an HA `script:` that resets all four if you want a single task for "full deep clean".
+
+#### HVAC filter — reset the controller's "filter dirty" button
+
+If your HVAC integration exposes a button entity for the filter-life reset (the original example from issue #41):
+
+| Field | Value |
+|---|---|
+| **Service** | `button.press` |
+| **Target** | `button.lscontrol_dk_reset_filter` *(your HVAC reset button)* |
+| **Data** | *(empty — `button.press` takes no params)* |
+
+The data section auto-falls-back to an empty JSON field for `button.press` since the service has no schema.
+
+#### 3D Printer — reset the runtime counter on nozzle replacement
+
+For OctoPrint / Bambu / Klipper users tracking print hours via `counter` or `input_number`:
+
+| Field | Value |
+|---|---|
+| **Service** | `counter.reset` |
+| **Target** | `counter.printer_nozzle_hours` |
+
+When you complete the *Replace nozzle every 500h* task, the counter resets so the next 500h cycle starts cleanly.
+
+#### Water filter — toggle the "fresh filter" status indicator
+
+If you've wired a `light` or `switch` (e.g. an LED ring) as a visual status indicator:
+
+| Field | Value |
+|---|---|
+| **Service** | `light.turn_on` |
+| **Target** | `light.water_filter_status_ring` |
+| **Data** *(rendered from schema)* | `brightness_pct: 80`, `rgb_color: [0, 255, 0]` *(fresh-green)* |
+
+After 30 days another automation flips the same light to red — and now your physical indicator and the HA task status agree.
+
+#### Pure event-driven — for power users who prefer YAML automations
+
+You don't *have* to set `on_complete_action`. Every completion (panel button, complete-QR, quick-complete-QR, mobile action) fires the integration event `maintenance_supporter_task_completed`. Wire your own automation:
+
+```yaml
+automation:
+  - alias: "Reset Roborock filter on task complete"
+    trigger:
+      - platform: event
+        event_type: maintenance_supporter_task_completed
+        event_data:
+          task_name: "Replace HEPA filter"
+    action:
+      - service: vacuum.send_command
+        target:
+          entity_id: vacuum.s7_max_ultra
+        data:
+          command: reset_consumable
+          params: ["filter_work_time"]
+```
+
+The event approach is more flexible (template conditions, multiple actions, delay/wait, etc.); the per-task field is the no-YAML shortcut for the common case.
+
+### Quick-Complete QR (1.3.0+) — record completion in one tap
+
+For tasks where the *act* of doing the maintenance is the input (no notes to type, no cost to enter), pre-fill the values once on the task and print a **lightning-bolt QR code** instead of the regular check-mark one.
+
+Example for a **filter swap on the Roborock vacuum**: stick the lightning-bolt QR inside the dust-bin lid. Each filter replacement is just *swap → close lid → scan QR with phone* and the completion is recorded with your pre-set notes / cost / duration / *needed* feedback. No dialog, no typing. Great for high-frequency manual chores (litter-box scoop log, plant-watering log, espresso-machine-descale, HVAC quick-vacuum).
+
+If you forget to pre-fill the defaults, the QR scan falls back to the normal complete dialog so you're never stuck.
 
 ## Examples
 
