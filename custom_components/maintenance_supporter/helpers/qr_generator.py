@@ -14,7 +14,12 @@ from .qrcodegen import QrCode
 _LOGGER = logging.getLogger(__name__)
 
 # Map QR action to embedded icon type
-_ACTION_ICON_MAP: dict[str, str] = {"view": "info", "complete": "check"}
+_ACTION_ICON_MAP: dict[str, str] = {
+    "view": "info",
+    "complete": "check",
+    # v1.3.0: lightning-bolt for the one-tap quick-complete QR.
+    "quick_complete": "lightning",
+}
 
 
 def build_qr_url(
@@ -94,6 +99,21 @@ def _icon_elements(icon: str, cx: float, cy: float, r: float, fill: str) -> str:
             f'fill="none" stroke="{fill}" stroke-width="{sw:.2f}" '
             f'stroke-linecap="round" stroke-linejoin="round"/>'
         )
+    if icon == "lightning":
+        # Lightning-bolt polygon. Classic ⚡ silhouette: top-right wide,
+        # narrows to bottom-left, with a slight inward kink at the middle
+        # for the recognisable bolt shape. Coordinates in units of r so
+        # the bolt scales with the surrounding logo circle.
+        points = [
+            (cx + r * 0.18, cy - r * 0.55),  # top-right peak
+            (cx - r * 0.32, cy + r * 0.10),  # mid-left waist
+            (cx - r * 0.02, cy + r * 0.10),  # mid-right waist
+            (cx - r * 0.18, cy + r * 0.55),  # bottom-left tip
+            (cx + r * 0.32, cy - r * 0.10),  # mid-right outward
+            (cx + r * 0.02, cy - r * 0.10),  # mid-left outward
+        ]
+        pts_str = " ".join(f"{x:.2f},{y:.2f}" for x, y in points)
+        return f'<polygon points="{pts_str}" fill="{fill}"/>'
     return ""
 
 
