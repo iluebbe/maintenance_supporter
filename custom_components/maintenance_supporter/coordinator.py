@@ -30,6 +30,9 @@ from .const import (
     CONF_TASKS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
+    EVENT_TASK_COMPLETED,
+    EVENT_TASK_RESET,
+    EVENT_TASK_SKIPPED,
     GLOBAL_UNIQUE_ID,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
     SIGNAL_TASK_RESET,
@@ -629,6 +632,59 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             self._trigger_entity_states[task_id] = worst_state
 
+        # v1.3.0: scan on_complete_action.target.entity_id refs for staleness.
+        # Posts/clears repair issues so a renamed/deleted target doesn't
+        # silently cause failed service-calls. Re-uses the same issue_registry
+        # lifecycle as the trigger-entity scan above.
+        self._check_stale_action_entities()
+
+    def _check_stale_action_entities(self) -> None:
+        """Create/clear repair issues for invalid on_complete_action targets."""
+        for task_id, task_dict in self._get_merged_tasks_data().items():
+            action = task_dict.get("on_complete_action") or {}
+            if not isinstance(action, dict):
+                continue
+            target = action.get("target") or {}
+            if not isinstance(target, dict):
+                continue
+            raw_eid = target.get("entity_id")
+            # Only single-entity targets are checked here. List/template targets
+            # are out of scope (HA's service-call already validates them at
+            # call-time and our action_listener tolerates failures).
+            if isinstance(raw_eid, list):
+                eids: list[str] = [e for e in raw_eid if isinstance(e, str)]
+            elif isinstance(raw_eid, str):
+                eids = [raw_eid]
+            else:
+                continue
+
+            for entity_id in eids:
+                issue_id = f"stale_action_entity_{self.entry.entry_id}_{task_id}_{entity_id}"
+                state = self.hass.states.get(entity_id)
+                if state is not None:
+                    ir.async_delete_issue(self.hass, DOMAIN, issue_id)
+                elif not self._in_startup_grace_period():
+                    task_name = task_dict.get("name", "?")
+                    ir.async_create_issue(
+                        self.hass,
+                        DOMAIN,
+                        issue_id,
+                        is_fixable=True,
+                        severity=ir.IssueSeverity.WARNING,
+                        translation_key="stale_action_entity",
+                        translation_placeholders={
+                            "entity_id": entity_id,
+                            "task_name": task_name,
+                            "object_name": self.maintenance_object.name,
+                        },
+                        data={
+                            "entry_id": self.entry.entry_id,
+                            "task_id": task_id,
+                            "task_name": task_name,
+                            "stale_entity": entity_id,
+                        },
+                    )
+
     async def _async_notify_status_changes(
         self, task_results: dict[str, Any]
     ) -> None:
@@ -968,6 +1024,24 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "Maintenance completed: %s on %s", task.name, self.maintenance_object.name
         )
 
+        # Fire event after persistence — power users wire HA automations on
+        # this; the integration's own action_listener also subscribes here
+        # to dispatch the per-task on_complete_action service-call.
+        self.hass.bus.async_fire(
+            EVENT_TASK_COMPLETED,
+            {
+                "entry_id": self.entry.entry_id,
+                "task_id": task_id,
+                "task_name": task.name,
+                "object_name": self.maintenance_object.name,
+                "notes": notes,
+                "cost": cost,
+                "duration": duration,
+                "feedback": feedback,
+                "completed_by": completed_by,
+            },
+        )
+
     async def reset_maintenance(
         self,
         task_id: str,
@@ -1005,6 +1079,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "Maintenance reset: %s on %s", task.name, self.maintenance_object.name
         )
 
+        self.hass.bus.async_fire(
+            EVENT_TASK_RESET,
+            {
+                "entry_id": self.entry.entry_id,
+                "task_id": task_id,
+                "task_name": task.name,
+                "object_name": self.maintenance_object.name,
+                "reset_date": task.last_performed,
+            },
+        )
+
     async def skip_maintenance(
         self,
         task_id: str,
@@ -1040,6 +1125,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         _LOGGER.info(
             "Maintenance skipped: %s on %s", task.name, self.maintenance_object.name
+        )
+
+        self.hass.bus.async_fire(
+            EVENT_TASK_SKIPPED,
+            {
+                "entry_id": self.entry.entry_id,
+                "task_id": task_id,
+                "task_name": task.name,
+                "object_name": self.maintenance_object.name,
+                "reason": reason,
+            },
         )
 
     async def async_apply_suggested_interval(
