@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "Ação de conclusão referencia uma entidade eliminada",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Ação de conclusão: {stale_entity} já não existe",
+            "description": "A tarefa **{task_name}** tem uma `on_complete_action` configurada para chamar um serviço em `{stale_entity}`, mas essa entidade já não está registada no Home Assistant.\n\nEscolhe como reparar:",
+            "menu_options": {
+              "replace_entity": "Substituir por outra entidade",
+              "remove_action": "Remover a ação de conclusão"
+            }
+          },
+          "replace_entity": {
+            "title": "Substituir entidade alvo",
+            "description": "Escolhe a entidade a usar em vez de `{stale_entity}` para a tarefa **{task_name}**.",
+            "data": {
+              "new_entity": "Nova entidade alvo"
+            }
+          },
+          "remove_action": {
+            "title": "Remover ação de conclusão",
+            "description": "Remove completamente a `on_complete_action` da tarefa **{task_name}**. A tarefa em si não é afetada — apenas a chamada de serviço na conclusão é removida."
+          }
+        }
+      }
     }
   },
   "exceptions": {

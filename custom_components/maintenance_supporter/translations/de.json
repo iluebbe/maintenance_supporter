@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "Completion-Action verweist auf gelöschte Entität",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Completion-Action: {stale_entity} existiert nicht mehr",
+            "description": "Die Aufgabe **{task_name}** hat eine `on_complete_action` konfiguriert, die einen Service auf `{stale_entity}` aufruft, aber diese Entität ist nicht mehr in Home Assistant registriert.\n\nWähle wie repariert werden soll:",
+            "menu_options": {
+              "replace_entity": "Mit anderer Entität ersetzen",
+              "remove_action": "Completion-Action entfernen"
+            }
+          },
+          "replace_entity": {
+            "title": "Ziel-Entität ersetzen",
+            "description": "Wähle die Entität die statt `{stale_entity}` für Aufgabe **{task_name}** verwendet werden soll.",
+            "data": {
+              "new_entity": "Neue Ziel-Entität"
+            }
+          },
+          "remove_action": {
+            "title": "Completion-Action entfernen",
+            "description": "Entferne die `on_complete_action` von Aufgabe **{task_name}** vollständig. Die Aufgabe selbst bleibt unverändert — nur der Service-Call beim Abschluss wird entfernt."
+          }
+        }
+      }
     }
   },
   "exceptions": {

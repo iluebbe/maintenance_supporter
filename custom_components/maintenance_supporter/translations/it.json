@@ -1360,6 +1360,32 @@
           }
         }
       }
+    },
+    "stale_action_entity": {
+      "title": "L'azione di completamento fa riferimento a un'entità eliminata",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Azione di completamento: {stale_entity} non esiste più",
+            "description": "L'attività **{task_name}** ha una `on_complete_action` configurata per chiamare un servizio su `{stale_entity}`, ma quell'entità non è più registrata in Home Assistant.\n\nScegli come riparare:",
+            "menu_options": {
+              "replace_entity": "Sostituisci con un'altra entità",
+              "remove_action": "Rimuovi l'azione di completamento"
+            }
+          },
+          "replace_entity": {
+            "title": "Sostituisci entità target",
+            "description": "Scegli l'entità da usare al posto di `{stale_entity}` per l'attività **{task_name}**.",
+            "data": {
+              "new_entity": "Nuova entità target"
+            }
+          },
+          "remove_action": {
+            "title": "Rimuovi azione di completamento",
+            "description": "Rimuove completamente la `on_complete_action` dall'attività **{task_name}**. L'attività in sé non è influenzata — solo la chiamata al servizio di completamento viene rimossa."
+          }
+        }
+      }
     }
   },
   "exceptions": {
