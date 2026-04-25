@@ -188,6 +188,51 @@ Available when `advanced_completion_actions_visible` is enabled globally. Config
 
 If a task has **no** `quick_complete_defaults`, scanning a `quick_complete` QR routes back to the regular complete dialog (`no_defaults` error → frontend fallback) — the QR is never a dead-end.
 
+#### Service-Picker UI (1.3.1+)
+
+The task-dialog uses HA's native `<ha-service-picker>` for the *Service* field — start typing to filter the full HA service registry (`light.*`, `notify.*`, `vacuum.send_command`, custom integrations all included).
+
+The *Data* field renders dynamically:
+- **Schema-driven**: when the picked service has `fields:` metadata in `hass.services` (e.g. `light.turn_on`, `notify.mobile_app_*`), an `<ha-form>` renders proper widgets per type — number sliders, color pickers, entity selectors, booleans
+- **JSON fallback**: services with no `fields:` metadata (e.g. `button.press`, custom integrations without `service.yaml`) fall back to a JSON textfield for free-form data
+
+Switching the service auto-prunes data keys the new service doesn't accept (no leaked `brightness` from `light.*` into a fresh `notify.*` call).
+
+#### Recipe library — common device-side resets
+
+| Maintenance task | `service` | `target` | `data` |
+|---|---|---|---|
+| Roborock filter / brushes | `vacuum.send_command` | `vacuum.<your_robot>` | `command: reset_consumable`, `params: ["filter_work_time"]` *(or `main_brush_work_time`, `side_brush_work_time`, `sensor_dirty_time`)* |
+| HVAC controller "filter dirty" reset | `button.press` | `button.<reset_filter>` | *(empty)* |
+| Print-hour / cycle counters | `counter.reset` | `counter.<your_counter>` | *(empty)* |
+| LED status indicator (e.g. water filter) | `light.turn_on` | `light.<status_ring>` | `brightness_pct: 80`, `rgb_color: [0, 255, 0]` |
+| Custom multi-step reset | `script.<your_reset_script>` | *(empty if script defines it)* | *(empty if script takes no args)* |
+| Push notification on completion | `notify.mobile_app_<device>` | *(empty)* | `title: "Filter changed"`, `message: "Roborock S7 filter replaced — next due in 90 days"` |
+| Toggle a helper boolean | `input_boolean.turn_off` | `input_boolean.filter_dirty_flag` | *(empty)* |
+
+#### Event-driven alternative (no per-task field needed)
+
+Every completion fires `maintenance_supporter_task_completed` on the HA event bus regardless of whether `on_complete_action` is set. Power users who prefer YAML automations can subscribe directly:
+
+```yaml
+automation:
+  - alias: "Reset device counters on task complete"
+    trigger:
+      - platform: event
+        event_type: maintenance_supporter_task_completed
+    condition:
+      - "{{ trigger.event.data.task_name == 'Replace HEPA filter' }}"
+    action:
+      - service: vacuum.send_command
+        target:
+          entity_id: vacuum.s7_max_ultra
+        data:
+          command: reset_consumable
+          params: ["filter_work_time"]
+```
+
+Same events fire for skip / reset (`maintenance_supporter_task_skipped`, `maintenance_supporter_task_reset`) for symmetric automations.
+
 ### Adaptive Scheduling
 
 Available when `advanced_adaptive_visible` is enabled globally. Configured per task via the **Adaptive Scheduling** menu option.
