@@ -72,6 +72,11 @@ CONF_ADVANCED_BUDGET = "advanced_budget_visible"
 CONF_ADVANCED_GROUPS = "advanced_groups_visible"
 CONF_ADVANCED_CHECKLISTS = "advanced_checklists_visible"
 CONF_ADVANCED_SCHEDULE_TIME = "advanced_schedule_time_visible"
+# v1.3.0: gates the per-task on_complete_action + quick_complete_defaults
+# UI sections in the task dialog, plus the quick_complete chip in the
+# Print-QR generator. Default OFF — beginners aren't overwhelmed; data
+# still persists if a user toggles the flag off again.
+CONF_ADVANCED_COMPLETION_ACTIONS = "advanced_completion_actions_visible"
 
 # Panel-access overrides: HA user IDs who get the full admin panel despite
 # not being HA admins. Empty list means only admins see the full panel.
@@ -239,6 +244,13 @@ RUNTIME_TRIGGER_CURRENT_DELTA = "_trigger_current_delta"
 # --- Event Types ---
 EVENT_TRIGGER_ACTIVATED = f"{DOMAIN}_trigger_activated"
 EVENT_TRIGGER_DEACTIVATED = f"{DOMAIN}_trigger_deactivated"
+# v1.3.0: completion lifecycle events. Fired by coordinator after the
+# state mutation has persisted. Power users wire HA automations on these;
+# the integration's own action_listener also subscribes to the COMPLETED
+# event to dispatch the per-task on_complete_action service-call.
+EVENT_TASK_COMPLETED = f"{DOMAIN}_task_completed"
+EVENT_TASK_SKIPPED = f"{DOMAIN}_task_skipped"
+EVENT_TASK_RESET = f"{DOMAIN}_task_reset"
 
 # --- Service Names ---
 SERVICE_COMPLETE = "complete"
