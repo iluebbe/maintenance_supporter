@@ -2,6 +2,28 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.3.1] - 2026-04-25
+
+### UX — Service-Picker + schema-driven data form for `on_complete_action`
+
+Quick follow-up to v1.3.0 in response to early feedback on the action UI: the service field is now an autocomplete dropdown over every HA service registered on your instance — no more typing `domain.name` from memory or copy-pasting from YAML.
+
+**Changes in the task-dialog `On-Complete Action` section:**
+- Service field: `<ha-textfield>` → `<ha-service-picker>` (HA's native autocomplete over the full service registry, with fuzzy matching by domain/service/description)
+- Data field: when the picked service has `fields:` metadata in `hass.services`, those fields render as an `<ha-form>` (proper widgets per type: number sliders, color pickers, entity selectors, booleans, etc.) — no more JSON-typing for common services like `light.turn_on`, `notify.mobile_app_*`, `script.*`
+- Fallback: services with no `fields:` metadata (e.g. `button.press`, custom integrations without service.yaml) still expose a JSON textfield for free-form data
+- Auto-pruning: switching the service drops data keys the new service doesn't accept (so a stale `brightness` from `light.turn_on` doesn't leak into a fresh `notify.mobile_app_phone`)
+
+**No backend changes**, no schema migration. Existing `on_complete_action.data` dicts hydrate transparently into the new form.
+
+### Tests
+
+Frontend component suite: 24 tests pass (was 22). Two new tests cover the schema-driven branch:
+- `renders ha-form when the picked service has a schema`
+- `falls back to JSON textfield when the service has no schema`
+
+Backend: 1551 tests still pass; ruff ✓ · mypy strict ✓.
+
 ## [1.3.0] - 2026-04-25
 
 ### New — Run a Home Assistant action when a task is completed (#41)

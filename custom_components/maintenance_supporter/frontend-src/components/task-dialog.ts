@@ -76,9 +76,12 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _scheduleTime = "";
 
   // v1.3.0: on_complete_action (gated by completionActionsEnabled)
+  // v1.3.1: _actionData is the parsed object (was: _actionDataJson string)
+  // so ha-form can drive the data fields when the service schema is known.
   @state() private _actionService = "";
   @state() private _actionTargetEntity = "";
-  @state() private _actionDataJson = "";
+  @state() private _actionData: Record<string, unknown> = {};
+  @state() private _actionDataJsonFallback = "";
   @state() private _actionTesting = false;
   @state() private _actionTestResult: "" | "ok" | "error" = "";
 
@@ -147,11 +150,13 @@ export class MaintenanceTaskDialog extends LitElement {
       this._actionService = oca.service;
       const tgt = oca.target?.entity_id;
       this._actionTargetEntity = Array.isArray(tgt) ? (tgt[0] || "") : (tgt || "");
-      this._actionDataJson = oca.data ? JSON.stringify(oca.data, null, 2) : "";
+      this._actionData = (oca.data && typeof oca.data === "object") ? { ...oca.data } : {};
+      this._actionDataJsonFallback = "";
     } else {
       this._actionService = "";
       this._actionTargetEntity = "";
-      this._actionDataJson = "";
+      this._actionData = {};
+      this._actionDataJsonFallback = "";
     }
     const qcd = task.quick_complete_defaults;
     this._qcNotes = qcd?.notes || "";
@@ -217,7 +222,8 @@ export class MaintenanceTaskDialog extends LitElement {
     // v1.3.0
     this._actionService = "";
     this._actionTargetEntity = "";
-    this._actionDataJson = "";
+    this._actionData = {};
+    this._actionDataJsonFallback = "";
     this._actionTesting = false;
     this._actionTestResult = "";
     this._qcNotes = "";
@@ -268,18 +274,7 @@ export class MaintenanceTaskDialog extends LitElement {
       return;
     }
     const [domain, name] = svc.split(".");
-    const data: Record<string, unknown> = {};
-    if (this._actionDataJson.trim()) {
-      try {
-        const parsed = JSON.parse(this._actionDataJson);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          Object.assign(data, parsed);
-        }
-      } catch {
-        this._actionTestResult = "error";
-        return;
-      }
-    }
+    const data = { ...this._buildActionData() };
     const tgt = this._actionTargetEntity.trim();
     if (tgt) data.entity_id = tgt;
     this._actionTesting = true;
@@ -296,30 +291,90 @@ export class MaintenanceTaskDialog extends LitElement {
     }
   }
 
+  // v1.3.1: derive the data dict from either the schema-driven _actionData
+  // (preferred) or the JSON fallback textfield. Returns {} on any parse
+  // problem so the caller still gets a usable empty object.
+  private _buildActionData(): Record<string, unknown> {
+    if (this._actionDataJsonFallback.trim()) {
+      try {
+        const parsed = JSON.parse(this._actionDataJsonFallback);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed as Record<string, unknown>;
+        }
+      } catch { /* fallthrough to ha-form data */ }
+    }
+    return { ...this._actionData };
+  }
+
+  // v1.3.1: look up the selected service in hass.services and convert its
+  // `fields` map into the schema shape ha-form expects. Returns null when
+  // the service is unknown or has no fields metadata — caller falls back
+  // to a free-form JSON textfield.
+  private _serviceSchema(): Array<{
+    name: string;
+    required: boolean;
+    selector: Record<string, unknown>;
+  }> | null {
+    const svc = this._actionService.trim();
+    if (!svc || !/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) return null;
+    const [domain, name] = svc.split(".");
+    const fields = this.hass?.services?.[domain]?.[name]?.fields;
+    if (!fields || Object.keys(fields).length === 0) return null;
+    return Object.entries(fields).map(([fname, def]) => ({
+      name: fname,
+      required: !!def.required,
+      selector: (def.selector as Record<string, unknown>) || { text: {} },
+    }));
+  }
+
   private _renderCompletionActionsSection(L: string) {
     if (!this.completionActionsEnabled) return nothing;
+    const schema = this._serviceSchema();
     return html`
       <details class="ca-section">
         <summary>${t("on_complete_action_title", L)}</summary>
         <p class="field-help">${t("on_complete_action_desc", L)}</p>
-        <ha-textfield
-          label="${t("on_complete_action_service", L)}"
-          placeholder="button.press"
+        <ha-service-picker
+          .hass=${this.hass}
           .value=${this._actionService}
-          @input=${(e: Event) => { this._actionService = (e.target as HTMLInputElement).value; }}
-        ></ha-textfield>
+          @value-changed=${(e: CustomEvent) => {
+            this._actionService = e.detail.value || "";
+            // Schema changed → drop fields the new service doesn't accept.
+            const newSchema = this._serviceSchema();
+            if (newSchema) {
+              const allowed = new Set(newSchema.map(f => f.name));
+              this._actionData = Object.fromEntries(
+                Object.entries(this._actionData).filter(([k]) => allowed.has(k)),
+              );
+            }
+          }}
+        ></ha-service-picker>
         <ha-entity-picker
           .hass=${this.hass}
           .value=${this._actionTargetEntity}
           .label=${t("on_complete_action_target", L)}
           @value-changed=${(e: CustomEvent) => { this._actionTargetEntity = e.detail.value || ""; }}
         ></ha-entity-picker>
-        <ha-textfield
-          label="${t("on_complete_action_data", L)}"
-          placeholder='{}'
-          .value=${this._actionDataJson}
-          @input=${(e: Event) => { this._actionDataJson = (e.target as HTMLInputElement).value; }}
-        ></ha-textfield>
+        ${schema
+          ? html`
+              <ha-form
+                class="ca-data-form"
+                .hass=${this.hass}
+                .schema=${schema}
+                .data=${this._actionData}
+                @value-changed=${(e: CustomEvent) => {
+                  this._actionData = { ...(e.detail.value as Record<string, unknown>) };
+                }}
+              ></ha-form>
+            `
+          : html`
+              <ha-textfield
+                label="${t("on_complete_action_data", L)}"
+                placeholder="{}"
+                .value=${this._actionDataJsonFallback}
+                @input=${(e: Event) => { this._actionDataJsonFallback = (e.target as HTMLInputElement).value; }}
+              ></ha-textfield>
+            `}
         <div class="ca-test-row">
           <button type="button" ?disabled=${this._actionTesting || !this._actionService}
             @click=${this._testAction}>
@@ -499,14 +554,9 @@ export class MaintenanceTaskDialog extends LitElement {
           const action: Record<string, unknown> = { service: svc };
           const tgt = this._actionTargetEntity.trim();
           if (tgt) action.target = { entity_id: tgt };
-          const dataStr = this._actionDataJson.trim();
-          if (dataStr) {
-            try {
-              const parsed = JSON.parse(dataStr);
-              if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-                action.data = parsed;
-              }
-            } catch { /* ignore — drop malformed JSON */ }
+          const dataDict = this._buildActionData();
+          if (Object.keys(dataDict).length > 0) {
+            action.data = dataDict;
           }
           data.on_complete_action = action;
         } else {
@@ -941,6 +991,8 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     .ca-section ha-textfield,
     .ca-section ha-entity-picker,
+    .ca-section ha-service-picker,
+    .ca-section ha-form,
     .ca-section .qc-feedback {
       width: 100%;
       margin-top: 8px;
