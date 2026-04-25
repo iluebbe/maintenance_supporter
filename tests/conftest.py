@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator, Callable, Generator
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -292,3 +292,52 @@ async def call_ws_handler(
     while hasattr(unwrapped, "__wrapped__"):
         unwrapped = unwrapped.__wrapped__
     await unwrapped(hass, connection, msg)
+
+
+def make_ws_connection() -> MagicMock:
+    """Mock WebSocket connection that captures send_result / send_error.
+
+    Shared replacement for the per-file `_conn()` helper that previously
+    lived inline in test_ws_roundtrip.py / test_completion_actions.py /
+    test_coverage_97.py.
+    """
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
+    return conn
+
+
+def assert_ws_success(connection: MagicMock) -> dict[str, Any]:
+    """Assert a WS handler call sent a single send_result and return its payload.
+
+    Replaces the recurring `assert conn.send_error.call_count == 0` +
+    `assert conn.send_result.call_count == 1` + `payload =
+    conn.send_result.call_args[0][1]` snippet that was duplicated
+    across ~19 test files.
+    """
+    assert connection.send_error.call_count == 0, (
+        f"WS handler returned an error: {connection.send_error.call_args}"
+    )
+    assert connection.send_result.call_count == 1, (
+        f"WS handler did not send a result (calls: {connection.send_result.call_count})"
+    )
+    return connection.send_result.call_args[0][1]
+
+
+def assert_ws_error(connection: MagicMock, code: str | None = None) -> tuple[str, str]:
+    """Assert a WS handler call sent a single send_error and return ``(code, message)``.
+
+    If ``code`` is provided, also asserts the error code matches.
+    """
+    assert connection.send_result.call_count == 0, (
+        f"Expected send_error but got send_result: {connection.send_result.call_args}"
+    )
+    assert connection.send_error.call_count == 1, (
+        f"Expected exactly one send_error (got {connection.send_error.call_count})"
+    )
+    args = connection.send_error.call_args[0]
+    err_code, err_msg = args[1], args[2]
+    if code is not None:
+        assert err_code == code, f"Expected error code {code!r}, got {err_code!r}"
+    return err_code, err_msg

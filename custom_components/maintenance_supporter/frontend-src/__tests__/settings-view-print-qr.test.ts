@@ -8,58 +8,19 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/settings-view.js";
 import type { MaintenanceSettingsView } from "../components/settings-view";
-
-interface SentMessage { type: string; [key: string]: unknown }
-
-function buildSettings() {
-  return {
-    features: {
-      adaptive: false, predictions: false, seasonal: false,
-      environmental: false, budget: false, groups: false,
-      checklists: false, schedule_time: false,
-    },
-    admin_panel_user_ids: [],
-    general: {
-      default_warning_days: 7, notifications_enabled: false,
-      notify_service: "", panel_enabled: false,
-    },
-    notifications: {
-      due_soon_enabled: true, due_soon_interval_hours: 24,
-      overdue_enabled: true, overdue_interval_hours: 12,
-      triggered_enabled: true, triggered_interval_hours: 0,
-      quiet_hours_enabled: true, quiet_hours_start: "22:00", quiet_hours_end: "08:00",
-      max_per_day: 0, bundling_enabled: false, bundle_threshold: 2,
-    },
-    actions: {
-      complete_enabled: false, skip_enabled: false,
-      snooze_enabled: false, snooze_duration_hours: 4,
-    },
-    budget: {
-      monthly: 0, yearly: 0, alerts_enabled: false,
-      alert_threshold_pct: 80, currency: "EUR", currency_symbol: "€",
-    },
-    vacation: {
-      enabled: false, start: null, end: null, buffer_days: 3,
-      exempt_task_ids: [], is_active: false, window_end: null,
-    },
-  };
-}
+import { DEFAULT_FEATURES, createMockHass } from "./_test-utils.js";
 
 function mockHass(opts: {
   objects?: Array<{ entry_id: string; name: string; task_count: number }>;
   batchResult?: Array<{ task_id: string; entry_id: string; object_name: string; task_name: string; action: string; svg: string }>;
 } = {}) {
-  const sent: SentMessage[] = [];
   const objects = opts.objects ?? [
     { entry_id: "e1", name: "Pool Pump", task_count: 3 },
     { entry_id: "e2", name: "HVAC", task_count: 2 },
   ];
-  const sendMessagePromise = async (msg: SentMessage): Promise<unknown> => {
-    sent.push(msg);
-    if (msg.type === "maintenance_supporter/settings") return buildSettings();
-    if (msg.type === "maintenance_supporter/users/list") return { users: [] };
-    if (msg.type === "maintenance_supporter/objects") {
-      return {
+  return createMockHass({
+    handlers: {
+      "maintenance_supporter/objects": () => ({
         objects: objects.map(o => ({
           entry_id: o.entry_id,
           object: { name: o.name },
@@ -67,10 +28,8 @@ function mockHass(opts: {
             id: `${o.entry_id}_t${i}`, name: `Task ${i}`,
           })),
         })),
-      };
-    }
-    if (msg.type === "maintenance_supporter/qr/batch_generate") {
-      return {
+      }),
+      "maintenance_supporter/qr/batch_generate": () => ({
         qrs: opts.batchResult ?? [
           {
             entry_id: "e1", task_id: "e1_t0",
@@ -79,22 +38,15 @@ function mockHass(opts: {
           },
         ],
         total: 1,
-      };
-    }
-    return {};
-  };
-  return { hass: { language: "en", connection: { sendMessagePromise } }, sent };
+      }),
+    },
+  });
 }
 
 async function mount(opts = {}) {
   const { hass, sent } = mockHass(opts);
-  const features = {
-    adaptive: false, predictions: false, seasonal: false,
-    environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false, completion_actions: false,
-  };
   const el = await fixture<MaintenanceSettingsView>(html`
-    <maintenance-settings-view .hass=${hass} .features=${features}></maintenance-settings-view>
+    <maintenance-settings-view .hass=${hass} .features=${DEFAULT_FEATURES}></maintenance-settings-view>
   `);
   await new Promise(r => setTimeout(r, 50));
   await el.updateComplete;

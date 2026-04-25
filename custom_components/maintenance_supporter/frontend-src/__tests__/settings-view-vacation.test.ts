@@ -10,108 +10,56 @@
 import { expect, fixture, html, oneEvent } from "@open-wc/testing";
 import "../components/settings-view.js";
 import type { MaintenanceSettingsView } from "../components/settings-view";
-
-interface SentMessage {
-  type: string;
-  [key: string]: unknown;
-}
+import {
+  DEFAULT_FEATURES,
+  DEFAULT_SETTINGS_RESPONSE,
+  createMockHass,
+} from "./_test-utils.js";
 
 function mockHass(opts: {
   vacationActive?: boolean;
   vacationStart?: string | null;
   vacationEnd?: string | null;
   exemptIds?: string[];
-} = {}): {
-  hass: { language: string; connection: { sendMessagePromise: (msg: SentMessage) => Promise<unknown> } };
-  sent: SentMessage[];
-} {
-  const sent: SentMessage[] = [];
+} = {}) {
   const settingsResponse = {
-    features: {
-      adaptive: false, predictions: false, seasonal: false,
-      environmental: false, budget: false, groups: false,
-      checklists: false, schedule_time: false,
-    },
-    admin_panel_user_ids: [],
-    general: {
-      default_warning_days: 7,
-      notifications_enabled: false,
-      notify_service: "",
-      panel_enabled: false,
-    },
-    notifications: {
-      due_soon_enabled: true, due_soon_interval_hours: 24,
-      overdue_enabled: true, overdue_interval_hours: 12,
-      triggered_enabled: true, triggered_interval_hours: 0,
-      quiet_hours_enabled: true, quiet_hours_start: "22:00", quiet_hours_end: "08:00",
-      max_per_day: 0, bundling_enabled: false, bundle_threshold: 2,
-    },
-    actions: {
-      complete_enabled: false, skip_enabled: false,
-      snooze_enabled: false, snooze_duration_hours: 4,
-    },
-    budget: {
-      monthly: 0, yearly: 0, alerts_enabled: false,
-      alert_threshold_pct: 80, currency: "EUR", currency_symbol: "€",
-    },
+    ...DEFAULT_SETTINGS_RESPONSE,
     vacation: {
+      ...DEFAULT_SETTINGS_RESPONSE.vacation,
       enabled: opts.vacationActive ?? false,
       start: opts.vacationStart ?? null,
       end: opts.vacationEnd ?? null,
-      buffer_days: 3,
       exempt_task_ids: opts.exemptIds ?? [],
       is_active: opts.vacationActive ?? false,
       window_end: opts.vacationEnd ?? null,
     },
   };
 
-  const sendMessagePromise = async (msg: SentMessage): Promise<unknown> => {
-    sent.push(msg);
-    if (msg.type === "maintenance_supporter/settings") {
-      return settingsResponse;
-    }
-    if (msg.type === "maintenance_supporter/vacation/update") {
-      // Echo the patch merged onto current vacation state — what the
-      // real backend does.
-      return {
+  return createMockHass({
+    settingsResponse,
+    handlers: {
+      "maintenance_supporter/vacation/update": (msg) => ({
+        // Echo the patch merged onto current vacation state — what the
+        // real backend does.
         ...settingsResponse.vacation,
         ...(msg.enabled !== undefined ? { enabled: msg.enabled, is_active: msg.enabled } : {}),
         ...(msg.start !== undefined ? { start: msg.start } : {}),
         ...(msg.end !== undefined ? { end: msg.end } : {}),
         ...(msg.buffer_days !== undefined ? { buffer_days: msg.buffer_days } : {}),
         ...(msg.exempt_task_ids !== undefined ? { exempt_task_ids: msg.exempt_task_ids } : {}),
-      };
-    }
-    if (msg.type === "maintenance_supporter/vacation/end_now") {
-      return { ...settingsResponse.vacation, enabled: false, is_active: false };
-    }
-    if (msg.type === "maintenance_supporter/vacation/preview") {
-      return { rows: [], window_end: null };
-    }
-    if (msg.type === "maintenance_supporter/objects") {
-      return { objects: [] };
-    }
-    if (msg.type === "maintenance_supporter/users/list") {
-      return { users: [] };
-    }
-    return {};
-  };
-
-  return {
-    hass: { language: "en", connection: { sendMessagePromise } },
-    sent,
-  };
+      }),
+      "maintenance_supporter/vacation/end_now": () => ({
+        ...settingsResponse.vacation, enabled: false, is_active: false,
+      }),
+      "maintenance_supporter/vacation/preview": () => ({ rows: [], window_end: null }),
+    },
+  });
 }
 
 async function mount(opts = {}) {
   const { hass, sent } = mockHass(opts);
-  const features = {
-    adaptive: false, predictions: false, seasonal: false,
-    environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false, completion_actions: false,
-  };
   const el = await fixture<MaintenanceSettingsView>(html`
-    <maintenance-settings-view .hass=${hass} .features=${features}></maintenance-settings-view>
+    <maintenance-settings-view .hass=${hass} .features=${DEFAULT_FEATURES}></maintenance-settings-view>
   `);
   // Wait for _loadSettings to complete — it's kicked off by updated()
   // which fires after first render.

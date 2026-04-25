@@ -11,64 +11,46 @@
 import { expect, fixture, html } from "@open-wc/testing";
 import "../components/task-dialog.js";
 import type { MaintenanceTaskDialog } from "../components/task-dialog";
+import {
+  type CreateMockHassResult,
+  type SentMessage,
+  type ServiceCall,
+  createMockHass,
+} from "./_test-utils.js";
 
-interface SentMessage { type: string; [key: string]: unknown }
-
-function mockHass(): {
-  hass: {
-    language: string;
-    connection: { sendMessagePromise: (msg: SentMessage) => Promise<unknown> };
-    callService: (domain: string, service: string, data?: Record<string, unknown>) => Promise<void>;
-    services: Record<string, Record<string, {
-      fields?: Record<string, { selector?: Record<string, unknown>; required?: boolean }>;
-    }>>;
-  };
-  sent: SentMessage[];
-  serviceCalls: Array<{ domain: string; service: string; data?: Record<string, unknown> }>;
-} {
-  const sent: SentMessage[] = [];
-  const serviceCalls: Array<{ domain: string; service: string; data?: Record<string, unknown> }> = [];
-  const sendMessagePromise = async (msg: SentMessage): Promise<unknown> => {
-    sent.push(msg);
-    if (msg.type === "maintenance_supporter/users/list") return { users: [] };
-    if (msg.type === "maintenance_supporter/tags/list") return { tags: [] };
-    if (msg.type === "maintenance_supporter/task/create") return { task_id: "newtask123" };
-    if (msg.type === "maintenance_supporter/task/update") return {};
-    return {};
-  };
-  const callService = async (
-    domain: string, service: string, data?: Record<string, unknown>,
-  ): Promise<void> => {
-    serviceCalls.push({ domain, service, data });
-  };
-  // v1.3.1: minimal service registry so the schema-driven data form can
-  // resolve `light.toggle` to a known field set.
-  const services = {
-    light: {
-      toggle: {
-        fields: {
-          brightness: { selector: { number: { min: 0, max: 255 } }, required: false },
-          transition: { selector: { number: { min: 0, max: 60 } }, required: false },
-        },
-      },
-      turn_on: {
-        fields: {
-          brightness: { selector: { number: { min: 0, max: 255 } }, required: false },
-        },
+// v1.3.1: minimal service registry so the schema-driven data form can
+// resolve `light.toggle` to a known field set.
+const SERVICES_FIXTURE = {
+  light: {
+    toggle: {
+      fields: {
+        brightness: { selector: { number: { min: 0, max: 255 } }, required: false },
+        transition: { selector: { number: { min: 0, max: 60 } }, required: false },
       },
     },
-    button: { press: {} }, // no fields → fallback JSON textfield
-  };
-  return {
-    hass: { language: "en", connection: { sendMessagePromise }, callService, services },
-    sent, serviceCalls,
-  };
+    turn_on: {
+      fields: {
+        brightness: { selector: { number: { min: 0, max: 255 } }, required: false },
+      },
+    },
+  },
+  button: { press: {} }, // no fields → fallback JSON textfield
+};
+
+function mockHass(): CreateMockHassResult {
+  return createMockHass({
+    services: SERVICES_FIXTURE,
+    handlers: {
+      "maintenance_supporter/task/create": () => ({ task_id: "newtask123" }),
+      "maintenance_supporter/task/update": () => ({}),
+    },
+  });
 }
 
 async function mountDialog(opts: { completionActions?: boolean } = {}): Promise<{
   el: MaintenanceTaskDialog;
   sent: SentMessage[];
-  serviceCalls: Array<{ domain: string; service: string; data?: Record<string, unknown> }>;
+  serviceCalls: ServiceCall[];
 }> {
   const { hass, sent, serviceCalls } = mockHass();
   const el = await fixture<MaintenanceTaskDialog>(html`

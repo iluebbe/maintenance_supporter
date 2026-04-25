@@ -41,9 +41,11 @@ from custom_components.maintenance_supporter.websocket.tasks import (
 )
 
 from .conftest import (
+    assert_ws_success,
     build_global_entry_data,
     build_object_entry_data,
     call_ws_handler,
+    make_ws_connection,
     setup_integration,
 )
 
@@ -76,17 +78,14 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 def _conn() -> MagicMock:
-    conn = MagicMock()
-    conn.send_result = MagicMock()
-    conn.send_error = MagicMock()
-    conn.user = MagicMock(is_admin=True)
-    return conn
+    """Backward-compatible alias; delegates to conftest.make_ws_connection."""
+    return make_ws_connection()
 
 
 async def _create_task(
     hass: HomeAssistant, entry_id: str, payload: dict[str, Any]
 ) -> str:
-    conn = _conn()
+    conn = make_ws_connection()
     await call_ws_handler(
         ws_create_task, hass, conn,
         {
@@ -94,8 +93,7 @@ async def _create_task(
             "entry_id": entry_id, **payload,
         },
     )
-    assert conn.send_error.call_count == 0, conn.send_error.call_args
-    return conn.send_result.call_args[0][1]["task_id"]
+    return assert_ws_success(conn)["task_id"]
 
 
 # ─── action_listener: dispatches service-call on completion ─────────────
