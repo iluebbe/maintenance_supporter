@@ -16,6 +16,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
   @property({ type: Boolean, attribute: "schedule-time-enabled" }) public scheduleTimeEnabled = false;
+  @property({ type: Boolean, attribute: "completion-actions-enabled" }) public completionActionsEnabled = false;
   @property({ type: Number, attribute: "default-warning-days" }) public defaultWarningDays = 7;
   @state() private _open = false;
   @state() private _loading = false;
@@ -74,6 +75,19 @@ export class MaintenanceTaskDialog extends LitElement {
   // Schedule time (HH:MM, advanced feature)
   @state() private _scheduleTime = "";
 
+  // v1.3.0: on_complete_action (gated by completionActionsEnabled)
+  @state() private _actionService = "";
+  @state() private _actionTargetEntity = "";
+  @state() private _actionDataJson = "";
+  @state() private _actionTesting = false;
+  @state() private _actionTestResult: "" | "ok" | "error" = "";
+
+  // v1.3.0: quick_complete_defaults (gated by completionActionsEnabled)
+  @state() private _qcNotes = "";
+  @state() private _qcCost = "";
+  @state() private _qcDuration = "";
+  @state() private _qcFeedback: "" | "needed" | "not_needed" = "";
+
   // Environmental entity (adaptive_config)
   @state() private _environmentalEntity = "";
   @state() private _environmentalAttribute = "";
@@ -126,6 +140,24 @@ export class MaintenanceTaskDialog extends LitElement {
 
     this._checklistText = (task.checklist || []).join("\n");
     this._scheduleTime = task.schedule_time || "";
+
+    // v1.3.0: hydrate on_complete_action + quick_complete_defaults
+    const oca = task.on_complete_action;
+    if (oca && oca.service) {
+      this._actionService = oca.service;
+      const tgt = oca.target?.entity_id;
+      this._actionTargetEntity = Array.isArray(tgt) ? (tgt[0] || "") : (tgt || "");
+      this._actionDataJson = oca.data ? JSON.stringify(oca.data, null, 2) : "";
+    } else {
+      this._actionService = "";
+      this._actionTargetEntity = "";
+      this._actionDataJson = "";
+    }
+    const qcd = task.quick_complete_defaults;
+    this._qcNotes = qcd?.notes || "";
+    this._qcCost = qcd?.cost != null ? String(qcd.cost) : "";
+    this._qcDuration = qcd?.duration != null ? String(qcd.duration) : "";
+    this._qcFeedback = (qcd?.feedback as "needed" | "not_needed" | undefined) || "";
 
     const ac = task.adaptive_config || {};
     this._environmentalEntity = (ac.environmental_entity as string) || "";
@@ -182,6 +214,16 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalAttribute = "";
     this._environmentalInitial = "";
     this._environmentalAttributeInitial = "";
+    // v1.3.0
+    this._actionService = "";
+    this._actionTargetEntity = "";
+    this._actionDataJson = "";
+    this._actionTesting = false;
+    this._actionTestResult = "";
+    this._qcNotes = "";
+    this._qcCost = "";
+    this._qcDuration = "";
+    this._qcFeedback = "";
     this._resetTriggerFields();
   }
 
@@ -215,6 +257,112 @@ export class MaintenanceTaskDialog extends LitElement {
       console.error("Failed to load users:", error);
       this._availableUsers = [];
     }
+  }
+
+  // v1.3.0: fire the configured action immediately so the user can verify
+  // it works before saving the task. Doesn't persist anything.
+  private async _testAction(): Promise<void> {
+    const svc = this._actionService.trim();
+    if (!svc || !/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
+      this._actionTestResult = "error";
+      return;
+    }
+    const [domain, name] = svc.split(".");
+    const data: Record<string, unknown> = {};
+    if (this._actionDataJson.trim()) {
+      try {
+        const parsed = JSON.parse(this._actionDataJson);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          Object.assign(data, parsed);
+        }
+      } catch {
+        this._actionTestResult = "error";
+        return;
+      }
+    }
+    const tgt = this._actionTargetEntity.trim();
+    if (tgt) data.entity_id = tgt;
+    this._actionTesting = true;
+    this._actionTestResult = "";
+    try {
+      await this.hass.callService(domain, name, data);
+      this._actionTestResult = "ok";
+    } catch {
+      this._actionTestResult = "error";
+    } finally {
+      this._actionTesting = false;
+      // Auto-clear the indicator after 3s.
+      setTimeout(() => { this._actionTestResult = ""; }, 3000);
+    }
+  }
+
+  private _renderCompletionActionsSection(L: string) {
+    if (!this.completionActionsEnabled) return nothing;
+    return html`
+      <details class="ca-section">
+        <summary>${t("on_complete_action_title", L)}</summary>
+        <p class="field-help">${t("on_complete_action_desc", L)}</p>
+        <ha-textfield
+          label="${t("on_complete_action_service", L)}"
+          placeholder="button.press"
+          .value=${this._actionService}
+          @input=${(e: Event) => { this._actionService = (e.target as HTMLInputElement).value; }}
+        ></ha-textfield>
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._actionTargetEntity}
+          .label=${t("on_complete_action_target", L)}
+          @value-changed=${(e: CustomEvent) => { this._actionTargetEntity = e.detail.value || ""; }}
+        ></ha-entity-picker>
+        <ha-textfield
+          label="${t("on_complete_action_data", L)}"
+          placeholder='{}'
+          .value=${this._actionDataJson}
+          @input=${(e: Event) => { this._actionDataJson = (e.target as HTMLInputElement).value; }}
+        ></ha-textfield>
+        <div class="ca-test-row">
+          <button type="button" ?disabled=${this._actionTesting || !this._actionService}
+            @click=${this._testAction}>
+            ${this._actionTesting ? "…" : t("on_complete_action_test", L)}
+          </button>
+          ${this._actionTestResult === "ok"
+            ? html`<span class="ca-test-ok">${t("on_complete_action_test_success", L)}</span>`
+            : nothing}
+          ${this._actionTestResult === "error"
+            ? html`<span class="ca-test-error">${t("on_complete_action_test_failed", L)}</span>`
+            : nothing}
+        </div>
+      </details>
+
+      <details class="ca-section">
+        <summary>${t("quick_complete_defaults_title", L)}</summary>
+        <p class="field-help">${t("quick_complete_defaults_desc", L)}</p>
+        <ha-textfield
+          label="${t("quick_complete_defaults_notes", L)}"
+          .value=${this._qcNotes}
+          @input=${(e: Event) => { this._qcNotes = (e.target as HTMLInputElement).value; }}
+        ></ha-textfield>
+        <ha-textfield
+          label="${t("quick_complete_defaults_cost", L)}"
+          type="number" min="0" step="0.01"
+          .value=${this._qcCost}
+          @input=${(e: Event) => { this._qcCost = (e.target as HTMLInputElement).value; }}
+        ></ha-textfield>
+        <ha-textfield
+          label="${t("quick_complete_defaults_duration", L)}"
+          type="number" min="0" step="1"
+          .value=${this._qcDuration}
+          @input=${(e: Event) => { this._qcDuration = (e.target as HTMLInputElement).value; }}
+        ></ha-textfield>
+        <select class="qc-feedback"
+          .value=${this._qcFeedback}
+          @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed"; }}>
+          <option value="">${t("quick_complete_defaults_feedback_none", L)}</option>
+          <option value="needed">${t("quick_complete_defaults_feedback_needed", L)}</option>
+          <option value="not_needed">${t("quick_complete_defaults_feedback_not_needed", L)}</option>
+        </select>
+      </details>
+    `;
   }
 
   private async _loadTags(): Promise<void> {
@@ -342,6 +490,37 @@ export class MaintenanceTaskDialog extends LitElement {
           .filter(Boolean)
           .slice(0, 100);
         data.checklist = items.length ? items : null;
+      }
+
+      // v1.3.0: on_complete_action + quick_complete_defaults (gated)
+      if (this.completionActionsEnabled) {
+        const svc = this._actionService.trim();
+        if (svc && /^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
+          const action: Record<string, unknown> = { service: svc };
+          const tgt = this._actionTargetEntity.trim();
+          if (tgt) action.target = { entity_id: tgt };
+          const dataStr = this._actionDataJson.trim();
+          if (dataStr) {
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                action.data = parsed;
+              }
+            } catch { /* ignore — drop malformed JSON */ }
+          }
+          data.on_complete_action = action;
+        } else {
+          data.on_complete_action = null;
+        }
+
+        const qcd: Record<string, unknown> = {};
+        if (this._qcNotes.trim()) qcd.notes = this._qcNotes.trim();
+        const cost = parseFloat(this._qcCost);
+        if (!isNaN(cost) && cost >= 0) qcd.cost = cost;
+        const dur = parseInt(this._qcDuration, 10);
+        if (!isNaN(dur) && dur >= 0) qcd.duration = dur;
+        if (this._qcFeedback) qcd.feedback = this._qcFeedback;
+        data.quick_complete_defaults = Object.keys(qcd).length ? qcd : null;
       }
 
       const result = await this.hass.connection.sendMessagePromise(data) as { task_id?: string };
@@ -728,6 +907,7 @@ export class MaintenanceTaskDialog extends LitElement {
             />
             ${t("task_enabled", L)}
           </label>
+          ${this._renderCompletionActionsSection(L)}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
@@ -748,6 +928,39 @@ export class MaintenanceTaskDialog extends LitElement {
       font-weight: 500;
       padding-bottom: 12px;
     }
+    /* v1.3.0: completion-action sections */
+    .ca-section {
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 8px;
+    }
+    .ca-section > summary {
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .ca-section ha-textfield,
+    .ca-section ha-entity-picker,
+    .ca-section .qc-feedback {
+      width: 100%;
+      margin-top: 8px;
+      display: block;
+    }
+    .ca-section .qc-feedback {
+      padding: 8px;
+      border: 1px solid var(--divider-color);
+      border-radius: 4px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+    }
+    .ca-test-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .ca-test-ok { color: var(--success-color, #4caf50); font-size: 13px; }
+    .ca-test-error { color: var(--error-color, #f44336); font-size: 13px; }
     .content {
       display: flex;
       flex-direction: column;

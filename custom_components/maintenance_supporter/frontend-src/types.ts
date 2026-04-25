@@ -101,6 +101,18 @@ export interface MaintenanceTask {
   notes?: string | null;
   documentation_url?: string | null;
   checklist?: string[];
+  // v1.3.0: completion-action + quick-complete (gated by completion_actions feature)
+  on_complete_action?: {
+    service: string;                          // "domain.service"
+    target?: { entity_id?: string | string[]; device_id?: string | string[]; area_id?: string | string[] };
+    data?: Record<string, unknown>;
+  } | null;
+  quick_complete_defaults?: {
+    notes?: string;
+    cost?: number;
+    duration?: number;
+    feedback?: "needed" | "not_needed";
+  } | null;
   trigger_config?: TriggerConfig | null;
   trigger_entity_info?: TriggerEntityInfo | null;
   trigger_entity_infos?: TriggerEntityInfo[] | null;
@@ -205,6 +217,8 @@ export interface AdvancedFeatures {
   groups: boolean;
   checklists: boolean;
   schedule_time: boolean;
+  /** v1.3.0: gates per-task on_complete_action + quick_complete_defaults UI. */
+  completion_actions: boolean;
 }
 
 /** A single point in a recorder statistics time series. */
