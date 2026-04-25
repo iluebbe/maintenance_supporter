@@ -130,7 +130,11 @@ export class MaintenanceTaskDialog extends LitElement {
     this._name = task.name;
     this._type = task.type;
     this._scheduleType = task.schedule_type;
-    this._intervalDays = task.interval_days?.toString() || "30";
+    // Preserve null (= no safety interval set) instead of forcing "30".
+    // Bug #42: the old `?.toString() || "30"` fallback reverted a cleared
+    // safety_interval back to 30 on next edit, silently overwriting the
+    // user's intent the moment they touched any other field and saved.
+    this._intervalDays = task.interval_days != null ? String(task.interval_days) : "";
     this._warningDays = task.warning_days.toString();
     this._intervalAnchor = task.interval_anchor || "completion";
     this._notes = task.notes || "";

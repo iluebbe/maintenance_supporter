@@ -2,6 +2,32 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.3.4] - 2026-04-25
+
+### Fix — Cleared safety interval no longer reverts to 30 (#42)
+
+When a sensor-based task had its optional **safety interval** cleared, opening the edit dialog again silently restored the field to "30". The persisted value was correctly `null`, but the form display lied — and worse, if the user touched any other field and saved, the visible "30" got persisted, overwriting the explicit clear.
+
+**Root cause:** `frontend-src/components/task-dialog.ts:133` had
+
+```ts
+this._intervalDays = task.interval_days?.toString() || "30";
+```
+
+The `|| "30"` fallback fired on `null`, `undefined`, **and** `0`. Replaced with a strict null check:
+
+```ts
+this._intervalDays = task.interval_days != null ? String(task.interval_days) : "";
+```
+
+**Tests** (`+4`):
+- `__tests__/task-dialog-interval-hydration.test.ts` (NEW, 3 tests) — pins all three branches: `null` → empty, explicit number → string of that number, missing field → empty
+- `tests/test_ws_roundtrip.py::test_update_clears_safety_interval_with_none` — backend roundtrip already handled `null` correctly; new test makes regression coverage explicit
+
+Backend 1552 ✓, frontend 27 ✓, ruff ✓, mypy strict ✓.
+
+Thanks to **@cokeman0** for the precise repro on issue #42.
+
 ## [1.3.3] - 2026-04-25
 
 ### i18n — Polish translation for HA config flow + Repairs UI

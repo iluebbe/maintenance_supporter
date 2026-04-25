@@ -574,6 +574,45 @@ async def test_update_clears_optional_field_with_none(
     assert task.get("notes") is None
 
 
+async def test_update_clears_safety_interval_with_none(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Sensor-based task: clearing the optional safety interval persists as null.
+
+    Regression test for #42. The sensor-based safety interval (interval_days as
+    a fallback time-trigger when the sensor never fires) must round-trip null
+    so the frontend hydration can show the field as empty rather than auto-
+    filling "30" from a stale default.
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, persisted = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {
+            "name": "Pool pressure check (sensor + safety)",
+            "schedule_type": "sensor_based",
+            "interval_days": 180,
+            "trigger_config": {
+                "type": "threshold",
+                "entity_id": "sensor.pool_pressure",
+                "trigger_above": 1.5,
+            },
+        },
+    )
+    assert persisted["interval_days"] == 180
+
+    task = await _update_task_via_ws(
+        hass, object_entry.entry_id, task_id, {"interval_days": None}
+    )
+    assert task.get("interval_days") is None, (
+        "interval_days must persist as None when explicitly cleared "
+        "(otherwise frontend hydration cannot distinguish 'unset' from 'never set')"
+    )
+
+
 # ─── Module C: global settings roundtrips ───────────────────────────────
 
 
