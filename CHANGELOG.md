@@ -2,6 +2,28 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.3.3] - 2026-04-25
+
+### i18n — Polish translation for HA config flow + Repairs UI
+
+`translations/pl.json` added — full coverage of every key already translated in the other 9 config-flow languages (1079 keys, 1:1 structural parity with `en.json`).
+
+What's covered for Polish-language Home Assistant installs from this version on:
+- Setup wizard (object creation, template flow, global setup)
+- Per-task config (schedule types, all 5 trigger families, compound trigger flows)
+- Options flow (general settings, advanced features, panel access, budget, notifications, groups, manage tasks)
+- Adaptive scheduling configuration
+- Sensor entity attribute names + state translations (overdue/due_soon/triggered/ok, Weibull failure pattern labels, etc.)
+- Service descriptions (`complete`, `reset`, `skip`, `export_data`)
+- Repair flow translations (missing trigger entity, orphan panel-access user, stale on-complete-action entity)
+- Exception messages
+
+The panel UI was already Polish since v1.0.41 (via `frontend-src/styles.ts`). What was previously falling back to English: HA's native config-flow dialog, the Options page under Devices & Services, and the Repairs page. All three now show in Polish.
+
+Czech and Swedish remain English-fallback in those surfaces — translations welcome via PR.
+
+No code changes. Backend tests 1551 ✓, frontend tests 24 ✓, ruff ✓, mypy strict ✓.
+
 ## [1.3.2] - 2026-04-25
 
 ### Refactor — DRY hotspots in coordinator + repairs + tests

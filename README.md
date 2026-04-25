@@ -154,7 +154,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - **All Objects view**: clickable KPI card shows all objects including empty ones
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
-- Localized UI: English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish (12 languages — panel UI; HA config flow falls back to English for the latter three until v1.0.45)
+- Localized UI: English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish (12 languages — panel UI). HA config flow + Repairs UI: 10 languages (above plus Polish since 1.3.3); Czech and Swedish fall back to English
 
 ### WebSocket API
 - 37 commands for full CRUD operations on objects, tasks, triggers, and groups

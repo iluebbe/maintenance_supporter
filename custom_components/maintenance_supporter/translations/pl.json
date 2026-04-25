@@ -1,0 +1,1399 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Skonfiguruj system zarządzania konserwacją.",
+        "menu_options": {
+          "create_object": "Utwórz obiekt konserwacji",
+          "create_from_template": "Utwórz z szablonu",
+          "global_setup": "Ustawienia globalne"
+        }
+      },
+      "create_from_template": {
+        "title": "Wybierz kategorię szablonu",
+        "description": "Wybierz kategorię, aby przeglądać predefiniowane szablony konserwacji.",
+        "data": {
+          "template_category": "Kategoria",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      },
+      "template_select": {
+        "title": "Wybierz szablon",
+        "description": "Wybierz szablon konserwacji jako punkt wyjścia.",
+        "data": {
+          "template_id": "Szablon",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "go_back": "Wróć do wyboru kategorii bez zapisywania."
+        }
+      },
+      "template_customize": {
+        "title": "Dostosuj szablon",
+        "description": "Dostosuj szablon {template_name}. Zawiera {task_count} zadań: {task_list}.",
+        "data": {
+          "name": "Nazwa obiektu",
+          "area_id": "Obszar",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Numer seryjny",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "name": "Nazwa tego obiektu konserwacji.",
+          "area_id": "Obszar, w którym znajduje się obiekt.",
+          "manufacturer": "Producent obiektu.",
+          "model": "Nazwa lub numer modelu.",
+          "serial_number": "Numer seryjny obiektu.",
+          "go_back": "Wróć do wyboru szablonu bez zapisywania."
+        }
+      },
+      "global_setup": {
+        "title": "Ustawienia globalne",
+        "description": "Skonfiguruj globalne ustawienia konserwacji.",
+        "data": {
+          "default_warning_days": "Domyślne dni ostrzeżenia przed terminem",
+          "notifications_enabled": "Włącz powiadomienia",
+          "notify_service": "Usługa powiadomień"
+        },
+        "data_description": {
+          "default_warning_days": "Liczba dni przed terminem zadania konserwacji, w której wyświetlane jest ostrzeżenie.",
+          "notifications_enabled": "Wysyłaj powiadomienia, gdy zadania konserwacji stają się wymagane.",
+          "notify_service": "Usługa powiadomień, której należy używać (np. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Utwórz obiekt konserwacji",
+        "description": "Zdefiniuj urządzenie lub element wyposażenia do zarządzania konserwacją.",
+        "data": {
+          "name": "Nazwa obiektu",
+          "area_id": "Obszar",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Numer seryjny",
+          "installation_date": "Data instalacji",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "name": "Unikalna nazwa tego obiektu konserwacji (np. „Pompa basenowa”, „Samochód”).",
+          "area_id": "Obszar w domu, w którym znajduje się ten obiekt.",
+          "manufacturer": "Producent obiektu.",
+          "model": "Nazwa lub numer modelu.",
+          "serial_number": "Numer seryjny obiektu.",
+          "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
+          "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      },
+      "task_menu": {
+        "title": "Zadania konserwacji",
+        "description": "Dodaj zadania konserwacji dla {object_name}. Aktualnie zdefiniowanych zadań: {task_count}.",
+        "menu_options": {
+          "add_task": "Dodaj zadanie konserwacji",
+          "finish": "Zakończ konfigurację"
+        }
+      },
+      "add_task": {
+        "title": "Dodaj zadanie konserwacji",
+        "description": "Zdefiniuj zadanie konserwacji dla {object_name}.",
+        "data": {
+          "name": "Nazwa zadania",
+          "type": "Typ konserwacji",
+          "schedule_type": "Typ harmonogramu",
+          "custom_icon": "Ikona zadania",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
+          "type": "Kategoria pracy konserwacyjnej.",
+          "schedule_type": "Sposób planowania tego zadania.",
+          "custom_icon": "Opcjonalna niestandardowa ikona dla tego zadania (np. mdi:oil, mdi:filter-variant).",
+          "go_back": "Wróć do menu zadań bez zapisywania."
+        }
+      },
+      "time_based": {
+        "title": "Harmonogram czasowy",
+        "description": "Skonfiguruj interwał czasowy dla tego zadania konserwacji.",
+        "data": {
+          "interval_days": "Interwał (dni)",
+          "last_performed": "Ostatnio wykonane",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć",
+          "interval_anchor": "Punkt odniesienia interwału"
+        },
+        "data_description": {
+          "interval_days": "Liczba dni między cyklami konserwacji.",
+          "last_performed": "Kiedy ta konserwacja była ostatnio wykonana. Pozostaw puste, jeśli nigdy nie wykonano.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do tworzenia zadania bez zapisywania.",
+          "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty."
+        }
+      },
+      "sensor_select": {
+        "title": "Wybierz czujnik wyzwalający",
+        "description": "Wybierz encję Home Assistant do monitorowania dla tego zadania konserwacji.",
+        "data": {
+          "trigger_entity": "Encja do monitorowania",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_entity": "Wybierz encję czujnika, która ma wyzwalać to zadanie konserwacji.",
+          "go_back": "Wróć do tworzenia zadania bez zapisywania."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Wybierz atrybut",
+        "description": "Wybierz, którą wartość monitorować z {entity_id}. Aktualny stan: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Wartość do monitorowania",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_attribute": "Wybierz stan encji lub konkretny atrybut do monitorowania.",
+          "go_back": "Wróć do wyboru encji bez zapisywania."
+        }
+      },
+      "trigger_type": {
+        "title": "Typ wyzwalacza",
+        "description": "W jaki sposób wartość czujnika ma wyzwalać konserwację?",
+        "data": {
+          "trigger_type": "Typ wyzwalacza",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_type": "Próg: wyzwalanie po przekroczeniu limitów. Licznik: wyzwalanie po skumulowaniu wartości docelowej. Zmiana stanu: wyzwalanie po określonej liczbie zmian stanu.",
+          "go_back": "Wróć do wyboru atrybutu bez zapisywania."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Konfiguracja progu",
+        "description": "Ustaw wartości progowe dla **{entity_id}** ({attribute}).\nAktualnie: **{current_value} {unit}** | Średnio: {average} | Zakres: {minimum}–{maximum} ({data_period}d)\nProponowane powyżej: {suggested_above} | Proponowane poniżej: {suggested_below}",
+        "data": {
+          "trigger_above": "Wyzwalaj powyżej",
+          "trigger_below": "Wyzwalaj poniżej",
+          "trigger_for_minutes": "Przez co najmniej (minuty)",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_above": "Wyzwalaj konserwację, gdy wartość przekroczy ten próg.",
+          "trigger_below": "Wyzwalaj konserwację, gdy wartość spadnie poniżej tego progu.",
+          "trigger_for_minutes": "Wartość musi przekraczać próg przez tyle minut przed wyzwoleniem.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
+      "trigger_counter": {
+        "title": "Konfiguracja licznika",
+        "description": "Ustaw cel licznika dla {entity_id} ({attribute}). Aktualnie: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Wartość docelowa",
+          "trigger_delta_mode": "Tryb różnicowy (licz zmiany, nie wartość bezwzględną)",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_target_value": "Wyzwalaj konserwację, gdy ta skumulowana wartość zostanie osiągnięta.",
+          "trigger_delta_mode": "Jeśli włączone, liczy różnicę względem linii bazowej zamiast wartości bezwzględnej.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza licznika.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Konfiguracja zmiany stanu",
+        "description": "Zliczaj zmiany stanu encji {entity_id}.",
+        "data": {
+          "trigger_from_state": "Ze stanu (opcjonalnie)",
+          "trigger_to_state": "Do stanu (opcjonalnie)",
+          "trigger_target_changes": "Liczba zmian do wyzwolenia",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_from_state": "Zliczaj tylko przejścia z tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_to_state": "Zliczaj tylko przejścia do tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem konserwacji.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Konfiguracja czasu pracy",
+        "description": "Śledź skumulowany czas pracy {entity_id}. Konserwacja jest wyzwalana, gdy łączny czas włączenia osiągnie docelową liczbę godzin.",
+        "data": {
+          "trigger_runtime_hours": "Docelowy czas pracy (godziny)",
+          "trigger_on_states": "Stany aktywne (oddzielone przecinkami)",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",
+          "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
+      "compound_logic": {
+        "title": "Wyzwalacz złożony",
+        "description": "Wybierz, w jaki sposób wiele warunków ma być łączonych.",
+        "data": {
+          "compound_logic": "Logika",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "compound_logic": "ORAZ = wszystkie warunki muszą zostać spełnione. LUB = wystarczy jeden warunek.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Warunek nr {condition_num} — Encja",
+        "description": "Wybierz encję dla tego warunku.",
+        "data": {
+          "trigger_entity": "Encja",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_entity": "Encja czujnika do monitorowania w tym warunku.",
+          "go_back": "Wróć do poprzedniego kroku bez zapisywania."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Warunek nr {condition_num} — Typ",
+        "description": "W jaki sposób ten warunek ma oceniać czujnik?",
+        "data": {
+          "trigger_type": "Typ wyzwalacza",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_type": "Metoda używana do określenia, kiedy ten warunek jest wyzwalany.",
+          "go_back": "Wróć do wyboru encji bez zapisywania."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Warunek — Próg",
+        "data": {
+          "trigger_above": "Wyzwalaj powyżej",
+          "trigger_below": "Wyzwalaj poniżej",
+          "trigger_for_minutes": "Czas trwania (minuty)",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_above": "Wyzwalaj, gdy wartość przekroczy ten próg.",
+          "trigger_below": "Wyzwalaj, gdy wartość spadnie poniżej tego progu.",
+          "trigger_for_minutes": "Wartość musi pozostać poza progiem przez ten czas.",
+          "go_back": "Wróć do wyboru typu warunku bez zapisywania."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Warunek — Licznik",
+        "data": {
+          "trigger_target_value": "Wartość docelowa",
+          "trigger_delta_mode": "Tryb różnicowy",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_target_value": "Wyzwalaj, gdy skumulowana wartość osiągnie ten cel.",
+          "trigger_delta_mode": "Licz zmiany względem linii bazowej zamiast wartości bezwzględnej.",
+          "go_back": "Wróć do wyboru typu warunku bez zapisywania."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Warunek — Zmiana stanu",
+        "data": {
+          "trigger_from_state": "Ze stanu",
+          "trigger_to_state": "Do stanu",
+          "trigger_target_changes": "Liczba zmian",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_from_state": "Zliczaj tylko przejścia z tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_to_state": "Zliczaj tylko przejścia do tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem.",
+          "go_back": "Wróć do wyboru typu warunku bez zapisywania."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Warunek — Czas pracy",
+        "data": {
+          "trigger_runtime_hours": "Docelowy czas pracy (godziny)",
+          "trigger_on_states": "Stany aktywne",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Wyzwalaj po tylu godzinach skumulowanego czasu pracy.",
+          "trigger_on_states": "Stany czujnika liczone jako „aktywne”. Pozostaw puste dla domyślnych.",
+          "go_back": "Wróć do wyboru typu warunku bez zapisywania."
+        }
+      },
+      "compound_review": {
+        "title": "Przegląd wyzwalacza złożonego",
+        "description": "Skonfigurowano {condition_count} warunek(ów) z logiką {compound_logic}.",
+        "data": {
+          "compound_action": "Akcja",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "go_back": "Wróć do wyboru logiki bez zapisywania."
+        }
+      },
+      "manual": {
+        "title": "Harmonogram ręczny",
+        "description": "To zadanie nie ma automatycznego harmonogramu. Możesz je oznaczyć jako wymagane ręcznie.",
+        "data": {
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "notes": "Notatki",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "notes": "Dodatkowe notatki lub instrukcje dla tego zadania.",
+          "go_back": "Wróć do tworzenia zadania bez zapisywania."
+        }
+      },
+      "reconfigure": {
+        "title": "Rekonfiguruj {name}",
+        "description": "Zaktualizuj ustawienia tego obiektu konserwacji.",
+        "data": {
+          "name": "Nazwa obiektu",
+          "area_id": "Obszar",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Numer seryjny",
+          "installation_date": "Data instalacji"
+        },
+        "data_description": {
+          "name": "Nazwa tego obiektu konserwacji.",
+          "area_id": "Obszar, w którym znajduje się obiekt.",
+          "manufacturer": "Producent obiektu.",
+          "model": "Model obiektu.",
+          "serial_number": "Numer seryjny obiektu.",
+          "installation_date": "Kiedy obiekt został zainstalowany."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Obiekt konserwacji o tej nazwie już istnieje.",
+      "no_tasks": "Wymagane jest co najmniej jedno zadanie konserwacji.",
+      "invalid_entity": "Wybrana encja nie istnieje lub nie ma danych liczbowych.",
+      "invalid_attribute": "Wybrany atrybut nie jest dostępny dla tej encji.",
+      "invalid_threshold": "Należy ustawić co najmniej jeden próg (powyżej lub poniżej).",
+      "invalid_interval": "Interwał musi być liczbą dodatnią.",
+      "min_exceeds_max": "Minimalny interwał nie może przekraczać maksymalnego.",
+      "invalid_notify_service": "Nieprawidłowy format usługi powiadomień. Użyj „notify.service_name” (np. notify.mobile_app_phone).",
+      "notify_service_not_found": "Tej usługi powiadomień nie znaleziono w Home Assistant. Sprawdź nazwę usługi.",
+      "nfc_tag_duplicate": "Ten tag NFC jest już powiązany z innym zadaniem."
+    },
+    "abort": {
+      "already_configured": "Ten obiekt konserwacji jest już skonfigurowany.",
+      "global_already_exists": "Ustawienia globalne są już skonfigurowane.",
+      "template_not_found": "Nie znaleziono wybranego szablonu.",
+      "missing_data": "Nie podano wymaganych danych.",
+      "reconfigure_successful": "Konfiguracja zaktualizowana pomyślnie.",
+      "reconfigure_cancelled": "Rekonfiguracja anulowana."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje konserwacji",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Zarządzaj zadaniami",
+          "add_task": "Dodaj nowe zadanie",
+          "object_settings": "Ustawienia obiektu",
+          "done": "Gotowe"
+        }
+      },
+      "global_init": {
+        "title": "Ustawienia globalne",
+        "description": "Skonfiguruj globalne ustawienia konserwacji.",
+        "menu_options": {
+          "general_settings": "Ustawienia ogólne",
+          "advanced_features": "Funkcje zaawansowane",
+          "panel_access": "Dostęp do panelu",
+          "budget_settings": "Ustawienia budżetu",
+          "manage_groups": "Zarządzaj grupami",
+          "notification_settings": "Ustawienia powiadomień",
+          "notification_actions": "Akcje interaktywne",
+          "test_notification": "Wyślij testowe powiadomienie",
+          "done": "Gotowe"
+        }
+      },
+      "advanced_features": {
+        "title": "Funkcje zaawansowane",
+        "description": "Wybierz, które zaawansowane funkcje mają być widoczne w interfejsie. Wyłączenie funkcji ukrywa ją z interfejsu, ale nie usuwa żadnych danych.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptacyjne planowanie",
+          "advanced_predictions_visible": "Predykcje czujników",
+          "advanced_seasonal_visible": "Korekty sezonowe",
+          "advanced_environmental_visible": "Korelacja środowiskowa",
+          "advanced_budget_visible": "Śledzenie budżetu",
+          "advanced_groups_visible": "Grupy",
+          "advanced_checklists_visible": "Listy kontrolne",
+          "advanced_schedule_time_visible": "Harmonogram z porą dnia"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Pokaż EWA, analizę Weibulla i sugestie interwałów dla zadań.",
+          "advanced_predictions_visible": "Pokaż analizę degradacji czujników i wykresy predykcji progów.",
+          "advanced_seasonal_visible": "Pokaż wykresy współczynników sezonowych i miesięczne dane korekcyjne.",
+          "advanced_environmental_visible": "Pokaż korekty oparte na korelacji środowiskowej (temperatura, wilgotność).",
+          "advanced_budget_visible": "Pokaż śledzenie budżetu miesięcznego/rocznego i alerty.",
+          "advanced_groups_visible": "Pokaż zarządzanie grupami konserwacji.",
+          "advanced_checklists_visible": "Pokaż listy kontrolne zadań do realizacji krok po kroku.",
+          "advanced_schedule_time_visible": "Zezwalaj zadaniom stać się przeterminowanymi o określonej porze dnia zamiast o północy."
+        }
+      },
+      "panel_access": {
+        "title": "Dostęp do panelu",
+        "description": "Wybierz użytkowników Home Assistant niebędących administratorami, którzy również powinni widzieć pełny panel Maintenance Supporter (akcje tworzenia / edycji / usuwania). Administratorzy zawsze widzą pełny panel. Znaleziono {user_count} użytkowników niebędących administratorami.",
+        "data": {
+          "admin_panel_user_ids": "Użytkownicy z pełnym dostępem do panelu"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Wymienieni użytkownicy widzą pełny panel; pozostali widzą tylko Zakończ i Pomiń przy każdym zadaniu."
+        }
+      },
+      "general_settings": {
+        "title": "Ustawienia ogólne",
+        "description": "Skonfiguruj podstawowe ustawienia Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Domyślne dni ostrzeżenia przed terminem",
+          "notifications_enabled": "Włącz powiadomienia",
+          "notify_service": "Usługa powiadomień",
+          "panel_enabled": "Pokaż panel boczny"
+        },
+        "data_description": {
+          "default_warning_days": "Liczba dni przed terminem zadania konserwacji, w której wyświetlane jest ostrzeżenie.",
+          "notifications_enabled": "Wysyłaj powiadomienia, gdy zadania konserwacji stają się wymagane lub przeterminowane.",
+          "notify_service": "Usługa powiadomień, której należy używać (np. notify.mobile_app_phone).",
+          "panel_enabled": "Pokaż panel Maintenance Supporter w pasku bocznym."
+        }
+      },
+      "notification_settings": {
+        "title": "Ustawienia powiadomień",
+        "description": "Skonfiguruj, kiedy i jak często wysyłane są powiadomienia dla każdego statusu.",
+        "data": {
+          "notify_due_soon_enabled": "Powiadom, gdy wkrótce wymagane",
+          "notify_due_soon_interval_hours": "Interwał przypomnień „wkrótce wymagane” (godziny)",
+          "notify_overdue_enabled": "Powiadom, gdy przeterminowane",
+          "notify_overdue_interval_hours": "Interwał przypomnień „przeterminowane” (godziny)",
+          "notify_triggered_enabled": "Powiadom przy wyzwoleniu",
+          "notify_triggered_interval_hours": "Interwał przypomnień „wyzwolone” (godziny)",
+          "quiet_hours_enabled": "Włącz godziny ciszy",
+          "quiet_hours_start": "Początek godzin ciszy",
+          "quiet_hours_end": "Koniec godzin ciszy",
+          "max_notifications_per_day": "Maks. powiadomień dziennie",
+          "notification_bundling_enabled": "Łącz powiadomienia",
+          "notification_bundle_threshold": "Próg łączenia"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Jak często powtarzać przypomnienie „wkrótce wymagane”. Ustaw 0 dla pojedynczego powiadomienia.",
+          "notify_overdue_interval_hours": "Jak często powtarzać przypomnienie „przeterminowane”. Ustaw 0 dla pojedynczego powiadomienia.",
+          "notify_triggered_interval_hours": "Jak często powtarzać powiadomienie „wyzwolone”. Ustaw 0 dla pojedynczego powiadomienia.",
+          "quiet_hours_enabled": "Wstrzymuj powiadomienia w godzinach ciszy.",
+          "max_notifications_per_day": "Maksymalna liczba powiadomień dziennie. Ustaw 0 dla nieograniczonej liczby.",
+          "notification_bundling_enabled": "Wyślij jedno zbiorcze powiadomienie, gdy wiele zadań wymaga uwagi.",
+          "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia."
+        }
+      },
+      "notification_actions": {
+        "title": "Akcje interaktywne",
+        "description": "Skonfiguruj przyciski akcji wyświetlane w powiadomieniach mobilnych (wymaga aplikacji Companion).",
+        "data": {
+          "action_complete_enabled": "Pokaż przycisk „Zakończ”",
+          "action_skip_enabled": "Pokaż przycisk „Pomiń”",
+          "action_snooze_enabled": "Pokaż przycisk „Drzemka”",
+          "snooze_duration_hours": "Czas drzemki (godziny)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Dodaje przycisk do oznaczania zadania jako ukończonego bezpośrednio z powiadomienia.",
+          "action_skip_enabled": "Dodaje przycisk do pomijania bieżącego cyklu konserwacji z powiadomienia.",
+          "action_snooze_enabled": "Dodaje przycisk do odraczania przypomnienia.",
+          "snooze_duration_hours": "Jak długo odraczać powiadomienia po naciśnięciu drzemki."
+        }
+      },
+      "budget_settings": {
+        "title": "Ustawienia budżetu",
+        "description": "Ustaw miesięczne i roczne budżety konserwacji do śledzenia wydatków.",
+        "data": {
+          "budget_currency": "Waluta",
+          "budget_monthly": "Budżet miesięczny",
+          "budget_yearly": "Budżet roczny",
+          "budget_alerts_enabled": "Włącz alerty budżetowe",
+          "budget_alert_threshold": "Próg alertu (%)"
+        },
+        "data_description": {
+          "budget_currency": "Waluta używana do wyświetlania budżetu i powiadomień.",
+          "budget_monthly": "Maksymalne miesięczne wydatki na konserwację. Ustaw 0, aby wyłączyć.",
+          "budget_yearly": "Maksymalne roczne wydatki na konserwację. Ustaw 0, aby wyłączyć.",
+          "budget_alerts_enabled": "Wyślij powiadomienie, gdy wydatki przekroczą próg alertu.",
+          "budget_alert_threshold": "Procent budżetu, przy którym wysyłany jest alert."
+        }
+      },
+      "test_notification": {
+        "title": "Powiadomienie testowe",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Zarządzaj grupami",
+        "description": "Wybierz grupę do zarządzania lub utwórz nową.",
+        "data": {
+          "selected_group": "Wybierz grupę"
+        }
+      },
+      "add_group": {
+        "title": "Dodaj grupę",
+        "description": "Utwórz nową grupę konserwacji, aby uporządkować powiązane zadania.",
+        "data": {
+          "group_name": "Nazwa grupy",
+          "group_description": "Opis"
+        },
+        "data_description": {
+          "group_name": "Nazwa tej grupy (np. „Konserwacja wiosenna”).",
+          "group_description": "Opcjonalny opis tej grupy."
+        }
+      },
+      "manage_tasks": {
+        "title": "Zarządzaj zadaniami",
+        "description": "Wybierz zadanie do edycji lub usunięcia.",
+        "data": {
+          "selected_task": "Wybierz zadanie",
+          "go_back": "Wróć"
+        }
+      },
+      "task_action": {
+        "title": "Akcje zadania",
+        "description": "Zadanie: {task_name} — Wybierz akcję.",
+        "menu_options": {
+          "edit_task": "Edytuj zadanie",
+          "edit_trigger": "Edytuj wyzwalacz",
+          "remove_trigger": "Usuń wyzwalacz",
+          "edit_checklist": "Edytuj listę kontrolną",
+          "adaptive_scheduling": "Adaptacyjne planowanie",
+          "delete_task": "Usuń zadanie",
+          "manage_tasks": "Wróć"
+        }
+      },
+      "edit_task": {
+        "title": "Edytuj zadanie",
+        "description": "Edytuj ustawienia dla **{task_name}**.",
+        "data": {
+          "name": "Nazwa zadania",
+          "type": "Typ konserwacji",
+          "interval_days": "Interwał (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "enabled": "Włączone",
+          "notes": "Notatki",
+          "documentation_url": "URL dokumentacji",
+          "last_performed": "Ostatnio wykonane",
+          "responsible_user_id": "Użytkownik odpowiedzialny",
+          "custom_icon": "Ikona zadania",
+          "nfc_tag_id": "ID tagu NFC",
+          "go_back": "Wróć",
+          "interval_anchor": "Punkt odniesienia interwału"
+        },
+        "data_description": {
+          "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
+          "type": "Kategoria pracy konserwacyjnej.",
+          "interval_days": "Liczba dni między cyklami konserwacji.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "enabled": "Po wyłączeniu planowanie i wyzwalacze są wstrzymane. Zadanie nie jest usuwane.",
+          "notes": "Dodatkowe notatki lub instrukcje dla tego zadania.",
+          "documentation_url": "Link do zewnętrznej dokumentacji lub instrukcji dla tego zadania.",
+          "last_performed": "Kiedy ta konserwacja była ostatnio wykonana. Pozostaw puste, jeśli nigdy nie wykonano.",
+          "responsible_user_id": "Użytkownik Home Assistant odpowiedzialny za to zadanie.",
+          "custom_icon": "Opcjonalna niestandardowa ikona dla tego zadania (np. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Powiąż tag NFC z tym zadaniem. Zeskanowanie tagu automatycznie oznaczy zadanie jako ukończone.",
+          "go_back": "Wróć do akcji zadania bez zapisywania.",
+          "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty."
+        }
+      },
+      "edit_checklist": {
+        "title": "Edytuj listę kontrolną",
+        "description": "Zdefiniuj kroki listy kontrolnej dla {task_name}. Wprowadź jeden krok w jednej linii.",
+        "data": {
+          "checklist_text": "Kroki listy kontrolnej",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "checklist_text": "Wprowadź każdy krok listy kontrolnej w osobnej linii. Te kroki będą pokazywane podczas kończenia zadania.",
+          "go_back": "Wróć do akcji zadania bez zapisywania."
+        }
+      },
+      "compound_logic": {
+        "title": "Wyzwalacz złożony",
+        "description": "Wybierz, w jaki sposób wiele warunków ma być łączonych.",
+        "data": {
+          "compound_logic": "Logika",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "compound_logic": "ORAZ = wszystkie warunki muszą zostać spełnione. LUB = wystarczy jeden warunek."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Warunek nr {condition_num} — Encja",
+        "description": "Wybierz encję dla tego warunku.",
+        "data": {
+          "trigger_entity": "Encja",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_entity": "Encja czujnika do monitorowania w tym warunku."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Warunek nr {condition_num} — Typ",
+        "description": "W jaki sposób ten warunek ma oceniać czujnik?",
+        "data": {
+          "trigger_type": "Typ wyzwalacza",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_type": "Metoda używana do określenia, kiedy ten warunek jest wyzwalany."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Warunek — Próg",
+        "data": {
+          "trigger_above": "Wyzwalaj powyżej",
+          "trigger_below": "Wyzwalaj poniżej",
+          "trigger_for_minutes": "Czas trwania (minuty)",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_above": "Wyzwalaj, gdy wartość przekroczy ten próg.",
+          "trigger_below": "Wyzwalaj, gdy wartość spadnie poniżej tego progu.",
+          "trigger_for_minutes": "Wartość musi pozostać poza progiem przez ten czas."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Warunek — Licznik",
+        "data": {
+          "trigger_target_value": "Wartość docelowa",
+          "trigger_delta_mode": "Tryb różnicowy",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_target_value": "Wyzwalaj, gdy skumulowana wartość osiągnie ten cel.",
+          "trigger_delta_mode": "Licz zmiany względem linii bazowej zamiast wartości bezwzględnej."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Warunek — Zmiana stanu",
+        "data": {
+          "trigger_from_state": "Ze stanu",
+          "trigger_to_state": "Do stanu",
+          "trigger_target_changes": "Liczba zmian",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_from_state": "Zliczaj tylko przejścia z tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_to_state": "Zliczaj tylko przejścia do tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Warunek — Czas pracy",
+        "data": {
+          "trigger_runtime_hours": "Docelowy czas pracy (godziny)",
+          "trigger_on_states": "Stany aktywne",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Wyzwalaj po tylu godzinach skumulowanego czasu pracy.",
+          "trigger_on_states": "Stany czujnika liczone jako „aktywne”. Pozostaw puste dla domyślnych."
+        }
+      },
+      "compound_review": {
+        "title": "Przegląd wyzwalacza złożonego",
+        "description": "Skonfigurowano {condition_count} warunek(ów) z logiką {compound_logic}.",
+        "data": {
+          "compound_action": "Akcja",
+          "go_back": "Wróć"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptacyjne planowanie",
+        "description": "Skonfiguruj inteligentne dostosowanie interwału dla {task_name}. System uczy się na podstawie Twoich opinii o zakończeniu zadań i sugeruje lepsze interwały.",
+        "data": {
+          "adaptive_enabled": "Włącz adaptacyjne planowanie",
+          "ewa_alpha": "Tempo uczenia (alpha)",
+          "min_interval_days": "Minimalny interwał (dni)",
+          "max_interval_days": "Maksymalny interwał (dni)",
+          "seasonal_enabled": "Włącz świadomość sezonową",
+          "sensor_prediction_enabled": "Włącz predykcje sterowane czujnikami",
+          "environmental_entity": "Czujnik środowiskowy (opcjonalnie)",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "adaptive_enabled": "Po włączeniu system uczy się na podstawie Twoich opinii i sugeruje optymalne interwały konserwacji.",
+          "ewa_alpha": "Jak szybko algorytm dostosowuje się do nowych danych. Wyższy = bardziej responsywny, niższy = bardziej stabilny.",
+          "min_interval_days": "Najkrótszy interwał, jaki system kiedykolwiek zarekomenduje.",
+          "max_interval_days": "Najdłuższy interwał, jaki system kiedykolwiek zarekomenduje.",
+          "seasonal_enabled": "Dostosowuj rekomendacje na podstawie wzorców sezonowych nauczonych z historii konserwacji.",
+          "sensor_prediction_enabled": "Analizuj trendy czujników, aby przewidywać, kiedy progi zostaną osiągnięte i sugerować wcześniejszą konserwację, jeśli to konieczne.",
+          "environmental_entity": "Powiąż czujnik temperatury, wilgotności lub ciśnienia, aby skorelować warunki środowiskowe z interwałami konserwacji.",
+          "go_back": "Wróć do akcji zadania bez zapisywania."
+        }
+      },
+      "delete_task": {
+        "title": "Usuń zadanie",
+        "description": "Czy na pewno chcesz usunąć zadanie {task_name}? Tej operacji nie można cofnąć.",
+        "data": {
+          "confirm": "Potwierdź usunięcie",
+          "go_back": "Wróć"
+        }
+      },
+      "remove_trigger": {
+        "title": "Usuń wyzwalacz",
+        "description": "Usunąć wyzwalacz z **{task_name}**?\n\n**Encja:** {entity_ids}\n**Typ:** {trigger_type}\n**Konfiguracja:** {config_details}\n\nJeśli usunięto wszystkie encje, harmonogram powróci do trybu czasowego.",
+        "data": {
+          "entities_to_remove": "Encje do usunięcia",
+          "confirm": "Potwierdź usunięcie",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "entities_to_remove": "Wybierz, które encje usunąć z tego wyzwalacza. Jeśli wszystkie zostaną usunięte, cały wyzwalacz zostanie usunięty.",
+          "go_back": "Wróć do akcji zadania bez zapisywania."
+        }
+      },
+      "trigger_summary": {
+        "title": "Aktualny wyzwalacz",
+        "description": "Wyzwalacz dla **{task_name}**:\n\n**Encja:** {entity_ids}\n**Aktualny stan:** {current_states}\n**Typ:** {trigger_type} (atrybut: {attribute})\n**Konfiguracja:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Edytuj wyzwalacz",
+          "task_action": "Wróć"
+        }
+      },
+      "add_task": {
+        "title": "Dodaj zadanie konserwacji",
+        "description": "Zdefiniuj nowe zadanie konserwacji dla tego obiektu.",
+        "data": {
+          "name": "Nazwa zadania",
+          "type": "Typ konserwacji",
+          "schedule_type": "Typ harmonogramu",
+          "custom_icon": "Ikona zadania",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
+          "type": "Kategoria pracy konserwacyjnej.",
+          "schedule_type": "Sposób planowania tego zadania.",
+          "custom_icon": "Opcjonalna niestandardowa ikona dla tego zadania (np. mdi:oil, mdi:filter-variant).",
+          "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      },
+      "opt_time_based": {
+        "title": "Harmonogram czasowy",
+        "description": "Skonfiguruj interwał czasowy dla tego zadania.",
+        "data": {
+          "interval_days": "Interwał (dni)",
+          "last_performed": "Ostatnio wykonane",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć",
+          "interval_anchor": "Punkt odniesienia interwału"
+        },
+        "data_description": {
+          "interval_days": "Liczba dni między cyklami konserwacji.",
+          "last_performed": "Kiedy ta konserwacja była ostatnio wykonana. Pozostaw puste, jeśli nigdy nie wykonano.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do menu głównego bez zapisywania.",
+          "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty."
+        }
+      },
+      "opt_manual": {
+        "title": "Harmonogram ręczny",
+        "description": "To zadanie nie ma automatycznego harmonogramu. Możesz je oznaczyć jako wymagane ręcznie.",
+        "data": {
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "notes": "Notatki",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "notes": "Dodatkowe notatki lub instrukcje dla tego zadania.",
+          "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Wybierz czujnik wyzwalający",
+        "description": "Wybierz encję Home Assistant do monitorowania.",
+        "data": {
+          "trigger_entity": "Encja do monitorowania",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_entity": "Wybierz encję czujnika, która ma wyzwalać to zadanie konserwacji."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Wybierz atrybut",
+        "description": "Wybierz, którą wartość monitorować z {entity_id}. Aktualny stan: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Wartość do monitorowania",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_attribute": "Wybierz stan encji lub konkretny atrybut do monitorowania."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Typ wyzwalacza",
+        "description": "W jaki sposób wartość czujnika ma wyzwalać konserwację?",
+        "data": {
+          "trigger_type": "Typ wyzwalacza",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_type": "Próg: wyzwalanie po przekroczeniu limitów. Licznik: wyzwalanie po skumulowaniu wartości docelowej. Zmiana stanu: wyzwalanie po określonej liczbie zmian stanu."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Konfiguracja progu",
+        "description": "Ustaw wartości progowe dla **{entity_id}** ({attribute}).\nAktualnie: **{current_value} {unit}** | Średnio: {average} | Zakres: {minimum}–{maximum} ({data_period}d)\nProponowane powyżej: {suggested_above} | Proponowane poniżej: {suggested_below}",
+        "data": {
+          "trigger_above": "Wyzwalaj powyżej",
+          "trigger_below": "Wyzwalaj poniżej",
+          "trigger_for_minutes": "Przez co najmniej (minuty)",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_above": "Wyzwalaj konserwację, gdy wartość przekroczy ten próg.",
+          "trigger_below": "Wyzwalaj konserwację, gdy wartość spadnie poniżej tego progu.",
+          "trigger_for_minutes": "Wartość musi przekraczać próg przez tyle minut przed wyzwoleniem.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Konfiguracja licznika",
+        "description": "Ustaw cel licznika dla {entity_id} ({attribute}). Aktualnie: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Wartość docelowa",
+          "trigger_delta_mode": "Tryb różnicowy (licz zmiany, nie wartość bezwzględną)",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_target_value": "Wyzwalaj konserwację, gdy ta skumulowana wartość zostanie osiągnięta.",
+          "trigger_delta_mode": "Jeśli włączone, liczy różnicę względem linii bazowej zamiast wartości bezwzględnej.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza licznika.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Konfiguracja zmiany stanu",
+        "description": "Zliczaj zmiany stanu encji {entity_id}.",
+        "data": {
+          "trigger_from_state": "Ze stanu (opcjonalnie)",
+          "trigger_to_state": "Do stanu (opcjonalnie)",
+          "trigger_target_changes": "Liczba zmian do wyzwolenia",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_from_state": "Zliczaj tylko przejścia z tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_to_state": "Zliczaj tylko przejścia do tego stanu. Pozostaw puste dla dowolnego.",
+          "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem konserwacji.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Konfiguracja czasu pracy",
+        "description": "Śledź skumulowany czas pracy {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Docelowy czas pracy (godziny)",
+          "trigger_on_states": "Stany aktywne (oddzielone przecinkami)",
+          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",
+          "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+        }
+      },
+      "object_settings": {
+        "title": "Ustawienia obiektu",
+        "description": "Edytuj szczegóły obiektu.",
+        "data": {
+          "name": "Nazwa obiektu",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Numer seryjny",
+          "area_id": "Obszar",
+          "installation_date": "Data instalacji",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "name": "Unikalna nazwa tego obiektu konserwacji (np. „Pompa basenowa”, „Samochód”).",
+          "manufacturer": "Producent obiektu.",
+          "model": "Nazwa lub numer modelu.",
+          "serial_number": "Numer seryjny obiektu.",
+          "area_id": "Obszar w domu, w którym znajduje się ten obiekt.",
+          "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
+          "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Wkrótce wymagane",
+          "overdue": "Przeterminowane",
+          "triggered": "Wyzwolone"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Typ konserwacji",
+            "state": {
+              "cleaning": "Czyszczenie",
+              "inspection": "Kontrola",
+              "replacement": "Wymiana",
+              "calibration": "Kalibracja",
+              "service": "Serwis",
+              "custom": "Niestandardowe"
+            }
+          },
+          "schedule_type": {
+            "name": "Typ harmonogramu",
+            "state": {
+              "time_based": "Czasowy",
+              "sensor_based": "Czujnikowy",
+              "manual": "Ręczny"
+            }
+          },
+          "interval_days": {
+            "name": "Interwał (dni)"
+          },
+          "warning_days": {
+            "name": "Dni ostrzeżenia"
+          },
+          "last_performed": {
+            "name": "Ostatnio wykonane"
+          },
+          "next_due": {
+            "name": "Następny termin"
+          },
+          "days_until_due": {
+            "name": "Dni do terminu"
+          },
+          "parent_object": {
+            "name": "Obiekt nadrzędny"
+          },
+          "times_performed": {
+            "name": "Liczba wykonań"
+          },
+          "total_cost": {
+            "name": "Łączny koszt"
+          },
+          "average_duration": {
+            "name": "Średni czas trwania (min)"
+          },
+          "notes": {
+            "name": "Notatki"
+          },
+          "documentation_url": {
+            "name": "URL dokumentacji"
+          },
+          "trigger_entity": {
+            "name": "Encja wyzwalająca"
+          },
+          "trigger_attribute": {
+            "name": "Atrybut wyzwalacza"
+          },
+          "trigger_type": {
+            "name": "Typ wyzwalacza",
+            "state": {
+              "threshold": "Próg",
+              "counter": "Licznik",
+              "state_change": "Zmiana stanu",
+              "runtime": "Czas pracy",
+              "compound": "Złożony"
+            }
+          },
+          "trigger_active": {
+            "name": "Wyzwalacz aktywny"
+          },
+          "trigger_current_value": {
+            "name": "Aktualna wartość wyzwalacza"
+          },
+          "trigger_entity_state": {
+            "name": "Stan encji wyzwalającej",
+            "state": {
+              "available": "Dostępna",
+              "unavailable": "Niedostępna",
+              "missing": "Brak",
+              "startup": "Uruchamianie"
+            }
+          },
+          "trigger_above": {
+            "name": "Wyzwalaj powyżej"
+          },
+          "trigger_below": {
+            "name": "Wyzwalaj poniżej"
+          },
+          "trigger_for_minutes": {
+            "name": "Wyzwalaj przez (minuty)"
+          },
+          "trigger_target_value": {
+            "name": "Wartość docelowa wyzwalacza"
+          },
+          "trigger_delta_mode": {
+            "name": "Tryb różnicowy wyzwalacza"
+          },
+          "trigger_baseline_value": {
+            "name": "Wartość bazowa wyzwalacza"
+          },
+          "trigger_current_delta": {
+            "name": "Aktualna różnica wyzwalacza"
+          },
+          "trigger_from_state": {
+            "name": "Wyzwalaj ze stanu"
+          },
+          "trigger_to_state": {
+            "name": "Wyzwalaj do stanu"
+          },
+          "trigger_target_changes": {
+            "name": "Docelowa liczba zmian"
+          },
+          "trigger_change_count": {
+            "name": "Liczba zmian wyzwalacza"
+          },
+          "trigger_runtime_hours": {
+            "name": "Docelowy czas pracy (godziny)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Skumulowany czas pracy (godziny)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Pozostały czas pracy (godziny)"
+          },
+          "last_entry": {
+            "name": "Ostatni wpis"
+          },
+          "suggested_interval": {
+            "name": "Sugerowany interwał"
+          },
+          "interval_confidence": {
+            "name": "Pewność interwału",
+            "state": {
+              "low": "Niska",
+              "medium": "Średnia",
+              "high": "Wysoka"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptacyjne planowanie włączone"
+          },
+          "seasonal_factor": {
+            "name": "Współczynnik sezonowy"
+          },
+          "seasonal_reason": {
+            "name": "Powód sezonowy",
+            "state": {
+              "learned": "Wyuczone",
+              "manual": "Ręczne"
+            }
+          },
+          "degradation_rate": {
+            "name": "Tempo degradacji"
+          },
+          "degradation_trend": {
+            "name": "Trend degradacji",
+            "state": {
+              "rising": "Rosnący",
+              "falling": "Malejący",
+              "stable": "Stabilny",
+              "insufficient_data": "Niewystarczające dane"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Dni do progu"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Pewność predykcji",
+            "state": {
+              "low": "Niska",
+              "medium": "Średnia",
+              "high": "Wysoka"
+            }
+          },
+          "environmental_factor": {
+            "name": "Współczynnik środowiskowy"
+          },
+          "environmental_entity": {
+            "name": "Encja środowiskowa"
+          },
+          "weibull_beta": {
+            "name": "Kształt Weibulla (β)"
+          },
+          "weibull_eta": {
+            "name": "Skala Weibulla (η)"
+          },
+          "weibull_r_squared": {
+            "name": "R² Weibulla"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Wzorzec awarii",
+            "state": {
+              "early_failures": "Wczesne awarie",
+              "random_failures": "Awarie losowe",
+              "wear_out": "Zużycie",
+              "highly_predictable": "Wysoce przewidywalne"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Przedział ufności (dolny)"
+          },
+          "confidence_interval_high": {
+            "name": "Przedział ufności (górny)"
+          },
+          "interval_anchor": {
+            "name": "Punkt odniesienia interwału",
+            "state": {
+              "completion": "Od ukończenia",
+              "planned": "Od planowanej daty"
+            }
+          }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Harmonogram konserwacji"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} przeterminowane",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Status konserwacji",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Wkrótce wymagane",
+              "overdue": "Przeterminowane",
+              "triggered": "Wyzwolone"
+            }
+          },
+          "days_until_due": {
+            "name": "Dni do terminu"
+          },
+          "next_due": {
+            "name": "Następny termin"
+          },
+          "parent_object": {
+            "name": "Obiekt nadrzędny"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Czyszczenie",
+        "inspection": "Kontrola",
+        "replacement": "Wymiana",
+        "calibration": "Kalibracja",
+        "service": "Serwis",
+        "custom": "Niestandardowe"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Czasowy",
+        "sensor_based": "Czujnikowy",
+        "manual": "Ręczny"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Próg",
+        "counter": "Licznik",
+        "state_change": "Zmiana stanu",
+        "runtime": "Czas pracy",
+        "compound": "Złożony (wiele warunków)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "ORAZ (wszystkie warunki muszą zostać spełnione)",
+        "or": "LUB (wystarczy jeden warunek)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Dowolna encja wyzwala",
+        "all": "Wszystkie encje muszą wyzwalać"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Zakończ konserwację",
+      "description": "Oznacz zadanie konserwacji jako ukończone.",
+      "fields": {
+        "entity_id": {
+          "name": "Encja",
+          "description": "Encja czujnika konserwacji do oznaczenia jako ukończone."
+        },
+        "notes": {
+          "name": "Notatki",
+          "description": "Opcjonalne notatki o wykonanej konserwacji."
+        },
+        "cost": {
+          "name": "Koszt",
+          "description": "Koszt wykonanej konserwacji."
+        },
+        "duration": {
+          "name": "Czas trwania",
+          "description": "Czas trwania konserwacji w minutach."
+        }
+      }
+    },
+    "reset": {
+      "name": "Resetuj konserwację",
+      "description": "Resetuj datę ostatniego wykonania zadania konserwacji.",
+      "fields": {
+        "entity_id": {
+          "name": "Encja",
+          "description": "Encja czujnika konserwacji do zresetowania."
+        },
+        "date": {
+          "name": "Data",
+          "description": "Data do ustawienia jako ostatnio wykonana. Domyślnie dzisiaj."
+        }
+      }
+    },
+    "skip": {
+      "name": "Pomiń konserwację",
+      "description": "Pomiń bieżący cykl konserwacji.",
+      "fields": {
+        "entity_id": {
+          "name": "Encja",
+          "description": "Encja czujnika konserwacji do pominięcia."
+        },
+        "reason": {
+          "name": "Powód",
+          "description": "Opcjonalny powód pominięcia konserwacji."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Eksportuj dane",
+      "description": "Eksportuj wszystkie dane konserwacji jako JSON lub YAML.",
+      "fields": {
+        "format": {
+          "name": "Format",
+          "description": "Format wyjściowy eksportowanych danych (json lub yaml)."
+        },
+        "include_history": {
+          "name": "Dołącz historię",
+          "description": "Czy uwzględnić wpisy historii zadań w eksporcie."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Nie znaleziono czujnika wyzwalającego: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Brakująca encja wyzwalająca",
+            "description": "Encja czujnika `{entity_id}` skonfigurowana jako wyzwalacz dla zadania „{task_name}” na obiekcie „{object_name}” nie jest już dostępna.\n\nWybierz, jak rozwiązać ten problem:",
+            "menu_options": {
+              "replace_entity": "Zastąp inną encją",
+              "remove_trigger": "Usuń wyzwalacz czujnika",
+              "dismiss": "Odrzuć (pojawi się ponownie)"
+            }
+          },
+          "replace_entity": {
+            "title": "Zastąp encję wyzwalającą",
+            "description": "Wybierz nową encję, aby zastąpić `{entity_id}` jako wyzwalacz dla zadania „{task_name}” na „{object_name}”.",
+            "data": {
+              "new_entity_id": "Nowa encja wyzwalająca"
+            },
+            "data_description": {
+              "new_entity_id": "Wybierz nową encję czujnika do użycia jako wyzwalacz."
+            }
+          },
+          "remove_trigger": {
+            "title": "Usuń wyzwalacz czujnika",
+            "description": "Spowoduje to usunięcie wyzwalacza czujnika z zadania „{task_name}” na „{object_name}” i konwersję harmonogramu na czasowy lub ręczny. Historia konserwacji zostanie zachowana.\n\nPoprzednia encja wyzwalająca: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Użytkownik z dostępem do panelu już nie istnieje",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Osierocony użytkownik na liście dostępu do panelu",
+            "description": "Użytkownik `{user_id}…` znajduje się na liście dostępu do panelu Maintenance Supporter, ale nie istnieje już w Home Assistant. Prawdopodobnie został usunięty.\n\nKliknij **Wyślij**, aby usunąć tego użytkownika z listy. (Aby zignorować problem, użyj przycisku **Ignoruj** Home Assistant na stronie Naprawy.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Akcja po ukończeniu odwołuje się do usuniętej encji",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Akcja po ukończeniu: {stale_entity} już nie istnieje",
+            "description": "Zadanie **{task_name}** ma skonfigurowaną akcję `on_complete_action`, która wywołuje usługę na `{stale_entity}`, ale ta encja nie jest już zarejestrowana w Home Assistant.\n\nWybierz, jak naprawić:",
+            "menu_options": {
+              "replace_entity": "Zastąp inną encją",
+              "remove_action": "Usuń akcję po ukończeniu"
+            }
+          },
+          "replace_entity": {
+            "title": "Zastąp encję docelową",
+            "description": "Wybierz encję do użycia zamiast `{stale_entity}` dla zadania **{task_name}**.",
+            "data": {
+              "new_entity": "Nowa encja docelowa"
+            }
+          },
+          "remove_action": {
+            "title": "Usuń akcję po ukończeniu",
+            "description": "Wyczyść `on_complete_action` z zadania **{task_name}** całkowicie. Samo zadanie pozostanie nienaruszone — usuwane jest tylko wywołanie usługi po ukończeniu."
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Nie znaleziono koordynatora konserwacji dla encji {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "Nie znaleziono zadania konserwacji dla encji {entity_id}."
+    }
+  }
+}
