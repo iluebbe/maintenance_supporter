@@ -301,6 +301,24 @@ export interface HomeAssistant {
   ): Promise<void>;
   states: Record<string, HassEntity>;
   areas?: Record<string, { area_id: string; name: string; icon?: string | null }>;
+  /**
+   * HA service registry, mirroring the structure exposed to the frontend.
+   * Used by the task-dialog action section to drive ha-service-picker
+   * (autocomplete) + ha-form (schema-driven data fields).
+   */
+  services?: Record<string, Record<string, {
+    name?: string;
+    description?: string;
+    target?: Record<string, unknown>;
+    fields?: Record<string, {
+      name?: string;
+      description?: string;
+      required?: boolean;
+      example?: unknown;
+      default?: unknown;
+      selector?: Record<string, unknown>;
+    }>;
+  }>>;
   language: string;
   locale?: { language: string; number_format?: string };
   localize(key: string, ...args: unknown[]): string;
