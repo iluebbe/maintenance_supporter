@@ -330,8 +330,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     unsub_tag = hass.bus.async_listen("tag_scanned", _handle_tag_scanned)
 
+    # v1.3.0: per-task on_complete_action listener (Layer B). Subscribes to
+    # EVENT_TASK_COMPLETED — same event power users can listen for in their
+    # own automations. Single listener handles all entries' tasks.
+    from .helpers.action_listener import register_action_listener
+
+    unsub_action = register_action_listener(hass)
+
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
-    hass.data[DOMAIN]["_event_unsubs"] = [unsub_notification, unsub_tag]
+    hass.data[DOMAIN]["_event_unsubs"] = [
+        unsub_notification, unsub_tag, unsub_action,
+    ]
 
     return True
 
