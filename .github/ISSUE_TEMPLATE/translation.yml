@@ -1,0 +1,36 @@
+name: Translation correction
+description: A translation looks wrong or is missing.
+title: "[i18n] "
+labels: ["i18n"]
+body:
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Two-letter code (de, en, fr, …).
+      placeholder: "fr"
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What's wrong
+      description: |
+        For each entry, please share:
+          - the **key** (e.g. `vacation_buffer`) or the wrong text you saw
+          - the **suggested fix**
+
+        Translation files live at:
+          - `custom_components/maintenance_supporter/frontend-src/styles.ts` (panel)
+          - `custom_components/maintenance_supporter/translations/<lang>.json` (config flow)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Maintenance Supporter version
+      placeholder: "1.2.2"
+    validations:
+      required: true

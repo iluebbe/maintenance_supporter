@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / How do I…
+    url: https://github.com/iluebbe/maintenance_supporter/discussions
+    about: For "how do I…" questions and general discussion. Open a Discussion instead of an issue.
+  - name: Home Assistant Community Forum
+    url: https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556
+    about: Browse the forum thread or post a question there.
