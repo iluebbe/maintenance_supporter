@@ -25,6 +25,7 @@ from .const import (
     HistoryEntryType,
     ScheduleType,
 )
+from .models.maintenance_task import MaintenanceTask
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -289,8 +290,6 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         rd = getattr(entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
         if store is not None:
-            from .models.maintenance_task import MaintenanceTask
-
             merged = store.merge_task_data(task_id, task_dict)
             task = MaintenanceTask.from_dict(merged)
             task.add_history_entry(
@@ -303,8 +302,6 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             store.async_delay_save()
         else:
             # Legacy: full task roundtrip via ConfigEntry
-            from .models.maintenance_task import MaintenanceTask
-
             task = MaintenanceTask.from_dict(task_dict)
             task.add_history_entry(
                 entry_type=HistoryEntryType.TRIGGER_REPLACED,
@@ -370,8 +367,6 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         rd = getattr(entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
         if store is not None:
-            from .models.maintenance_task import MaintenanceTask
-
             merged = store.merge_task_data(task_id, task_dict)
             task = MaintenanceTask.from_dict(merged)
             task.add_history_entry(
@@ -384,8 +379,6 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             store.async_delay_save()
         else:
             # Legacy: history via full task roundtrip in ConfigEntry
-            from .models.maintenance_task import MaintenanceTask
-
             task = MaintenanceTask.from_dict(task_dict)
             task.add_history_entry(
                 entry_type=HistoryEntryType.TRIGGER_REMOVED,
