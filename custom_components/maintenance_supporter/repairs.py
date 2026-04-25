@@ -29,6 +29,39 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+# ─── Repair-flow guard helpers ──────────────────────────────────────────
+# Used by all three RepairsFlow subclasses below to centralise the
+# "issue references an entry/task that may have been deleted since the
+# issue was created" guard pattern. See StaleActionEntityRepairFlow,
+# MissingTriggerEntityRepairFlow, OrphanAdminPanelUserRepairFlow.
+
+
+def _entry_for_issue(hass: HomeAssistant, issue_data: dict[str, Any] | None) -> Any:
+    """Resolve the per-object ConfigEntry referenced by ``issue_data['entry_id']``.
+
+    Returns the entry, or ``None`` if the id is missing or the entry has
+    been deleted since the issue was created. Repair-flow steps should
+    abort with ``reason="entry_gone"`` on ``None``.
+    """
+    eid = str((issue_data or {}).get("entry_id", ""))
+    if not eid:
+        return None
+    return hass.config_entries.async_get_entry(eid)
+
+
+def _entry_has_task(entry: Any, task_id: str | None) -> bool:
+    """True iff ``entry`` exists and ``entry.data[CONF_TASKS]`` contains ``task_id``.
+
+    Stricter variant of :func:`_entry_for_issue` for repair flows whose
+    target is a specific task within an entry — used by
+    :class:`MissingTriggerEntityRepairFlow` to abort with
+    ``reason="task_deleted"`` when the task has been removed.
+    """
+    if entry is None or not task_id:
+        return False
+    return task_id in entry.data.get(CONF_TASKS, {})
+
+
 def _replace_entity_in_dict(
     cfg: dict[str, Any], old: str, new: str
 ) -> dict[str, Any]:
@@ -135,14 +168,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
         if user_input is not None:
             new_entity_id = user_input["new_entity_id"]
-            # Guard: task may have been deleted since issue was created
             issue_data = self.data or {}
-            entry = self.hass.config_entries.async_get_entry(
-                str(issue_data.get("entry_id", ""))
-            )
-            if entry is None or issue_data.get("task_id") not in entry.data.get(
-                CONF_TASKS, {}
-            ):
+            entry = _entry_for_issue(self.hass, issue_data)
+            if not _entry_has_task(entry, str(issue_data.get("task_id") or "")):
                 return self.async_abort(reason="task_deleted")
             await self._replace_trigger_entity(new_entity_id)
             return self.async_create_entry(data={})
@@ -173,14 +201,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         issue_data = self.data or {}
 
         if user_input is not None:
-            # Guard: task may have been deleted since issue was created
             issue_data = self.data or {}
-            entry = self.hass.config_entries.async_get_entry(
-                str(issue_data.get("entry_id", ""))
-            )
-            if entry is None or issue_data.get("task_id") not in entry.data.get(
-                CONF_TASKS, {}
-            ):
+            entry = _entry_for_issue(self.hass, issue_data)
+            if not _entry_has_task(entry, str(issue_data.get("task_id") or "")):
                 return self.async_abort(reason="task_deleted")
             await self._remove_trigger()
             return self.async_create_entry(data={})
@@ -508,9 +531,7 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
     ) -> data_entry_flow.FlowResult:
         """Remove the orphaned id from admin_panel_user_ids and persist."""
         issue_data = self.data or {}
-        entry = self.hass.config_entries.async_get_entry(
-            str(issue_data.get("entry_id", ""))
-        )
+        entry = _entry_for_issue(self.hass, issue_data)
         if entry is None:
             return self.async_abort(reason="entry_gone")
         target_uid = str(issue_data.get("user_id", ""))
@@ -594,9 +615,9 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         )
 
     def _entry(self) -> Any:
-        return self.hass.config_entries.async_get_entry(
-            str((self.data or {}).get("entry_id", ""))
-        )
+        # Thin wrapper kept for readability of callers in this class —
+        # delegates to the shared helper so all flows use the same lookup.
+        return _entry_for_issue(self.hass, self.data)
 
     def _patch_action_entity(self, entry: Any, new_entity_id: str) -> None:
         task_id = str((self.data or {}).get("task_id", ""))

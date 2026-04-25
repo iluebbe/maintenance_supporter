@@ -996,6 +996,90 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 task.adaptive_config = updated_config
 
+        await self._persist_and_signal_task_change(task_id, task)
+
+        # Invalidate budget cache when a cost is recorded
+        if cost is not None:
+            self._recalculate_budget_cache()
+
+        _LOGGER.info(
+            "Maintenance completed: %s on %s", task.name, self.maintenance_object.name
+        )
+
+        # Fire event after persistence — power users wire HA automations on
+        # this; the integration's own action_listener also subscribes here
+        # to dispatch the per-task on_complete_action service-call.
+        self.hass.bus.async_fire(
+            EVENT_TASK_COMPLETED,
+            self._lifecycle_event_payload(
+                task, task_id,
+                notes=notes, cost=cost, duration=duration,
+                feedback=feedback, completed_by=completed_by,
+            ),
+        )
+
+    async def reset_maintenance(
+        self,
+        task_id: str,
+        date: date | None = None,
+    ) -> None:
+        """Reset the last performed date of a task."""
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
+            _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
+            return
+
+        task = MaintenanceTask.from_dict(merged[task_id])
+        task.reset(reset_date=date)
+
+        await self._persist_and_signal_task_change(task_id, task)
+
+        _LOGGER.info(
+            "Maintenance reset: %s on %s", task.name, self.maintenance_object.name
+        )
+
+        self.hass.bus.async_fire(
+            EVENT_TASK_RESET,
+            self._lifecycle_event_payload(
+                task, task_id, reset_date=task.last_performed,
+            ),
+        )
+
+    async def skip_maintenance(
+        self,
+        task_id: str,
+        reason: str | None = None,
+    ) -> None:
+        """Skip the current maintenance cycle for a task."""
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
+            _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
+            return
+
+        task = MaintenanceTask.from_dict(merged[task_id])
+        task.skip(reason=reason)
+
+        await self._persist_and_signal_task_change(task_id, task)
+
+        _LOGGER.info(
+            "Maintenance skipped: %s on %s", task.name, self.maintenance_object.name
+        )
+
+        self.hass.bus.async_fire(
+            EVENT_TASK_SKIPPED,
+            self._lifecycle_event_payload(task, task_id, reason=reason),
+        )
+
+    async def _persist_and_signal_task_change(
+        self, task_id: str, task: MaintenanceTask,
+    ) -> None:
+        """Single source of truth for the post-mutation persistence dance.
+
+        Used by complete/reset/skip — every path that mutates a task's
+        dynamic state (last_performed, history) flows through here so the
+        Store-vs-ConfigEntry split, the recently-completed marker, the
+        dispatcher signal and the refresh request stay in lockstep.
+        """
         if self._store is not None:
             # Dynamic state only → Store (no ConfigEntry write needed)
             self._persist_dynamic_state(task_id, task)
@@ -1016,127 +1100,24 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             await self._async_persist_tasks(tasks_data)
 
-        # Invalidate budget cache when a cost is recorded
-        if cost is not None:
-            self._recalculate_budget_cache()
+    def _lifecycle_event_payload(
+        self, task: MaintenanceTask, task_id: str, **extra: Any,
+    ) -> dict[str, Any]:
+        """Build the common envelope shared by all task-lifecycle events.
 
-        _LOGGER.info(
-            "Maintenance completed: %s on %s", task.name, self.maintenance_object.name
-        )
-
-        # Fire event after persistence — power users wire HA automations on
-        # this; the integration's own action_listener also subscribes here
-        # to dispatch the per-task on_complete_action service-call.
-        self.hass.bus.async_fire(
-            EVENT_TASK_COMPLETED,
-            {
-                "entry_id": self.entry.entry_id,
-                "task_id": task_id,
-                "task_name": task.name,
-                "object_name": self.maintenance_object.name,
-                "notes": notes,
-                "cost": cost,
-                "duration": duration,
-                "feedback": feedback,
-                "completed_by": completed_by,
-            },
-        )
-
-    async def reset_maintenance(
-        self,
-        task_id: str,
-        date: date | None = None,
-    ) -> None:
-        """Reset the last performed date of a task."""
-        merged = self._get_merged_tasks_data()
-        if task_id not in merged:
-            _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
-            return
-
-        task = MaintenanceTask.from_dict(merged[task_id])
-        task.reset(reset_date=date)
-
-        if self._store is not None:
-            self._persist_dynamic_state(task_id, task)
-            await self._store.async_save()  # Flush immediately for user actions
-            self._recently_completed[task_id] = time.monotonic()
-            async_dispatcher_send(
-                self.hass,
-                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
-            )
-            await self.async_request_refresh()
-        else:
-            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-            tasks_data[task_id] = task.to_dict()
-            self._recently_completed[task_id] = time.monotonic()
-            async_dispatcher_send(
-                self.hass,
-                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
-            )
-            await self._async_persist_tasks(tasks_data)
-
-        _LOGGER.info(
-            "Maintenance reset: %s on %s", task.name, self.maintenance_object.name
-        )
-
-        self.hass.bus.async_fire(
-            EVENT_TASK_RESET,
-            {
-                "entry_id": self.entry.entry_id,
-                "task_id": task_id,
-                "task_name": task.name,
-                "object_name": self.maintenance_object.name,
-                "reset_date": task.last_performed,
-            },
-        )
-
-    async def skip_maintenance(
-        self,
-        task_id: str,
-        reason: str | None = None,
-    ) -> None:
-        """Skip the current maintenance cycle for a task."""
-        merged = self._get_merged_tasks_data()
-        if task_id not in merged:
-            _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
-            return
-
-        task = MaintenanceTask.from_dict(merged[task_id])
-        task.skip(reason=reason)
-
-        if self._store is not None:
-            self._persist_dynamic_state(task_id, task)
-            await self._store.async_save()  # Flush immediately for user actions
-            self._recently_completed[task_id] = time.monotonic()
-            async_dispatcher_send(
-                self.hass,
-                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
-            )
-            await self.async_request_refresh()
-        else:
-            tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
-            tasks_data[task_id] = task.to_dict()
-            self._recently_completed[task_id] = time.monotonic()
-            async_dispatcher_send(
-                self.hass,
-                SIGNAL_TASK_RESET.format(entry_id=self.entry.entry_id, task_id=task_id),
-            )
-            await self._async_persist_tasks(tasks_data)
-
-        _LOGGER.info(
-            "Maintenance skipped: %s on %s", task.name, self.maintenance_object.name
-        )
-
-        self.hass.bus.async_fire(
-            EVENT_TASK_SKIPPED,
-            {
-                "entry_id": self.entry.entry_id,
-                "task_id": task_id,
-                "task_name": task.name,
-                "object_name": self.maintenance_object.name,
-                "reason": reason,
-            },
-        )
+        Guarantees that every EVENT_TASK_COMPLETED/SKIPPED/RESET payload
+        carries the four identification keys (entry_id, task_id, task_name,
+        object_name) — listeners can rely on them being present.
+        Variant-specific fields (notes, cost, reason, reset_date, …) are
+        passed via **extra.
+        """
+        return {
+            "entry_id": self.entry.entry_id,
+            "task_id": task_id,
+            "task_name": task.name,
+            "object_name": self.maintenance_object.name,
+            **extra,
+        }
 
     async def async_apply_suggested_interval(
         self, task_id: str, interval: int
