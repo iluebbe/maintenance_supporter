@@ -106,7 +106,120 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
             cleaned = [c for c in cleaned if c]
             task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 
+    # v1.3.0: per-task on_complete_action — embedded HA service-call config.
+    # Strict shape: {service: "domain.name", target?: dict, data?: dict}.
+    # Drops the field entirely on any structural problem; the action layer
+    # treats absence as "no action configured" (not an error).
+    cap_action_field(task_data)
+
+    # v1.3.0: per-task quick_complete_defaults — pre-fill values used when
+    # the user scans the "quick complete" QR code. Schema mirrors the
+    # complete_maintenance kwargs.
+    cap_quick_complete_defaults_field(task_data)
+
     return task_data
+
+
+# ─── v1.3.0: completion-action helpers ──────────────────────────────────
+
+# Hard caps. service names rarely exceed 64 chars; data dicts intended
+# for built-in HA services rarely exceed 1 KB serialised.
+_MAX_SERVICE_NAME_LENGTH = 100
+_MAX_ACTION_DATA_BYTES = 1024
+_MAX_TARGET_FIELD_LENGTH = 200
+
+
+def cap_action_field(task_data: dict[str, Any]) -> None:
+    """Validate + truncate task_data['on_complete_action'] in-place.
+
+    Drops the entire field on any structural problem. Passes silently when
+    not present (it's optional).
+    """
+    import re
+
+    action = task_data.get("on_complete_action")
+    if action is None:
+        return
+    if not isinstance(action, dict):
+        task_data.pop("on_complete_action", None)
+        return
+
+    service = action.get("service")
+    if (
+        not isinstance(service, str)
+        or len(service) > _MAX_SERVICE_NAME_LENGTH
+        or not re.fullmatch(r"[a-z][a-z0-9_]*\.[a-z0-9_]+", service)
+    ):
+        task_data.pop("on_complete_action", None)
+        return
+
+    cleaned: dict[str, Any] = {"service": service}
+
+    target = action.get("target")
+    if isinstance(target, dict):
+        cleaned_target: dict[str, Any] = {}
+        for key in ("entity_id", "device_id", "area_id", "label_id", "floor_id"):
+            v = target.get(key)
+            if isinstance(v, str) and 0 < len(v) <= _MAX_TARGET_FIELD_LENGTH:
+                cleaned_target[key] = v
+            elif isinstance(v, list):
+                cleaned_list = [
+                    s for s in v
+                    if isinstance(s, str) and 0 < len(s) <= _MAX_TARGET_FIELD_LENGTH
+                ]
+                if cleaned_list:
+                    cleaned_target[key] = cleaned_list[:50]  # cap target list length
+        if cleaned_target:
+            cleaned["target"] = cleaned_target
+
+    data = action.get("data")
+    if isinstance(data, dict):
+        # Cheap size guard via JSON serialisation
+        import json
+        try:
+            serialised = json.dumps(data)
+        except (TypeError, ValueError):
+            serialised = None
+        if serialised is not None and len(serialised) <= _MAX_ACTION_DATA_BYTES:
+            cleaned["data"] = data
+
+    task_data["on_complete_action"] = cleaned
+
+
+def cap_quick_complete_defaults_field(task_data: dict[str, Any]) -> None:
+    """Validate + truncate task_data['quick_complete_defaults'] in-place.
+
+    Drops malformed entries silently (per-field), preserves the rest.
+    """
+    defaults = task_data.get("quick_complete_defaults")
+    if defaults is None:
+        return
+    if not isinstance(defaults, dict):
+        task_data.pop("quick_complete_defaults", None)
+        return
+
+    cleaned: dict[str, Any] = {}
+
+    notes = defaults.get("notes")
+    if isinstance(notes, str) and notes:
+        cleaned["notes"] = notes[:MAX_TEXT_LENGTH]
+
+    cost = defaults.get("cost")
+    if isinstance(cost, (int, float)) and 0 <= cost <= 1_000_000:
+        cleaned["cost"] = float(cost)
+
+    duration = defaults.get("duration")
+    if isinstance(duration, int) and 0 <= duration <= 525_600:
+        cleaned["duration"] = duration
+
+    feedback = defaults.get("feedback")
+    if feedback in ("needed", "not_needed"):
+        cleaned["feedback"] = feedback
+
+    if cleaned:
+        task_data["quick_complete_defaults"] = cleaned
+    else:
+        task_data.pop("quick_complete_defaults", None)
 
 
 def cap_object_fields(obj_data: dict[str, Any]) -> dict[str, Any]:
