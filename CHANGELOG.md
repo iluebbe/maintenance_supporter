@@ -27,6 +27,28 @@ One task created with every optional field set at once (checklist, schedule_time
 
 1,529 unit tests pass (was 1,520); ruff ✓ · mypy strict ✓ (53 source files).
 
+## [1.2.1] - 2026-04-25
+
+### Tests — Lit component test infrastructure
+
+Adds **@web/test-runner** + **@open-wc/testing** + **@web/dev-server-esbuild** as dev dependencies. Mounts individual Lit components in real Chromium with mocked `hass` — no HA shell, no shadow-DOM-deep-piercing-races. Each test runs in ~10–50 ms; the whole suite finishes in under 2 seconds.
+
+This fills the testing gap that earlier sessions kept hitting: WS contract has been covered by `tests/test_ws_roundtrip.py` since v1.0.50, but UI render logic / click handlers / state transitions had no test layer (Playwright-against-the-full-HA-shell repeatedly hung on shadow-DOM piercing). Component tests give us behaviour-level coverage where Playwright was unreliable.
+
+**New files:**
+- `frontend-src/web-test-runner.config.mjs` — esbuild plugin for on-the-fly TS, playwright-launcher for chromium
+- `frontend-src/__tests__/settings-view-vacation.test.ts` — 7 tests covering the v1.2.0 vacation section: section renders, hydrates dates from settings response, active badge shows when `is_active=true`, enable toggle dispatches `vacation/update`, buffer change dispatches `vacation/update` with `buffer_days`, `settings-changed` event emitted on toggle, end-now button hidden when not active
+
+**npm scripts:**
+- `npm test` — one-shot suite
+- `npm run test:watch` — watch mode for dev iteration
+
+The Playwright `_smoketest-vacation.mjs` pattern (drive WS endpoints via `page.evaluate`) remains the right tool for end-to-end backend smoke tests. The new component layer covers the bit Playwright struggled with.
+
+**Backend regression check:** 1,544 unit tests still pass; ruff ✓ · mypy strict ✓.
+
+No production code changed.
+
 ## [1.2.0] - 2026-04-24
 
 ### Added — Vacation mode
