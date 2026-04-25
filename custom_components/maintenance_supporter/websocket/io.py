@@ -383,7 +383,9 @@ async def ws_import_json(
         vol.Required("type"): "maintenance_supporter/qr/generate",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Optional("action", default="view"): vol.In(["view", "complete"]),
+        vol.Optional("action", default="view"): vol.In(
+            ["view", "complete", "quick_complete"]
+        ),
         vol.Optional("url_mode", default="server"): vol.In(
             ["server", "local", "companion"]
         ),
@@ -476,8 +478,8 @@ def _cached_qr_svg(url: str, icon: str | None) -> str:
             vol.Length(max=2000),
         ),
         vol.Required("actions"): vol.All(
-            [vol.In(["view", "complete", "skip"])],
-            vol.Length(min=1, max=3),
+            [vol.In(["view", "complete", "skip", "quick_complete"])],
+            vol.Length(min=1, max=4),
         ),
         vol.Optional("url_mode", default="server"): vol.In(
             ["server", "local", "companion"]
