@@ -39,6 +39,7 @@ from .const import (
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
@@ -522,6 +523,17 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=2, max=20, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    # v1.4.0 (#44): notification title style
+                    vol.Optional(
+                        CONF_NOTIFICATION_TITLE_STYLE,
+                        default=current.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["default", "object_name", "task_name"],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="notification_title_style",
                         )
                     ),
                 }

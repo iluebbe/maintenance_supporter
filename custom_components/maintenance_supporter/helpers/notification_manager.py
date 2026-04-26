@@ -16,6 +16,7 @@ from ..const import (
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
+    CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
@@ -317,6 +318,23 @@ class NotificationManager:
         """Get the configured notify service."""
         return str(self._global_options.get(CONF_NOTIFY_SERVICE, ""))
 
+    @property
+    def title_style(self) -> str:
+        """v1.4.0 (#44): how to format the notification title.
+
+        Returns one of "default" / "object_name" / "task_name". Defaults to
+        "default" so existing installs see no behaviour change. Defensive
+        against a partially-initialised manager (some unit tests construct
+        NotificationManager via __new__ without setting `hass`).
+        """
+        try:
+            raw = str(self._global_options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"))
+        except AttributeError:
+            return "default"
+        if raw not in ("default", "object_name", "task_name"):
+            return "default"
+        return raw
+
     def _is_status_enabled(self, status: str) -> bool:
         """Check if notifications for this specific status are enabled."""
         key = _STATUS_ENABLED_KEYS.get(status)
@@ -555,6 +573,14 @@ class NotificationManager:
             title = "Maintenance"
             message = f"{task_name} ({object_name})"
 
+        # v1.4.0 (#44): override title with object/task name so phone
+        # notification stacks remain distinguishable at a glance.
+        style = self.title_style
+        if style == "object_name" and object_name:
+            title = object_name
+        elif style == "task_name" and task_name:
+            title = task_name
+
         return title, message
 
     async def _async_send_notification_to_service(
@@ -665,6 +691,12 @@ class NotificationManager:
         message = _notif_t(
             "bundled_message", lang, object=object_name, task_list=", ".join(task_parts)
         )
+
+        # v1.4.0 (#44): for bundled notifications, "object_name" style still
+        # prefers the object as the title; "task_name" doesn't map cleanly
+        # for multi-task bundles, so we leave the count-based default.
+        if self.title_style == "object_name" and object_name:
+            title = object_name
 
         service_data: dict[str, Any] = {
             "title": title,

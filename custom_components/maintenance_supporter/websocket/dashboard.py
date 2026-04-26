@@ -36,6 +36,7 @@ from ..const import (
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_DUE_SOON_ENABLED,
     CONF_NOTIFY_DUE_SOON_INTERVAL,
@@ -97,6 +98,8 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     # Bundling
     CONF_NOTIFICATION_BUNDLING_ENABLED: bool,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD: int,
+    # v1.4.0 (#44): how to format the notification title
+    CONF_NOTIFICATION_TITLE_STYLE: str,
     # Actions
     CONF_ACTION_COMPLETE_ENABLED: bool,
     CONF_ACTION_SKIP_ENABLED: bool,
@@ -147,6 +150,8 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "max_per_day": options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, 0),
             "bundling_enabled": options.get(CONF_NOTIFICATION_BUNDLING_ENABLED, False),
             "bundle_threshold": options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
+            # v1.4.0 (#44): default keeps backwards-compatible per-status titles
+            "title_style": options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
         },
         "actions": {
             "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),
@@ -495,6 +500,16 @@ async def ws_update_global_settings(
     for key, max_len in _STR_MAX_LENGTHS.items():
         if key in filtered and len(filtered[key]) > max_len:
             del filtered[key]
+
+    # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
+    # the known set is dropped silently so a bogus value can't get into the
+    # ConfigEntry options.
+    from ..const import NOTIFICATION_TITLE_STYLES
+    if (
+        CONF_NOTIFICATION_TITLE_STYLE in filtered
+        and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES
+    ):
+        del filtered[CONF_NOTIFICATION_TITLE_STYLE]
 
     # Sanitise admin_panel_user_ids: drop non-string entries + whitespace-only
     # entries, cap each at 64 chars (HA user UUIDs are 32), cap list at 50
