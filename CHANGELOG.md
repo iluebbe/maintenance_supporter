@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.2] - 2026-04-26
+
+### i18n — Czech, Swedish, Polish coverage closed across all surfaces
+
+The previous release shipped Czech (cs) and Swedish (sv) panel translations way back (v1.0.41) but the HA config-flow / Repairs UI fell back to English; Polish (pl) had had the config-flow since v1.3.3 but phone notifications were still going out in English. v1.4.2 closes all three gaps in one pass.
+
+**Added:**
+- `translations/cs.json` (1094 keys, full parity with `strings.json`) — Czech HA config-flow + Options + Repairs UI + sensor entity attributes + service descriptions
+- `translations/sv.json` (1094 keys, full parity with `strings.json`) — Swedish equivalent
+- `helpers/notification_manager.py::_NOTIFICATION_STRINGS`: new blocks for `pl`, `cs`, `sv` (17 message keys each — due-soon / overdue / triggered titles + bodies, action button labels, bundled-notification text, budget alert text)
+
+**Coverage matrix is now uniformly green:**
+
+| Sprache | HA config-flow + Repairs | Panel UI | Phone notifications |
+|---|:-:|:-:|:-:|
+| de, en, es, fr, it, nl, pt, ru, uk | ✓ | ✓ | ✓ |
+| pl | ✓ | ✓ | ✓ *(notifications new in 1.4.2)* |
+| cs | ✓ *(new in 1.4.2)* | ✓ | ✓ *(new in 1.4.2)* |
+| sv | ✓ *(new in 1.4.2)* | ✓ | ✓ *(new in 1.4.2)* |
+
+A read-only audit script (`_i18n_audit.py`, deleted after run) verified key parity across all three layers — no missing or extra keys per language.
+
+No code changes. Backend 1557 ✓, frontend 27 ✓, ruff ✓, mypy strict ✓.
+
 ## [1.4.1] - 2026-04-26
 
 ### UX — Surface the parent object's manual link on every task page (#43 follow-up)
