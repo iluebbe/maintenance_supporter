@@ -61,6 +61,21 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 _VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
+# v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds.
+_VALID_TIME_PATTERN = re.compile(r"^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$")
+
+
+def _safe_time(value: Any, fallback: str) -> str:
+    """Return ``value`` if it parses as HH:MM[:SS], else the ``fallback``.
+
+    HA's `TimeSelector` rejects empty strings, `None`, and non-time strings as
+    "Invalid time" — and that error then blocks the entire form save, even when
+    the user wasn't editing the time field. Coerce the form's *default* to a
+    valid time so the user can still hit Save.
+    """
+    if isinstance(value, str) and _VALID_TIME_PATTERN.match(value):
+        return value
+    return fallback
 
 
 def validate_notify_service(
@@ -493,13 +508,20 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_QUIET_HOURS_ENABLED,
                         default=current.get(CONF_QUIET_HOURS_ENABLED, True),
                     ): selector.BooleanSelector(),
+                    # v1.4.6 (#44 follow-up): use `or` instead of dict-default so
+                    # empty-string / null / non-HH:MM values in storage don't
+                    # break the whole form. HA's TimeSelector rejects an empty
+                    # string as "Invalid time" and that error blocks the save
+                    # button — even if the user is here to change something
+                    # else and quiet_hours is disabled. Coerce to the sane
+                    # fallback whenever the persisted value isn't a usable time.
                     vol.Optional(
                         CONF_QUIET_HOURS_START,
-                        default=current.get(CONF_QUIET_HOURS_START, "22:00"),
+                        default=_safe_time(current.get(CONF_QUIET_HOURS_START), "22:00"),
                     ): selector.TimeSelector(),
                     vol.Optional(
                         CONF_QUIET_HOURS_END,
-                        default=current.get(CONF_QUIET_HOURS_END, "08:00"),
+                        default=_safe_time(current.get(CONF_QUIET_HOURS_END), "08:00"),
                     ): selector.TimeSelector(),
                     # --- Daily Limit ---
                     vol.Optional(

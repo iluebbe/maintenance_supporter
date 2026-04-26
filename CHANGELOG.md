@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.6] - 2026-04-26
+
+### Fix — *"Invalid time"* on disabled quiet-hours blocks the Notification Settings save (#44 follow-up)
+
+Reported by **@byoung79** after trying to enable v1.4.0's *Object name as title*: the **Notification Settings** options-flow refused to save with red *"Invalid time specified"* errors on both *Quiet hours start* and *Quiet hours end* — even though the *Enable quiet hours* toggle was OFF.
+
+Root cause: somewhere in earlier history (probably a config-flow round trip when quiet hours was last toggled), the `quiet_hours_start` / `quiet_hours_end` settings got persisted as empty strings. HA's `<TimeSelector>` rejects empty / non-`HH:MM[:SS]` strings as *"Invalid time"*, and that error blocks the entire form save — even when the user is here to change something else and quiet_hours is disabled.
+
+Fixed at two layers (defence in depth):
+
+1. **`config_flow_options_global.py`**: the `default=` for the two TimeSelector fields now goes through a new `_safe_time(value, fallback)` helper that returns the value only when it matches `HH:MM[:SS]`, else the fallback (`22:00` / `08:00`). So even if the persisted value is empty/garbage, the form renders with a valid default and the user can save without touching the time fields.
+2. **`websocket/dashboard.py::ws_update_global_settings`**: dropped any incoming `quiet_hours_*` value that doesn't match `HH:MM[:SS]` before persistence. Self-heals existing bad state on next save and prevents future bad values from getting stored. Same regex-validation pattern already used for `notification_title_style` enum.
+
+Test: `test_update_global_settings_drops_invalid_quiet_hours_times` covers the full byoung79 flow — sends each of `("", "  ", "not-a-time", "25:99", "abc:def", None, 42)` plus an unrelated `notification_title_style: "object_name"` edit, asserts the unrelated edit always lands and the bad time falls back to the default.
+
+Backend 1559 ✓ (+1 regression test) · ruff ✓ · mypy strict ✓.
+
+Thanks @byoung79 for the screenshot — made the diagnosis trivial.
+
 ## [1.4.5] - 2026-04-26
 
 ### UX — Better empty state for the NFC tag picker on the task dialog
