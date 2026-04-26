@@ -3500,7 +3500,50 @@ ${_?`<div class="sub">${_}</div>`:""}
               `:d}
           `:r`<button @click=${this._loadQrObjects}>${i("qr_print_load",e)}</button>`}
       </div>
-    `}async _loadQrObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._qrObjects=(e.objects||[]).map(t=>({entry_id:t.entry_id,name:t.object.name,task_count:(t.tasks||[]).length})).sort((t,a)=>t.name.localeCompare(a.name)),this._qrObjectsLoaded=!0}catch{this._showToast(i("action_error",this._lang))}}_toggleQrObject(e,t){let a=new Set(this._qrSelectedEntries);if(a.size===0)for(let s of this._qrObjects)a.add(s.entry_id);t?a.add(e):a.delete(e),a.size===this._qrObjects.length&&a.clear(),this._qrSelectedEntries=a}_toggleQrAction(e,t){let a=new Set(this._qrActions);t?a.add(e):a.delete(e),this._qrActions=a}async _generateBatch(){this._qrBatchLoading=!0,this._qrBatchResults=[];try{let e={type:"maintenance_supporter/qr/batch_generate",actions:[...this._qrActions],url_mode:this._qrUrlMode};this._qrSelectedEntries.size>0&&(e.entry_ids=[...this._qrSelectedEntries]);let t=await this.hass.connection.sendMessagePromise(e);this._qrBatchResults=t.qrs||[],this._qrBatchResults.length===0&&this._showToast(i("qr_print_empty",this._lang))}catch(e){let t=e?.message||i("action_error",this._lang);this._showToast(t)}finally{this._qrBatchLoading=!1}}_printQrs(){window.print()}_renderImportExport(e){return r`
+    `}async _loadQrObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._qrObjects=(e.objects||[]).map(t=>({entry_id:t.entry_id,name:t.object.name,task_count:(t.tasks||[]).length})).sort((t,a)=>t.name.localeCompare(a.name)),this._qrObjectsLoaded=!0}catch{this._showToast(i("action_error",this._lang))}}_toggleQrObject(e,t){let a=new Set(this._qrSelectedEntries);if(a.size===0)for(let s of this._qrObjects)a.add(s.entry_id);t?a.add(e):a.delete(e),a.size===this._qrObjects.length&&a.clear(),this._qrSelectedEntries=a}_toggleQrAction(e,t){let a=new Set(this._qrActions);t?a.add(e):a.delete(e),this._qrActions=a}async _generateBatch(){this._qrBatchLoading=!0,this._qrBatchResults=[];try{let e={type:"maintenance_supporter/qr/batch_generate",actions:[...this._qrActions],url_mode:this._qrUrlMode};this._qrSelectedEntries.size>0&&(e.entry_ids=[...this._qrSelectedEntries]);let t=await this.hass.connection.sendMessagePromise(e);this._qrBatchResults=t.qrs||[],this._qrBatchResults.length===0&&this._showToast(i("qr_print_empty",this._lang))}catch(e){let t=e?.message||i("action_error",this._lang);this._showToast(t)}finally{this._qrBatchLoading=!1}}_printQrs(){if(this._qrBatchResults.length===0)return;let e=this._lang,t=this._qrBatchResults.map(c=>{let _=i("qr_action_"+c.action,e);return`
+        <div class="cell">
+          <div class="qr">${c.svg}</div>
+          <div class="label">
+            <div class="obj">${this._escapeHtml(c.object_name)}</div>
+            <div class="task">${this._escapeHtml(c.task_name)}</div>
+            <div class="action">${this._escapeHtml(_)}</div>
+          </div>
+        </div>`}).join(""),a=i("qr_print_title",e),s=`<!DOCTYPE html>
+<html lang="${this._escapeHtml(e)}">
+<head>
+  <meta charset="utf-8" />
+  <title>${this._escapeHtml(a)}</title>
+  <style>
+    @page { size: A4; margin: 10mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { padding: 8mm; }
+    .toolbar { padding-bottom: 6mm; display: flex; justify-content: space-between; align-items: center; }
+    .toolbar h1 { font-size: 14pt; margin: 0; font-weight: 600; }
+    .toolbar button { font: inherit; padding: 6px 14px; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+    .cell { border: 1px solid #ddd; border-radius: 4px; padding: 4mm; display: flex; flex-direction: column; align-items: center; gap: 3mm; page-break-inside: avoid; break-inside: avoid; }
+    .cell .qr { width: 100%; max-width: 50mm; }
+    .cell .qr svg { width: 100%; height: auto; display: block; }
+    .label { text-align: center; width: 100%; font-size: 9pt; line-height: 1.25; word-break: break-word; }
+    .label .obj { font-weight: 600; }
+    .label .task { color: #444; }
+    .label .action { color: #777; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2mm; }
+    @media print {
+      .toolbar { display: none; }
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h1>${this._escapeHtml(a)} \u2014 ${this._qrBatchResults.length}</h1>
+    <button onclick="window.print()">${this._escapeHtml(i("qr_print_print_button",e))}</button>
+  </div>
+  <div class="grid">${t}</div>
+  <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 250); });<\/script>
+</body>
+</html>`,o=window.open("","_blank","width=900,height=1100");if(!o){window.print();return}o.document.open(),o.document.write(s),o.document.close()}_escapeHtml(e){return e.replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}_renderImportExport(e){return r`
       <div class="settings-section">
         <h3>${i("settings_import_export",e)}</h3>
         <div class="settings-actions">
