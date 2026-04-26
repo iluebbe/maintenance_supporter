@@ -943,6 +943,8 @@ export class MaintenanceTaskDialog extends LitElement {
                     (tag) => html`<option value=${tag.id} ?selected=${tag.id === this._nfcTagId}>${tag.name}</option>`
                   )}
                 </select>
+                <button type="button" class="link-button" @click=${this._loadTags}
+                  title="${t("nfc_tags_refresh", L)}">↻</button>
               </div>
             `
             : html`
@@ -951,6 +953,14 @@ export class MaintenanceTaskDialog extends LitElement {
                 .value=${this._nfcTagId}
                 @input=${(e: Event) => (this._nfcTagId = (e.target as HTMLInputElement).value)}
               ></ha-textfield>
+              <div class="field-help">
+                ${t("nfc_tags_empty_help", L)}
+                <a href="/config/tags">${t("nfc_tags_open_settings", L)}</a>
+                ·
+                <button type="button" class="link-button" @click=${this._loadTags}>
+                  ${t("nfc_tags_refresh", L)}
+                </button>
+              </div>
             `
           }
           <label class="toggle-row">
@@ -1060,6 +1070,30 @@ export class MaintenanceTaskDialog extends LitElement {
     .field-help {
       font-size: 12px;
       color: var(--secondary-text-color);
+    }
+    .field-help a,
+    .link-button {
+      background: none;
+      border: 0;
+      padding: 0;
+      color: var(--primary-color);
+      cursor: pointer;
+      font: inherit;
+      text-decoration: underline;
+    }
+    .field-help a:hover,
+    .link-button:hover {
+      text-decoration: none;
+    }
+    /* Smaller refresh icon-button when shown next to the dropdown. */
+    .select-row .link-button {
+      margin-left: 8px;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .select-row .link-button:hover {
+      color: var(--primary-color);
+      opacity: 0.7;
     }
     h3 {
       margin: 8px 0 0;

@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.5] - 2026-04-26
+
+### UX — Better empty state for the NFC tag picker on the task dialog
+
+The task dialog has had a behaviour-aware NFC field for a while: when HA has registered NFC tags it renders as a dropdown picker; when none are registered it falls back to a plain text field. The fallback case was confusing — a bare *"NFC tag ID (optional)"* textfield with no hint about what to put there or how to register a tag.
+
+Now in the empty state, the textfield is followed by a small help line:
+
+> *No NFC tags registered in Home Assistant yet.* [Open Tags settings](#) · [Refresh](#)
+
+- **"Open Tags settings"** is a link to HA's native `/config/tags` page where the user can register their first tag
+- **"Refresh"** re-runs the `maintenance_supporter/tags/list` WS call so the user can pick up newly-registered tags without closing and re-opening the dialog
+
+The dropdown branch (when tags ARE registered) gets the same Refresh button next to it (small `↻` icon) for the same use case — added a tag in HA, want to pick it up live without dialog churn.
+
+3 new i18n keys (`nfc_tags_empty_help`, `nfc_tags_open_settings`, `nfc_tags_refresh`) translated across all 12 panel languages.
+
+No backend changes. Frontend bundle rebuilt; 27 component tests still pass; ruff ✓ · mypy strict ✓.
+
 ## [1.4.4] - 2026-04-26
 
 ### Fix — Print QR codes opens a clean popup window instead of printing the whole HA UI
