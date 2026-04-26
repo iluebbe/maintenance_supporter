@@ -531,6 +531,85 @@ async def test_mgr_disabled(hass: HomeAssistant) -> None:
     assert mgr.enabled is False
 
 
+# ─── v1.4.0 (#44): notification_title_style ────────────────────────────
+
+
+async def test_title_style_default_uses_per_status_title(hass: HomeAssistant) -> None:
+    """Without configuration, NM uses the i18n per-status title."""
+    _create_global_entry(hass)
+    mgr = NotificationManager(hass)
+    assert mgr.title_style == "default"
+    title, message = mgr._build_message(
+        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+    )
+    # Per-status default title — does NOT contain object/task name.
+    assert "Pool Pump" not in title
+    assert "Filter cleaning" not in title
+    # Object + task DO appear in the body — that's the existing pre-1.4.0 behaviour.
+    assert "Pool Pump" in message
+    assert "Filter cleaning" in message
+
+
+async def test_title_style_object_name_uses_object_as_title(hass: HomeAssistant) -> None:
+    """With title_style=object_name, the object name becomes the title."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATION_TITLE_STYLE,
+    )
+
+    entry = _create_global_entry(hass)
+    hass.config_entries.async_update_entry(
+        entry,
+        options={**entry.options, CONF_NOTIFICATION_TITLE_STYLE: "object_name"},
+    )
+
+    mgr = NotificationManager(hass)
+    assert mgr.title_style == "object_name"
+    title, _ = mgr._build_message(
+        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+    )
+    assert title == "Pool Pump"
+
+
+async def test_title_style_task_name_uses_task_as_title(hass: HomeAssistant) -> None:
+    """With title_style=task_name, the task name becomes the title."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATION_TITLE_STYLE,
+    )
+
+    entry = _create_global_entry(hass)
+    hass.config_entries.async_update_entry(
+        entry,
+        options={**entry.options, CONF_NOTIFICATION_TITLE_STYLE: "task_name"},
+    )
+
+    mgr = NotificationManager(hass)
+    assert mgr.title_style == "task_name"
+    title, _ = mgr._build_message(
+        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+    )
+    assert title == "Filter cleaning"
+
+
+async def test_title_style_unknown_value_falls_back_to_default(hass: HomeAssistant) -> None:
+    """Bogus title_style values fall back to default title behaviour."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATION_TITLE_STYLE,
+    )
+
+    entry = _create_global_entry(hass)
+    hass.config_entries.async_update_entry(
+        entry,
+        options={**entry.options, CONF_NOTIFICATION_TITLE_STYLE: "totally_not_a_style"},
+    )
+
+    mgr = NotificationManager(hass)
+    assert mgr.title_style == "default"
+    title, _ = mgr._build_message(
+        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+    )
+    assert "Pool Pump" not in title  # default per-status title
+
+
 # ─── Seed Startup State ──────────────────────────────────────────────
 
 
