@@ -4964,7 +4964,7 @@ ${X}`,e.setTooltip)}
         ${this._renderHistoryFilters(e)}
         ${this._renderHistoryList(e)}
       </div>
-    `}_renderTaskMeta(e){let t=e.documentation_url&&/^https?:\/\//i.test(e.documentation_url)?e.documentation_url:null;if(!e.notes&&!t)return d;let a=this._lang;return r`
+    `}_renderTaskMeta(e){let t=e.documentation_url&&/^https?:\/\//i.test(e.documentation_url)?e.documentation_url:null,a=this._selectedEntryId?this._getObject(this._selectedEntryId):void 0,s=a?.object?.documentation_url,o=s&&/^https?:\/\//i.test(s)?s:null;if(!e.notes&&!t&&!o)return d;let c=this._lang;return r`
       <div class="task-meta-card">
         ${e.notes?r`
           <div class="task-meta-row">
@@ -4975,7 +4975,13 @@ ${X}`,e.setTooltip)}
         ${t?r`
           <div class="task-meta-row task-meta-link">
             <ha-icon icon="mdi:open-in-new"></ha-icon>
-            <a href="${t}" target="_blank" rel="noopener noreferrer">${i("documentation_label",a)}</a>
+            <a href="${t}" target="_blank" rel="noopener noreferrer">${i("documentation_label",c)}</a>
+          </div>
+        `:d}
+        ${o?r`
+          <div class="task-meta-row task-meta-link">
+            <ha-icon icon="mdi:book-open-variant"></ha-icon>
+            <a href="${o}" target="_blank" rel="noopener noreferrer">${i("documentation_url_label",c)} (${a?.object?.name||""})</a>
           </div>
         `:d}
       </div>

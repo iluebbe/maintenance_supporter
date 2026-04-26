@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.1] - 2026-04-26
+
+### UX — Surface the parent object's manual link on every task page (#43 follow-up)
+
+The per-object `documentation_url` shipped in v1.4.0 (#43) was only visible on the object detail page. When you navigate from "I need to do this maintenance task" to the task page, you'd lose quick access to the device manual — exactly the situation where you want it most.
+
+Now in `_renderTaskMeta` (the task-detail meta card next to notes + task documentation URL): if the parent object has a `documentation_url`, an additional row renders with a book icon and `<documentation label> (<object name>)` — e.g. *Manual (Pool Pump)* / *Handbuch (Poolpumpe)*.
+
+Both link rows render side-by-side when both exist (task-specific docs + object-level manual), distinguished by their icon and label. Same `^https?://` defence-in-depth check the v1.4.0 code uses.
+
+No new i18n keys — reuses `documentation_url_label` from v1.4.0.
+
+Backend untouched (1557 ✓), frontend bundle rebuilt; component test surface unchanged (27 ✓).
+
 ## [1.4.0] - 2026-04-26
 
 ### New — Per-object documentation URL (#43)

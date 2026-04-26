@@ -1772,12 +1772,20 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   /**
-   * Render task notes and documentation URL if present.
+   * Render task notes, task documentation URL, and (since v1.4.1) the parent
+   * object's documentation_url for quick access to the device manual without
+   * having to navigate back to the object detail.
    */
   private _renderTaskMeta(task: MaintenanceTask) {
-    const safeUrl = task.documentation_url && /^https?:\/\//i.test(task.documentation_url)
+    const safeTaskUrl = task.documentation_url && /^https?:\/\//i.test(task.documentation_url)
       ? task.documentation_url : null;
-    if (!task.notes && !safeUrl) return nothing;
+    // v1.4.1: pull the parent object's documentation_url too. Tasks live
+    // inside an object that owns the device's manual, so showing it on the
+    // task page is the natural follow-up to v1.4.0 #43.
+    const parentObj = this._selectedEntryId ? this._getObject(this._selectedEntryId) : undefined;
+    const objUrl = parentObj?.object?.documentation_url;
+    const safeObjUrl = objUrl && /^https?:\/\//i.test(objUrl) ? objUrl : null;
+    if (!task.notes && !safeTaskUrl && !safeObjUrl) return nothing;
     const L = this._lang;
     return html`
       <div class="task-meta-card">
@@ -1787,10 +1795,16 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="task-meta-notes">${task.notes}</span>
           </div>
         ` : nothing}
-        ${safeUrl ? html`
+        ${safeTaskUrl ? html`
           <div class="task-meta-row task-meta-link">
             <ha-icon icon="mdi:open-in-new"></ha-icon>
-            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_label", L)}</a>
+            <a href="${safeTaskUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_label", L)}</a>
+          </div>
+        ` : nothing}
+        ${safeObjUrl ? html`
+          <div class="task-meta-row task-meta-link">
+            <ha-icon icon="mdi:book-open-variant"></ha-icon>
+            <a href="${safeObjUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_url_label", L)} (${parentObj?.object?.name || ""})</a>
           </div>
         ` : nothing}
       </div>
