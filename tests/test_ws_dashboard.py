@@ -554,6 +554,67 @@ async def test_update_global_settings_type_validation(
     assert result["general"]["default_warning_days"] == 7
 
 
+async def test_update_global_settings_drops_invalid_quiet_hours_times(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """v1.4.6 #44 follow-up regression: empty / malformed quiet-hours time
+    strings must be dropped before persistence so the next options-flow
+    render falls back to the 22:00 / 08:00 defaults instead of erroring
+    out as 'Invalid time' and blocking the form save.
+    """
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATION_TITLE_STYLE,
+        CONF_QUIET_HOURS_END,
+        CONF_QUIET_HOURS_START,
+    )
+
+    await setup_integration(hass, global_entry)
+
+    for bad in ("", "  ", "not-a-time", "25:99", "abc:def", None, 42):
+        conn = _mock_connection()
+        await call_ws_handler(ws_update_global_settings, hass, conn, {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_QUIET_HOURS_START: bad,
+                CONF_QUIET_HOURS_END: bad,
+                # The user's actual edit (the one they tried to save in the
+                # original bug report) must still land even though they didn't
+                # touch the time fields. Use title_style here — it's a v1.4.0
+                # setting that doesn't have HA-side panel side-effects.
+                CONF_NOTIFICATION_TITLE_STYLE: "object_name",
+            },
+        })
+        conn.send_result.assert_called_once()
+        result = conn.send_result.call_args[0][1]
+        # The unrelated edit must always be persisted — that's the actual
+        # behaviour byoung79 was asking for in #44.
+        assert result["notifications"]["title_style"] == "object_name", (
+            f"unrelated title_style edit dropped for bad time {bad!r}"
+        )
+        # The bad time is dropped; the response shows the default for both.
+        assert result["notifications"]["quiet_hours_start"] == "22:00"
+        assert result["notifications"]["quiet_hours_end"] == "08:00"
+
+    # Sanity: a *valid* HH:MM time is preserved.
+    # (HH:MM:SS is technically valid format-wise but is dropped by an existing
+    # `_STR_MAX_LENGTHS=5` cap higher up in this same handler — out of scope
+    # for this regression test.)
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {
+            CONF_QUIET_HOURS_START: "23:00",
+            CONF_QUIET_HOURS_END: "07:30",
+        },
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["notifications"]["quiet_hours_start"] == "23:00"
+    assert result["notifications"]["quiet_hours_end"] == "07:30"
+
+
 async def test_update_global_settings_invalid_notify_service(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

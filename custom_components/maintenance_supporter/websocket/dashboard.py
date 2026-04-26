@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -510,6 +511,19 @@ async def ws_update_global_settings(
         and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES
     ):
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
+
+    # v1.4.6 (#44 follow-up): drop quiet-hours time strings that aren't valid
+    # HH:MM[:SS]. The HA TimeSelector in the options-flow rejects empty / bad
+    # strings as "Invalid time" and that error blocks the entire form save —
+    # even when the user is here to change something else and quiet_hours is
+    # disabled. By dropping invalid values here, the form falls back to the
+    # 22:00 / 08:00 defaults next render.
+    _TIME_PATTERN = re.compile(r"^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$")
+    for time_key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END):
+        if time_key in filtered:
+            v = filtered[time_key]
+            if not isinstance(v, str) or not _TIME_PATTERN.match(v):
+                del filtered[time_key]
 
     # Sanitise admin_panel_user_ids: drop non-string entries + whitespace-only
     # entries, cap each at 64 chars (HA user UUIDs are 32), cap list at 50
