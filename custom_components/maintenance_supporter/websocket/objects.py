@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 from ..const import (
     CONF_OBJECT,
     CONF_OBJECT_AREA,
+    CONF_OBJECT_DOCUMENTATION_URL,
     CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
@@ -25,6 +26,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
+    MAX_URL_LENGTH,
 )
 from . import (
     _build_object_response,
@@ -32,6 +34,7 @@ from . import (
     _get_runtime_data,
     cleanup_group_refs,
 )
+from .tasks import _is_safe_url  # v1.4.0 (#43): reuse the existing URL safety check
 
 
 @websocket_api.websocket_command(
@@ -87,6 +90,8 @@ async def ws_get_object(
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+        # v1.4.0 (#43): per-object link to PDF manual / vendor page
+        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -118,6 +123,12 @@ async def ws_create_object(
             connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
             return
 
+    # v1.4.0 (#43): documentation_url
+    documentation_url = (msg.get("documentation_url") or "").strip() or None
+    if documentation_url and not _is_safe_url(documentation_url):
+        connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+        return
+
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
         connection.send_result(msg["id"], {"valid": True, "entry_id": None})
@@ -135,6 +146,7 @@ async def ws_create_object(
                 CONF_OBJECT_MODEL: model,
                 CONF_OBJECT_SERIAL_NUMBER: serial_number,
                 CONF_OBJECT_INSTALLATION_DATE: installation_date,
+                CONF_OBJECT_DOCUMENTATION_URL: documentation_url,
                 "task_ids": [],
             },
             CONF_TASKS: {},
@@ -162,6 +174,8 @@ async def ws_create_object(
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+        # v1.4.0 (#43): per-object link to PDF manual / vendor page
+        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
     }
 )
 @websocket_api.require_admin
@@ -202,6 +216,15 @@ async def ws_update_object(
             connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
             return
 
+    # v1.4.0 (#43): documentation_url
+    if "documentation_url" in msg:
+        if msg["documentation_url"] is not None:
+            stripped = (msg["documentation_url"] or "").strip()
+            msg["documentation_url"] = stripped or None
+        if msg["documentation_url"] and not _is_safe_url(msg["documentation_url"]):
+            connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
+            return
+
     new_data = dict(entry.data)
     obj = dict(new_data.get(CONF_OBJECT, {}))
 
@@ -217,6 +240,8 @@ async def ws_update_object(
         obj[CONF_OBJECT_SERIAL_NUMBER] = msg["serial_number"]
     if "installation_date" in msg:
         obj[CONF_OBJECT_INSTALLATION_DATE] = msg["installation_date"]
+    if "documentation_url" in msg:
+        obj[CONF_OBJECT_DOCUMENTATION_URL] = msg["documentation_url"]
 
     new_data[CONF_OBJECT] = obj
     title = obj.get(CONF_OBJECT_NAME, entry.title)

@@ -41,6 +41,7 @@
           "manufacturer": "Fabrikant",
           "model": "Model",
           "serial_number": "Serienummer",
+          "documentation_url": "Handleiding / documentatie-URL",
           "go_back": "Terug"
         },
         "data_description": {
@@ -49,6 +50,7 @@
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
           "serial_number": "Het serienummer van het object.",
+          "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
           "go_back": "Terug naar sjabloonselectie zonder op te slaan."
         }
       },
@@ -75,6 +77,7 @@
           "manufacturer": "Fabrikant",
           "model": "Model",
           "serial_number": "Serienummer",
+          "documentation_url": "Handleiding / documentatie-URL",
           "installation_date": "Installatiedatum",
           "go_back": "Terug"
         },
@@ -84,6 +87,7 @@
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
           "serial_number": "Het serienummer van het object.",
+          "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
@@ -370,6 +374,7 @@
           "manufacturer": "Fabrikant",
           "model": "Model",
           "serial_number": "Serienummer",
+          "documentation_url": "Handleiding / documentatie-URL",
           "installation_date": "Installatiedatum"
         },
         "data_description": {
@@ -378,6 +383,7 @@
           "manufacturer": "De fabrikant van dit object.",
           "model": "Het model van dit object.",
           "serial_number": "Het serienummer van dit object.",
+          "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
           "installation_date": "Wanneer dit object is geïnstalleerd."
         }
       }
@@ -495,7 +501,8 @@
           "quiet_hours_end": "Einde stille uren",
           "max_notifications_per_day": "Max. meldingen per dag",
           "notification_bundling_enabled": "Meldingen bundelen",
-          "notification_bundle_threshold": "Bundeldrempel"
+          "notification_bundle_threshold": "Bundeldrempel",
+          "notification_title_style": "Stijl van meldingstitel"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hoe vaak de herinnering voor bijna verlopen wordt herhaald. Stel in op 0 voor een enkele melding.",
@@ -504,7 +511,8 @@
           "quiet_hours_enabled": "Meldingen onderdrukken tijdens stille uren.",
           "max_notifications_per_day": "Maximaal aantal meldingen per dag. Stel in op 0 voor onbeperkt.",
           "notification_bundling_enabled": "Een enkele samenvattingsmelding verzenden wanneer meerdere taken aandacht vereisen.",
-          "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren."
+          "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren.",
+          "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt."
         }
       },
       "notification_actions": {
@@ -940,6 +948,7 @@
           "manufacturer": "Fabrikant",
           "model": "Model",
           "serial_number": "Serienummer",
+          "documentation_url": "Handleiding / documentatie-URL",
           "area_id": "Gebied",
           "installation_date": "Installatiedatum",
           "go_back": "Terug"
@@ -949,6 +958,7 @@
           "manufacturer": "De fabrikant van het object.",
           "model": "De modelnaam of het nummer.",
           "serial_number": "Het serienummer van het object.",
+          "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
           "area_id": "Het gebied in uw huis waar dit object zich bevindt.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "go_back": "Terug naar het hoofdmenu zonder opslaan."
@@ -1250,6 +1260,13 @@
       "options": {
         "any": "Elke entiteit triggert",
         "all": "Alle entiteiten moeten triggeren"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Standaard (titel per status)",
+        "object_name": "Objectnaam als titel",
+        "task_name": "Taaknaam als titel"
       }
     }
   },

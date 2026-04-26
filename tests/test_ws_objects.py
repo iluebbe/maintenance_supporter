@@ -257,6 +257,71 @@ async def test_ws_update_object_multiple(
     assert obj["area_id"] == "pool_house"
 
 
+async def test_ws_create_and_update_object_with_documentation_url(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """v1.4.0 (#43): documentation_url round-trips through create + update.
+
+    Pinning the per-object 'manual / docs link' field. Includes the safe-URL
+    rejection on update (mirrors the existing task documentation_url path)
+    and the explicit-clear semantic (sending null clears the field).
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Update with valid URL → persisted
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "documentation_url": "https://example.com/manual.pdf",
+    })
+    conn.send_result.assert_called_once()
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    assert entry.data[CONF_OBJECT]["documentation_url"] == "https://example.com/manual.pdf"
+
+    # Update with javascript: URL → rejected
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": 2, "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "documentation_url": "javascript:alert(1)",
+    })
+    conn.send_error.assert_called_once()
+    err_args = conn.send_error.call_args[0]
+    assert err_args[1] == "invalid_url"
+    # Old value must remain intact after the rejected update
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry.data[CONF_OBJECT]["documentation_url"] == "https://example.com/manual.pdf"
+
+    # Update with null → cleared
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": 3, "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "documentation_url": None,
+    })
+    conn.send_result.assert_called_once()
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry.data[CONF_OBJECT]["documentation_url"] is None
+
+    # Create with documentation_url → persisted on the new entry
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_object, hass, conn, {
+        "id": 4, "type": "maintenance_supporter/object/create",
+        "name": "Object With Manual",
+        "documentation_url": "https://vendor.example/Quick-Guide.pdf",
+    })
+    conn.send_result.assert_called_once()
+    entries = [
+        e for e in hass.config_entries.async_entries("maintenance_supporter")
+        if e.title == "Object With Manual"
+    ]
+    assert len(entries) == 1
+    assert entries[0].data[CONF_OBJECT]["documentation_url"] == "https://vendor.example/Quick-Guide.pdf"
+
+
 async def test_ws_update_object_not_found(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

@@ -41,6 +41,7 @@
           "manufacturer": "Manufacturer",
           "model": "Model",
           "serial_number": "Serial number",
+          "documentation_url": "Manual / documentation URL",
           "go_back": "Go back"
         },
         "data_description": {
@@ -49,6 +50,7 @@
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
           "serial_number": "The serial number of the object.",
+          "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
           "go_back": "Return to template selection without saving."
         }
       },
@@ -75,6 +77,7 @@
           "manufacturer": "Manufacturer",
           "model": "Model",
           "serial_number": "Serial number",
+          "documentation_url": "Manual / documentation URL",
           "installation_date": "Installation date",
           "go_back": "Go back"
         },
@@ -84,6 +87,7 @@
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
           "serial_number": "The serial number of the object.",
+          "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
           "installation_date": "When this object was installed or purchased.",
           "go_back": "Return to the main menu without saving."
         }
@@ -370,6 +374,7 @@
           "manufacturer": "Manufacturer",
           "model": "Model",
           "serial_number": "Serial number",
+          "documentation_url": "Manual / documentation URL",
           "installation_date": "Installation date"
         },
         "data_description": {
@@ -378,6 +383,7 @@
           "manufacturer": "The manufacturer of this object.",
           "model": "The model of this object.",
           "serial_number": "The serial number of this object.",
+          "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
           "installation_date": "When this object was installed."
         }
       }
@@ -495,7 +501,8 @@
           "quiet_hours_end": "Quiet hours end",
           "max_notifications_per_day": "Max notifications per day",
           "notification_bundling_enabled": "Bundle notifications",
-          "notification_bundle_threshold": "Bundle threshold"
+          "notification_bundle_threshold": "Bundle threshold",
+          "notification_title_style": "Notification title style"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "How often to repeat the due-soon reminder. Set to 0 for a single notification.",
@@ -504,7 +511,8 @@
           "quiet_hours_enabled": "Suppress notifications during quiet hours.",
           "max_notifications_per_day": "Maximum number of notifications per day. Set to 0 for unlimited.",
           "notification_bundling_enabled": "Send a single summary notification when multiple tasks need attention.",
-          "notification_bundle_threshold": "Minimum number of tasks to trigger a bundled notification."
+          "notification_bundle_threshold": "Minimum number of tasks to trigger a bundled notification.",
+          "notification_title_style": "What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack."
         }
       },
       "notification_actions": {
@@ -940,6 +948,7 @@
           "manufacturer": "Manufacturer",
           "model": "Model",
           "serial_number": "Serial number",
+          "documentation_url": "Manual / documentation URL",
           "area_id": "Area",
           "installation_date": "Installation date",
           "go_back": "Go back"
@@ -949,6 +958,7 @@
           "manufacturer": "The manufacturer of the object.",
           "model": "The model name or number.",
           "serial_number": "The serial number of the object.",
+          "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
           "area_id": "The area in your home where this object is located.",
           "installation_date": "When this object was installed or purchased.",
           "go_back": "Return to the main menu without saving."
@@ -1250,6 +1260,13 @@
       "options": {
         "any": "Any entity triggers",
         "all": "All entities must trigger"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Default (per-status title)",
+        "object_name": "Object name as title",
+        "task_name": "Task name as title"
       }
     }
   },

@@ -41,6 +41,7 @@
           "manufacturer": "Producent",
           "model": "Model",
           "serial_number": "Numer seryjny",
+          "documentation_url": "URL instrukcji / dokumentacji",
           "go_back": "Wróć"
         },
         "data_description": {
@@ -49,6 +50,7 @@
           "manufacturer": "Producent obiektu.",
           "model": "Nazwa lub numer modelu.",
           "serial_number": "Numer seryjny obiektu.",
+          "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
           "go_back": "Wróć do wyboru szablonu bez zapisywania."
         }
       },
@@ -75,6 +77,7 @@
           "manufacturer": "Producent",
           "model": "Model",
           "serial_number": "Numer seryjny",
+          "documentation_url": "URL instrukcji / dokumentacji",
           "installation_date": "Data instalacji",
           "go_back": "Wróć"
         },
@@ -84,6 +87,7 @@
           "manufacturer": "Producent obiektu.",
           "model": "Nazwa lub numer modelu.",
           "serial_number": "Numer seryjny obiektu.",
+          "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
           "go_back": "Wróć do menu głównego bez zapisywania."
         }
@@ -370,6 +374,7 @@
           "manufacturer": "Producent",
           "model": "Model",
           "serial_number": "Numer seryjny",
+          "documentation_url": "URL instrukcji / dokumentacji",
           "installation_date": "Data instalacji"
         },
         "data_description": {
@@ -378,6 +383,7 @@
           "manufacturer": "Producent obiektu.",
           "model": "Model obiektu.",
           "serial_number": "Numer seryjny obiektu.",
+          "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
           "installation_date": "Kiedy obiekt został zainstalowany."
         }
       }
@@ -495,7 +501,8 @@
           "quiet_hours_end": "Koniec godzin ciszy",
           "max_notifications_per_day": "Maks. powiadomień dziennie",
           "notification_bundling_enabled": "Łącz powiadomienia",
-          "notification_bundle_threshold": "Próg łączenia"
+          "notification_bundle_threshold": "Próg łączenia",
+          "notification_title_style": "Styl tytułu powiadomienia"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Jak często powtarzać przypomnienie „wkrótce wymagane”. Ustaw 0 dla pojedynczego powiadomienia.",
@@ -504,7 +511,8 @@
           "quiet_hours_enabled": "Wstrzymuj powiadomienia w godzinach ciszy.",
           "max_notifications_per_day": "Maksymalna liczba powiadomień dziennie. Ustaw 0 dla nieograniczonej liczby.",
           "notification_bundling_enabled": "Wyślij jedno zbiorcze powiadomienie, gdy wiele zadań wymaga uwagi.",
-          "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia."
+          "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia.",
+          "notification_title_style": "Co pojawia się jako TYTUŁ powiadomienia. Domyślnie zachowywany jest tekst dla statusu (np. „Konserwacja przeterminowana!”). Nazwa obiektu / zadania pomaga, gdy telefon układa powiadomienia w stos."
         }
       },
       "notification_actions": {
@@ -940,6 +948,7 @@
           "manufacturer": "Producent",
           "model": "Model",
           "serial_number": "Numer seryjny",
+          "documentation_url": "URL instrukcji / dokumentacji",
           "area_id": "Obszar",
           "installation_date": "Data instalacji",
           "go_back": "Wróć"
@@ -949,6 +958,7 @@
           "manufacturer": "Producent obiektu.",
           "model": "Nazwa lub numer modelu.",
           "serial_number": "Numer seryjny obiektu.",
+          "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
           "area_id": "Obszar w domu, w którym znajduje się ten obiekt.",
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
           "go_back": "Wróć do menu głównego bez zapisywania."
@@ -1250,6 +1260,13 @@
       "options": {
         "any": "Dowolna encja wyzwala",
         "all": "Wszystkie encje muszą wyzwalać"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Domyślny (tytuł według statusu)",
+        "object_name": "Nazwa obiektu jako tytuł",
+        "task_name": "Nazwa zadania jako tytuł"
       }
     }
   },

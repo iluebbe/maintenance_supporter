@@ -28,6 +28,7 @@ from .const import (
     CONF_ENVIRONMENTAL_ENTITY,
     CONF_OBJECT,
     CONF_OBJECT_AREA,
+    CONF_OBJECT_DOCUMENTATION_URL,
     CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
@@ -1412,6 +1413,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 obj[CONF_OBJECT_INSTALLATION_DATE] = str(
                     user_input[CONF_OBJECT_INSTALLATION_DATE]
                 )
+            # v1.4.0 (#43)
+            obj[CONF_OBJECT_DOCUMENTATION_URL] = (
+                user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
+            )
             cap_object_fields(obj)
             new_data[CONF_OBJECT] = obj
 
@@ -1462,6 +1467,13 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         default=obj.get("serial_number") or "",
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                    # v1.4.0 (#43): place under serial_number
+                    vol.Optional(
+                        CONF_OBJECT_DOCUMENTATION_URL,
+                        default=obj.get("documentation_url") or "",
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
                     ),
                     area_key: selector.AreaSelector(),
                     install_date_key: selector.DateSelector(),

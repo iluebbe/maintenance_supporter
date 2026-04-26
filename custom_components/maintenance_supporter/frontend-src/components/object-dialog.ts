@@ -18,6 +18,8 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _serialNumber = "";
   @state() private _areaId = "";
   @state() private _installationDate = "";
+  // v1.4.0 (#43): per-object link to PDF manual / vendor page
+  @state() private _documentationUrl = "";
   @state() private _entryId: string | null = null; // null = create, string = update
 
   private get _lang(): string {
@@ -32,6 +34,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._serialNumber = "";
     this._areaId = "";
     this._installationDate = "";
+    this._documentationUrl = "";
     this._error = "";
     this._open = true;
   }
@@ -44,6 +47,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._serialNumber = obj.serial_number || "";
     this._areaId = obj.area_id || "";
     this._installationDate = obj.installation_date || "";
+    this._documentationUrl = obj.documentation_url || "";
     this._error = "";
     this._open = true;
   }
@@ -63,6 +67,7 @@ export class MaintenanceObjectDialog extends LitElement {
           serial_number: this._serialNumber || null,
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
+          documentation_url: this._documentationUrl.trim() || null,
         });
       } else {
         await this.hass.connection.sendMessagePromise({
@@ -73,6 +78,7 @@ export class MaintenanceObjectDialog extends LitElement {
           serial_number: this._serialNumber || null,
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
+          documentation_url: this._documentationUrl.trim() || null,
         });
       }
       this._open = false;
@@ -117,6 +123,12 @@ export class MaintenanceObjectDialog extends LitElement {
             label="${t("serial_number_optional", L)}"
             .value=${this._serialNumber}
             @input=${(e: Event) => (this._serialNumber = (e.target as HTMLInputElement).value)}
+          ></ha-textfield>
+          <ha-textfield
+            label="${t("documentation_url_optional", L)}"
+            type="url"
+            .value=${this._documentationUrl}
+            @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
           <ha-area-picker
             .hass=${this.hass}

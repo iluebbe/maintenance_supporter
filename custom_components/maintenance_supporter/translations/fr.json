@@ -41,6 +41,7 @@
           "manufacturer": "Fabricant",
           "model": "Modèle",
           "serial_number": "Numéro de série",
+          "documentation_url": "URL du manuel / documentation",
           "go_back": "Retour"
         },
         "data_description": {
@@ -49,6 +50,7 @@
           "manufacturer": "Le fabricant de l'objet.",
           "model": "Le nom ou numéro de modèle.",
           "serial_number": "Le numéro de série de l'objet.",
+          "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
           "go_back": "Retourner à la sélection de modèle sans sauvegarder."
         }
       },
@@ -75,6 +77,7 @@
           "manufacturer": "Fabricant",
           "model": "Modèle",
           "serial_number": "Numéro de série",
+          "documentation_url": "URL du manuel / documentation",
           "installation_date": "Date d'installation",
           "go_back": "Retour"
         },
@@ -84,6 +87,7 @@
           "manufacturer": "Le fabricant de l'objet.",
           "model": "Le nom ou numéro de modèle.",
           "serial_number": "Le numéro de série de l'objet.",
+          "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
           "installation_date": "Date d'installation ou d'achat de cet objet.",
           "go_back": "Retourner au menu principal sans sauvegarder."
         }
@@ -370,6 +374,7 @@
           "manufacturer": "Fabricant",
           "model": "Modèle",
           "serial_number": "Numéro de série",
+          "documentation_url": "URL du manuel / documentation",
           "installation_date": "Date d'installation"
         },
         "data_description": {
@@ -378,6 +383,7 @@
           "manufacturer": "Le fabricant de cet objet.",
           "model": "Le modèle de cet objet.",
           "serial_number": "Le numéro de série de cet objet.",
+          "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
           "installation_date": "Quand cet objet a été installé."
         }
       }
@@ -495,7 +501,8 @@
           "quiet_hours_end": "Fin des heures calmes",
           "max_notifications_per_day": "Notifications max par jour",
           "notification_bundling_enabled": "Regrouper les notifications",
-          "notification_bundle_threshold": "Seuil de regroupement"
+          "notification_bundle_threshold": "Seuil de regroupement",
+          "notification_title_style": "Style du titre de notification"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Fréquence de répétition du rappel bientôt dû. Définir à 0 pour une seule notification.",
@@ -504,7 +511,8 @@
           "quiet_hours_enabled": "Supprimer les notifications pendant les heures calmes.",
           "max_notifications_per_day": "Nombre maximum de notifications par jour. Définir à 0 pour illimité.",
           "notification_bundling_enabled": "Envoyer une notification résumée lorsque plusieurs tâches nécessitent attention.",
-          "notification_bundle_threshold": "Nombre minimum de tâches pour déclencher une notification groupée."
+          "notification_bundle_threshold": "Nombre minimum de tâches pour déclencher une notification groupée.",
+          "notification_title_style": "Ce qui apparaît comme TITRE de la notification. Par défaut, le texte par statut est conservé (p. ex. « Maintenance en retard ! »). Nom de l'objet / tâche aide quand le téléphone empile les notifications."
         }
       },
       "notification_actions": {
@@ -940,6 +948,7 @@
           "manufacturer": "Fabricant",
           "model": "Modèle",
           "serial_number": "Numéro de série",
+          "documentation_url": "URL du manuel / documentation",
           "area_id": "Zone",
           "installation_date": "Date d'installation",
           "go_back": "Retour"
@@ -949,6 +958,7 @@
           "manufacturer": "Le fabricant de l'objet.",
           "model": "Le nom ou numéro de modèle.",
           "serial_number": "Le numéro de série de l'objet.",
+          "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
           "area_id": "La zone de votre maison où se trouve cet objet.",
           "installation_date": "Quand cet objet a été installé ou acheté.",
           "go_back": "Retour au menu principal sans enregistrer."
@@ -1250,6 +1260,13 @@
       "options": {
         "any": "N'importe quelle entité déclenche",
         "all": "Toutes les entités doivent déclencher"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Par défaut (titre par statut)",
+        "object_name": "Nom de l'objet comme titre",
+        "task_name": "Nom de la tâche comme titre"
       }
     }
   },
