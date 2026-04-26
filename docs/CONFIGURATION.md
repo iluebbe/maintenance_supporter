@@ -67,6 +67,7 @@ Visible only when `notifications_enabled` is `true`.
 | `max_notifications_per_day` | int | 0 | 0–100 | Maximum notifications per day across all tasks. 0 = unlimited |
 | `notification_bundling_enabled` | bool | `false` | — | Bundle multiple due tasks into a single notification |
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
+| `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
 
 Also exposed: a **"Send test"** button next to the notify service field. It calls `maintenance_supporter/global/test_notification` and surfaces the backend message as a toast — useful for verifying the notify service without waiting for a real due event.
 
@@ -106,6 +107,7 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 | `model` | string | `""` | Model name (shown in device info) |
 | `serial_number` | string | `""` | Serial number (shown in device info, redacted in diagnostics) |
 | `installation_date` | date | `""` | Date the object was installed or purchased |
+| `documentation_url` (1.4.0+) | string (URL) | `""` | Link to PDF manual / vendor page / setup guide for this object. Only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are rejected. Shown as a clickable link in the panel object-detail header AND on every task-detail page belonging to this object (1.4.1+) so the manual is always one click away from any maintenance task |
 
 ---
 
