@@ -1510,6 +1510,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}
         ${o.serial_number ? html`<p class="meta">${t("serial_number_label", L)}: ${o.serial_number}</p>` : nothing}
+        ${o.documentation_url && /^https?:\/\//i.test(o.documentation_url)
+          ? html`<p class="meta">${t("documentation_url_label", L)}:
+              <a href=${o.documentation_url} target="_blank" rel="noopener noreferrer">${o.documentation_url}</a>
+            </p>`
+          : nothing}
         ${o.installation_date ? html`<p class="meta">${t("installed", L)}: ${formatDate(o.installation_date, L)}</p>` : nothing}
 
         <h3>${t("tasks", L)} (${obj.tasks.length})</h3>

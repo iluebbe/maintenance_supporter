@@ -113,6 +113,14 @@ CONF_MAX_NOTIFICATIONS_PER_DAY = "max_notifications_per_day"
 CONF_NOTIFICATION_BUNDLING_ENABLED = "notification_bundling_enabled"
 CONF_NOTIFICATION_BUNDLE_THRESHOLD = "notification_bundle_threshold"
 
+# --- Config Keys: Notification Title (v1.4.0 #44) ---
+# How to format the notification title.
+#   "default"     — generic per-status title (e.g. "Maintenance overdue!"). Backwards-compatible.
+#   "object_name" — use the object name as the title (helps when phone stacks notifications).
+#   "task_name"   — use the task name as the title.
+CONF_NOTIFICATION_TITLE_STYLE = "notification_title_style"
+NOTIFICATION_TITLE_STYLES = ("default", "object_name", "task_name")
+
 # --- Config Keys: Notification Actions ---
 CONF_ACTION_COMPLETE_ENABLED = "action_complete_enabled"
 CONF_ACTION_SKIP_ENABLED = "action_skip_enabled"
@@ -134,6 +142,8 @@ CONF_OBJECT_MANUFACTURER = "manufacturer"
 CONF_OBJECT_MODEL = "model"
 CONF_OBJECT_SERIAL_NUMBER = "serial_number"
 CONF_OBJECT_INSTALLATION_DATE = "installation_date"
+# v1.4.0 (#43): per-object link to PDF manual / vendor page
+CONF_OBJECT_DOCUMENTATION_URL = "documentation_url"
 
 # --- Config Keys: Task ---
 CONF_TASKS = "tasks"

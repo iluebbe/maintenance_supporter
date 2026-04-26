@@ -8,6 +8,8 @@ export interface MaintenanceObject {
   model?: string | null;
   serial_number?: string | null;
   installation_date?: string | null;
+  /** v1.4.0 (#43): optional link to PDF manual / vendor page for the object */
+  documentation_url?: string | null;
 }
 
 export interface TriggerConfig {

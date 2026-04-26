@@ -24,6 +24,7 @@ from .const import (
     CONF_NOTIFY_SERVICE,
     CONF_OBJECT,
     CONF_OBJECT_AREA,
+    CONF_OBJECT_DOCUMENTATION_URL,
     CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
@@ -354,6 +355,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 obj_data["installation_date"] = user_input.get(
                     CONF_OBJECT_INSTALLATION_DATE
                 )
+                # v1.4.0 (#43)
+                obj_data["documentation_url"] = (
+                    user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
+                )
 
                 new_data = dict(entry.data)
                 new_data[CONF_OBJECT] = obj_data
@@ -366,6 +371,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             CONF_OBJECT_MANUFACTURER: obj_data.get("manufacturer", ""),
             CONF_OBJECT_MODEL: obj_data.get("model", ""),
             CONF_OBJECT_SERIAL_NUMBER: obj_data.get("serial_number", ""),
+            CONF_OBJECT_DOCUMENTATION_URL: obj_data.get("documentation_url", ""),
         }
         if obj_data.get("area_id"):
             suggested[CONF_OBJECT_AREA] = obj_data["area_id"]
@@ -385,6 +391,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(
                         CONF_OBJECT_INSTALLATION_DATE,
                     ): selector.DateSelector(),
+                    # v1.4.0 (#43): place under serial_number per the request
+                    vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
+                    ),
                 }
             ),
             suggested,
@@ -476,6 +486,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     CONF_OBJECT_INSTALLATION_DATE: user_input.get(
                         CONF_OBJECT_INSTALLATION_DATE
                     ),
+                    # v1.4.0 (#43)
+                    CONF_OBJECT_DOCUMENTATION_URL: user_input.get(
+                        CONF_OBJECT_DOCUMENTATION_URL
+                    ) or None,
                 }
                 cap_object_fields(self._object_data)
                 self._tasks = {}
@@ -509,6 +523,12 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(
                         CONF_OBJECT_INSTALLATION_DATE
                     ): selector.DateSelector(),
+                    # v1.4.0 (#43): place under serial_number per the request
+                    vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.URL
+                        )
+                    ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
