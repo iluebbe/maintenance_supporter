@@ -217,11 +217,12 @@ console.log("\n3) settings-notification-title-style.png");
 await page.evaluate(`{
   ${panelJS()}
   if (p) {
-    p._activeView = 'settings';
+    p._view = 'overview';
+    p._overviewTab = 'settings';
     p.requestUpdate();
   }
 }`);
-await page.waitForTimeout(2500);
+await page.waitForTimeout(3500);
 // Scroll the notification settings section into view
 await page.evaluate(`{
   ${panelJS()}
@@ -246,7 +247,8 @@ console.log("\n4) overview-v142.png");
 await page.evaluate(`{
   ${panelJS()}
   if (p) {
-    p._activeView = 'tasks';
+    p._view = 'overview';
+    p._overviewTab = 'dashboard';
     p.requestUpdate();
   }
 }`);
