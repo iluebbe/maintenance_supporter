@@ -1,0 +1,1416 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Konfigurera ditt underhållshanteringssystem.",
+        "menu_options": {
+          "create_object": "Skapa underhållsobjekt",
+          "create_from_template": "Skapa från mall",
+          "global_setup": "Globala inställningar"
+        }
+      },
+      "create_from_template": {
+        "title": "Välj mallkategori",
+        "description": "Välj en kategori för att bläddra bland fördefinierade underhållsmallar.",
+        "data": {
+          "template_category": "Kategori",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      },
+      "template_select": {
+        "title": "Välj mall",
+        "description": "Välj en underhållsmall som utgångspunkt.",
+        "data": {
+          "template_id": "Mall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "go_back": "Återgå till val av kategori utan att spara."
+        }
+      },
+      "template_customize": {
+        "title": "Anpassa mall",
+        "description": "Anpassa mallen {template_name}. Den innehåller {task_count} uppgifter: {task_list}.",
+        "data": {
+          "name": "Objektnamn",
+          "area_id": "Område",
+          "manufacturer": "Tillverkare",
+          "model": "Modell",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL till manual / dokumentation",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "name": "Ett namn för detta underhållsobjekt.",
+          "area_id": "Området där objektet är placerat.",
+          "manufacturer": "Tillverkaren av objektet.",
+          "model": "Modellnamn eller -nummer.",
+          "serial_number": "Objektets serienummer.",
+          "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "go_back": "Återgå till val av mall utan att spara."
+        }
+      },
+      "global_setup": {
+        "title": "Globala inställningar",
+        "description": "Konfigurera globala underhållsinställningar.",
+        "data": {
+          "default_warning_days": "Standarddagar för varning före förfall",
+          "notifications_enabled": "Aktivera aviseringar",
+          "notify_service": "Aviseringstjänst"
+        },
+        "data_description": {
+          "default_warning_days": "Antal dagar före underhållsuppgiftens förfall då en varning visas.",
+          "notifications_enabled": "Skicka aviseringar när underhållsuppgifter förfaller.",
+          "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Skapa underhållsobjekt",
+        "description": "Definiera en enhet eller resurs att hantera underhåll för.",
+        "data": {
+          "name": "Objektnamn",
+          "area_id": "Område",
+          "manufacturer": "Tillverkare",
+          "model": "Modell",
+          "serial_number": "Serienummer",
+          "installation_date": "Installationsdatum",
+          "documentation_url": "URL till manual / dokumentation",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "name": "Ett unikt namn för detta underhållsobjekt (t.ex. ”Poolpump”, ”Bil”).",
+          "area_id": "Området i ditt hem där objektet är placerat.",
+          "manufacturer": "Tillverkaren av objektet.",
+          "model": "Modellnamn eller -nummer.",
+          "serial_number": "Objektets serienummer.",
+          "installation_date": "När objektet installerades eller köptes.",
+          "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      },
+      "task_menu": {
+        "title": "Underhållsuppgifter",
+        "description": "Lägg till underhållsuppgifter för {object_name}. För närvarande {task_count} uppgift(er) definierade.",
+        "menu_options": {
+          "add_task": "Lägg till underhållsuppgift",
+          "finish": "Slutför inställning"
+        }
+      },
+      "add_task": {
+        "title": "Lägg till underhållsuppgift",
+        "description": "Definiera en underhållsuppgift för {object_name}.",
+        "data": {
+          "name": "Uppgiftsnamn",
+          "type": "Underhållstyp",
+          "schedule_type": "Schematyp",
+          "custom_icon": "Uppgiftsikon",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
+          "type": "Kategori av underhållsarbete.",
+          "schedule_type": "Hur denna uppgift ska schemaläggas.",
+          "custom_icon": "Valfri anpassad ikon för denna uppgift (t.ex. mdi:oil, mdi:filter-variant).",
+          "go_back": "Återgå till uppgiftsmenyn utan att spara."
+        }
+      },
+      "time_based": {
+        "title": "Tidsbaserat schema",
+        "description": "Konfigurera tidsintervallet för denna underhållsuppgift.",
+        "data": {
+          "interval_days": "Intervall (dagar)",
+          "last_performed": "Senast utförd",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka",
+          "interval_anchor": "Intervallankare"
+        },
+        "data_description": {
+          "interval_days": "Antal dagar mellan underhållscykler.",
+          "last_performed": "När detta underhåll utfördes senast. Lämna tomt om det aldrig utförts.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till uppgiftsskapande utan att spara.",
+          "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum."
+        }
+      },
+      "sensor_select": {
+        "title": "Välj utlösande sensor",
+        "description": "Välj en Home Assistant-entitet att övervaka för denna underhållsuppgift.",
+        "data": {
+          "trigger_entity": "Entitet att övervaka",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_entity": "Välj sensorentiteten som ska utlösa denna underhållsuppgift.",
+          "go_back": "Återgå till uppgiftsskapande utan att spara."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Välj attribut",
+        "description": "Välj vilket värde som ska övervakas från {entity_id}. Aktuellt tillstånd: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Värde att övervaka",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_attribute": "Välj entitetens tillstånd eller ett specifikt attribut att övervaka.",
+          "go_back": "Återgå till val av entitet utan att spara."
+        }
+      },
+      "trigger_type": {
+        "title": "Utlösartyp",
+        "description": "Hur ska sensorvärdet utlösa underhåll?",
+        "data": {
+          "trigger_type": "Utlösartyp",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_type": "Tröskel: utlöser när värdet överskrider gränser. Räknare: utlöser efter ackumulering av målvärde. Tillståndsändring: utlöser efter ett antal tillståndsövergångar.",
+          "go_back": "Återgå till val av attribut utan att spara."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Tröskelkonfiguration",
+        "description": "Ange tröskelvärden för **{entity_id}** ({attribute}).\nAktuellt: **{current_value} {unit}** | Genomsnitt: {average} | Intervall: {minimum}–{maximum} ({data_period}d)\nFöreslaget över: {suggested_above} | Föreslaget under: {suggested_below}",
+        "data": {
+          "trigger_above": "Utlös när över",
+          "trigger_below": "Utlös när under",
+          "trigger_for_minutes": "Under minst (minuter)",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_above": "Utlös underhåll när värdet överskrider denna tröskel.",
+          "trigger_below": "Utlös underhåll när värdet faller under denna tröskel.",
+          "trigger_for_minutes": "Värdet måste överskrida tröskeln så här många minuter innan utlösning.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till val av utlösartyp utan att spara."
+        }
+      },
+      "trigger_counter": {
+        "title": "Räknarkonfiguration",
+        "description": "Ange räknarmål för {entity_id} ({attribute}). Aktuellt: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Målvärde",
+          "trigger_delta_mode": "Delta-läge (räkna ändringar, inte absolut)",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_target_value": "Utlös underhåll när detta ackumulerade värde nås.",
+          "trigger_delta_mode": "Om aktiverad räknas skillnaden från en baslinje istället för det absoluta värdet.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver räknarutlösaren.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till val av utlösartyp utan att spara."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Konfiguration för tillståndsändring",
+        "description": "Räkna tillståndsövergångar för {entity_id}.",
+        "data": {
+          "trigger_from_state": "Från tillstånd (valfritt)",
+          "trigger_to_state": "Till tillstånd (valfritt)",
+          "trigger_target_changes": "Antal ändringar för utlösning",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_from_state": "Räkna endast övergångar från detta tillstånd. Lämna tomt för alla.",
+          "trigger_to_state": "Räkna endast övergångar till detta tillstånd. Lämna tomt för alla.",
+          "trigger_target_changes": "Antal matchande tillståndsändringar innan underhåll utlöses.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till val av utlösartyp utan att spara."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Körtidskonfiguration",
+        "description": "Spåra ackumulerad körtid för {entity_id}. Underhåll utlöses när total tid på når måltimmarna.",
+        "data": {
+          "trigger_runtime_hours": "Mål-körtid (timmar)",
+          "trigger_on_states": "Aktiva tillstånd (kommaseparerat)",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",
+          "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till val av utlösartyp utan att spara."
+        }
+      },
+      "compound_logic": {
+        "title": "Sammansatt utlösare",
+        "description": "Välj hur flera villkor ska kombineras.",
+        "data": {
+          "compound_logic": "Logik",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "compound_logic": "AND = alla villkor måste utlösa. OR = vilket som helst villkor utlöser.",
+          "go_back": "Återgå till val av utlösartyp utan att spara."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Villkor #{condition_num} — Entitet",
+        "description": "Välj entiteten för detta villkor.",
+        "data": {
+          "trigger_entity": "Entitet",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_entity": "Sensorentiteten att övervaka för detta villkor.",
+          "go_back": "Återgå till föregående steg utan att spara."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Villkor #{condition_num} — Typ",
+        "description": "Hur ska detta villkor utvärdera sensorn?",
+        "data": {
+          "trigger_type": "Utlösartyp",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_type": "Metoden som används för att avgöra när detta villkor utlöses.",
+          "go_back": "Återgå till val av entitet utan att spara."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Villkor — Tröskel",
+        "data": {
+          "trigger_above": "Utlös över",
+          "trigger_below": "Utlös under",
+          "trigger_for_minutes": "Varaktighet (minuter)",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_above": "Utlös när värdet överskrider denna tröskel.",
+          "trigger_below": "Utlös när värdet sjunker under denna tröskel.",
+          "trigger_for_minutes": "Värdet måste förbli utanför tröskeln under denna tid.",
+          "go_back": "Återgå till val av villkorstyp utan att spara."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Villkor — Räknare",
+        "data": {
+          "trigger_target_value": "Målvärde",
+          "trigger_delta_mode": "Delta-läge",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_target_value": "Utlös när ackumulerat värde når detta mål.",
+          "trigger_delta_mode": "Räkna ändringar från en baslinje istället för absolut värde.",
+          "go_back": "Återgå till val av villkorstyp utan att spara."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Villkor — Tillståndsändring",
+        "data": {
+          "trigger_from_state": "Från tillstånd",
+          "trigger_to_state": "Till tillstånd",
+          "trigger_target_changes": "Antal ändringar",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_from_state": "Räkna endast övergångar från detta tillstånd. Lämna tomt för alla.",
+          "trigger_to_state": "Räkna endast övergångar till detta tillstånd. Lämna tomt för alla.",
+          "trigger_target_changes": "Antal matchande tillståndsändringar innan utlösning.",
+          "go_back": "Återgå till val av villkorstyp utan att spara."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Villkor — Körtid",
+        "data": {
+          "trigger_runtime_hours": "Mål-körtid (timmar)",
+          "trigger_on_states": "Aktiva tillstånd",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Utlös efter så här många timmar ackumulerad körtid.",
+          "trigger_on_states": "Sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard.",
+          "go_back": "Återgå till val av villkorstyp utan att spara."
+        }
+      },
+      "compound_review": {
+        "title": "Översikt sammansatt utlösare",
+        "description": "{condition_count} villkor konfigurerade med {compound_logic}-logik.",
+        "data": {
+          "compound_action": "Åtgärd",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "go_back": "Återgå till val av logik utan att spara."
+        }
+      },
+      "manual": {
+        "title": "Manuellt schema",
+        "description": "Denna uppgift har inget automatiskt schema. Du kan markera den som förfallen manuellt.",
+        "data": {
+          "warning_days": "Dagar för varning före förfall",
+          "notes": "Anteckningar",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "notes": "Ytterligare anteckningar eller instruktioner för denna uppgift.",
+          "go_back": "Återgå till uppgiftsskapande utan att spara."
+        }
+      },
+      "reconfigure": {
+        "title": "Konfigurera om {name}",
+        "description": "Uppdatera inställningarna för detta underhållsobjekt.",
+        "data": {
+          "name": "Objektnamn",
+          "area_id": "Område",
+          "manufacturer": "Tillverkare",
+          "model": "Modell",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL till manual / dokumentation",
+          "installation_date": "Installationsdatum"
+        },
+        "data_description": {
+          "name": "Namnet på detta underhållsobjekt.",
+          "area_id": "Området där objektet är placerat.",
+          "manufacturer": "Tillverkaren av detta objekt.",
+          "model": "Modellen av detta objekt.",
+          "serial_number": "Serienumret för detta objekt.",
+          "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "installation_date": "När detta objekt installerades."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Ett underhållsobjekt med detta namn finns redan.",
+      "no_tasks": "Minst en underhållsuppgift krävs.",
+      "invalid_entity": "Den valda entiteten finns inte eller har inga numeriska data.",
+      "invalid_attribute": "Det valda attributet är inte tillgängligt för denna entitet.",
+      "invalid_threshold": "Minst en tröskel (över eller under) måste anges.",
+      "invalid_interval": "Intervallet måste vara ett positivt tal.",
+      "min_exceeds_max": "Minimiintervallet får inte överstiga maximalt intervall.",
+      "invalid_notify_service": "Ogiltigt format för aviseringstjänst. Använd ”notify.service_name” (t.ex. notify.mobile_app_phone).",
+      "notify_service_not_found": "Denna aviseringstjänst hittades inte i Home Assistant. Verifiera tjänstens namn.",
+      "nfc_tag_duplicate": "Denna NFC-tagg är redan kopplad till en annan uppgift."
+    },
+    "abort": {
+      "already_configured": "Detta underhållsobjekt är redan konfigurerat.",
+      "global_already_exists": "Globala inställningar är redan konfigurerade.",
+      "template_not_found": "Den valda mallen hittades inte.",
+      "missing_data": "Nödvändig data har inte tillhandahållits.",
+      "reconfigure_successful": "Konfigurationen uppdaterades framgångsrikt.",
+      "reconfigure_cancelled": "Omkonfigurering avbröts."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Underhållsalternativ",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Hantera uppgifter",
+          "add_task": "Lägg till ny uppgift",
+          "object_settings": "Objektinställningar",
+          "done": "Klar"
+        }
+      },
+      "global_init": {
+        "title": "Globala inställningar",
+        "description": "Konfigurera globala underhållsinställningar.",
+        "menu_options": {
+          "general_settings": "Allmänna inställningar",
+          "advanced_features": "Avancerade funktioner",
+          "panel_access": "Paneläåtkomst",
+          "budget_settings": "Budgetinställningar",
+          "manage_groups": "Hantera grupper",
+          "notification_settings": "Aviseringsinställningar",
+          "notification_actions": "Interaktiva åtgärder",
+          "test_notification": "Skicka testavisering",
+          "done": "Klar"
+        }
+      },
+      "advanced_features": {
+        "title": "Avancerade funktioner",
+        "description": "Välj vilka avancerade funktioner som ska visas i gränssnittet. Att inaktivera en funktion döljer den från gränssnittet men tar inte bort några data.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptiv schemaläggning",
+          "advanced_predictions_visible": "Sensorprediktioner",
+          "advanced_seasonal_visible": "Säsongsjusteringar",
+          "advanced_environmental_visible": "Miljökorrelation",
+          "advanced_budget_visible": "Budgetspårning",
+          "advanced_groups_visible": "Grupper",
+          "advanced_checklists_visible": "Checklistor",
+          "advanced_schedule_time_visible": "Schema med tid på dagen"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Visa EWA, Weibull-analys och intervallförslag för uppgifter.",
+          "advanced_predictions_visible": "Visa analys av sensordegradering och tröskelpredictionsdiagram.",
+          "advanced_seasonal_visible": "Visa diagram för säsongsfaktorer och månatliga justeringsdata.",
+          "advanced_environmental_visible": "Visa justeringar baserade på miljökorrelation (temperatur, luftfuktighet).",
+          "advanced_budget_visible": "Visa månatlig/årlig budgetspårning och varningar.",
+          "advanced_groups_visible": "Visa hantering av underhållsgrupper.",
+          "advanced_checklists_visible": "Visa uppgiftschecklistor för stegvis slutförande.",
+          "advanced_schedule_time_visible": "Tillåt uppgifter att bli försenade vid en specifik tid på dagen istället för vid midnatt."
+        }
+      },
+      "panel_access": {
+        "title": "Paneläåtkomst",
+        "description": "Välj icke-administrativa Home Assistant-användare som också ska se hela Maintenance Supporter-panelen (åtgärder skapa / redigera / ta bort). Administratörer ser alltid hela panelen. Hittade {user_count} icke-administrativ(a) användare.",
+        "data": {
+          "admin_panel_user_ids": "Användare med fullständig paneläåtkomst"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "Listade användare ser hela panelen; alla andra ser endast Slutför och Hoppa över på varje uppgift."
+        }
+      },
+      "general_settings": {
+        "title": "Allmänna inställningar",
+        "description": "Konfigurera grundläggande inställningar för Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Standarddagar för varning före förfall",
+          "notifications_enabled": "Aktivera aviseringar",
+          "notify_service": "Aviseringstjänst",
+          "panel_enabled": "Visa sidopanel"
+        },
+        "data_description": {
+          "default_warning_days": "Antal dagar före underhållsuppgiftens förfall då en varning visas.",
+          "notifications_enabled": "Skicka aviseringar när underhållsuppgifter förfaller eller är försenade.",
+          "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone).",
+          "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet."
+        }
+      },
+      "notification_settings": {
+        "title": "Aviseringsinställningar",
+        "description": "Konfigurera när och hur ofta aviseringar skickas för varje status.",
+        "data": {
+          "notify_due_soon_enabled": "Avisera när snart förfaller",
+          "notify_due_soon_interval_hours": "Påminnelseintervall ”snart förfaller” (timmar)",
+          "notify_overdue_enabled": "Avisera när försenat",
+          "notify_overdue_interval_hours": "Påminnelseintervall ”försenat” (timmar)",
+          "notify_triggered_enabled": "Avisera vid utlösning",
+          "notify_triggered_interval_hours": "Påminnelseintervall ”utlöst” (timmar)",
+          "quiet_hours_enabled": "Aktivera tysta timmar",
+          "quiet_hours_start": "Start för tysta timmar",
+          "quiet_hours_end": "Slut för tysta timmar",
+          "max_notifications_per_day": "Max aviseringar per dag",
+          "notification_bundling_enabled": "Buntla aviseringar",
+          "notification_bundle_threshold": "Buntningströskel",
+          "notification_title_style": "Stil för aviseringstitel"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Hur ofta ”snart förfaller”-påminnelsen ska upprepas. Ange 0 för en enskild avisering.",
+          "notify_overdue_interval_hours": "Hur ofta ”försenat”-påminnelsen ska upprepas. Ange 0 för en enskild avisering.",
+          "notify_triggered_interval_hours": "Hur ofta ”utlöst”-aviseringen ska upprepas. Ange 0 för en enskild avisering.",
+          "quiet_hours_enabled": "Undertryck aviseringar under tysta timmar.",
+          "max_notifications_per_day": "Maximalt antal aviseringar per dag. Ange 0 för obegränsat.",
+          "notification_bundling_enabled": "Skicka en enda sammanfattande avisering när flera uppgifter behöver uppmärksamhet.",
+          "notification_bundle_threshold": "Minsta antal uppgifter för att utlösa en buntad avisering.",
+          "notification_title_style": "Vad som visas som aviseringens TITEL. Standard behåller texten per status (t.ex. ”Underhåll försenat!”). Objektnamn / uppgiftsnamn hjälper när telefonen staplar aviseringar."
+        }
+      },
+      "notification_actions": {
+        "title": "Interaktiva åtgärder",
+        "description": "Konfigurera åtgärdsknappar som visas på mobila aviseringar (kräver Companion-appen).",
+        "data": {
+          "action_complete_enabled": "Visa knappen ”Slutför”",
+          "action_skip_enabled": "Visa knappen ”Hoppa över”",
+          "action_snooze_enabled": "Visa knappen ”Snooza”",
+          "snooze_duration_hours": "Snoozetid (timmar)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Lägger till en knapp för att markera uppgiften som slutförd direkt från aviseringen.",
+          "action_skip_enabled": "Lägger till en knapp för att hoppa över den aktuella underhållscykeln från aviseringen.",
+          "action_snooze_enabled": "Lägger till en knapp för att skjuta upp aviseringspåminnelsen.",
+          "snooze_duration_hours": "Hur länge aviseringar ska skjutas upp när Snooza trycks."
+        }
+      },
+      "budget_settings": {
+        "title": "Budgetinställningar",
+        "description": "Ange månatliga och årliga underhållsbudgetar för att spåra utgifter.",
+        "data": {
+          "budget_currency": "Valuta",
+          "budget_monthly": "Månadsbudget",
+          "budget_yearly": "Årsbudget",
+          "budget_alerts_enabled": "Aktivera budgetvarningar",
+          "budget_alert_threshold": "Varningströskel (%)"
+        },
+        "data_description": {
+          "budget_currency": "Valuta som används för budgetvisning och aviseringar.",
+          "budget_monthly": "Maximala månatliga underhållsutgifter. Ange 0 för att inaktivera.",
+          "budget_yearly": "Maximala årliga underhållsutgifter. Ange 0 för att inaktivera.",
+          "budget_alerts_enabled": "Skicka en avisering när utgifterna överskrider varningströskeln.",
+          "budget_alert_threshold": "Procent av budgeten vid vilken en varning skickas."
+        }
+      },
+      "test_notification": {
+        "title": "Testavisering",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Hantera grupper",
+        "description": "Välj en grupp att hantera eller skapa en ny.",
+        "data": {
+          "selected_group": "Välj grupp"
+        }
+      },
+      "add_group": {
+        "title": "Lägg till grupp",
+        "description": "Skapa en ny underhållsgrupp för att organisera relaterade uppgifter.",
+        "data": {
+          "group_name": "Gruppnamn",
+          "group_description": "Beskrivning"
+        },
+        "data_description": {
+          "group_name": "Ett namn för denna grupp (t.ex. ”Vårunderhåll”).",
+          "group_description": "Valfri beskrivning för denna grupp."
+        }
+      },
+      "manage_tasks": {
+        "title": "Hantera uppgifter",
+        "description": "Välj en uppgift att redigera eller ta bort.",
+        "data": {
+          "selected_task": "Välj uppgift",
+          "go_back": "Tillbaka"
+        }
+      },
+      "task_action": {
+        "title": "Uppgiftsåtgärder",
+        "description": "Uppgift: {task_name} — Välj en åtgärd.",
+        "menu_options": {
+          "edit_task": "Redigera uppgift",
+          "edit_trigger": "Redigera utlösare",
+          "remove_trigger": "Ta bort utlösare",
+          "edit_checklist": "Redigera checklista",
+          "adaptive_scheduling": "Adaptiv schemaläggning",
+          "delete_task": "Ta bort uppgift",
+          "manage_tasks": "Tillbaka"
+        }
+      },
+      "edit_task": {
+        "title": "Redigera uppgift",
+        "description": "Redigera inställningar för **{task_name}**.",
+        "data": {
+          "name": "Uppgiftsnamn",
+          "type": "Underhållstyp",
+          "interval_days": "Intervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "enabled": "Aktiverad",
+          "notes": "Anteckningar",
+          "documentation_url": "Dokumentations-URL",
+          "last_performed": "Senast utförd",
+          "responsible_user_id": "Ansvarig användare",
+          "custom_icon": "Uppgiftsikon",
+          "nfc_tag_id": "NFC-tagg-ID",
+          "go_back": "Tillbaka",
+          "interval_anchor": "Intervallankare"
+        },
+        "data_description": {
+          "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
+          "type": "Kategori av underhållsarbete.",
+          "interval_days": "Antal dagar mellan underhållscykler.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "enabled": "När inaktiverad pausas schemaläggning och utlösare. Uppgiften tas inte bort.",
+          "notes": "Ytterligare anteckningar eller instruktioner för denna uppgift.",
+          "documentation_url": "Länk till extern dokumentation eller manual för denna uppgift.",
+          "last_performed": "När detta underhåll utfördes senast. Lämna tomt om det aldrig utförts.",
+          "responsible_user_id": "Home Assistant-användaren som är ansvarig för denna uppgift.",
+          "custom_icon": "Valfri anpassad ikon för denna uppgift (t.ex. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Koppla en NFC-tagg till denna uppgift. Att skanna taggen markerar automatiskt uppgiften som slutförd.",
+          "go_back": "Återgå till uppgiftsåtgärder utan att spara.",
+          "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum."
+        }
+      },
+      "edit_checklist": {
+        "title": "Redigera checklista",
+        "description": "Definiera checklistesteg för {task_name}. Ange ett steg per rad.",
+        "data": {
+          "checklist_text": "Checklistesteg",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "checklist_text": "Ange varje checklistesteg på en separat rad. Dessa steg visas vid slutförande av uppgiften.",
+          "go_back": "Återgå till uppgiftsåtgärder utan att spara."
+        }
+      },
+      "compound_logic": {
+        "title": "Sammansatt utlösare",
+        "description": "Välj hur flera villkor ska kombineras.",
+        "data": {
+          "compound_logic": "Logik",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "compound_logic": "AND = alla villkor måste utlösa. OR = vilket som helst villkor utlöser."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Villkor #{condition_num} — Entitet",
+        "description": "Välj entiteten för detta villkor.",
+        "data": {
+          "trigger_entity": "Entitet",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_entity": "Sensorentiteten att övervaka för detta villkor."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Villkor #{condition_num} — Typ",
+        "description": "Hur ska detta villkor utvärdera sensorn?",
+        "data": {
+          "trigger_type": "Utlösartyp",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_type": "Metoden som används för att avgöra när detta villkor utlöses."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Villkor — Tröskel",
+        "data": {
+          "trigger_above": "Utlös över",
+          "trigger_below": "Utlös under",
+          "trigger_for_minutes": "Varaktighet (minuter)",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_above": "Utlös när värdet överskrider denna tröskel.",
+          "trigger_below": "Utlös när värdet sjunker under denna tröskel.",
+          "trigger_for_minutes": "Värdet måste förbli utanför tröskeln under denna tid."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Villkor — Räknare",
+        "data": {
+          "trigger_target_value": "Målvärde",
+          "trigger_delta_mode": "Delta-läge",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_target_value": "Utlös när ackumulerat värde når detta mål.",
+          "trigger_delta_mode": "Räkna ändringar från en baslinje istället för absolut värde."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Villkor — Tillståndsändring",
+        "data": {
+          "trigger_from_state": "Från tillstånd",
+          "trigger_to_state": "Till tillstånd",
+          "trigger_target_changes": "Antal ändringar",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_from_state": "Räkna endast övergångar från detta tillstånd. Lämna tomt för alla.",
+          "trigger_to_state": "Räkna endast övergångar till detta tillstånd. Lämna tomt för alla.",
+          "trigger_target_changes": "Antal matchande tillståndsändringar innan utlösning."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Villkor — Körtid",
+        "data": {
+          "trigger_runtime_hours": "Mål-körtid (timmar)",
+          "trigger_on_states": "Aktiva tillstånd",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Utlös efter så här många timmar ackumulerad körtid.",
+          "trigger_on_states": "Sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard."
+        }
+      },
+      "compound_review": {
+        "title": "Översikt sammansatt utlösare",
+        "description": "{condition_count} villkor konfigurerade med {compound_logic}-logik.",
+        "data": {
+          "compound_action": "Åtgärd",
+          "go_back": "Tillbaka"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptiv schemaläggning",
+        "description": "Konfigurera intelligent intervallanpassning för {task_name}. Systemet lär sig av din slutförandefeedback för att föreslå bättre intervall.",
+        "data": {
+          "adaptive_enabled": "Aktivera adaptiv schemaläggning",
+          "ewa_alpha": "Inlärningshastighet (alpha)",
+          "min_interval_days": "Minsta intervall (dagar)",
+          "max_interval_days": "Största intervall (dagar)",
+          "seasonal_enabled": "Aktivera säsongsmedvetenhet",
+          "sensor_prediction_enabled": "Aktivera sensorstyrda prediktioner",
+          "environmental_entity": "Miljösensor (valfri)",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "adaptive_enabled": "När aktiverad lär sig systemet av din feedback och föreslår optimala underhållsintervall.",
+          "ewa_alpha": "Hur snabbt algoritmen anpassar sig till nya data. Högre = mer responsiv, lägre = mer stabil.",
+          "min_interval_days": "Det kortaste intervallet systemet någonsin kommer att rekommendera.",
+          "max_interval_days": "Det längsta intervallet systemet någonsin kommer att rekommendera.",
+          "seasonal_enabled": "Justera rekommendationer baserat på säsongsmönster lärda från din underhållshistorik.",
+          "sensor_prediction_enabled": "Analysera sensortrender för att förutsäga när trösklar nås och föreslå tidigare underhåll om det behövs.",
+          "environmental_entity": "Koppla en temperatur-, fuktighets- eller trycksensor för att korrelera miljöförhållanden med underhållsintervall.",
+          "go_back": "Återgå till uppgiftsåtgärder utan att spara."
+        }
+      },
+      "delete_task": {
+        "title": "Ta bort uppgift",
+        "description": "Är du säker på att du vill ta bort uppgiften {task_name}? Detta kan inte ångras.",
+        "data": {
+          "confirm": "Bekräfta borttagning",
+          "go_back": "Tillbaka"
+        }
+      },
+      "remove_trigger": {
+        "title": "Ta bort utlösare",
+        "description": "Ta bort utlösare från **{task_name}**?\n\n**Entitet:** {entity_ids}\n**Typ:** {trigger_type}\n**Konfig:** {config_details}\n\nOm alla entiteter tas bort återgår schemat till tidsbaserat.",
+        "data": {
+          "entities_to_remove": "Entiteter att ta bort",
+          "confirm": "Bekräfta borttagning",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "entities_to_remove": "Välj vilka entiteter som ska tas bort från denna utlösare. Om alla tas bort, tas hela utlösaren bort.",
+          "go_back": "Återgå till uppgiftsåtgärder utan att spara."
+        }
+      },
+      "trigger_summary": {
+        "title": "Aktuell utlösare",
+        "description": "Utlösare för **{task_name}**:\n\n**Entitet:** {entity_ids}\n**Aktuellt tillstånd:** {current_states}\n**Typ:** {trigger_type} (attribut: {attribute})\n**Konfig:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Redigera utlösare",
+          "task_action": "Tillbaka"
+        }
+      },
+      "add_task": {
+        "title": "Lägg till underhållsuppgift",
+        "description": "Definiera en ny underhållsuppgift för detta objekt.",
+        "data": {
+          "name": "Uppgiftsnamn",
+          "type": "Underhållstyp",
+          "schedule_type": "Schematyp",
+          "custom_icon": "Uppgiftsikon",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
+          "type": "Kategori av underhållsarbete.",
+          "schedule_type": "Hur denna uppgift ska schemaläggas.",
+          "custom_icon": "Valfri anpassad ikon för denna uppgift (t.ex. mdi:oil, mdi:filter-variant).",
+          "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      },
+      "opt_time_based": {
+        "title": "Tidsbaserat schema",
+        "description": "Konfigurera tidsintervallet för denna uppgift.",
+        "data": {
+          "interval_days": "Intervall (dagar)",
+          "last_performed": "Senast utförd",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka",
+          "interval_anchor": "Intervallankare"
+        },
+        "data_description": {
+          "interval_days": "Antal dagar mellan underhållscykler.",
+          "last_performed": "När detta underhåll utfördes senast. Lämna tomt om det aldrig utförts.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till huvudmenyn utan att spara.",
+          "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum."
+        }
+      },
+      "opt_manual": {
+        "title": "Manuellt schema",
+        "description": "Denna uppgift har inget automatiskt schema. Du kan markera den som förfallen manuellt.",
+        "data": {
+          "warning_days": "Dagar för varning före förfall",
+          "notes": "Anteckningar",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "notes": "Ytterligare anteckningar eller instruktioner för denna uppgift.",
+          "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Välj utlösande sensor",
+        "description": "Välj en Home Assistant-entitet att övervaka.",
+        "data": {
+          "trigger_entity": "Entitet att övervaka",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_entity": "Välj sensorentiteten som ska utlösa denna underhållsuppgift."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Välj attribut",
+        "description": "Välj vilket värde som ska övervakas från {entity_id}. Aktuellt tillstånd: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Värde att övervaka",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_attribute": "Välj entitetens tillstånd eller ett specifikt attribut att övervaka."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Utlösartyp",
+        "description": "Hur ska sensorvärdet utlösa underhåll?",
+        "data": {
+          "trigger_type": "Utlösartyp",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_type": "Tröskel: utlöser när värdet överskrider gränser. Räknare: utlöser efter ackumulering av målvärde. Tillståndsändring: utlöser efter ett antal tillståndsövergångar."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Tröskelkonfiguration",
+        "description": "Ange tröskelvärden för **{entity_id}** ({attribute}).\nAktuellt: **{current_value} {unit}** | Genomsnitt: {average} | Intervall: {minimum}–{maximum} ({data_period}d)\nFöreslaget över: {suggested_above} | Föreslaget under: {suggested_below}",
+        "data": {
+          "trigger_above": "Utlös när över",
+          "trigger_below": "Utlös när under",
+          "trigger_for_minutes": "Under minst (minuter)",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_above": "Utlös underhåll när värdet överskrider denna tröskel.",
+          "trigger_below": "Utlös underhåll när värdet faller under denna tröskel.",
+          "trigger_for_minutes": "Värdet måste överskrida tröskeln så här många minuter innan utlösning.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Räknarkonfiguration",
+        "description": "Ange räknarmål för {entity_id} ({attribute}). Aktuellt: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Målvärde",
+          "trigger_delta_mode": "Delta-läge (räkna ändringar, inte absolut)",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_target_value": "Utlös underhåll när detta ackumulerade värde nås.",
+          "trigger_delta_mode": "Om aktiverad räknas skillnaden från en baslinje istället för det absoluta värdet.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver räknarutlösaren.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Konfiguration för tillståndsändring",
+        "description": "Räkna tillståndsövergångar för {entity_id}.",
+        "data": {
+          "trigger_from_state": "Från tillstånd (valfritt)",
+          "trigger_to_state": "Till tillstånd (valfritt)",
+          "trigger_target_changes": "Antal ändringar för utlösning",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_from_state": "Räkna endast övergångar från detta tillstånd. Lämna tomt för alla.",
+          "trigger_to_state": "Räkna endast övergångar till detta tillstånd. Lämna tomt för alla.",
+          "trigger_target_changes": "Antal matchande tillståndsändringar innan underhåll utlöses.",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Körtidskonfiguration",
+        "description": "Spåra ackumulerad körtid för {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Mål-körtid (timmar)",
+          "trigger_on_states": "Aktiva tillstånd (kommaseparerat)",
+          "interval_days": "Säkerhetsintervall (dagar)",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",
+          "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
+          "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas."
+        }
+      },
+      "object_settings": {
+        "title": "Objektinställningar",
+        "description": "Redigera objektdetaljer.",
+        "data": {
+          "name": "Objektnamn",
+          "manufacturer": "Tillverkare",
+          "model": "Modell",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL till manual / dokumentation",
+          "area_id": "Område",
+          "installation_date": "Installationsdatum",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "name": "Ett unikt namn för detta underhållsobjekt (t.ex. ”Poolpump”, ”Bil”).",
+          "manufacturer": "Tillverkaren av objektet.",
+          "model": "Modellnamn eller -nummer.",
+          "serial_number": "Objektets serienummer.",
+          "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "area_id": "Området i ditt hem där objektet är placerat.",
+          "installation_date": "När objektet installerades eller köptes.",
+          "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Snart förfaller",
+          "overdue": "Försenat",
+          "triggered": "Utlöst"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Underhållstyp",
+            "state": {
+              "cleaning": "Rengöring",
+              "inspection": "Inspektion",
+              "replacement": "Byte",
+              "calibration": "Kalibrering",
+              "service": "Service",
+              "custom": "Anpassad"
+            }
+          },
+          "schedule_type": {
+            "name": "Schematyp",
+            "state": {
+              "time_based": "Tidsbaserad",
+              "sensor_based": "Sensorbaserad",
+              "manual": "Manuell"
+            }
+          },
+          "interval_days": {
+            "name": "Intervall (dagar)"
+          },
+          "warning_days": {
+            "name": "Varningsdagar"
+          },
+          "last_performed": {
+            "name": "Senast utförd"
+          },
+          "next_due": {
+            "name": "Nästa förfall"
+          },
+          "days_until_due": {
+            "name": "Dagar till förfall"
+          },
+          "parent_object": {
+            "name": "Överordnat objekt"
+          },
+          "times_performed": {
+            "name": "Antal utföranden"
+          },
+          "total_cost": {
+            "name": "Totalkostnad"
+          },
+          "average_duration": {
+            "name": "Genomsnittlig varaktighet (min)"
+          },
+          "notes": {
+            "name": "Anteckningar"
+          },
+          "documentation_url": {
+            "name": "Dokumentations-URL"
+          },
+          "trigger_entity": {
+            "name": "Utlösarentitet"
+          },
+          "trigger_attribute": {
+            "name": "Utlösarattribut"
+          },
+          "trigger_type": {
+            "name": "Utlösartyp",
+            "state": {
+              "threshold": "Tröskel",
+              "counter": "Räknare",
+              "state_change": "Tillståndsändring",
+              "runtime": "Körtid",
+              "compound": "Sammansatt"
+            }
+          },
+          "trigger_active": {
+            "name": "Utlösare aktiv"
+          },
+          "trigger_current_value": {
+            "name": "Aktuellt utlösarvärde"
+          },
+          "trigger_entity_state": {
+            "name": "Tillstånd för utlösarentitet",
+            "state": {
+              "available": "Tillgänglig",
+              "unavailable": "Otillgänglig",
+              "missing": "Saknas",
+              "startup": "Uppstart"
+            }
+          },
+          "trigger_above": {
+            "name": "Utlös över"
+          },
+          "trigger_below": {
+            "name": "Utlös under"
+          },
+          "trigger_for_minutes": {
+            "name": "Utlös under (minuter)"
+          },
+          "trigger_target_value": {
+            "name": "Utlösarens målvärde"
+          },
+          "trigger_delta_mode": {
+            "name": "Utlösarens delta-läge"
+          },
+          "trigger_baseline_value": {
+            "name": "Utlösarens baslinjevärde"
+          },
+          "trigger_current_delta": {
+            "name": "Utlösarens aktuella delta"
+          },
+          "trigger_from_state": {
+            "name": "Utlös från tillstånd"
+          },
+          "trigger_to_state": {
+            "name": "Utlös till tillstånd"
+          },
+          "trigger_target_changes": {
+            "name": "Utlösarens målantal ändringar"
+          },
+          "trigger_change_count": {
+            "name": "Utlösarens ändringsräknare"
+          },
+          "trigger_runtime_hours": {
+            "name": "Mål-körtid (timmar)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Ackumulerad körtid (timmar)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Återstående körtid (timmar)"
+          },
+          "last_entry": {
+            "name": "Senaste post"
+          },
+          "suggested_interval": {
+            "name": "Föreslaget intervall"
+          },
+          "interval_confidence": {
+            "name": "Intervallförtroende",
+            "state": {
+              "low": "Lågt",
+              "medium": "Medel",
+              "high": "Högt"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptiv schemaläggning aktiverad"
+          },
+          "seasonal_factor": {
+            "name": "Säsongsfaktor"
+          },
+          "seasonal_reason": {
+            "name": "Säsongsorsak",
+            "state": {
+              "learned": "Lärt",
+              "manual": "Manuell"
+            }
+          },
+          "degradation_rate": {
+            "name": "Degraderingshastighet"
+          },
+          "degradation_trend": {
+            "name": "Degraderingstrend",
+            "state": {
+              "rising": "Stigande",
+              "falling": "Fallande",
+              "stable": "Stabil",
+              "insufficient_data": "Otillräckliga data"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Dagar till tröskel"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Predictionsförtroende",
+            "state": {
+              "low": "Lågt",
+              "medium": "Medel",
+              "high": "Högt"
+            }
+          },
+          "environmental_factor": {
+            "name": "Miljöfaktor"
+          },
+          "environmental_entity": {
+            "name": "Miljöentitet"
+          },
+          "weibull_beta": {
+            "name": "Weibull-form (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull-skala (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Felmönster",
+            "state": {
+              "early_failures": "Tidiga fel",
+              "random_failures": "Slumpmässiga fel",
+              "wear_out": "Slitage",
+              "highly_predictable": "Mycket förutsägbart"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Konfidensintervall (lägre)"
+          },
+          "confidence_interval_high": {
+            "name": "Konfidensintervall (övre)"
+          },
+          "interval_anchor": {
+            "name": "Intervallankare",
+            "state": {
+              "completion": "Från slutförande",
+              "planned": "Från planerat datum"
+            }
+          }
+        }
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Underhållsschema"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} försenat",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Underhållsstatus",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Snart förfaller",
+              "overdue": "Försenat",
+              "triggered": "Utlöst"
+            }
+          },
+          "days_until_due": {
+            "name": "Dagar till förfall"
+          },
+          "next_due": {
+            "name": "Nästa förfall"
+          },
+          "parent_object": {
+            "name": "Överordnat objekt"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Rengöring",
+        "inspection": "Inspektion",
+        "replacement": "Byte",
+        "calibration": "Kalibrering",
+        "service": "Service",
+        "custom": "Anpassad"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Tidsbaserad",
+        "sensor_based": "Sensorbaserad",
+        "manual": "Manuell"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Tröskel",
+        "counter": "Räknare",
+        "state_change": "Tillståndsändring",
+        "runtime": "Körtid",
+        "compound": "Sammansatt (flera villkor)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "AND (alla villkor måste utlösa)",
+        "or": "OR (vilket som helst villkor utlöser)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Vilken entitet som helst utlöser",
+        "all": "Alla entiteter måste utlösa"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Standard (titel per status)",
+        "object_name": "Objektnamn som titel",
+        "task_name": "Uppgiftsnamn som titel"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Slutför underhåll",
+      "description": "Markera en underhållsuppgift som slutförd.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitet",
+          "description": "Underhållssensor-entiteten att slutföra."
+        },
+        "notes": {
+          "name": "Anteckningar",
+          "description": "Valfria anteckningar om utfört underhåll."
+        },
+        "cost": {
+          "name": "Kostnad",
+          "description": "Kostnaden för utfört underhåll."
+        },
+        "duration": {
+          "name": "Varaktighet",
+          "description": "Underhållets varaktighet i minuter."
+        }
+      }
+    },
+    "reset": {
+      "name": "Återställ underhåll",
+      "description": "Återställ datumet för senast utfört på en underhållsuppgift.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitet",
+          "description": "Underhållssensor-entiteten att återställa."
+        },
+        "date": {
+          "name": "Datum",
+          "description": "Datum att ange som senast utförd. Standard är idag."
+        }
+      }
+    },
+    "skip": {
+      "name": "Hoppa över underhåll",
+      "description": "Hoppa över den aktuella underhållscykeln.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitet",
+          "description": "Underhållssensor-entiteten att hoppa över."
+        },
+        "reason": {
+          "name": "Orsak",
+          "description": "Valfri orsak till att hoppa över underhållet."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Exportera data",
+      "description": "Exportera all underhållsdata som JSON eller YAML.",
+      "fields": {
+        "format": {
+          "name": "Format",
+          "description": "Utdataformat för exporterade data (json eller yaml)."
+        },
+        "include_history": {
+          "name": "Inkludera historik",
+          "description": "Om uppgiftshistorikposter ska inkluderas i exporten."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Utlösande sensor hittades inte: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Saknad utlösarentitet",
+            "description": "Sensorentiteten `{entity_id}` konfigurerad som utlösare för uppgiften ”{task_name}” på objektet ”{object_name}” är inte längre tillgänglig.\n\nVälj hur du vill lösa detta problem:",
+            "menu_options": {
+              "replace_entity": "Ersätt med en annan entitet",
+              "remove_trigger": "Ta bort sensorutlösaren",
+              "dismiss": "Avfärda (visas igen)"
+            }
+          },
+          "replace_entity": {
+            "title": "Ersätt utlösarentitet",
+            "description": "Välj en ny entitet att ersätta `{entity_id}` som utlösare för uppgiften ”{task_name}” på ”{object_name}”.",
+            "data": {
+              "new_entity_id": "Ny utlösarentitet"
+            },
+            "data_description": {
+              "new_entity_id": "Välj den nya sensorentiteten att använda som utlösare."
+            }
+          },
+          "remove_trigger": {
+            "title": "Ta bort sensorutlösaren",
+            "description": "Detta kommer att ta bort sensorutlösaren från uppgiften ”{task_name}” på ”{object_name}” och konvertera schemat till tidsbaserat eller manuellt. Underhållshistoriken kommer att bevaras.\n\nFöregående utlösarentitet: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Användare med paneläåtkomst finns inte längre",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Föräldralös användare i listan över paneläåtkomst",
+            "description": "Användaren `{user_id}…` finns i listan över paneläåtkomst för Maintenance Supporter men finns inte längre i Home Assistant. Användaren har förmodligen tagits bort.\n\nKlicka på **Skicka** för att ta bort denna användare från listan. (För att lämna problemet ifred, använd Home Assistants **Ignorera**-knapp på sidan Reparationer istället.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Slutförandeåtgärd refererar till en borttagen entitet",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Slutförandeåtgärd: {stale_entity} finns inte längre",
+            "description": "Uppgiften **{task_name}** har en `on_complete_action` konfigurerad att anropa en tjänst på `{stale_entity}`, men den entiteten är inte längre registrerad i Home Assistant.\n\nVälj hur du vill reparera:",
+            "menu_options": {
+              "replace_entity": "Ersätt med en annan entitet",
+              "remove_action": "Ta bort slutförandeåtgärden"
+            }
+          },
+          "replace_entity": {
+            "title": "Ersätt målentitet",
+            "description": "Välj entiteten att använda istället för `{stale_entity}` för uppgiften **{task_name}**.",
+            "data": {
+              "new_entity": "Ny målentitet"
+            }
+          },
+          "remove_action": {
+            "title": "Ta bort slutförandeåtgärd",
+            "description": "Rensa `on_complete_action` från uppgiften **{task_name}** helt. Själva uppgiften påverkas inte — endast tjänsteanropet vid slutförande tas bort."
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Ingen underhållskoordinator hittades för entiteten {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "Ingen underhållsuppgift hittades för entiteten {entity_id}."
+    }
+  }
+}
