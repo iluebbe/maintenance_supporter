@@ -2,6 +2,45 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.0] - 2026-04-26
+
+### New — Per-object documentation URL (#43)
+
+Each maintenance object can now carry a link to its PDF manual / vendor page / setup guide. Shown as a clickable link in the object-detail header next to *Serial number* and *Installed*. Configurable via:
+
+- the new **Manual / documentation URL** field in the panel's *New / Edit Object* dialog (placed right under *Serial number*, as requested)
+- the same field in HA's native *Add object* / *Reconfigure* config-flow + the *Object settings* options-flow step
+
+URL safety re-uses the existing `_is_safe_url()` check from the task-side `documentation_url`: only `http://` and `https://` schemes are accepted; `javascript:`, `data:`, and protocol-relative URLs are rejected with `invalid_url`. Sanitiser caps the length at `MAX_URL_LENGTH`.
+
+Translations: the panel reuses the existing `documentation_url_optional` label across 12 languages; the new `documentation_url_label` (short prefix shown in the meta line, e.g. *Manual:* / *Handbuch:*) added across all 12. The HA config-flow translations for the field added across all 10 languages (de, en, es, fr, it, nl, pl, pt, ru, uk).
+
+### New — Notification title style (#44)
+
+Phones stack notifications by title. The previous title was generic per-status text ("Maintenance overdue!"), so a stack of overdue alerts collapsed to one indistinguishable line. New global setting **Notification title style** in *Settings → Notification settings*:
+
+| Value | Title shown |
+|---|---|
+| `default` | Per-status title (existing behaviour — backwards-compatible) |
+| `object_name` | The maintenance object's name (e.g. *Pool Pump*) |
+| `task_name` | The task's name (e.g. *Filter cleaning*) |
+
+Bundled notifications (multiple due tasks for one object) honour `object_name`; `task_name` doesn't map cleanly for multi-task bundles so they keep the count-based title.
+
+The default stays `default` so existing installs see no behaviour change. `_global_options` validation (`websocket/dashboard.py`) drops anything outside the enum so a bogus value can't reach the ConfigEntry.
+
+### Tests (+5 backend)
+
+- `test_ws_objects.py::test_ws_create_and_update_object_with_documentation_url` — pins create + update + url-safety rejection + null-clear round-trip for #43
+- `test_ws_roundtrip.py::test_every_allowlisted_setting_round_trips` extended to cover `notification_title_style`
+- `test_notification_deep.py` adds 4 tests for #44: default style, `object_name` overrides title, `task_name` overrides title, bogus value falls back to default
+
+Backend 1557 ✓ · frontend 27 ✓ · ruff ✓ · mypy strict ✓.
+
+### Migration
+
+None required. Both new fields are optional (`null` default for `documentation_url`, `"default"` for `notification_title_style`).
+
 ## [1.3.4] - 2026-04-25
 
 ### Fix — Cleared safety interval no longer reverts to 30 (#42)
