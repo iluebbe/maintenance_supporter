@@ -2,6 +2,26 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.4] - 2026-04-26
+
+### Fix — Print QR codes opens a clean popup window instead of printing the whole HA UI
+
+Reported by a user: clicking *Print* on the v1.1.0 batch-QR-print page opened the browser's print dialog **inside the same HA window**. The HA top bar, sidebar, and panel chrome all ended up on the printout, and the QR grid often got partially clipped at page boundaries.
+
+Root cause: the previous `_printQrs()` implementation called `window.print()` on the panel itself and relied on `@media print` CSS in the Lit component to hide everything else. But the HA shell (top bar, sidebar, drawer) lives **outside** the Lit component's shadow DOM, so the @media print rules in the shadow root never reach those elements.
+
+Fix in `frontend-src/components/settings-view.ts::_printQrs`: open a fresh `window.open()` popup that contains only:
+- A clean `<title>` and `@page` margin definition
+- A toolbar with a re-print button (hidden in `@media print`)
+- The QR grid as a 3-column `display: grid` layout with `page-break-inside: avoid` on each cell
+- Auto-trigger the browser print dialog 250 ms after load so the user sees the print preview immediately
+
+If the popup is blocked, falls back to the previous in-place `window.print()` so the user still gets *something*. Each cell renders the verbatim SVG from the backend plus three label lines (object / task / action). All user-controllable strings are HTML-escaped before injection.
+
+Backend untouched. Frontend bundle rebuilt; existing 27 component tests still green; ruff ✓ · mypy strict ✓.
+
+Thanks for the bug report on the HA forum.
+
 ## [1.4.3] - 2026-04-26
 
 ### Fix — Object documentation_url was persisted but never displayed (#43 follow-up)

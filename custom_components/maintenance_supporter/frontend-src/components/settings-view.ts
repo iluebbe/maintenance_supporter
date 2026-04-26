@@ -939,9 +939,81 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private _printQrs(): void {
-    // Ask the browser to open the print dialog. The @media print stylesheet
-    // takes care of hiding the rest of the UI.
-    window.print();
+    // Open a clean popup window with only the QR grid + print stylesheet.
+    // The earlier `window.print()` approach inherited the full HA shell
+    // (sidebar, top bar, menu) because @media print rules in this Lit
+    // component's shadow DOM don't reach those outer elements.
+    if (this._qrBatchResults.length === 0) return;
+    const L = this._lang;
+    const cells = this._qrBatchResults.map((q) => {
+      const actionLabel = t("qr_action_" + q.action, L);
+      // Each cell: SVG + 3 label lines (object / task / action). The SVG
+      // string already comes from the backend; embed verbatim.
+      return `
+        <div class="cell">
+          <div class="qr">${q.svg}</div>
+          <div class="label">
+            <div class="obj">${this._escapeHtml(q.object_name)}</div>
+            <div class="task">${this._escapeHtml(q.task_name)}</div>
+            <div class="action">${this._escapeHtml(actionLabel)}</div>
+          </div>
+        </div>`;
+    }).join("");
+
+    const title = t("qr_print_title", L);
+    const html = `<!DOCTYPE html>
+<html lang="${this._escapeHtml(L)}">
+<head>
+  <meta charset="utf-8" />
+  <title>${this._escapeHtml(title)}</title>
+  <style>
+    @page { size: A4; margin: 10mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { padding: 8mm; }
+    .toolbar { padding-bottom: 6mm; display: flex; justify-content: space-between; align-items: center; }
+    .toolbar h1 { font-size: 14pt; margin: 0; font-weight: 600; }
+    .toolbar button { font: inherit; padding: 6px 14px; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+    .cell { border: 1px solid #ddd; border-radius: 4px; padding: 4mm; display: flex; flex-direction: column; align-items: center; gap: 3mm; page-break-inside: avoid; break-inside: avoid; }
+    .cell .qr { width: 100%; max-width: 50mm; }
+    .cell .qr svg { width: 100%; height: auto; display: block; }
+    .label { text-align: center; width: 100%; font-size: 9pt; line-height: 1.25; word-break: break-word; }
+    .label .obj { font-weight: 600; }
+    .label .task { color: #444; }
+    .label .action { color: #777; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2mm; }
+    @media print {
+      .toolbar { display: none; }
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h1>${this._escapeHtml(title)} — ${this._qrBatchResults.length}</h1>
+    <button onclick="window.print()">${this._escapeHtml(t("qr_print_print_button", L))}</button>
+  </div>
+  <div class="grid">${cells}</div>
+  <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 250); });</script>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank", "width=900,height=1100");
+    if (!win) {
+      // Popup blocker — fall back to the legacy in-place print so the user
+      // still gets *something* (with the HA shell drawback they reported).
+      window.print();
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  private _escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c] as string));
   }
 
   private _renderImportExport(L: string) {
