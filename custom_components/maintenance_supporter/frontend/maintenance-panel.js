@@ -54,18 +54,31 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
   .status-badge.overdue { background-color: var(--maint-overdue-color); }
   .status-badge.triggered { background-color: var(--maint-triggered-color); }
 
+  /* v1.4.7: 5-column grid so all 5 KPIs (Objects/Tasks/Overdue/Due Soon/
+     Triggered) always stay in one row. The previous flex-wrap layout was
+     wrapping the 5th item (Triggered, the widest label) onto its own row
+     on narrow viewports because the natural width of the items pushed past
+     the container width. Grid forces equal 1/5 distribution regardless of
+     label length. */
   .stats-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
     padding: 16px;
-    flex-wrap: wrap;
   }
 
   .stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 80px;
+    min-width: 0;
+  }
+  .stat-item .stat-label {
+    /* Allow long labels to ellipsis rather than overflow the grid cell. */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .stat-item.clickable { cursor: pointer; border-radius: 8px; padding: 4px 8px; transition: background 0.15s; }
   .stat-item.clickable:hover { background: var(--secondary-background-color); }
