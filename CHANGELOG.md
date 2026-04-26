@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.7] - 2026-04-26
+
+### Fix — All 5 KPI tiles (Objects/Tasks/Overdue/Due Soon/Triggered) stay on one row
+
+Reported on the HA forum: the dashboard's KPI bar wrapped the 5th item ("Triggered") onto its own row, both on mobile (below ~600px) and on narrower desktop window widths. Looked like a 4+1 broken layout.
+
+Root cause: `.stats-bar` was `display: flex; flex-wrap: wrap` with `min-width: 80px` per item. On narrow viewports the items' natural widths (driven by the longest label, *Triggered*) plus gaps exceeded the container width and the 5th wrapped.
+
+Fix in `frontend-src/styles.ts::stats-bar`:
+
+- Switched to `display: grid; grid-template-columns: repeat(5, 1fr)` — forces equal 1/5 distribution regardless of label length.
+- Removed the `min-width: 80px` constraint on `.stat-item`; added `min-width: 0` so flex-shrink works inside the grid cell.
+- Added `text-overflow: ellipsis; white-space: nowrap` on `.stat-label` so very narrow viewports gracefully truncate rather than overflow the cell.
+
+Verified at 375 px (mobile) and 1280 px (desktop) — all 5 tiles render in one row at both widths. Updated `docs/images/mobile-overview.png` to reflect the fix.
+
+Frontend bundle rebuilt; backend untouched; 27 component tests pass; ruff ✓ · mypy strict ✓.
+
 ## [1.4.6] - 2026-04-26
 
 ### Fix — *"Invalid time"* on disabled quiet-hours blocks the Notification Settings save (#44 follow-up)
