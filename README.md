@@ -92,6 +92,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - **Overdue indicator** — object cards show a red dot the moment any of their tasks is overdue (1.0.44+)
 - **Quick task creation** — `New Maintenance Task` button on the Tasks view opens the task dialog with an Object selector dropdown, no need to navigate into the parent first (1.0.44+)
 - **Operator mode** for non-admin HA users — hides every create/edit/delete control in the panel so household members can complete tasks without changing settings. Admins can grant full panel access to selected non-admin users via the new **Panel Access** section (Settings tab or config flow). Orphaned ids surface as a fixable repair issue. Useful for shared/family/hotel setups (1.0.44+)
+- **Per-object documentation URL** (1.4.0+) — store a link to the PDF manual / vendor page on each object. Shown as a clickable link in the object-detail header *and* on every task-detail page belonging to that object (1.4.1+) so the manual is always one click away from any maintenance task
 - 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
 ### Sensor-Based Triggers
@@ -131,6 +132,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Notification bundling (group multiple due tasks into one message)
 - Daily notification limits
 - Mobile actionable notifications via Companion App: Complete, Skip, Snooze
+- **Notification title style** (1.4.0+) — choose what appears as the notification's *title*: per-status text (default), the object name, or the task name. Helps when phones stack notifications and only the title is visible without expanding the stack
 
 ### Budget Tracking
 - Monthly and yearly maintenance budgets
@@ -157,7 +159,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Localized UI: English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish (12 languages — panel UI). HA config flow + Repairs UI: 10 languages (above plus Polish since 1.3.3); Czech and Swedish fall back to English
 
 ### WebSocket API
-- 37 commands for full CRUD operations on objects, tasks, triggers, and groups
+- 43 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -339,6 +341,31 @@ For tasks where the *act* of doing the maintenance is the input (no notes to typ
 Example for a **filter swap on the Roborock vacuum**: stick the lightning-bolt QR inside the dust-bin lid. Each filter replacement is just *swap → close lid → scan QR with phone* and the completion is recorded with your pre-set notes / cost / duration / *needed* feedback. No dialog, no typing. Great for high-frequency manual chores (litter-box scoop log, plant-watering log, espresso-machine-descale, HVAC quick-vacuum).
 
 If you forget to pre-fill the defaults, the QR scan falls back to the normal complete dialog so you're never stuck.
+
+### Object documentation URL (1.4.0+) — keep the manual within reach
+
+Each object can carry a link to its PDF manual / vendor page / setup guide. Set it once via *Edit Object → Manual / documentation URL* (right under *Serial number*). The link then renders as a clickable line in:
+
+- **the object detail page** (between the serial number and installation date)
+- **every task detail page** belonging to that object (1.4.1+, distinguished by the book icon and the object name in parentheses, e.g. *Manual (Roborock S7)*)
+
+Real-world fit: you're staring at the *Filter replacement* task on your phone, ready to do the work — one click and the actual PDF (or Roborock support article) opens in your browser. No more "where did I save that link" search. Combine with **Per-object NFC tag scan** for full hands-free flow: scan tag → task page opens → tap manual.
+
+URL safety: only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are silently rejected.
+
+### Notification title style (1.4.0+) — distinguish stacked notifications at a glance
+
+When your phone stacks multiple HA notifications, only the title is visible without expanding the stack. The default per-status title (*"Maintenance overdue!"*) makes a stack of overdue alerts collapse to one indistinguishable line — you can't tell which device needs attention without tapping.
+
+**Settings → Notification settings → Notification title style** offers three options:
+
+| Choice | Title shown on the phone | Best for |
+|---|---|---|
+| `default` | "Maintenance overdue!" / "Maintenance triggered" / etc. | Backwards-compatible — keep this if any of your HA automations filter on the existing title strings |
+| `object_name` | The maintenance object's name (e.g. *Pool Pump*) | Most users — at a glance you know *which device* needs work |
+| `task_name` | The task's name (e.g. *Filter cleaning*) | Useful when one object has many distinct tasks and you want to know what kind of maintenance |
+
+Bundled notifications (multiple due tasks for the same object) honour `object_name`. `task_name` doesn't map cleanly for multi-task bundles, so those keep the count-based default.
 
 ## Examples
 

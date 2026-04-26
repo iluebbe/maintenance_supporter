@@ -152,16 +152,17 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               37 WS commands, split by domain
+├── websocket/                               43 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
-│   ├── objects.py               (211 lines)  Object CRUD (5 handlers)
-│   ├── tasks.py                 (729 lines)  Task CRUD + validation + actions (7 handlers)
-│   ├── groups.py                (166 lines)  Group CRUD (4 handlers)
-│   ├── analysis.py              (277 lines)  Adaptive scheduling (4 handlers)
-│   ├── users.py                 (139 lines)  User management (3 handlers)
-│   ├── io.py                    (245 lines)  Export/import/CSV/QR/templates (5 handlers)
-│   ├── dashboard.py             (510 lines)  Subscribe, statistics, settings, budget, global update/test (6 handlers)
-│   └── tags.py                   (40 lines)  NFC tag listing (1 handler)
+│   ├── objects.py                              Object CRUD (6 handlers)
+│   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) (8 handlers)
+│   ├── groups.py                               Group CRUD (4 handlers)
+│   ├── analysis.py                             Adaptive scheduling (4 handlers)
+│   ├── users.py                                User management (3 handlers)
+│   ├── io.py                                   Export/import/CSV/QR/templates (7 handlers)
+│   ├── dashboard.py                            Subscribe, statistics, settings, budget, global update/test (6 handlers)
+│   ├── vacation.py                             Vacation-mode CRUD (1.2.0+) (4 handlers)
+│   └── tags.py                                 NFC tag listing (1 handler)
 ├── panel.py                        (62 lines)  Sidebar panel registration
 ├── frontend/
 │   ├── __init__.py                 (33 lines)  Lovelace card registration
@@ -196,12 +197,12 @@ custom_components/maintenance_supporter/
 │   └── qrcodegen.py              (700 lines)  Vendored QR library (Nayuki, MIT)
 │
 ├── models/                        (483 lines)
-│   ├── maintenance_task.py        (344 lines)  Task: schedule, triggers, history, status
-│   ├── maintenance_object.py       (53 lines)  Object: name, area, manufacturer, model
+│   ├── maintenance_task.py        (344 lines)  Task: schedule, triggers, history, status, on_complete_action (1.3.0+), quick_complete_defaults (1.3.0+)
+│   ├── maintenance_object.py       (54 lines)  Object: name, area, manufacturer, model, serial_number, installation_date, documentation_url (1.4.0+)
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
 ├── templates.py                   (226 lines)  13 object templates (car, pool, HVAC, ...)
-├── repairs.py                     (315 lines)  Missing trigger entity repair flow
+├── repairs.py                     (~640 lines)  Repair flows: missing trigger entity, orphan admin-panel-user (1.0.44+), stale on_complete_action entity (1.3.0+)
 ├── diagnostics.py                 (231 lines)  Integration diagnostics with PII redaction
 ├── export.py                      (161 lines)  JSON/YAML data export
 │
@@ -209,7 +210,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt,ru,uk}.json  9 languages (HA config flow). pl/cs/sv fall back to en.json automatically via HA's translation framework; full pl/cs/sv HA-flow files planned for v1.0.45.
+└── translations/{en,de,nl,fr,it,es,pt,ru,uk,pl}.json  10 languages (HA config flow + Repairs UI). cs/sv fall back to en.json automatically via HA's translation framework; PRs for pl/cs/sv welcome (pl shipped in v1.3.3).
 ```
 
 ---
