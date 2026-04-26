@@ -202,6 +202,10 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             "model": obj_data.get("model"),
             "serial_number": obj_data.get("serial_number"),
             "installation_date": obj_data.get("installation_date"),
+            # v1.4.0 (#43): expose to the frontend so the manual link
+            # renders in the object detail header AND, since v1.4.1, on
+            # every task detail page belonging to this object.
+            "documentation_url": obj_data.get("documentation_url"),
         },
         "tasks": tasks,
     }

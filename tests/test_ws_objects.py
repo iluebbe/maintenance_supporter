@@ -558,3 +558,32 @@ def test_build_object_response_structure(
     assert result["object"]["name"] == "Pool Pump"
     assert result["object"]["manufacturer"] == "Pentair"
     assert "serial_number" in result["object"]
+    # v1.4.3 regression: documentation_url field was persisted by the WS
+    # update path but `_build_object_response` didn't expose it back to
+    # the frontend, so the manual link never rendered in the panel.
+    assert "documentation_url" in result["object"]
+
+
+def test_build_object_response_exposes_documentation_url_value(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """v1.4.3 regression: a saved documentation_url must reach the frontend."""
+    from .conftest import build_object_data, build_object_entry_data
+
+    # Build an object entry with documentation_url set
+    obj_data = build_object_data(name="With Manual")
+    obj_data["documentation_url"] = "https://example.com/manual.pdf"
+    entry = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="With Manual",
+        data=build_object_entry_data(object_data=obj_data, tasks={}),
+        source="user",
+        unique_id="maintenance_supporter_with_manual",
+    )
+    entry.add_to_hass(hass)
+
+    result = _build_object_response(hass, entry, None)
+    assert result["object"]["documentation_url"] == "https://example.com/manual.pdf", (
+        "documentation_url must round-trip through _build_object_response so "
+        "the panel can render the manual link"
+    )

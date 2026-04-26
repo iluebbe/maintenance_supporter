@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.3] - 2026-04-26
+
+### Fix — Object documentation_url was persisted but never displayed (#43 follow-up)
+
+Caught while capturing v1.4.x screenshots: the `documentation_url` field added in v1.4.0 (#43) was correctly stored by `ws_create_object` / `ws_update_object`, but `_build_object_response` (the function that builds the WS subscribe payload the panel consumes) never included it in the returned `object` dict. So the panel render code (which checks `o.documentation_url`) saw `undefined` and the manual link silently never rendered — regardless of what was set in the dialog.
+
+One-line fix in `websocket/__init__.py:_build_object_response`. Plus a regression test (`test_build_object_response_exposes_documentation_url_value`) and a tightening of the structural test (`test_build_object_response_structure`) so this can't drift back.
+
+Also fixed by side-effect: the v1.4.1 task-detail-page parent-manual-link uses the same WS payload, so it was also silently broken.
+
+Backend 1558 ✓ (+1 regression test), frontend 27 ✓, ruff ✓, mypy strict ✓.
+
 ## [1.4.2] - 2026-04-26
 
 ### i18n — Czech, Swedish, Polish coverage closed across all surfaces
