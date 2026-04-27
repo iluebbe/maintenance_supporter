@@ -59,7 +59,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 ## Core Design Decisions
 
 ### Two-Entry Model
-- **Global entry** (`GLOBAL_UNIQUE_ID`): Integration-wide settings, panel toggle, notification config, budgets
+- **Global entry** (`GLOBAL_UNIQUE_ID`): Integration-wide settings, panel toggle, notification config, currency (1.4.9+ in General Settings, was under Budget), budgets
 - **Per-object entries**: One config entry per maintenance object, each with its own coordinator
 
 This enables per-object lifecycle management (add/remove objects independently) while sharing resources like the NotificationManager and panel registration.
@@ -134,7 +134,7 @@ custom_components/maintenance_supporter/
 ├── config_flow.py                 (905 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py          (62 lines)  Shared config flow utilities
 ├── config_flow_options.py          (13 lines)  Options dispatcher
-├── config_flow_options_global.py  (663 lines)  Global settings (notifications, budgets, panel)
+├── config_flow_options_global.py  (663 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
 ├── config_flow_options_task.py  (1,394 lines)  Per-object task management
 ├── config_flow_trigger.py       (1,148 lines)  TriggerConfigMixin for trigger UI
 │
