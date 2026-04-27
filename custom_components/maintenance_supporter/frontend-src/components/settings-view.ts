@@ -303,6 +303,7 @@ export class MaintenanceSettingsView extends LitElement {
 
   private _renderGeneral(L: string) {
     const g = this._settings!.general;
+    const b = this._settings!.budget;
     return html`
       <div class="settings-section">
         <h3>${t("settings_general", L)}</h3>
@@ -313,6 +314,12 @@ export class MaintenanceSettingsView extends LitElement {
               const v = parseInt((e.target as HTMLInputElement).value, 10);
               if (v >= 1 && v <= 365) this._updateSetting("default_warning_days", v);
             }} />
+        </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_currency", L)}</span>
+          <select @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>
+            ${CURRENCIES.map((c) => html`<option value=${c} ?selected=${b.currency === c}>${c}</option>`)}
+          </select>
         </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_panel_enabled", L)}</span>
@@ -468,12 +475,6 @@ export class MaintenanceSettingsView extends LitElement {
     return html`
       <div class="settings-section">
         <h3>${t("settings_budget", L)}</h3>
-        <label class="setting-row">
-          <span class="setting-label">${t("settings_currency", L)}</span>
-          <select @change=${(e: Event) => this._updateSetting("budget_currency", (e.target as HTMLSelectElement).value)}>
-            ${CURRENCIES.map((c) => html`<option value=${c} ?selected=${b.currency === c}>${c}</option>`)}
-          </select>
-        </label>
         <label class="setting-row">
           <span class="setting-label">${t("settings_budget_monthly", L)}</span>
           <input type="number" min="0" step="0.01" .value=${String(b.monthly)}

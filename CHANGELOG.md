@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.9] - 2026-04-27
+
+### Refactor — Currency moved out of *Budget* into *General settings*
+
+Currency was conceptually the wrong place under *Budget* — `currency_symbol` propagates to four call sites that have nothing to do with budgeting (Avg Cost KPI, activity badges, history rows, cost number-input units in the config flow). Users who only wanted per-task cost tracking had to enable *Advanced features → Budget*, open *Budget settings*, set the currency, and leave the budget values at 0 — three layers deep for a global display setting.
+
+- **Maintenance panel** (`settings-view.ts`): currency dropdown moved from the Budget section to the General section. Always visible, no advanced-feature toggle required.
+- **Config flow** (`config_flow_options_global.py`): currency dropdown moved from the *Budget settings* step to the *General settings* step. *Budget settings* now contains only the actual budget fields (monthly, yearly, alerts, threshold).
+
+Storage key (`budget_currency`) is unchanged — existing setups roundtrip without migration. The displayed `currency_symbol` is still consumed exactly as before.
+
+ruff ✓ · mypy strict ✓ · 17 currencies still selectable, WS roundtrip verified.
+
 ## [1.4.8] - 2026-04-27
 
 ### Add — 7 currencies to match the 12 supported translation languages (#45 follow-up)
