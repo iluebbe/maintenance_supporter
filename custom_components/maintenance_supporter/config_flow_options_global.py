@@ -417,6 +417,11 @@ class GlobalOptionsFlow(OptionsFlow):
                 return self._save_and_return(user_input)
 
         current = self._current
+        currency_code = current.get(CONF_BUDGET_CURRENCY, "EUR")
+        currency_options = [
+            selector.SelectOptionDict(value=code, label=f"{code} ({symbol})")
+            for code, symbol in BUDGET_CURRENCIES.items()
+        ]
 
         return self.async_show_form(
             step_id="general_settings",
@@ -428,6 +433,15 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=1, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_BUDGET_CURRENCY,
+                        default=currency_code,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=currency_options,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
                     vol.Optional(
@@ -640,26 +654,10 @@ class GlobalOptionsFlow(OptionsFlow):
         currency_code = current.get(CONF_BUDGET_CURRENCY, "EUR")
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
 
-        currency_options = [
-            selector.SelectOptionDict(
-                value=code, label=f"{code} ({symbol})"
-            )
-            for code, symbol in BUDGET_CURRENCIES.items()
-        ]
-
         return self.async_show_form(
             step_id="budget_settings",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        CONF_BUDGET_CURRENCY,
-                        default=currency_code,
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=currency_options,
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                        )
-                    ),
                     vol.Optional(
                         CONF_BUDGET_MONTHLY,
                         default=current.get(CONF_BUDGET_MONTHLY, 0.0),
