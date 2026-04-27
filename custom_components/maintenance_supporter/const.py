@@ -234,6 +234,13 @@ BUDGET_CURRENCIES: dict[str, str] = {
     "CNY": "¥",
     "INR": "₹",
     "BRL": "R$",
+    "CZK": "Kč",
+    "PLN": "zł",
+    "RUB": "₽",
+    "SEK": "kr",
+    "NOK": "kr",
+    "DKK": "kr",
+    "UAH": "₴",
 }
 
 # --- Groups ---
