@@ -2,6 +2,26 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.8] - 2026-04-27
+
+### Add — 7 currencies to match the 12 supported translation languages (#45 follow-up)
+
+Triggered by issue #45 (B Y on GitHub asking for currency selection). The feature already existed, but a coverage audit revealed a gap: 5 of the 12 translated languages had **no matching currency** in the dropdown — so a Czech, Polish, Russian, Swedish, or Ukrainian user could pick a localized panel but had to fall back to EUR for budgets.
+
+Added in `const.py::BUDGET_CURRENCIES` and the matching frontend `CURRENCIES` list:
+
+- **CZK** (Kč) — for `cs`
+- **PLN** (zł) — for `pl`
+- **RUB** (₽) — for `ru`
+- **SEK** (kr) — for `sv`
+- **NOK** (kr) — Norwegian users often run the `sv` translation
+- **DKK** (kr) — Danish users likewise
+- **UAH** (₴) — for `uk`
+
+Now 17 currencies are selectable in both the Maintenance panel's **Settings → Currency** dropdown and the HA config flow's **Configure → Budget settings → Currency** step. The chosen `currency_symbol` propagates as before to the `Avg cost` KPI tile, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs.
+
+Frontend bundle rebuilt; backend untouched outside the dict; ruff ✓ · mypy strict ✓.
+
 ## [1.4.7] - 2026-04-26
 
 ### Fix — All 5 KPI tiles (Objects/Tasks/Overdue/Due Soon/Triggered) stay on one row

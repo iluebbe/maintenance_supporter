@@ -69,6 +69,7 @@ interface VacationPreviewRow {
 
 const CURRENCIES = [
   "EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD", "CNY", "INR", "BRL",
+  "CZK", "PLN", "RUB", "SEK", "NOK", "DKK", "UAH",
 ];
 
 export class MaintenanceSettingsView extends LitElement {
