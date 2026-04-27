@@ -453,7 +453,7 @@ template:
 - **Runtime trigger**: Accumulated hours are persisted every 5 minutes. Up to 5 minutes of runtime may be lost on an unclean shutdown or crash
 - **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
 - **Threshold debounce**: `trigger_for_minutes` timers are persisted and restored across HA restarts; however, the remaining duration is computed from wall-clock time, so large NTP jumps could cause premature or delayed triggering
-- **Budget tracking**: Numeric values only — the currency symbol can be changed in Budget Settings (default: €). 10 currencies supported: EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL
+- **Budget tracking**: Numeric values only — the currency symbol is set in **General Settings** (1.4.9+, previously under Budget Settings; default: €). **17 currencies** supported (1.4.8+): EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH
 - **History pruning**: Maximum 500 history entries per task. Oldest entries are automatically removed when the limit is reached
 - **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
 

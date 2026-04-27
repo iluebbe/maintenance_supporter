@@ -15,6 +15,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `default_warning_days` | int | 7 | 1–365 | Days before a task is due when its status changes to `due_soon` |
+| `budget_currency` (1.4.9+ in General; 1.4.8+ added 7 currencies) | enum | `EUR` | EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH | Display currency for **all** monetary values — `Avg cost` KPI, activity badges, history rows, and the `unit_of_measurement` of the cost number-inputs in the config flow. The corresponding symbol (e.g. `€`, `$`, `Kč`, `zł`) propagates everywhere. Storage key is still `budget_currency` for backwards-compat |
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
 | `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |
@@ -85,6 +86,8 @@ Mobile actionable notification buttons (requires HA Companion App).
 ### Budget Settings
 
 Visible only when `advanced_budget_visible` is `true`.
+
+> Note: `budget_currency` lives under **General Settings** (above) since 1.4.9 — it's used by *every* cost display, not just budgets, so it shouldn't require enabling the Budget advanced feature.
 
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
