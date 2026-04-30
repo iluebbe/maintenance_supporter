@@ -60,7 +60,7 @@ def _is_safe_url(url: str | None) -> bool:
         from urllib.parse import urlparse
         scheme = urlparse(url).scheme.lower()
         return scheme in _SAFE_URL_SCHEMES
-    except Exception:
+    except Exception:  # noqa: BLE001 - any malformed URL is rejected as unsafe
         return False
 
 

@@ -8,6 +8,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from ..const import (
     CONF_OBJECT,
@@ -227,8 +228,9 @@ async def ws_vacation_end_now(
     options = dict(global_entry.options or global_entry.data)
     options[CONF_VACATION_ENABLED] = False
     # Optionally clamp end-date to today so the historical record reflects when
-    # the user actually returned. Leave start/buffer/exempt as-is.
-    today = date.today()
+    # the user actually returned. Use HA's configured timezone — the user's
+    # "today" should match what their dashboard shows, not the server's UTC.
+    today = dt_util.now().date()
     sd = options.get(CONF_VACATION_START)
     if sd:
         try:

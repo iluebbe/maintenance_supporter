@@ -180,6 +180,8 @@ def _vacation_summary(options: Mapping[str, Any]) -> dict[str, Any]:
     """Embed-friendly slice of vacation state for the /settings response."""
     from datetime import date, timedelta
 
+    from homeassistant.util import dt as dt_util
+
     from ..const import (
         CONF_VACATION_BUFFER_DAYS,
         CONF_VACATION_ENABLED,
@@ -202,7 +204,10 @@ def _vacation_summary(options: Mapping[str, Any]) -> dict[str, Any]:
     end = _parse(options.get(CONF_VACATION_END))
     buffer_days = int(options.get(CONF_VACATION_BUFFER_DAYS, DEFAULT_VACATION_BUFFER_DAYS))
     window_end = end + timedelta(days=max(0, buffer_days)) if end else None
-    today = date.today()
+    # Use HA's configured timezone, not the host's. Vacation is a calendar-day
+    # concept: when the user said "vacation ends 2026-05-15" they mean their
+    # local 2026-05-15, not the server's UTC midnight.
+    today = dt_util.now().date()
     is_active = (
         enabled
         and start is not None

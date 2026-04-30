@@ -224,7 +224,7 @@ async def send_test_notification(
             service_data["data"] = {"actions": test_actions}
         await hass.services.async_call(parts[0], parts[1], service_data, blocking=True)
         return "success"
-    except Exception:
+    except Exception:  # noqa: BLE001 - any failure mode reports "failed" to the UI
         _LOGGER.debug("Test notification failed for %s", notify_service, exc_info=True)
         return "failed"
 

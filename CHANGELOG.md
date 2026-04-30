@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.11] - 2026-04-30
+
+### Fix — Vacation status used host's timezone instead of HA's
+
+Audit found two `date.today()` calls in vacation logic (`websocket/dashboard.py` and `websocket/vacation.py`) that returned the *host system's* local date. If HA was configured for a different timezone than the host (common in Docker/cloud setups), the vacation-active check and the "clamp end-date when ending vacation early" logic would flip on a different calendar day than the user's dashboard would suggest.
+
+Both now use `dt_util.now().date()` which respects HA's configured timezone via `dt_util.DEFAULT_TIME_ZONE`.
+
+### Internal — ruff ruleset gains `BLE` and `DTZ`
+
+`pyproject.toml` now enables `flake8-blind-except` (BLE) and `flake8-datetimez` (DTZ) so future `except Exception:` and naive-datetime introductions are caught at lint time. The 6 existing intentional defensive catches got `# noqa: BLE001` annotations with one-line justifications. The naive `datetime.max` sentinel in `notification_manager.py` is documented + suppressed (`noqa: DTZ901`) — every code path guards on equality with the sentinel before any arithmetic, so the naive/aware mix never reaches a subtraction. Tests are exempt from DTZ rules (`per-file-ignores`).
+
+ruff ✓ · 92 WS tests pass.
+
 ## [1.4.10] - 2026-04-30
 
 ### Add — Free-form `notes` field on objects (#46)
