@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.5.0] - 2026-04-30
+
+### Add — Calendar tab with rolling view + recurring projection
+
+A third tab in the Maintenance panel — between *Dashboard* and *Settings* — shows upcoming maintenance as a chronological list rather than a grid. Designed for the "what's coming up?" question that the dashboard's status-grouped view doesn't answer at a glance.
+
+- **Window chips**: 7 / 14 / 30 days (default 30). Pill toggle bar in HA primary color.
+- **Recurring projection**: time-based tasks with an `interval_days` show their first due date *and* up to 4 projected subsequent occurrences within the window. Projected events render at 55% opacity with an "every N days" subtitle so they're visually distinct from the actual `next_due`. Sensor-triggered tasks intentionally show only `next_due` — projecting future sensor firings would be a guess.
+- **User filter**: same "All Users / My Tasks" dropdown as the dashboard, resolves `current_user` against `hass.user.id` via the existing `UserService`.
+- **Status sorting** within a day: overdue → triggered → due_soon → ok, then alphabetical.
+- **Today highlighting**: today's date pill picks up the HA primary color and gets a "TODAY" badge next to the month label.
+- **Empty days**: italic *"No maintenance"* — preserves vertical rhythm while making it obvious nothing is due.
+- **Click on event** → existing `_showTask(entry_id, task_id)` navigation. Cost shows as right-aligned secondary text using the configured `currency_symbol`.
+- **Operator-mode visible** (read-only). Settings tab is still hidden for non-admins.
+
+Implementation:
+
+- New `helpers/calendar-bucket.ts` — pure function `buildCalendarBuckets(objects, today, windowDays, userFilter)` returning a day-by-day event list. No backend changes needed; consumes the existing `_objects` subscription. The projection cap (`MAX_OCCURRENCES_PER_TASK = 5`) keeps a 1-day-interval task in a 30-day window from producing 30 entries.
+- New `__tests__/calendar-bucket.test.ts` (12 tests) covering: window slicing, overdue → today bucket, sensor-triggered no-projection, time-based projection cap, user filter, status sort, disabled tasks excluded, ISO date arithmetic stability around month boundaries.
+- 6 new i18n keys × 12 languages (`tab_calendar`, `cal_no_events`, `cal_window_7/14/30`, `cal_every_n_days`).
+- `panel-styles.ts`: ~85 lines of new CSS (window chips, day pill, status pills, event row, projected style, mobile media query).
+
+ruff ✓ · mypy strict ✓ · 39 frontend tests pass · 1573 backend tests pass · live screenshots verified (desktop + mobile).
+
 ## [1.4.11] - 2026-04-30
 
 ### Fix — Vacation status used host's timezone instead of HA's

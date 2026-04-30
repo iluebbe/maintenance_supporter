@@ -37,6 +37,7 @@ import type { MaintenanceGroupDialog } from "./components/group-dialog";
 import { renderTriggerSection, type SparklineContext } from "./renderers/sparkline";
 import { renderPredictionSection } from "./renderers/prediction";
 import { renderWeibullSection } from "./renderers/weibull";
+import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./renderers/seasonal";
 import { renderCostDurationCard } from "./renderers/charts";
 
@@ -84,13 +85,16 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _dismissedSuggestions = new Set<string>();
 
   // Dashboard redesign state
-  @state() private _overviewTab: "dashboard" | "settings" = "dashboard";
+  @state() private _overviewTab: "dashboard" | "calendar" | "settings" = "dashboard";
   @state() private _activeTab: "overview" | "history" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
   @state() private _sortMode: SortMode = "due_date";
   @state() private _objectSortMode: ObjectSortMode = "alphabetical";
   @state() private _groupByMode: GroupByMode = "none";
+  // v1.5.0: Calendar tab state
+  @state() private _calendarWindowDays: 7 | 14 | 30 = 30;
+  @state() private _calendarUserFilter: string = "";  // "" = all users
 
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
@@ -804,31 +808,141 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderOverview() {
     const L = this._lang;
     const isOperator = this._isOperator;
-    // Operator mode: hide the Settings tab so end-users can't toggle features
+    // Operator mode: hide the Settings tab so end-users can't toggle features.
+    // The Calendar tab IS visible to operators (read-only view).
     if (isOperator && this._overviewTab === "settings") {
       this._overviewTab = "dashboard";
     }
     return html`
-      ${!isOperator ? html`
-        <div class="tab-bar">
-          <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
-            @click=${() => { this._overviewTab = "dashboard"; }}>
-            ${t("dashboard", L)}
-          </div>
+      <div class="tab-bar">
+        <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
+          @click=${() => { this._overviewTab = "dashboard"; }}>
+          ${t("dashboard", L)}
+        </div>
+        <div class="tab ${this._overviewTab === "calendar" ? "active" : ""}"
+          @click=${() => { this._overviewTab = "calendar"; }}>
+          ${t("tab_calendar", L)}
+        </div>
+        ${!isOperator ? html`
           <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
             @click=${() => { this._overviewTab = "settings"; }}>
             ${t("settings", L)}
           </div>
-        </div>
-      ` : nothing}
+        ` : nothing}
+      </div>
       ${this._overviewTab === "dashboard"
         ? this._renderDashboard()
+        : this._overviewTab === "calendar"
+        ? this._renderCalendar()
         : html`<maintenance-settings-view
             .hass=${this.hass}
             .features=${this._features}
             .budget=${this._budget}
             @settings-changed=${this._onSettingsChanged}
           ></maintenance-settings-view>`}
+    `;
+  }
+
+  /**
+   * v1.5.0: Calendar tab — rolling list view.
+   *
+   * Shows upcoming maintenance events in a 7/14/30-day window starting today.
+   * Time-based tasks project up to 5 occurrences; sensor-triggered tasks show
+   * only their current next_due. User filter narrows by responsible_user_id.
+   */
+  private _renderCalendar() {
+    const L = this._lang;
+    // Resolve user filter analogous to the dashboard: "" = all, "current_user"
+    // = me, otherwise pass through. The bucket helper just matches strings,
+    // so we resolve "current_user" → real ID here once.
+    let userFilter: string | null = null;
+    if (this._calendarUserFilter) {
+      userFilter = this._calendarUserFilter === "current_user"
+        ? (this._userService?.getCurrentUserId() ?? null)
+        : this._calendarUserFilter;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const buckets = buildCalendarBuckets(
+      this._objects,
+      today,
+      this._calendarWindowDays,
+      userFilter,
+    );
+
+    const todayIso = isoDateLocal(today);
+
+    const renderEvent = (ev: CalendarEvent) => {
+      const statusClass = `cal-status-${ev.status}`;
+      const projClass = ev.projected ? "cal-event-projected" : "";
+      const overdueLabel = ev.status === "overdue" && ev.days_until_due != null
+        ? ` (${Math.abs(ev.days_until_due)}d ${t("overdue", L).toLowerCase()})`
+        : "";
+      const recurEvery = ev.projected && ev.interval_days
+        ? html`<span class="cal-event-recur">${t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))}</span>`
+        : nothing;
+      return html`
+        <div class="cal-event ${projClass}"
+          @click=${() => this._showTask(ev.entry_id, ev.task_id)}>
+          <span class="cal-status-pill ${statusClass}">${t(ev.status, L)}</span>
+          <div class="cal-event-body">
+            <div class="cal-event-title">${ev.object_name} · ${ev.task_name}${overdueLabel}</div>
+            ${recurEvery}
+          </div>
+          ${ev.avg_cost != null && ev.avg_cost > 0
+            ? html`<span class="cal-event-cost">${ev.avg_cost.toFixed(0)} ${this._budget?.currency_symbol || "€"}</span>`
+            : nothing}
+        </div>
+      `;
+    };
+
+    const renderDayRow = (bucket: { date: string; events: CalendarEvent[] }) => {
+      const [y, m, d] = bucket.date.split("-").map(Number);
+      const date = new Date(y, m - 1, d);
+      const isToday = bucket.date === todayIso;
+      const weekday = date.toLocaleDateString(L, { weekday: "short" });
+      const monthLabel = date.toLocaleDateString(L, { month: "long" });
+      return html`
+        <div class="cal-day-row">
+          <div class="cal-day-pill ${isToday ? "cal-today" : ""}">
+            <span class="cal-pill-weekday">${weekday}</span>
+            <span class="cal-pill-day">${date.getDate()}</span>
+          </div>
+          <div class="cal-day-content">
+            <div class="cal-day-header">
+              <span class="cal-day-month">${monthLabel}</span>
+              ${isToday ? html`<span class="cal-day-today-badge">${t("today", L)}</span>` : nothing}
+            </div>
+            ${bucket.events.length === 0
+              ? html`<div class="cal-empty">${t("cal_no_events", L)}</div>`
+              : bucket.events.map(renderEvent)}
+          </div>
+        </div>
+      `;
+    };
+
+    return html`
+      <div class="cal-controls">
+        <div class="cal-window-chips">
+          ${[7, 14, 30].map((w) => html`
+            <button class="cal-window-chip ${this._calendarWindowDays === w ? "active" : ""}"
+              @click=${() => { this._calendarWindowDays = w as 7 | 14 | 30; }}>
+              ${t(`cal_window_${w}`, L)}
+            </button>
+          `)}
+        </div>
+        <select class="cal-user-filter"
+          .value=${this._calendarUserFilter}
+          @change=${(e: Event) => {
+            this._calendarUserFilter = (e.target as HTMLSelectElement).value;
+          }}>
+          <option value="">${t("all_users", L)}</option>
+          <option value="current_user">${t("my_tasks", L)}</option>
+        </select>
+      </div>
+      <div class="cal-rolling">
+        ${buckets.map(renderDayRow)}
+      </div>
     `;
   }
 
