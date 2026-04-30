@@ -151,6 +151,28 @@ export const panelStyles = css`
   .detail-header h2 { margin: 0; font-size: 22px; }
   h3 { margin: 16px 0 8px; font-size: 16px; font-weight: 500; }
   .meta { color: var(--secondary-text-color); margin: 4px 0; }
+  /* v1.4.10 (#46): per-object free-form notes block */
+  .object-notes {
+    margin: 12px 0 4px;
+    padding: 12px 14px;
+    background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
+    border-left: 3px solid var(--primary-color, #03a9f4);
+    border-radius: 4px;
+  }
+  .object-notes-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+  .object-notes-body {
+    color: var(--primary-text-color);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.45;
+  }
   .empty { color: var(--secondary-text-color); font-style: italic; }
   .analysis-empty-state { text-align: center; padding: 24px 16px; }
   .analysis-empty-state .empty { font-size: 15px; margin-bottom: 8px; }

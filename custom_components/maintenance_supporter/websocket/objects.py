@@ -17,6 +17,7 @@ from ..const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_TASKS,
     DOMAIN,
@@ -26,6 +27,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
+    MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
 from . import (
@@ -92,6 +94,8 @@ async def ws_get_object(
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         # v1.4.0 (#43): per-object link to PDF manual / vendor page
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
+        # v1.4.10 (#46): free-form notes (part numbers, procedures, etc.)
+        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -129,6 +133,10 @@ async def ws_create_object(
         connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
         return
 
+    # v1.4.10 (#46): notes (free-form, may contain newlines)
+    notes_raw = msg.get("notes")
+    notes = notes_raw.strip() if isinstance(notes_raw, str) and notes_raw.strip() else None
+
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
         connection.send_result(msg["id"], {"valid": True, "entry_id": None})
@@ -147,6 +155,7 @@ async def ws_create_object(
                 CONF_OBJECT_SERIAL_NUMBER: serial_number,
                 CONF_OBJECT_INSTALLATION_DATE: installation_date,
                 CONF_OBJECT_DOCUMENTATION_URL: documentation_url,
+                CONF_OBJECT_NOTES: notes,
                 "task_ids": [],
             },
             CONF_TASKS: {},
@@ -176,6 +185,8 @@ async def ws_create_object(
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         # v1.4.0 (#43): per-object link to PDF manual / vendor page
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
+        # v1.4.10 (#46): free-form notes
+        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
 @websocket_api.require_admin
@@ -225,6 +236,12 @@ async def ws_update_object(
             connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
             return
 
+    # v1.4.10 (#46): notes — strip but keep newlines, empty -> None
+    if "notes" in msg:
+        if msg["notes"] is not None:
+            stripped = msg["notes"].strip()
+            msg["notes"] = stripped or None
+
     new_data = dict(entry.data)
     obj = dict(new_data.get(CONF_OBJECT, {}))
 
@@ -242,6 +259,8 @@ async def ws_update_object(
         obj[CONF_OBJECT_INSTALLATION_DATE] = msg["installation_date"]
     if "documentation_url" in msg:
         obj[CONF_OBJECT_DOCUMENTATION_URL] = msg["documentation_url"]
+    if "notes" in msg:
+        obj[CONF_OBJECT_NOTES] = msg["notes"]
 
     new_data[CONF_OBJECT] = obj
     title = obj.get(CONF_OBJECT_NAME, entry.title)

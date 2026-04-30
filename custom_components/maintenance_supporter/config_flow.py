@@ -29,6 +29,7 @@ from .const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
@@ -359,6 +360,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 obj_data["documentation_url"] = (
                     user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
                 )
+                # v1.4.10 (#46)
+                obj_data["notes"] = (
+                    (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
+                )
 
                 new_data = dict(entry.data)
                 new_data[CONF_OBJECT] = obj_data
@@ -372,6 +377,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             CONF_OBJECT_MODEL: obj_data.get("model", ""),
             CONF_OBJECT_SERIAL_NUMBER: obj_data.get("serial_number", ""),
             CONF_OBJECT_DOCUMENTATION_URL: obj_data.get("documentation_url", ""),
+            CONF_OBJECT_NOTES: obj_data.get("notes", ""),
         }
         if obj_data.get("area_id"):
             suggested[CONF_OBJECT_AREA] = obj_data["area_id"]
@@ -394,6 +400,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     # v1.4.0 (#43): place under serial_number per the request
                     vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
+                    ),
+                    # v1.4.10 (#46): free-form notes (multiline)
+                    vol.Optional(CONF_OBJECT_NOTES): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                            multiline=True,
+                        )
                     ),
                 }
             ),
@@ -490,6 +503,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     CONF_OBJECT_DOCUMENTATION_URL: user_input.get(
                         CONF_OBJECT_DOCUMENTATION_URL
                     ) or None,
+                    # v1.4.10 (#46)
+                    CONF_OBJECT_NOTES: (
+                        (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
+                    ),
                 }
                 cap_object_fields(self._object_data)
                 self._tasks = {}
@@ -527,6 +544,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.URL
+                        )
+                    ),
+                    # v1.4.10 (#46): free-form notes (multiline)
+                    vol.Optional(CONF_OBJECT_NOTES): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                            multiline=True,
                         )
                     ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),

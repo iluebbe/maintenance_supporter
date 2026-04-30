@@ -42,6 +42,7 @@
           "model": "Model",
           "serial_number": "Serial number",
           "documentation_url": "Manual / documentation URL",
+          "notes": "Notes",
           "go_back": "Go back"
         },
         "data_description": {
@@ -51,6 +52,7 @@
           "model": "The model name or number.",
           "serial_number": "The serial number of the object.",
           "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
+          "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
           "go_back": "Return to template selection without saving."
         }
       },
@@ -78,6 +80,7 @@
           "model": "Model",
           "serial_number": "Serial number",
           "documentation_url": "Manual / documentation URL",
+          "notes": "Notes",
           "installation_date": "Installation date",
           "go_back": "Go back"
         },
@@ -88,6 +91,7 @@
           "model": "The model name or number.",
           "serial_number": "The serial number of the object.",
           "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
+          "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
           "installation_date": "When this object was installed or purchased.",
           "go_back": "Return to the main menu without saving."
         }
@@ -375,6 +379,7 @@
           "model": "Model",
           "serial_number": "Serial number",
           "documentation_url": "Manual / documentation URL",
+          "notes": "Notes",
           "installation_date": "Installation date"
         },
         "data_description": {
@@ -384,6 +389,7 @@
           "model": "The model of this object.",
           "serial_number": "The serial number of this object.",
           "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
+          "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
           "installation_date": "When this object was installed."
         }
       }
@@ -949,6 +955,7 @@
           "model": "Model",
           "serial_number": "Serial number",
           "documentation_url": "Manual / documentation URL",
+          "notes": "Notes",
           "area_id": "Area",
           "installation_date": "Installation date",
           "go_back": "Go back"
@@ -959,6 +966,7 @@
           "model": "The model name or number.",
           "serial_number": "The serial number of the object.",
           "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
+          "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
           "area_id": "The area in your home where this object is located.",
           "installation_date": "When this object was installed or purchased.",
           "go_back": "Return to the main menu without saving."
