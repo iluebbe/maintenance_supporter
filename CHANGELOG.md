@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.5.2] - 2026-04-30
+
+### Add — 1-year window in the Calendar tab
+
+The Calendar tab's window chips were 7 / 14 / 30 days. Adding a 4th *"1 year"* chip lets users see annual planning at a glance — long-cycle tasks like brake-pad inspection, fire-extinguisher refill, or solar-panel cleaning that wouldn't appear in a 30-day window are now visible without leaving the panel.
+
+Naively rendering 365 day rows would drown the few real events under 300+ italic *"No maintenance"* lines. So the year view **collapses empty days** — only days with at least one event render — keeping the list scannable at any tab width. The 7/14/30 views are unchanged (preserve the calendar-grid feel).
+
+- `_calendarWindowDays` accepts `365`; the chip array becomes `[7, 14, 30, 365]`.
+- `cal_window_365` i18n key × 12 languages (e.g. *1 year* / *1 Jahr* / *1 рік* / *1 år*).
+- When `windowDays === 365`, `_renderCalendar` filters buckets to non-empty before rendering.
+- 16 calendar-bucket tests still pass (no semantic change — the helper produces all 365 buckets, the view layer collapses them).
+
+ruff ✓ · mypy strict ✓ · 39 frontend tests pass · live screenshots updated for both desktop + mobile (`calendar-tab-year.png`, `calendar-tab-mobile-year.png`).
+
 ## [1.5.1] - 2026-04-30
 
 ### Add — Source indicator + sensor-prediction confidence in the Calendar tab

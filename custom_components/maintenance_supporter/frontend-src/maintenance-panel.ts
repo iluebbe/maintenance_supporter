@@ -93,7 +93,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _objectSortMode: ObjectSortMode = "alphabetical";
   @state() private _groupByMode: GroupByMode = "none";
   // v1.5.0: Calendar tab state
-  @state() private _calendarWindowDays: 7 | 14 | 30 = 30;
+  // v1.5.2: 365-day option added — see _renderCalendar where empty days are
+  // collapsed in year view (300+ "No maintenance" rows otherwise drown the list).
+  @state() private _calendarWindowDays: 7 | 14 | 30 | 365 = 30;
   @state() private _calendarUserFilter: string = "";  // "" = all users
 
   private _statsService: StatisticsService | null = null;
@@ -942,12 +944,20 @@ export class MaintenanceSupporterPanel extends LitElement {
       `;
     };
 
+    // v1.5.2: collapse empty days in 365-day view — otherwise 300+
+    // "No maintenance" rows drown the few real events. Other windows
+    // keep all day rows (preserves the calendar-grid feel).
+    const hideEmptyDays = this._calendarWindowDays === 365;
+    const visibleBuckets = hideEmptyDays
+      ? buckets.filter((b) => b.events.length > 0)
+      : buckets;
+
     return html`
       <div class="cal-controls">
         <div class="cal-window-chips">
-          ${[7, 14, 30].map((w) => html`
+          ${[7, 14, 30, 365].map((w) => html`
             <button class="cal-window-chip ${this._calendarWindowDays === w ? "active" : ""}"
-              @click=${() => { this._calendarWindowDays = w as 7 | 14 | 30; }}>
+              @click=${() => { this._calendarWindowDays = w as 7 | 14 | 30 | 365; }}>
               ${t(`cal_window_${w}`, L)}
             </button>
           `)}
@@ -962,7 +972,9 @@ export class MaintenanceSupporterPanel extends LitElement {
         </select>
       </div>
       <div class="cal-rolling">
-        ${buckets.map(renderDayRow)}
+        ${visibleBuckets.length === 0 && hideEmptyDays
+          ? html`<div class="cal-empty">${t("cal_no_events", L)}</div>`
+          : visibleBuckets.map(renderDayRow)}
       </div>
     `;
   }
