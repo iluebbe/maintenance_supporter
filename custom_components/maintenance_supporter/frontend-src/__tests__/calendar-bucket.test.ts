@@ -212,4 +212,72 @@ describe("buildCalendarBuckets", () => {
     expect(events[1].date).to.equal(addDays(TODAY_ISO, 15));
     expect(events[2].date).to.equal(addDays(TODAY_ISO, 29));
   });
+
+  // v1.5.1: source indicator + prediction confidence
+  it("flags adaptive_enabled when adaptive_config.enabled is true", () => {
+    const buckets = buildCalendarBuckets(
+      [obj("HVAC", [task({
+        next_due: addDays(TODAY_ISO, 5),
+        adaptive_config: { enabled: true },
+      })])],
+      TODAY, 7
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events).to.have.length(1);
+    expect(events[0].adaptive_enabled).to.equal(true);
+    expect(events[0].prediction_confidence).to.equal(null);
+  });
+
+  it("propagates threshold_prediction_confidence for sensor-based tasks", () => {
+    const buckets = buildCalendarBuckets(
+      [obj("Pool", [task({
+        schedule_type: "sensor_based",
+        next_due: addDays(TODAY_ISO, 4),
+        threshold_prediction_confidence: "high",
+        interval_days: null,
+      })])],
+      TODAY, 14
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events).to.have.length(1);
+    expect(events[0].schedule_type).to.equal("sensor_based");
+    expect(events[0].prediction_confidence).to.equal("high");
+    expect(events[0].adaptive_enabled).to.equal(false);
+  });
+
+  it("downgrades status of projected occurrences from an overdue task to ok", () => {
+    // The May 7 projection of an overdue task should NOT inherit "overdue"
+    // — the projection is the assumption that the user completes today, so
+    // the projected slot is hypothetical and starts fresh.
+    const buckets = buildCalendarBuckets(
+      [obj("Pool", [task({
+        next_due: addDays(TODAY_ISO, -10),
+        status: "overdue",
+        days_until_due: -10,
+        interval_days: 7,
+      })])],
+      TODAY, 30
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events.length).to.be.greaterThan(1);
+    expect(events[0].status).to.equal("overdue");  // first occurrence on today
+    expect(events[0].projected).to.equal(false);
+    // All projected occurrences should read "ok"
+    for (const e of events.slice(1)) {
+      expect(e.projected).to.equal(true);
+      expect(e.status).to.equal("ok");
+      expect(e.days_until_due).to.equal(null);
+    }
+  });
+
+  it("defaults source fields to (false, null) when no metadata is present", () => {
+    const buckets = buildCalendarBuckets(
+      [obj("HVAC", [task({ next_due: addDays(TODAY_ISO, 2) })])],
+      TODAY, 7
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events).to.have.length(1);
+    expect(events[0].adaptive_enabled).to.equal(false);
+    expect(events[0].prediction_confidence).to.equal(null);
+  });
 });

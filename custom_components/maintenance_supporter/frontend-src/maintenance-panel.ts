@@ -881,12 +881,33 @@ export class MaintenanceSupporterPanel extends LitElement {
       const recurEvery = ev.projected && ev.interval_days
         ? html`<span class="cal-event-recur">${t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))}</span>`
         : nothing;
+      // v1.5.1: source indicator. Time-based gets a clock icon; sensor-based
+      // gets a trending-up icon (signals "predicted from sensor regression").
+      // Adaptive time-based tasks get a small auto-renew sparkle next to the
+      // clock to flag "interval is learning from completion history".
+      const isSensor = ev.schedule_type === "sensor_based";
+      const sourceIcon = isSensor
+        ? html`<ha-icon class="cal-event-icon cal-source-sensor"
+                title="${t("cal_source_sensor", L)}" icon="mdi:trending-up"></ha-icon>`
+        : html`<ha-icon class="cal-event-icon cal-source-time"
+                title="${ev.adaptive_enabled ? t("cal_source_time_adaptive", L) : t("cal_source_time", L)}"
+                icon="${ev.adaptive_enabled ? "mdi:clock-time-four-outline" : "mdi:clock-outline"}"></ha-icon>`;
+      // Sensor-based subtitle: "predicted · {confidence}" — only for events
+      // that are not already triggered (status pill carries that signal).
+      const predictionSubtitle = isSensor && ev.prediction_confidence
+        && ev.status !== "triggered" && !ev.projected
+        ? html`<span class="cal-event-prediction cal-conf-${ev.prediction_confidence}">
+            ${t("cal_predicted", L)} · ${t(`cal_confidence_${ev.prediction_confidence}`, L)}
+          </span>`
+        : nothing;
       return html`
         <div class="cal-event ${projClass}"
           @click=${() => this._showTask(ev.entry_id, ev.task_id)}>
+          ${sourceIcon}
           <span class="cal-status-pill ${statusClass}">${t(ev.status, L)}</span>
           <div class="cal-event-body">
             <div class="cal-event-title">${ev.object_name} · ${ev.task_name}${overdueLabel}</div>
+            ${predictionSubtitle}
             ${recurEvery}
           </div>
           ${ev.avg_cost != null && ev.avg_cost > 0

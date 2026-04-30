@@ -33,6 +33,11 @@ export interface CalendarEvent {
   interval_days: number | null;
   responsible_user_id: string | null;
   avg_cost: number | null;
+  /** v1.5.1: source indicator. */
+  adaptive_enabled: boolean;
+  /** v1.5.1: sensor prediction confidence ("low" | "medium" | "high") or null
+   *  for time-based / no prediction available. */
+  prediction_confidence: string | null;
 }
 
 export interface CalendarDayBucket {
@@ -102,13 +107,23 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     task_id: task.id,
     task_name: task.name,
     object_name: objectName,
-    status: task.status,
-    days_until_due: task.days_until_due ?? null,
+    // Projected recurrences are hypothetical future occurrences that assume
+    // the current cycle resolves on schedule. If the parent task is currently
+    // overdue/triggered, carrying that status forward to the projection (e.g.
+    // "OVERDUE 211d" on the May 7 projection of a 7-day-interval task) is
+    // misleading — the projection IS the assumption that the user completes
+    // it today, so the projected slot should read as a fresh "ok" event.
+    status: projected && (task.status === "overdue" || task.status === "triggered")
+      ? "ok"
+      : task.status,
+    days_until_due: projected ? null : (task.days_until_due ?? null),
     projected,
     schedule_type: task.schedule_type,
     interval_days: task.interval_days ?? null,
     responsible_user_id: task.responsible_user_id ?? null,
     avg_cost: computeAvgCost(task.history),
+    adaptive_enabled: !!task.adaptive_config?.enabled,
+    prediction_confidence: task.threshold_prediction_confidence ?? null,
   });
 
   // Overdue / triggered → bucket on today (windowStart) regardless of next_due

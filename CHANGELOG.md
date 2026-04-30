@@ -2,6 +2,24 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.5.1] - 2026-04-30
+
+### Add — Source indicator + sensor-prediction confidence in the Calendar tab
+
+The v1.5.0 Calendar tab showed *what* was due but not *why that date*. Time-based tasks (interval since last completion) and sensor-based tasks (regression-predicted threshold crossing) looked identical — same date pill, same status pill. v1.5.1 adds a small icon and an optional confidence badge so users can tell at a glance whether a calendar entry is a hard deadline or a sensor estimate.
+
+- **Time-based** events get an `mdi:clock-outline` icon (or `mdi:clock-time-four-outline` when adaptive scheduling is on, signalling "the interval is being learned from completion history").
+- **Sensor-based** events get an `mdi:trending-up` icon in the HA primary color.
+- For sensor-based events that aren't already `triggered`, a small pill below the title shows *"predicted · {high|medium|low} confidence"* using the existing `threshold_prediction_confidence` from the WS payload. The pill border + text colour reflects the confidence (green / amber / red) so a low-confidence prediction is visually softer than a high-confidence one.
+- Implementation is purely additive: `CalendarEvent` gains `adaptive_enabled: boolean` and `prediction_confidence: string | null`; the bucketing helper reads them from the existing task payload (`adaptive_config.enabled`, `threshold_prediction_confidence`) — no backend changes.
+- 7 new i18n keys × 12 languages (`cal_source_time`, `cal_source_time_adaptive`, `cal_source_sensor`, `cal_predicted`, `cal_confidence_high/medium/low`).
+
+### Fix — Projected recurrences of overdue tasks no longer show "OVERDUE 211d"
+
+Caught while testing the icons: a 7-day-interval task that's currently 211 days overdue projected its next 4 occurrences with status `overdue` and *"211d overdue"* suffix — misleading, because each projection IS the assumption that the user completes today and the cycle resets. Projected slots now downgrade to `ok` status and clear `days_until_due`, so a recurring overdue task reads "OVERDUE today, then OK on May 7, OK on May 14, …" instead of "OVERDUE 211d × 5".
+
+ruff ✓ · mypy strict ✓ · 16 calendar-bucket tests pass (added 4) · live screenshot updated.
+
 ## [1.5.0] - 2026-04-30
 
 ### Add — Calendar tab with rolling view + recurring projection
