@@ -320,7 +320,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                     1,
                                     int(si * env.adjustment_factor),
                                 )
-                except Exception:
+                except Exception:  # noqa: BLE001 - one task's prediction failure must not break the whole coordinator update
                     _LOGGER.debug(
                         "Sensor prediction failed for task %s",
                         task_id,

@@ -38,8 +38,14 @@ from ..const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Sentinel value: interval=0 means "notify once, never repeat"
-_SENT_ONCE = datetime.max
+# Sentinel value: interval=0 means "notify once, never repeat".
+# A naive datetime.max is intentionally NOT comparable with the timezone-aware
+# values stored elsewhere in self._last_notified — every code path that touches
+# this sentinel guards on equality (`last == _SENT_ONCE` / `last != _SENT_ONCE`)
+# BEFORE attempting any subtraction, so the naive/aware mix never reaches an
+# arithmetic operation. Replacing with a tz-aware version would still work but
+# adds noise; the sentinel is a singleton, not a real timestamp.
+_SENT_ONCE = datetime.max  # noqa: DTZ901 - intentional naive sentinel, see comment above
 
 # --- Notification message translations ---
 _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {

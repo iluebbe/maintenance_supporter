@@ -51,7 +51,7 @@ def build_qr_url(
         try:
             from homeassistant.helpers.network import get_url
             base = get_url(hass).rstrip("/")
-        except Exception:
+        except Exception:  # noqa: BLE001 - get_url() can raise NoURLAvailableError + various network helpers
             if hass.config.external_url:
                 base = hass.config.external_url.rstrip("/")
             elif hass.config.internal_url:
