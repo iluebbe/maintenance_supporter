@@ -140,6 +140,9 @@ class TestThresholdTrigger:
         assert trigger.evaluate(60.0) is False
         # Timer started but not fired yet
         assert trigger._threshold_exceeded is True
+        # Cancel the for-minutes timer so HA's strict test-mode doesn't flag
+        # a lingering call_later at teardown.
+        await trigger.async_teardown()
 
     async def test_threshold_reset_on_normal(self, hass: HomeAssistant) -> None:
         """Test threshold resets when value returns to normal."""
@@ -215,6 +218,9 @@ class TestThresholdTrigger:
         assert trigger._timer_cancel is not None
         # exceeded_since_dt consumed
         assert trigger._exceeded_since_dt is None
+        # Cancel the recovered for-minutes timer so HA's strict test-mode
+        # doesn't flag a lingering call_later at teardown.
+        await trigger.async_teardown()
 
     async def test_threshold_restart_recovery_value_normal(
         self, hass: HomeAssistant
@@ -261,6 +267,9 @@ class TestThresholdTrigger:
         call_args = coordinator.async_persist_trigger_runtime.call_args
         assert "threshold_exceeded_since" in call_args[0][1]
         assert call_args[0][1]["threshold_exceeded_since"] == trigger._exceeded_since
+        # Cancel the for-minutes timer so HA's strict test-mode doesn't flag
+        # a lingering call_later at teardown.
+        await trigger.async_teardown()
 
     async def test_threshold_for_minutes_zero_no_persistence(
         self, hass: HomeAssistant
