@@ -42,6 +42,7 @@
           "model": "Model",
           "serial_number": "Sériové číslo",
           "documentation_url": "URL návodu / dokumentace",
+          "notes": "Poznámky",
           "go_back": "Zpět"
         },
         "data_description": {
@@ -51,6 +52,7 @@
           "model": "Název nebo číslo modelu.",
           "serial_number": "Sériové číslo objektu.",
           "documentation_url": "Volitelný odkaz na návod v PDF, stránku výrobce nebo libovolnou URL s referenčními informacemi pro tento objekt.",
+          "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
           "go_back": "Návrat na výběr šablony bez uložení."
         }
       },
@@ -79,6 +81,7 @@
           "serial_number": "Sériové číslo",
           "installation_date": "Datum instalace",
           "documentation_url": "URL návodu / dokumentace",
+          "notes": "Poznámky",
           "go_back": "Zpět"
         },
         "data_description": {
@@ -89,6 +92,7 @@
           "serial_number": "Sériové číslo objektu.",
           "installation_date": "Kdy byl objekt instalován nebo zakoupen.",
           "documentation_url": "Volitelný odkaz na návod v PDF, stránku výrobce nebo libovolnou URL s referenčními informacemi pro tento objekt.",
+          "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
           "go_back": "Návrat do hlavní nabídky bez uložení."
         }
       },
@@ -375,6 +379,7 @@
           "model": "Model",
           "serial_number": "Sériové číslo",
           "documentation_url": "URL návodu / dokumentace",
+          "notes": "Poznámky",
           "installation_date": "Datum instalace"
         },
         "data_description": {
@@ -384,6 +389,7 @@
           "model": "Model tohoto objektu.",
           "serial_number": "Sériové číslo tohoto objektu.",
           "documentation_url": "Volitelný odkaz na návod v PDF, stránku výrobce nebo libovolnou URL s referenčními informacemi pro tento objekt.",
+          "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
           "installation_date": "Kdy byl objekt instalován."
         }
       }
@@ -949,6 +955,7 @@
           "model": "Model",
           "serial_number": "Sériové číslo",
           "documentation_url": "URL návodu / dokumentace",
+          "notes": "Poznámky",
           "area_id": "Oblast",
           "installation_date": "Datum instalace",
           "go_back": "Zpět"
@@ -959,6 +966,7 @@
           "model": "Název nebo číslo modelu.",
           "serial_number": "Sériové číslo objektu.",
           "documentation_url": "Volitelný odkaz na návod v PDF, stránku výrobce nebo libovolnou URL s referenčními informacemi pro tento objekt.",
+          "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
           "area_id": "Oblast ve vašem domě, kde se objekt nachází.",
           "installation_date": "Kdy byl objekt instalován nebo zakoupen.",
           "go_back": "Návrat do hlavní nabídky bez uložení."

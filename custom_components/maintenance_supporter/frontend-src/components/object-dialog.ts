@@ -20,6 +20,8 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _installationDate = "";
   // v1.4.0 (#43): per-object link to PDF manual / vendor page
   @state() private _documentationUrl = "";
+  // v1.4.10 (#46): free-form notes (multiline)
+  @state() private _notes = "";
   @state() private _entryId: string | null = null; // null = create, string = update
 
   private get _lang(): string {
@@ -35,6 +37,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._areaId = "";
     this._installationDate = "";
     this._documentationUrl = "";
+    this._notes = "";
     this._error = "";
     this._open = true;
   }
@@ -48,6 +51,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._areaId = obj.area_id || "";
     this._installationDate = obj.installation_date || "";
     this._documentationUrl = obj.documentation_url || "";
+    this._notes = obj.notes || "";
     this._error = "";
     this._open = true;
   }
@@ -68,6 +72,7 @@ export class MaintenanceObjectDialog extends LitElement {
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
           documentation_url: this._documentationUrl.trim() || null,
+          notes: this._notes.trim() || null,
         });
       } else {
         await this.hass.connection.sendMessagePromise({
@@ -79,6 +84,7 @@ export class MaintenanceObjectDialog extends LitElement {
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
           documentation_url: this._documentationUrl.trim() || null,
+          notes: this._notes.trim() || null,
         });
       }
       this._open = false;
@@ -143,6 +149,13 @@ export class MaintenanceObjectDialog extends LitElement {
             .value=${this._installationDate}
             @input=${(e: Event) => (this._installationDate = (e.target as HTMLInputElement).value)}
           ></ha-textfield>
+          <ha-textarea
+            label="${t("object_notes_optional", L)}"
+            autogrow
+            rows="3"
+            .value=${this._notes}
+            @input=${(e: Event) => (this._notes = (e.target as HTMLTextAreaElement).value)}
+          ></ha-textarea>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
@@ -177,7 +190,8 @@ export class MaintenanceObjectDialog extends LitElement {
       gap: 8px;
       padding-top: 16px;
     }
-    ha-textfield {
+    ha-textfield,
+    ha-textarea {
       display: block;
     }
     .error {

@@ -111,6 +111,7 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 | `serial_number` | string | `""` | Serial number (shown in device info, redacted in diagnostics) |
 | `installation_date` | date | `""` | Date the object was installed or purchased |
 | `documentation_url` (1.4.0+) | string (URL) | `""` | Link to PDF manual / vendor page / setup guide for this object. Only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are rejected. Shown as a clickable link in the panel object-detail header AND on every task-detail page belonging to this object (1.4.1+) so the manual is always one click away from any maintenance task |
+| `notes` (1.4.10+) | string (multiline, ≤2000 chars) | `""` | Free-form notes about the object — part numbers, replacement procedures, settings reminders, "spare key in garage drawer", etc. Newlines and indentation are preserved (`white-space: pre-wrap`). Shown in a dedicated, left-bordered block under the object meta in the panel object-detail header. Editable via panel object dialog or *Object settings* in the config flow |
 
 ---
 

@@ -144,6 +144,8 @@ CONF_OBJECT_SERIAL_NUMBER = "serial_number"
 CONF_OBJECT_INSTALLATION_DATE = "installation_date"
 # v1.4.0 (#43): per-object link to PDF manual / vendor page
 CONF_OBJECT_DOCUMENTATION_URL = "documentation_url"
+# v1.4.10 (#46): per-object free-form notes (part numbers, procedures, etc.)
+CONF_OBJECT_NOTES = "notes"
 
 # --- Config Keys: Task ---
 CONF_TASKS = "tasks"

@@ -1516,6 +1516,12 @@ export class MaintenanceSupporterPanel extends LitElement {
             </p>`
           : nothing}
         ${o.installation_date ? html`<p class="meta">${t("installed", L)}: ${formatDate(o.installation_date, L)}</p>` : nothing}
+        ${o.notes
+          ? html`<div class="object-notes">
+              <div class="object-notes-label">${t("object_notes_label", L)}</div>
+              <div class="object-notes-body">${o.notes}</div>
+            </div>`
+          : nothing}
 
         <h3>${t("tasks", L)} (${obj.tasks.length})</h3>
         ${obj.tasks.length === 0

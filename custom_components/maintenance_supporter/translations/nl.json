@@ -42,6 +42,7 @@
           "model": "Model",
           "serial_number": "Serienummer",
           "documentation_url": "Handleiding / documentatie-URL",
+          "notes": "Notities",
           "go_back": "Terug"
         },
         "data_description": {
@@ -51,6 +52,7 @@
           "model": "De modelnaam of het nummer.",
           "serial_number": "Het serienummer van het object.",
           "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
+          "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
           "go_back": "Terug naar sjabloonselectie zonder op te slaan."
         }
       },
@@ -78,6 +80,7 @@
           "model": "Model",
           "serial_number": "Serienummer",
           "documentation_url": "Handleiding / documentatie-URL",
+          "notes": "Notities",
           "installation_date": "Installatiedatum",
           "go_back": "Terug"
         },
@@ -88,6 +91,7 @@
           "model": "De modelnaam of het nummer.",
           "serial_number": "Het serienummer van het object.",
           "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
+          "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
@@ -375,6 +379,7 @@
           "model": "Model",
           "serial_number": "Serienummer",
           "documentation_url": "Handleiding / documentatie-URL",
+          "notes": "Notities",
           "installation_date": "Installatiedatum"
         },
         "data_description": {
@@ -384,6 +389,7 @@
           "model": "Het model van dit object.",
           "serial_number": "Het serienummer van dit object.",
           "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
+          "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
           "installation_date": "Wanneer dit object is geïnstalleerd."
         }
       }
@@ -949,6 +955,7 @@
           "model": "Model",
           "serial_number": "Serienummer",
           "documentation_url": "Handleiding / documentatie-URL",
+          "notes": "Notities",
           "area_id": "Gebied",
           "installation_date": "Installatiedatum",
           "go_back": "Terug"
@@ -959,6 +966,7 @@
           "model": "De modelnaam of het nummer.",
           "serial_number": "Het serienummer van het object.",
           "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
+          "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
           "area_id": "Het gebied in uw huis waar dit object zich bevindt.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
           "go_back": "Terug naar het hoofdmenu zonder opslaan."

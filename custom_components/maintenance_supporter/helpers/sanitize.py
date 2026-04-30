@@ -52,6 +52,7 @@ _OBJECT_STR_LIMITS: dict[str, int] = {
     "area_id": MAX_META_LENGTH,
     "installation_date": MAX_DATE_LENGTH,
     "documentation_url": MAX_URL_LENGTH,  # v1.4.0 #43
+    "notes": MAX_TEXT_LENGTH,  # v1.4.10 #46
 }
 
 _GROUP_STR_LIMITS: dict[str, int] = {

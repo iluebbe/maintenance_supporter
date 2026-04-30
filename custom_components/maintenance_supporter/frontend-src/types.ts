@@ -10,6 +10,8 @@ export interface MaintenanceObject {
   installation_date?: string | null;
   /** v1.4.0 (#43): optional link to PDF manual / vendor page for the object */
   documentation_url?: string | null;
+  /** v1.4.10 (#46): free-form notes — part numbers, procedures, etc. */
+  notes?: string | null;
 }
 
 export interface TriggerConfig {

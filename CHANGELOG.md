@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.4.10] - 2026-04-30
+
+### Add — Free-form `notes` field on objects (#46)
+
+Reported in [#46](https://github.com/iluebbe/maintenance_supporter/issues/46) by B Y on GitHub: tasks already had a `notes` field, but objects didn't — so part numbers, replacement procedures, and "spare key in garage drawer" notes had nowhere natural to live. Added the parallel field on objects.
+
+- Model (`models/maintenance_object.py`) gains a `notes: str | None` attribute alongside the existing `documentation_url`.
+- Backend wiring: `CONF_OBJECT_NOTES`, sanitize cap (`MAX_TEXT_LENGTH = 2000`), WS create/update schemas + handlers in `websocket/objects.py`, and `_build_object_response` so the value reaches the panel.
+- Config flow: optional multiline `TextSelector` in the *create_object*, *reconfigure*, and *object_settings* steps.
+- Panel: dedicated "Notes" block under the object detail header — left-bordered card, label uppercase, body uses `white-space: pre-wrap` so newlines and indentation render exactly as typed.
+- Object dialog: new `<ha-textarea>` (autogrow, 3 rows) below installation date.
+- i18n: 12 languages × 2 keys (`object_notes_label`, `object_notes_optional`) plus 12 × 4 config-flow steps in `translations/*.json` and `strings.json`.
+
+ruff ✓ · mypy strict ✓ · 24 object WS tests pass (added `test_ws_create_and_update_object_with_notes` and `test_build_object_response_exposes_notes`).
+
 ## [1.4.9] - 2026-04-27
 
 ### Refactor — Currency moved out of *Budget* into *General settings*

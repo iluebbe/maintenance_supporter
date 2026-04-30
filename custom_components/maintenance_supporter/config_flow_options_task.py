@@ -33,6 +33,7 @@ from .const import (
     CONF_OBJECT_MANUFACTURER,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
+    CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
     CONF_RESPONSIBLE_USER_ID,
     CONF_SENSOR_PREDICTION_ENABLED,
@@ -1417,6 +1418,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             obj[CONF_OBJECT_DOCUMENTATION_URL] = (
                 user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
             )
+            # v1.4.10 (#46)
+            obj[CONF_OBJECT_NOTES] = (
+                (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
+            )
             cap_object_fields(obj)
             new_data[CONF_OBJECT] = obj
 
@@ -1474,6 +1479,16 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         default=obj.get("documentation_url") or "",
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
+                    ),
+                    # v1.4.10 (#46): free-form notes (multiline)
+                    vol.Optional(
+                        CONF_OBJECT_NOTES,
+                        default=obj.get("notes") or "",
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                            multiline=True,
+                        )
                     ),
                     area_key: selector.AreaSelector(),
                     install_date_key: selector.DateSelector(),

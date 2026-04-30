@@ -42,6 +42,7 @@
           "model": "Modell",
           "serial_number": "Serienummer",
           "documentation_url": "URL till manual / dokumentation",
+          "notes": "Anteckningar",
           "go_back": "Tillbaka"
         },
         "data_description": {
@@ -51,6 +52,7 @@
           "model": "Modellnamn eller -nummer.",
           "serial_number": "Objektets serienummer.",
           "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
           "go_back": "Återgå till val av mall utan att spara."
         }
       },
@@ -79,6 +81,7 @@
           "serial_number": "Serienummer",
           "installation_date": "Installationsdatum",
           "documentation_url": "URL till manual / dokumentation",
+          "notes": "Anteckningar",
           "go_back": "Tillbaka"
         },
         "data_description": {
@@ -89,6 +92,7 @@
           "serial_number": "Objektets serienummer.",
           "installation_date": "När objektet installerades eller köptes.",
           "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
           "go_back": "Återgå till huvudmenyn utan att spara."
         }
       },
@@ -375,6 +379,7 @@
           "model": "Modell",
           "serial_number": "Serienummer",
           "documentation_url": "URL till manual / dokumentation",
+          "notes": "Anteckningar",
           "installation_date": "Installationsdatum"
         },
         "data_description": {
@@ -384,6 +389,7 @@
           "model": "Modellen av detta objekt.",
           "serial_number": "Serienumret för detta objekt.",
           "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
           "installation_date": "När detta objekt installerades."
         }
       }
@@ -949,6 +955,7 @@
           "model": "Modell",
           "serial_number": "Serienummer",
           "documentation_url": "URL till manual / dokumentation",
+          "notes": "Anteckningar",
           "area_id": "Område",
           "installation_date": "Installationsdatum",
           "go_back": "Tillbaka"
@@ -959,6 +966,7 @@
           "model": "Modellnamn eller -nummer.",
           "serial_number": "Objektets serienummer.",
           "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
+          "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
           "area_id": "Området i ditt hem där objektet är placerat.",
           "installation_date": "När objektet installerades eller köptes.",
           "go_back": "Återgå till huvudmenyn utan att spara."

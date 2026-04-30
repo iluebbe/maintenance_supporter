@@ -206,6 +206,8 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             # renders in the object detail header AND, since v1.4.1, on
             # every task detail page belonging to this object.
             "documentation_url": obj_data.get("documentation_url"),
+            # v1.4.10 (#46): free-form notes shown below the meta block.
+            "notes": obj_data.get("notes"),
         },
         "tasks": tasks,
     }

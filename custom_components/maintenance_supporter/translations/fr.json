@@ -42,6 +42,7 @@
           "model": "Modèle",
           "serial_number": "Numéro de série",
           "documentation_url": "URL du manuel / documentation",
+          "notes": "Notes",
           "go_back": "Retour"
         },
         "data_description": {
@@ -51,6 +52,7 @@
           "model": "Le nom ou numéro de modèle.",
           "serial_number": "Le numéro de série de l'objet.",
           "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
+          "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
           "go_back": "Retourner à la sélection de modèle sans sauvegarder."
         }
       },
@@ -78,6 +80,7 @@
           "model": "Modèle",
           "serial_number": "Numéro de série",
           "documentation_url": "URL du manuel / documentation",
+          "notes": "Notes",
           "installation_date": "Date d'installation",
           "go_back": "Retour"
         },
@@ -88,6 +91,7 @@
           "model": "Le nom ou numéro de modèle.",
           "serial_number": "Le numéro de série de l'objet.",
           "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
+          "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
           "installation_date": "Date d'installation ou d'achat de cet objet.",
           "go_back": "Retourner au menu principal sans sauvegarder."
         }
@@ -375,6 +379,7 @@
           "model": "Modèle",
           "serial_number": "Numéro de série",
           "documentation_url": "URL du manuel / documentation",
+          "notes": "Notes",
           "installation_date": "Date d'installation"
         },
         "data_description": {
@@ -384,6 +389,7 @@
           "model": "Le modèle de cet objet.",
           "serial_number": "Le numéro de série de cet objet.",
           "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
+          "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
           "installation_date": "Quand cet objet a été installé."
         }
       }
@@ -949,6 +955,7 @@
           "model": "Modèle",
           "serial_number": "Numéro de série",
           "documentation_url": "URL du manuel / documentation",
+          "notes": "Notes",
           "area_id": "Zone",
           "installation_date": "Date d'installation",
           "go_back": "Retour"
@@ -959,6 +966,7 @@
           "model": "Le nom ou numéro de modèle.",
           "serial_number": "Le numéro de série de l'objet.",
           "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
+          "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
           "area_id": "La zone de votre maison où se trouve cet objet.",
           "installation_date": "Quand cet objet a été installé ou acheté.",
           "go_back": "Retour au menu principal sans enregistrer."

@@ -322,6 +322,68 @@ async def test_ws_create_and_update_object_with_documentation_url(
     assert entries[0].data[CONF_OBJECT]["documentation_url"] == "https://vendor.example/Quick-Guide.pdf"
 
 
+async def test_ws_create_and_update_object_with_notes(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """v1.4.10 (#46): notes round-trips through create + update.
+
+    Notes are free-form multiline text. They strip leading/trailing whitespace
+    but preserve internal newlines. Empty string clears to None.
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Update with multiline note → persisted, internal newlines kept
+    note = "Filter: PN ACE-7800-X\nReplacement procedure: 1. Power off  2. Open\n3. Replace cartridge"
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "notes": note,
+    })
+    conn.send_result.assert_called_once()
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    assert entry.data[CONF_OBJECT]["notes"] == note
+
+    # Whitespace-only string → cleared to None (treated as "no notes")
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": 2, "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "notes": "   \n  ",
+    })
+    conn.send_result.assert_called_once()
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry.data[CONF_OBJECT]["notes"] is None
+
+    # Explicit null → cleared
+    conn = _mock_connection()
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": 3, "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "notes": None,
+    })
+    conn.send_result.assert_called_once()
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry.data[CONF_OBJECT]["notes"] is None
+
+    # Create with notes → persisted on the new entry
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_object, hass, conn, {
+        "id": 4, "type": "maintenance_supporter/object/create",
+        "name": "Object With Notes",
+        "notes": "Spare key in garage drawer",
+    })
+    conn.send_result.assert_called_once()
+    entries = [
+        e for e in hass.config_entries.async_entries("maintenance_supporter")
+        if e.title == "Object With Notes"
+    ]
+    assert len(entries) == 1
+    assert entries[0].data[CONF_OBJECT]["notes"] == "Spare key in garage drawer"
+
+
 async def test_ws_update_object_not_found(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
@@ -587,3 +649,44 @@ def test_build_object_response_exposes_documentation_url_value(
         "documentation_url must round-trip through _build_object_response so "
         "the panel can render the manual link"
     )
+
+
+def test_build_object_response_exposes_notes(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """v1.4.10 (#46): a saved notes string must reach the frontend.
+
+    Mirrors the documentation_url regression test — the same `_build_object_response`
+    path is the only conduit between the entry data and the panel renderer.
+    """
+    from .conftest import build_object_data, build_object_entry_data
+
+    obj_data = build_object_data(name="With Notes")
+    obj_data["notes"] = "PN ACE-7800-X\nProcedure: see manual"
+    entry = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="With Notes",
+        data=build_object_entry_data(object_data=obj_data, tasks={}),
+        source="user",
+        unique_id="maintenance_supporter_with_notes",
+    )
+    entry.add_to_hass(hass)
+
+    result = _build_object_response(hass, entry, None)
+    assert result["object"]["notes"] == "PN ACE-7800-X\nProcedure: see manual", (
+        "notes must round-trip through _build_object_response so the "
+        "panel can render the notes block in the object detail header"
+    )
+    # Also verify the key is always present even when notes are unset
+    obj_data_empty = build_object_data(name="Without Notes")
+    entry2 = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="Without Notes",
+        data=build_object_entry_data(object_data=obj_data_empty, tasks={}),
+        source="user",
+        unique_id="maintenance_supporter_without_notes",
+    )
+    entry2.add_to_hass(hass)
+    result2 = _build_object_response(hass, entry2, None)
+    assert "notes" in result2["object"]
+    assert result2["object"]["notes"] is None

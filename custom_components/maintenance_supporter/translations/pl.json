@@ -42,6 +42,7 @@
           "model": "Model",
           "serial_number": "Numer seryjny",
           "documentation_url": "URL instrukcji / dokumentacji",
+          "notes": "Notatki",
           "go_back": "Wróć"
         },
         "data_description": {
@@ -51,6 +52,7 @@
           "model": "Nazwa lub numer modelu.",
           "serial_number": "Numer seryjny obiektu.",
           "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
+          "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
           "go_back": "Wróć do wyboru szablonu bez zapisywania."
         }
       },
@@ -78,6 +80,7 @@
           "model": "Model",
           "serial_number": "Numer seryjny",
           "documentation_url": "URL instrukcji / dokumentacji",
+          "notes": "Notatki",
           "installation_date": "Data instalacji",
           "go_back": "Wróć"
         },
@@ -88,6 +91,7 @@
           "model": "Nazwa lub numer modelu.",
           "serial_number": "Numer seryjny obiektu.",
           "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
+          "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
           "go_back": "Wróć do menu głównego bez zapisywania."
         }
@@ -375,6 +379,7 @@
           "model": "Model",
           "serial_number": "Numer seryjny",
           "documentation_url": "URL instrukcji / dokumentacji",
+          "notes": "Notatki",
           "installation_date": "Data instalacji"
         },
         "data_description": {
@@ -384,6 +389,7 @@
           "model": "Model obiektu.",
           "serial_number": "Numer seryjny obiektu.",
           "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
+          "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
           "installation_date": "Kiedy obiekt został zainstalowany."
         }
       }
@@ -949,6 +955,7 @@
           "model": "Model",
           "serial_number": "Numer seryjny",
           "documentation_url": "URL instrukcji / dokumentacji",
+          "notes": "Notatki",
           "area_id": "Obszar",
           "installation_date": "Data instalacji",
           "go_back": "Wróć"
@@ -959,6 +966,7 @@
           "model": "Nazwa lub numer modelu.",
           "serial_number": "Numer seryjny obiektu.",
           "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
+          "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
           "area_id": "Obszar w domu, w którym znajduje się ten obiekt.",
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
           "go_back": "Wróć do menu głównego bez zapisywania."
