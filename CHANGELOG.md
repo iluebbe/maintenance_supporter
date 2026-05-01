@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.5.3] - 2026-05-01
+
+### Fix — Object area now stays in sync with the HA device area (#48)
+
+Editing an object's area in the dashboard updated the object's record but never reached HA's device registry, so the device kept whatever area it got at first creation (or none). Conversely, changing the device's area in HA's UI never made it back to the dashboard. Both sides now sync after the initial creation.
+
+`DeviceInfo.suggested_area` is a creation-only hint — HA never re-applies it to an existing device. The fix adds two listeners:
+
+- **Forward (obj → device)**: a per-entry update listener pushes obj fields into `device_registry.async_update_device()` when the entry data changes. Covers `area_id`, `name`, `manufacturer`, `model`, `serial_number` — the dashboard had the same dual-storage bug for all five.
+- **Reverse (device → obj)**: a global `EVENT_DEVICE_REGISTRY_UPDATED` listener mirrors `device.area_id` back into the object when the user changes the area in HA's device settings. Loop-prevention: each listener no-ops when both sides already match.
+
+`name_by_user` (HA's sticky-override semantic) is intentionally left alone — only area is synced bidirectionally. Verified in Docker for all 7 in-scope sync paths and pinned with 5 new pytest cases.
+
+ruff ✓ · mypy strict ✓ · 1578 tests pass.
+
 ## [1.5.2] - 2026-04-30
 
 ### Add — 1-year window in the Calendar tab

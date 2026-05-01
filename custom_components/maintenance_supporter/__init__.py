@@ -9,7 +9,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import Event, HomeAssistant, ServiceCall
+from homeassistant.core import Event, HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import (
     config_validation as cv,
@@ -35,6 +35,7 @@ from .const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_GROUPS,
+    CONF_OBJECT,
     CONF_PANEL_ENABLED,
     CONF_TASKS,
     DOMAIN,
@@ -337,9 +338,48 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     unsub_action = register_action_listener(hass)
 
+    # v1.5.3 (#48): reverse-sync HA device.area_id → obj.area_id when the user
+    # changes the area in the HA UI / device settings. The forward sync
+    # (obj.area_id → device.area_id) happens via the per-entry update listener
+    # registered in async_setup_entry. Together these two listeners keep the
+    # dashboard area and the HA device area in sync after the initial creation
+    # (DeviceInfo.suggested_area only fires once, on first device creation).
+    @callback
+    def _on_device_registry_update(
+        event: Event[dr.EventDeviceRegistryUpdatedData],
+    ) -> None:
+        if event.data["action"] != "update":
+            return
+        changes = event.data.get("changes") or {}
+        if "area_id" not in changes:
+            return
+        device_id = event.data["device_id"]
+        device = dr.async_get(hass).async_get(device_id)
+        if device is None:
+            return
+        for ce_id in device.config_entries:
+            ce = hass.config_entries.async_get_entry(ce_id)
+            if (
+                ce is None
+                or ce.domain != DOMAIN
+                or ce.unique_id == GLOBAL_UNIQUE_ID
+            ):
+                continue
+            obj = dict(ce.data.get(CONF_OBJECT, {}))
+            if obj.get("area_id") == device.area_id:
+                return  # already in sync — break the loop with the forward listener
+            obj["area_id"] = device.area_id
+            new_data = {**ce.data, CONF_OBJECT: obj}
+            hass.config_entries.async_update_entry(ce, data=new_data)
+            return
+
+    unsub_device = hass.bus.async_listen(
+        dr.EVENT_DEVICE_REGISTRY_UPDATED, _on_device_registry_update
+    )
+
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
     hass.data[DOMAIN]["_event_unsubs"] = [
-        unsub_notification, unsub_tag, unsub_action,
+        unsub_notification, unsub_tag, unsub_action, unsub_device,
     ]
 
     return True
@@ -500,6 +540,16 @@ async def async_setup_entry(
         )
         await coordinator.async_config_entry_first_refresh()
 
+        # v1.5.3 (#48): forward-sync obj fields → device_registry whenever the
+        # entry data changes (WS update OR config-flow re-edit). DeviceInfo
+        # only seeds these on first device creation; after that, dashboard
+        # edits never reach the device unless we push them. Combined with the
+        # global EVENT_DEVICE_REGISTRY_UPDATED listener registered in
+        # async_setup, this gives the area a true bidirectional sync.
+        entry.async_on_unload(
+            entry.add_update_listener(_async_sync_obj_to_device)
+        )
+
         # Notify WS subscribers that a new object entry is available
         from homeassistant.helpers.dispatcher import async_dispatcher_send
 
@@ -513,6 +563,41 @@ async def async_setup_entry(
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def _async_sync_obj_to_device(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
+    """Push obj.* (area_id, name, manufacturer, model, serial_number) → device.
+
+    Fires whenever an object entry's data is updated. Without this, the
+    dashboard's WS update of obj.area_id never reaches HA's device_registry,
+    so the device stays stuck on whatever DeviceInfo.suggested_area set at
+    first creation (issue #48).
+    """
+    obj = entry.data.get(CONF_OBJECT, {}) or {}
+    dev_reg = dr.async_get(hass)
+    devices = dr.async_entries_for_config_entry(dev_reg, entry.entry_id)
+    obj_name = obj.get("name")
+    obj_area = obj.get("area_id")
+    obj_manu = obj.get("manufacturer")
+    obj_model = obj.get("model")
+    obj_serial = obj.get("serial_number")
+    for device in devices:
+        kwargs: dict[str, Any] = {}
+        if device.area_id != obj_area:
+            kwargs["area_id"] = obj_area
+        # Only push name when obj has one (HA requires non-empty device.name).
+        if obj_name and device.name != obj_name:
+            kwargs["name"] = obj_name
+        if device.manufacturer != obj_manu:
+            kwargs["manufacturer"] = obj_manu
+        if device.model != obj_model:
+            kwargs["model"] = obj_model
+        if device.serial_number != obj_serial:
+            kwargs["serial_number"] = obj_serial
+        if kwargs:
+            dev_reg.async_update_device(device.id, **kwargs)
 
 
 async def _async_global_options_updated(
