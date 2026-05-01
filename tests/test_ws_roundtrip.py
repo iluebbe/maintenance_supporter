@@ -20,12 +20,13 @@ suites cover specific reported issues end-to-end.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
@@ -1286,7 +1287,7 @@ async def test_vacation_is_active_inside_window(
 ) -> None:
     """A window that contains today flips is_active to True."""
     await setup_integration(hass, global_entry)
-    today = date.today()
+    today = dt_util.now().date()
     state = await _vac_call(
         hass,
         ws_vacation_update,
@@ -1305,7 +1306,7 @@ async def test_vacation_end_now_disables_and_clamps_end(
 ) -> None:
     """end_now sets enabled=False and clamps end to today (history record)."""
     await setup_integration(hass, global_entry)
-    today = date.today()
+    today = dt_util.now().date()
     await _vac_call(
         hass,
         ws_vacation_update,
@@ -1327,7 +1328,7 @@ async def test_vacation_preview_lists_time_based_tasks_in_window(
 ) -> None:
     """Time-based task whose next_due falls in the window appears with overdue event."""
     await setup_integration(hass, global_entry, object_entry)
-    today = date.today()
+    today = dt_util.now().date()
 
     # Task created today with interval 5 → next_due = today + 5
     task_id, _ = await _create_task_via_ws(
@@ -1371,7 +1372,7 @@ async def test_vacation_preview_marks_exempt_task_as_will_not_suppress(
 ) -> None:
     """Exempt task has will_suppress=False in preview output."""
     await setup_integration(hass, global_entry, object_entry)
-    today = date.today()
+    today = dt_util.now().date()
 
     task_id, _ = await _create_task_via_ws(
         hass,
@@ -1405,7 +1406,7 @@ async def test_vacation_preview_includes_sensor_tasks_as_unpredictable(
 ) -> None:
     """Sensor-based tasks always appear in preview with unpredictable confidence."""
     await setup_integration(hass, global_entry, object_entry)
-    today = date.today()
+    today = dt_util.now().date()
 
     task_id, _ = await _create_task_via_ws(
         hass,

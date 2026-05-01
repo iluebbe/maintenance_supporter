@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -703,7 +703,7 @@ async def test_disabled_task_status_ok(
 
 async def test_budget_monthly_alert(hass: HomeAssistant) -> None:
     """Test _async_check_budget fires monthly alert when threshold exceeded."""
-    now_iso = datetime.now().isoformat()
+    now_iso = dt_util.now().isoformat()
     global_entry = MockConfigEntry(
         version=1, minor_version=1, domain=DOMAIN,
         title="Maintenance Supporter",
@@ -743,7 +743,7 @@ async def test_budget_monthly_alert(hass: HomeAssistant) -> None:
 
 async def test_budget_yearly_alert(hass: HomeAssistant) -> None:
     """Test _async_check_budget fires yearly alert when threshold exceeded."""
-    now_iso = datetime.now().isoformat()
+    now_iso = dt_util.now().isoformat()
     global_entry = MockConfigEntry(
         version=1, minor_version=1, domain=DOMAIN,
         title="Maintenance Supporter",

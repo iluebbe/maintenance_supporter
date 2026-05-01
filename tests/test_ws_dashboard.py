@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
@@ -128,7 +129,7 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 @pytest.fixture
 def object_entry_with_cost(hass: HomeAssistant) -> MockConfigEntry:
     """Object entry with history that has cost data."""
-    now = datetime.now()
+    now = dt_util.now()
     task = build_task_data(last_performed="2024-06-01")
     task["history"] = [
         {
