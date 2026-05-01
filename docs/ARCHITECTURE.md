@@ -169,14 +169,16 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-panel.js                  Built panel (esbuild output)
 │   └── maintenance-card.js                   Built card (esbuild output)
 ├── frontend-src/                (9,027 lines)  TypeScript sources
-│   ├── maintenance-panel.ts     (1,488 lines)  Panel: overview, object detail, task detail
+│   ├── maintenance-panel.ts     (1,488 lines)  Panel: overview, object detail, task detail, calendar (1.5.0+)
 │   ├── maintenance-card.ts        (287 lines)  Lovelace card
 │   ├── maintenance-card-editor.ts  (86 lines)
-│   ├── panel-styles.ts            (891 lines)  Panel-specific CSS
+│   ├── panel-styles.ts            (891 lines)  Panel-specific CSS (incl. 1.5.0+ calendar tab styles)
 │   ├── statistics-service.ts      (215 lines)  WS statistics cache
 │   ├── styles.ts                (~3,200 lines) Shared CSS, panel i18n (12 languages — en/de/nl/fr/it/es/pt/ru/uk/pl/cs/sv), shared helpers
 │   ├── types.ts                   (286 lines)  TypeScript interfaces
 │   ├── user-service.ts            (125 lines)  HA user list cache
+│   ├── helpers/
+│   │   └── calendar-bucket.ts     (~190 lines)  v1.5.0+: pure function — projects tasks into a 7/14/30/365-day window with capped recurring projection (5 max per task) and skips-projection for sensor-based tasks
 │   └── components/              (2,145 lines)
 │       ├── complete-dialog.ts     (242 lines)  Mark task complete
 │       ├── confirm-dialog.ts      (141 lines)  Generic confirmation dialog
@@ -390,10 +392,11 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 ### Panel Views
 1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter
-2. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, JSON/CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options). Hidden when Operator mode is on.
-3. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
-4. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
-5. **All Objects**: Card grid with per-object overdue indicator (red dot + left border), sort dropdown (alphabetical / due-soonest / task-count), and group-by-area collapsible sections (1.0.44+)
+2. **Overview (Calendar tab, 1.5.0+)**: Rolling-list view of upcoming maintenance with a window-chip toggle (7 / 14 / 30 / **365** days, the year view collapses empty days). Pure client-side bucketing via `helpers/calendar-bucket.ts` reading the existing `maintenance_supporter/subscribe` payload — no backend WS endpoint. Time-based tasks project up to 5 occurrences per task per window at 55 % opacity; sensor-based tasks show only their current `next_due` (no projection). Per-event source icon (`mdi:clock-outline` time-based, `mdi:trending-up` sensor-based; 1.5.1+) and a *"predicted · {high|medium|low} confidence"* pill (1.5.1+) sourced from `threshold_prediction_confidence`. Visible in operator mode (read-only).
+3. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, JSON/CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options). Hidden when Operator mode is on.
+4. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
+5. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
+6. **All Objects**: Card grid with per-object overdue indicator (red dot + left border), sort dropdown (alphabetical / due-soonest / task-count), and group-by-area collapsible sections (1.0.44+)
 
 ### Sort & Group-By (1.0.44+)
 - **Tasks view sort modes:** `due_date / object / type / task_name / area / assigned_user / group`. Comparator built in `_taskRows` getter; reuses TaskRow's `area_id`, `responsible_user_id`, and `group_names` fields populated by 1.0.42's chip work — no extra server data plumbing.

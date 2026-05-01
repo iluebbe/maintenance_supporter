@@ -41,8 +41,19 @@ A Home Assistant custom integration for tracking and managing maintenance tasks 
 ### Lovelace Card
 ![Lovelace Card](docs/images/lovelace-card.png)
 
-### Calendar
-![Calendar](docs/images/calendar.png)
+### Calendar Tab (panel — 1.5.0+)
+![Calendar tab](docs/images/calendar-tab.png)
+
+Window chips (7 / 14 / 30 days, plus *1 year* since 1.5.2), per-event source icon (clock = time-based, trending-up = sensor-based), prediction-confidence pill (green / amber / red, 1.5.1+), and projected recurrences at 55 % opacity.
+
+#### Real vs projected events
+
+![Calendar projection demo](docs/images/calendar-tab-projection-demo.png)
+
+The faded *every 7 days* rows (May 21, 28) are projected — hypothetical future cycles assuming the user stays on schedule. The full-opacity rows (May 22 HVAC amber medium-confidence, May 25 Brake Pad red low-confidence) are real upcoming events sourced from sensor predictions.
+
+### Calendar (HA-native entity, all-time)
+![Calendar entity](docs/images/calendar.png)
 
 ### Sensor Attributes
 ![Sensor Attributes](docs/images/entity-attributes.png)
@@ -94,7 +105,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - **Operator mode** for non-admin HA users — hides every create/edit/delete control in the panel so household members can complete tasks without changing settings. Admins can grant full panel access to selected non-admin users via the new **Panel Access** section (Settings tab or config flow). Orphaned ids surface as a fixable repair issue. Useful for shared/family/hotel setups (1.0.44+)
 - **Per-object documentation URL** (1.4.0+) — store a link to the PDF manual / vendor page on each object. Shown as a clickable link in the object-detail header *and* on every task-detail page belonging to that object (1.4.1+) so the manual is always one click away from any maintenance task
 - **Per-object notes** (1.4.10+) — free-form multiline notes attached to each object: part numbers, replacement procedures, settings reminders, "spare key in garage drawer". Rendered with `white-space: pre-wrap` so newlines and indentation survive intact
-- **Calendar tab** (1.5.0+) — rolling-list view of upcoming maintenance over the next 7/14/30 days. Time-based recurring tasks project their next 5 occurrences within the window (sensor-triggered tasks show only their current `next_due`). Visible in operator mode. Independent of the HA Calendar entity — stays inside the panel for the *"what's due soon?"* glance, with status pills and avg-cost per event
+- **Calendar tab** (1.5.0+) — rolling-list view of upcoming maintenance with a window chip toggle (**7 / 14 / 30 days, plus "1 year" since 1.5.2**; the year view collapses empty days so only the actually-eventful rows render). Time-based recurring tasks project up to 5 occurrences within the window at 55 % opacity to mark them as "hypothetical assuming you stay on schedule"; sensor-triggered tasks show only their current `next_due` since predicting the next sensor firing would be a guess. Each event row carries (1.5.1+): a small **source icon** — `mdi:clock-outline` for time-based or `mdi:trending-up` (HA primary color) for sensor-based — and, for sensor-based events, a *"predicted · {high|medium|low} confidence"* pill below the title (green / amber / red border) sourced from the `threshold_prediction_confidence` returned by the predictor. Visible in operator mode. Independent of the HA Calendar entity — stays inside the panel for the *"what's due soon?"* glance, with status pills and avg-cost per event
 - 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
 ### Sensor-Based Triggers

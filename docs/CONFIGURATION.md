@@ -335,6 +335,28 @@ Each condition in the list is a complete trigger configuration (entity, type, ty
 
 ---
 
+## Calendar Tab (panel — 1.5.0+)
+
+A third tab in the Maintenance panel — between *Dashboard* and *Settings* — shows upcoming maintenance as a chronological list rather than a grid. Designed for *"what's coming up?"* glances; the Dashboard tab is status-grouped and answers a different question. Independent of the HA Calendar entity (`calendar.maintenance_supporter`) — that one is still exposed for HA-native consumers, the panel tab adds status pills + cost + sensor-prediction confidence.
+
+| Control | Values | Description |
+|---|---|---|
+| **Window chips** | `7 days` / `14 days` / `30 days` / `1 year` *(1.5.2+)* | How far forward to look. Default `30 days`. The 1-year view collapses empty days so 365 rows don't drown the few real events. |
+| **User filter** | `All Users` / `My Tasks` | Same dropdown as the Dashboard's *User* filter; resolves *current_user* against `hass.user.id`. |
+| **Source icon** *(1.5.1+)* | `mdi:clock-outline` (time-based), `mdi:clock-time-four-outline` (time-based with adaptive interval), `mdi:trending-up` (sensor-based, HA primary color) | Tells you at a glance whether the date is a hard schedule or a sensor regression estimate. |
+| **Prediction confidence pill** *(1.5.1+)* | `predicted · high confidence` (green border), `medium` (amber), `low` (red) | Sourced from `threshold_prediction_confidence`; only renders for sensor-based events that aren't already `triggered`. |
+| **Projected recurrences** | up to 5 per task per window | Time-based tasks project their next 5 occurrences within the window at **55 % opacity** with an *"every N days"* subtitle to mark them as hypothetical. Sensor tasks are NOT projected (we can't honestly predict the next sensor firing). |
+| **Status sort within a day** | overdue → triggered → due_soon → ok | Then alphabetical by object/task name. |
+| **Today highlighting** | accent-color date pill + *TODAY* badge | The first day of the window. Overdue and triggered tasks bucket here regardless of their actual `next_due` date. |
+| **Empty days** | italic *"No maintenance"* | Preserves vertical rhythm in 7/14/30 views; collapsed entirely in the 1-year view. |
+| **Operator mode** | visible (read-only) | The Calendar tab is intentionally always available; only Settings is admin-only. |
+
+Click any event row → opens the existing task-detail page (existing `_showTask` navigation). Avg-cost shows on the right using the configured `currency_symbol`.
+
+No backend changes feed this tab — it consumes the existing `maintenance_supporter/subscribe` payload and computes buckets client-side via `frontend-src/helpers/calendar-bucket.ts`.
+
+---
+
 ## Lovelace Card Config (`custom:maintenance-supporter-card`)
 
 The card is WS-driven (subscribes to `maintenance_supporter/subscribe`) so it always reflects the current task state without polling. All config keys are optional — empty / unset means "show all".
