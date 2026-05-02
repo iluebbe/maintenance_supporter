@@ -2,6 +2,33 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.1.0] - 2026-05-02
+
+### Add — All KPI numbers are now clickable filters (Discussion #49)
+
+Direct ask from [@byoung79](https://github.com/byoung79) in [Discussion #49](https://github.com/iluebbe/maintenance_supporter/discussions/49):
+
+> Make all the KPI numbers actionable — when I tap the number of objects it takes me to objects list. Do similar things for all numbers (i.e. auto filter list) based on selection.
+
+Shipped:
+
+- Tap **Objects** → opens the all-objects view (already worked).
+- Tap **Tasks** → clears the status filter and shows all tasks (new).
+- Tap **Overdue** → sets the filter dropdown to *Overdue* and smooth-scrolls to the task list (new).
+- Tap **Due Soon** → same, filter = *Due Soon* (new).
+- Tap **Triggered** → same, filter = *Triggered* (new).
+
+Status KPIs that are the active filter get a **bottom-bar highlight** so the current filter stays visible after scrolling. Switching to the Calendar or Settings tab and clicking a KPI auto-flips back to the Dashboard tab so the filter has somewhere to apply. The filter dropdown's `value` is now bound to the panel state so it reflects KPI clicks (was unbound before).
+
+EN + DE tooltip strings added; other 10 languages fall back to EN until next i18n pass.
+
+Verified live in headless Chromium against HA 2026.5.0b0:
+- 5 clickable KPIs detected
+- Overdue click → dropdown value = "overdue", `.stat-item.active` set
+- Tasks click clears the filter, `.stat-item.active` removed
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [2.0.0] - 2026-05-02
 
 ### Refactor — Panel Calendar tab now powered by the extracted Card
