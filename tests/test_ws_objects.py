@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -130,6 +131,161 @@ async def test_ws_get_object(
     result = conn.send_result.call_args[0][1]
     assert result["object"]["name"] == "Pool Pump"
     assert len(result["tasks"]) == 1
+
+
+async def test_ws_get_object_exposes_completion_action_fields(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Regression for issue #50.
+
+    The /object response builder must include ``on_complete_action`` and
+    ``quick_complete_defaults`` so the task-edit dialog can hydrate the
+    completion-action form on reload. Until this fix the fields were
+    silently stripped — user saved the action, reopened the dialog, saw
+    empty fields, then any edit to another field overwrote the persisted
+    action with null because the dialog re-sends its (empty) local state.
+    """
+    task = build_task_data(last_performed="2024-06-01")
+    task["on_complete_action"] = {
+        "service": "button.press",
+        "target": {"entity_id": "button.james_reset_sensor"},
+    }
+    task["quick_complete_defaults"] = {"notes": "vacuum dock pressed", "cost": 0.0}
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Vacuum",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Vacuum"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_vacuum_repro_50",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_get_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object",
+        "entry_id": entry.entry_id,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert len(result["tasks"]) == 1
+    task_resp = result["tasks"][0]
+
+    assert "on_complete_action" in task_resp, (
+        "Issue #50: on_complete_action must be in WS response so task-edit "
+        "dialog can hydrate the completion-action form on reload"
+    )
+    assert task_resp["on_complete_action"] == {
+        "service": "button.press",
+        "target": {"entity_id": "button.james_reset_sensor"},
+    }
+
+    assert "quick_complete_defaults" in task_resp, (
+        "Issue #50 follow-up: quick_complete_defaults has the same bug pattern"
+    )
+    assert task_resp["quick_complete_defaults"] == {
+        "notes": "vacuum dock pressed", "cost": 0.0,
+    }
+
+
+async def test_ws_get_object_exposes_every_persisted_task_field(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Audit test for the issue #50 + #48 pattern: ANY field that lives in
+    ``entry.data[CONF_TASKS][task_id]`` and that the frontend's
+    MaintenanceTask interface (frontend-src/types.ts) declares as user-
+    facing MUST appear in the WS response, otherwise the task-edit dialog
+    silently shows empty fields and the next save wipes the persisted value.
+
+    This is the failure mode that caused issue #48 (suggested_area sync)
+    and again issue #50 (on_complete_action). Adding any new persisted
+    task field requires adding it to ``_build_task_summary``; this test
+    is the tripwire.
+
+    Source-of-truth: every key set in this fixture must round-trip.
+    """
+    task_id = "f" * 32
+    fully_loaded_task: dict[str, Any] = {
+        "id": task_id,
+        "object_id": "obj_audit",
+        "name": "Audit Task",
+        "type": "service",
+        "enabled": True,
+        "schedule_type": "time_based",
+        "interval_days": 30,
+        "interval_anchor": "planned",
+        "warning_days": 5,
+        "last_performed": "2025-12-01",
+        "schedule_time": "09:30",
+        "notes": "audit notes",
+        "documentation_url": "https://example.com/manual.pdf",
+        # responsible_user_id intentionally omitted: integration setup
+        # purges any uuid that's not in the live auth registry (orphan
+        # cleanup). The field is exposed by _build_task_summary at line
+        # ~125 and has its own dedicated tests in
+        # test_user_assignment.py — covered, just not by THIS audit.
+        "entity_slug": "audit_task",
+        "custom_icon": "mdi:wrench",
+        "nfc_tag_id": "nfc-abc-123",
+        "checklist": ["Step 1", "Step 2"],
+        # v1.3.0 — missing until issue #50
+        "on_complete_action": {
+            "service": "input_boolean.toggle",
+            "target": {"entity_id": "input_boolean.test"},
+        },
+        "quick_complete_defaults": {"notes": "default", "cost": 9.99, "duration": 15},
+    }
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Audit",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Audit"),
+            tasks={task_id: fully_loaded_task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_audit_full_field_check",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_get_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object",
+        "entry_id": entry.entry_id,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    task_resp = result["tasks"][0]
+
+    # Every persisted user-facing field must round-trip non-null.
+    # (object_id is internal; created_at is backend-only — both intentionally
+    # excluded from the response.)
+    expected_persisted_fields = [
+        "id", "name", "type", "enabled", "schedule_type",
+        "interval_days", "interval_anchor", "warning_days",
+        "last_performed", "schedule_time",
+        "notes", "documentation_url",
+        "entity_slug", "custom_icon", "nfc_tag_id",
+        "checklist",
+        "on_complete_action", "quick_complete_defaults",
+    ]
+    missing: list[str] = [
+        f for f in expected_persisted_fields
+        if f not in task_resp or task_resp[f] in (None, "")
+    ]
+    assert not missing, (
+        f"Tripwire: WS response is missing or null for persisted fields: "
+        f"{missing}. Same failure mode as issue #50 — extend "
+        f"_build_task_summary in websocket/__init__.py to expose them."
+    )
+
+    # Spot-check exact value preservation for the v1.3.0 fields that
+    # caused the original regression
+    assert task_resp["on_complete_action"]["service"] == "input_boolean.toggle"
+    assert task_resp["quick_complete_defaults"]["cost"] == 9.99
 
 
 async def test_ws_get_object_not_found(
