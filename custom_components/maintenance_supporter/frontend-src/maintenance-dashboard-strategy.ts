@@ -851,6 +851,7 @@ if (!customElements.get(SECTION_STRATEGY_TAG)) {
 import {
   openCreateObjectDialog,
   openEditTaskDialog,
+  openHistoryEditDialog,
 } from "./dialog-mount";
 
 interface LlCustomEventDetail {
@@ -896,6 +897,54 @@ function registerLlCustomHandler(): void {
         `/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}` +
           `&task_id=${encodeURIComponent(detail.task_id)}`,
       );
+      return;
+    }
+
+    // v2.2.0 — past-window calendar event click → open history-edit dialog
+    // in-place. The calendar card is the only emitter of this event today.
+    if (
+      action === "edit-history" &&
+      typeof detail.entry_id === "string" &&
+      typeof detail.task_id === "string" &&
+      typeof detail.original_timestamp === "string"
+    ) {
+      // Pull the entry out of the loaded objects/tasks/history blob so we
+      // can pre-populate the dialog. The strategy doesn't have hass here —
+      // we read it from <home-assistant>.hass like dialog-mount does.
+      const haRoot = document.querySelector(
+        "home-assistant",
+      ) as (HTMLElement & { hass?: { connection: { sendMessagePromise<T>(m: Record<string, unknown>): Promise<T> } } }) | null;
+      const hass = haRoot?.hass;
+      if (!hass) return;
+      void (async () => {
+        try {
+          const r = await hass.connection.sendMessagePromise<{
+            tasks?: Array<{ id?: string; history?: Array<Record<string, unknown>> }>;
+          }>({
+            type: "maintenance_supporter/object",
+            entry_id: detail.entry_id,
+          });
+          const task = r.tasks?.find((t) => t.id === detail.task_id);
+          const histEntry = task?.history?.find(
+            (h) => h.timestamp === detail.original_timestamp,
+          );
+          if (!histEntry) return;
+          openHistoryEditDialog({
+            entry_id: detail.entry_id as string,
+            task_id: detail.task_id as string,
+            original_timestamp: detail.original_timestamp as string,
+            type: (histEntry.type as string) || "completed",
+            timestamp: (histEntry.timestamp as string) || (detail.original_timestamp as string),
+            notes: (histEntry.notes as string) ?? null,
+            cost: (histEntry.cost as number | undefined) ?? null,
+            duration: (histEntry.duration as number | undefined) ?? null,
+            completed_by: (histEntry.completed_by as string) ?? null,
+          });
+        } catch {
+          // Fallback: just deep-link the panel; the user can edit there
+          deepLink("/maintenance-supporter");
+        }
+      })();
       return;
     }
   });

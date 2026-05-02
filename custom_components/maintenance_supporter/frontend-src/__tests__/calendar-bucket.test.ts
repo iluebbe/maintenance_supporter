@@ -16,6 +16,8 @@
 import { expect } from "@open-wc/testing";
 import {
   buildCalendarBuckets,
+  buildPastBuckets,
+  buildPastWindowDates,
   isoDateLocal,
   MAX_OCCURRENCES_PER_TASK,
 } from "../helpers/calendar-bucket";
@@ -279,5 +281,131 @@ describe("buildCalendarBuckets", () => {
     expect(events).to.have.length(1);
     expect(events[0].adaptive_enabled).to.equal(false);
     expect(events[0].prediction_confidence).to.equal(null);
+  });
+});
+
+// ── v2.2.0 — past-window bucketer ────────────────────────────────────────
+
+function histEntry(daysAgo: number, type = "completed", over: Partial<any> = {}) {
+  const d = new Date(TODAY);
+  d.setDate(d.getDate() - daysAgo);
+  return {
+    timestamp: `${isoDateLocal(d)}T08:30:00`,
+    type,
+    ...over,
+  };
+}
+
+function pastTask(history: any[], over: Partial<any> = {}) {
+  return {
+    ...task({ history }),
+    ...over,
+  };
+}
+
+describe("buildPastWindowDates", () => {
+  it("returns N consecutive ISO dates ending on today", () => {
+    const dates = buildPastWindowDates(TODAY, 7);
+    expect(dates).to.have.length(7);
+    expect(dates[6]).to.equal(TODAY_ISO);
+    expect(dates[0]).to.equal(addDays(TODAY_ISO, -6));
+  });
+});
+
+describe("buildPastBuckets", () => {
+  it("returns one bucket per day in the past window", () => {
+    const buckets = buildPastBuckets([], TODAY, 30);
+    expect(buckets).to.have.length(30);
+    expect(buckets[29].date).to.equal(TODAY_ISO);
+    expect(buckets[0].date).to.equal(addDays(TODAY_ISO, -29));
+  });
+
+  it("buckets a completion entry on its actual date", () => {
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [pastTask([histEntry(5)])])],
+      TODAY, 30,
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events).to.have.length(1);
+    expect(events[0].date).to.equal(addDays(TODAY_ISO, -5));
+    expect(events[0].history_timestamp).to.match(/^[0-9-]{10}T08:30:00$/);
+    expect(events[0].history_type).to.equal("completed");
+  });
+
+  it("excludes entries outside the window", () => {
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [pastTask([
+        histEntry(5),    // inside 30-day window
+        histEntry(40),   // outside
+      ])])],
+      TODAY, 30,
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events).to.have.length(1);
+  });
+
+  it("preserves cost / notes / duration from history entries", () => {
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [pastTask([
+        histEntry(3, "completed", { cost: 42.5, notes: "n1", duration: 60 }),
+      ])])],
+      TODAY, 30,
+    );
+    const ev = buckets.flatMap((b) => b.events)[0];
+    expect(ev.history_cost).to.equal(42.5);
+    expect(ev.history_notes).to.equal("n1");
+    expect(ev.history_duration).to.equal(60);
+  });
+
+  it("maps history types to status correctly", () => {
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [pastTask([
+        histEntry(1, "completed"),
+        histEntry(2, "skipped"),
+        histEntry(3, "triggered"),
+      ])])],
+      TODAY, 30,
+    );
+    const events = buckets.flatMap((b) => b.events);
+    const byType = Object.fromEntries(events.map((e) => [e.history_type, e.status]));
+    expect(byType.completed).to.equal("ok");
+    expect(byType.skipped).to.equal("due_soon");
+    expect(byType.triggered).to.equal("triggered");
+  });
+
+  it("respects user filter", () => {
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [
+        pastTask([histEntry(5)], { id: "a", responsible_user_id: "u1" }),
+        pastTask([histEntry(5)], { id: "b", responsible_user_id: "u2" }),
+      ])],
+      TODAY, 30, "u1",
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events).to.have.length(1);
+    expect(events[0].task_id).to.equal("a");
+  });
+
+  it("sorts within day by type rank then by name", () => {
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [
+        pastTask([histEntry(5, "triggered")], { id: "z", name: "Z task" }),
+        pastTask([histEntry(5, "completed")], { id: "a", name: "A task" }),
+        pastTask([histEntry(5, "completed")], { id: "m", name: "M task" }),
+      ])],
+      TODAY, 30,
+    );
+    const dayEvents = buckets.find((b) => b.date === addDays(TODAY_ISO, -5))!.events;
+    expect(dayEvents.map((e) => e.task_id)).to.deep.equal(["a", "m", "z"]);
+  });
+
+  it("history_timestamp survives so the edit-history WS can use it", () => {
+    const ts = "2026-04-25T14:00:00";
+    const buckets = buildPastBuckets(
+      [obj("HVAC", [pastTask([{ timestamp: ts, type: "completed" }])])],
+      TODAY, 30,
+    );
+    const ev = buckets.flatMap((b) => b.events)[0];
+    expect(ev.history_timestamp).to.equal(ts);
   });
 });

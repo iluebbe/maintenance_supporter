@@ -25,6 +25,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import {
   buildCalendarBuckets,
+  buildPastBuckets,
   isoDateLocal,
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
@@ -37,6 +38,7 @@ import type {
 } from "./types";
 
 type WindowDays = 7 | 14 | 30 | 365;
+type PastDays = 30 | 90;
 
 interface CalendarCardConfig {
   type: string;
@@ -45,6 +47,9 @@ interface CalendarCardConfig {
   show_window_chips?: boolean;
   show_user_filter?: boolean;
   user_filter?: string;
+  /** v2.2.0 — when set, the card renders past N days from history instead
+   *  of forward N days from next_due. Mutually exclusive with window_days. */
+  past_days?: PastDays;
 }
 
 export class MaintenanceCalendarCard extends LitElement {
@@ -55,6 +60,7 @@ export class MaintenanceCalendarCard extends LitElement {
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
   @state() private _windowDays: WindowDays = 30;
+  @state() private _pastDays: PastDays | 0 = 0; // 0 = forward mode
   @state() private _userFilter = "";
   @state() private _unsub: (() => void) | null = null;
 
@@ -77,8 +83,11 @@ export class MaintenanceCalendarCard extends LitElement {
 
   setConfig(config: CalendarCardConfig): void {
     this._config = { ...config };
-    if (config.window_days && [7, 14, 30, 365].includes(config.window_days)) {
+    if (config.past_days && [30, 90].includes(config.past_days)) {
+      this._pastDays = config.past_days as PastDays;
+    } else if (config.window_days && [7, 14, 30, 365].includes(config.window_days)) {
       this._windowDays = config.window_days as WindowDays;
+      this._pastDays = 0;
     }
     if (typeof config.user_filter === "string") {
       this._userFilter = config.user_filter;
@@ -155,8 +164,24 @@ export class MaintenanceCalendarCard extends LitElement {
   }
 
   private _onEventClick(ev: CalendarEvent): void {
-    // Dispatch ll-custom — strategy bundle catches it and either opens the
-    // task dialog in-place or deep-links the panel.
+    // Past events carry a history_timestamp — those open the history-edit
+    // dialog instead of the task editor. Future / next_due events open
+    // the task editor as usual.
+    if (ev.history_timestamp) {
+      this.dispatchEvent(
+        new CustomEvent("ll-custom", {
+          detail: {
+            type: "maintenance-supporter:edit-history",
+            entry_id: ev.entry_id,
+            task_id: ev.task_id,
+            original_timestamp: ev.history_timestamp,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      return;
+    }
     this.dispatchEvent(
       new CustomEvent("ll-custom", {
         detail: {
@@ -189,15 +214,16 @@ export class MaintenanceCalendarCard extends LitElement {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const buckets = buildCalendarBuckets(
-      this._objects,
-      today,
-      this._windowDays,
-      userFilter,
-    );
+    const isPast = this._pastDays > 0;
+    const buckets = isPast
+      ? buildPastBuckets(this._objects, today, this._pastDays, userFilter)
+      : buildCalendarBuckets(this._objects, today, this._windowDays, userFilter);
 
     const todayIso = isoDateLocal(today);
-    const hideEmptyDays = this._windowDays === 365;
+    // Year view AND past views collapse empty days — past windows can be
+    // sparse (most days have no maintenance recorded), so listing "no events"
+    // for 30 rows is noise.
+    const hideEmptyDays = this._windowDays === 365 || isPast;
     const visibleBuckets = hideEmptyDays
       ? buckets.filter((b) => b.events.length > 0)
       : buckets;
@@ -274,10 +300,23 @@ export class MaintenanceCalendarCard extends LitElement {
               <div class="cal-controls">
                 ${showChips
                   ? html`
+                      <div class="cal-window-chips cal-past-chips" title="Past windows">
+                        ${[30, 90].map((p) => html`
+                          <button class="cal-window-chip cal-past-chip ${this._pastDays === p ? "active" : ""}"
+                            @click=${() => {
+                              this._pastDays = p as PastDays;
+                            }}>
+                            ← ${p}d
+                          </button>
+                        `)}
+                      </div>
                       <div class="cal-window-chips">
                         ${[7, 14, 30, 365].map((w) => html`
-                          <button class="cal-window-chip ${this._windowDays === w ? "active" : ""}"
-                            @click=${() => { this._windowDays = w as WindowDays; }}>
+                          <button class="cal-window-chip ${this._pastDays === 0 && this._windowDays === w ? "active" : ""}"
+                            @click=${() => {
+                              this._windowDays = w as WindowDays;
+                              this._pastDays = 0;
+                            }}>
                             ${t(`cal_window_${w}`, L)}
                           </button>
                         `)}
