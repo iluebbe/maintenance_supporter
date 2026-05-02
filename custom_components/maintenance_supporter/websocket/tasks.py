@@ -39,6 +39,7 @@ from . import (
     _get_merged_tasks,
     _get_object_entries,
     _get_runtime_data,
+    _load_object_entry,
     cleanup_group_refs,
 )
 
@@ -313,9 +314,8 @@ async def ws_create_task(
     msg: dict[str, Any],
 ) -> None:
     """Add a new task to an existing maintenance object."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     task_id = uuid4().hex
@@ -504,9 +504,8 @@ async def ws_update_task(
     msg: dict[str, Any],
 ) -> None:
     """Update an existing task."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     tasks_data = dict(entry.data.get(CONF_TASKS, {}))
@@ -644,9 +643,8 @@ async def ws_delete_task(
     msg: dict[str, Any],
 ) -> None:
     """Delete a task from a maintenance object."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     task_id = msg["task_id"]
@@ -970,9 +968,8 @@ async def ws_update_history_entry(
     msg: dict[str, Any],
 ) -> None:
     """Edit fields of an existing history entry."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     rd = _get_runtime_data(hass, entry.entry_id)

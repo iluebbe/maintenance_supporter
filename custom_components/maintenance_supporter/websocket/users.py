@@ -21,6 +21,7 @@ from . import (
     _get_merged_tasks,
     _get_object_entries,
     _get_runtime_data,
+    _load_object_entry,
 )
 
 
@@ -71,9 +72,8 @@ async def ws_assign_user(
     msg: dict[str, Any],
 ) -> None:
     """Assign or unassign a user to a task."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     tasks_data = dict(entry.data.get(CONF_TASKS, {}))

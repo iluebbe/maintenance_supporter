@@ -230,6 +230,31 @@ def _get_global_entry(hass: HomeAssistant) -> ConfigEntry | None:
     return None
 
 
+def _load_object_entry(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+    *,
+    not_found_message: str = "Object not found",
+) -> ConfigEntry | None:
+    """Resolve ``msg["entry_id"]`` to an OBJECT entry (not the global one).
+
+    Sends a ``not_found`` WS error and returns None when the entry is
+    missing, belongs to another domain, or is the global entry. Callers
+    must early-return on None — same shape as the manual guard pattern
+    that was duplicated across 12 WS handlers before this helper.
+
+    The helper centralises the three-part guard introduced ad-hoc in
+    every CRUD handler (entry None / wrong domain / global) so future
+    additions can't forget any of the three checks.
+    """
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+        connection.send_error(msg["id"], "not_found", not_found_message)
+        return None
+    return entry
+
+
 def cleanup_group_refs(
     hass: HomeAssistant,
     *,

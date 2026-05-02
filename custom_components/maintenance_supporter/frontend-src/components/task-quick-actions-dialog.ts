@@ -18,6 +18,7 @@ import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime } from "../s
 import { describeWsError } from "../ws-errors";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
+import { renderRecommendationBars } from "../renderers/recommendation";
 import {
   renderSeasonalCardCompact,
   renderSeasonalCardExpanded,
@@ -296,8 +297,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   }
 
   /** Inline recommendation card (Current vs Suggested with apply/reanalyze).
-   *  Mirrors the panel's _renderRecommendationCard so users on Lovelace get
-   *  the same Apply / Reanalyze controls without the panel-roundtrip. */
+   *  Bars + confidence badge come from the shared renderer; the action row
+   *  uses native <button>s because <ha-button> isn't always registered in
+   *  the Lovelace context (same lazy-load issue that bit complete-dialog
+   *  with ha-textfield in #50). The panel uses ha-button + adds Dismiss. */
   private _renderRecommendation(task: MaintenanceTask) {
     if (!this._features.adaptive
       || !task.suggested_interval
@@ -305,42 +308,23 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       return nothing;
     }
     const L = this._lang;
-    const current = task.interval_days ?? 0;
-    const suggested = task.suggested_interval;
-    const confidence = task.interval_confidence || "medium";
-    const maxBar = Math.max(current || 1, suggested);
     return html`
       <div class="recommendation-card">
-        <h4>${t("suggested_interval", L) || "Suggested interval"}</h4>
-        <div class="interval-comparison">
-          <div class="interval-bar">
-            <div class="interval-label">
-              ${t("current", L) || "Current"}: ${current ?? "—"} ${t("days", L) || "days"}
-            </div>
-            <div class="interval-visual current"
-              style="width: ${current != null ? Math.min((current / maxBar) * 100, 100) : 0}%"></div>
-          </div>
-          <div class="interval-bar">
-            <div class="interval-label">
-              ${t("recommended", L) || "Recommended"}: ${suggested} ${t("days", L) || "days"}
-              <span class="confidence-badge ${confidence}">
-                ${t(`confidence_${confidence}`, L) || confidence}
-              </span>
-            </div>
-            <div class="interval-visual suggested"
-              style="width: ${Math.min((suggested / maxBar) * 100, 100)}%"></div>
-          </div>
-        </div>
+        <h4>${t("suggested_interval", L)}</h4>
+        ${renderRecommendationBars(
+          task.interval_days, task.suggested_interval,
+          task.interval_confidence || "medium", L,
+        )}
         <div class="recommendation-actions">
           <button class="btn primary"
             @click=${this._applySuggestion} ?disabled=${this._busy}>
             <ha-icon icon="mdi:check"></ha-icon>
-            ${t("apply_suggestion", L) || "Apply"}
+            ${t("apply_suggestion", L)}
           </button>
           <button class="btn"
             @click=${this._reanalyzeInterval} ?disabled=${this._busy}>
             <ha-icon icon="mdi:refresh"></ha-icon>
-            ${t("reanalyze", L) || "Reanalyze"}
+            ${t("reanalyze", L)}
           </button>
         </div>
       </div>

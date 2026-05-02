@@ -46,6 +46,7 @@ import type { MaintenanceGroupDialog } from "./components/group-dialog";
 import { renderTriggerSection, type SparklineContext } from "./renderers/sparkline";
 import { renderPredictionSection } from "./renderers/prediction";
 import { renderWeibullSection } from "./renderers/weibull";
+import { renderRecommendationBars } from "./renderers/recommendation";
 import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./renderers/seasonal";
 import { renderCostDurationCard } from "./renderers/charts";
@@ -1999,45 +2000,34 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderRecommendationCard(task: MaintenanceTask) {
     const L = this._lang;
 
-    // Only show if adaptive is enabled and there's a suggestion
-    if (!this._features.adaptive || !task.suggested_interval || task.suggested_interval === task.interval_days) {
+    if (!this._features.adaptive || !task.suggested_interval
+        || task.suggested_interval === task.interval_days) {
+      return nothing;
+    }
+    if (this._selectedEntryId && this._selectedTaskId
+        && this._dismissedSuggestions.has(`${this._selectedEntryId}_${this._selectedTaskId}`)) {
       return nothing;
     }
 
-    // Check if dismissed this session
-    if (this._selectedEntryId && this._selectedTaskId &&
-        this._dismissedSuggestions.has(`${this._selectedEntryId}_${this._selectedTaskId}`)) {
-      return nothing;
-    }
-
-    const current = task.interval_days;
     const suggested = task.suggested_interval;
-    const confidence = task.interval_confidence || "medium";
-    const maxBar = Math.max(current || 1, suggested);
-
     return html`
       <div class="recommendation-card">
         <h4>${t("suggested_interval", L)}</h4>
-        <div class="interval-comparison">
-          <div class="interval-bar">
-            <div class="interval-label">${t("current", L) || "Aktuell"}: ${current ?? "—"} ${current != null ? t("days", L) : ""}</div>
-            <div class="interval-visual current" style="width: ${current != null ? Math.min((current / maxBar) * 100, 100) : 0}%"></div>
-          </div>
-          <div class="interval-bar">
-            <div class="interval-label">${t("recommended", L)}: ${suggested} ${t("days", L)}
-              <span class="confidence-badge ${confidence}">${t(`confidence_${confidence}`, L)}</span>
-            </div>
-            <div class="interval-visual suggested" style="width: ${Math.min((suggested / maxBar) * 100, 100)}%"></div>
-          </div>
-        </div>
+        ${renderRecommendationBars(
+          task.interval_days, suggested,
+          task.interval_confidence || "medium", L,
+        )}
         <div class="recommendation-actions">
-          <ha-button appearance="filled" @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, suggested)}>
+          <ha-button appearance="filled"
+            @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, suggested)}>
             ${t("apply_suggestion", L)}
           </ha-button>
-          <ha-button appearance="plain" @click=${() => this._reanalyzeInterval(this._selectedEntryId!, this._selectedTaskId!)}>
+          <ha-button appearance="plain"
+            @click=${() => this._reanalyzeInterval(this._selectedEntryId!, this._selectedTaskId!)}>
             ${t("reanalyze", L)}
           </ha-button>
-          <ha-button appearance="plain" @click=${() => this._dismissSuggestion(this._selectedEntryId!, this._selectedTaskId!)}>
+          <ha-button appearance="plain"
+            @click=${() => this._dismissSuggestion(this._selectedEntryId!, this._selectedTaskId!)}>
             ${t("dismiss_suggestion", L)}
           </ha-button>
         </div>
