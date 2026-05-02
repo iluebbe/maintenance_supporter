@@ -2,6 +2,36 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.8.1] - 2026-05-02
+
+### Add — fire-dom-event tap actions + Empty-state second button + cosmetic refactor
+
+The remaining two patterns from the v1.8.0 best-practice backlog land. Now closed.
+
+**fire-dom-event plumbing.** A document-level `ll-custom` event listener (registered once at strategy-bundle load) intercepts payloads namespaced with `maintenance-supporter:` and rewrites the URL so the panel can deep-link into a specific dialog on next navigation. Currently handled events:
+
+- `maintenance-supporter:add-object` → `/maintenance-supporter?ms_action=add_object` → opens Add Object dialog
+- `maintenance-supporter:open-task` (task_id required) → `/maintenance-supporter?ms_action=open_task&task_id=<id>` → reserved for future deep links
+
+The empty-state view now ships a second button — *"Add object"* — using this pattern:
+
+```yaml
+tap_action:
+  action: fire-dom-event
+  ll_custom:
+    type: maintenance-supporter:add-object
+```
+
+Two design notes: (1) the ll-custom listener is registered idempotently via a window-level flag, so the strategy file loading twice (e.g. via HACS + extra_module_url combination) doesn't double-bind; (2) the implementation uses URL-based deep linking instead of importing the dialog into a custom element — same UX, no panel-code refactor needed.
+
+**Panel deep-link extension.** `_handleDeepLink()` now recognizes `?ms_action=add_object` and opens the create-object dialog after a frame.
+
+**Cosmetic: `summaryCardBuilders` refactor.** The if/else chain for `group_by` modes became a `Record<GroupBy, () => ViewConfig[]>` lookup, mirroring HA core's home-overview-view-strategy. Adding a new mode is now one entry instead of editing a chain.
+
+Verified live on HA 2026.5.0b0 — all 11 strategy checks pass (4 group_by modes, editor, KPI header, sidebar, section strategy register+generate, fire-dom-event handler routes correctly).
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [1.8.0] - 2026-05-02
 
 ### Add — Empty-state, KPI header + sidebar, and a Section Strategy
