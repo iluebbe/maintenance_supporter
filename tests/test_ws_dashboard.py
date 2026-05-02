@@ -212,6 +212,87 @@ async def test_get_settings_with_features(
     assert features["checklists"] is True
 
 
+async def test_get_settings_exposes_every_writable_setting_key(
+    hass: HomeAssistant,
+) -> None:
+    """Tripwire for the issue #50 / #48 pattern, settings edition.
+
+    Every CONF_* in ``_ALLOWED_SETTING_KEYS`` (the write surface used by
+    ``maintenance_supporter/global/update``) MUST appear somewhere in the
+    response of ``maintenance_supporter/settings``. Otherwise the global
+    settings UI hydrates with ``undefined`` for that field, the toggle
+    appears wrong/empty, and the user's next save wipes the persisted
+    value because the form re-sends its (empty) local state.
+
+    This is the same failure mode as #50 but for the global settings
+    dict instead of per-task fields. The audit was missed after #48
+    because the lesson at the time was scoped narrowly to "HA registry
+    sync" — ``_build_full_settings`` is neither a registry nor a
+    sync-target, so it slipped past that lens.
+    """
+    from custom_components.maintenance_supporter.websocket.dashboard import (
+        _ALLOWED_SETTING_KEYS,
+        _build_full_settings,
+    )
+
+    # Build a full options dict where each writable key has a non-default
+    # value, so we can detect both "key omitted from response" AND
+    # "key returned as default instead of round-tripping".
+    options: dict[str, Any] = {}
+    for key, expected_type in _ALLOWED_SETTING_KEYS.items():
+        if expected_type is bool:
+            options[key] = True
+        elif expected_type is int:
+            options[key] = 42
+        elif expected_type is float:
+            options[key] = 3.14
+        elif expected_type is str:
+            options[key] = "test_value"
+        elif expected_type is list:
+            options[key] = ["abc"]
+
+    # Specific overrides for str-typed keys with format requirements
+    options["quiet_hours_start"] = "23:30"
+    options["quiet_hours_end"] = "07:15"
+    options["budget_currency"] = "EUR"
+    options["notification_title_style"] = "default"
+    options["notify_service"] = "notify.persistent_notification"
+
+    full = _build_full_settings(options)
+
+    # Flatten the nested response so we can grep for individual values
+    def _flatten(d: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        for k, v in d.items():
+            path = f"{prefix}.{k}" if prefix else k
+            if isinstance(v, dict):
+                out.update(_flatten(v, path))
+            else:
+                out[path] = v
+        return out
+
+    flat = _flatten(full)
+    flat_values = list(flat.values())
+
+    missing: list[str] = []
+    for conf_key, set_value in options.items():
+        # Each set_value should appear somewhere in the flattened response,
+        # OR be transformed (e.g. currency → currency_symbol). Skip the
+        # currency code here because _build_full_settings exposes both
+        # the raw code AND the derived symbol — the raw code IS in the
+        # response under budget.currency.
+        if set_value not in flat_values:
+            missing.append(f"{conf_key}={set_value!r}")
+
+    assert not missing, (
+        f"Tripwire (issue #50 pattern, settings edition): _build_full_settings "
+        f"is dropping these CONF_* values that ws_update_global_settings "
+        f"accepts as writable:\n  " + "\n  ".join(missing) +
+        "\n\nFix: extend _build_full_settings in websocket/dashboard.py to "
+        "expose them. See feedback_ws_response_field_audit memory for context."
+    )
+
+
 async def test_get_settings_no_global_entry(
     hass: HomeAssistant,
 ) -> None:
