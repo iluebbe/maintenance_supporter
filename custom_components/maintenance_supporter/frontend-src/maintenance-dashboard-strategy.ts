@@ -834,80 +834,33 @@ if (!customElements.get(SECTION_STRATEGY_TAG)) {
 
 // ── Phase 5: Status Section-Strategies ──────────────────────────────────────
 //
-// Three small read-only status sections so users with a Lovelace-only setup
+// Three small status sections so users with a Lovelace-only setup
 // can monitor vacation / budget / groups state without leaving the dashboard.
-// Click on any section's heading deep-links into the panel for edit actions —
-// keeps these strategies small (~50 LOC each) instead of replicating the
-// complex panel UIs.
+// v2.4.0 update: each strategy now delegates to a live interactive custom
+// card (vacation-section-card / budget-section-card / groups-section-card)
+// that lets admins edit values inline — no panel-roundtrip required for
+// common admin tasks.
 
-interface VacationStateResp {
-  enabled?: boolean;
-  is_active?: boolean;
-  start?: string | null;
-  end?: string | null;
-  buffer_days?: number;
-  window_end?: string | null;
-  exempt_task_ids?: string[];
-}
+import "./components/vacation-section-card";
+import "./components/budget-section-card";
+import "./components/groups-section-card";
 
-interface BudgetStatusResp {
-  monthly_budget?: number;
-  monthly_spent?: number;
-  yearly_budget?: number;
-  yearly_spent?: number;
-  currency_symbol?: string;
-}
-
-interface GroupsResp {
-  groups?: Record<string, { name?: string; task_refs?: unknown[] }>;
-}
-
-function deepLinkAction(path: string) {
-  return {
-    action: "fire-dom-event",
-    ll_custom: { type: "maintenance-supporter:deep-link", path },
-  };
-}
+// Phase 5b (v2.4.0): each section-strategy returns a single interactive
+// custom-card that does the editing in-place. The card itself owns the WS
+// reads + writes; the strategy is just a thin shim so users can still pull
+// these into HA's section-picker UI.
 
 class MaintenanceVacationSectionStrategy extends HTMLElement {
   static async generate(
-    _config: { type: string },
-    hass: HassLike,
+    _config: { type: string; title?: string },
+    _hass: HassLike,
   ): Promise<SectionConfig> {
-    let state: VacationStateResp = {};
-    try {
-      state = await hass.connection.sendMessagePromise<VacationStateResp>({
-        type: "maintenance_supporter/vacation/state",
-      });
-    } catch {
-      // feature disabled or WS error — render a minimal placeholder
-    }
-    // is_active = enabled AND now ∈ [start, window_end]; enabled = configured
-    // but possibly outside the window. Show whichever is more informative.
-    const active = state.is_active === true;
-    const enabled = state.enabled === true;
-    const dates = (enabled || active) && state.start && state.end
-      ? ` (${state.start} → ${state.end})`
-      : "";
-    const exemptCount = state.exempt_task_ids?.length ?? 0;
-    const exemptLine = (active || enabled) && exemptCount
-      ? `\n${exemptCount} task(s) exempt — still notified`
-      : "";
-    let content: string;
-    if (active) {
-      content = `🏖️ **Vacation mode active**${dates}${exemptLine}`;
-    } else if (enabled) {
-      content = `🏖️ Vacation mode: scheduled${dates}${exemptLine}`;
-    } else {
-      content = "🏖️ Vacation mode: inactive";
-    }
     return {
       type: "grid",
       cards: [
         {
-          type: "markdown",
-          content,
-          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_vacation"),
+          type: "custom:maintenance-vacation-section-card",
+          title: _config?.title,
         },
       ],
     };
@@ -916,34 +869,15 @@ class MaintenanceVacationSectionStrategy extends HTMLElement {
 
 class MaintenanceBudgetSectionStrategy extends HTMLElement {
   static async generate(
-    _config: { type: string },
-    hass: HassLike,
+    _config: { type: string; title?: string },
+    _hass: HassLike,
   ): Promise<SectionConfig> {
-    let status: BudgetStatusResp = {};
-    try {
-      status = await hass.connection.sendMessagePromise<BudgetStatusResp>({
-        type: "maintenance_supporter/budget_status",
-      });
-    } catch {
-      // ignore
-    }
-    const sym = status.currency_symbol || "€";
-    const monthly = (status.monthly_budget ?? 0) > 0
-      ? `**Monthly:** ${(status.monthly_spent ?? 0).toFixed(0)}/${status.monthly_budget!.toFixed(0)} ${sym}`
-      : null;
-    const yearly = (status.yearly_budget ?? 0) > 0
-      ? `**Yearly:** ${(status.yearly_spent ?? 0).toFixed(0)}/${status.yearly_budget!.toFixed(0)} ${sym}`
-      : null;
-    const lines = [monthly, yearly].filter(Boolean);
     return {
       type: "grid",
       cards: [
         {
-          type: "markdown",
-          content: lines.length > 0
-            ? `💰 ${lines.join(" · ")}`
-            : "💰 Budget tracking: not configured",
-          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_budget"),
+          type: "custom:maintenance-budget-section-card",
+          title: _config?.title,
         },
       ],
     };
@@ -952,45 +886,15 @@ class MaintenanceBudgetSectionStrategy extends HTMLElement {
 
 class MaintenanceGroupsSectionStrategy extends HTMLElement {
   static async generate(
-    _config: { type: string },
-    hass: HassLike,
+    _config: { type: string; title?: string },
+    _hass: HassLike,
   ): Promise<SectionConfig> {
-    let groupData: GroupsResp = {};
-    try {
-      groupData = await hass.connection.sendMessagePromise<GroupsResp>({
-        type: "maintenance_supporter/groups",
-      });
-    } catch {
-      // ignore
-    }
-    const groups = groupData.groups || {};
-    const groupCount = Object.keys(groups).length;
-    if (groupCount === 0) {
-      return {
-        type: "grid",
-        cards: [{
-          type: "markdown",
-          content: "🏷️ Groups: none configured",
-          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_groups"),
-        }],
-      };
-    }
-    // List groups with task counts
-    const lines = Object.entries(groups)
-      .slice(0, 8)
-      .map(([_, g]) => {
-        const name = g.name || "Unnamed";
-        const count = (g.task_refs as unknown[] | undefined)?.length ?? 0;
-        return `**${name}** (${count})`;
-      });
-    const more = groupCount > 8 ? `\n+ ${groupCount - 8} more…` : "";
     return {
       type: "grid",
       cards: [
         {
-          type: "markdown",
-          content: `🏷️ **Groups (${groupCount})**\n${lines.join(" · ")}${more}`,
-          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_groups"),
+          type: "custom:maintenance-groups-section-card",
+          title: _config?.title,
         },
       ],
     };

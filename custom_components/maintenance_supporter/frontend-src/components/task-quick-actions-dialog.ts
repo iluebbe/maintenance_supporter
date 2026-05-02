@@ -463,9 +463,16 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .actions { display: flex; gap: 8px; }
     .actions.primary-row { gap: 6px; }
     .actions.primary-row .btn { flex: 1; }
+    /* Edit + QR are admin-tools — left-align as a group; Delete is destructive
+       so it gets pushed to the far right with margin-left:auto for visual
+       separation. Earlier this row was flex-end which left a strange empty
+       gap on the left (user feedback). */
     .actions.secondary-row {
       padding-top: 8px; border-top: 1px solid var(--divider-color);
-      justify-content: flex-end;
+      justify-content: flex-start;
+    }
+    .actions.secondary-row .btn.danger {
+      margin-left: auto;
     }
     .btn {
       padding: 8px 12px; font-size: 14px;
