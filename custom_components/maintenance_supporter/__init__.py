@@ -377,9 +377,73 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         dr.EVENT_DEVICE_REGISTRY_UPDATED, _on_device_registry_update
     )
 
+    # v1.5.4: rewrite stored entity_id references when HA renames an entity.
+    # Without this, ``trigger_config["entity_id"]`` /
+    # ``adaptive_config["environmental_entity"]`` go stale and the underlying
+    # ``async_track_state_change_event`` listeners silently miss events on the
+    # new id. Same dual-storage bug class as #48 — different field, same fix.
+    async def _on_entity_registry_update(
+        event: Event[er.EventEntityRegistryUpdatedData],
+    ) -> None:
+        if event.data["action"] != "update":
+            return
+        changes = event.data.get("changes") or {}
+        if "entity_id" not in changes:
+            return  # not a rename
+        new_eid = event.data["entity_id"]
+        old_eid = changes["entity_id"]
+        if not isinstance(old_eid, str) or old_eid == new_eid:
+            return
+
+        from .helpers.entity_rename import rewrite_store, rewrite_tasks
+
+        for ce in hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID:
+                continue
+
+            # 1. trigger_config refs live in entry.data
+            entry_changed = False
+            tasks = ce.data.get(CONF_TASKS, {})
+            if tasks:
+                new_tasks, entry_changed = rewrite_tasks(tasks, old_eid, new_eid)
+                if entry_changed:
+                    new_data = {**ce.data, CONF_TASKS: new_tasks}
+                    hass.config_entries.async_update_entry(ce, data=new_data)
+
+            # 2. adaptive_config.environmental_entity + trigger_runtime keys
+            #    live in Store (post-migration; see _DYNAMIC_TASK_FIELDS).
+            rd = getattr(ce, "runtime_data", None)
+            store = getattr(rd, "store", None) if rd else None
+            store_changed = False
+            if store is not None:
+                store_changed = rewrite_store(store, old_eid, new_eid)
+                if store_changed:
+                    # Force-save before the reload — the reload re-instantiates
+                    # the store from disk, so a debounced save would race the
+                    # reload and lose the rewrite.
+                    await store.async_save()
+
+            if not (entry_changed or store_changed):
+                continue
+
+            # The trigger listeners on `BaseTrigger` subscribed to the OLD
+            # entity_id and won't follow the rename — schedule a reload so
+            # they re-instantiate against the new id.
+            hass.config_entries.async_schedule_reload(ce.entry_id)
+            _LOGGER.info(
+                "Rewrote entity references %s → %s for entry %s "
+                "(entry_data=%s, store=%s) and scheduled reload",
+                old_eid, new_eid, ce.entry_id, entry_changed, store_changed,
+            )
+
+    unsub_entity = hass.bus.async_listen(
+        er.EVENT_ENTITY_REGISTRY_UPDATED, _on_entity_registry_update
+    )
+
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
     hass.data[DOMAIN]["_event_unsubs"] = [
-        unsub_notification, unsub_tag, unsub_action, unsub_device,
+        unsub_notification, unsub_tag, unsub_action,
+        unsub_device, unsub_entity,
     ]
 
     return True
@@ -522,6 +586,10 @@ async def async_setup_entry(
         # while the integration was offline land here as repair issues).
         await _check_admin_panel_user_orphans(hass, entry)
 
+        # v1.5.4: also clear stale ``task.responsible_user_id`` so the
+        # dashboard stops showing the ghost of deleted users.
+        await _check_task_responsible_user_orphans(hass)
+
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
         # Maintenance object entry: create Store + coordinator
@@ -615,6 +683,47 @@ async def _async_global_options_updated(
 _ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"
 
 
+async def _check_task_responsible_user_orphans(
+    hass: HomeAssistant,
+) -> None:
+    """Clear ``task.responsible_user_id`` pointing at deleted HA users.
+
+    Same class of bug as ``admin_panel_user_ids`` orphans (#48 audit) but for
+    tasks: a user can be deleted in HA while we hold their UUID in entry data,
+    causing dashboards to render "Unknown user" forever. Notifications already
+    fall back to the global service when the user is gone, so silent removal
+    is the right move — no repair issue, no user prompt.
+    """
+    valid_ids = {u.id for u in await hass.auth.async_get_users()}
+    if not valid_ids:
+        # Defensive: production HA always has at least the owner user. An
+        # empty list means we're in a test harness without an auth fixture
+        # or auth is mid-load — either way, don't prune references we
+        # can't actually verify as orphaned.
+        return
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        tasks = entry.data.get(CONF_TASKS, {})
+        new_tasks: dict[str, dict[str, Any]] = {}
+        changed = False
+        for tid, td in tasks.items():
+            ruid = td.get("responsible_user_id")
+            if ruid and ruid not in valid_ids:
+                _LOGGER.info(
+                    "Clearing orphaned responsible_user_id %s on task %s (%s)",
+                    ruid, tid, entry.title,
+                )
+                new_td = {k: v for k, v in td.items() if k != "responsible_user_id"}
+                new_tasks[tid] = new_td
+                changed = True
+            else:
+                new_tasks[tid] = td
+        if changed:
+            new_data = {**entry.data, CONF_TASKS: new_tasks}
+            hass.config_entries.async_update_entry(entry, data=new_data)
+
+
 async def _check_admin_panel_user_orphans(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> None:
@@ -697,6 +806,12 @@ async def async_remove_entry(
         return
     store = MaintenanceStore(hass, entry.entry_id)
     await store.async_remove()
+    # v1.5.4: also called from ws_delete_object — but if the user removes the
+    # config entry from HA's "Configure" UI, that path doesn't run, leaving
+    # phantom task_refs in groups. Belt-and-suspenders.
+    from .websocket import cleanup_group_refs
+
+    cleanup_group_refs(hass, entry_id=entry.entry_id)
     _LOGGER.debug("Removed store for entry %s", entry.entry_id)
 
 

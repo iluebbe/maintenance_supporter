@@ -780,9 +780,10 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     nm = hass.data[DOMAIN].get("_notification_manager")
     assert nm is not None
     event_unsubs = hass.data[DOMAIN].get("_event_unsubs", [])
-    # 3 baseline (notification + tag_scanned + action_listener) + 1 v1.5.3
-    # (EVENT_DEVICE_REGISTRY_UPDATED → reverse-sync device.area_id → obj.area_id, #48).
-    assert len(event_unsubs) == 4
+    # 3 baseline (notification + tag_scanned + action_listener) +
+    # 1 v1.5.3 (EVENT_DEVICE_REGISTRY_UPDATED — reverse area sync, #48) +
+    # 1 v1.5.4 (EVENT_ENTITY_REGISTRY_UPDATED — entity-rename rewrite).
+    assert len(event_unsubs) == 5
 
     # Spy on the unsub callbacks
     original_unsubs = list(event_unsubs)
@@ -805,9 +806,9 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     assert result is True
     # Domain data should be fully cleaned up
     assert DOMAIN not in hass.data
-    # All four event unsubs should have been called
-    # (notification + tag_scanned + action_listener + device_registry — #48).
-    assert sorted(call_tracker) == [0, 1, 2, 3]
+    # All five event unsubs should have been called (notification + tag_scanned
+    # + action_listener + device_registry [#48] + entity_registry [v1.5.4]).
+    assert sorted(call_tracker) == [0, 1, 2, 3, 4]
     # NM.async_unload should have been called
     nm_unload_spy.assert_awaited_once()
 
@@ -838,5 +839,6 @@ async def test_partial_unload_preserves_domain_data_and_listeners(
     assert DOMAIN in hass.data
     nm_after = hass.data[DOMAIN].get("_notification_manager")
     assert nm_after is nm_before  # same instance, not recreated
-    # notification + tag_scanned + action_listener + device_registry (#48).
-    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 4
+    # notification + tag_scanned + action_listener + device_registry (#48)
+    # + entity_registry (v1.5.4).
+    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 5

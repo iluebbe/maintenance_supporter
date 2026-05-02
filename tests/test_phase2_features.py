@@ -526,6 +526,10 @@ class TestExportService:
             unique_id="maintenance_supporter_test_obj",
         )
         entry.add_to_hass(hass)
+        # v1.5.4: mock auth so the orphan-check doesn't strip the
+        # synthetic responsible_user_id during setup.
+        fake_user = MagicMock(id="user123")
+        hass.auth.async_get_users = AsyncMock(return_value=[fake_user])  # type: ignore[method-assign]
         await setup_integration(hass, global_config_entry, entry)
 
         from custom_components.maintenance_supporter.export import (
@@ -782,6 +786,9 @@ class TestCSVImportExport:
             unique_id="maintenance_supporter_csv_test",
         )
         entry.add_to_hass(hass)
+        # v1.5.4: orphan-check guard.
+        fake_user = MagicMock(id="user456")
+        hass.auth.async_get_users = AsyncMock(return_value=[fake_user])  # type: ignore[method-assign]
         await setup_integration(hass, global_config_entry, entry)
 
         from custom_components.maintenance_supporter.helpers.csv_handler import (
