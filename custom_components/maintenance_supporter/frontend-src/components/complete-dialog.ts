@@ -103,24 +103,30 @@ export class MaintenanceCompleteDialog extends LitElement {
               `)}
             </div>
           ` : nothing}
-          <ha-textfield
-            label="${t("notes_optional", L)}"
-            .value=${this._notes}
-            @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
-            label="${t("cost_optional", L)}"
-            type="number"
-            step="0.01"
-            .value=${this._cost}
-            @input=${(e: Event) => (this._cost = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
-            label="${t("duration_minutes", L)}"
-            type="number"
-            .value=${this._duration}
-            @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          <!-- Native <input>s rather than <ha-textfield>: when this dialog
+               is opened from a Lovelace card via dialog-mount, ha-textfield
+               isn't yet registered (HA loads it lazily when its own panels
+               need it) so the elements render with zero height and the user
+               only sees the title + Cancel/Complete buttons — the original
+               bug report. Native inputs always render. -->
+          <label class="field">
+            <span class="field-label">${t("notes_optional", L)}</span>
+            <input type="text" class="field-input"
+              .value=${this._notes}
+              @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)} />
+          </label>
+          <label class="field">
+            <span class="field-label">${t("cost_optional", L)}</span>
+            <input type="number" step="0.01" min="0" class="field-input"
+              .value=${this._cost}
+              @input=${(e: Event) => (this._cost = (e.target as HTMLInputElement).value)} />
+          </label>
+          <label class="field">
+            <span class="field-label">${t("duration_minutes", L)}</span>
+            <input type="number" step="1" min="0" class="field-input"
+              .value=${this._duration}
+              @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
+          </label>
           ${this.adaptiveEnabled ? html`
             <div class="feedback-section">
               <label class="feedback-label">${t("was_maintenance_needed", L)}</label>
@@ -178,8 +184,22 @@ export class MaintenanceCompleteDialog extends LitElement {
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-    ha-textfield {
-      display: block;
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .field-input {
+      padding: 8px 10px; font-size: 14px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
+      font-family: inherit;
+      width: 100%; box-sizing: border-box;
+    }
+    .field-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
     }
     .checklist-section {
       display: flex;
