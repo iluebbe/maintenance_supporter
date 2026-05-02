@@ -472,6 +472,25 @@ The `due_date` mode uses two new card filters introduced in 1.7.0 — `filter_du
 
 On older HA versions the strategy JS still loads but the registration is a silent no-op; the picker simply won't show the entry. Card and panel work as before.
 
+#### Section strategy
+
+<a id="section-strategy"></a>
+
+A second strategy ships alongside — a section you can drop into *any* HA dashboard view (the home dashboard, the areas dashboard's per-area view, a custom dashboard), so a slice of maintenance tasks shows up in context:
+
+```yaml
+sections:
+  - strategy:
+      type: custom:maintenance-supporter-section
+      area_id: kitchen           # optional — restrict to one area
+      filter_status: [overdue, triggered]
+      filter_due_max_days: 7
+      title: Kitchen — this week
+      max_items: 5
+```
+
+All filters are optional and additive. `area_id` resolves to object names via the WebSocket feed at section-load time, so it survives area renames automatically.
+
 ### Template Sensor: Count Overdue Tasks
 
 ```yaml
