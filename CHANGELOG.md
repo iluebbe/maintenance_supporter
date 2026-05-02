@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.5.4] - 2026-05-02
+
+### Fix — Stale-reference hardening (audit follow-up to #48)
+
+The #48 area-sync fix exposed a broader pattern: every value the integration stores as a foreign key into HA's runtime registries (entities, users, devices) needs an explicit listener for upstream changes. A code-wide audit found three more instances and fixed them in one release.
+
+**A. Entity-rename rewrites stored `trigger_config["entity_id"]` and `adaptive_config["environmental_entity"]`.** Triggers used `async_track_state_change_event` filtered by entity_id, so a sensor rename in HA's UI silently killed the trigger — no log, no error, just stopped firing. A new `EVENT_ENTITY_REGISTRY_UPDATED` listener walks all tasks (including nested compound conditions and per-entity `_trigger_state` keys), updates entry data + the dynamic Store, and schedules an entry reload so listeners re-subscribe to the new id.
+
+**B. Orphaned `task.responsible_user_id` cleared at startup.** `_check_admin_panel_user_orphans` already handled the global setting; the task-level field had no equivalent check. After the cleanup, the dashboard stops rendering "Unknown user" indefinitely. Defensive: skipped when HA's auth returns 0 users (test harness without auth fixture) so synthetic test user IDs aren't pruned.
+
+**C. `cleanup_group_refs` extended to the `async_remove_entry` path.** Removing the integration via HA's "Remove integration" button (REST `DELETE /api/config/config_entries/entry/<id>`) bypassed our WS delete and left phantom `task_refs` in groups. One-line fix at the canonical removal hook.
+
+12 new pytest cases pin all three; verified live in Docker with synthetic `entity_registry_updated` events and a real REST DELETE.
+
+ruff ✓ · mypy strict ✓ · 1590 tests pass.
+
 ## [1.5.3] - 2026-05-01
 
 ### Fix — Object area now stays in sync with the HA device area (#48)

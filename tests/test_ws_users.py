@@ -280,6 +280,9 @@ async def test_ws_tasks_by_user(
     hass: HomeAssistant, global_entry: MockConfigEntry, assigned_object_entry: MockConfigEntry,
 ) -> None:
     """Test getting tasks assigned to a user."""
+    # v1.5.4: mock auth so the orphan-check (added in #48 audit follow-up)
+    # doesn't strip the synthetic responsible_user_id during setup.
+    hass.auth.async_get_users = AsyncMock(return_value=[_mock_user("user1")])  # type: ignore[method-assign]
     await setup_integration(hass, global_entry, assigned_object_entry)
     conn = _mock_connection()
 
