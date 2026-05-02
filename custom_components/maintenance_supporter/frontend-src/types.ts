@@ -188,6 +188,17 @@ export interface CardConfig {
   // sensor or binary_sensor entity_id matches one of these are shown. Combines
   // additively with filter_status / filter_objects.
   entity_ids?: string[];
+  // Range filter on task.days_until_due (since 1.7.0). Inclusive on both
+  // ends. Used by the dashboard strategy's group_by=due_date buckets:
+  //   Today:      min=0, max=0
+  //   This Week:  min=1, max=7
+  //   This Month: min=8, max=30
+  //   Later:      min=31
+  //   Overdue:    max=-1
+  // Tasks with null/undefined days_until_due (e.g. sensor-triggered without
+  // a computed next_due) are excluded when either bound is set.
+  filter_due_min_days?: number;
+  filter_due_max_days?: number;
   compact?: boolean;
   show_actions?: boolean;
 }

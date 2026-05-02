@@ -85,34 +85,58 @@ const result = await page.evaluate(async () => {
     "ll-strategy-dashboard-maintenance-supporter",
   );
 
-  // 3. Try the actual generate() call in BOTH group_by modes
+  // 3. Try the actual generate() call in ALL group_by modes
   try {
     const StrategyClass = customElements.get(
       "ll-strategy-dashboard-maintenance-supporter",
     );
     const ha = document.querySelector("home-assistant");
     if (StrategyClass?.generate && ha?.hass) {
-      const byArea = await StrategyClass.generate(
-        { type: "custom:maintenance-supporter" },
-        ha.hass,
-      );
-      out.generatedArea = {
-        title: byArea.title,
-        viewCount: byArea.views?.length ?? 0,
-        viewTitles: (byArea.views || []).map((v) => v.title),
-      };
-      const byStatus = await StrategyClass.generate(
-        { type: "custom:maintenance-supporter", group_by: "status" },
-        ha.hass,
-      );
-      out.generatedStatus = {
-        title: byStatus.title,
-        viewCount: byStatus.views?.length ?? 0,
-        viewTitles: (byStatus.views || []).map((v) => v.title),
-      };
+      for (const mode of ["area", "status", "floor", "due_date"]) {
+        const cfg = await StrategyClass.generate(
+          { type: "custom:maintenance-supporter", group_by: mode },
+          ha.hass,
+        );
+        out[`generated_${mode}`] = {
+          viewCount: cfg.views?.length ?? 0,
+          viewTitles: (cfg.views || []).map((v) => v.title),
+        };
+      }
     }
   } catch (e) {
     out.generateError = String(e);
+  }
+
+  // 4. Editor element registered + setConfig works + dispatches event
+  try {
+    out.editorRegistered = !!customElements.get(
+      "hui-maintenance-supporter-strategy-editor",
+    );
+    if (out.editorRegistered) {
+      const StrategyClass = customElements.get(
+        "ll-strategy-dashboard-maintenance-supporter",
+      );
+      const editor = await StrategyClass.getConfigElement();
+      document.body.appendChild(editor);
+      editor.setConfig({
+        type: "custom:maintenance-supporter",
+        group_by: "status",
+      });
+      // Verify the dropdown reflects the config
+      const select = editor.querySelector("select");
+      out.editorPreselected = select?.value;
+      // Simulate user changing dropdown
+      let dispatchedConfig = null;
+      editor.addEventListener("config-changed", (e) => {
+        dispatchedConfig = e.detail.config;
+      });
+      select.value = "due_date";
+      select.dispatchEvent(new Event("change"));
+      out.editorDispatched = dispatchedConfig;
+      editor.remove();
+    }
+  } catch (e) {
+    out.editorError = String(e);
   }
 
   // 4. HA version
@@ -129,17 +153,30 @@ const ours = result.customStrategies.find(
 );
 const okRegister = !!ours;
 const okElement = result.elementRegistered;
-const okArea = !!result.generatedArea && result.generatedArea.viewCount > 0;
-const okStatus = !!result.generatedStatus && result.generatedStatus.viewCount > 0;
+const okArea = (result.generated_area?.viewCount ?? 0) > 0;
+const okStatus = (result.generated_status?.viewCount ?? 0) > 0;
+const okFloor = (result.generated_floor?.viewCount ?? 0) > 0;
+const okDueDate = (result.generated_due_date?.viewCount ?? 0) > 0;
+const okEditor =
+  result.editorRegistered === true &&
+  result.editorPreselected === "status" &&
+  result.editorDispatched?.group_by === "due_date";
 
 console.log(
   "\n=== SUMMARY ===\n" +
     `  HA version:                    ${result.haVersion}\n` +
     `  customStrategies has our entry: ${okRegister ? "✓" : "✗"}\n` +
     `  custom element registered:     ${okElement ? "✓" : "✗"}\n` +
-    `  generate(group_by=area):       ${okArea ? "✓" : "✗"} (${result.generatedArea?.viewCount} views)\n` +
-    `  generate(group_by=status):     ${okStatus ? "✓" : "✗"} (${result.generatedStatus?.viewCount} views)`,
+    `  generate(group_by=area):       ${okArea ? "✓" : "✗"} (${result.generated_area?.viewCount} views)\n` +
+    `  generate(group_by=status):     ${okStatus ? "✓" : "✗"} (${result.generated_status?.viewCount} views)\n` +
+    `  generate(group_by=floor):      ${okFloor ? "✓" : "✗"} (${result.generated_floor?.viewCount} views)\n` +
+    `  generate(group_by=due_date):   ${okDueDate ? "✓" : "✗"} (${result.generated_due_date?.viewCount} views)\n` +
+    `  editor registered + works:     ${okEditor ? "✓" : "✗"}`,
 );
 
 await browser.close();
-process.exit(okRegister && okElement && okArea && okStatus ? 0 : 1);
+process.exit(
+  okRegister && okElement && okArea && okStatus && okFloor && okDueDate && okEditor
+    ? 0
+    : 1,
+);
