@@ -233,6 +233,23 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _handleDeepLink(): void {
     if (this._deepLinkHandled) return;
     const params = new URLSearchParams(window.location.search);
+
+    // v1.8.1: ms_action deep links from the dashboard strategy's fire-dom-event
+    // Empty-state buttons. Currently: open the Add Object dialog. Cleared from
+    // the URL after one fire so refreshing the page doesn't re-open it.
+    const msAction = params.get("ms_action");
+    if (msAction === "add_object") {
+      this._deepLinkHandled = true;
+      const cleanUrl = window.location.pathname + window.location.hash;
+      history.replaceState(history.state, "", cleanUrl);
+      requestAnimationFrame(() => {
+        this.shadowRoot
+          ?.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")
+          ?.openCreate();
+      });
+      return;
+    }
+
     const entryId = params.get("entry_id");
     if (!entryId) return;
     this._deepLinkHandled = true;

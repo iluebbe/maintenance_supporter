@@ -190,6 +190,32 @@ const result = await page.evaluate(async () => {
     out.sectionError = String(e);
   }
 
+  // 7. v1.8.1 — fire-dom-event handler intercepts maintenance-supporter:* events
+  //    and rewrites the URL so the panel can pick up ms_action on next nav.
+  try {
+    const startPath = window.location.pathname + window.location.search;
+    let routeFiredPath = null;
+    const onLocationChanged = () => {
+      routeFiredPath = window.location.pathname + window.location.search;
+    };
+    window.addEventListener("location-changed", onLocationChanged, { once: true });
+
+    document.dispatchEvent(
+      new CustomEvent("ll-custom", {
+        detail: { type: "maintenance-supporter:add-object" },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+    // Allow the handler to run synchronously (it is sync)
+    out.fireDomNewPath = window.location.pathname + window.location.search;
+    out.fireDomEventDispatched = routeFiredPath;
+    // Reset the URL for any later checks
+    history.replaceState(history.state, "", startPath);
+  } catch (e) {
+    out.fireDomError = String(e);
+  }
+
   // 4. HA version
   const ha = document.querySelector("home-assistant");
   out.haVersion = ha?.hass?.config?.version;
@@ -222,6 +248,11 @@ const okSection =
   (result.sectionGenerated?.cardCount ?? 0) >= 2 &&
   result.sectionGenerated?.firstCardType === "heading" &&
   result.sectionGenerated?.lastCardType === "custom:maintenance-supporter-card";
+const okFireDom =
+  typeof result.fireDomNewPath === "string" &&
+  result.fireDomNewPath.includes("ms_action=add_object") &&
+  typeof result.fireDomEventDispatched === "string" &&
+  result.fireDomEventDispatched.includes("ms_action=add_object");
 
 console.log(
   "\n=== SUMMARY ===\n" +
@@ -235,7 +266,8 @@ console.log(
     `  editor registered + works:        ${okEditor ? "✓" : "✗"}\n` +
     `  Overview has KPI header:          ${okHeader ? "✓" : "✗"} (${result.overviewHeader})\n` +
     `  Overview has sidebar (large):     ${okSidebar ? "✓" : "✗"} (${result.overviewSidebar} cards, visibility=${result.overviewSidebarVisibility})\n` +
-    `  Section strategy registered+works: ${okSection ? "✓" : "✗"} (${result.sectionGenerated?.cardCount} cards)`,
+    `  Section strategy registered+works: ${okSection ? "✓" : "✗"} (${result.sectionGenerated?.cardCount} cards)\n` +
+    `  fire-dom-event handler routes:    ${okFireDom ? "✓" : "✗"} (path=${result.fireDomNewPath}, event-fired=${result.fireDomEventDispatched})`,
 );
 
 await browser.close();
@@ -249,7 +281,8 @@ process.exit(
     okEditor &&
     okHeader &&
     okSidebar &&
-    okSection
+    okSection &&
+    okFireDom
     ? 0
     : 1,
 );

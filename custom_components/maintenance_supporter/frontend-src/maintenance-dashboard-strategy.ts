@@ -241,6 +241,14 @@ function kpiMarkdownCard(stats: MaintenanceStats): CardConfig {
 
 // Onboarding card shown when there are zero maintenance objects. Pattern
 // follows HA core's home-overview-view-strategy empty-state branch.
+//
+// Two buttons:
+//   • "Open Maintenance panel" — plain navigate, the dependable path.
+//   • "Add object" — fire-dom-event with a custom ll-custom payload that
+//     our document-level handler (see registerLlCustomHandler below) catches
+//     and turns into a deep-link navigation. This demonstrates the fire-dom
+//     pattern HA core uses for in-place actions, without requiring us to
+//     rip our object-add dialog out of the panel into a custom element.
 function emptyStateView(): ViewConfig {
   return {
     title: "Maintenance",
@@ -263,6 +271,16 @@ function emptyStateView(): ViewConfig {
             tap_action: {
               action: "navigate",
               navigation_path: "/maintenance-supporter",
+            },
+          },
+          {
+            icon: "mdi:plus",
+            text: "Add object",
+            appearance: "outlined",
+            variant: "brand",
+            tap_action: {
+              action: "fire-dom-event",
+              ll_custom: { type: "maintenance-supporter:add-object" },
             },
           },
         ],
@@ -578,20 +596,23 @@ class MaintenanceDashboardStrategy extends HTMLElement {
     const stats = computeStats(objects);
     const groupBy: GroupBy = config?.group_by ?? "area";
 
-    const views: ViewConfig[] = [overviewView(stats)];
-    if (groupBy === "status") {
-      views.push(...viewsByStatus(objects));
-    } else if (groupBy === "floor") {
-      views.push(...viewsByFloor(objects, hass.areas || {}, hass.floors || {}));
-    } else if (groupBy === "due_date") {
-      views.push(...viewsByDueDate(objects));
-    } else {
-      views.push(...viewsByArea(objects, hass.areas || {}));
-    }
+    // Record-of-builders pattern from HA core's home-overview-view-strategy
+    // — each entry is a no-arg lambda producing the per-mode views. Extending
+    // with a new group_by mode means adding one entry instead of growing an
+    // if/else chain.
+    const viewBuilders: Record<GroupBy, () => ViewConfig[]> = {
+      area: () => viewsByArea(objects, hass.areas || {}),
+      status: () => viewsByStatus(objects),
+      floor: () => viewsByFloor(objects, hass.areas || {}, hass.floors || {}),
+      due_date: () => viewsByDueDate(objects),
+    };
 
     return {
       title: "Maintenance",
-      views,
+      views: [
+        overviewView(stats),
+        ...(viewBuilders[groupBy] ?? viewBuilders.area)(),
+      ],
     };
   }
 }
@@ -775,6 +796,53 @@ if (!customElements.get(EDITOR_TAG)) {
 if (!customElements.get(SECTION_STRATEGY_TAG)) {
   customElements.define(SECTION_STRATEGY_TAG, MaintenanceSectionStrategy);
 }
+
+// ── fire-dom-event handler ──────────────────────────────────────────────────
+//
+// HA's standard ``tap_action: { action: "fire-dom-event", ll_custom: {...} }``
+// dispatches an ``ll-custom`` CustomEvent on the tapped element. We register
+// one bubble-phase listener at document level that handles every payload
+// whose ``type`` is namespaced with ``maintenance-supporter:`` — currently:
+//
+//   maintenance-supporter:add-object  → /maintenance-supporter?ms_action=add_object
+//   maintenance-supporter:open-task    → /maintenance-supporter?ms_action=open_task&task_id=<id>
+//
+// The panel reads the ``ms_action`` query string on load and opens the
+// matching dialog. This avoids ripping the dialog code out of the panel
+// while still giving Lovelace cards a clean tap-action UX.
+
+interface LlCustomEventDetail {
+  type?: string;
+  [key: string]: unknown;
+}
+
+const LL_CUSTOM_HANDLER_FLAG = "_msSupporterLlCustomBound";
+
+function registerLlCustomHandler(): void {
+  const w = window as unknown as Record<string, unknown>;
+  if (w[LL_CUSTOM_HANDLER_FLAG]) return; // idempotent — strategy file may load twice
+  w[LL_CUSTOM_HANDLER_FLAG] = true;
+
+  document.addEventListener("ll-custom", (event: Event) => {
+    const detail = (event as CustomEvent<LlCustomEventDetail>).detail;
+    if (!detail || typeof detail.type !== "string") return;
+    if (!detail.type.startsWith("maintenance-supporter:")) return;
+    const action = detail.type.slice("maintenance-supporter:".length);
+
+    let path = "/maintenance-supporter";
+    if (action === "add-object") {
+      path += "?ms_action=add_object";
+    } else if (action === "open-task" && typeof detail.task_id === "string") {
+      path += `?ms_action=open_task&task_id=${encodeURIComponent(detail.task_id)}`;
+    }
+
+    // Use HA's history API path so the routing system catches the change.
+    history.pushState(null, "", path);
+    window.dispatchEvent(new CustomEvent("location-changed"));
+  });
+}
+
+registerLlCustomHandler();
 
 // Discovery — picked up by HA 2026.5+. Older HA ignores it silently.
 const w = window as unknown as {
