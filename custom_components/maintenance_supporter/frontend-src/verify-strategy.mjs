@@ -85,18 +85,30 @@ const result = await page.evaluate(async () => {
     "ll-strategy-dashboard-maintenance-supporter",
   );
 
-  // 3. Try the actual generate() call (round-trips WS to maintenance_supporter/objects)
+  // 3. Try the actual generate() call in BOTH group_by modes
   try {
     const StrategyClass = customElements.get(
       "ll-strategy-dashboard-maintenance-supporter",
     );
     const ha = document.querySelector("home-assistant");
     if (StrategyClass?.generate && ha?.hass) {
-      const cfg = await StrategyClass.generate({}, ha.hass);
-      out.generated = {
-        title: cfg.title,
-        viewCount: cfg.views?.length ?? 0,
-        viewTitles: (cfg.views || []).map((v) => v.title),
+      const byArea = await StrategyClass.generate(
+        { type: "custom:maintenance-supporter" },
+        ha.hass,
+      );
+      out.generatedArea = {
+        title: byArea.title,
+        viewCount: byArea.views?.length ?? 0,
+        viewTitles: (byArea.views || []).map((v) => v.title),
+      };
+      const byStatus = await StrategyClass.generate(
+        { type: "custom:maintenance-supporter", group_by: "status" },
+        ha.hass,
+      );
+      out.generatedStatus = {
+        title: byStatus.title,
+        viewCount: byStatus.views?.length ?? 0,
+        viewTitles: (byStatus.views || []).map((v) => v.title),
       };
     }
   } catch (e) {
@@ -117,15 +129,17 @@ const ours = result.customStrategies.find(
 );
 const okRegister = !!ours;
 const okElement = result.elementRegistered;
-const okGenerate = !!result.generated && result.generated.viewCount > 0;
+const okArea = !!result.generatedArea && result.generatedArea.viewCount > 0;
+const okStatus = !!result.generatedStatus && result.generatedStatus.viewCount > 0;
 
 console.log(
   "\n=== SUMMARY ===\n" +
     `  HA version:                    ${result.haVersion}\n` +
     `  customStrategies has our entry: ${okRegister ? "✓" : "✗"}\n` +
     `  custom element registered:     ${okElement ? "✓" : "✗"}\n` +
-    `  generate() returns valid cfg:  ${okGenerate ? "✓" : "✗"}`,
+    `  generate(group_by=area):       ${okArea ? "✓" : "✗"} (${result.generatedArea?.viewCount} views)\n` +
+    `  generate(group_by=status):     ${okStatus ? "✓" : "✗"} (${result.generatedStatus?.viewCount} views)`,
 );
 
 await browser.close();
-process.exit(okRegister && okElement && okGenerate ? 0 : 1);
+process.exit(okRegister && okElement && okArea && okStatus ? 0 : 1);

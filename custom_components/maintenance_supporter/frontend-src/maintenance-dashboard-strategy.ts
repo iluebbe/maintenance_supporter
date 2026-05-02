@@ -1,14 +1,24 @@
 /** Maintenance Supporter — custom dashboard strategy.
  *
- * Generates a complete Lovelace dashboard from the integration's WS feed:
- *   • View 1: "Overview" — actionable tasks (overdue + triggered + due_soon)
- *   • View 2..N: one per area, each filtered to that area's objects
- *   • View N+1: "Unassigned" — objects without an area_id
+ * Generates a complete Lovelace dashboard from the integration's WS feed.
+ * Honors a ``group_by`` config so YAML users can pick the layout:
+ *
+ *   strategy:
+ *     type: custom:maintenance-supporter
+ *     group_by: area    # default — one view per area + Unassigned
+ *
+ *   strategy:
+ *     type: custom:maintenance-supporter
+ *     group_by: status  # one view per status (Overdue / Triggered / Due Soon / OK)
+ *
+ * Layout pattern follows HA's own ``maintenance-view-strategy`` and
+ * ``areas-dashboard-strategy``: a leading "Overview" view of actionable tasks,
+ * empty groups skipped, and STATE_NOT_RUNNING / recovery_mode handled with
+ * the same starting / recovery-mode card placeholders HA core uses.
  *
  * Requires Home Assistant 2026.5+ to appear in the "Add Dashboard" picker
  * (that's when ``window.customStrategies`` got picked up by the frontend).
- * On older HA versions the registration is a silent no-op — no error, just
- * not discoverable from the UI.
+ * On older HA versions the registration is a silent no-op.
  */
 
 interface MaintenanceObjectResp {
@@ -18,7 +28,7 @@ interface MaintenanceObjectResp {
     name: string;
     area_id: string | null;
   };
-  tasks: unknown[];
+  tasks: Array<{ status?: string }>;
 }
 
 interface AreaEntry {
@@ -29,10 +39,21 @@ interface AreaEntry {
 
 interface HassLike {
   language?: string;
+  config?: {
+    state?: string;
+    recovery_mode?: boolean;
+  };
   connection: {
     sendMessagePromise<T>(msg: Record<string, unknown>): Promise<T>;
   };
   areas?: Record<string, AreaEntry>;
+}
+
+type GroupBy = "area" | "status";
+
+interface MaintenanceDashboardStrategyConfig {
+  type: "custom:maintenance-supporter" | "maintenance-supporter";
+  group_by?: GroupBy;
 }
 
 interface DashboardConfig {
@@ -63,6 +84,132 @@ interface CardConfig {
 const STRATEGY_TYPE = "maintenance-supporter";
 const STRATEGY_TAG = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 
+// Match HA's own startup placeholders (see areas-dashboard-strategy.ts).
+const STATE_NOT_RUNNING = "NOT_RUNNING";
+
+const STATUS_VIEWS: Array<{
+  status: string;
+  title: string;
+  icon: string;
+  path: string;
+}> = [
+  { status: "overdue", title: "Overdue", icon: "mdi:alert-circle", path: "overdue" },
+  { status: "triggered", title: "Triggered", icon: "mdi:flash", path: "triggered" },
+  { status: "due_soon", title: "Due Soon", icon: "mdi:clock-alert-outline", path: "due-soon" },
+  { status: "ok", title: "OK", icon: "mdi:check-circle-outline", path: "ok" },
+];
+
+function makeCardSection(card: CardConfig): SectionConfig {
+  return { type: "grid", cards: [card] };
+}
+
+function overviewView(): ViewConfig {
+  return {
+    title: "Overview",
+    icon: "mdi:wrench-clock",
+    path: "overview",
+    type: "sections",
+    sections: [
+      makeCardSection({
+        type: "custom:maintenance-supporter-card",
+        show_header: false,
+        filter_status: ["overdue", "triggered", "due_soon"],
+      }),
+    ],
+  };
+}
+
+function viewsByArea(
+  objects: MaintenanceObjectResp[],
+  areas: Record<string, AreaEntry>,
+): ViewConfig[] {
+  const byArea = new Map<string | null, MaintenanceObjectResp[]>();
+  for (const obj of objects) {
+    const aid = obj.object.area_id || null;
+    if (!byArea.has(aid)) byArea.set(aid, []);
+    byArea.get(aid)!.push(obj);
+  }
+
+  const areaIds = Array.from(byArea.keys()).filter(
+    (a): a is string => a !== null,
+  );
+  areaIds.sort((a, b) => {
+    const na = areas[a]?.name || a;
+    const nb = areas[b]?.name || b;
+    return na.localeCompare(nb);
+  });
+
+  const views: ViewConfig[] = [];
+
+  for (const areaId of areaIds) {
+    const objs = byArea.get(areaId)!;
+    if (objs.length === 0) continue; // empty-section guard
+    const areaInfo = areas[areaId];
+    views.push({
+      title: areaInfo?.name || areaId,
+      icon: areaInfo?.icon || "mdi:floor-plan",
+      path: `area-${areaId}`,
+      type: "sections",
+      sections: [
+        makeCardSection({
+          type: "custom:maintenance-supporter-card",
+          show_header: false,
+          // The card filters by object NAME (not entry_id), so we pass names.
+          filter_objects: objs.map((o) => o.object.name),
+        }),
+      ],
+    });
+  }
+
+  const unassigned = byArea.get(null);
+  if (unassigned && unassigned.length > 0) {
+    views.push({
+      title: "Unassigned",
+      icon: "mdi:help-circle-outline",
+      path: "unassigned",
+      type: "sections",
+      sections: [
+        makeCardSection({
+          type: "custom:maintenance-supporter-card",
+          show_header: false,
+          filter_objects: unassigned.map((o) => o.object.name),
+        }),
+      ],
+    });
+  }
+
+  return views;
+}
+
+function viewsByStatus(objects: MaintenanceObjectResp[]): ViewConfig[] {
+  // Pre-compute which statuses actually have at least one task — skip empty.
+  const present = new Set<string>();
+  for (const obj of objects) {
+    for (const task of obj.tasks || []) {
+      if (task.status) present.add(task.status);
+    }
+  }
+
+  const views: ViewConfig[] = [];
+  for (const v of STATUS_VIEWS) {
+    if (!present.has(v.status)) continue; // empty-section guard
+    views.push({
+      title: v.title,
+      icon: v.icon,
+      path: v.path,
+      type: "sections",
+      sections: [
+        makeCardSection({
+          type: "custom:maintenance-supporter-card",
+          show_header: false,
+          filter_status: [v.status],
+        }),
+      ],
+    });
+  }
+  return views;
+}
+
 class MaintenanceDashboardStrategy extends HTMLElement {
   static getCreateSuggestions(_hass: HassLike) {
     return {
@@ -72,9 +219,30 @@ class MaintenanceDashboardStrategy extends HTMLElement {
   }
 
   static async generate(
-    _config: Record<string, unknown>,
+    config: MaintenanceDashboardStrategyConfig | undefined,
     hass: HassLike,
   ): Promise<DashboardConfig> {
+    // Startup guards — match the placeholder cards HA core uses (see
+    // areas-dashboard-strategy.ts) so the dashboard renders cleanly while
+    // HA is still booting or in recovery mode.
+    if (hass.config?.state === STATE_NOT_RUNNING) {
+      return {
+        views: [
+          { type: "sections", sections: [{ cards: [{ type: "starting" }] }] },
+        ],
+      };
+    }
+    if (hass.config?.recovery_mode) {
+      return {
+        views: [
+          {
+            type: "sections",
+            sections: [{ cards: [{ type: "recovery-mode" }] }],
+          },
+        ],
+      };
+    }
+
     let response: { objects: MaintenanceObjectResp[] };
     try {
       response = await hass.connection.sendMessagePromise<{
@@ -99,93 +267,13 @@ class MaintenanceDashboardStrategy extends HTMLElement {
     }
 
     const objects = response.objects || [];
+    const groupBy: GroupBy = config?.group_by ?? "area";
 
-    // ── View 1: Overview ──────────────────────────────────────────────
-    const views: ViewConfig[] = [
-      {
-        title: "Overview",
-        icon: "mdi:wrench-clock",
-        path: "overview",
-        type: "sections",
-        sections: [
-          {
-            type: "grid",
-            cards: [
-              {
-                type: "custom:maintenance-supporter-card",
-                show_header: false,
-                filter_status: ["overdue", "triggered", "due_soon"],
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
-    // ── Group objects by area_id ──────────────────────────────────────
-    const byArea = new Map<string | null, MaintenanceObjectResp[]>();
-    for (const obj of objects) {
-      const aid = obj.object.area_id || null;
-      if (!byArea.has(aid)) byArea.set(aid, []);
-      byArea.get(aid)!.push(obj);
-    }
-
-    // Sort areas by display name; "Unassigned" pinned to the end
-    const areas = hass.areas || {};
-    const areaIds = Array.from(byArea.keys()).filter(
-      (a): a is string => a !== null,
-    );
-    areaIds.sort((a, b) => {
-      const na = areas[a]?.name || a;
-      const nb = areas[b]?.name || b;
-      return na.localeCompare(nb);
-    });
-
-    for (const areaId of areaIds) {
-      const objs = byArea.get(areaId)!;
-      const areaInfo = areas[areaId];
-      views.push({
-        title: areaInfo?.name || areaId,
-        icon: areaInfo?.icon || "mdi:floor-plan",
-        path: `area-${areaId}`,
-        type: "sections",
-        sections: [
-          {
-            type: "grid",
-            cards: [
-              {
-                type: "custom:maintenance-supporter-card",
-                show_header: false,
-                // The card filters by object NAME (not entry_id), so we pass names.
-                filter_objects: objs.map((o) => o.object.name),
-              },
-            ],
-          },
-        ],
-      });
-    }
-
-    // ── Unassigned objects last ───────────────────────────────────────
-    const unassigned = byArea.get(null);
-    if (unassigned && unassigned.length > 0) {
-      views.push({
-        title: "Unassigned",
-        icon: "mdi:help-circle-outline",
-        path: "unassigned",
-        type: "sections",
-        sections: [
-          {
-            type: "grid",
-            cards: [
-              {
-                type: "custom:maintenance-supporter-card",
-                show_header: false,
-                filter_objects: unassigned.map((o) => o.object.name),
-              },
-            ],
-          },
-        ],
-      });
+    const views: ViewConfig[] = [overviewView()];
+    if (groupBy === "status") {
+      views.push(...viewsByStatus(objects));
+    } else {
+      views.push(...viewsByArea(objects, hass.areas || {}));
     }
 
     return {
@@ -219,7 +307,7 @@ if (!alreadyRegistered) {
     strategyType: "dashboard",
     name: "Maintenance Supporter",
     description:
-      "Auto-generated dashboard with one view per area showing maintenance tasks. Requires Home Assistant 2026.5 or later to appear in this picker.",
+      "Auto-generated dashboard with one view per area (or per status) showing maintenance tasks. Configure via YAML: strategy.group_by = 'area' (default) | 'status'. Requires Home Assistant 2026.5+ to appear in this picker.",
     documentationURL:
       "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
   });

@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.6.1] - 2026-05-02
+
+### Add — Strategy `group_by` option (area / status)
+
+Reading HA core's own ``areas-dashboard-strategy.ts`` and the new ``maintenance-view-strategy.ts`` (battery dashboard, by [@Brookke](https://github.com/Brookke)) revealed three best-practice patterns we hadn't applied in the v1.6.0 strategy. v1.6.1 brings them in.
+
+**1. Honor the `_config` parameter.** v1.6.0's ``generate(_config, hass)`` ignored its first argument. v1.6.1 reads ``config.group_by`` so users can pick the layout from YAML:
+
+```yaml
+strategy:
+  type: custom:maintenance-supporter
+  group_by: status   # views: Overview + Overdue + Triggered + Due Soon + OK
+  # group_by: area   # default — views: Overview + one per area + Unassigned
+```
+
+Empty groups are skipped in both modes (nobody wants an empty "Triggered" tab when nothing's triggered).
+
+**2. Startup-state guards.** When HA is still booting (``state === "NOT_RUNNING"``) or in recovery mode, the strategy now returns the same ``{type:"starting"}`` / ``{type:"recovery-mode"}`` placeholder cards HA core uses, instead of attempting a WebSocket call that would fail with an unfriendly "not loaded" markdown.
+
+**3. Empty-section guard for areas.** v1.6.0 already filtered the Unassigned view; v1.6.1 also skips areas that, after grouping, end up with zero objects.
+
+Verified live on HA 2026.5.0b0: ``group_by=area`` → 10 views, ``group_by=status`` → 5 views.
+
 ## [1.6.0] - 2026-05-02
 
 ### Add — Dashboard Strategy (HA 2026.5+)
