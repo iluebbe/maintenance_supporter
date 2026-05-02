@@ -4963,7 +4963,41 @@ ${ee}`,e.setTooltip)}
             `)}
         </div>
       </div>
-    `}_renderOverview(){let e=this._lang,t=this._isOperator;return t&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),r`
+    `}_renderOverview(){let e=this._lang,t=this._isOperator,a=this._stats;return t&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),r`
+      ${a?r`
+            <div class="stats-bar">
+              <div class="stat-item clickable"
+                   @click=${()=>this._showAllObjects()}
+                   title=${i("show_all_objects",e)}>
+                <span class="stat-value">${a.total_objects}</span>
+                <span class="stat-label">${i("objects",e)}</span>
+              </div>
+              <div class="stat-item clickable"
+                   @click=${()=>this._filterByStatus("")}
+                   title=${i("show_all_tasks",e)}>
+                <span class="stat-value">${a.total_tasks}</span>
+                <span class="stat-label">${i("tasks",e)}</span>
+              </div>
+              <div class="stat-item clickable ${this._filterStatus==="overdue"&&this._overviewTab==="dashboard"?"active":""}"
+                   @click=${()=>this._filterByStatus("overdue")}
+                   title=${i("filter_to_overdue",e)}>
+                <span class="stat-value" style="color: var(--error-color)">${a.overdue}</span>
+                <span class="stat-label">${i("overdue",e)}</span>
+              </div>
+              <div class="stat-item clickable ${this._filterStatus==="due_soon"&&this._overviewTab==="dashboard"?"active":""}"
+                   @click=${()=>this._filterByStatus("due_soon")}
+                   title=${i("filter_to_due_soon",e)}>
+                <span class="stat-value" style="color: var(--warning-color)">${a.due_soon}</span>
+                <span class="stat-label">${i("due_soon",e)}</span>
+              </div>
+              <div class="stat-item clickable ${this._filterStatus==="triggered"&&this._overviewTab==="dashboard"?"active":""}"
+                   @click=${()=>this._filterByStatus("triggered")}
+                   title=${i("filter_to_triggered",e)}>
+                <span class="stat-value" style="color: #ff5722">${a.triggered}</span>
+                <span class="stat-label">${i("triggered",e)}</span>
+              </div>
+            </div>
+          `:d}
       <div class="tab-bar">
         <div class="tab ${this._overviewTab==="dashboard"?"active":""}"
           @click=${()=>{this._overviewTab="dashboard"}}>
@@ -4993,41 +5027,6 @@ ${ee}`,e.setTooltip)}
             @settings-changed=${this._onSettingsChanged}
           ></maintenance-settings-view>`}
     `}_renderDashboard(){let e=this._stats,t=this._taskRows,a=this._lang,n=this._isOperator;return r`
-      ${e?r`
-            <div class="stats-bar">
-              <div class="stat-item clickable"
-                   @click=${()=>this._showAllObjects()}
-                   title=${i("show_all_objects",a)}>
-                <span class="stat-value">${e.total_objects}</span>
-                <span class="stat-label">${i("objects",a)}</span>
-              </div>
-              <div class="stat-item clickable"
-                   @click=${()=>this._filterByStatus("")}
-                   title=${i("show_all_tasks",a)}>
-                <span class="stat-value">${e.total_tasks}</span>
-                <span class="stat-label">${i("tasks",a)}</span>
-              </div>
-              <div class="stat-item clickable ${this._filterStatus==="overdue"?"active":""}"
-                   @click=${()=>this._filterByStatus("overdue")}
-                   title=${i("filter_to_overdue",a)}>
-                <span class="stat-value" style="color: var(--error-color)">${e.overdue}</span>
-                <span class="stat-label">${i("overdue",a)}</span>
-              </div>
-              <div class="stat-item clickable ${this._filterStatus==="due_soon"?"active":""}"
-                   @click=${()=>this._filterByStatus("due_soon")}
-                   title=${i("filter_to_due_soon",a)}>
-                <span class="stat-value" style="color: var(--warning-color)">${e.due_soon}</span>
-                <span class="stat-label">${i("due_soon",a)}</span>
-              </div>
-              <div class="stat-item clickable ${this._filterStatus==="triggered"?"active":""}"
-                   @click=${()=>this._filterByStatus("triggered")}
-                   title=${i("filter_to_triggered",a)}>
-                <span class="stat-value" style="color: #ff5722">${e.triggered}</span>
-                <span class="stat-label">${i("triggered",a)}</span>
-              </div>
-            </div>
-          `:d}
-
       ${this._features.budget?this._renderBudgetBar():d}
 
       <div class="filter-bar">

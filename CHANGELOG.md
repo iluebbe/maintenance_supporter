@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.1.1] - 2026-05-02
+
+### Fix — Stats-Bar lifted above the tab bar so KPIs work from every tab
+
+v2.1.0 made the KPI numbers clickable filters (Overdue / Due Soon / Triggered) — but the stats-bar was rendered inside `_renderDashboard()`, so the KPIs disappeared whenever the user switched to the *Calendar* or *Settings* tab. The `_filterByStatus()` helper had a tab-auto-switch fallback ready, but the user could never reach it because the buttons were gone.
+
+Fix: stats-bar moved to `_renderOverview()`, **above** the tab-bar. KPIs are now persistent across all three tabs. Click *Overdue* from the Calendar tab → the panel auto-flips to *Dashboard* with the *Overdue* filter applied, exactly as v2.1.0 promised.
+
+The `.active` highlight on filter-status KPIs now also gates on `_overviewTab === "dashboard"` — when you're on Calendar/Settings, the highlight clears (since the filter has no visible effect there).
+
+Verified live in headless Chromium (HA 2026.5.0b0): all 6 cross-tab checks pass — KPIs visible on Dashboard / Calendar / Settings, click-from-Calendar correctly flips tab and sets dropdown.
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [2.1.0] - 2026-05-02
 
 ### Add — All KPI numbers are now clickable filters (Discussion #49)

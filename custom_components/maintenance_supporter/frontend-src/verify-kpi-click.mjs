@@ -65,7 +65,12 @@ await page.evaluate(({ ha, r }) => {
   );
 }, { ha: HA, r: refreshToken });
 await page.goto(`${HA}/maintenance-supporter`);
-await page.waitForTimeout(8000);
+await page.waitForTimeout(12000);
+
+if (errors.length) {
+  console.log("Pre-evaluate page errors:");
+  errors.slice(0, 5).forEach((e) => console.log("  " + e.substring(0, 300)));
+}
 
 // Helper that drills into the panel's shadow root and finds the stat items.
 const PANEL_QUERY = `
@@ -88,34 +93,88 @@ const result = await page.evaluate(async (q) => {
     out.error = "panel shadowRoot not found";
     return out;
   }
-  const items = [...sr.querySelectorAll(".stat-item.clickable")];
-  out.kpiCount = items.length;
-  out.kpiLabels = items.map((i) => i.querySelector(".stat-label")?.textContent?.trim());
+  // Wrap each step so a single failure doesn't abort the whole probe.
+  const safe = async (label, fn) => {
+    try { await fn(); }
+    catch (e) { out[`${label}_error`] = String(e).substring(0, 150); }
+  };
 
-  // Click "overdue" KPI and check filter
+  const queryItems = () => [...sr.querySelectorAll(".stat-item.clickable")];
   const findKpi = (label) =>
-    items.find((i) =>
+    queryItems().find((i) =>
       i.querySelector(".stat-label")?.textContent?.trim().toLowerCase() ===
       label.toLowerCase(),
     );
-  const overdueItem = findKpi("Overdue") || findKpi("Überfällig");
-  if (overdueItem) {
-    overdueItem.click();
-    await new Promise((r) => setTimeout(r, 400));
-    const select = sr.querySelector(".filter-bar select");
-    out.afterOverdueClick_dropdownValue = select?.value;
-    out.afterOverdueClick_overdueActive = overdueItem.classList.contains("active");
-  }
+  const findTab = (label) =>
+    [...sr.querySelectorAll(".tab")].find((t) =>
+      t.textContent?.trim().toLowerCase().includes(label.toLowerCase()),
+    );
+  const activeTabLabel = () =>
+    sr.querySelector(".tab.active")?.textContent?.trim();
 
-  // Click "tasks" KPI to clear filter
-  const tasksItem = findKpi("Tasks") || findKpi("Aufgaben");
-  if (tasksItem) {
-    tasksItem.click();
-    await new Promise((r) => setTimeout(r, 400));
+  out.kpiCount = queryItems().length;
+  out.kpiLabels = queryItems().map((i) =>
+    i.querySelector(".stat-label")?.textContent?.trim(),
+  );
+
+  // ── A. From Dashboard tab — overdue click ─────────────────────────────
+  out.startTab = activeTabLabel();
+  await safe("A", async () => {
+    const overdueItem = findKpi("Overdue") || findKpi("Überfällig");
+    overdueItem.click();
+    await new Promise((r) => setTimeout(r, 600));
     const select = sr.querySelector(".filter-bar select");
-    out.afterTasksClick_dropdownValue = select?.value;
-    out.afterTasksClick_overdueActive = overdueItem?.classList.contains("active");
-  }
+    out.A_afterOverdueClick_dropdownValue = select?.value;
+    out.A_afterOverdueClick_overdueActive = findKpi("Overdue")?.classList.contains("active");
+    out.A_tabAfter = activeTabLabel();
+  });
+
+  // ── B. Click Tasks to clear filter ────────────────────────────────────
+  await safe("B", async () => {
+    const tasksItem = findKpi("Tasks") || findKpi("Aufgaben");
+    tasksItem.click();
+    await new Promise((r) => setTimeout(r, 600));
+    const select = sr.querySelector(".filter-bar select");
+    out.B_afterTasksClick_dropdownValue = select?.value;
+    out.B_afterTasksClick_overdueActive =
+      findKpi("Overdue")?.classList.contains("active") ?? null;
+  });
+
+  // ── C. Switch to Calendar tab — are KPIs still visible? ───────────────
+  await safe("C", async () => {
+    const calendarTab = findTab("Calendar") || findTab("Kalender");
+    calendarTab.click();
+    await new Promise((r) => setTimeout(r, 600));
+    out.C_tabAfterCalendarClick = activeTabLabel();
+    out.C_kpisVisibleOnCalendar = queryItems().length > 0;
+  });
+
+  // ── D. From Calendar tab, click Overdue KPI ───────────────────────────
+  await safe("D", async () => {
+    const overdueOnCalendar = findKpi("Overdue") || findKpi("Überfällig");
+    if (!overdueOnCalendar) {
+      out.D_skipped = "Overdue KPI not visible from Calendar tab";
+      return;
+    }
+    overdueOnCalendar.click();
+    await new Promise((r) => setTimeout(r, 800));
+    out.D_tabAfterOverdueFromCalendar = activeTabLabel();
+    const select = sr.querySelector(".filter-bar select");
+    out.D_dropdownValue = select?.value;
+  });
+
+  // ── E. Switch to Settings tab — KPIs still visible? ───────────────────
+  await safe("E", async () => {
+    const dashTab = findTab("Dashboard") || findTab("Übersicht") || findTab("Overview");
+    dashTab?.click();
+    await new Promise((r) => setTimeout(r, 300));
+    const settingsTab = findTab("Settings") || findTab("Einstellungen");
+    if (!settingsTab) return;
+    settingsTab.click();
+    await new Promise((r) => setTimeout(r, 600));
+    out.E_tabAfterSettingsClick = activeTabLabel();
+    out.E_kpisVisibleOnSettings = queryItems().length > 0;
+  });
 
   return out;
 }, PANEL_QUERY);
@@ -124,17 +183,27 @@ console.log(JSON.stringify(result, null, 2));
 
 const okFiveKpis = result.kpiCount === 5;
 const okOverdueClick =
-  result.afterOverdueClick_dropdownValue === "overdue" &&
-  result.afterOverdueClick_overdueActive === true;
+  result.A_afterOverdueClick_dropdownValue === "overdue" &&
+  result.A_afterOverdueClick_overdueActive === true;
 const okTasksClick =
-  result.afterTasksClick_dropdownValue === "" &&
-  result.afterTasksClick_overdueActive === false;
+  result.B_afterTasksClick_dropdownValue === "" &&
+  result.B_afterTasksClick_overdueActive === false;
+const okKpisOnCalendar = result.C_kpisVisibleOnCalendar === true;
+const okFilterFromCalendar =
+  result.D_tabAfterOverdueFromCalendar?.toLowerCase().includes("dashboard") ===
+    true ||
+  result.D_tabAfterOverdueFromCalendar?.toLowerCase().includes("übersicht") ===
+    true;
+const okKpisOnSettings = result.E_kpisVisibleOnSettings === true;
 
 console.log(
   "\n=== SUMMARY ===\n" +
-    `  5 clickable KPIs:                  ${okFiveKpis ? "✓" : "✗"} (${result.kpiCount})\n` +
-    `  overdue click → dropdown=overdue:  ${okOverdueClick ? "✓" : "✗"}\n` +
-    `  tasks click clears + dehighlights: ${okTasksClick ? "✓" : "✗"}`,
+    `  5 clickable KPIs (Dashboard tab): ${okFiveKpis ? "✓" : "✗"} (${result.kpiCount})\n` +
+    `  Overdue click → dropdown=overdue: ${okOverdueClick ? "✓" : "✗"}\n` +
+    `  Tasks click clears + dehighlight: ${okTasksClick ? "✓" : "✗"}\n` +
+    `  KPIs visible on Calendar tab:    ${okKpisOnCalendar ? "✓" : "✗"} (${result.C_kpisVisibleOnCalendar})\n` +
+    `  KPIs visible on Settings tab:    ${okKpisOnSettings ? "✓" : "✗"} (${result.E_kpisVisibleOnSettings})\n` +
+    `  Filter-from-Calendar tab works:  ${okFilterFromCalendar ? "✓" : "✗"} (tab-after=${result.D_tabAfterOverdueFromCalendar}, dropdown=${result.D_dropdownValue})`,
 );
 
 if (errors.length) {
@@ -143,4 +212,13 @@ if (errors.length) {
 }
 
 await browser.close();
-process.exit(okFiveKpis && okOverdueClick && okTasksClick ? 0 : 1);
+process.exit(
+  okFiveKpis &&
+    okOverdueClick &&
+    okTasksClick &&
+    okKpisOnCalendar &&
+    okKpisOnSettings &&
+    okFilterFromCalendar
+    ? 0
+    : 1,
+);
