@@ -2,6 +2,69 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.0] - 2026-05-02
+
+### 🐛 Fix — `on_complete_action` settings now persist on save (#50)
+
+User wxym5nnh6h-prog reported that configuring per-task **Action on completion** (e.g. press a button on a vacuum robot when its dirty-bin task is marked done) appeared to fail: setting `Action: press a button` + entity, saving, then re-opening the task settings showed empty fields.
+
+**Root cause:** the `on_complete_action` field WAS being persisted by the WS layer, and the action listener WAS firing it on completion — but the WS response builder (`_build_task_summary`) was missing both `on_complete_action` and `quick_complete_defaults` from its returned dict. So the task-edit dialog hydrated with `undefined`, showed empty fields, and the next save of any other field nulled the persisted action because the dialog re-sent its empty local state.
+
+**Fix:** two-line addition to `_build_task_summary` so the round-trip is faithful. Plus 3 tripwire tests (`test_ws_objects.py`, `test_ws_dashboard.py`) that pin field-completeness across `_build_task_summary`, `_build_object_response.object`, and `_build_full_settings` so the same class of regression can't ship again for any future field.
+
+### ✨ Feat — Full Card/Strategy ↔ Panel feature parity
+
+Closing the gap reported as *"aktuell kann man nur Completion machen"* — the Lovelace card and dashboard strategy now offer every action the panel's Task-Detail page does, in-place, without forcing a panel-roundtrip.
+
+**Quick-actions dialog** (opens when you click any task row in the card or strategy):
+- Primary: Complete (rich dialog with notes/cost/duration), Skip (inline with reason), Reset (inline with date picker)
+- Admin: Edit task, QR Code, Delete (with confirm)
+- Inline expansion: history (last 20 entries with per-entry edit) + stats (times performed, total cost, avg duration)
+- **NEW**: "Show stats + graphs" toggle reveals adaptive panels — Recommendation card with Apply/Reanalyze buttons, Sensor-Prediction with urgency banner, Weibull reliability curve, seasonal factors. All four reuse the existing panel renderers, so the Lovelace view is identical to what's in the panel.
+
+**Object quick-actions dialog** (clicked from a task's object breadcrumb): meta + task list + Edit/Add task/Delete.
+
+### ✨ Feat — Interactive Vacation/Budget/Groups section cards
+
+The 3 status sections that previously deep-linked to the panel are now fully interactive in Lovelace:
+
+- **Vacation card** — Enable toggle, start/end/buffer date inputs, Save + End-now buttons, exempt-task count
+- **Budget card** — Monthly + yearly progress bars + spent display, Set monthly/yearly inputs, Save button
+- **Groups card** — Add/rename/delete groups inline with task-count chips
+
+Available via "+ Add Card" → "Maintenance Supporter — Vacation / Budget / Groups". Also work on a HA 2026.5+ dashboard via section-strategies.
+
+### 🐛 Fix — Complete dialog inputs now render in Lovelace
+
+When the complete-dialog was opened from a Lovelace card (vs the panel), the notes/cost/duration `<ha-textfield>` inputs rendered with zero height because `ha-textfield` isn't always lazy-loaded in the Lovelace context. Replaced with native `<input>` elements styled to match — works regardless of which HA elements are loaded.
+
+### 🎨 UX — Edit/QR/Delete button layout
+
+The secondary action row in the task quick-actions dialog (Edit / QR Code / Delete) was awkwardly right-aligned, leaving an empty gap on the left. Now Edit + QR Code group on the left as natural admin tools; Delete is pushed to the far right with `margin-left:auto` for visual separation as a destructive action.
+
+### 🔧 Refactor — DRY-audit cleanup
+
+Three extractions identified by a systematic audit of the codebase:
+
+- **Recommendation-card visuals** → `renderers/recommendation.ts`. The bars + confidence badge are shared between the panel's task-detail page and the Lovelace quick-actions dialog. Future visual changes happen in one place.
+- **Backend entry-load helper** → `_load_object_entry(hass, connection, msg)` in `websocket/__init__.py`. Replaces 7 instances of the same `entry not None / wrong domain / global` guard across 4 WS files. Beyond LOC saved: future WS handlers can't accidentally skip one of the three checks.
+- **Section-card shared CSS** → `components/section-card-shared-styles.ts`. Each of the 3 section cards was carrying ~30 LOC of identical button + header + error/loading styles. Single source of truth.
+
+### 🧪 Tests + verification
+
+- 1608 backend tests pass (94.67% coverage, ≥90% required)
+- 52 frontend tests pass
+- 3 new tripwire tests prevent the #50 regression class from recurring
+- 11/11 quick-actions WS endpoints verified live in Docker
+- 12/12 section-card WS write paths verified end-to-end (vacation enable/dates/buffer, budget monthly/yearly, group create/rename/delete)
+
+### 📦 Bundle sizes
+
+- maintenance-card.js: 365 KB → 372 KB (+2%)
+- maintenance-dashboard-strategy.js: 455 KB → 504 KB (+11%, mostly the 3 interactive section cards + adaptive renderers)
+- maintenance-panel.js: 607 KB → 610 KB (~unchanged)
+- maintenance-calendar-card.js: 365 KB → 366 KB (~unchanged)
+
 ## [2.2.0] - 2026-05-02
 
 ### Add — Calendar past-window + History entry editing
