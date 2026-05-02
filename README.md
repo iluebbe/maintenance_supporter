@@ -491,6 +491,25 @@ sections:
 
 All filters are optional and additive. `area_id` resolves to object names via the WebSocket feed at section-load time, so it survives area renames automatically.
 
+#### Calendar Card
+
+<a id="calendar-card"></a>
+
+Standalone Lovelace card with the same rolling-window calendar the panel ships in its Calendar tab — pick *Maintenance Supporter — Calendar* in the "Add Card" dialog, or YAML:
+
+```yaml
+type: custom:maintenance-supporter-calendar
+title: Maintenance calendar          # optional
+window_days: 30                       # 7 | 14 | 30 | 365 — default 30
+show_window_chips: true               # default true; hide for embedded use
+show_user_filter: true                # default true
+user_filter: ""                       # "" | "current_user" | "<uuid>"
+```
+
+Source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), per-event prediction-confidence pills, projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Click on an event opens the task editor in-place — no panel navigation.
+
+The dashboard strategy's `group_by: calendar` mode wraps four instances of this card (week / fortnight / month / year) as separate views, with the chips hidden because the tab bar already serves as the window selector.
+
 ### Template Sensor: Count Overdue Tasks
 
 ```yaml

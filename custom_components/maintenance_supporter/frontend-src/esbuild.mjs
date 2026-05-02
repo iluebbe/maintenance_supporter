@@ -30,4 +30,11 @@ await build({
   outfile: "../frontend/maintenance-dashboard-strategy.js",
 });
 
+// Calendar Card (v1.9.0+ — Lovelace card extracted from panel's Calendar tab)
+await build({
+  ...common,
+  entryPoints: ["maintenance-calendar-card.ts"],
+  outfile: "../frontend/maintenance-calendar-card.js",
+});
+
 console.log("Build complete.");

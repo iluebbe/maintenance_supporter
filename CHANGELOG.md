@@ -2,6 +2,55 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.9.0] - 2026-05-02
+
+### Add — Calendar Card + in-place dialogs (no more panel-roundtrip)
+
+Two big pieces land together. Both follow the "no small steps" directive — the previous releases used URL deep-linking and inline calendar code; v1.9.0 extracts the calendar into its own first-class card and makes dialog-opening a true in-place operation.
+
+#### Calendar Card
+
+The Calendar tab from the panel is now also available as a standalone Lovelace card:
+
+```yaml
+type: custom:maintenance-supporter-calendar
+title: Maintenance calendar           # optional
+window_days: 30                        # 7 | 14 | 30 | 365 — default 30
+show_window_chips: true                # default true
+show_user_filter: true                 # default true
+user_filter: ""                        # "" | "current_user" | "<uuid>"
+```
+
+Same visuals as the panel: 7/14/30/365-day window chips, per-event source icons (clock for time-based, trending-up for sensor-based, with adaptive sparkle), confidence pills (green/amber/red border), projected recurrences at 55 % opacity, today-pill highlight, empty-day collapsing in the year view. Click on an event dispatches an `ll-custom` event that the strategy bundle's handler turns into an in-place task-dialog open.
+
+The calendar card registers in `customCards` so it shows up in HA's "Add Card" picker labelled *Maintenance Supporter — Calendar*. Implementation lives in a new file (`maintenance-calendar-card.ts`) sharing the rendering helpers (`calendar-bucket.ts`, `calendar-styles.ts`) with the panel — the panel still renders the same view, just via the same shared helpers now.
+
+#### Strategy `group_by: calendar`
+
+A fifth view mode for the dashboard strategy. Generates four panel-typed views — *Week / Fortnight / Month / Year* — each pinned to one of the four window sizes, with chips hidden because the tab bar already serves as the window selector:
+
+```yaml
+strategy:
+  type: custom:maintenance-supporter
+  group_by: calendar
+```
+
+Editor dropdown gets the matching entry "Rolling calendar (Week / Fortnight / Month / Year)".
+
+#### In-place dialogs (no panel navigation)
+
+`fire-dom-event` tap actions now open the maintenance object/task dialog **directly on the current dashboard** instead of navigating to the panel. Implementation:
+
+- New `dialog-mount.ts` helper exports `openCreateObjectDialog()`, `openEditTaskDialog(entryId, taskId)`, etc. that lazy-mount the existing `<maintenance-object-dialog>` / `<maintenance-task-dialog>` LitElements onto `document.body` and inject `hass` from `<home-assistant>.hass`.
+- The strategy bundle's `ll-custom` handler tries the in-place mount first; falls back to URL deep-linking if `<home-assistant>` isn't ready (e.g. dialog opened during very-early app boot).
+- The empty-state's "Add object" button thus opens the dialog **without leaving the dashboard**, and clicking a calendar-card event opens the task editor likewise in-place.
+
+Strategy bundle grew from ~6 KB to ~400 KB to bundle the dialogs; the calendar card is its own ~355 KB bundle. Both still tiny relative to the panel (~580 KB) and only loaded when the user actually visits a dashboard that uses them.
+
+Verified live on HA 2026.5.0b0 (13/13 strategy checks): all 5 group_by modes (incl. calendar), editor (5 options), KPI header + sidebar, section strategy, fire-dom-event opens object dialog in-place, calendar card registered in `customCards`.
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [1.8.1] - 2026-05-02
 
 ### Add — fire-dom-event tap actions + Empty-state second button + cosmetic refactor

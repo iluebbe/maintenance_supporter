@@ -281,15 +281,24 @@ async def test_panel_url_contains_version_hash(hass: HomeAssistant) -> None:
 
 
 async def test_card_url_is_unversioned(hass: HomeAssistant) -> None:
-    """Card URL does NOT contain any version hash or query parameter."""
+    """Card URLs do NOT contain any version hash or query parameter.
+
+    v1.9.0 added the calendar card and dashboard strategy as additional
+    extra-module URLs — both must follow the same unversioned policy.
+    """
+    from custom_components.maintenance_supporter.const import (
+        CALENDAR_CARD_URL,
+        STRATEGY_URL,
+    )
+
     entry = _make_global_entry(hass, panel_enabled=False)
     await setup_integration(hass, entry)
 
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
-    assert CARD_URL in urls
+    expected = {CARD_URL, STRATEGY_URL, CALENDAR_CARD_URL}
+    assert expected.issubset(urls), f"Missing expected URLs: {expected - urls}"
 
-    # The card URL should be exactly the constant — no version suffix
-    for url in urls:
-        if "card" in url:
-            assert "?v=" not in url
-            assert url == CARD_URL
+    # Every registered Maintenance-Supporter URL must be unversioned.
+    for url in urls & expected:
+        assert "?v=" not in url, f"{url} unexpectedly carries a version query"
+        assert url in expected, f"{url} is not one of the expected constants"
