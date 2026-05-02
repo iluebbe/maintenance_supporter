@@ -472,6 +472,12 @@ const DE: Translations = {
   quick_complete_defaults_feedback_needed: "War notwendig",
   quick_complete_defaults_feedback_not_needed: "War nicht notwendig",
   quick_complete_success: "Schnell als erledigt markiert",
+  // v2.1.0 — clickable KPI tooltips (Discussion #49 — @byoung79)
+  show_all_objects: "Alle Objekte anzeigen",
+  show_all_tasks: "Filter zurücksetzen — alle Aufgaben anzeigen",
+  filter_to_overdue: "Auf überfällige Aufgaben filtern",
+  filter_to_due_soon: "Auf bald fällige Aufgaben filtern",
+  filter_to_triggered: "Auf ausgelöste Aufgaben filtern",
 };
 
 const EN: Translations = {
@@ -921,6 +927,12 @@ const EN: Translations = {
   quick_complete_defaults_feedback_needed: "Was needed",
   quick_complete_defaults_feedback_not_needed: "Not needed",
   quick_complete_success: "Quickly marked complete",
+  // v2.1.0 — clickable KPI tooltips (Discussion #49 — @byoung79)
+  show_all_objects: "Show all objects",
+  show_all_tasks: "Clear filter — show all tasks",
+  filter_to_overdue: "Filter task list to overdue only",
+  filter_to_due_soon: "Filter task list to due-soon only",
+  filter_to_triggered: "Filter task list to triggered only",
 };
 
 const NL: Translations = {
@@ -5424,8 +5436,14 @@ export const sharedStyles = css`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .stat-item.clickable { cursor: pointer; border-radius: 8px; padding: 4px 8px; transition: background 0.15s; }
+  .stat-item.clickable { cursor: pointer; border-radius: 8px; padding: 4px 8px; transition: background 0.15s, box-shadow 0.15s; }
   .stat-item.clickable:hover { background: var(--secondary-background-color); }
+  /* v2.1.0 — KPIs that map to a status filter highlight when active so the
+     user can see at a glance which filter is on, even after scrolling away. */
+  .stat-item.clickable.active {
+    background: var(--secondary-background-color);
+    box-shadow: inset 0 -3px 0 var(--primary-color);
+  }
 
   .objects-grid {
     display: grid;

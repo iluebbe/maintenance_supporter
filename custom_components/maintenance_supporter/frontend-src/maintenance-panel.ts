@@ -482,6 +482,22 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedTaskId = null;
   }
 
+  /** v2.1.0 (Discussion #49 — @byoung79): tap a KPI value to auto-filter
+   *  the task list. Empty string clears the filter (used by "Tasks" KPI).
+   *  Smooth-scrolls the filter bar into view so mobile users see the result. */
+  private _filterByStatus(status: string): void {
+    this._filterStatus = status;
+    // Make sure we're on the dashboard tab so the task list is actually
+    // visible — pointless to filter on the calendar/settings tabs.
+    if (this._overviewTab !== "dashboard") {
+      this._overviewTab = "dashboard";
+    }
+    requestAnimationFrame(() => {
+      const anchor = this.shadowRoot?.querySelector(".filter-bar");
+      anchor?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   private _showObject(entryId: string): void {
     this._pushPanelState("object", entryId);
     this._view = "object";
@@ -905,23 +921,33 @@ export class MaintenanceSupporterPanel extends LitElement {
       ${s
         ? html`
             <div class="stats-bar">
-              <div class="stat-item clickable" @click=${() => this._showAllObjects()}>
+              <div class="stat-item clickable"
+                   @click=${() => this._showAllObjects()}
+                   title=${t("show_all_objects", L)}>
                 <span class="stat-value">${s.total_objects}</span>
                 <span class="stat-label">${t("objects", L)}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item clickable"
+                   @click=${() => this._filterByStatus("")}
+                   title=${t("show_all_tasks", L)}>
                 <span class="stat-value">${s.total_tasks}</span>
                 <span class="stat-label">${t("tasks", L)}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item clickable ${this._filterStatus === "overdue" ? "active" : ""}"
+                   @click=${() => this._filterByStatus("overdue")}
+                   title=${t("filter_to_overdue", L)}>
                 <span class="stat-value" style="color: var(--error-color)">${s.overdue}</span>
                 <span class="stat-label">${t("overdue", L)}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item clickable ${this._filterStatus === "due_soon" ? "active" : ""}"
+                   @click=${() => this._filterByStatus("due_soon")}
+                   title=${t("filter_to_due_soon", L)}>
                 <span class="stat-value" style="color: var(--warning-color)">${s.due_soon}</span>
                 <span class="stat-label">${t("due_soon", L)}</span>
               </div>
-              <div class="stat-item">
+              <div class="stat-item clickable ${this._filterStatus === "triggered" ? "active" : ""}"
+                   @click=${() => this._filterByStatus("triggered")}
+                   title=${t("filter_to_triggered", L)}>
                 <span class="stat-value" style="color: #ff5722">${s.triggered}</span>
                 <span class="stat-label">${t("triggered", L)}</span>
               </div>
@@ -935,6 +961,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         <label class="filter-field">
           <span class="filter-label">${t("filter_label", L)}</span>
           <select
+            .value=${this._filterStatus}
             @change=${(e: Event) => (this._filterStatus = (e.target as HTMLSelectElement).value)}
           >
             <option value="">${t("all", L)}</option>
