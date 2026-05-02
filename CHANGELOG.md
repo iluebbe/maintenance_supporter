@@ -2,6 +2,28 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.6.0] - 2026-05-02
+
+### Add — Dashboard Strategy (HA 2026.5+)
+
+Home Assistant 2026.5 added discovery for custom dashboard strategies — integrations can now ship code that auto-generates a complete Lovelace dashboard from live data, and users find it in the *"Add Dashboard"* picker without YAML.
+
+Maintenance Supporter ships one. Pick *"Maintenance Supporter"* in the dashboard picker and you get:
+
+- **Overview view** — actionable tasks only (overdue + triggered + due_soon), no header bar.
+- **One view per area** — sorted alphabetically, each filtered to that area's objects via the existing card.
+- **Unassigned view** — objects without an `area_id`, pinned to the end so it's easy to spot what needs an area set.
+
+The card config inside each view is generated dynamically from the `maintenance_supporter/objects` WS feed at dashboard-load time, so adding a new object or changing an area is reflected without touching YAML.
+
+On HA versions < 2026.5 the JS still loads but the registration is a silent no-op — you just won't see the strategy in the picker. The card and panel work as before.
+
+### Add — Disambiguator from HA's built-in *Maintenance Dashboard*
+
+HA 2026.5 also ships a built-in *Maintenance Dashboard* (by [@Brookke](https://github.com/Brookke)) that auto-discovers battery entities. Different scope, complementary purpose. README now opens with a clear distinction so HACS users searching for "maintenance" understand which one solves which problem.
+
+ruff ✓ · mypy strict ✓ · 1590 backend tests pass · headless-Chromium verification on HA 2026.5.0b0 confirms registration + generate() round-trip.
+
 ## [1.5.4] - 2026-05-02
 
 ### Fix — Stale-reference hardening (audit follow-up to #48)

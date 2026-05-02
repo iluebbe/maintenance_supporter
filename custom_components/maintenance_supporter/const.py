@@ -133,6 +133,7 @@ PANEL_TITLE = "Maintenance"
 PANEL_ICON = "mdi:wrench-clock"
 PANEL_URL = "/maintenance_supporter_panel"
 CARD_URL = "/maintenance_supporter_card"
+STRATEGY_URL = "/maintenance_supporter_dashboard_strategy"
 
 # --- Config Keys: Object ---
 CONF_OBJECT = "object"

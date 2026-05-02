@@ -23,4 +23,11 @@ await build({
   outfile: "../frontend/maintenance-card.js",
 });
 
+// Dashboard Strategy (HA 2026.5+ — silent no-op on older HA)
+await build({
+  ...common,
+  entryPoints: ["maintenance-dashboard-strategy.ts"],
+  outfile: "../frontend/maintenance-dashboard-strategy.js",
+});
+
 console.log("Build complete.");

@@ -8,6 +8,8 @@
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
 
+> **Not the same as HA's built-in *Maintenance Dashboard* (2026.5+).** That dashboard auto-discovers battery entities and shows low-battery devices grouped by area — narrow scope, zero configuration. *Maintenance Supporter* tracks user-defined maintenance tasks (filter changes, pump service, brake-pad inspections, anything with a schedule or sensor trigger) with history, predictions, calendar, notifications and a Lovelace card. They pair well: HA's built-in handles batteries, this integration handles everything else.
+
 ## Preview
 
 | Dashboard | Task Detail | Mobile |
@@ -444,6 +446,20 @@ filter_objects: [Family Car, Electric Car]
 entity_ids: [sensor.hvac_system_filter_change, binary_sensor.family_car_oil_change_overdue]
 max_items: 10
 ```
+
+### Dashboard Strategy
+
+<a id="dashboard-strategy"></a>
+
+On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard with:
+
+- **Overview** view — only the actionable tasks (overdue + triggered + due_soon)
+- one view **per area** (alphabetical) — each filtered to that area's objects
+- an **Unassigned** view at the end for objects without an `area_id`
+
+Card configs are generated dynamically from the `maintenance_supporter/objects` WebSocket feed, so adding objects or changing areas is reflected on the next dashboard load — no YAML to edit.
+
+On older HA versions the strategy JS still loads but the registration is a silent no-op; the picker simply won't show the entry. Card and panel work as before.
 
 ### Template Sensor: Count Overdue Tasks
 
