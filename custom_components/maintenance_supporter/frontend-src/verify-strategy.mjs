@@ -190,16 +190,10 @@ const result = await page.evaluate(async () => {
     out.sectionError = String(e);
   }
 
-  // 7. v1.8.1 — fire-dom-event handler intercepts maintenance-supporter:* events
-  //    and rewrites the URL so the panel can pick up ms_action on next nav.
+  // 7. v1.9.0 — fire-dom-event handler opens dialog IN PLACE (object dialog)
+  //    rather than navigating. Detect by checking if the dialog element was
+  //    appended to body and is in "open" state.
   try {
-    const startPath = window.location.pathname + window.location.search;
-    let routeFiredPath = null;
-    const onLocationChanged = () => {
-      routeFiredPath = window.location.pathname + window.location.search;
-    };
-    window.addEventListener("location-changed", onLocationChanged, { once: true });
-
     document.dispatchEvent(
       new CustomEvent("ll-custom", {
         detail: { type: "maintenance-supporter:add-object" },
@@ -207,13 +201,51 @@ const result = await page.evaluate(async () => {
         composed: true,
       }),
     );
-    // Allow the handler to run synchronously (it is sync)
-    out.fireDomNewPath = window.location.pathname + window.location.search;
-    out.fireDomEventDispatched = routeFiredPath;
-    // Reset the URL for any later checks
-    history.replaceState(history.state, "", startPath);
+    // Give the synchronous mount a tick to settle
+    await new Promise((r) => setTimeout(r, 100));
+    const dlg = document.body.querySelector("maintenance-object-dialog");
+    out.objectDialogMounted = !!dlg;
+    out.objectDialogOpen = !!dlg && dlg.shadowRoot?.querySelector("ha-dialog, dialog, .dialog") != null;
+    // Close it via internal state if possible (don't leave a dialog open)
+    if (dlg) {
+      dlg._open = false;
+      dlg.requestUpdate?.();
+    }
   } catch (e) {
     out.fireDomError = String(e);
+  }
+
+  // 8. v1.9.0 — group_by=calendar generates 4 windowed calendar views
+  try {
+    const StrategyClass = customElements.get(
+      "ll-strategy-dashboard-maintenance-supporter",
+    );
+    const ha = document.querySelector("home-assistant");
+    if (StrategyClass?.generate && ha?.hass) {
+      const cfg = await StrategyClass.generate(
+        { type: "custom:maintenance-supporter", group_by: "calendar" },
+        ha.hass,
+      );
+      out.generated_calendar = {
+        viewCount: cfg.views?.length ?? 0,
+        viewTitles: (cfg.views || []).map((v) => v.title),
+        firstCalendarCard: cfg.views?.[1]?.cards?.[0]?.type,
+      };
+    }
+  } catch (e) {
+    out.generateCalendarError = String(e);
+  }
+
+  // 9. v1.9.0 — Calendar card element registered + customCards entry present
+  try {
+    out.calendarCardRegistered = !!customElements.get(
+      "maintenance-supporter-calendar-card",
+    );
+    out.calendarCardInRegistry = (window.customCards || []).some(
+      (c) => c.type === "maintenance-supporter-calendar",
+    );
+  } catch (e) {
+    out.calendarError = String(e);
   }
 
   // 4. HA version
@@ -248,11 +280,13 @@ const okSection =
   (result.sectionGenerated?.cardCount ?? 0) >= 2 &&
   result.sectionGenerated?.firstCardType === "heading" &&
   result.sectionGenerated?.lastCardType === "custom:maintenance-supporter-card";
-const okFireDom =
-  typeof result.fireDomNewPath === "string" &&
-  result.fireDomNewPath.includes("ms_action=add_object") &&
-  typeof result.fireDomEventDispatched === "string" &&
-  result.fireDomEventDispatched.includes("ms_action=add_object");
+const okFireDom = result.objectDialogMounted === true;
+const okCalendarMode =
+  (result.generated_calendar?.viewCount ?? 0) === 5 && // Overview + 4 windows
+  result.generated_calendar?.firstCalendarCard === "custom:maintenance-supporter-calendar";
+const okCalendarCard =
+  result.calendarCardRegistered === true &&
+  result.calendarCardInRegistry === true;
 
 console.log(
   "\n=== SUMMARY ===\n" +
@@ -267,7 +301,9 @@ console.log(
     `  Overview has KPI header:          ${okHeader ? "✓" : "✗"} (${result.overviewHeader})\n` +
     `  Overview has sidebar (large):     ${okSidebar ? "✓" : "✗"} (${result.overviewSidebar} cards, visibility=${result.overviewSidebarVisibility})\n` +
     `  Section strategy registered+works: ${okSection ? "✓" : "✗"} (${result.sectionGenerated?.cardCount} cards)\n` +
-    `  fire-dom-event handler routes:    ${okFireDom ? "✓" : "✗"} (path=${result.fireDomNewPath}, event-fired=${result.fireDomEventDispatched})`,
+    `  fire-dom-event opens in-place:    ${okFireDom ? "✓" : "✗"} (object dialog mounted=${result.objectDialogMounted})\n` +
+    `  generate(group_by=calendar):      ${okCalendarMode ? "✓" : "✗"} (${result.generated_calendar?.viewCount} views, first-card=${result.generated_calendar?.firstCalendarCard})\n` +
+    `  Calendar card registered+listed:  ${okCalendarCard ? "✓" : "✗"} (element=${result.calendarCardRegistered}, customCards=${result.calendarCardInRegistry})`,
 );
 
 await browser.close();
@@ -282,7 +318,9 @@ process.exit(
     okHeader &&
     okSidebar &&
     okSection &&
-    okFireDom
+    okFireDom &&
+    okCalendarMode &&
+    okCalendarCard
     ? 0
     : 1,
 );

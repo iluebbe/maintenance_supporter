@@ -8,7 +8,7 @@ from pathlib import Path
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 
-from ..const import CARD_URL, DOMAIN, STRATEGY_URL
+from ..const import CALENDAR_CARD_URL, CARD_URL, DOMAIN, STRATEGY_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +35,11 @@ async def async_register_card(hass: HomeAssistant) -> None:
             str(frontend_dir / "maintenance-dashboard-strategy.js"),
             False,
         ),
+        StaticPathConfig(
+            CALENDAR_CARD_URL,
+            str(frontend_dir / "maintenance-calendar-card.js"),
+            False,
+        ),
     ]
     await hass.http.async_register_static_paths(static_paths)
 
@@ -42,9 +47,10 @@ async def async_register_card(hass: HomeAssistant) -> None:
     extra = hass.data.setdefault(DATA_EXTRA_MODULE_URL, set())
     extra.add(CARD_URL)
     extra.add(STRATEGY_URL)
+    extra.add(CALENDAR_CARD_URL)
 
     hass.data.setdefault(DOMAIN, {})["_card_registered"] = True
     _LOGGER.debug(
-        "Maintenance Supporter frontend resources registered: card=%s, strategy=%s",
-        CARD_URL, STRATEGY_URL,
+        "Maintenance Supporter frontend resources registered: card=%s, strategy=%s, calendar=%s",
+        CARD_URL, STRATEGY_URL, CALENDAR_CARD_URL,
     )

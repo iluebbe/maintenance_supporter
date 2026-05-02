@@ -67,7 +67,7 @@ interface HassLike {
   floors?: Record<string, FloorEntry>;
 }
 
-type GroupBy = "area" | "status" | "floor" | "due_date";
+type GroupBy = "area" | "status" | "floor" | "due_date" | "calendar";
 
 interface MaintenanceDashboardStrategyConfig {
   type: "custom:maintenance-supporter" | "maintenance-supporter";
@@ -487,6 +487,39 @@ function viewsByFloor(
   return views;
 }
 
+function viewsByCalendar(_objects: MaintenanceObjectResp[]): ViewConfig[] {
+  // One view per window. Each is a panel-typed view with a single
+  // ``maintenance-supporter-calendar`` card pinned to the matching
+  // window_days. Window-chips inside the card are hidden because the
+  // tab-bar already serves as the window selector.
+  const WINDOWS: Array<{
+    title: string;
+    icon: string;
+    path: string;
+    window_days: 7 | 14 | 30 | 365;
+  }> = [
+    { title: "Week", icon: "mdi:calendar-week", path: "cal-7", window_days: 7 },
+    { title: "Fortnight", icon: "mdi:calendar-week-begin", path: "cal-14", window_days: 14 },
+    { title: "Month", icon: "mdi:calendar-month", path: "cal-30", window_days: 30 },
+    { title: "Year", icon: "mdi:calendar-clock", path: "cal-365", window_days: 365 },
+  ];
+
+  return WINDOWS.map((w) => ({
+    title: w.title,
+    icon: w.icon,
+    path: w.path,
+    type: "panel",
+    cards: [
+      {
+        type: "custom:maintenance-supporter-calendar",
+        window_days: w.window_days,
+        show_window_chips: false,
+        show_user_filter: true,
+      },
+    ],
+  }));
+}
+
 function viewsByDueDate(objects: MaintenanceObjectResp[]): ViewConfig[] {
   // Bucket-presence pre-check so we don't render an empty "Today" tab.
   const presentBuckets = new Set<number>();
@@ -605,6 +638,7 @@ class MaintenanceDashboardStrategy extends HTMLElement {
       status: () => viewsByStatus(objects),
       floor: () => viewsByFloor(objects, hass.areas || {}, hass.floors || {}),
       due_date: () => viewsByDueDate(objects),
+      calendar: () => viewsByCalendar(objects),
     };
 
     return {
@@ -632,6 +666,7 @@ const GROUP_BY_OPTIONS: Array<{ value: GroupBy; label: string }> = [
   { value: "status", label: "By status (Overdue / Triggered / Due Soon / OK)" },
   { value: "floor", label: "By floor (uses HA floors)" },
   { value: "due_date", label: "By due date (Overdue / Today / Week / Month / Later)" },
+  { value: "calendar", label: "Rolling calendar (Week / Fortnight / Month / Year)" },
 ];
 
 class MaintenanceStrategyEditor extends HTMLElement {
@@ -804,19 +839,33 @@ if (!customElements.get(SECTION_STRATEGY_TAG)) {
 // one bubble-phase listener at document level that handles every payload
 // whose ``type`` is namespaced with ``maintenance-supporter:`` — currently:
 //
-//   maintenance-supporter:add-object  → /maintenance-supporter?ms_action=add_object
-//   maintenance-supporter:open-task    → /maintenance-supporter?ms_action=open_task&task_id=<id>
+//   maintenance-supporter:add-object  → in-place open of MaintenanceObjectDialog
+//   maintenance-supporter:open-task    → in-place open of MaintenanceTaskDialog
+//                                        (with entry_id + task_id in detail)
 //
-// The panel reads the ``ms_action`` query string on load and opens the
-// matching dialog. This avoids ripping the dialog code out of the panel
-// while still giving Lovelace cards a clean tap-action UX.
+// The dialog components are imported via dialog-mount.ts and mounted lazily
+// onto document.body the first time they are needed. If the in-place mount
+// fails (e.g. <home-assistant> not yet ready), we fall back to deep-linking
+// the panel via ?ms_action=… so the user still ends up where they want.
+
+import {
+  openCreateObjectDialog,
+  openEditTaskDialog,
+} from "./dialog-mount";
 
 interface LlCustomEventDetail {
   type?: string;
+  entry_id?: unknown;
+  task_id?: unknown;
   [key: string]: unknown;
 }
 
 const LL_CUSTOM_HANDLER_FLAG = "_msSupporterLlCustomBound";
+
+function deepLink(path: string): void {
+  history.pushState(null, "", path);
+  window.dispatchEvent(new CustomEvent("location-changed"));
+}
 
 function registerLlCustomHandler(): void {
   const w = window as unknown as Record<string, unknown>;
@@ -829,16 +878,26 @@ function registerLlCustomHandler(): void {
     if (!detail.type.startsWith("maintenance-supporter:")) return;
     const action = detail.type.slice("maintenance-supporter:".length);
 
-    let path = "/maintenance-supporter";
     if (action === "add-object") {
-      path += "?ms_action=add_object";
-    } else if (action === "open-task" && typeof detail.task_id === "string") {
-      path += `?ms_action=open_task&task_id=${encodeURIComponent(detail.task_id)}`;
+      // Try in-place dialog first; fall back to panel deep-link if the
+      // dialog component or hass aren't available yet.
+      if (openCreateObjectDialog()) return;
+      deepLink("/maintenance-supporter?ms_action=add_object");
+      return;
     }
 
-    // Use HA's history API path so the routing system catches the change.
-    history.pushState(null, "", path);
-    window.dispatchEvent(new CustomEvent("location-changed"));
+    if (
+      action === "open-task" &&
+      typeof detail.entry_id === "string" &&
+      typeof detail.task_id === "string"
+    ) {
+      if (openEditTaskDialog(detail.entry_id, detail.task_id)) return;
+      deepLink(
+        `/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}` +
+          `&task_id=${encodeURIComponent(detail.task_id)}`,
+      );
+      return;
+    }
   });
 }
 
