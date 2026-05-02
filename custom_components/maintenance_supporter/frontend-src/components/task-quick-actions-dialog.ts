@@ -14,13 +14,20 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t, STATUS_COLORS, formatDate, formatDateTime } from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { renderWeibullSection } from "../renderers/weibull";
+import { renderPredictionSection } from "../renderers/prediction";
+import {
+  renderSeasonalCardCompact,
+  renderSeasonalCardExpanded,
+} from "../renderers/seasonal";
 import type {
   HomeAssistant,
   HistoryEntry,
   MaintenanceObjectResponse,
   MaintenanceTask,
+  AdvancedFeatures,
 } from "../types";
 
 interface MaintenanceObjectFull {
@@ -42,8 +49,16 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
   @state() private _showSkip = false;
   @state() private _showReset = false;
   @state() private _showDetails = false;
+  @state() private _showAdaptive = false;
   @state() private _skipReason = "";
   @state() private _resetDate = "";
+  @state() private _features: AdvancedFeatures = {
+    adaptive: false, predictions: false, seasonal: false, environmental: false,
+    budget: false, groups: false, checklists: false, schedule_time: false,
+    completion_actions: false,
+  };
+  @state() private _toast = "";
+  private _featuresLoaded = false;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -57,10 +72,30 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._error = "";
     this._showSkip = false;
     this._showReset = false;
+    this._showAdaptive = false;
     this._skipReason = "";
     this._resetDate = new Date().toISOString().slice(0, 10);
     this._open = true;
-    await this._loadTask();
+    await Promise.all([this._loadTask(), this._loadFeatures()]);
+  }
+
+  /** Pull the active feature flags so adaptive sections only render when
+   *  Adaptive / Seasonal / Environmental are actually enabled (matches the
+   *  panel's behaviour). Cached after first load. */
+  private async _loadFeatures(): Promise<void> {
+    if (this._featuresLoaded) return;
+    try {
+      const r = await this.hass.connection.sendMessagePromise<{
+        features?: Partial<AdvancedFeatures>;
+      }>({ type: "maintenance_supporter/settings" });
+      if (r?.features) {
+        this._features = { ...this._features, ...r.features };
+      }
+      this._featuresLoaded = true;
+    } catch {
+      // Settings endpoint unavailable — leave defaults (all false), the
+      // adaptive panel will then stay hidden.
+    }
   }
 
   public close(): void {
@@ -200,6 +235,49 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this.close();
   }
 
+  private async _applySuggestion(): Promise<void> {
+    if (!this._entryId || !this._taskId || !this._task?.suggested_interval) return;
+    const ok = await this._runWs({
+      type: "maintenance_supporter/task/apply_suggestion",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+      interval: this._task.suggested_interval,
+    });
+    if (ok) {
+      this._toast = t("suggestion_applied", this._lang) || "Applied";
+      this._notifyChanged("apply_suggestion");
+      // Refresh local task so the recommendation card hides
+      await this._loadTask();
+      setTimeout(() => { this._toast = ""; }, 2500);
+    }
+  }
+
+  private async _reanalyzeInterval(): Promise<void> {
+    if (!this._entryId || !this._taskId) return;
+    this._busy = true;
+    this._error = "";
+    try {
+      const r = await this.hass.connection.sendMessagePromise<{
+        recommended_interval: number | null;
+        confidence: string;
+        data_points: number;
+      }>({
+        type: "maintenance_supporter/task/analyze_interval",
+        entry_id: this._entryId,
+        task_id: this._taskId,
+      });
+      this._toast = r.recommended_interval
+        ? `${t("reanalyze_result", this._lang) || "Recomputed"}: ${r.recommended_interval}d (${r.data_points} pts)`
+        : (t("reanalyze_insufficient_data", this._lang) || "Not enough data");
+      await this._loadTask();
+      setTimeout(() => { this._toast = ""; }, 3500);
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._busy = false;
+    }
+  }
+
   private _onEditHistoryEntry(entry: HistoryEntry): void {
     if (!this._entryId || !this._taskId) return;
     import("../dialog-mount").then(({ openHistoryEditDialog }) => {
@@ -215,6 +293,100 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         completed_by: entry.completed_by ?? null,
       });
     });
+  }
+
+  /** Inline recommendation card (Current vs Suggested with apply/reanalyze).
+   *  Mirrors the panel's _renderRecommendationCard so users on Lovelace get
+   *  the same Apply / Reanalyze controls without the panel-roundtrip. */
+  private _renderRecommendation(task: MaintenanceTask) {
+    if (!this._features.adaptive
+      || !task.suggested_interval
+      || task.suggested_interval === task.interval_days) {
+      return nothing;
+    }
+    const L = this._lang;
+    const current = task.interval_days ?? 0;
+    const suggested = task.suggested_interval;
+    const confidence = task.interval_confidence || "medium";
+    const maxBar = Math.max(current || 1, suggested);
+    return html`
+      <div class="recommendation-card">
+        <h4>${t("suggested_interval", L) || "Suggested interval"}</h4>
+        <div class="interval-comparison">
+          <div class="interval-bar">
+            <div class="interval-label">
+              ${t("current", L) || "Current"}: ${current ?? "—"} ${t("days", L) || "days"}
+            </div>
+            <div class="interval-visual current"
+              style="width: ${current != null ? Math.min((current / maxBar) * 100, 100) : 0}%"></div>
+          </div>
+          <div class="interval-bar">
+            <div class="interval-label">
+              ${t("recommended", L) || "Recommended"}: ${suggested} ${t("days", L) || "days"}
+              <span class="confidence-badge ${confidence}">
+                ${t(`confidence_${confidence}`, L) || confidence}
+              </span>
+            </div>
+            <div class="interval-visual suggested"
+              style="width: ${Math.min((suggested / maxBar) * 100, 100)}%"></div>
+          </div>
+        </div>
+        <div class="recommendation-actions">
+          <button class="btn primary"
+            @click=${this._applySuggestion} ?disabled=${this._busy}>
+            <ha-icon icon="mdi:check"></ha-icon>
+            ${t("apply_suggestion", L) || "Apply"}
+          </button>
+          <button class="btn"
+            @click=${this._reanalyzeInterval} ?disabled=${this._busy}>
+            <ha-icon icon="mdi:refresh"></ha-icon>
+            ${t("reanalyze", L) || "Reanalyze"}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  /** Adaptive section: prediction + recommendation + Weibull + seasonal,
+   *  reusing the panel's renderers. Only renders blocks that have data. */
+  private _renderAdaptive(task: MaintenanceTask) {
+    const L = this._lang;
+    const hasRecommendation = this._features.adaptive
+      && task.suggested_interval
+      && task.suggested_interval !== task.interval_days;
+    const hasPrediction = (task.degradation_trend != null
+        && task.degradation_trend !== "insufficient_data")
+      || task.days_until_threshold != null
+      || (task.environmental_factor != null && task.environmental_factor !== 1.0);
+    const hasWeibull = this._features.adaptive
+      && task.interval_analysis?.weibull_beta != null
+      && task.interval_analysis?.weibull_eta != null;
+    const hasSeasonal = this._features.seasonal
+      && task.seasonal_factor
+      && task.seasonal_factor !== 1.0;
+
+    if (!hasRecommendation && !hasPrediction && !hasWeibull && !hasSeasonal) {
+      return html`<div class="adaptive-empty">
+        ${t("adaptive_no_data", L) || "Not enough completion history yet for adaptive analysis."}
+      </div>`;
+    }
+    return html`
+      <div class="adaptive-stack">
+        ${this._toast
+          ? html`<div class="toast">${this._toast}</div>`
+          : nothing}
+        ${hasRecommendation ? this._renderRecommendation(task) : nothing}
+        ${hasPrediction ? renderPredictionSection(task, L, this._features) : nothing}
+        ${hasWeibull ? renderWeibullSection(task, L) : nothing}
+        ${hasSeasonal ? html`
+          ${renderSeasonalCardCompact(task, L, this._features)}
+          ${task.seasonal_factors?.length === 12
+              || task.interval_analysis?.seasonal_factors?.length === 12
+            ? renderSeasonalCardExpanded(task, L)
+            : nothing}
+        ` : nothing}
+      </div>
+    `;
   }
 
   /** Read-only details panel: stats + history. Shown when the user clicks
@@ -410,8 +582,19 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                           ? (t("hide_details", L) || "Hide details")
                           : (t("show_details", L) || "Show history + stats")}
                       </button>
+                      ${this._features.adaptive
+                          || this._features.seasonal
+                          || this._features.environmental
+                        ? html`<button class="link" @click=${() => { this._showAdaptive = !this._showAdaptive; }}>
+                            <ha-icon icon="${this._showAdaptive ? 'mdi:chart-line' : 'mdi:chart-line-variant'}"></ha-icon>
+                            ${this._showAdaptive
+                              ? (t("hide_stats", L) || "Hide stats")
+                              : (t("show_stats", L) || "Show stats + graphs")}
+                          </button>`
+                        : nothing}
                     </div>
                     ${this._showDetails ? this._renderDetails(task) : nothing}
+                    ${this._showAdaptive ? this._renderAdaptive(task) : nothing}
                     <div class="footer">
                       <button class="link" @click=${this._onOpenInPanel}>
                         <ha-icon icon="mdi:open-in-new"></ha-icon>
@@ -425,7 +608,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [sharedStyles, css`
     :host { display: contents; }
     .backdrop {
       position: fixed; inset: 0; z-index: 100;
@@ -577,7 +760,35 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     .history-notes { margin-top: 4px; color: var(--primary-text-color); }
     .history-meta { display: flex; gap: 12px; margin-top: 4px; color: var(--secondary-text-color); font-size: 11px; }
     .history-more { padding: 8px; text-align: center; font-size: 12px; color: var(--secondary-text-color); font-style: italic; }
-  `;
+
+    /* Adaptive section — wraps the panel renderers (which assume sharedStyles
+       are present) and adds dialog-specific layout. */
+    .adaptive-stack {
+      display: flex; flex-direction: column; gap: 12px;
+      border-top: 1px solid var(--divider-color);
+      padding-top: 12px;
+    }
+    .adaptive-empty {
+      padding: 16px; text-align: center;
+      color: var(--secondary-text-color);
+      font-style: italic; font-size: 13px;
+      border-top: 1px solid var(--divider-color);
+    }
+    .toast {
+      padding: 8px 12px; border-radius: 6px;
+      background: rgba(76, 175, 80, 0.15);
+      color: #4caf50; font-size: 13px; font-weight: 500;
+    }
+    /* The panel's recommendation-card uses ha-button. We use plain <button>
+       in this dialog's button styles. Re-style the action row to match. */
+    .recommendation-actions {
+      display: flex; gap: 8px; margin-top: 8px;
+    }
+    /* Constrain SVG charts so they fit the dialog width even on mobile. */
+    .weibull-section, .seasonal-card-compact { max-width: 100%; }
+    .weibull-chart svg { max-width: 100%; height: auto; }
+    .details-toggle { gap: 12px; flex-wrap: wrap; }
+  `];
 }
 
 if (!customElements.get("maintenance-task-quick-actions-dialog")) {
