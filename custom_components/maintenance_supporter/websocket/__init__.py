@@ -144,6 +144,15 @@ def _build_task_summary(
         "trigger_entity_infos": trigger_entity_infos,
         "checklist": task_data.get("checklist", []),
         "history": task_data.get("history", []),
+        # v1.3.0 — both fields are persisted by ws_create_task / ws_update_task
+        # and consumed by helpers/action_listener.py on EVENT_TASK_COMPLETED, but
+        # were missing from this response builder until issue #50. Without them
+        # the task-dialog hydrate path (`task.on_complete_action`) sees undefined
+        # on every reload, the user thinks "save didn't work", and the next save
+        # of any other field wipes the persisted action because the dialog's
+        # local state for the action fields is empty (writes back null).
+        "on_complete_action": task_data.get("on_complete_action"),
+        "quick_complete_defaults": task_data.get("quick_complete_defaults"),
         # Computed fields from coordinator
         "status": ct.get("_status", "ok"),
         "days_until_due": ct.get("_days_until_due"),
