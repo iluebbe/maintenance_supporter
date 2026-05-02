@@ -16,7 +16,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
-from . import _get_merged_tasks, _get_runtime_data
+from . import _get_merged_tasks, _get_runtime_data, _load_object_entry
 
 
 @websocket_api.websocket_command(
@@ -35,9 +35,8 @@ async def ws_analyze_interval(
     """Return full interval analysis for a task (on-demand)."""
     from ..helpers.interval_analyzer import IntervalAnalyzer
 
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     tasks_data = _get_merged_tasks(entry)
@@ -134,9 +133,8 @@ async def ws_seasonal_overrides(
     Keys must be 1-12, values must be 0.1-5.0.
     Pass empty dict {} to clear all overrides.
     """
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     task_id = msg["task_id"]
@@ -223,9 +221,8 @@ async def ws_set_environmental_entity(
     correlated with maintenance intervals to produce an adjustment factor.
     Pass environmental_entity=null to clear the binding.
     """
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     task_id = msg["task_id"]

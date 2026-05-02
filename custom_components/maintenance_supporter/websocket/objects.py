@@ -34,6 +34,7 @@ from . import (
     _build_object_response,
     _get_object_entries,
     _get_runtime_data,
+    _load_object_entry,
     cleanup_group_refs,
 )
 from .tasks import _is_safe_url  # v1.4.0 (#43): reuse the existing URL safety check
@@ -197,9 +198,8 @@ async def ws_update_object(
     msg: dict[str, Any],
 ) -> None:
     """Update an existing maintenance object."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     # Strip and validate name if provided
@@ -283,9 +283,8 @@ async def ws_delete_object(
     msg: dict[str, Any],
 ) -> None:
     """Delete a maintenance object and all its tasks."""
-    entry = hass.config_entries.async_get_entry(msg["entry_id"])
-    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-        connection.send_error(msg["id"], "not_found", "Object not found")
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
         return
 
     await hass.config_entries.async_remove(entry.entry_id)
