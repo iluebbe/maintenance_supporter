@@ -232,6 +232,19 @@ export class MaintenanceSettingsView extends LitElement {
     `;
   }
 
+  /** v2.3.0 Phase 6: deep-link target. Called by the panel after a section
+   *  strategy banner click navigates here with ms_action=open_<key>.
+   *  Scrolls the requested settings section into view; no-op if not found. */
+  public scrollToSection(target: string): void {
+    requestAnimationFrame(() => {
+      const sr = this.shadowRoot;
+      if (!sr) return;
+      const el = sr.querySelector<HTMLElement>(`[data-section="${target}"]`)
+        ?? sr.querySelector<HTMLElement>(`[data-section-alt="${target}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   // --- Section: Panel Access (1.0.44+) ---
 
   private _renderPanelAccess(L: string) {
@@ -269,6 +282,10 @@ export class MaintenanceSettingsView extends LitElement {
 
   private _renderFeatures(L: string) {
     const f = this._settings!.features;
+    // data-section="settings" makes this the default landing target for
+    // generic "open settings" deep links. Groups CRUD lives in the global
+    // options flow (Configure button on the integration entry) so a
+    // "groups" target also lands here as the closest match.
     const items: { key: keyof AdvancedFeatures; settingKey: string; label: string; desc: string }[] = [
       { key: "adaptive", settingKey: "advanced_adaptive_visible", label: t("feat_adaptive", L), desc: t("feat_adaptive_desc", L) },
       { key: "predictions", settingKey: "advanced_predictions_visible", label: t("feat_predictions", L), desc: t("feat_predictions_desc", L) },
@@ -282,7 +299,7 @@ export class MaintenanceSettingsView extends LitElement {
     ];
 
     return html`
-      <div class="settings-section">
+      <div class="settings-section" data-section="settings" data-section-alt="groups">
         <h3>${t("settings_features", L)}</h3>
         <p class="section-desc">${t("settings_features_desc", L)}</p>
         ${items.map((item) => html`
@@ -473,7 +490,7 @@ export class MaintenanceSettingsView extends LitElement {
   private _renderBudget(L: string) {
     const b = this._settings!.budget;
     return html`
-      <div class="settings-section">
+      <div class="settings-section" data-section="budget">
         <h3>${t("settings_budget", L)}</h3>
         <label class="setting-row">
           <span class="setting-label">${t("settings_budget_monthly", L)}</span>
@@ -510,7 +527,7 @@ export class MaintenanceSettingsView extends LitElement {
       && new Date(this._vacWindowEnd) < new Date();
     const exemptCount = this._vacExempt.size;
     return html`
-      <div class="settings-section vacation-section">
+      <div class="settings-section vacation-section" data-section="vacation">
         <h3>
           ${t("vacation_title", L)}
           ${this._vacIsActive
