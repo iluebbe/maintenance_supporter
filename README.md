@@ -451,21 +451,24 @@ max_items: 10
 
 <a id="dashboard-strategy"></a>
 
-On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard. The default layout (`group_by: area`) gives you:
+On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard. Pick a layout from the strategy editor or YAML — every mode prepends an **Overview** view with the actionable tasks (overdue + triggered + due_soon), then groups the rest:
 
-- **Overview** view — only the actionable tasks (overdue + triggered + due_soon)
-- one view **per area** (alphabetical) — each filtered to that area's objects
-- an **Unassigned** view at the end for objects without an `area_id`
-
-Switch to `group_by: status` and the same Overview is followed by **one view per status** (Overdue / Triggered / Due Soon / OK) — empty statuses skipped. Edit the dashboard YAML to flip between modes:
+| `group_by` | Resulting views |
+|---|---|
+| `area` *(default)* | One view per area, alphabetical, plus *Unassigned* at the end. |
+| `status` | *Overdue / Triggered / Due Soon / OK* — empty statuses skipped. |
+| `floor` | One view per floor (uses HA's floor registry, sorted by `level`), plus *Other* for objects whose area has no floor. |
+| `due_date` | *Overdue / Today / This Week / This Month / Later* — empty buckets skipped. |
 
 ```yaml
 strategy:
   type: custom:maintenance-supporter
-  group_by: status   # or "area" (default)
+  group_by: due_date   # area | status | floor | due_date
 ```
 
-Card configs are generated dynamically from the `maintenance_supporter/objects` WebSocket feed, so adding objects or changing areas / statuses is reflected on the next dashboard load — no YAML edits to keep things in sync.
+Card configs are generated dynamically from the `maintenance_supporter/objects` WebSocket feed, so adding objects or changing areas / floors / statuses is reflected on the next dashboard load — no YAML edits to keep things in sync. The strategy ships a small **visual editor** (registered via `getConfigElement`) so the picker can offer a dropdown instead of YAML for users who'd rather click.
+
+The `due_date` mode uses two new card filters introduced in 1.7.0 — `filter_due_min_days` and `filter_due_max_days` — which you can also set on a stand-alone card if you want a "tasks due in the next 14 days" tile somewhere else on your dashboard.
 
 On older HA versions the strategy JS still loads but the registration is a silent no-op; the picker simply won't show the entry. Card and panel work as before.
 

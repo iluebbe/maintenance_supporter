@@ -2,6 +2,35 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.7.0] - 2026-05-02
+
+### Add — Strategy: `floor` + `due_date` group_by + visual editor
+
+Round 3 of the dashboard-strategy work, after a deeper read of HA core's strategy zoo (`areas-dashboard`, `home-overview`, `iframe-dashboard`, `common-controls-section`, `hui-areas-dashboard-strategy-editor`). Two new layouts and an editor land:
+
+**`group_by: floor`** — uses HA's floor registry. Each view = one floor, containing the objects whose area lives on that floor. Floors sorted by `level` then name (matches HA core's own ordering). Objects whose area has no floor (or which have no area at all) land in an *Other* view at the end.
+
+**`group_by: due_date`** — five buckets: *Overdue / Today / This Week / This Month / Later*. Powered by two new card filters that compose with the existing `filter_status` / `filter_objects`:
+
+```yaml
+type: custom:maintenance-supporter-card
+filter_due_min_days: 1     # inclusive; days_until_due >= this
+filter_due_max_days: 7     # inclusive; days_until_due <= this
+```
+
+Tasks with no numeric `days_until_due` (e.g. sensor-triggered without a computed next_due) are excluded from any ranged view — they remain visible in unfiltered or status-only views.
+
+**Visual editor** — the strategy now exposes `getConfigElement()` returning a tiny dropdown editor. When a user picks "Maintenance Supporter" in the dashboard picker and clicks *Edit*, they get a *"Group views by"* select with all four modes labelled in plain English instead of staring at YAML. Pattern matches HA core's `hui-areas-dashboard-strategy-editor` (LitElement-style `setConfig` + `config-changed` event), implemented as a plain HTMLElement so the strategy file stays Lit-free.
+
+Verified live on HA 2026.5.0b0:
+- `area` → 10 views (Overview + 8 areas + Unassigned)
+- `status` → 5 views (Overview + 4 statuses)
+- `floor` → 2 views (Overview + 1 floor — test environment has 1 floor)
+- `due_date` → 5 views (Overview + 4 non-empty buckets — Today bucket correctly skipped when empty)
+- editor → registers, preselects from `setConfig`, dispatches `config-changed` on dropdown change
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [1.6.1] - 2026-05-02
 
 ### Add — Strategy `group_by` option (area / status)

@@ -122,8 +122,17 @@ export class MaintenanceSupporterCard extends LitElement {
 
   private get _flatTasks(): FlatTask[] {
     const tasks: FlatTask[] = [];
-    const { filter_status, filter_objects, entity_ids, max_items } = this._config;
+    const {
+      filter_status,
+      filter_objects,
+      entity_ids,
+      filter_due_min_days,
+      filter_due_max_days,
+      max_items,
+    } = this._config;
     const entityFilter = entity_ids?.length ? new Set(entity_ids) : null;
+    const hasDueRange =
+      filter_due_min_days !== undefined || filter_due_max_days !== undefined;
 
     for (const obj of this._objects) {
       if (filter_objects?.length && !filter_objects.includes(obj.object.name)) continue;
@@ -136,6 +145,15 @@ export class MaintenanceSupporterCard extends LitElement {
           const matches = (task.sensor_entity_id && entityFilter.has(task.sensor_entity_id))
             || (task.binary_sensor_entity_id && entityFilter.has(task.binary_sensor_entity_id));
           if (!matches) continue;
+        }
+        // due-days range — used by group_by=due_date strategy buckets.
+        // Tasks without a numeric days_until_due are excluded from any
+        // ranged view; they show up in unfiltered or status-only views.
+        if (hasDueRange) {
+          const days = task.days_until_due;
+          if (days === null || days === undefined) continue;
+          if (filter_due_min_days !== undefined && days < filter_due_min_days) continue;
+          if (filter_due_max_days !== undefined && days > filter_due_max_days) continue;
         }
         tasks.push({ entry_id: obj.entry_id, object_name: obj.object.name, task });
       }
