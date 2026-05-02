@@ -19,7 +19,6 @@ from ..const import (
     CONF_OBJECT_NAME,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_DATE_LENGTH,
@@ -1056,7 +1055,7 @@ async def ws_update_history_entry(
 
     # Refresh coordinator + budget cache so the UI reflects the change
     if rd and rd.coordinator:
-        rd.coordinator._recalculate_budget_cache()  # noqa: SLF001 — internal but stable
+        rd.coordinator._recalculate_budget_cache()
         await rd.coordinator.async_request_refresh()
 
     connection.send_result(

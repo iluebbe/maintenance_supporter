@@ -12,7 +12,6 @@ from ..const import (
     CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
