@@ -13,7 +13,7 @@
  *
  * Card config:
  *
- *   type: custom:maintenance-supporter-calendar
+ *   type: custom:maintenance-supporter-calendar-card
  *   title: My maintenance calendar  # optional
  *   window_days: 30                  # 7 | 14 | 30 | 365 — default 30
  *   show_window_chips: true          # default true; hide for embedded use
@@ -55,7 +55,7 @@ interface CalendarCardConfig {
 export class MaintenanceCalendarCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config: CalendarCardConfig = {
-    type: "custom:maintenance-supporter-calendar",
+    type: "custom:maintenance-supporter-calendar-card",
   };
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
@@ -74,7 +74,7 @@ export class MaintenanceCalendarCard extends LitElement {
   static getStubConfig() {
     // Opinionated default: 30-day rolling window, both controls visible.
     return {
-      type: "custom:maintenance-supporter-calendar",
+      type: "custom:maintenance-supporter-calendar-card",
       window_days: 30,
       show_window_chips: true,
       show_user_filter: true,
@@ -373,7 +373,7 @@ const WINDOW_DAY_OPTIONS: Array<{ value: WindowDays; label: string }> = [
 class MaintenanceCalendarCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config: CalendarCardConfig = {
-    type: "custom:maintenance-supporter-calendar",
+    type: "custom:maintenance-supporter-calendar-card",
   };
 
   setConfig(config: CalendarCardConfig): void {
@@ -539,12 +539,17 @@ const w = window as unknown as {
   }>;
 };
 w.customCards = w.customCards || [];
+// HA's custom-card resolver maps ``custom:X`` → element tag ``X``. Our element
+// is registered as ``maintenance-supporter-calendar-card``, so the customCards
+// type MUST match that exact suffix or the card-picker entry resolves to a
+// non-existent element and the strategy's calendar mode throws a config error.
+const CALENDAR_CARD_TYPE = "maintenance-supporter-calendar-card";
 const alreadyRegistered = w.customCards.some(
-  (c) => c.type === "maintenance-supporter-calendar",
+  (c) => c.type === CALENDAR_CARD_TYPE,
 );
 if (!alreadyRegistered) {
   w.customCards.push({
-    type: "maintenance-supporter-calendar",
+    type: CALENDAR_CARD_TYPE,
     name: "Maintenance Supporter — Calendar",
     description:
       "Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",

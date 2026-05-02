@@ -511,7 +511,7 @@ function viewsByCalendar(_objects: MaintenanceObjectResp[]): ViewConfig[] {
     type: "panel",
     cards: [
       {
-        type: "custom:maintenance-supporter-calendar",
+        type: "custom:maintenance-supporter-calendar-card",
         window_days: w.window_days,
         show_window_chips: false,
         show_user_filter: true,
@@ -852,6 +852,8 @@ import {
   openCreateObjectDialog,
   openEditTaskDialog,
   openHistoryEditDialog,
+  openObjectQuickActions,
+  openTaskQuickActions,
 } from "./dialog-mount";
 
 interface LlCustomEventDetail {
@@ -892,11 +894,23 @@ function registerLlCustomHandler(): void {
       typeof detail.entry_id === "string" &&
       typeof detail.task_id === "string"
     ) {
+      // v2.3.0: prefer the rich quick-actions dialog (Complete/Skip/Reset/
+      // Edit/QR/Delete) over the bare task-editor. Fall back through the
+      // old task-editor mount, then the panel deep-link, in case the
+      // quick-actions dialog isn't ready (very-early bundle load).
+      if (openTaskQuickActions(detail.entry_id, detail.task_id)) return;
       if (openEditTaskDialog(detail.entry_id, detail.task_id)) return;
       deepLink(
         `/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}` +
           `&task_id=${encodeURIComponent(detail.task_id)}`,
       );
+      return;
+    }
+
+    // v2.3.0 Phase 3 — open the object quick-actions dialog
+    if (action === "open-object" && typeof detail.entry_id === "string") {
+      if (openObjectQuickActions(detail.entry_id)) return;
+      deepLink(`/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}`);
       return;
     }
 
