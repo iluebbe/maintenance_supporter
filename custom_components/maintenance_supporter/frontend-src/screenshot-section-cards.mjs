@@ -158,32 +158,13 @@ async function main() {
     await page.waitForTimeout(3500);
     await shot(page, `card-${colorScheme}`);
 
-    // Find the first card .task-item.clickable and click it
+    // Find a task row that's likely to have adaptive data (Oil Change has the
+    // longest history in the demo dataset). Falls back to first row.
     const taskClicked = await page.evaluate(() => {
-      // Lovelace path: home-assistant > home-assistant-main > ha-drawer >
-      //   partial-panel-resolver > ha-panel-lovelace > hui-root > #view >
-      //   hui-view > hui-card > maintenance-supporter-card
-      const ha = document.querySelector("home-assistant");
-      if (!ha?.shadowRoot) return "no ha";
-      const main = ha.shadowRoot.querySelector("home-assistant-main");
-      if (!main?.shadowRoot) return "no main";
-      const drawer = main.shadowRoot.querySelector("ha-drawer");
-      if (!drawer) return "no drawer";
-      const partial = drawer.querySelector("partial-panel-resolver");
-      if (!partial) return "no partial";
-      const lovelace = partial.querySelector("ha-panel-lovelace");
-      if (!lovelace?.shadowRoot) return "no lovelace";
-      const huiRoot = lovelace.shadowRoot.querySelector("hui-root");
-      if (!huiRoot?.shadowRoot) return "no hui-root";
-      // Walk every shadow-DOM looking for our card
       function findInAllShadows(root, sel) {
         if (!root) return null;
-        if (root.querySelector) {
-          const direct = root.querySelector(sel);
-          if (direct) return direct;
-        }
-        const all = root.querySelectorAll ? root.querySelectorAll("*") : [];
-        for (const el of all) {
+        if (root.querySelector?.(sel)) return root.querySelector(sel);
+        for (const el of root.querySelectorAll?.("*") || []) {
           if (el.shadowRoot) {
             const found = findInAllShadows(el.shadowRoot, sel);
             if (found) return found;
@@ -191,20 +172,54 @@ async function main() {
         }
         return null;
       }
-      const card = findInAllShadows(huiRoot.shadowRoot, "maintenance-supporter-card");
+      const card = findInAllShadows(document, "maintenance-supporter-card");
       if (!card?.shadowRoot) return "no card";
-      const row = card.shadowRoot.querySelector(".task-item.clickable");
-      if (!row) return "no clickable row";
-      row.click();
-      return "clicked";
+      const rows = Array.from(card.shadowRoot.querySelectorAll(".task-item.clickable"));
+      if (rows.length === 0) return "no rows";
+      // Prefer "Filter Replacement" (HVAC) — has interval recommendation,
+      // then "Oil Change" (Family Car) — has sensor + long history.
+      const filterReplace = rows.find((r) => /filter replacement|filter wechsel/i.test(r.textContent || ""));
+      const oilChange = rows.find((r) => /oil change|ölwechsel/i.test(r.textContent || ""));
+      const target = filterReplace || oilChange || rows[0];
+      target.click();
+      return "clicked: " + (target.querySelector(".task-name")?.textContent || "?");
     });
 
     console.log(`  Task row click: ${taskClicked}`);
-    if (taskClicked === "clicked") {
-      await page.waitForTimeout(1800);
+    if (taskClicked.startsWith("clicked")) {
+      // Wait for both /object load AND /settings (features) load — the stats
+      // toggle only renders after features arrive
+      await page.waitForTimeout(4000);
       await shot(page, `quick-actions-${colorScheme}`);
 
-      // Click the Complete button — it's in the .actions.primary-row of the dialog
+      // Click the 2nd link (= "Show stats + graphs")
+      const statsClick = await page.evaluate(() => {
+        const dlg = document.body.querySelector("maintenance-task-quick-actions-dialog");
+        const links = dlg?.shadowRoot?.querySelectorAll(".details-toggle button.link") || [];
+        if (links.length < 2) return `only ${links.length} link(s)`;
+        links[1].click();
+        return "clicked: " + (links[1].textContent || "").trim();
+      });
+      console.log(`  Stats toggle: ${statsClick}`);
+      await page.waitForTimeout(1500);
+      await shot(page, `quick-actions-stats-${colorScheme}`);
+
+      // Capture the graphs section — scroll dialog and shoot again
+      await page.evaluate(() => {
+        const dlg = document.body.querySelector("maintenance-task-quick-actions-dialog");
+        const inner = dlg?.shadowRoot?.querySelector(".dialog");
+        if (inner) inner.scrollTop = Math.max(0, inner.scrollHeight - 700);
+      }).catch(() => {});
+      await page.waitForTimeout(400);
+      await shot(page, `quick-actions-stats-bottom-${colorScheme}`);
+
+      // Restore scroll for complete dialog test
+      await page.evaluate(() => {
+        const dlg = document.body.querySelector("maintenance-task-quick-actions-dialog");
+        const inner = dlg?.shadowRoot?.querySelector(".dialog");
+        if (inner) inner.scrollTop = 0;
+      }).catch(() => {});
+      await page.waitForTimeout(300);
       const completeClicked = await page.evaluate(() => {
         const dlg = document.body.querySelector("maintenance-task-quick-actions-dialog");
         if (!dlg?.shadowRoot) return "no quick-actions dialog on body";

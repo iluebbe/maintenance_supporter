@@ -446,6 +446,11 @@ const DE: Translations = {
   vacation_end_now: "Urlaub jetzt beenden",
   // v2.4.0 — interactive section cards
   add: "Hinzufügen",
+  // v2.4.1 — adaptive stats in quick-actions dialog
+  show_stats: "Statistiken + Diagramme",
+  hide_stats: "Statistiken ausblenden",
+  adaptive_no_data: "Noch nicht genug Completion-Historie für die adaptive Auswertung. Schließe diese Aufgabe ein paar Mal mehr ab, um Intervall-Empfehlungen und Zuverlässigkeitskurven freizuschalten.",
+  suggestion_applied: "Vorgeschlagenes Intervall übernommen",
   vacation_mode: "Urlaubsmodus",
   vacation_status_active: "Aktiv",
   vacation_status_scheduled: "Geplant",
@@ -937,6 +942,11 @@ const EN: Translations = {
   vacation_end_now: "End vacation now",
   // v2.4.0 — interactive section cards
   add: "Add",
+  // v2.4.1 — adaptive stats in quick-actions dialog
+  show_stats: "Show stats + graphs",
+  hide_stats: "Hide stats",
+  adaptive_no_data: "Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",
+  suggestion_applied: "Suggested interval applied",
   vacation_mode: "Vacation mode",
   vacation_status_active: "Active now",
   vacation_status_scheduled: "Scheduled",
