@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.0.0] - 2026-05-02
+
+### Refactor — Panel Calendar tab now powered by the extracted Card
+
+The panel's *Calendar* tab no longer renders the calendar inline. Instead, the panel embeds the v1.9.0 `<maintenance-supporter-calendar-card>` and intercepts its `ll-custom open-task` events to navigate within the panel as before. **Single source of truth** for all calendar rendering — same code now powers the panel tab, the standalone Lovelace card, and the dashboard strategy's `group_by: calendar` mode.
+
+What was deleted from the panel:
+- `_renderCalendar()` method (~125 lines of duplicate Lit template literals)
+- `_calendarWindowDays` and `_calendarUserFilter` `@state` declarations (now lives inside the card)
+- ~175 lines of `cal-*` CSS rules from `panel-styles.ts` (now lives in shared `calendar-styles.ts` only)
+
+What stayed: the panel's tab routing (clicking on a calendar event still calls `_showTask(entry_id, task_id)` to navigate within the panel — the new `_onCalendarLlCustom` handler intercepts the card's event with `stopPropagation` so the document-level dialog-mount handler doesn't also fire and open a duplicate dialog).
+
+No user-visible changes; same look, same controls, same behavior. **Major version bump because the panel's internal architecture changed materially** — anyone who was extending or patching `_renderCalendar` will need to point at the card instead.
+
+Verified live on HA 2026.5.0b0 (14/14 strategy checks). Backend tests: 1590 pass · Frontend tests: 43 pass.
+
 ## [1.9.1] - 2026-05-02
 
 ### Add — Calendar Card visual editor
