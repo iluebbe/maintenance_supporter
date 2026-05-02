@@ -2,6 +2,37 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.8.0] - 2026-05-02
+
+### Add — Empty-state, KPI header + sidebar, and a Section Strategy
+
+Round 4 of dashboard-strategy work picks up the patterns from HA core's `home-overview-view-strategy` (header, sidebar, empty-state) and `common-controls-section-strategy` (section as third strategy type).
+
+**Empty state.** First-time users with zero maintenance objects no longer get a useless "no tasks" page. The strategy short-circuits to a `type: empty-state` card with a *"Open Maintenance panel"* button (`tap_action: navigate /maintenance-supporter`) — same visual pattern HA core uses for fresh-install dashboards.
+
+**KPI header on every screen.** The Overview view now ships with a `header: { layout: responsive, card: ... }` markdown line — `🔴 N overdue · ⚡ N triggered · 🟡 N due soon · 🟢 N ok` (zero counts are pruned, "ok" always shown). Renders above the task list at any width.
+
+**Sidebar on wide screens.** When the view has at least 2 columns (HA's `LARGE_SCREEN_CONDITION` — `condition: view_columns, min: 2`), a sidebar pinning the same KPI card appears on the right so the headline counts stay visible while scrolling long lists. Mobile / narrow screens skip it automatically — no media-query duplication.
+
+**Section Strategy.** A new third-class strategy `custom:maintenance-supporter-section` for embedding maintenance tasks into any HA dashboard view (HA's home dashboard, the areas dashboard's per-area view, anything section-based):
+
+```yaml
+sections:
+  - strategy:
+      type: custom:maintenance-supporter-section
+      area_id: kitchen           # optional — restrict to one area
+      filter_status: [overdue, triggered]
+      filter_due_max_days: 7
+      title: Kitchen — this week
+      max_items: 5
+```
+
+`area_id` resolves via the WS feed at section-load time, so it follows area renames automatically. All filters are optional and additive.
+
+Verified live on HA 2026.5.0b0 (10/10 checks pass): 4 group_by modes, editor, header, sidebar, section strategy register + generate.
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [1.7.0] - 2026-05-02
 
 ### Add — Strategy: `floor` + `due_date` group_by + visual editor

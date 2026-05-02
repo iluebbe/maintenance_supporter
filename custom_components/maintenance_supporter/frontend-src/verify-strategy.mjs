@@ -122,10 +122,8 @@ const result = await page.evaluate(async () => {
         type: "custom:maintenance-supporter",
         group_by: "status",
       });
-      // Verify the dropdown reflects the config
       const select = editor.querySelector("select");
       out.editorPreselected = select?.value;
-      // Simulate user changing dropdown
       let dispatchedConfig = null;
       editor.addEventListener("config-changed", (e) => {
         dispatchedConfig = e.detail.config;
@@ -137,6 +135,59 @@ const result = await page.evaluate(async () => {
     }
   } catch (e) {
     out.editorError = String(e);
+  }
+
+  // 5. v1.8.0 — Header + Sidebar present on Overview view
+  try {
+    const StrategyClass = customElements.get(
+      "ll-strategy-dashboard-maintenance-supporter",
+    );
+    const ha = document.querySelector("home-assistant");
+    if (StrategyClass?.generate && ha?.hass) {
+      const cfg = await StrategyClass.generate(
+        { type: "custom:maintenance-supporter" },
+        ha.hass,
+      );
+      const overview = cfg.views?.find((v) => v.path === "overview");
+      out.overviewHeader = overview?.header?.card?.type;
+      out.overviewSidebar = overview?.sidebar?.sections?.[0]?.cards?.length ?? 0;
+      out.overviewSidebarVisibility =
+        overview?.sidebar?.visibility?.[0]?.condition;
+    }
+  } catch (e) {
+    out.overviewError = String(e);
+  }
+
+  // 6. v1.8.0 — Section strategy registered + generates
+  try {
+    out.sectionStrategyInRegistry = (window.customStrategies || []).some(
+      (s) => s.type === "maintenance-supporter-section" && s.strategyType === "section",
+    );
+    out.sectionElementRegistered = !!customElements.get(
+      "ll-strategy-section-maintenance-supporter-section",
+    );
+    const SectionClass = customElements.get(
+      "ll-strategy-section-maintenance-supporter-section",
+    );
+    const ha = document.querySelector("home-assistant");
+    if (SectionClass?.generate && ha?.hass) {
+      const sec = await SectionClass.generate(
+        {
+          type: "custom:maintenance-supporter-section",
+          filter_status: ["overdue", "triggered"],
+          title: "Hot list",
+        },
+        ha.hass,
+      );
+      out.sectionGenerated = {
+        type: sec.type,
+        cardCount: sec.cards?.length ?? 0,
+        firstCardType: sec.cards?.[0]?.type,
+        lastCardType: sec.cards?.[sec.cards.length - 1]?.type,
+      };
+    }
+  } catch (e) {
+    out.sectionError = String(e);
   }
 
   // 4. HA version
@@ -161,22 +212,44 @@ const okEditor =
   result.editorRegistered === true &&
   result.editorPreselected === "status" &&
   result.editorDispatched?.group_by === "due_date";
+const okHeader = result.overviewHeader === "markdown";
+const okSidebar =
+  (result.overviewSidebar ?? 0) > 0 &&
+  result.overviewSidebarVisibility === "view_columns";
+const okSection =
+  result.sectionStrategyInRegistry === true &&
+  result.sectionElementRegistered === true &&
+  (result.sectionGenerated?.cardCount ?? 0) >= 2 &&
+  result.sectionGenerated?.firstCardType === "heading" &&
+  result.sectionGenerated?.lastCardType === "custom:maintenance-supporter-card";
 
 console.log(
   "\n=== SUMMARY ===\n" +
-    `  HA version:                    ${result.haVersion}\n` +
-    `  customStrategies has our entry: ${okRegister ? "✓" : "✗"}\n` +
-    `  custom element registered:     ${okElement ? "✓" : "✗"}\n` +
-    `  generate(group_by=area):       ${okArea ? "✓" : "✗"} (${result.generated_area?.viewCount} views)\n` +
-    `  generate(group_by=status):     ${okStatus ? "✓" : "✗"} (${result.generated_status?.viewCount} views)\n` +
-    `  generate(group_by=floor):      ${okFloor ? "✓" : "✗"} (${result.generated_floor?.viewCount} views)\n` +
-    `  generate(group_by=due_date):   ${okDueDate ? "✓" : "✗"} (${result.generated_due_date?.viewCount} views)\n` +
-    `  editor registered + works:     ${okEditor ? "✓" : "✗"}`,
+    `  HA version:                       ${result.haVersion}\n` +
+    `  customStrategies has our entry:    ${okRegister ? "✓" : "✗"}\n` +
+    `  custom element registered:        ${okElement ? "✓" : "✗"}\n` +
+    `  generate(group_by=area):          ${okArea ? "✓" : "✗"} (${result.generated_area?.viewCount} views)\n` +
+    `  generate(group_by=status):        ${okStatus ? "✓" : "✗"} (${result.generated_status?.viewCount} views)\n` +
+    `  generate(group_by=floor):         ${okFloor ? "✓" : "✗"} (${result.generated_floor?.viewCount} views)\n` +
+    `  generate(group_by=due_date):      ${okDueDate ? "✓" : "✗"} (${result.generated_due_date?.viewCount} views)\n` +
+    `  editor registered + works:        ${okEditor ? "✓" : "✗"}\n` +
+    `  Overview has KPI header:          ${okHeader ? "✓" : "✗"} (${result.overviewHeader})\n` +
+    `  Overview has sidebar (large):     ${okSidebar ? "✓" : "✗"} (${result.overviewSidebar} cards, visibility=${result.overviewSidebarVisibility})\n` +
+    `  Section strategy registered+works: ${okSection ? "✓" : "✗"} (${result.sectionGenerated?.cardCount} cards)`,
 );
 
 await browser.close();
 process.exit(
-  okRegister && okElement && okArea && okStatus && okFloor && okDueDate && okEditor
+  okRegister &&
+    okElement &&
+    okArea &&
+    okStatus &&
+    okFloor &&
+    okDueDate &&
+    okEditor &&
+    okHeader &&
+    okSidebar &&
+    okSection
     ? 0
     : 1,
 );

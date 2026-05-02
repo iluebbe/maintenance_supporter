@@ -87,6 +87,23 @@ interface ViewConfig {
   subview?: boolean;
   cards?: CardConfig[];
   sections?: SectionConfig[];
+  // HA 2026.5+ — banner card above the view (mobile + desktop), and a
+  // narrow column on the right (large screens only). See
+  // home-overview-view-strategy.ts for the canonical usage.
+  header?: { layout?: string; card: CardConfig };
+  sidebar?: {
+    sections: SectionConfig[];
+    visibility?: ViewColumnsCondition[];
+    content_label?: string;
+    sidebar_label?: string;
+  };
+  max_columns?: number;
+}
+
+interface ViewColumnsCondition {
+  condition: "view_columns";
+  min?: number;
+  max?: number;
 }
 
 interface SectionConfig {
@@ -166,12 +183,126 @@ function makeCardSection(card: CardConfig): SectionConfig {
   return { type: "grid", cards: [card] };
 }
 
-function overviewView(): ViewConfig {
+// Replicate HA core's responsive conditions (see panels/lovelace/strategies/
+// helpers/view-columns-conditions.ts). They use the "view_columns" condition
+// rather than raw media queries so they follow whatever breakpoint the user's
+// view actually has.
+const LARGE_SCREEN_CONDITION: ViewColumnsCondition = {
+  condition: "view_columns",
+  min: 2,
+};
+const SMALL_SCREEN_CONDITION: ViewColumnsCondition = {
+  condition: "view_columns",
+  max: 1,
+};
+
+interface MaintenanceStats {
+  overdue: number;
+  triggered: number;
+  due_soon: number;
+  ok: number;
+  total: number;
+}
+
+function computeStats(objects: MaintenanceObjectResp[]): MaintenanceStats {
+  const stats: MaintenanceStats = {
+    overdue: 0,
+    triggered: 0,
+    due_soon: 0,
+    ok: 0,
+    total: 0,
+  };
+  for (const obj of objects) {
+    for (const task of obj.tasks || []) {
+      stats.total++;
+      if (task.status === "overdue") stats.overdue++;
+      else if (task.status === "triggered") stats.triggered++;
+      else if (task.status === "due_soon") stats.due_soon++;
+      else if (task.status === "ok") stats.ok++;
+    }
+  }
+  return stats;
+}
+
+function kpiMarkdownCard(stats: MaintenanceStats): CardConfig {
+  // Compact one-liner. Markdown card ignored when text is empty so an
+  // all-zero state still renders cleanly ("everything's fine").
+  const parts: string[] = [];
+  if (stats.overdue) parts.push(`🔴 **${stats.overdue}** overdue`);
+  if (stats.triggered) parts.push(`⚡ **${stats.triggered}** triggered`);
+  if (stats.due_soon) parts.push(`🟡 **${stats.due_soon}** due soon`);
+  parts.push(`🟢 **${stats.ok}** ok`);
+  return {
+    type: "markdown",
+    text_only: true,
+    content: parts.join(" · "),
+  };
+}
+
+// Onboarding card shown when there are zero maintenance objects. Pattern
+// follows HA core's home-overview-view-strategy empty-state branch.
+function emptyStateView(): ViewConfig {
+  return {
+    title: "Maintenance",
+    type: "panel",
+    cards: [
+      {
+        type: "empty-state",
+        icon: "mdi:wrench-clock",
+        icon_color: "primary",
+        content_only: true,
+        title: "No maintenance objects yet",
+        content:
+          "Open the Maintenance panel to add your first object — pool pump, HVAC filter, vehicle, anything that needs scheduled care.",
+        buttons: [
+          {
+            icon: "mdi:wrench",
+            text: "Open Maintenance panel",
+            appearance: "filled",
+            variant: "brand",
+            tap_action: {
+              action: "navigate",
+              navigation_path: "/maintenance-supporter",
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function overviewView(stats: MaintenanceStats): ViewConfig {
+  const kpiCard = kpiMarkdownCard(stats);
   return {
     title: "Overview",
     icon: "mdi:wrench-clock",
     path: "overview",
     type: "sections",
+    // Header runs above the main content — present on every screen size
+    // so the user always sees the headline counts. Layout "responsive"
+    // matches HA core's home strategy.
+    header: { layout: "responsive", card: kpiCard },
+    // Sidebar appears only on screens wide enough for ≥2 columns. Mirrors
+    // the same KPI card so power users with a wide dashboard never lose
+    // sight of it as they scroll long lists.
+    sidebar: {
+      sections: [
+        {
+          type: "grid",
+          cards: [
+            {
+              type: "heading",
+              heading: "Status",
+              heading_style: "title",
+            },
+            kpiCard,
+          ],
+        },
+      ],
+      visibility: [LARGE_SCREEN_CONDITION],
+      content_label: "Tasks",
+      sidebar_label: "Status",
+    },
     sections: [
       makeCardSection({
         type: "custom:maintenance-supporter-card",
@@ -435,9 +566,19 @@ class MaintenanceDashboardStrategy extends HTMLElement {
     }
 
     const objects = response.objects || [];
+
+    // Onboarding short-circuit. With zero objects the area / status / floor /
+    // due_date branches all produce just the Overview view (which shows
+    // "no tasks") — that's a useless first impression. Show an actionable
+    // empty-state instead so the user knows where to click next.
+    if (objects.length === 0) {
+      return { title: "Maintenance", views: [emptyStateView()] };
+    }
+
+    const stats = computeStats(objects);
     const groupBy: GroupBy = config?.group_by ?? "area";
 
-    const views: ViewConfig[] = [overviewView()];
+    const views: ViewConfig[] = [overviewView(stats)];
     if (groupBy === "status") {
       views.push(...viewsByStatus(objects));
     } else if (groupBy === "floor") {
@@ -539,11 +680,100 @@ class MaintenanceStrategyEditor extends HTMLElement {
   }
 }
 
+// ── Section Strategy ────────────────────────────────────────────────────────
+//
+// A standalone section users can drop into ANY view (HA's home dashboard, the
+// areas dashboard's per-area view, a custom dashboard) to surface a slice of
+// maintenance tasks in context. Mirrors HA core's ``common-controls`` section
+// strategy pattern. YAML usage:
+//
+//   sections:
+//     - strategy:
+//         type: custom:maintenance-supporter-section
+//         area_id: kitchen        # optional — restrict to one area
+//         filter_status:          # optional — restrict to certain statuses
+//           - overdue
+//           - triggered
+//         title: Kitchen upkeep   # optional heading card
+//         max_items: 5            # optional row limit
+//
+// At least one filter is recommended; with no filters it shows everything,
+// which is what the dashboard strategy already does.
+
+const SECTION_STRATEGY_TYPE = "maintenance-supporter-section";
+const SECTION_STRATEGY_TAG = `ll-strategy-section-${SECTION_STRATEGY_TYPE}`;
+
+interface MaintenanceSectionStrategyConfig {
+  type: "custom:maintenance-supporter-section" | "maintenance-supporter-section";
+  area_id?: string;
+  filter_status?: string[];
+  filter_objects?: string[];
+  filter_due_min_days?: number;
+  filter_due_max_days?: number;
+  title?: string;
+  max_items?: number;
+}
+
+class MaintenanceSectionStrategy extends HTMLElement {
+  static async generate(
+    config: MaintenanceSectionStrategyConfig | undefined,
+    hass: HassLike,
+  ): Promise<SectionConfig> {
+    const card: CardConfig = {
+      type: "custom:maintenance-supporter-card",
+      show_header: false,
+    };
+
+    // Pass through optional filters
+    if (config?.filter_status?.length) card.filter_status = config.filter_status;
+    if (config?.max_items) card.max_items = config.max_items;
+    if (config?.filter_due_min_days !== undefined) {
+      card.filter_due_min_days = config.filter_due_min_days;
+    }
+    if (config?.filter_due_max_days !== undefined) {
+      card.filter_due_max_days = config.filter_due_max_days;
+    }
+
+    // Resolve area_id → object names via WS (the card filters by name).
+    // Falls back gracefully if the WS call fails — empty filter means
+    // "show everything", which still renders something useful.
+    let names: string[] | undefined = config?.filter_objects;
+    if (config?.area_id && !names) {
+      try {
+        const r = await hass.connection.sendMessagePromise<{
+          objects: MaintenanceObjectResp[];
+        }>({ type: "maintenance_supporter/objects" });
+        names = (r.objects || [])
+          .filter((o) => o.object.area_id === config.area_id)
+          .map((o) => o.object.name);
+      } catch {
+        // ignore — card will show all
+      }
+    }
+    if (names && names.length > 0) card.filter_objects = names;
+
+    const cards: CardConfig[] = [];
+    if (config?.title) {
+      cards.push({
+        type: "heading",
+        heading: config.title,
+        heading_style: "title",
+      });
+    }
+    cards.push(card);
+
+    return { type: "grid", cards };
+  }
+}
+
 if (!customElements.get(STRATEGY_TAG)) {
   customElements.define(STRATEGY_TAG, MaintenanceDashboardStrategy);
 }
 if (!customElements.get(EDITOR_TAG)) {
   customElements.define(EDITOR_TAG, MaintenanceStrategyEditor);
+}
+if (!customElements.get(SECTION_STRATEGY_TAG)) {
+  customElements.define(SECTION_STRATEGY_TAG, MaintenanceSectionStrategy);
 }
 
 // Discovery — picked up by HA 2026.5+. Older HA ignores it silently.
@@ -557,19 +787,38 @@ const w = window as unknown as {
   }>;
 };
 w.customStrategies = w.customStrategies || [];
-const alreadyRegistered = w.customStrategies.some(
-  (s) => s.type === STRATEGY_TYPE && s.strategyType === "dashboard",
-);
-if (!alreadyRegistered) {
-  w.customStrategies.push({
-    type: STRATEGY_TYPE,
-    strategyType: "dashboard",
-    name: "Maintenance Supporter",
-    description:
-      "Auto-generated dashboard. Group views by area, status, floor, or due date — picked from the strategy editor or YAML.",
-    documentationURL:
-      "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
-  });
+
+function registerStrategy(entry: {
+  type: string;
+  strategyType: string;
+  name: string;
+  description?: string;
+  documentationURL?: string;
+}): void {
+  const exists = w.customStrategies!.some(
+    (s) => s.type === entry.type && s.strategyType === entry.strategyType,
+  );
+  if (!exists) w.customStrategies!.push(entry);
 }
+
+registerStrategy({
+  type: STRATEGY_TYPE,
+  strategyType: "dashboard",
+  name: "Maintenance Supporter",
+  description:
+    "Auto-generated dashboard. Group views by area, status, floor, or due date — picked from the strategy editor or YAML.",
+  documentationURL:
+    "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
+});
+
+registerStrategy({
+  type: SECTION_STRATEGY_TYPE,
+  strategyType: "section",
+  name: "Maintenance Supporter — Section",
+  description:
+    "Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",
+  documentationURL:
+    "https://github.com/iluebbe/maintenance_supporter#section-strategy",
+});
 
 export {};
