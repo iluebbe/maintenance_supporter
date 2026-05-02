@@ -15,6 +15,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t } from "../styles";
 import { describeWsError } from "../ws-errors";
+import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { HomeAssistant } from "../types";
 
 interface VacationState {
@@ -260,18 +261,7 @@ export class MaintenanceVacationSectionCard extends LitElement {
     `;
   }
 
-  static styles = css`
-    ha-card { overflow: hidden; }
-    .card-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .header {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px;
-    }
-    .title {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 16px; font-weight: 500;
-    }
-    .emoji { font-size: 20px; }
+  static styles = [sectionCardSharedStyles, css`
     .status-pill {
       font-size: 11px; font-weight: 600;
       padding: 3px 8px; border-radius: 999px;
@@ -315,43 +305,8 @@ export class MaintenanceVacationSectionCard extends LitElement {
     .actions {
       display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
     }
-    .btn {
-      padding: 6px 12px; font-size: 13px;
-      border-radius: 6px; cursor: pointer;
-      border: 1px solid var(--divider-color);
-      background: var(--secondary-background-color, transparent);
-      color: var(--primary-text-color);
-      font-weight: 500;
-    }
-    .btn:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
-    .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
-    .btn.primary {
-      background: var(--primary-color);
-      color: var(--text-primary-color, white);
-      border-color: var(--primary-color);
-    }
-    .btn.primary[disabled] { opacity: 0.6; }
-    .btn.muted {
-      background: transparent;
-      color: var(--secondary-text-color);
-      border-style: dashed;
-    }
-    .btn.muted[disabled] { opacity: 1; cursor: default; }
-    .btn.muted ha-icon { --mdc-icon-size: 14px; }
-    .btn.primary ha-icon { --mdc-icon-size: 14px; }
-    .btn.link {
-      background: transparent; border: none; padding: 6px 4px;
-      color: var(--primary-color); margin-left: auto;
-    }
-    .btn.link:hover { background: transparent; text-decoration: underline; }
     .readonly { display: flex; flex-direction: column; gap: 8px; }
-    .error {
-      padding: 8px; border-radius: 6px;
-      background: rgba(211, 47, 47, 0.1);
-      color: var(--error-color, #d32f2f); font-size: 13px;
-    }
-    .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
-  `;
+  `];
 }
 
 if (!customElements.get("maintenance-vacation-section-card")) {
