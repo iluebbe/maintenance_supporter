@@ -451,13 +451,21 @@ max_items: 10
 
 <a id="dashboard-strategy"></a>
 
-On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard with:
+On Home Assistant **2026.5+**, *Settings → Dashboards → Add Dashboard → "Maintenance Supporter"* spins up a complete dashboard. The default layout (`group_by: area`) gives you:
 
 - **Overview** view — only the actionable tasks (overdue + triggered + due_soon)
 - one view **per area** (alphabetical) — each filtered to that area's objects
 - an **Unassigned** view at the end for objects without an `area_id`
 
-Card configs are generated dynamically from the `maintenance_supporter/objects` WebSocket feed, so adding objects or changing areas is reflected on the next dashboard load — no YAML to edit.
+Switch to `group_by: status` and the same Overview is followed by **one view per status** (Overdue / Triggered / Due Soon / OK) — empty statuses skipped. Edit the dashboard YAML to flip between modes:
+
+```yaml
+strategy:
+  type: custom:maintenance-supporter
+  group_by: status   # or "area" (default)
+```
+
+Card configs are generated dynamically from the `maintenance_supporter/objects` WebSocket feed, so adding objects or changing areas / statuses is reflected on the next dashboard load — no YAML edits to keep things in sync.
 
 On older HA versions the strategy JS still loads but the registration is a silent no-op; the picker simply won't show the entry. Card and panel work as before.
 
