@@ -318,10 +318,175 @@ export class MaintenanceCalendarCard extends LitElement {
   ];
 }
 
+// ── Calendar Card Editor ────────────────────────────────────────────────────
+//
+// Visual config: pick window_days from a dropdown, toggle the in-card chips
+// and user-filter on/off. Same pattern as MaintenanceSupporterCardEditor —
+// LitElement with setConfig + dispatched config-changed.
+
+const WINDOW_DAY_OPTIONS: Array<{ value: WindowDays; label: string }> = [
+  { value: 7, label: "Week (7 days)" },
+  { value: 14, label: "Fortnight (14 days)" },
+  { value: 30, label: "Month (30 days, default)" },
+  { value: 365, label: "Year (365 days, empty days collapsed)" },
+];
+
+class MaintenanceCalendarCardEditor extends LitElement {
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @state() private _config: CalendarCardConfig = {
+    type: "custom:maintenance-supporter-calendar",
+  };
+
+  setConfig(config: CalendarCardConfig): void {
+    this._config = { ...config };
+  }
+
+  private _valueChanged(key: keyof CalendarCardConfig, value: unknown): void {
+    const newConfig = { ...this._config, [key]: value } as CalendarCardConfig;
+    // Drop default-equivalent values so saved YAML stays minimal
+    if (key === "show_window_chips" && value === true) {
+      delete (newConfig as Record<string, unknown>).show_window_chips;
+    }
+    if (key === "show_user_filter" && value === true) {
+      delete (newConfig as Record<string, unknown>).show_user_filter;
+    }
+    if (key === "title" && (!value || (typeof value === "string" && value.trim() === ""))) {
+      delete (newConfig as Record<string, unknown>).title;
+    }
+    if (key === "user_filter" && value === "") {
+      delete (newConfig as Record<string, unknown>).user_filter;
+    }
+    this._config = newConfig;
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: newConfig },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
+  render() {
+    const currentWindow = this._config.window_days ?? 30;
+    const showChips = this._config.show_window_chips !== false;
+    const showUserFilter = this._config.show_user_filter !== false;
+    const userFilter = this._config.user_filter ?? "";
+    const title = this._config.title ?? "";
+    return html`
+      <div class="editor">
+        <div class="row">
+          <label for="title">Title (optional)</label>
+          <input
+            id="title"
+            type="text"
+            .value=${title}
+            @input=${(e: Event) =>
+              this._valueChanged("title", (e.target as HTMLInputElement).value)}
+          />
+        </div>
+        <div class="row">
+          <label for="window">Default window</label>
+          <select
+            id="window"
+            @change=${(e: Event) =>
+              this._valueChanged(
+                "window_days",
+                Number((e.target as HTMLSelectElement).value) as WindowDays,
+              )}
+          >
+            ${WINDOW_DAY_OPTIONS.map(
+              (o) =>
+                html`<option value="${o.value}" ?selected=${o.value === currentWindow}>${o.label}</option>`,
+            )}
+          </select>
+        </div>
+        <div class="row toggle">
+          <label for="chips">Show window chips inside the card</label>
+          <input
+            id="chips"
+            type="checkbox"
+            .checked=${showChips}
+            @change=${(e: Event) =>
+              this._valueChanged(
+                "show_window_chips",
+                (e.target as HTMLInputElement).checked,
+              )}
+          />
+        </div>
+        <div class="hint">
+          Hide the chips when the card is embedded in a strategy view that
+          already serves as the window selector.
+        </div>
+        <div class="row toggle">
+          <label for="userf">Show user filter dropdown</label>
+          <input
+            id="userf"
+            type="checkbox"
+            .checked=${showUserFilter}
+            @change=${(e: Event) =>
+              this._valueChanged(
+                "show_user_filter",
+                (e.target as HTMLInputElement).checked,
+              )}
+          />
+        </div>
+        <div class="row">
+          <label for="userv">Default user filter</label>
+          <select
+            id="userv"
+            @change=${(e: Event) =>
+              this._valueChanged(
+                "user_filter",
+                (e.target as HTMLSelectElement).value,
+              )}
+          >
+            <option value="" ?selected=${userFilter === ""}>All users</option>
+            <option value="current_user" ?selected=${userFilter === "current_user"}>
+              My tasks (current user)
+            </option>
+          </select>
+        </div>
+      </div>
+    `;
+  }
+
+  static styles = css`
+    :host { display: block; padding: 8px 0; }
+    .editor { display: flex; flex-direction: column; gap: 12px; }
+    .row { display: flex; flex-direction: column; gap: 4px; }
+    .row.toggle {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    label { font-weight: 500; color: var(--primary-text-color); font-size: 14px; }
+    input[type="text"], select {
+      padding: 8px;
+      font-size: 14px;
+      background: var(--card-background-color, white);
+      color: var(--primary-text-color, black);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 4px;
+    }
+    .hint {
+      margin-top: -4px;
+      font-size: 12px;
+      color: var(--secondary-text-color, #666);
+    }
+  `;
+}
+
 if (!customElements.get("maintenance-supporter-calendar-card")) {
   customElements.define(
     "maintenance-supporter-calendar-card",
     MaintenanceCalendarCard,
+  );
+}
+if (!customElements.get("maintenance-supporter-calendar-card-editor")) {
+  customElements.define(
+    "maintenance-supporter-calendar-card-editor",
+    MaintenanceCalendarCardEditor,
   );
 }
 

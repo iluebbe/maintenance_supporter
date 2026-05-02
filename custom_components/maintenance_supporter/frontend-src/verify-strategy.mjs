@@ -49,6 +49,11 @@ async function getRefreshToken() {
 const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await ctx.newPage();
+const consoleErrors = [];
+page.on("pageerror", (err) => consoleErrors.push(`pageerror: ${err.message}`));
+page.on("console", (msg) => {
+  if (msg.type() === "error") consoleErrors.push(`console.error: ${msg.text()}`);
+});
 
 const refreshToken = await getRefreshToken();
 await page.goto(HA);
@@ -248,6 +253,39 @@ const result = await page.evaluate(async () => {
     out.calendarError = String(e);
   }
 
+  // 10. v1.9.1 — Calendar card editor: registers, setConfig works, dispatches
+  //     config-changed when user picks a different window_days option.
+  try {
+    out.calendarEditorRegistered = !!customElements.get(
+      "maintenance-supporter-calendar-card-editor",
+    );
+    if (out.calendarEditorRegistered) {
+      const CardClass = customElements.get(
+        "maintenance-supporter-calendar-card",
+      );
+      const editor = CardClass.getConfigElement();
+      document.body.appendChild(editor);
+      editor.setConfig({
+        type: "custom:maintenance-supporter-calendar",
+        window_days: 14,
+      });
+      // Wait for first render
+      await new Promise((r) => setTimeout(r, 100));
+      const sel = editor.shadowRoot?.querySelector("#window");
+      out.calendarEditorPreselected = sel?.value;
+      let dispatchedConfig = null;
+      editor.addEventListener("config-changed", (e) => {
+        dispatchedConfig = e.detail.config;
+      });
+      sel.value = "365";
+      sel.dispatchEvent(new Event("change"));
+      out.calendarEditorDispatched = dispatchedConfig;
+      editor.remove();
+    }
+  } catch (e) {
+    out.calendarEditorError = String(e);
+  }
+
   // 4. HA version
   const ha = document.querySelector("home-assistant");
   out.haVersion = ha?.hass?.config?.version;
@@ -287,6 +325,10 @@ const okCalendarMode =
 const okCalendarCard =
   result.calendarCardRegistered === true &&
   result.calendarCardInRegistry === true;
+const okCalendarEditor =
+  result.calendarEditorRegistered === true &&
+  result.calendarEditorPreselected === "14" &&
+  result.calendarEditorDispatched?.window_days === 365;
 
 console.log(
   "\n=== SUMMARY ===\n" +
@@ -303,8 +345,14 @@ console.log(
     `  Section strategy registered+works: ${okSection ? "✓" : "✗"} (${result.sectionGenerated?.cardCount} cards)\n` +
     `  fire-dom-event opens in-place:    ${okFireDom ? "✓" : "✗"} (object dialog mounted=${result.objectDialogMounted})\n` +
     `  generate(group_by=calendar):      ${okCalendarMode ? "✓" : "✗"} (${result.generated_calendar?.viewCount} views, first-card=${result.generated_calendar?.firstCalendarCard})\n` +
-    `  Calendar card registered+listed:  ${okCalendarCard ? "✓" : "✗"} (element=${result.calendarCardRegistered}, customCards=${result.calendarCardInRegistry})`,
+    `  Calendar card registered+listed:  ${okCalendarCard ? "✓" : "✗"} (element=${result.calendarCardRegistered}, customCards=${result.calendarCardInRegistry})\n` +
+    `  Calendar editor + works:          ${okCalendarEditor ? "✓" : "✗"} (preselect=${result.calendarEditorPreselected}, dispatched=${result.calendarEditorDispatched?.window_days})`,
 );
+
+if (consoleErrors.length) {
+  console.log("\n=== BROWSER CONSOLE ERRORS ===");
+  consoleErrors.slice(0, 10).forEach((e) => console.log(`  ${e.substring(0, 300)}`));
+}
 
 await browser.close();
 process.exit(
@@ -320,7 +368,8 @@ process.exit(
     okSection &&
     okFireDom &&
     okCalendarMode &&
-    okCalendarCard
+    okCalendarCard &&
+    okCalendarEditor
     ? 0
     : 1,
 );

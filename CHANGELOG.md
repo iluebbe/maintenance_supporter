@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [1.9.1] - 2026-05-02
+
+### Add — Calendar Card visual editor
+
+Pick *Maintenance Supporter — Calendar* in the Add Card dialog and click **Edit** to get a small visual editor — title input, default-window dropdown (Week / Fortnight / Month / Year), toggles for *show window chips inside the card* and *show user filter dropdown*, plus a default-user-filter selector. No more YAML for the common cases.
+
+The editor follows the same pattern as `MaintenanceSupporterCardEditor` and the dashboard strategy editor: LitElement that exposes `setConfig()`, holds the current config in `@state`, and dispatches `config-changed` on input. Lazy-mounted via the card's `getConfigElement()` static.
+
+Verified live on HA 2026.5.0b0 (14/14 strategy checks).
+
+ruff ✓ · 1590 backend tests pass · 43 frontend tests pass.
+
 ## [1.9.0] - 2026-05-02
 
 ### Add — Calendar Card + in-place dialogs (no more panel-roundtrip)
