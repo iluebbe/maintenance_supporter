@@ -40,6 +40,15 @@ export const calendarStyles = css`
     background: var(--primary-color);
     color: var(--text-primary-color, #fff);
   }
+  /* v2.2.0 — past-window chips: visually distinguished from forward chips
+     so the user grasps the time-direction switch at a glance. Uses a
+     muted secondary tone instead of the primary blue. */
+  .cal-past-chips {
+    margin-right: 4px;
+  }
+  .cal-past-chip.active {
+    background: var(--secondary-text-color, #888);
+  }
   .cal-user-filter {
     margin-left: auto;
     padding: 6px 10px;

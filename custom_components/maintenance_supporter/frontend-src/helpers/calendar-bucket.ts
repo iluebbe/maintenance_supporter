@@ -38,6 +38,19 @@ export interface CalendarEvent {
   /** v1.5.1: sensor prediction confidence ("low" | "medium" | "high") or null
    *  for time-based / no prediction available. */
   prediction_confidence: string | null;
+  /** v2.2.0 — for past-window events, the original ISO timestamp of the
+   *  underlying history entry. The history-edit WS uses this as the stable
+   *  identifier (see ws_update_history_entry / original_timestamp). null
+   *  for forward-projected / next_due events. */
+  history_timestamp?: string | null;
+  /** v2.2.0 — history entry type for past events
+   *  ("completed" | "reset" | "skipped" | "triggered"). null for future. */
+  history_type?: string | null;
+  /** v2.2.0 — original cost / notes / duration from the history entry,
+   *  so the past-events list shows what really happened (not avg_cost). */
+  history_cost?: number | null;
+  history_notes?: string | null;
+  history_duration?: number | null;
 }
 
 export interface CalendarDayBucket {
@@ -229,6 +242,126 @@ export function buildCalendarBuckets(
       const rB = STATUS_RANK[b.status] ?? 99;
       if (rA !== rB) return rA - rB;
       if (a.projected !== b.projected) return a.projected ? 1 : -1;
+      const cmp = a.object_name.localeCompare(b.object_name);
+      if (cmp !== 0) return cmp;
+      return a.task_name.localeCompare(b.task_name);
+    });
+  }
+
+  return days.map((d) => ({ date: d, events: byDate.get(d) ?? [] }));
+}
+
+// ── v2.2.0 — past-window bucketer ──────────────────────────────────────────
+//
+// Same shape as buildCalendarBuckets but walks the task HISTORY (not next_due)
+// and buckets entries by their actual completion/reset/skip/trigger date.
+// Used by the calendar card's past-mode chip ("← 30 d") to surface
+// recently-performed maintenance for review or correction.
+//
+// Window: from (today − pastDays + 1) to today, inclusive — so passing 30
+// gives 30 day-buckets ending today.
+
+const HISTORY_TYPE_TO_STATUS: Record<string, string> = {
+  completed: "ok",
+  reset: "ok",
+  skipped: "due_soon",
+  triggered: "triggered",
+  trigger_replaced: "triggered",
+};
+
+interface HistoryEntryShape {
+  timestamp?: string;
+  type?: string;
+  notes?: string;
+  cost?: number;
+  duration?: number;
+}
+
+/** Build a list of N consecutive ISO dates ending today (local). */
+export function buildPastWindowDates(today: Date, pastDays: number): string[] {
+  const out: string[] = [];
+  for (let i = pastDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    out.push(isoDateLocal(d));
+  }
+  return out;
+}
+
+/**
+ * Build day-bucketed events for the *past* N days using task history.
+ *
+ * Each history entry whose timestamp falls inside the window becomes one
+ * CalendarEvent with `history_timestamp` set — the calendar card uses that
+ * timestamp as the stable key when dispatching an edit-history click event.
+ */
+export function buildPastBuckets(
+  objects: MaintenanceObjectResponse[],
+  today: Date,
+  pastDays: number,
+  userFilter: string | null = null,
+): CalendarDayBucket[] {
+  const days = buildPastWindowDates(today, pastDays);
+  const windowStart = days[0];
+  const windowEnd = days[days.length - 1];
+
+  const byDate = new Map<string, CalendarEvent[]>();
+  for (const day of days) byDate.set(day, []);
+
+  for (const obj of objects) {
+    const objectName = obj.object?.name || "";
+    const entryId = obj.entry_id;
+    const tasks = obj.tasks || [];
+    for (const task of tasks) {
+      if (userFilter && task.responsible_user_id !== userFilter) continue;
+      const history = (task.history || []) as HistoryEntryShape[];
+      for (const h of history) {
+        if (typeof h?.timestamp !== "string") continue;
+        const dateKey = h.timestamp.slice(0, 10);  // YYYY-MM-DD
+        if (dateKey < windowStart || dateKey > windowEnd) continue;
+        const bucket = byDate.get(dateKey);
+        if (!bucket) continue;
+        const evType = h.type ?? "completed";
+        bucket.push({
+          date: dateKey,
+          entry_id: entryId,
+          task_id: task.id,
+          task_name: task.name,
+          object_name: objectName,
+          status: HISTORY_TYPE_TO_STATUS[evType] ?? "ok",
+          days_until_due: null,
+          projected: false,
+          schedule_type: task.schedule_type,
+          interval_days: task.interval_days ?? null,
+          responsible_user_id: task.responsible_user_id ?? null,
+          avg_cost: typeof h.cost === "number" ? h.cost : null,
+          adaptive_enabled: !!task.adaptive_config?.enabled,
+          prediction_confidence: null,
+          history_timestamp: h.timestamp,
+          history_type: evType,
+          history_cost: typeof h.cost === "number" ? h.cost : null,
+          history_notes: typeof h.notes === "string" ? h.notes : null,
+          history_duration: typeof h.duration === "number" ? h.duration : null,
+        });
+      }
+    }
+  }
+
+  // Sort within day: type priority (completed first, triggered last) then by
+  // object/task name. Past events are never "projected" so no opacity dimming.
+  const PAST_TYPE_RANK: Record<string, number> = {
+    completed: 0,
+    reset: 1,
+    skipped: 2,
+    triggered: 3,
+    trigger_replaced: 4,
+  };
+  for (const [, evs] of byDate) {
+    evs.sort((a, b) => {
+      const rA = PAST_TYPE_RANK[a.history_type ?? ""] ?? 99;
+      const rB = PAST_TYPE_RANK[b.history_type ?? ""] ?? 99;
+      if (rA !== rB) return rA - rB;
       const cmp = a.object_name.localeCompare(b.object_name);
       if (cmp !== 0) return cmp;
       return a.task_name.localeCompare(b.task_name);

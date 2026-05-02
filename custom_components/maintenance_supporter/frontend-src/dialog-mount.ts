@@ -20,12 +20,18 @@
 import "./components/object-dialog";
 import "./components/task-dialog";
 import "./components/complete-dialog";
+import "./components/history-edit-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
+import type {
+  MaintenanceHistoryEditDialog,
+  HistoryEntryDraft,
+} from "./components/history-edit-dialog";
 import type { HomeAssistant, MaintenanceObject } from "./types";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
 const TASK_DIALOG_TAG = "maintenance-task-dialog";
+const HISTORY_EDIT_DIALOG_TAG = "maintenance-history-edit-dialog";
 
 interface HassRoot extends HTMLElement {
   hass?: HomeAssistant;
@@ -95,5 +101,16 @@ export function openEditTaskDialog(
     openEdit: (entryId: string, taskOrId: unknown) => void;
   };
   (dlg as TaskDialogWithEdit).openEdit(entryId, { id: taskId });
+  return true;
+}
+
+/** v2.2.0: open the history-entry editor in place, e.g. from a calendar
+ *  card past-event click. The caller fetches the existing entry data via
+ *  the maintenance_supporter/object WS first (or uses what the calendar
+ *  event already carries). */
+export function openHistoryEditDialog(draft: HistoryEntryDraft): boolean {
+  const dlg = getOrCreate<MaintenanceHistoryEditDialog>(HISTORY_EDIT_DIALOG_TAG);
+  if (!syncHass(dlg)) return false;
+  dlg.openEdit(draft);
   return true;
 }

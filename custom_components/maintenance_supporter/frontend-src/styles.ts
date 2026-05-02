@@ -5581,6 +5581,30 @@ export const sharedStyles = css`
 
   .history-content { flex: 1; min-width: 0; }
 
+  /* v2.2.0 — row holds the type label + the small Edit button */
+  .history-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .history-edit-btn {
+    background: transparent;
+    color: var(--secondary-text-color);
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .history-edit-btn:hover {
+    background: var(--secondary-background-color);
+    color: var(--primary-color);
+  }
+  .history-edit-btn ha-icon { --mdc-icon-size: 16px; }
+
   .history-date {
     font-size: 12px;
     color: var(--secondary-text-color);
