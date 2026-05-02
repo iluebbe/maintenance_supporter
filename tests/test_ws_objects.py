@@ -288,6 +288,56 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
     assert task_resp["quick_complete_defaults"]["cost"] == 9.99
 
 
+async def test_ws_get_object_exposes_every_persisted_object_field(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Tripwire (issue #50 pattern) for the object meta — same audit as
+    the task version but for ``_build_object_response.object``. Object
+    fields all happen to be exposed correctly today, but this test pins
+    that and trips if anyone adds a new persisted field to objects
+    without exposing it in the response.
+    """
+    obj_data = build_object_data(
+        name="Audit Object",
+        area_id="garage",
+        manufacturer="ACME",
+        model="Widget X",
+        serial_number="SN-12345",
+    )
+    obj_data["installation_date"] = "2024-01-15"
+    obj_data["documentation_url"] = "https://example.com/manual.pdf"
+    obj_data["notes"] = "Audit notes"
+
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Audit Object",
+        data=build_object_entry_data(object_data=obj_data),
+        source="user",
+        unique_id="maintenance_supporter_audit_object_field_check",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_get_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object",
+        "entry_id": entry.entry_id,
+    })
+
+    obj_resp = conn.send_result.call_args[0][1]["object"]
+
+    expected_fields = [
+        "id", "name", "area_id", "manufacturer", "model",
+        "serial_number", "installation_date", "documentation_url", "notes",
+    ]
+    missing = [f for f in expected_fields
+               if f not in obj_resp or obj_resp[f] in (None, "")]
+    assert not missing, (
+        f"Tripwire (issue #50 pattern, object edition): _build_object_response "
+        f"is missing/null for persisted object fields: {missing}"
+    )
+
+
 async def test_ws_get_object_not_found(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
