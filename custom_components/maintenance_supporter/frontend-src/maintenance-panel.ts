@@ -27,6 +27,9 @@ import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog } from "./components/complete-dialog";
 import "./components/qr-dialog";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
+// v2.0.0: panel uses the extracted Calendar Card instead of its own
+// _renderCalendar() method — single source of truth for the calendar view.
+import "./maintenance-calendar-card";
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
 import "./components/settings-view";
@@ -93,10 +96,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _objectSortMode: ObjectSortMode = "alphabetical";
   @state() private _groupByMode: GroupByMode = "none";
   // v1.5.0: Calendar tab state
-  // v1.5.2: 365-day option added — see _renderCalendar where empty days are
-  // collapsed in year view (300+ "No maintenance" rows otherwise drown the list).
-  @state() private _calendarWindowDays: 7 | 14 | 30 | 365 = 30;
-  @state() private _calendarUserFilter: string = "";  // "" = all users
+  // v2.0.0: window-days + user-filter state moved into the
+  // <maintenance-supporter-calendar-card> custom element — the panel just
+  // renders the card and intercepts its ll-custom open-task events.
 
   private _statsService: StatisticsService | null = null;
   private _userService: UserService | null = null;
@@ -852,7 +854,13 @@ export class MaintenanceSupporterPanel extends LitElement {
       ${this._overviewTab === "dashboard"
         ? this._renderDashboard()
         : this._overviewTab === "calendar"
-        ? this._renderCalendar()
+        ? html`
+            <div @ll-custom=${this._onCalendarLlCustom}>
+              <maintenance-supporter-calendar-card
+                .hass=${this.hass}
+              ></maintenance-supporter-calendar-card>
+            </div>
+          `
         : html`<maintenance-settings-view
             .hass=${this.hass}
             .features=${this._features}
@@ -862,139 +870,30 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
-  /**
-   * v1.5.0: Calendar tab — rolling list view.
-   *
-   * Shows upcoming maintenance events in a 7/14/30-day window starting today.
-   * Time-based tasks project up to 5 occurrences; sensor-triggered tasks show
-   * only their current next_due. User filter narrows by responsible_user_id.
-   */
-  private _renderCalendar() {
-    const L = this._lang;
-    // Resolve user filter analogous to the dashboard: "" = all, "current_user"
-    // = me, otherwise pass through. The bucket helper just matches strings,
-    // so we resolve "current_user" → real ID here once.
-    let userFilter: string | null = null;
-    if (this._calendarUserFilter) {
-      userFilter = this._calendarUserFilter === "current_user"
-        ? (this._userService?.getCurrentUserId() ?? null)
-        : this._calendarUserFilter;
+  /** v2.0.0: intercept ll-custom open-task events from the embedded calendar
+   *  card so we navigate within the panel (using _showTask) instead of
+   *  letting the document-level dialog-mount handler open a duplicate
+   *  dialog on top. The handler stops propagation so the document listener
+   *  (registered by the dashboard-strategy bundle) doesn't also fire. */
+  private _onCalendarLlCustom = (e: Event): void => {
+    const detail = (e as CustomEvent<{ type?: string; entry_id?: string; task_id?: string }>).detail;
+    if (
+      detail?.type === "maintenance-supporter:open-task" &&
+      detail.entry_id &&
+      detail.task_id
+    ) {
+      e.stopPropagation();
+      this._showTask(detail.entry_id, detail.task_id);
     }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const buckets = buildCalendarBuckets(
-      this._objects,
-      today,
-      this._calendarWindowDays,
-      userFilter,
-    );
+  };
 
-    const todayIso = isoDateLocal(today);
-
-    const renderEvent = (ev: CalendarEvent) => {
-      const statusClass = `cal-status-${ev.status}`;
-      const projClass = ev.projected ? "cal-event-projected" : "";
-      const overdueLabel = ev.status === "overdue" && ev.days_until_due != null
-        ? ` (${Math.abs(ev.days_until_due)}d ${t("overdue", L).toLowerCase()})`
-        : "";
-      const recurEvery = ev.projected && ev.interval_days
-        ? html`<span class="cal-event-recur">${t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))}</span>`
-        : nothing;
-      // v1.5.1: source indicator. Time-based gets a clock icon; sensor-based
-      // gets a trending-up icon (signals "predicted from sensor regression").
-      // Adaptive time-based tasks get a small auto-renew sparkle next to the
-      // clock to flag "interval is learning from completion history".
-      const isSensor = ev.schedule_type === "sensor_based";
-      const sourceIcon = isSensor
-        ? html`<ha-icon class="cal-event-icon cal-source-sensor"
-                title="${t("cal_source_sensor", L)}" icon="mdi:trending-up"></ha-icon>`
-        : html`<ha-icon class="cal-event-icon cal-source-time"
-                title="${ev.adaptive_enabled ? t("cal_source_time_adaptive", L) : t("cal_source_time", L)}"
-                icon="${ev.adaptive_enabled ? "mdi:clock-time-four-outline" : "mdi:clock-outline"}"></ha-icon>`;
-      // Sensor-based subtitle: "predicted · {confidence}" — only for events
-      // that are not already triggered (status pill carries that signal).
-      const predictionSubtitle = isSensor && ev.prediction_confidence
-        && ev.status !== "triggered" && !ev.projected
-        ? html`<span class="cal-event-prediction cal-conf-${ev.prediction_confidence}">
-            ${t("cal_predicted", L)} · ${t(`cal_confidence_${ev.prediction_confidence}`, L)}
-          </span>`
-        : nothing;
-      return html`
-        <div class="cal-event ${projClass}"
-          @click=${() => this._showTask(ev.entry_id, ev.task_id)}>
-          ${sourceIcon}
-          <span class="cal-status-pill ${statusClass}">${t(ev.status, L)}</span>
-          <div class="cal-event-body">
-            <div class="cal-event-title">${ev.object_name} · ${ev.task_name}${overdueLabel}</div>
-            ${predictionSubtitle}
-            ${recurEvery}
-          </div>
-          ${ev.avg_cost != null && ev.avg_cost > 0
-            ? html`<span class="cal-event-cost">${ev.avg_cost.toFixed(0)} ${this._budget?.currency_symbol || "€"}</span>`
-            : nothing}
-        </div>
-      `;
-    };
-
-    const renderDayRow = (bucket: { date: string; events: CalendarEvent[] }) => {
-      const [y, m, d] = bucket.date.split("-").map(Number);
-      const date = new Date(y, m - 1, d);
-      const isToday = bucket.date === todayIso;
-      const weekday = date.toLocaleDateString(L, { weekday: "short" });
-      const monthLabel = date.toLocaleDateString(L, { month: "long" });
-      return html`
-        <div class="cal-day-row">
-          <div class="cal-day-pill ${isToday ? "cal-today" : ""}">
-            <span class="cal-pill-weekday">${weekday}</span>
-            <span class="cal-pill-day">${date.getDate()}</span>
-          </div>
-          <div class="cal-day-content">
-            <div class="cal-day-header">
-              <span class="cal-day-month">${monthLabel}</span>
-              ${isToday ? html`<span class="cal-day-today-badge">${t("today", L)}</span>` : nothing}
-            </div>
-            ${bucket.events.length === 0
-              ? html`<div class="cal-empty">${t("cal_no_events", L)}</div>`
-              : bucket.events.map(renderEvent)}
-          </div>
-        </div>
-      `;
-    };
-
-    // v1.5.2: collapse empty days in 365-day view — otherwise 300+
-    // "No maintenance" rows drown the few real events. Other windows
-    // keep all day rows (preserves the calendar-grid feel).
-    const hideEmptyDays = this._calendarWindowDays === 365;
-    const visibleBuckets = hideEmptyDays
-      ? buckets.filter((b) => b.events.length > 0)
-      : buckets;
-
-    return html`
-      <div class="cal-controls">
-        <div class="cal-window-chips">
-          ${[7, 14, 30, 365].map((w) => html`
-            <button class="cal-window-chip ${this._calendarWindowDays === w ? "active" : ""}"
-              @click=${() => { this._calendarWindowDays = w as 7 | 14 | 30 | 365; }}>
-              ${t(`cal_window_${w}`, L)}
-            </button>
-          `)}
-        </div>
-        <select class="cal-user-filter"
-          .value=${this._calendarUserFilter}
-          @change=${(e: Event) => {
-            this._calendarUserFilter = (e.target as HTMLSelectElement).value;
-          }}>
-          <option value="">${t("all_users", L)}</option>
-          <option value="current_user">${t("my_tasks", L)}</option>
-        </select>
-      </div>
-      <div class="cal-rolling">
-        ${visibleBuckets.length === 0 && hideEmptyDays
-          ? html`<div class="cal-empty">${t("cal_no_events", L)}</div>`
-          : visibleBuckets.map(renderDayRow)}
-      </div>
-    `;
-  }
+  // v2.0.0: _renderCalendar() removed — replaced by an embedded
+  // <maintenance-supporter-calendar-card>. The card holds all the same
+  // logic (window chips, source icons, prediction pills, projected events)
+  // and is the single source of truth for calendar rendering across the
+  // panel and stand-alone Lovelace use. Kept for reference: the old
+  // implementation rendered ~120 lines of Lit template literals here,
+  // duplicating what the card now does.
 
   private _renderDashboard() {
     const s = this._stats;
