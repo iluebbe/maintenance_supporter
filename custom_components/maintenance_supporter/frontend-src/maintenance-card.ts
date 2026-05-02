@@ -172,6 +172,24 @@ export class MaintenanceSupporterCard extends LitElement {
     await this._loadData();
   };
 
+  /** v2.x: open the task editor on row click. Dispatches the same
+   *  ``ll-custom`` event the calendar card uses; the strategy bundle's
+   *  document-level handler turns it into an in-place dialog mount, falling
+   *  back to a panel deep-link when no <home-assistant>.hass is around. */
+  private _openTaskDetail(entryId: string, taskId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("ll-custom", {
+        detail: {
+          type: "maintenance-supporter:open-task",
+          entry_id: entryId,
+          task_id: taskId,
+        },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   render() {
     const L = this._lang;
     const title = this._config.title || t("maintenance", L);
@@ -204,7 +222,9 @@ export class MaintenanceSupporterCard extends LitElement {
               <div class="task-list ${compact ? "compact" : ""}">
                 ${tasks.map(
                   ({ entry_id, object_name, task }) => html`
-                    <div class="task-item">
+                    <div class="task-item clickable"
+                         @click=${() => this._openTaskDetail(entry_id, task.id)}
+                         title="${t("open_task", L) || "Open task"}">
                       <div class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></div>
                       <div class="task-info">
                         <div class="task-name">${task.name}</div>
@@ -226,7 +246,9 @@ export class MaintenanceSupporterCard extends LitElement {
                             <mwc-icon-button
                               class="complete-btn"
                               title="${t("complete", L)}"
-                              @click=${() => {
+                              @click=${(e: Event) => {
+                                // Stop the row's open-task handler from also firing
+                                e.stopPropagation();
                                 const dlg = this.shadowRoot!.querySelector("maintenance-complete-dialog") as any;
                                 dlg.entryId = entry_id;
                                 dlg.taskId = task.id;
@@ -312,6 +334,12 @@ export class MaintenanceSupporterCard extends LitElement {
       }
       .task-item:last-child { border-bottom: none; }
       .task-list.compact .task-item { padding: 4px 0; }
+      /* Row click opens the task editor (in-place via the strategy bundle's
+         ll-custom handler). Hover state hints that the row is interactive. */
+      .task-item.clickable { cursor: pointer; transition: background 0.12s; }
+      .task-item.clickable:hover {
+        background: var(--state-icon-color, rgba(255,255,255,0.04));
+      }
 
       .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
       .task-info { flex: 1; min-width: 0; }

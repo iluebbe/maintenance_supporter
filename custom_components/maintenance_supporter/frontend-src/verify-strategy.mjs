@@ -247,7 +247,7 @@ const result = await page.evaluate(async () => {
       "maintenance-supporter-calendar-card",
     );
     out.calendarCardInRegistry = (window.customCards || []).some(
-      (c) => c.type === "maintenance-supporter-calendar",
+      (c) => c.type === "maintenance-supporter-calendar-card",
     );
   } catch (e) {
     out.calendarError = String(e);
@@ -266,7 +266,7 @@ const result = await page.evaluate(async () => {
       const editor = CardClass.getConfigElement();
       document.body.appendChild(editor);
       editor.setConfig({
-        type: "custom:maintenance-supporter-calendar",
+        type: "custom:maintenance-supporter-calendar-card",
         window_days: 14,
       });
       // Wait for first render
@@ -321,7 +321,7 @@ const okSection =
 const okFireDom = result.objectDialogMounted === true;
 const okCalendarMode =
   (result.generated_calendar?.viewCount ?? 0) === 5 && // Overview + 4 windows
-  result.generated_calendar?.firstCalendarCard === "custom:maintenance-supporter-calendar";
+  result.generated_calendar?.firstCalendarCard === "custom:maintenance-supporter-calendar-card";
 const okCalendarCard =
   result.calendarCardRegistered === true &&
   result.calendarCardInRegistry === true;

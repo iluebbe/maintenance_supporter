@@ -498,7 +498,7 @@ All filters are optional and additive. `area_id` resolves to object names via th
 Standalone Lovelace card with the same rolling-window calendar the panel ships in its Calendar tab — pick *Maintenance Supporter — Calendar* in the "Add Card" dialog, or YAML:
 
 ```yaml
-type: custom:maintenance-supporter-calendar
+type: custom:maintenance-supporter-calendar-card
 title: Maintenance calendar          # optional
 window_days: 30                       # 7 | 14 | 30 | 365 — default 30
 show_window_chips: true               # default true; hide for embedded use
