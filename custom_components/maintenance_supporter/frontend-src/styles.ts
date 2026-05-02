@@ -478,6 +478,21 @@ const DE: Translations = {
   filter_to_overdue: "Auf überfällige Aufgaben filtern",
   filter_to_due_soon: "Auf bald fällige Aufgaben filtern",
   filter_to_triggered: "Auf ausgelöste Aufgaben filtern",
+  // v2.3.0 — task quick-actions + history-edit + object quick-actions dialogs
+  open_task: "Aufgabe öffnen",
+  show_details: "Verlauf + Statistik anzeigen",
+  hide_details: "Details ausblenden",
+  history_empty: "Noch keine Einträge.",
+  history_edit_button: "Eintrag bearbeiten",
+  total_cost: "Gesamtkosten",
+  times_performed: "Erledigt",
+  older_entries: "ältere",
+  open_in_panel: "Im Wartungspanel öffnen",
+  skip_reason: "Übersprungen-Grund (optional)",
+  reset_to_date: "last_performed setzen auf",
+  delete_task_confirm: "Diese Aufgabe und ihren Verlauf löschen?",
+  delete_object_confirm: "Dieses Objekt und alle seine Aufgaben löschen?",
+  loading: "Laden…",
 };
 
 const EN: Translations = {
@@ -933,6 +948,21 @@ const EN: Translations = {
   filter_to_overdue: "Filter task list to overdue only",
   filter_to_due_soon: "Filter task list to due-soon only",
   filter_to_triggered: "Filter task list to triggered only",
+  // v2.3.0 — task quick-actions + history-edit + object quick-actions dialogs
+  open_task: "Open task",
+  show_details: "Show history + stats",
+  hide_details: "Hide details",
+  history_empty: "No history yet.",
+  history_edit_button: "Edit entry",
+  total_cost: "Total cost",
+  times_performed: "Performed",
+  older_entries: "older",
+  open_in_panel: "Open in Maintenance panel",
+  skip_reason: "Skip reason (optional)",
+  reset_to_date: "Reset last_performed to",
+  delete_task_confirm: "Delete this task and its history?",
+  delete_object_confirm: "Delete this object and all its tasks?",
+  loading: "Loading…",
 };
 
 const NL: Translations = {

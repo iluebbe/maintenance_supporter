@@ -832,6 +832,179 @@ if (!customElements.get(SECTION_STRATEGY_TAG)) {
   customElements.define(SECTION_STRATEGY_TAG, MaintenanceSectionStrategy);
 }
 
+// ── Phase 5: Status Section-Strategies ──────────────────────────────────────
+//
+// Three small read-only status sections so users with a Lovelace-only setup
+// can monitor vacation / budget / groups state without leaving the dashboard.
+// Click on any section's heading deep-links into the panel for edit actions —
+// keeps these strategies small (~50 LOC each) instead of replicating the
+// complex panel UIs.
+
+interface VacationStateResp {
+  enabled?: boolean;
+  is_active?: boolean;
+  start?: string | null;
+  end?: string | null;
+  buffer_days?: number;
+  window_end?: string | null;
+  exempt_task_ids?: string[];
+}
+
+interface BudgetStatusResp {
+  monthly_budget?: number;
+  monthly_spent?: number;
+  yearly_budget?: number;
+  yearly_spent?: number;
+  currency_symbol?: string;
+}
+
+interface GroupsResp {
+  groups?: Record<string, { name?: string; task_refs?: unknown[] }>;
+}
+
+function deepLinkAction(path: string) {
+  return {
+    action: "fire-dom-event",
+    ll_custom: { type: "maintenance-supporter:deep-link", path },
+  };
+}
+
+class MaintenanceVacationSectionStrategy extends HTMLElement {
+  static async generate(
+    _config: { type: string },
+    hass: HassLike,
+  ): Promise<SectionConfig> {
+    let state: VacationStateResp = {};
+    try {
+      state = await hass.connection.sendMessagePromise<VacationStateResp>({
+        type: "maintenance_supporter/vacation/state",
+      });
+    } catch {
+      // feature disabled or WS error — render a minimal placeholder
+    }
+    // is_active = enabled AND now ∈ [start, window_end]; enabled = configured
+    // but possibly outside the window. Show whichever is more informative.
+    const active = state.is_active === true;
+    const enabled = state.enabled === true;
+    const dates = (enabled || active) && state.start && state.end
+      ? ` (${state.start} → ${state.end})`
+      : "";
+    const exemptCount = state.exempt_task_ids?.length ?? 0;
+    const exemptLine = (active || enabled) && exemptCount
+      ? `\n${exemptCount} task(s) exempt — still notified`
+      : "";
+    let content: string;
+    if (active) {
+      content = `🏖️ **Vacation mode active**${dates}${exemptLine}`;
+    } else if (enabled) {
+      content = `🏖️ Vacation mode: scheduled${dates}${exemptLine}`;
+    } else {
+      content = "🏖️ Vacation mode: inactive";
+    }
+    return {
+      type: "grid",
+      cards: [
+        {
+          type: "markdown",
+          content,
+          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_vacation"),
+        },
+      ],
+    };
+  }
+}
+
+class MaintenanceBudgetSectionStrategy extends HTMLElement {
+  static async generate(
+    _config: { type: string },
+    hass: HassLike,
+  ): Promise<SectionConfig> {
+    let status: BudgetStatusResp = {};
+    try {
+      status = await hass.connection.sendMessagePromise<BudgetStatusResp>({
+        type: "maintenance_supporter/budget_status",
+      });
+    } catch {
+      // ignore
+    }
+    const sym = status.currency_symbol || "€";
+    const monthly = (status.monthly_budget ?? 0) > 0
+      ? `**Monthly:** ${(status.monthly_spent ?? 0).toFixed(0)}/${status.monthly_budget!.toFixed(0)} ${sym}`
+      : null;
+    const yearly = (status.yearly_budget ?? 0) > 0
+      ? `**Yearly:** ${(status.yearly_spent ?? 0).toFixed(0)}/${status.yearly_budget!.toFixed(0)} ${sym}`
+      : null;
+    const lines = [monthly, yearly].filter(Boolean);
+    return {
+      type: "grid",
+      cards: [
+        {
+          type: "markdown",
+          content: lines.length > 0
+            ? `💰 ${lines.join(" · ")}`
+            : "💰 Budget tracking: not configured",
+          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_budget"),
+        },
+      ],
+    };
+  }
+}
+
+class MaintenanceGroupsSectionStrategy extends HTMLElement {
+  static async generate(
+    _config: { type: string },
+    hass: HassLike,
+  ): Promise<SectionConfig> {
+    let groupData: GroupsResp = {};
+    try {
+      groupData = await hass.connection.sendMessagePromise<GroupsResp>({
+        type: "maintenance_supporter/groups",
+      });
+    } catch {
+      // ignore
+    }
+    const groups = groupData.groups || {};
+    const groupCount = Object.keys(groups).length;
+    if (groupCount === 0) {
+      return {
+        type: "grid",
+        cards: [{
+          type: "markdown",
+          content: "🏷️ Groups: none configured",
+          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_groups"),
+        }],
+      };
+    }
+    // List groups with task counts
+    const lines = Object.entries(groups)
+      .slice(0, 8)
+      .map(([_, g]) => {
+        const name = g.name || "Unnamed";
+        const count = (g.task_refs as unknown[] | undefined)?.length ?? 0;
+        return `**${name}** (${count})`;
+      });
+    const more = groupCount > 8 ? `\n+ ${groupCount - 8} more…` : "";
+    return {
+      type: "grid",
+      cards: [
+        {
+          type: "markdown",
+          content: `🏷️ **Groups (${groupCount})**\n${lines.join(" · ")}${more}`,
+          tap_action: deepLinkAction("/maintenance-supporter?ms_action=open_groups"),
+        },
+      ],
+    };
+  }
+}
+
+// Register the three section strategies
+const VACATION_TAG = "ll-strategy-section-maintenance-supporter-vacation";
+const BUDGET_TAG = "ll-strategy-section-maintenance-supporter-budget";
+const GROUPS_TAG = "ll-strategy-section-maintenance-supporter-groups";
+if (!customElements.get(VACATION_TAG)) customElements.define(VACATION_TAG, MaintenanceVacationSectionStrategy);
+if (!customElements.get(BUDGET_TAG)) customElements.define(BUDGET_TAG, MaintenanceBudgetSectionStrategy);
+if (!customElements.get(GROUPS_TAG)) customElements.define(GROUPS_TAG, MaintenanceGroupsSectionStrategy);
+
 // ── fire-dom-event handler ──────────────────────────────────────────────────
 //
 // HA's standard ``tap_action: { action: "fire-dom-event", ll_custom: {...} }``
@@ -911,6 +1084,12 @@ function registerLlCustomHandler(): void {
     if (action === "open-object" && typeof detail.entry_id === "string") {
       if (openObjectQuickActions(detail.entry_id)) return;
       deepLink(`/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}`);
+      return;
+    }
+
+    // v2.3.0 Phase 5 — generic deep-link from status sections
+    if (action === "deep-link" && typeof detail.path === "string") {
+      deepLink(detail.path);
       return;
     }
 
@@ -1009,6 +1188,26 @@ registerStrategy({
     "Embed maintenance tasks (filterable by area, status, due date) as a section in any dashboard view.",
   documentationURL:
     "https://github.com/iluebbe/maintenance_supporter#section-strategy",
+});
+
+// Phase 5 status sections
+registerStrategy({
+  type: "maintenance-supporter-vacation",
+  strategyType: "section",
+  name: "Maintenance Supporter — Vacation Status",
+  description: "Compact vacation-mode status banner. Tap to open settings in the panel.",
+});
+registerStrategy({
+  type: "maintenance-supporter-budget",
+  strategyType: "section",
+  name: "Maintenance Supporter — Budget Status",
+  description: "Monthly + yearly maintenance budget overview. Tap for details.",
+});
+registerStrategy({
+  type: "maintenance-supporter-groups",
+  strategyType: "section",
+  name: "Maintenance Supporter — Groups",
+  description: "List of configured task groups with member counts.",
 });
 
 export {};

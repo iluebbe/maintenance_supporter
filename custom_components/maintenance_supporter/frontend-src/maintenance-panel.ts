@@ -243,17 +243,43 @@ export class MaintenanceSupporterPanel extends LitElement {
     const params = new URLSearchParams(window.location.search);
 
     // v1.8.1: ms_action deep links from the dashboard strategy's fire-dom-event
-    // Empty-state buttons. Currently: open the Add Object dialog. Cleared from
-    // the URL after one fire so refreshing the page doesn't re-open it.
+    // Empty-state buttons. Cleared from the URL after one fire so refreshing
+    // the page doesn't re-open it.
+    //
+    // v2.3.0 Phase 5/6: also handles open_vacation / open_budget / open_groups
+    // / open_settings from the section strategies' status banners. Each
+    // routes to the right tab + scroll target inside the Settings view.
     const msAction = params.get("ms_action");
-    if (msAction === "add_object") {
-      this._deepLinkHandled = true;
+    const cleanMsActionUrl = () => {
       const cleanUrl = window.location.pathname + window.location.hash;
       history.replaceState(history.state, "", cleanUrl);
+    };
+    if (msAction === "add_object") {
+      this._deepLinkHandled = true;
+      cleanMsActionUrl();
       requestAnimationFrame(() => {
         this.shadowRoot
           ?.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")
           ?.openCreate();
+      });
+      return;
+    }
+    if (msAction === "open_vacation"
+        || msAction === "open_budget"
+        || msAction === "open_groups"
+        || msAction === "open_settings") {
+      this._deepLinkHandled = true;
+      cleanMsActionUrl();
+      // Switch to the Settings tab — that's where Vacation/Budget/Groups live.
+      this._overviewTab = "settings";
+      // Hint the settings-view which sub-section to scroll to (its own
+      // settings-view component reads this on attribute change).
+      requestAnimationFrame(() => {
+        const settingsView = this.shadowRoot?.querySelector(
+          "maintenance-settings-view",
+        ) as (HTMLElement & { scrollToSection?: (s: string) => void }) | null;
+        const target = msAction.replace("open_", ""); // "vacation" / "budget" / "groups" / "settings"
+        settingsView?.scrollToSection?.(target);
       });
       return;
     }
