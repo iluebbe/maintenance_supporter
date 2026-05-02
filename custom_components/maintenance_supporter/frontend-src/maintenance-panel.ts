@@ -845,12 +845,49 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _renderOverview() {
     const L = this._lang;
     const isOperator = this._isOperator;
+    const s = this._stats;
     // Operator mode: hide the Settings tab so end-users can't toggle features.
     // The Calendar tab IS visible to operators (read-only view).
     if (isOperator && this._overviewTab === "settings") {
       this._overviewTab = "dashboard";
     }
     return html`
+      ${s
+        ? html`
+            <div class="stats-bar">
+              <div class="stat-item clickable"
+                   @click=${() => this._showAllObjects()}
+                   title=${t("show_all_objects", L)}>
+                <span class="stat-value">${s.total_objects}</span>
+                <span class="stat-label">${t("objects", L)}</span>
+              </div>
+              <div class="stat-item clickable"
+                   @click=${() => this._filterByStatus("")}
+                   title=${t("show_all_tasks", L)}>
+                <span class="stat-value">${s.total_tasks}</span>
+                <span class="stat-label">${t("tasks", L)}</span>
+              </div>
+              <div class="stat-item clickable ${this._filterStatus === "overdue" && this._overviewTab === "dashboard" ? "active" : ""}"
+                   @click=${() => this._filterByStatus("overdue")}
+                   title=${t("filter_to_overdue", L)}>
+                <span class="stat-value" style="color: var(--error-color)">${s.overdue}</span>
+                <span class="stat-label">${t("overdue", L)}</span>
+              </div>
+              <div class="stat-item clickable ${this._filterStatus === "due_soon" && this._overviewTab === "dashboard" ? "active" : ""}"
+                   @click=${() => this._filterByStatus("due_soon")}
+                   title=${t("filter_to_due_soon", L)}>
+                <span class="stat-value" style="color: var(--warning-color)">${s.due_soon}</span>
+                <span class="stat-label">${t("due_soon", L)}</span>
+              </div>
+              <div class="stat-item clickable ${this._filterStatus === "triggered" && this._overviewTab === "dashboard" ? "active" : ""}"
+                   @click=${() => this._filterByStatus("triggered")}
+                   title=${t("filter_to_triggered", L)}>
+                <span class="stat-value" style="color: #ff5722">${s.triggered}</span>
+                <span class="stat-label">${t("triggered", L)}</span>
+              </div>
+            </div>
+          `
+        : nothing}
       <div class="tab-bar">
         <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
           @click=${() => { this._overviewTab = "dashboard"; }}>
@@ -918,43 +955,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     const isOperator = this._isOperator;
 
     return html`
-      ${s
-        ? html`
-            <div class="stats-bar">
-              <div class="stat-item clickable"
-                   @click=${() => this._showAllObjects()}
-                   title=${t("show_all_objects", L)}>
-                <span class="stat-value">${s.total_objects}</span>
-                <span class="stat-label">${t("objects", L)}</span>
-              </div>
-              <div class="stat-item clickable"
-                   @click=${() => this._filterByStatus("")}
-                   title=${t("show_all_tasks", L)}>
-                <span class="stat-value">${s.total_tasks}</span>
-                <span class="stat-label">${t("tasks", L)}</span>
-              </div>
-              <div class="stat-item clickable ${this._filterStatus === "overdue" ? "active" : ""}"
-                   @click=${() => this._filterByStatus("overdue")}
-                   title=${t("filter_to_overdue", L)}>
-                <span class="stat-value" style="color: var(--error-color)">${s.overdue}</span>
-                <span class="stat-label">${t("overdue", L)}</span>
-              </div>
-              <div class="stat-item clickable ${this._filterStatus === "due_soon" ? "active" : ""}"
-                   @click=${() => this._filterByStatus("due_soon")}
-                   title=${t("filter_to_due_soon", L)}>
-                <span class="stat-value" style="color: var(--warning-color)">${s.due_soon}</span>
-                <span class="stat-label">${t("due_soon", L)}</span>
-              </div>
-              <div class="stat-item clickable ${this._filterStatus === "triggered" ? "active" : ""}"
-                   @click=${() => this._filterByStatus("triggered")}
-                   title=${t("filter_to_triggered", L)}>
-                <span class="stat-value" style="color: #ff5722">${s.triggered}</span>
-                <span class="stat-label">${t("triggered", L)}</span>
-              </div>
-            </div>
-          `
-        : nothing}
-
       ${this._features.budget ? this._renderBudgetBar() : nothing}
 
       <div class="filter-bar">
