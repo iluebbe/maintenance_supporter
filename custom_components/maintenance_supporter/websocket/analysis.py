@@ -11,7 +11,6 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_TASKS,
     DOMAIN,
-    GLOBAL_UNIQUE_ID,
     MAX_ENTITY_ID_LENGTH,
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
