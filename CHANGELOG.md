@@ -4,115 +4,89 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [2.3.2] - 2026-05-03
 
-### 🛡️ Fix — completion-action Test button no longer fires the action
+### 🛡️ Test action is validate-only — no side effects
 
-User pushback after v2.3.1 shipped: *"setzt Test auch den zustand? dann würde beim testen bereits so getan als ob eine Wartung ausgeführt wurde — das ist nicht gut"*. They were right — the v2.3.1 Test button called `hass.callService(...)` for real, which for action types like `input_button.press` / `counter.increment` / `button.press` had real side effects. On the original reporter's vacuum robot, clicking Test would actually reset the dirty-time sensor as if maintenance had been performed.
+The completion-action Test button no longer fires the actual service-call. Previously it would e.g. reset a vacuum's dirty-time sensor or increment a counter for real, just from clicking Test. Now five checks run before save, none with side effects:
 
-The Test button is for *validating the configuration before saving*; it should not be the thing the user is trying to verify they don't accidentally trigger. v2.3.2 makes Test **validate-only** — five checks happen before the user can save, none of them with side effects:
+- Service format matches `domain.service`
+- Service exists in `hass.services` (catches typos)
+- Cross-domain whitelist for `homeassistant.*` / `scene.*` / `notify.*` / `persistent_notification.*`
+- Otherwise entity domain must match service domain
+- Target entity exists in `hass.states`
 
-1. Service format matches `domain.service` regex
-2. Service exists in `hass.services` (catches typos like `bottun.press`)
-3. Cross-domain whitelist (`homeassistant.*`, `scene.*`, `notify.*`, `persistent_notification.*`) accepts any entity domain; everything else must match
-4. For non-whitelisted services, entity domain must equal service domain (otherwise HA silently drops the call at fire-time with `Referenced entities ... missing or not currently available`)
-5. Target entity exists in `hass.states` (catches renamed / removed entities)
+Button label is now "Validate configuration"; the action fires only when the task is marked complete.
 
-Translation labels updated to reflect the no-side-effect contract: button reads `Validate configuration` / `Konfiguration prüfen`, success message `✓ Configuration valid (action will fire only on task completion)`.
+### 🐛 Calendar past-mode shows event types instead of status
 
-The action will only fire when the task is marked complete. To actually verify the side-effect on a real entity, the user does the normal Complete flow.
+Past-mode rows (← 30 d / ← 90 d) used to label completed/skipped events with their derived status (`OK` / `DUE_SOON`) — same badge a current OK task shows, easy to mistake for "nothing happened". Now they read **Completed / Reset / Skipped / Triggered / Trigger replaced**. Forward mode is unchanged (still shows projected status). Color coding is unchanged.
 
-### 🐛 Fix — Calendar past-mode badges show what actually happened (#49 follow-up)
+Adds the missing `trigger_replaced` translation (EN + DE).
 
-Reported by @floli on Discussion #49 (asking for a chronological maintenance log) and corroborated by @wxym5nnh6h-prog: the Calendar tab in past mode (← 30 d / ← 90 d) showed completion events with the same generic `OK` badge a task in OK state currently shows. Triggered events kept their distinct `TRIGGERED` label. Result: completion rows looked like generic status indicators rather than recognisable past actions; users skipped over them.
+### 🎨 Calendar chips are symmetric
 
-Past mode now labels each event by what actually happened — `Completed` / `Reset` / `Skipped` / `Triggered` / `Trigger replaced` (with locale-appropriate translations). The status-derived color stays (green for completions, orange for skipped, red for triggered) so the visual hierarchy is unchanged. Forward mode still uses the projected status (`overdue` / `due_soon` / etc), which is the right thing to show for not-yet-happened events.
-
-Plus: the missing `trigger_replaced` translation was added (EN + DE; other languages fall back to EN via the existing TRANSLATIONS chain).
-
-### 🎨 UX — Calendar window chips: symmetric −Nd / +Nd labels
-
-User feedback on the v2.3.1 calendar: *"das −30 und die + sind noch schlecht angeordnet"*. The chip row was
-
-```
-[← 30d] [← 90d]   [7 days] [14 days] [30 days] [1 year]
-```
-
-Past chips had an arrow prefix; forward chips had a bare label. Two pill rows that looked nearly identical and read as a confusing mix instead of a clear past↔future axis. Now:
-
-```
-[−30d] [−90d] • [+7d] [+14d] [+30d] [+1y]
-```
-
-Symmetric −/+ prefixes + dot separator. Past chips keep their muted secondary-tone active state; forward chips keep the primary blue. Reads at a glance.
+Was `[← 30d] [← 90d]   [7 days] [14 days] [30 days] [1 year]` — past + forward looked alike. Now `[−30d] [−90d] • [+7d] [+14d] [+30d] [+1y]` with explicit −/+ and a dot separator.
 
 ### Tests
 
-- 1608 backend pass (unchanged from v2.3.1)
-- 60 frontend pass (was 59 + 1 new for the validate-only path)
-- The Test action change comes with a regression test that asserts `serviceCalls.length === 0` after clicking — the previous "Test calls hass.callService" test became incompatible with the new behavior and was rewritten
+1608 backend, 60 frontend (+1 regression test asserting no service-call on Test click).
 
 ## [2.3.1] - 2026-05-03
 
-### 🐛 Fix — object-edit dialog showed only the area picker (#46 follow-up)
+Patch release fixing five v2.3.0 follow-up bugs around HA's lazy-loaded form elements + missing dialog-mount feature props.
 
-User wxym5nnh6h-prog reported: *"ich kann nur die area ändern, auch die ganzen anderen felder stehen nicht zur verfügung. in Version 2.2.0 ging es noch."* The Notes feature added in #46 — and every other text field on the object — was unreachable because `<ha-textfield>` rendered with `offsetHeight: 0`. Same root cause we hit twice already (#50 / #50-followup): HA's `<ha-textfield>` is lazy-loaded by HA's frontend on first use, and in the panel-custom + Lovelace contexts there's no guarantee something else has triggered that load yet. The unloaded element renders as `HTMLUnknownElement` with zero height — only the label is visible.
+### 🐛 Object-edit dialog showed only the area picker (#46 follow-up)
 
-**Fix:** new `<ms-textfield>` component (`components/ms-textfield.ts`) — drop-in replacement using a native `<input>` styled to match HA's appearance. Identical API surface (`label`, `value`, `type`, `step`, `required` …) so existing handlers work unchanged. Replaced in:
-- `object-dialog.ts` — 6× ha-textfield + 1× ha-textarea (for notes)
-- `task-dialog.ts` — 25× ha-textfield (bulk replace)
-- `group-dialog.ts` — 2× ha-textfield
+Notes and every other text field on objects were invisible. `<ha-textfield>` rendered with `offsetHeight: 0` because HA lazy-loads it on first use and in the panel-custom + Lovelace contexts that load isn't always triggered.
 
-### 🐛 Fix — Edit button broken in strategy / Lovelace dashboards (#50 follow-up)
+**Fix:** new `<ms-textfield>` (`components/ms-textfield.ts`) — drop-in replacement, native `<input>` styled to match HA, identical API. Replaced in object-dialog (6×), task-dialog (25×), group-dialog (2×). Notes textarea uses native `<textarea>`.
 
-The Edit button in the task quick-actions dialog crashed silently with `TypeError: Cannot read properties of undefined (reading 'toString')`. Root cause: `dialog-mount.openEditTaskDialog` passed a stub `{id: taskId}` to `task-dialog.openEdit()`, which then accessed `task.warning_days.toString()` unconditionally on hydrate.
+### 🐛 Edit button broken in Lovelace / strategy dashboards (#50 follow-up)
 
-**Fix:** `openEditTaskDialog` now fetches the full task object via `maintenance_supporter/object` WS before calling `openEdit`. A latent bug since the v2.3.0 quick-actions feature shipped — surfaced today when the user actually used the Edit affordance from a Lovelace card.
+The Edit button in the task quick-actions dialog silently crashed with `TypeError: ... 'toString'`. `dialog-mount.openEditTaskDialog` was passing a stub `{id: taskId}` to `task-dialog.openEdit`, which expected the full task.
 
-### 🐛 Fix — task-dialog feature sections hidden in Lovelace context (#50 follow-up)
+**Fix:** `openEditTaskDialog` now fetches the full task via `maintenance_supporter/object` WS before opening.
 
-When the task-edit dialog was opened from a Lovelace card, the **Trigger HA action on complete** section, the **Quick-complete defaults** section, the **Schedule time** field and the **Checklist** field were all silently hidden because `dialog-mount` never set the `checklistsEnabled` / `scheduleTimeEnabled` / `completionActionsEnabled` / `defaultWarningDays` properties — they default to `false`.
+### 🐛 Task-dialog feature sections hidden in Lovelace context (#50 follow-up)
 
-**Fix:** new `fetchSettingsOnce(hass)` cache in `dialog-mount.ts` that reads `maintenance_supporter/settings` once per session and propagates the four feature/general settings to the task-dialog before opening. The panel reads the same settings via `_features` + `_defaultWarningDays` and passes them as element properties, so behaviour is now identical between the two surfaces.
+When opened from a Lovelace card, the completion-action / quick-complete / schedule_time / checklist sections were all silently hidden. `dialog-mount` never set the corresponding feature-flag properties, so they defaulted to `false`.
 
-### 🐛 Fix — Test action button now actually validates (#50 follow-up)
+**Fix:** new `fetchSettingsOnce(hass)` cache in `dialog-mount.ts` that reads `maintenance_supporter/settings` once per session and propagates feature flags + `defaultWarningDays` to the task-dialog before opening. Behaviour now identical to the panel.
 
-User wxym5nnh6h-prog asked: *"sollte dies nicht mit dem test action getestet werden ob es wirklich funktioniert?"* — and they were right.
+### 🐛 Test action button now actually validates (#50 follow-up)
 
-The Test action button used the legacy `hass.callService(domain, name, {entity_id: x})` call pattern (entity_id merged into the data dict). The production action listener at `helpers/action_listener.py` uses `hass.services.async_call(domain, name, service_data=data, target=target)` (target as a separate arg). On a service/entity domain mismatch (e.g. picking `button.press` for an `input_button.*` entity), HA's service-call returned success silently — only an `Referenced entities ... missing or not currently available` warning hit the log — and the user saw a green ✓ Test result for a config that would never fire on completion.
+The Test action call signature diverged from the production action_listener (entity_id merged into data vs target as separate arg). Result: Test reported green for service/entity domain mismatches that would silently fail at completion time.
 
-**Fix:**
-- `_testAction` now passes `target` as a separate arg so the test path mirrors production exactly.
-- Up-front service/entity domain-mismatch check before the call. Whitelist for genuinely cross-domain services (`homeassistant.*`, `scene.*`, `notify.*`, `persistent_notification.*`).
-- Real error message from the service-call is shown under the Test button, so non-mismatch failures are also surfaced (instead of just a generic "failed").
+**Fix:** `_testAction` passes target as a separate arg, runs an up-front domain-mismatch check (with whitelist for cross-domain services like `homeassistant.*` / `scene.*`), and surfaces the real HA error message instead of a generic "failed".
 
-### 🐛 Fix — completion-action target picker not rendering (#50 follow-up)
+### 🐛 Completion-action target picker not rendering (#50 follow-up)
 
-User report: *"ich kann hier eine action auswählen z.b. press button aber keine entität"* — the target-entity picker was invisible in v2.3.0 even after the persistence fix. Same lazy-load class as `<ha-textfield>` but for `<ha-entity-picker>`.
+The target-entity picker was invisible — same lazy-load class as `<ha-textfield>` but for `<ha-entity-picker>`.
 
-**Fix:** replaced `<ha-entity-picker>` with `<ha-form>` configured with `selector: { entity: {} }`. `<ha-form>` IS reliably registered + lazy-loads its child pickers internally. No domain restriction (was filtering out e.g. `counter.*` helpers); a hint text below the picker explains the service-domain-must-match-entity-domain requirement.
+**Fix:** replaced `<ha-entity-picker>` with `<ha-form>` configured with `selector: { entity: {} }`. ha-form is reliably registered and lazy-loads its child pickers internally. Domain restriction removed (was filtering out e.g. `counter.*` helpers); an inline hint explains the service-domain-must-match-entity-domain requirement.
 
-### 🧪 Tripwire test for the lazy-load class
+### 🧪 Tripwire for the lazy-load class
 
-New `__tests__/dialog-no-lazy-load-elements.test.ts` mounts each major dialog (object/task/group/complete/history-edit) and asserts its shadow DOM contains **none** of the banned tags `ha-textfield` / `ha-textarea` / `ha-entity-picker`. Forces future dialogs to use `<ms-textfield>` / `<ha-form>` from the start. Same defensive-tripwire pattern used after #48 (suggested_area sync) and #50 (`_build_task_summary` field-completeness audit) — when the same class of bug bites three times across different elements, it's worth pinning down at test time.
+New `__tests__/dialog-no-lazy-load-elements.test.ts` mounts each major dialog and asserts the shadow DOM contains none of `ha-textfield` / `ha-textarea` / `ha-entity-picker`. Forces future dialogs to use the wrappers from the start.
 
 ### Tests
 
 - 1608 backend (unchanged from v2.3.0)
 - 59 frontend (was 54 + 5 new tripwires)
-- Live consistency check (`docker/config-dev/`): 20/20 across 4 service/entity domain scenarios
+- 20/20 live consistency check across 4 service/entity domain scenarios
 
 ## [2.3.0] - 2026-05-02
 
 ### 🐛 Fix — `on_complete_action` settings now persist on save (#50)
 
-User wxym5nnh6h-prog reported that configuring per-task **Action on completion** (e.g. press a button on a vacuum robot when its dirty-bin task is marked done) appeared to fail: setting `Action: press a button` + entity, saving, then re-opening the task settings showed empty fields.
+Configuring per-task **Action on completion** (press a button, run a script, etc.) appeared to fail: settings showed empty after saving + re-opening the task. Editing any other field then nulled the persisted action because the dialog re-sent its empty local state.
 
-**Root cause:** the `on_complete_action` field WAS being persisted by the WS layer, and the action listener WAS firing it on completion — but the WS response builder (`_build_task_summary`) was missing both `on_complete_action` and `quick_complete_defaults` from its returned dict. So the task-edit dialog hydrated with `undefined`, showed empty fields, and the next save of any other field nulled the persisted action because the dialog re-sent its empty local state.
+**Root cause:** the `on_complete_action` and `quick_complete_defaults` fields were being persisted correctly, and the action listener was firing them on completion — but the WS response builder `_build_task_summary` was missing both fields. The dialog hydrated with `undefined` on every reload.
 
-**Fix:** two-line addition to `_build_task_summary` so the round-trip is faithful. Plus 3 tripwire tests (`test_ws_objects.py`, `test_ws_dashboard.py`) that pin field-completeness across `_build_task_summary`, `_build_object_response.object`, and `_build_full_settings` so the same class of regression can't ship again for any future field.
+**Fix:** add the two fields to `_build_task_summary`. Plus 3 tripwire tests pinning field-completeness across `_build_task_summary`, `_build_object_response.object`, and `_build_full_settings` so the same class of regression can't ship for any future field.
 
 ### ✨ Feat — Full Card/Strategy ↔ Panel feature parity
 
-Closing the gap reported as *"aktuell kann man nur Completion machen"* — the Lovelace card and dashboard strategy now offer every action the panel's Task-Detail page does, in-place, without forcing a panel-roundtrip.
+The Lovelace card and dashboard strategy now offer every action the panel's Task-Detail page does, in-place, without forcing a panel-roundtrip.
 
 **Quick-actions dialog** (opens when you click any task row in the card or strategy):
 - Primary: Complete (rich dialog with notes/cost/duration), Skip (inline with reason), Reset (inline with date picker)
@@ -167,7 +141,7 @@ Three extractions identified by a systematic audit of the codebase:
 
 ### Add — Calendar past-window + History entry editing
 
-Two related features the user (Discussion #49 follow-up) asked for: review the last 30 days of completed maintenance, and correct mistakes in old entries.
+Two related features (Discussion #49 follow-up): review the last 30 days of completed maintenance and correct mistakes in old entries.
 
 #### Calendar past-window (Phase C)
 
@@ -187,9 +161,9 @@ UI:
 - Task detail → History tab → each completed/reset/skipped entry gets a small Edit button (✏️) → opens `<maintenance-history-edit-dialog>` with date / notes / cost / duration fields. Triggered entries are not editable (auto-generated by sensors).
 - Calendar Card past-event click → same dialog, fired via `ll-custom maintenance-supporter:edit-history` event → strategy bundle's handler mounts the dialog onto `document.body` (works from any Lovelace context).
 
-### Tests — intensive verification (per the user's explicit ask)
+### Tests — intensive verification
 
-The user asked specifically for thorough testing: *"das müsste intensiv getestet werden ob die Änderungen korrekt gespeichert werden"*. Coverage:
+Coverage:
 
 - **14 unit tests** (`tests/test_history_edit.py`):
   edit-notes / edit-cost+duration / clear-with-null / unknown-timestamp / unknown-task / unknown-object / invalid-timestamp / non-admin-rejected / latest-completion-bumps-last_performed / older-entry-doesn't / older-becomes-latest / non-lifecycle-doesn't / persistence / WS-contract.
