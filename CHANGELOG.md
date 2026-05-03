@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.3] - 2026-05-02
+
+### 🐛 Panel scroll behaviour is now consistent
+
+Clicking a KPI tile, switching tabs (Dashboard / Calendar / Settings), or drilling into an object/task always lands you at the top of the new view — previously the Objects KPI silently no-op'd while the four filter KPIs scrolled, and tab/sub-view changes left you at the previous scroll position. Verified across 7 navigation paths via Playwright.
+
 ## [2.3.2] - 2026-05-03
 
 ### 🛡️ Test action is validate-only — no side effects
