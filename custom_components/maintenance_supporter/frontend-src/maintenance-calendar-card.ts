@@ -311,24 +311,25 @@ export class MaintenanceCalendarCard extends LitElement {
               <div class="cal-controls">
                 ${showChips
                   ? html`
-                      <div class="cal-window-chips cal-past-chips" title="Past windows">
+                      <div class="cal-window-chips cal-past-chips" title="${t("cal_past_windows", L) || "Past windows"}">
                         ${[30, 90].map((p) => html`
                           <button class="cal-window-chip cal-past-chip ${this._pastDays === p ? "active" : ""}"
                             @click=${() => {
                               this._pastDays = p as PastDays;
                             }}>
-                            ← ${p}d
+                            −${p}d
                           </button>
                         `)}
                       </div>
-                      <div class="cal-window-chips">
+                      <span class="cal-chip-separator" aria-hidden="true">●</span>
+                      <div class="cal-window-chips" title="${t("cal_forward_windows", L) || "Forward windows"}">
                         ${[7, 14, 30, 365].map((w) => html`
                           <button class="cal-window-chip ${this._pastDays === 0 && this._windowDays === w ? "active" : ""}"
                             @click=${() => {
                               this._windowDays = w as WindowDays;
                               this._pastDays = 0;
                             }}>
-                            ${t(`cal_window_${w}`, L)}
+                            ${w === 365 ? "+1y" : `+${w}d`}
                           </button>
                         `)}
                       </div>
