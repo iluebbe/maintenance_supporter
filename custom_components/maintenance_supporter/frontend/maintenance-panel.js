@@ -3301,12 +3301,23 @@ ${p?`<div class="sub">${p}</div>`:""}
   }
   /* v2.2.0 — past-window chips: visually distinguished from forward chips
      so the user grasps the time-direction switch at a glance. Uses a
-     muted secondary tone instead of the primary blue. */
+     muted secondary tone instead of the primary blue. v2.3.x: explicit
+     "−N d" / "+N d" prefixes + dot separator so past vs forward groups
+     read at a glance instead of being two pill rows that look identical
+     except for a small arrow. (User feedback: *"das −30 und die + sind
+     noch schlecht angeordnet"*.) */
   .cal-past-chips {
-    margin-right: 4px;
+    /* margin-right replaced by explicit separator below */
   }
   .cal-past-chip.active {
     background: var(--secondary-text-color, #888);
+  }
+  .cal-chip-separator {
+    color: var(--divider-color);
+    font-size: 8px;
+    align-self: center;
+    margin: 0 2px;
+    line-height: 1;
   }
   .cal-user-filter {
     margin-left: auto;
@@ -3485,19 +3496,20 @@ ${p?`<div class="sub">${p}</div>`:""}
         ${t||a?r`
               <div class="cal-controls">
                 ${t?r`
-                      <div class="cal-window-chips cal-past-chips" title="Past windows">
+                      <div class="cal-window-chips cal-past-chips" title="${i("cal_past_windows",e)||"Past windows"}">
                         ${[30,90].map(b=>r`
                           <button class="cal-window-chip cal-past-chip ${this._pastDays===b?"active":""}"
                             @click=${()=>{this._pastDays=b}}>
-                            ← ${b}d
+                            −${b}d
                           </button>
                         `)}
                       </div>
-                      <div class="cal-window-chips">
+                      <span class="cal-chip-separator" aria-hidden="true">●</span>
+                      <div class="cal-window-chips" title="${i("cal_forward_windows",e)||"Forward windows"}">
                         ${[7,14,30,365].map(b=>r`
                           <button class="cal-window-chip ${this._pastDays===0&&this._windowDays===b?"active":""}"
                             @click=${()=>{this._windowDays=b,this._pastDays=0}}>
-                            ${i(`cal_window_${b}`,e)}
+                            ${b===365?"+1y":`+${b}d`}
                           </button>
                         `)}
                       </div>
