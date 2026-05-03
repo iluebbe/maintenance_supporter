@@ -2,6 +2,54 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.2] - 2026-05-03
+
+### 🛡️ Fix — completion-action Test button no longer fires the action
+
+User pushback after v2.3.1 shipped: *"setzt Test auch den zustand? dann würde beim testen bereits so getan als ob eine Wartung ausgeführt wurde — das ist nicht gut"*. They were right — the v2.3.1 Test button called `hass.callService(...)` for real, which for action types like `input_button.press` / `counter.increment` / `button.press` had real side effects. On the original reporter's vacuum robot, clicking Test would actually reset the dirty-time sensor as if maintenance had been performed.
+
+The Test button is for *validating the configuration before saving*; it should not be the thing the user is trying to verify they don't accidentally trigger. v2.3.2 makes Test **validate-only** — five checks happen before the user can save, none of them with side effects:
+
+1. Service format matches `domain.service` regex
+2. Service exists in `hass.services` (catches typos like `bottun.press`)
+3. Cross-domain whitelist (`homeassistant.*`, `scene.*`, `notify.*`, `persistent_notification.*`) accepts any entity domain; everything else must match
+4. For non-whitelisted services, entity domain must equal service domain (otherwise HA silently drops the call at fire-time with `Referenced entities ... missing or not currently available`)
+5. Target entity exists in `hass.states` (catches renamed / removed entities)
+
+Translation labels updated to reflect the no-side-effect contract: button reads `Validate configuration` / `Konfiguration prüfen`, success message `✓ Configuration valid (action will fire only on task completion)`.
+
+The action will only fire when the task is marked complete. To actually verify the side-effect on a real entity, the user does the normal Complete flow.
+
+### 🐛 Fix — Calendar past-mode badges show what actually happened (#49 follow-up)
+
+Reported by @floli on Discussion #49 (asking for a chronological maintenance log) and corroborated by @wxym5nnh6h-prog: the Calendar tab in past mode (← 30 d / ← 90 d) showed completion events with the same generic `OK` badge a task in OK state currently shows. Triggered events kept their distinct `TRIGGERED` label. Result: completion rows looked like generic status indicators rather than recognisable past actions; users skipped over them.
+
+Past mode now labels each event by what actually happened — `Completed` / `Reset` / `Skipped` / `Triggered` / `Trigger replaced` (with locale-appropriate translations). The status-derived color stays (green for completions, orange for skipped, red for triggered) so the visual hierarchy is unchanged. Forward mode still uses the projected status (`overdue` / `due_soon` / etc), which is the right thing to show for not-yet-happened events.
+
+Plus: the missing `trigger_replaced` translation was added (EN + DE; other languages fall back to EN via the existing TRANSLATIONS chain).
+
+### 🎨 UX — Calendar window chips: symmetric −Nd / +Nd labels
+
+User feedback on the v2.3.1 calendar: *"das −30 und die + sind noch schlecht angeordnet"*. The chip row was
+
+```
+[← 30d] [← 90d]   [7 days] [14 days] [30 days] [1 year]
+```
+
+Past chips had an arrow prefix; forward chips had a bare label. Two pill rows that looked nearly identical and read as a confusing mix instead of a clear past↔future axis. Now:
+
+```
+[−30d] [−90d] • [+7d] [+14d] [+30d] [+1y]
+```
+
+Symmetric −/+ prefixes + dot separator. Past chips keep their muted secondary-tone active state; forward chips keep the primary blue. Reads at a glance.
+
+### Tests
+
+- 1608 backend pass (unchanged from v2.3.1)
+- 60 frontend pass (was 59 + 1 new for the validate-only path)
+- The Test action change comes with a regression test that asserts `serviceCalls.length === 0` after clicking — the previous "Test calls hass.callService" test became incompatible with the new behavior and was rewritten
+
 ## [2.3.1] - 2026-05-03
 
 ### 🐛 Fix — object-edit dialog showed only the area picker (#46 follow-up)
