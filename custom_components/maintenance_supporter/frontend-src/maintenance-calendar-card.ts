@@ -251,11 +251,22 @@ export class MaintenanceCalendarCard extends LitElement {
           </span>`
         : nothing;
       const currencySymbol = this._stats?.budget?.currency_symbol || "€";
+      // Past mode: ev.history_type is the actual event ('completed', 'skipped',
+      // 'reset', 'triggered', 'trigger_replaced'). Showing the derived status
+      // ('OK' for a completion) was confusing — discussion #49 user-feedback:
+      // *"im Panel sind die alten Auslösungen drin nicht die completion oder
+      // skips"* — completion events looked like they hadn't happened because
+      // the badge said "OK" (current task status) not "Completed" (the
+      // actual past event). In past mode we now label with the event type.
+      // Forward mode still uses the projected status (overdue/due_soon/etc).
+      const badgeLabel = ev.history_type
+        ? t(ev.history_type, L)
+        : t(ev.status, L);
       return html`
         <div class="cal-event ${projClass}"
           @click=${() => this._onEventClick(ev)}>
           ${sourceIcon}
-          <span class="cal-status-pill ${statusClass}">${t(ev.status, L)}</span>
+          <span class="cal-status-pill ${statusClass}">${badgeLabel}</span>
           <div class="cal-event-body">
             <div class="cal-event-title">${ev.object_name} · ${ev.task_name}${overdueLabel}</div>
             ${predictionSubtitle}
