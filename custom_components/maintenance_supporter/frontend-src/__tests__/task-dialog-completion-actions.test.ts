@@ -135,40 +135,42 @@ describe("task-dialog completion-actions sections", () => {
     expect(qcSelect?.value, "qc feedback").to.equal("needed");
   });
 
-  it("Test button calls hass.callService with target as separate arg (matches production action_listener.py)", async () => {
-    const { el, serviceCalls } = await mountDialog({ completionActions: true });
+  it("Test button validates without firing the action (no callService side effect)", async () => {
+    // User feedback: *"setzt Test auch den zustand? dann würde beim
+    // testen bereits so getan als ob eine Wartung ausgeführt wurde —
+    // das ist nicht gut"*. The Test button must validate the
+    // configuration without actually firing the service-call (which
+    // for input_button.press / counter.increment / etc would have real
+    // side-effects, e.g. resetting a vacuum's dirty-time sensor).
+    const { hass, serviceCalls } = createMockHass({ services: SERVICES_FIXTURE });
+    (hass as any).states = { "light.workshop": { entity_id: "light.workshop", state: "off" } };
+    const el = await fixture<MaintenanceTaskDialog>(html`
+      <maintenance-task-dialog
+        .hass=${hass}
+        ?completion-actions-enabled=${true}
+      ></maintenance-task-dialog>
+    `);
     await el.openCreate("entry_x");
     (el as any)._actionService = "light.toggle";
     (el as any)._actionTargetEntity = "light.workshop";
-    (el as any)._actionData = { brightness: 100 };
     await el.updateComplete;
 
     const testBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(
       "details.ca-section .ca-test-row button",
     );
-    expect(testBtn, "test button rendered").to.exist;
     testBtn!.click();
     await new Promise((r) => setTimeout(r, 30));
 
-    expect(serviceCalls.length, "exactly one service call dispatched").to.equal(1);
-    expect(serviceCalls[0].domain).to.equal("light");
-    expect(serviceCalls[0].service).to.equal("toggle");
-    // v2.3.x: target is now a separate 4th arg, NOT merged into data.
-    // This matches helpers/action_listener.py which calls
-    // hass.services.async_call(d, n, service_data=data, target=target).
-    // Otherwise test path silently diverges from production — exactly the
-    // class of bug that hid issue #50 for so long.
-    expect(serviceCalls[0].target?.entity_id, "target as separate arg").to.equal("light.workshop");
-    expect(serviceCalls[0].data?.brightness, "data is service-data only").to.equal(100);
-    expect(serviceCalls[0].data?.entity_id, "entity_id is NOT in data").to.be.undefined;
+    expect(serviceCalls.length, "no real service-call dispatched (validate-only)").to.equal(0);
+    expect((el as any)._actionTestResult).to.equal("ok");
   });
 
-  it("Test button blocks call + shows error on service/entity domain-mismatch", async () => {
+  it("Test button blocks save + shows error on service/entity domain-mismatch", async () => {
     // Issue #50 follow-up: user picked button.press service + input_button.*
-    // entity. HA's service-call returns success (does nothing) and only logs
-    // a warning. Test action used to show a green checkmark. Now: up-front
-    // check catches the mismatch + shows an explicit error WITHOUT calling.
-    const { el, serviceCalls } = await mountDialog({ completionActions: true });
+    // entity. HA's service-call would silently log "Referenced entities ...
+    // missing or not currently available" — looks like success but never
+    // fires. Up-front check catches the mismatch.
+    const { el } = await mountDialog({ completionActions: true });
     await el.openCreate("entry_x");
     (el as any)._actionService = "button.press";
     (el as any)._actionTargetEntity = "input_button.foo";
@@ -181,7 +183,6 @@ describe("task-dialog completion-actions sections", () => {
     await new Promise((r) => setTimeout(r, 30));
     await el.updateComplete;
 
-    expect(serviceCalls.length, "no service call dispatched on mismatch").to.equal(0);
     expect((el as any)._actionTestResult).to.equal("error");
     const errMsg = (el as any)._actionTestError as string;
     expect(errMsg, "error message names both domains")
@@ -189,7 +190,17 @@ describe("task-dialog completion-actions sections", () => {
   });
 
   it("Test button allows cross-domain services (homeassistant.turn_on, scene.*)", async () => {
-    const { el, serviceCalls } = await mountDialog({ completionActions: true });
+    const { hass } = createMockHass({
+      services: { homeassistant: { turn_on: {} }, light: { toggle: {} } },
+    });
+    // Override hass.states so the entity-exists check passes
+    (hass as any).states = { "light.kitchen": { entity_id: "light.kitchen", state: "off" } };
+    const el = await fixture<MaintenanceTaskDialog>(html`
+      <maintenance-task-dialog
+        .hass=${hass}
+        ?completion-actions-enabled=${true}
+      ></maintenance-task-dialog>
+    `);
     await el.openCreate("entry_x");
     (el as any)._actionService = "homeassistant.turn_on";
     (el as any)._actionTargetEntity = "light.kitchen";
@@ -201,8 +212,22 @@ describe("task-dialog completion-actions sections", () => {
     testBtn!.click();
     await new Promise((r) => setTimeout(r, 30));
 
-    expect(serviceCalls.length, "homeassistant.turn_on bypasses domain check").to.equal(1);
-    expect(serviceCalls[0].target?.entity_id).to.equal("light.kitchen");
+    expect((el as any)._actionTestResult).to.equal("ok");
+    expect((el as any)._actionTestError).to.equal("");
+  });
+
+  it("Test button errors when service is not registered in hass.services", async () => {
+    const { el } = await mountDialog({ completionActions: true });
+    await el.openCreate("entry_x");
+    (el as any)._actionService = "imaginary.nope"; // not in SERVICES_FIXTURE
+    await el.updateComplete;
+    const testBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(
+      "details.ca-section .ca-test-row button",
+    );
+    testBtn!.click();
+    await new Promise((r) => setTimeout(r, 30));
+    expect((el as any)._actionTestResult).to.equal("error");
+    expect((el as any)._actionTestError).to.match(/not registered|nicht/i);
   });
 
   it("renders ha-form when the picked service has a schema", async () => {

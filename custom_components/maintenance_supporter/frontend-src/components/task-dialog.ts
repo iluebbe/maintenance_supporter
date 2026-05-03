@@ -274,25 +274,51 @@ export class MaintenanceTaskDialog extends LitElement {
   // v1.3.0: fire the configured action immediately so the user can verify
   // it works before saving the task. Doesn't persist anything.
   private async _testAction(): Promise<void> {
+    // VALIDATE-ONLY — does NOT actually fire the service-call.
+    //
+    // Earlier this method called hass.callService(...) for real, which
+    // had real side effects: counter.increment incremented the counter,
+    // input_button.press fired the button (which on the user's vacuum
+    // robot would actually reset the dirty-time sensor as if maintenance
+    // had been performed). User pushback (correct):
+    //   *"setzt Test auch den zustand? dann würde beim testen bereits so
+    //   getan als ob eine Wartung ausgeführt wurde — das ist nicht gut"*
+    //
+    // The Test button is for verifying the *configuration* is correct
+    // before saving — not for triggering the action. The user can mark
+    // the task complete to actually fire it.
+    //
+    // Checks performed (all without side effects):
+    //   1. Service format matches `domain.service` regex
+    //   2. Service exists in hass.services registry
+    //   3. Domain whitelist for cross-domain services
+    //   4. Service-entity domain match (otherwise HA silently drops the
+    //      call at fire-time with "Referenced entities ... missing or
+    //      not currently available")
+    //   5. Target entity exists in hass.states (when target set)
     const svc = this._actionService.trim();
     if (!svc || !/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
       this._actionTestResult = "error";
-      this._actionTestError = "Invalid service format";
+      this._actionTestError = "Invalid service format (expected 'domain.service')";
+      setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 5000);
       return;
     }
     const [domain, name] = svc.split(".");
-    const data = this._buildActionData();
+
+    // 2. Service exists?
+    if (!this.hass?.services?.[domain]?.[name]) {
+      this._actionTestResult = "error";
+      this._actionTestError = `Service "${svc}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`;
+      setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
+      return;
+    }
+
     const tgt = this._actionTargetEntity.trim();
 
-    // Up-front domain-mismatch check — HA's own service-call would silently
-    // log "Referenced entities ... missing or not currently available" and
-    // return without throwing, leaving the user thinking the test passed.
-    // A few services intentionally accept cross-domain targets:
-    //   homeassistant.turn_on / .turn_off / .toggle  (works on light, switch, etc.)
-    //   scene.turn_on  (entity_id is the scene itself, no cross-domain concern)
-    //   notify.*       (no target, data-only)
-    //   persistent_notification.*  (no target)
-    // For everything else, service-domain MUST equal entity-domain.
+    // 3 + 4. Cross-domain whitelist + domain match.
+    // homeassistant.* / scene.* / notify.* / persistent_notification.*
+    // legitimately accept cross-domain targets; everything else needs the
+    // entity domain to match the service domain.
     if (tgt) {
       const entityDomain = tgt.split(".")[0];
       const crossDomainServices = new Set([
@@ -304,29 +330,19 @@ export class MaintenanceTaskDialog extends LitElement {
         setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
         return;
       }
+      // 5. Entity exists?
+      if (!this.hass.states?.[tgt]) {
+        this._actionTestResult = "error";
+        this._actionTestError = `Target entity "${tgt}" not found in Home Assistant — the entity may have been renamed or its integration removed.`;
+        setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
+        return;
+      }
     }
 
-    this._actionTesting = true;
-    this._actionTestResult = "";
-    this._actionTestError = "";
-    try {
-      // Pass target as a separate arg — matches production path in
-      // helpers/action_listener.py (which uses
-      // hass.services.async_call(..., target=target)). The legacy
-      // hass.callService(d, n, {entity_id: ...}) signature gets
-      // re-mapped by HA, but it's been the source of subtle test-vs-
-      // production divergences before.
-      const target = tgt ? { entity_id: tgt } : undefined;
-      await this.hass.callService(domain, name, data, target);
-      this._actionTestResult = "ok";
-    } catch (e) {
-      this._actionTestResult = "error";
-      this._actionTestError = String((e as Error)?.message ?? e).slice(0, 240);
-    } finally {
-      this._actionTesting = false;
-      // Slightly longer auto-clear (5s) so users can read the error.
-      setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 5000);
-    }
+    // All checks passed — configuration is valid. The action will fire
+    // when the task is marked complete (not now).
+    this._actionTestResult = "ok";
+    setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 5000);
   }
 
   // v1.3.1: derive the data dict from either the schema-driven _actionData
