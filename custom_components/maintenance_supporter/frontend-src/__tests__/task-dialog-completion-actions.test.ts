@@ -122,9 +122,10 @@ describe("task-dialog completion-actions sections", () => {
     expect((el as any)._actionData.brightness, "data hydrated").to.equal(200);
 
     // Quick-complete fields are in the second details panel.
+    // v2.3.x: ha-textfield → ms-textfield to dodge HA's lazy-load (issues #46/#50).
     const sections = caSections(el);
     const qcInputs = sections[1].querySelectorAll<HTMLElement & { value: string }>(
-      "ha-textfield",
+      "ms-textfield",
     );
     expect(qcInputs[0]?.value, "qc notes").to.equal("Quick note");
     expect(qcInputs[1]?.value, "qc cost").to.equal("4.5");
@@ -134,10 +135,9 @@ describe("task-dialog completion-actions sections", () => {
     expect(qcSelect?.value, "qc feedback").to.equal("needed");
   });
 
-  it("calls hass.callService when the Test button is clicked", async () => {
+  it("Test button calls hass.callService with target as separate arg (matches production action_listener.py)", async () => {
     const { el, serviceCalls } = await mountDialog({ completionActions: true });
     await el.openCreate("entry_x");
-    // Manually wire the action service + target + schema-driven data.
     (el as any)._actionService = "light.toggle";
     (el as any)._actionTargetEntity = "light.workshop";
     (el as any)._actionData = { brightness: 100 };
@@ -148,14 +148,61 @@ describe("task-dialog completion-actions sections", () => {
     );
     expect(testBtn, "test button rendered").to.exist;
     testBtn!.click();
-    // Wait one tick for the async _testAction to dispatch + resolve.
     await new Promise((r) => setTimeout(r, 30));
 
     expect(serviceCalls.length, "exactly one service call dispatched").to.equal(1);
     expect(serviceCalls[0].domain).to.equal("light");
     expect(serviceCalls[0].service).to.equal("toggle");
-    expect(serviceCalls[0].data?.entity_id, "target merged into data").to.equal("light.workshop");
-    expect(serviceCalls[0].data?.brightness).to.equal(100);
+    // v2.3.x: target is now a separate 4th arg, NOT merged into data.
+    // This matches helpers/action_listener.py which calls
+    // hass.services.async_call(d, n, service_data=data, target=target).
+    // Otherwise test path silently diverges from production — exactly the
+    // class of bug that hid issue #50 for so long.
+    expect(serviceCalls[0].target?.entity_id, "target as separate arg").to.equal("light.workshop");
+    expect(serviceCalls[0].data?.brightness, "data is service-data only").to.equal(100);
+    expect(serviceCalls[0].data?.entity_id, "entity_id is NOT in data").to.be.undefined;
+  });
+
+  it("Test button blocks call + shows error on service/entity domain-mismatch", async () => {
+    // Issue #50 follow-up: user picked button.press service + input_button.*
+    // entity. HA's service-call returns success (does nothing) and only logs
+    // a warning. Test action used to show a green checkmark. Now: up-front
+    // check catches the mismatch + shows an explicit error WITHOUT calling.
+    const { el, serviceCalls } = await mountDialog({ completionActions: true });
+    await el.openCreate("entry_x");
+    (el as any)._actionService = "button.press";
+    (el as any)._actionTargetEntity = "input_button.foo";
+    await el.updateComplete;
+
+    const testBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(
+      "details.ca-section .ca-test-row button",
+    );
+    testBtn!.click();
+    await new Promise((r) => setTimeout(r, 30));
+    await el.updateComplete;
+
+    expect(serviceCalls.length, "no service call dispatched on mismatch").to.equal(0);
+    expect((el as any)._actionTestResult).to.equal("error");
+    const errMsg = (el as any)._actionTestError as string;
+    expect(errMsg, "error message names both domains")
+      .to.match(/button\.\*.*input_button\.\*|input_button\.\*.*button\.\*/);
+  });
+
+  it("Test button allows cross-domain services (homeassistant.turn_on, scene.*)", async () => {
+    const { el, serviceCalls } = await mountDialog({ completionActions: true });
+    await el.openCreate("entry_x");
+    (el as any)._actionService = "homeassistant.turn_on";
+    (el as any)._actionTargetEntity = "light.kitchen";
+    await el.updateComplete;
+
+    const testBtn = el.shadowRoot!.querySelector<HTMLButtonElement>(
+      "details.ca-section .ca-test-row button",
+    );
+    testBtn!.click();
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(serviceCalls.length, "homeassistant.turn_on bypasses domain check").to.equal(1);
+    expect(serviceCalls[0].target?.entity_id).to.equal("light.kitchen");
   });
 
   it("renders ha-form when the picked service has a schema", async () => {
@@ -164,12 +211,14 @@ describe("task-dialog completion-actions sections", () => {
     (el as any)._actionService = "light.toggle";
     await el.updateComplete;
     const actionSection = caSections(el)[0]!;
+    // Two ha-form elements expected: the entity picker (always) + the
+    // data-form (only when service has a schema, like light.toggle does).
     expect(
-      actionSection.querySelector("ha-form"),
-      "ha-form rendered for schemaed service",
+      actionSection.querySelector("ha-form.ca-data-form"),
+      "data ha-form rendered for schemaed service",
     ).to.exist;
     expect(
-      actionSection.querySelector("ha-textfield"),
+      actionSection.querySelector("ms-textfield"),
       "no JSON fallback textfield when schema present",
     ).to.not.exist;
   });
@@ -180,13 +229,17 @@ describe("task-dialog completion-actions sections", () => {
     (el as any)._actionService = "button.press"; // services.button.press has no fields
     await el.updateComplete;
     const actionSection = caSections(el)[0]!;
+    // v2.3.x: there's now an entity-picker ha-form (always present) PLUS
+    // the optional data-form ha-form (only when service has a schema).
+    // Disambiguate via the .ca-data-form class — the bare ha-form is the
+    // entity picker and is always present.
     expect(
-      actionSection.querySelector("ha-form"),
-      "no ha-form when service has no fields",
+      actionSection.querySelector("ha-form.ca-data-form"),
+      "no DATA ha-form when service has no fields",
     ).to.not.exist;
     expect(
-      actionSection.querySelector("ha-textfield"),
-      "JSON fallback textfield rendered",
+      actionSection.querySelector("ms-textfield"),
+      "JSON fallback textfield rendered (now ms-textfield)",
     ).to.exist;
   });
 

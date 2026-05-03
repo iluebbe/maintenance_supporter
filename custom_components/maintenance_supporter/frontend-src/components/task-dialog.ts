@@ -7,6 +7,7 @@ import { t } from "../styles";
 import { UserService } from "../user-service";
 
 import { describeWsError } from "../ws-errors";
+import "./ms-textfield";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "manual"];
@@ -84,6 +85,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _actionDataJsonFallback = "";
   @state() private _actionTesting = false;
   @state() private _actionTestResult: "" | "ok" | "error" = "";
+  @state() private _actionTestError = "";
 
   // v1.3.0: quick_complete_defaults (gated by completionActionsEnabled)
   @state() private _qcNotes = "";
@@ -275,23 +277,55 @@ export class MaintenanceTaskDialog extends LitElement {
     const svc = this._actionService.trim();
     if (!svc || !/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(svc)) {
       this._actionTestResult = "error";
+      this._actionTestError = "Invalid service format";
       return;
     }
     const [domain, name] = svc.split(".");
-    const data = { ...this._buildActionData() };
+    const data = this._buildActionData();
     const tgt = this._actionTargetEntity.trim();
-    if (tgt) data.entity_id = tgt;
+
+    // Up-front domain-mismatch check — HA's own service-call would silently
+    // log "Referenced entities ... missing or not currently available" and
+    // return without throwing, leaving the user thinking the test passed.
+    // A few services intentionally accept cross-domain targets:
+    //   homeassistant.turn_on / .turn_off / .toggle  (works on light, switch, etc.)
+    //   scene.turn_on  (entity_id is the scene itself, no cross-domain concern)
+    //   notify.*       (no target, data-only)
+    //   persistent_notification.*  (no target)
+    // For everything else, service-domain MUST equal entity-domain.
+    if (tgt) {
+      const entityDomain = tgt.split(".")[0];
+      const crossDomainServices = new Set([
+        "homeassistant", "scene", "notify", "persistent_notification",
+      ]);
+      if (entityDomain !== domain && !crossDomainServices.has(domain)) {
+        this._actionTestResult = "error";
+        this._actionTestError = `Service "${svc}" only works on ${domain}.* entities; entity "${tgt}" is in ${entityDomain}.* — pick a service that matches the entity domain (e.g. ${entityDomain}.${name})`;
+        setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 8000);
+        return;
+      }
+    }
+
     this._actionTesting = true;
     this._actionTestResult = "";
+    this._actionTestError = "";
     try {
-      await this.hass.callService(domain, name, data);
+      // Pass target as a separate arg — matches production path in
+      // helpers/action_listener.py (which uses
+      // hass.services.async_call(..., target=target)). The legacy
+      // hass.callService(d, n, {entity_id: ...}) signature gets
+      // re-mapped by HA, but it's been the source of subtle test-vs-
+      // production divergences before.
+      const target = tgt ? { entity_id: tgt } : undefined;
+      await this.hass.callService(domain, name, data, target);
       this._actionTestResult = "ok";
-    } catch {
+    } catch (e) {
       this._actionTestResult = "error";
+      this._actionTestError = String((e as Error)?.message ?? e).slice(0, 240);
     } finally {
       this._actionTesting = false;
-      // Auto-clear the indicator after 3s.
-      setTimeout(() => { this._actionTestResult = ""; }, 3000);
+      // Slightly longer auto-clear (5s) so users can read the error.
+      setTimeout(() => { this._actionTestResult = ""; this._actionTestError = ""; }, 5000);
     }
   }
 
@@ -353,12 +387,22 @@ export class MaintenanceTaskDialog extends LitElement {
             }
           }}
         ></ha-service-picker>
-        <ha-entity-picker
+        <ha-form
           .hass=${this.hass}
-          .value=${this._actionTargetEntity}
-          .label=${t("on_complete_action_target", L)}
-          @value-changed=${(e: CustomEvent) => { this._actionTargetEntity = e.detail.value || ""; }}
-        ></ha-entity-picker>
+          .schema=${[{
+            name: "target_entity",
+            selector: { entity: {} },
+          }]}
+          .data=${{ target_entity: this._actionTargetEntity }}
+          .computeLabel=${() => t("on_complete_action_target", L)}
+          @value-changed=${(e: CustomEvent) => {
+            const v = e.detail.value as { target_entity?: string };
+            this._actionTargetEntity = v.target_entity || "";
+          }}
+        ></ha-form>
+        <p class="field-help ca-domain-hint">
+          ${t("on_complete_action_target_hint", L)}
+        </p>
         ${schema
           ? html`
               <ha-form
@@ -372,12 +416,12 @@ export class MaintenanceTaskDialog extends LitElement {
               ></ha-form>
             `
           : html`
-              <ha-textfield
+              <ms-textfield
                 label="${t("on_complete_action_data", L)}"
                 placeholder="{}"
                 .value=${this._actionDataJsonFallback}
                 @input=${(e: Event) => { this._actionDataJsonFallback = (e.target as HTMLInputElement).value; }}
-              ></ha-textfield>
+              ></ms-textfield>
             `}
         <div class="ca-test-row">
           <button type="button" ?disabled=${this._actionTesting || !this._actionService}
@@ -388,7 +432,12 @@ export class MaintenanceTaskDialog extends LitElement {
             ? html`<span class="ca-test-ok">${t("on_complete_action_test_success", L)}</span>`
             : nothing}
           ${this._actionTestResult === "error"
-            ? html`<span class="ca-test-error">${t("on_complete_action_test_failed", L)}</span>`
+            ? html`<div class="ca-test-error-block">
+                <span class="ca-test-error">${t("on_complete_action_test_failed", L)}</span>
+                ${this._actionTestError
+                  ? html`<div class="ca-test-error-detail">${this._actionTestError}</div>`
+                  : nothing}
+              </div>`
             : nothing}
         </div>
       </details>
@@ -396,23 +445,23 @@ export class MaintenanceTaskDialog extends LitElement {
       <details class="ca-section">
         <summary>${t("quick_complete_defaults_title", L)}</summary>
         <p class="field-help">${t("quick_complete_defaults_desc", L)}</p>
-        <ha-textfield
+        <ms-textfield
           label="${t("quick_complete_defaults_notes", L)}"
           .value=${this._qcNotes}
           @input=${(e: Event) => { this._qcNotes = (e.target as HTMLInputElement).value; }}
-        ></ha-textfield>
-        <ha-textfield
+        ></ms-textfield>
+        <ms-textfield
           label="${t("quick_complete_defaults_cost", L)}"
           type="number" min="0" step="0.01"
           .value=${this._qcCost}
           @input=${(e: Event) => { this._qcCost = (e.target as HTMLInputElement).value; }}
-        ></ha-textfield>
-        <ha-textfield
+        ></ms-textfield>
+        <ms-textfield
           label="${t("quick_complete_defaults_duration", L)}"
           type="number" min="0" step="1"
           .value=${this._qcDuration}
           @input=${(e: Event) => { this._qcDuration = (e.target as HTMLInputElement).value; }}
-        ></ha-textfield>
+        ></ms-textfield>
         <select class="qc-feedback"
           .value=${this._qcFeedback}
           @change=${(e: Event) => { this._qcFeedback = (e.target as HTMLSelectElement).value as "" | "needed" | "not_needed"; }}>
@@ -625,7 +674,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
     return html`
       <h3>${t("trigger_configuration", L)}</h3>
-      <ha-textfield
+      <ms-textfield
         label="${t("entity_id", L)} (${t("comma_separated", L)})"
         .value=${this._triggerEntityIds.length > 0 ? this._triggerEntityIds.join(", ") : this._triggerEntityId}
         @input=${(e: Event) => {
@@ -635,7 +684,7 @@ export class MaintenanceTaskDialog extends LitElement {
           this._triggerEntityIds = ids;
           if (ids[0]) this._fetchEntityAttributes(ids[0]);
         }}
-      ></ha-textfield>
+      ></ms-textfield>
       ${this._triggerEntityIds.length > 1 ? html`
         <div class="select-row">
           <label>${t("entity_logic", L)}</label>
@@ -669,11 +718,11 @@ export class MaintenanceTaskDialog extends LitElement {
           </div>
         `
         : html`
-          <ha-textfield
+          <ms-textfield
             label="${t("attribute_optional", L)}"
             .value=${this._triggerAttribute}
             @input=${(e: Event) => (this._triggerAttribute = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
         `
       }
       <div class="select-row">
@@ -688,12 +737,12 @@ export class MaintenanceTaskDialog extends LitElement {
         </select>
       </div>
       ${this._renderTriggerTypeFields()}
-      <ha-textfield
+      <ms-textfield
         label="${t("safety_interval_days", L)}"
         type="number"
         .value=${this._intervalDays}
         @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
-      ></ha-textfield>
+      ></ms-textfield>
     `;
   }
 
@@ -701,37 +750,37 @@ export class MaintenanceTaskDialog extends LitElement {
     const L = this._lang;
     if (this._triggerType === "threshold") {
       return html`
-        <ha-textfield
+        <ms-textfield
           label="${t("trigger_above", L)}"
           type="number"
           step="any"
           .value=${this._triggerAbove}
           @input=${(e: Event) => (this._triggerAbove = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
-        <ha-textfield
+        ></ms-textfield>
+        <ms-textfield
           label="${t("trigger_below", L)}"
           type="number"
           step="any"
           .value=${this._triggerBelow}
           @input=${(e: Event) => (this._triggerBelow = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
-        <ha-textfield
+        ></ms-textfield>
+        <ms-textfield
           label="${t("for_at_least_minutes", L)}"
           type="number"
           .value=${this._triggerForMinutes}
           @input=${(e: Event) => (this._triggerForMinutes = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
+        ></ms-textfield>
       `;
     }
     if (this._triggerType === "counter") {
       return html`
-        <ha-textfield
+        <ms-textfield
           label="${t("target_value", L)}"
           type="number"
           step="any"
           .value=${this._triggerTargetValue}
           @input=${(e: Event) => (this._triggerTargetValue = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
+        ></ms-textfield>
         <label>
           <input
             type="checkbox"
@@ -744,36 +793,36 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     if (this._triggerType === "state_change") {
       return html`
-        <ha-textfield
+        <ms-textfield
           label="${t("from_state_optional", L)}"
           .value=${this._triggerFromState}
           @input=${(e: Event) => (this._triggerFromState = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
+        ></ms-textfield>
         <div class="field-help">${t("state_value_help", L)}</div>
-        <ha-textfield
+        <ms-textfield
           label="${t("to_state_optional", L)}"
           .value=${this._triggerToState}
           @input=${(e: Event) => (this._triggerToState = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
-        <ha-textfield
+        ></ms-textfield>
+        <ms-textfield
           label="${t("target_changes", L)}"
           type="number"
           min="1"
           .value=${this._triggerTargetChanges}
           @input=${(e: Event) => (this._triggerTargetChanges = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
+        ></ms-textfield>
         <div class="field-help">${t("target_changes_help", L)}</div>
       `;
     }
     if (this._triggerType === "runtime") {
       return html`
-        <ha-textfield
+        <ms-textfield
           label="${t("runtime_hours", L)}"
           type="number"
           step="1"
           .value=${this._triggerRuntimeHours}
           @input=${(e: Event) => (this._triggerRuntimeHours = (e.target as HTMLInputElement).value)}
-        ></ha-textfield>
+        ></ms-textfield>
       `;
     }
     return nothing;
@@ -801,12 +850,12 @@ export class MaintenanceTaskDialog extends LitElement {
               </select>
             </div>
           ` : nothing}
-          <ha-textfield
+          <ms-textfield
             label="${t("task_name", L)}"
             required
             .value=${this._name}
             @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
           <div class="select-row">
             <label>${t("maintenance_type", L)}</label>
             <select
@@ -831,12 +880,12 @@ export class MaintenanceTaskDialog extends LitElement {
           </div>
           ${this._scheduleType === "time_based"
             ? html`
-                <ha-textfield
+                <ms-textfield
                   label="${t("interval_days", L)}"
                   type="number"
                   .value=${this._intervalDays}
                   @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
-                ></ha-textfield>
+                ></ms-textfield>
                 <div class="select-row">
                   <label>${t("interval_anchor", L)}</label>
                   <select
@@ -848,22 +897,22 @@ export class MaintenanceTaskDialog extends LitElement {
                   </select>
                 </div>
                 ${this.scheduleTimeEnabled ? html`
-                  <ha-textfield
+                  <ms-textfield
                     label="${t("schedule_time_optional", L)}"
                     type="time"
                     .value=${this._scheduleTime}
                     helper="${t("schedule_time_help", L)}"
                     @input=${(e: Event) => (this._scheduleTime = (e.target as HTMLInputElement).value)}
-                  ></ha-textfield>
+                  ></ms-textfield>
                 ` : nothing}
               `
             : nothing}
-          <ha-textfield
+          <ms-textfield
             label="${t("warning_days", L)}"
             type="number"
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
           ${this.checklistsEnabled ? html`
             <h3>${t("checklist_steps_optional", L)}</h3>
             <textarea
@@ -876,12 +925,12 @@ export class MaintenanceTaskDialog extends LitElement {
             ></textarea>
             <div class="field-help">${t("checklist_help", L)}</div>
           ` : nothing}
-          <ha-textfield
+          <ms-textfield
             label="${t("last_performed_optional", L)}"
             type="date"
             .value=${this._lastPerformed}
             @input=${(e: Event) => (this._lastPerformed = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
           <div class="select-row">
             <label>${t("responsible_user", L)}</label>
             <select
@@ -899,30 +948,30 @@ export class MaintenanceTaskDialog extends LitElement {
           </div>
           ${this._renderTriggerFields()}
           ${this._scheduleType === "sensor_based" ? html`
-            <ha-textfield
+            <ms-textfield
               label="${t("environmental_entity_optional", L)}"
               helper="${t("environmental_entity_helper", L)}"
               .value=${this._environmentalEntity}
               @input=${(e: Event) => (this._environmentalEntity = (e.target as HTMLInputElement).value.trim())}
-            ></ha-textfield>
+            ></ms-textfield>
             ${this._environmentalEntity ? html`
-              <ha-textfield
+              <ms-textfield
                 label="${t("environmental_attribute_optional", L)}"
                 .value=${this._environmentalAttribute}
                 @input=${(e: Event) => (this._environmentalAttribute = (e.target as HTMLInputElement).value.trim())}
-              ></ha-textfield>
+              ></ms-textfield>
             ` : nothing}
           ` : nothing}
-          <ha-textfield
+          <ms-textfield
             label="${t("notes_optional", L)}"
             .value=${this._notes}
             @input=${(e: Event) => (this._notes = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
+          ></ms-textfield>
+          <ms-textfield
             label="${t("documentation_url_optional", L)}"
             .value=${this._documentationUrl}
             @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
           <ha-icon-picker
             .hass=${this.hass}
             label="${t("custom_icon_optional", L)}"
@@ -948,11 +997,11 @@ export class MaintenanceTaskDialog extends LitElement {
               </div>
             `
             : html`
-              <ha-textfield
+              <ms-textfield
                 label="${t("nfc_tag_id_optional", L)}"
                 .value=${this._nfcTagId}
                 @input=${(e: Event) => (this._nfcTagId = (e.target as HTMLInputElement).value)}
-              ></ha-textfield>
+              ></ms-textfield>
               <div class="field-help">
                 ${t("nfc_tags_empty_help", L)}
                 <a href="/config/tags">${t("nfc_tags_open_settings", L)}</a>
@@ -1003,7 +1052,7 @@ export class MaintenanceTaskDialog extends LitElement {
       cursor: pointer;
       font-weight: 500;
     }
-    .ca-section ha-textfield,
+    .ca-section ms-textfield,
     .ca-section ha-entity-picker,
     .ca-section ha-service-picker,
     .ca-section ha-form,
@@ -1026,7 +1075,16 @@ export class MaintenanceTaskDialog extends LitElement {
       margin-top: 8px;
     }
     .ca-test-ok { color: var(--success-color, #4caf50); font-size: 13px; }
-    .ca-test-error { color: var(--error-color, #f44336); font-size: 13px; }
+    .ca-test-error { color: var(--error-color, #f44336); font-size: 13px; font-weight: 500; }
+    .ca-test-error-block { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+    .ca-test-error-detail {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      background: rgba(244, 67, 54, 0.08);
+      padding: 6px 8px; border-radius: 4px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
     .content {
       display: flex;
       flex-direction: column;
@@ -1047,7 +1105,7 @@ export class MaintenanceTaskDialog extends LitElement {
       gap: 8px;
       padding-top: 16px;
     }
-    ha-textfield {
+    ms-textfield {
       display: block;
     }
     .field-label {

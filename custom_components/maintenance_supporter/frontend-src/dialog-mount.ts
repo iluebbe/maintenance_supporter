@@ -69,6 +69,55 @@ function syncHass(el: HTMLElement & { hass?: HomeAssistant }): boolean {
   return true;
 }
 
+/** Settings cache used to populate task-dialog's feature-gated sections
+ *  (checklists / schedule_time / completion_actions) AND its
+ *  defaultWarningDays prop when the dialog is mounted from Lovelace.
+ *
+ *  Without this, every section that's gated on a feature flag stays
+ *  hidden (default false) — that's the "ich habe nicht alles wie im
+ *  Panel gefunden" symptom. The panel reads the same settings object
+ *  via maintenance-panel.ts and passes it through as element properties.
+ *
+ *  Cache lifetime: page session. Invalidated on full HA reload (which
+ *  also drops our custom-element registry).  The settings WS itself is
+ *  cheap (~10ms) so even uncached this isn't a hot path concern, but
+ *  caching means re-opening the dialog feels instant.
+ */
+interface SettingsCache {
+  features: {
+    adaptive: boolean; predictions: boolean; seasonal: boolean;
+    environmental: boolean; budget: boolean; groups: boolean;
+    checklists: boolean; schedule_time: boolean; completion_actions: boolean;
+  };
+  defaultWarningDays: number;
+}
+
+const FALLBACK_SETTINGS: SettingsCache = {
+  features: {
+    adaptive: false, predictions: false, seasonal: false,
+    environmental: false, budget: false, groups: false,
+    checklists: false, schedule_time: false, completion_actions: false,
+  },
+  defaultWarningDays: 7,
+};
+
+let _cachedSettings: Promise<SettingsCache> | null = null;
+
+function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
+  if (_cachedSettings) return _cachedSettings;
+  _cachedSettings = hass.connection
+    .sendMessagePromise<{
+      features?: SettingsCache["features"];
+      general?: { default_warning_days?: number };
+    }>({ type: "maintenance_supporter/settings" })
+    .then((r) => ({
+      features: r.features ?? FALLBACK_SETTINGS.features,
+      defaultWarningDays: r.general?.default_warning_days ?? 7,
+    }))
+    .catch(() => FALLBACK_SETTINGS);
+  return _cachedSettings;
+}
+
 export function openCreateObjectDialog(): boolean {
   const dlg = getOrCreate<MaintenanceObjectDialog>(OBJECT_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
@@ -90,10 +139,23 @@ export function openEditObjectDialog(
 export function openCreateTaskDialog(): boolean {
   const dlg = getOrCreate<MaintenanceTaskDialog>(TASK_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  // openCreate accepts optional entry / object args; outside the panel we
-  // open it without a pre-selected object — the dialog presents an object
-  // chooser dropdown when entry_id is missing.
-  (dlg as unknown as { openCreate: (entryId?: string) => void }).openCreate();
+  const hass = getHass();
+  if (!hass) return false;
+  void (async () => {
+    const settings = await fetchSettingsOnce(hass);
+    const dlgFull = dlg as MaintenanceTaskDialog & {
+      checklistsEnabled: boolean;
+      scheduleTimeEnabled: boolean;
+      completionActionsEnabled: boolean;
+      defaultWarningDays: number;
+      openCreate: (entryId?: string) => void;
+    };
+    dlgFull.checklistsEnabled = settings.features.checklists;
+    dlgFull.scheduleTimeEnabled = settings.features.schedule_time;
+    dlgFull.completionActionsEnabled = settings.features.completion_actions;
+    dlgFull.defaultWarningDays = settings.defaultWarningDays;
+    dlgFull.openCreate();
+  })();
   return true;
 }
 
@@ -103,15 +165,60 @@ export function openEditTaskDialog(
 ): boolean {
   const dlg = getOrCreate<MaintenanceTaskDialog>(TASK_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  // openEdit signature on the panel-side: (entry_id, task) — but for the
-  // mount helper we don't have the full task object. We pass entry_id +
-  // a stub; the dialog re-loads task data via WS in its own openEdit
-  // handler when given just an id. (Fallback: deep-link if openEdit
-  // signature mismatches.)
-  type TaskDialogWithEdit = MaintenanceTaskDialog & {
-    openEdit: (entryId: string, taskOrId: unknown) => void;
-  };
-  (dlg as TaskDialogWithEdit).openEdit(entryId, { id: taskId });
+
+  // openEdit on the panel-side expects a FULL MaintenanceTask (it accesses
+  // task.warning_days.toString(), task.checklist, task.adaptive_config etc.
+  // unconditionally on hydrate). For the Lovelace-mount path we only have
+  // (entry_id, task_id) at the click site, so we MUST fetch the full task
+  // via WS before calling openEdit.
+  //
+  // Earlier the comment claimed "the dialog re-loads task data via WS in
+  // its own openEdit handler when given just an id" — that was aspirational
+  // but never implemented. Calling openEdit with a stub `{id: taskId}`
+  // crashed silently with TypeError: Cannot read properties of undefined
+  // (reading 'toString'). Reported as #50-followup ("strategy dashboard
+  // edit button geht nicht mehr").
+  //
+  // The fetch is fire-and-forget — boolean return is kept for back-compat
+  // (true = mount succeeded, false = no hass yet). Errors during fetch are
+  // logged + the dialog stays closed.
+  const hass = getHass();
+  if (!hass) return false;
+  void (async () => {
+    try {
+      // Fetch features + task in parallel — both are needed before openEdit.
+      // Without features, the completion-action / checklist / schedule-time
+      // sections stay hidden (their @property defaults to false), which is
+      // the "im Dashboard nicht alles wie im Panel" symptom.
+      const [r, settings] = await Promise.all([
+        hass.connection.sendMessagePromise<{
+          tasks?: Array<{ id: string } & Record<string, unknown>>;
+        }>({ type: "maintenance_supporter/object", entry_id: entryId }),
+        fetchSettingsOnce(hass),
+      ]);
+      const fullTask = (r.tasks || []).find((t) => t.id === taskId);
+      if (!fullTask) {
+        // eslint-disable-next-line no-console
+        console.warn(`openEditTaskDialog: task ${taskId} not found in entry ${entryId}`);
+        return;
+      }
+      const dlgFull = dlg as MaintenanceTaskDialog & {
+        checklistsEnabled: boolean;
+        scheduleTimeEnabled: boolean;
+        completionActionsEnabled: boolean;
+        defaultWarningDays: number;
+        openEdit: (entryId: string, task: unknown) => Promise<void>;
+      };
+      dlgFull.checklistsEnabled = settings.features.checklists;
+      dlgFull.scheduleTimeEnabled = settings.features.schedule_time;
+      dlgFull.completionActionsEnabled = settings.features.completion_actions;
+      dlgFull.defaultWarningDays = settings.defaultWarningDays;
+      await dlgFull.openEdit(entryId, fullTask);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("openEditTaskDialog: failed to load task/features", e);
+    }
+  })();
   return true;
 }
 

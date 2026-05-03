@@ -26,6 +26,10 @@ export interface ServiceCall {
   domain: string;
   service: string;
   data?: Record<string, unknown>;
+  /** v2.3.x — separate target arg (matches HA's callService(d, s, data, target)
+   *  signature + the production action_listener.py path). Older tests asserted
+   *  on data.entity_id; that pattern is now legacy — assert on target.entity_id. */
+  target?: Record<string, unknown>;
 }
 
 /** Same shape as `frontend-src/types.ts::AdvancedFeatures`. */
@@ -93,7 +97,8 @@ export interface CreateMockHassResult {
     language: string;
     connection: { sendMessagePromise: (msg: SentMessage) => Promise<unknown> };
     callService: (
-      domain: string, service: string, data?: Record<string, unknown>,
+      domain: string, service: string,
+      data?: Record<string, unknown>, target?: Record<string, unknown>,
     ) => Promise<void>;
     services?: Record<string, Record<string, unknown>>;
   };
@@ -141,9 +146,10 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
   };
 
   const callService = async (
-    domain: string, service: string, data?: Record<string, unknown>,
+    domain: string, service: string,
+    data?: Record<string, unknown>, target?: Record<string, unknown>,
   ): Promise<void> => {
-    serviceCalls.push({ domain, service, data });
+    serviceCalls.push({ domain, service, data, target });
   };
 
   return {
