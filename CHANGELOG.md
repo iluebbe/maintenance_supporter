@@ -2,6 +2,56 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.1] - 2026-05-03
+
+### 🐛 Fix — object-edit dialog showed only the area picker (#46 follow-up)
+
+User wxym5nnh6h-prog reported: *"ich kann nur die area ändern, auch die ganzen anderen felder stehen nicht zur verfügung. in Version 2.2.0 ging es noch."* The Notes feature added in #46 — and every other text field on the object — was unreachable because `<ha-textfield>` rendered with `offsetHeight: 0`. Same root cause we hit twice already (#50 / #50-followup): HA's `<ha-textfield>` is lazy-loaded by HA's frontend on first use, and in the panel-custom + Lovelace contexts there's no guarantee something else has triggered that load yet. The unloaded element renders as `HTMLUnknownElement` with zero height — only the label is visible.
+
+**Fix:** new `<ms-textfield>` component (`components/ms-textfield.ts`) — drop-in replacement using a native `<input>` styled to match HA's appearance. Identical API surface (`label`, `value`, `type`, `step`, `required` …) so existing handlers work unchanged. Replaced in:
+- `object-dialog.ts` — 6× ha-textfield + 1× ha-textarea (for notes)
+- `task-dialog.ts` — 25× ha-textfield (bulk replace)
+- `group-dialog.ts` — 2× ha-textfield
+
+### 🐛 Fix — Edit button broken in strategy / Lovelace dashboards (#50 follow-up)
+
+The Edit button in the task quick-actions dialog crashed silently with `TypeError: Cannot read properties of undefined (reading 'toString')`. Root cause: `dialog-mount.openEditTaskDialog` passed a stub `{id: taskId}` to `task-dialog.openEdit()`, which then accessed `task.warning_days.toString()` unconditionally on hydrate.
+
+**Fix:** `openEditTaskDialog` now fetches the full task object via `maintenance_supporter/object` WS before calling `openEdit`. A latent bug since the v2.3.0 quick-actions feature shipped — surfaced today when the user actually used the Edit affordance from a Lovelace card.
+
+### 🐛 Fix — task-dialog feature sections hidden in Lovelace context (#50 follow-up)
+
+When the task-edit dialog was opened from a Lovelace card, the **Trigger HA action on complete** section, the **Quick-complete defaults** section, the **Schedule time** field and the **Checklist** field were all silently hidden because `dialog-mount` never set the `checklistsEnabled` / `scheduleTimeEnabled` / `completionActionsEnabled` / `defaultWarningDays` properties — they default to `false`.
+
+**Fix:** new `fetchSettingsOnce(hass)` cache in `dialog-mount.ts` that reads `maintenance_supporter/settings` once per session and propagates the four feature/general settings to the task-dialog before opening. The panel reads the same settings via `_features` + `_defaultWarningDays` and passes them as element properties, so behaviour is now identical between the two surfaces.
+
+### 🐛 Fix — Test action button now actually validates (#50 follow-up)
+
+User wxym5nnh6h-prog asked: *"sollte dies nicht mit dem test action getestet werden ob es wirklich funktioniert?"* — and they were right.
+
+The Test action button used the legacy `hass.callService(domain, name, {entity_id: x})` call pattern (entity_id merged into the data dict). The production action listener at `helpers/action_listener.py` uses `hass.services.async_call(domain, name, service_data=data, target=target)` (target as a separate arg). On a service/entity domain mismatch (e.g. picking `button.press` for an `input_button.*` entity), HA's service-call returned success silently — only an `Referenced entities ... missing or not currently available` warning hit the log — and the user saw a green ✓ Test result for a config that would never fire on completion.
+
+**Fix:**
+- `_testAction` now passes `target` as a separate arg so the test path mirrors production exactly.
+- Up-front service/entity domain-mismatch check before the call. Whitelist for genuinely cross-domain services (`homeassistant.*`, `scene.*`, `notify.*`, `persistent_notification.*`).
+- Real error message from the service-call is shown under the Test button, so non-mismatch failures are also surfaced (instead of just a generic "failed").
+
+### 🐛 Fix — completion-action target picker not rendering (#50 follow-up)
+
+User report: *"ich kann hier eine action auswählen z.b. press button aber keine entität"* — the target-entity picker was invisible in v2.3.0 even after the persistence fix. Same lazy-load class as `<ha-textfield>` but for `<ha-entity-picker>`.
+
+**Fix:** replaced `<ha-entity-picker>` with `<ha-form>` configured with `selector: { entity: {} }`. `<ha-form>` IS reliably registered + lazy-loads its child pickers internally. No domain restriction (was filtering out e.g. `counter.*` helpers); a hint text below the picker explains the service-domain-must-match-entity-domain requirement.
+
+### 🧪 Tripwire test for the lazy-load class
+
+New `__tests__/dialog-no-lazy-load-elements.test.ts` mounts each major dialog (object/task/group/complete/history-edit) and asserts its shadow DOM contains **none** of the banned tags `ha-textfield` / `ha-textarea` / `ha-entity-picker`. Forces future dialogs to use `<ms-textfield>` / `<ha-form>` from the start. Same defensive-tripwire pattern used after #48 (suggested_area sync) and #50 (`_build_task_summary` field-completeness audit) — when the same class of bug bites three times across different elements, it's worth pinning down at test time.
+
+### Tests
+
+- 1608 backend (unchanged from v2.3.0)
+- 59 frontend (was 54 + 5 new tripwires)
+- Live consistency check (`docker/config-dev/`): 20/20 across 4 service/entity domain scenarios
+
 ## [2.3.0] - 2026-05-02
 
 ### 🐛 Fix — `on_complete_action` settings now persist on save (#50)

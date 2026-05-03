@@ -5,6 +5,7 @@ import { property, state } from "lit/decorators.js";
 
 import { t } from "../styles";
 import { describeWsError } from "../ws-errors";
+import "./ms-textfield";
 import type {
   GroupTaskRef,
   HomeAssistant,
@@ -113,17 +114,17 @@ export class MaintenanceGroupDialog extends LitElement {
       <ha-dialog open @closed=${this._close} heading="${title}">
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-          <ha-textfield
+          <ms-textfield
             label="${t("name", L)}"
             required
             .value=${this._name}
             @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
+          ></ms-textfield>
+          <ms-textfield
             label="${t("description_optional", L)}"
             .value=${this._description}
             @input=${(e: Event) => (this._description = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
 
           <div class="section-title">${t("group_select_tasks", L)}</div>
           ${this.objects.length === 0

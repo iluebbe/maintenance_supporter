@@ -6,6 +6,7 @@ import type { HomeAssistant, MaintenanceObject } from "../types";
 import { t } from "../styles";
 
 import { describeWsError } from "../ws-errors";
+import "./ms-textfield";
 
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -109,33 +110,33 @@ export class MaintenanceObjectDialog extends LitElement {
         <div class="dialog-title">${title}</div>
         <div class="content">
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-          <ha-textfield
+          <ms-textfield
             label="${t("name", L)}"
             required
             .value=${this._name}
             @input=${(e: Event) => (this._name = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
+          ></ms-textfield>
+          <ms-textfield
             label="${t("manufacturer_optional", L)}"
             .value=${this._manufacturer}
             @input=${(e: Event) => (this._manufacturer = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
+          ></ms-textfield>
+          <ms-textfield
             label="${t("model_optional", L)}"
             .value=${this._model}
             @input=${(e: Event) => (this._model = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
+          ></ms-textfield>
+          <ms-textfield
             label="${t("serial_number_optional", L)}"
             .value=${this._serialNumber}
             @input=${(e: Event) => (this._serialNumber = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textfield
+          ></ms-textfield>
+          <ms-textfield
             label="${t("documentation_url_optional", L)}"
             type="url"
             .value=${this._documentationUrl}
             @input=${(e: Event) => (this._documentationUrl = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
+          ></ms-textfield>
           <ha-area-picker
             .hass=${this.hass}
             label="${t("area_id_optional", L)}"
@@ -143,19 +144,20 @@ export class MaintenanceObjectDialog extends LitElement {
             @value-changed=${(e: CustomEvent) =>
               (this._areaId = (e.detail.value as string) || "")}
           ></ha-area-picker>
-          <ha-textfield
+          <ms-textfield
             label="${t("installation_date_optional", L)}"
             type="date"
             .value=${this._installationDate}
             @input=${(e: Event) => (this._installationDate = (e.target as HTMLInputElement).value)}
-          ></ha-textfield>
-          <ha-textarea
-            label="${t("object_notes_optional", L)}"
-            autogrow
-            rows="3"
-            .value=${this._notes}
-            @input=${(e: Event) => (this._notes = (e.target as HTMLTextAreaElement).value)}
-          ></ha-textarea>
+          ></ms-textfield>
+          <label class="textarea-field">
+            <span class="textarea-label">${t("object_notes_optional", L)}</span>
+            <textarea
+              rows="3"
+              .value=${this._notes}
+              @input=${(e: Event) => (this._notes = (e.target as HTMLTextAreaElement).value)}
+            ></textarea>
+          </label>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
@@ -190,9 +192,24 @@ export class MaintenanceObjectDialog extends LitElement {
       gap: 8px;
       padding-top: 16px;
     }
-    ha-textfield,
-    ha-textarea {
+    ms-textfield {
       display: block;
+    }
+    .textarea-field {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .textarea-label {
+      font-size: 12px; color: var(--secondary-text-color, #888); font-weight: 500;
+    }
+    .textarea-field textarea {
+      padding: 8px 10px; font-size: 14px; font-family: inherit;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
+      resize: vertical;
+    }
+    .textarea-field textarea:focus {
+      outline: none; border-color: var(--primary-color);
     }
     .error {
       color: var(--error-color, #f44336);
