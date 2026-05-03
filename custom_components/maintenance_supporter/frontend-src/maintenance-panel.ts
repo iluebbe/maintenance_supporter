@@ -506,6 +506,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedEntryId = null;
     this._selectedTaskId = null;
     this._moreMenuOpen = false;
+    this._scrollContentToTop();
   }
 
   private _showAllObjects(): void {
@@ -513,12 +514,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._view = "all_objects";
     this._selectedEntryId = null;
     this._selectedTaskId = null;
-    this._scrollKpiContentIntoView();
+    this._scrollContentToTop();
   }
 
   /** v2.1.0 (Discussion #49 — @byoung79): tap a KPI value to auto-filter
-   *  the task list. Empty string clears the filter (used by "Tasks" KPI).
-   *  Smooth-scrolls so mobile users see the result. */
+   *  the task list. Empty string clears the filter (used by "Tasks" KPI). */
   private _filterByStatus(status: string): void {
     this._filterStatus = status;
     // Make sure we're on the dashboard tab so the task list is actually
@@ -526,18 +526,25 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (this._overviewTab !== "dashboard") {
       this._overviewTab = "dashboard";
     }
-    this._scrollKpiContentIntoView();
+    this._scrollContentToTop();
   }
 
-  /** Shared scroll behaviour for all 5 stats-bar KPI clicks. Without this,
-   *  4-of-5 KPIs (the filter ones) scrolled while Objects didn't — inconsistent
-   *  feel reported as *"einige der Karten schieben den focus nach unten andere
-   *  nicht. dies sollte gleich sein"*. Uses .tab-bar as a common anchor since
-   *  both the dashboard view and the all-objects view sit below it. */
-  private _scrollKpiContentIntoView(): void {
+  /** Reset scroll on the panel's .content container. Used by every
+   *  navigation action so the user always lands at the top of the new
+   *  view, never at a stale scroll position from the previous view.
+   *
+   *  History: an earlier version targeted .tab-bar via scrollIntoView,
+   *  which worked for the 4 filter KPIs (stay in overview, .tab-bar
+   *  exists) but silently no-op'd for the Objects KPI (switches to the
+   *  all_objects view where .tab-bar isn't rendered). Targeting .content
+   *  directly works regardless of which view is now showing. Plus same
+   *  helper is now called from every navigation entry-point so e.g.
+   *  clicking on a deep object in a long list lands you at the top of
+   *  the object-detail view, not partway through it. */
+  private _scrollContentToTop(): void {
     requestAnimationFrame(() => {
-      const anchor = this.shadowRoot?.querySelector(".tab-bar");
-      anchor?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const content = this.shadowRoot?.querySelector(".content");
+      if (content) content.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 
@@ -546,6 +553,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._view = "object";
     this._selectedEntryId = entryId;
     this._selectedTaskId = null;
+    this._scrollContentToTop();
   }
 
   private _showTask(entryId: string, taskId: string): void {
@@ -555,6 +563,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._selectedTaskId = taskId;
     this._activeTab = "overview";
     this._historyFilter = null;
+    this._scrollContentToTop();
 
     // Lazy-load statistics for the task's trigger entity
     const task = this._getTask(entryId, taskId);
@@ -937,16 +946,16 @@ export class MaintenanceSupporterPanel extends LitElement {
         : nothing}
       <div class="tab-bar">
         <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
-          @click=${() => { this._overviewTab = "dashboard"; }}>
+          @click=${() => { this._overviewTab = "dashboard"; this._scrollContentToTop(); }}>
           ${t("dashboard", L)}
         </div>
         <div class="tab ${this._overviewTab === "calendar" ? "active" : ""}"
-          @click=${() => { this._overviewTab = "calendar"; }}>
+          @click=${() => { this._overviewTab = "calendar"; this._scrollContentToTop(); }}>
           ${t("tab_calendar", L)}
         </div>
         ${!isOperator ? html`
           <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
-            @click=${() => { this._overviewTab = "settings"; }}>
+            @click=${() => { this._overviewTab = "settings"; this._scrollContentToTop(); }}>
             ${t("settings", L)}
           </div>
         ` : nothing}
