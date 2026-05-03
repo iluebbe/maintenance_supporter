@@ -513,11 +513,12 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._view = "all_objects";
     this._selectedEntryId = null;
     this._selectedTaskId = null;
+    this._scrollKpiContentIntoView();
   }
 
   /** v2.1.0 (Discussion #49 — @byoung79): tap a KPI value to auto-filter
    *  the task list. Empty string clears the filter (used by "Tasks" KPI).
-   *  Smooth-scrolls the filter bar into view so mobile users see the result. */
+   *  Smooth-scrolls so mobile users see the result. */
   private _filterByStatus(status: string): void {
     this._filterStatus = status;
     // Make sure we're on the dashboard tab so the task list is actually
@@ -525,8 +526,17 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (this._overviewTab !== "dashboard") {
       this._overviewTab = "dashboard";
     }
+    this._scrollKpiContentIntoView();
+  }
+
+  /** Shared scroll behaviour for all 5 stats-bar KPI clicks. Without this,
+   *  4-of-5 KPIs (the filter ones) scrolled while Objects didn't — inconsistent
+   *  feel reported as *"einige der Karten schieben den focus nach unten andere
+   *  nicht. dies sollte gleich sein"*. Uses .tab-bar as a common anchor since
+   *  both the dashboard view and the all-objects view sit below it. */
+  private _scrollKpiContentIntoView(): void {
     requestAnimationFrame(() => {
-      const anchor = this.shadowRoot?.querySelector(".filter-bar");
+      const anchor = this.shadowRoot?.querySelector(".tab-bar");
       anchor?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
