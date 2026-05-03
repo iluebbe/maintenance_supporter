@@ -1404,18 +1404,19 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
   .user-badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
+    gap: 3px;
+    padding: 2px 8px;
     margin-left: 8px;
     background: var(--primary-color);
     color: var(--text-primary-color);
-    border-radius: 12px;
-    font-size: 12px;
+    border-radius: 10px;
+    font-size: 11px;
     font-weight: 500;
+    line-height: 1.4;
   }
 
   .user-badge ha-icon {
-    --mdc-icon-size: 14px;
+    --mdc-icon-size: 12px;
   }
 
   .nfc-badge {
