@@ -558,6 +558,14 @@ template:
 2. **Restart Home Assistant** — panel registration requires a restart
 3. Clear browser cache (Ctrl+Shift+F5) after restart
 
+### Dashboard Strategy: "Timeout waiting for strategy element ll-strategy-dashboard-maintenance-supporter to be registered"
+
+Symptom: the strategy entry shows up under **Settings → Dashboards → Add dashboard → Community dashboards**, but clicking it does nothing or throws the timeout error in the browser console.
+
+Cause: the browser cached the old `index.html` from before the integration was updated, so it still references the old strategy module URL.
+
+Fix: **hard-reload the browser** (`Ctrl+Shift+F5` or `Cmd+Shift+R` on macOS). This drops the cached HTML and loads the current strategy bundle. A regular `F5` is not enough — the browser will reuse the cached page.
+
 ### Mobile Action Buttons Missing
 
 1. Enable action buttons in **Notification Actions** settings (`action_complete_enabled`, etc.)
