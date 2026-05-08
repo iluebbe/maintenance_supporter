@@ -8,7 +8,13 @@ from pathlib import Path
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 
-from ..const import CALENDAR_CARD_URL, CARD_URL, DOMAIN, STRATEGY_URL
+from ..const import (
+    CALENDAR_CARD_URL,
+    CARD_URL,
+    DOMAIN,
+    STRATEGY_CHUNKS_URL,
+    STRATEGY_URL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,11 +34,22 @@ async def async_register_card(hass: HomeAssistant) -> None:
         return
 
     frontend_dir = Path(__file__).parent
+    # v2.3.4 (issue #52): the strategy is a multi-file split bundle living
+    # in frontend/strategy/. Mount the directory under STRATEGY_DIR_URL so
+    # the entry's relative ./chunks/* dynamic imports resolve without per-
+    # chunk URL registration. The entry file URL stays STRATEGY_URL so the
+    # frontend_extra_module_url registration that HA serves to the browser
+    # doesn't need to know about the chunk layout.
     static_paths = [
         StaticPathConfig(CARD_URL, str(frontend_dir / "maintenance-card.js"), False),
         StaticPathConfig(
             STRATEGY_URL,
-            str(frontend_dir / "maintenance-dashboard-strategy.js"),
+            str(frontend_dir / "strategy" / "maintenance-dashboard-strategy.js"),
+            False,
+        ),
+        StaticPathConfig(
+            STRATEGY_CHUNKS_URL,
+            str(frontend_dir / "strategy" / "chunks"),
             False,
         ),
         StaticPathConfig(

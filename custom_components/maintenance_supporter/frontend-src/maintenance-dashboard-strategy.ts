@@ -838,23 +838,21 @@ if (!customElements.get(SECTION_STRATEGY_TAG)) {
 // can monitor vacation / budget / groups state without leaving the dashboard.
 // v2.4.0 update: each strategy now delegates to a live interactive custom
 // card (vacation-section-card / budget-section-card / groups-section-card)
-// that lets admins edit values inline — no panel-roundtrip required for
-// common admin tasks.
-
-import "./components/vacation-section-card";
-import "./components/budget-section-card";
-import "./components/groups-section-card";
-
-// Phase 5b (v2.4.0): each section-strategy returns a single interactive
-// custom-card that does the editing in-place. The card itself owns the WS
-// reads + writes; the strategy is just a thin shim so users can still pull
-// these into HA's section-picker UI.
+// that lets admins edit values inline.
+//
+// v2.3.4 (issue #52): the section-card modules are LAZY-loaded inside
+// generate() — bundling them at module top blew the strategy file up to
+// 509 KB, and HA's 5 s strategy-load timeout was firing on slow connections
+// before customElements.define for ll-strategy-dashboard-* could run. Now
+// the strategy bundle is tiny (~10 KB) and registers instantly; the heavy
+// section-card code only loads when a section actually renders.
 
 class MaintenanceVacationSectionStrategy extends HTMLElement {
   static async generate(
     _config: { type: string; title?: string },
     _hass: HassLike,
   ): Promise<SectionConfig> {
+    await import("./components/vacation-section-card");
     return {
       type: "grid",
       cards: [
@@ -872,6 +870,7 @@ class MaintenanceBudgetSectionStrategy extends HTMLElement {
     _config: { type: string; title?: string },
     _hass: HassLike,
   ): Promise<SectionConfig> {
+    await import("./components/budget-section-card");
     return {
       type: "grid",
       cards: [
@@ -889,6 +888,7 @@ class MaintenanceGroupsSectionStrategy extends HTMLElement {
     _config: { type: string; title?: string },
     _hass: HassLike,
   ): Promise<SectionConfig> {
+    await import("./components/groups-section-card");
     return {
       type: "grid",
       cards: [
@@ -925,13 +925,16 @@ if (!customElements.get(GROUPS_TAG)) customElements.define(GROUPS_TAG, Maintenan
 // fails (e.g. <home-assistant> not yet ready), we fall back to deep-linking
 // the panel via ?ms_action=… so the user still ends up where they want.
 
-import {
-  openCreateObjectDialog,
-  openEditTaskDialog,
-  openHistoryEditDialog,
-  openObjectQuickActions,
-  openTaskQuickActions,
-} from "./dialog-mount";
+// v2.3.4 (issue #52): dialog-mount is heavy (pulls in 7 dialog components +
+// their Lit runtime). We only need it when the user actually triggers a
+// fire-dom-event from a strategy-generated card, so the import is dynamic
+// and runs the first time a maintenance-supporter:* event fires.
+type DialogMountModule = typeof import("./dialog-mount");
+let _dialogMountPromise: Promise<DialogMountModule> | null = null;
+function getDialogMount(): Promise<DialogMountModule> {
+  if (!_dialogMountPromise) _dialogMountPromise = import("./dialog-mount");
+  return _dialogMountPromise;
+}
 
 interface LlCustomEventDetail {
   type?: string;
@@ -958,62 +961,52 @@ function registerLlCustomHandler(): void {
     if (!detail.type.startsWith("maintenance-supporter:")) return;
     const action = detail.type.slice("maintenance-supporter:".length);
 
-    if (action === "add-object") {
-      // Try in-place dialog first; fall back to panel deep-link if the
-      // dialog component or hass aren't available yet.
-      if (openCreateObjectDialog()) return;
-      deepLink("/maintenance-supporter?ms_action=add_object");
-      return;
-    }
-
-    if (
-      action === "open-task" &&
-      typeof detail.entry_id === "string" &&
-      typeof detail.task_id === "string"
-    ) {
-      // v2.3.0: prefer the rich quick-actions dialog (Complete/Skip/Reset/
-      // Edit/QR/Delete) over the bare task-editor. Fall back through the
-      // old task-editor mount, then the panel deep-link, in case the
-      // quick-actions dialog isn't ready (very-early bundle load).
-      if (openTaskQuickActions(detail.entry_id, detail.task_id)) return;
-      if (openEditTaskDialog(detail.entry_id, detail.task_id)) return;
-      deepLink(
-        `/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}` +
-          `&task_id=${encodeURIComponent(detail.task_id)}`,
-      );
-      return;
-    }
-
-    // v2.3.0 Phase 3 — open the object quick-actions dialog
-    if (action === "open-object" && typeof detail.entry_id === "string") {
-      if (openObjectQuickActions(detail.entry_id)) return;
-      deepLink(`/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}`);
-      return;
-    }
-
-    // v2.3.0 Phase 5 — generic deep-link from status sections
     if (action === "deep-link" && typeof detail.path === "string") {
       deepLink(detail.path);
       return;
     }
 
-    // v2.2.0 — past-window calendar event click → open history-edit dialog
-    // in-place. The calendar card is the only emitter of this event today.
-    if (
-      action === "edit-history" &&
-      typeof detail.entry_id === "string" &&
-      typeof detail.task_id === "string" &&
-      typeof detail.original_timestamp === "string"
-    ) {
-      // Pull the entry out of the loaded objects/tasks/history blob so we
-      // can pre-populate the dialog. The strategy doesn't have hass here —
-      // we read it from <home-assistant>.hass like dialog-mount does.
-      const haRoot = document.querySelector(
-        "home-assistant",
-      ) as (HTMLElement & { hass?: { connection: { sendMessagePromise<T>(m: Record<string, unknown>): Promise<T> } } }) | null;
-      const hass = haRoot?.hass;
-      if (!hass) return;
-      void (async () => {
+    // Everything else needs the heavy dialog-mount module — load it lazily.
+    void (async () => {
+      const dm = await getDialogMount();
+
+      if (action === "add-object") {
+        if (dm.openCreateObjectDialog()) return;
+        deepLink("/maintenance-supporter?ms_action=add_object");
+        return;
+      }
+
+      if (
+        action === "open-task" &&
+        typeof detail.entry_id === "string" &&
+        typeof detail.task_id === "string"
+      ) {
+        if (dm.openTaskQuickActions(detail.entry_id, detail.task_id)) return;
+        if (dm.openEditTaskDialog(detail.entry_id, detail.task_id)) return;
+        deepLink(
+          `/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}` +
+            `&task_id=${encodeURIComponent(detail.task_id)}`,
+        );
+        return;
+      }
+
+      if (action === "open-object" && typeof detail.entry_id === "string") {
+        if (dm.openObjectQuickActions(detail.entry_id)) return;
+        deepLink(`/maintenance-supporter?entry_id=${encodeURIComponent(detail.entry_id)}`);
+        return;
+      }
+
+      if (
+        action === "edit-history" &&
+        typeof detail.entry_id === "string" &&
+        typeof detail.task_id === "string" &&
+        typeof detail.original_timestamp === "string"
+      ) {
+        const haRoot = document.querySelector(
+          "home-assistant",
+        ) as (HTMLElement & { hass?: { connection: { sendMessagePromise<T>(m: Record<string, unknown>): Promise<T> } } }) | null;
+        const hass = haRoot?.hass;
+        if (!hass) return;
         try {
           const r = await hass.connection.sendMessagePromise<{
             tasks?: Array<{ id?: string; history?: Array<Record<string, unknown>> }>;
@@ -1026,7 +1019,7 @@ function registerLlCustomHandler(): void {
             (h) => h.timestamp === detail.original_timestamp,
           );
           if (!histEntry) return;
-          openHistoryEditDialog({
+          dm.openHistoryEditDialog({
             entry_id: detail.entry_id as string,
             task_id: detail.task_id as string,
             original_timestamp: detail.original_timestamp as string,
@@ -1038,12 +1031,10 @@ function registerLlCustomHandler(): void {
             completed_by: (histEntry.completed_by as string) ?? null,
           });
         } catch {
-          // Fallback: just deep-link the panel; the user can edit there
           deepLink("/maintenance-supporter");
         }
-      })();
-      return;
-    }
+      }
+    })();
   });
 }
 
