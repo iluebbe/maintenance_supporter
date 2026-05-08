@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.4] - 2026-05-08
+
+### 🐛 Dashboard strategy fails to load on slow connections (#52)
+
+`Error: Timeout waiting for strategy element ll-strategy-dashboard-maintenance-supporter to be registered`. HA's strategy loader has a 5 s timeout on `customElements.whenDefined()` for `custom:`-prefixed strategies. The strategy bundle was 510 KB because it eagerly imported every dialog component (object / task / complete / history-edit / qr / quick-actions ×2) plus the three Phase 5 section cards (vacation / budget / groups). On slow links the file didn't finish parsing inside 5 s and the dashboard threw the timeout.
+
+Split the bundle: the entry now is **13 KB** and registers `customElements.define()` immediately. The heavy modules — dialog-mount and the three section cards — are pulled in as separate chunks via dynamic `import()` only when actually rendered. Dashboards with the strategy now open instantly.
+
+Bundle layout changed: strategy lives at `/maintenance_supporter_strategy/maintenance-dashboard-strategy.js` with `chunks/` siblings. Existing dashboards keep working — the strategy is identified by `custom:maintenance-supporter` (a logical name resolved via `window.customStrategies`), not by URL.
+
 ## [2.3.3] - 2026-05-02
 
 ### 🐛 Panel scroll behaviour is now consistent

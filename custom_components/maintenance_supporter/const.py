@@ -133,7 +133,15 @@ PANEL_TITLE = "Maintenance"
 PANEL_ICON = "mdi:wrench-clock"
 PANEL_URL = "/maintenance_supporter_panel"
 CARD_URL = "/maintenance_supporter_card"
-STRATEGY_URL = "/maintenance_supporter_dashboard_strategy"
+# v2.3.4 (issue #52): strategy is now a multi-file split bundle. The entry
+# URL has to live UNDER a directory prefix so the entry's relative
+# ./chunks/X.js dynamic imports resolve to /<prefix>/chunks/X.js. Pre-2.3.4
+# users had a flat URL — old dashboards still load fine because the strategy
+# is identified by ``custom:maintenance-supporter`` (a logical name resolved
+# via window.customStrategies), not by URL.
+STRATEGY_DIR_URL = "/maintenance_supporter_strategy"
+STRATEGY_URL = f"{STRATEGY_DIR_URL}/maintenance-dashboard-strategy.js"
+STRATEGY_CHUNKS_URL = f"{STRATEGY_DIR_URL}/chunks"
 CALENDAR_CARD_URL = "/maintenance_supporter_calendar_card"
 
 # --- Config Keys: Object ---
