@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.5] - 2026-05-12
+
+### 🔎 Self-diagnostic logging in the dashboard strategy bundle
+
+After v2.3.4 fixed the *initial* timeout, a follow-up report came in where the same timeout returned after a browser restart. The fix in v2.3.4 made the script tiny but did not give us any visibility into whether the script actually ran on a given page load — so we couldn't tell remote-user reports apart (cached old URL? Lovelace resource conflict? CSP block?).
+
+Strategy bundle now emits a clear console banner on load:
+
+```
+[maintenance-supporter] strategy bundle v2.3.5 loaded — registrations: {dashboard: ok, editor: ok, section: ok} — run maintenanceSupporterDiagnose() in console for full state
+```
+
+And `window.maintenanceSupporterDiagnose()` returns a one-call snapshot of `customElements` registration, `customStrategies` entries, loaded script URLs, and matching Lovelace resources — so debugging a future timeout takes one console call instead of a six-line snippet users couldn't always run.
+
+If `customElements.define()` silently fails (another module clobbered the tag), the bundle now logs a clear FATAL error instead of staying quiet.
+
 ## [2.3.4] - 2026-05-08
 
 ### 🐛 Dashboard strategy fails to load on slow connections (#52)

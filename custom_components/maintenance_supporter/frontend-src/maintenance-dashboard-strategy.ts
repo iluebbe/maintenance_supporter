@@ -822,15 +822,85 @@ class MaintenanceSectionStrategy extends HTMLElement {
   }
 }
 
+// v2.3.5 (issue #52 follow-up): wrap registration in try/catch + emit a
+// banner-style console.log so that when ANY user hits a strategy timeout
+// we can see in the browser console exactly which step failed instead of
+// guessing. The non-error console.log also serves as a positive load
+// signal — if the user doesn't see "[maintenance-supporter] strategy
+// bundle loaded" at all, the script never ran (cached index.html / CSP /
+// MIME-type problem). If they see the log but still get the timeout,
+// something else (Lovelace resource conflict, HACS plugin clash) is
+// holding the registry.
+const STRATEGY_VERSION = "2.3.5";
+const LOG_PREFIX = "[maintenance-supporter]";
+
+function safeDefine(tag: string, ctor: CustomElementConstructor): "ok" | "skipped" | string {
+  try {
+    if (customElements.get(tag)) {
+      return "skipped";
+    }
+    customElements.define(tag, ctor);
+    return "ok";
+  } catch (err) {
+    return `ERROR: ${String(err)}`;
+  }
+}
+
+const _defineResults = {
+  dashboard: safeDefine(STRATEGY_TAG, MaintenanceDashboardStrategy),
+  editor: safeDefine(EDITOR_TAG, MaintenanceStrategyEditor),
+  section: safeDefine(SECTION_STRATEGY_TAG, MaintenanceSectionStrategy),
+};
+
+console.log(
+  `${LOG_PREFIX} strategy bundle v${STRATEGY_VERSION} loaded — registrations:`,
+  _defineResults,
+  "— run maintenanceSupporterDiagnose() in console for full state",
+);
+
+// Self-check: after define attempts, do customElements actually have us?
 if (!customElements.get(STRATEGY_TAG)) {
-  customElements.define(STRATEGY_TAG, MaintenanceDashboardStrategy);
+  console.error(
+    `${LOG_PREFIX} FATAL: customElements does NOT have "${STRATEGY_TAG}" after define() returned ${_defineResults.dashboard}. ` +
+    `Open Add Dashboard → Community → Maintenance Supporter will time out. ` +
+    `Likely cause: another loaded module registered this tag with a broken class. ` +
+    `Check: window.customStrategies, customElements.get("${STRATEGY_TAG}"), ` +
+    `Settings → Dashboards → ⋮ → Resources.`,
+  );
 }
-if (!customElements.get(EDITOR_TAG)) {
-  customElements.define(EDITOR_TAG, MaintenanceStrategyEditor);
-}
-if (!customElements.get(SECTION_STRATEGY_TAG)) {
-  customElements.define(SECTION_STRATEGY_TAG, MaintenanceSectionStrategy);
-}
+
+// Global devtools helper — typing maintenanceSupporterDiagnose() in the
+// browser console returns a snapshot of registration state + module URLs
+// + Lovelace resources. Easier than asking users to paste a multi-line
+// snippet they then can't run for whatever reason.
+(window as unknown as { maintenanceSupporterDiagnose?: () => Promise<unknown> }).maintenanceSupporterDiagnose =
+  async () => {
+    const tag = STRATEGY_TAG;
+    let resources: Array<{ url?: string }> = [];
+    try {
+      const ha = document.querySelector("home-assistant") as
+        | (HTMLElement & { hass?: { connection: { sendMessagePromise<T>(m: Record<string, unknown>): Promise<T> } } })
+        | null;
+      if (ha?.hass) {
+        const r = await ha.hass.connection.sendMessagePromise<{ resources?: Array<{ url?: string }> }>(
+          { type: "lovelace/resources" },
+        );
+        resources = r.resources || [];
+      }
+    } catch (e) { resources = [{ url: `<error: ${String(e)}>` }]; }
+    return {
+      version: STRATEGY_VERSION,
+      el_registered: !!customElements.get(tag),
+      el_class_excerpt: customElements.get(tag)?.toString().slice(0, 100) || null,
+      customStrategies_dashboard: (window as unknown as { customStrategies?: Array<{ type: string; strategyType: string }> })
+        .customStrategies?.filter((s) => s.strategyType === "dashboard").map((s) => s.type) || [],
+      scriptTagsInPage: Array.from(document.querySelectorAll("script[type=module]"))
+        .map((s) => (s as HTMLScriptElement).src)
+        .filter((s) => /maint|strateg/i.test(s)),
+      lovelaceResources_matching: resources.filter((r) => /maint|strateg/i.test(r.url || "")).map((r) => r.url),
+      registrations: _defineResults,
+    };
+  };
 
 // ── Phase 5: Status Section-Strategies ──────────────────────────────────────
 //
