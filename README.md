@@ -250,7 +250,7 @@ The integration uses a hybrid push/poll update model:
 3. Remove the `custom_components/maintenance_supporter/` directory from your HA config folder
 4. Restart Home Assistant
 
-> **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting the `sensor.maintenance_*` entities.
+> **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting this integration's entities (in the UI you can pick the Maintenance Supporter device or select the entities directly — they follow the `sensor.<object>_<task>` naming described under [Entity naming](#entity-naming)).
 
 ## Use Cases
 
@@ -391,15 +391,15 @@ automation:
   - alias: "Notify when maintenance is overdue"
     trigger:
       - platform: state
-        entity_id: sensor.maintenance_family_car_oil_change
+        entity_id: sensor.family_car_oil_change
         to: "overdue"
     action:
       - service: notify.mobile_app_phone
         data:
           title: "Maintenance Overdue"
           message: >
-            {{ state_attr('sensor.maintenance_family_car_oil_change', 'friendly_name') }}
-            is overdue by {{ state_attr('sensor.maintenance_family_car_oil_change', 'days_until_due') | abs }} days.
+            {{ state_attr('sensor.family_car_oil_change', 'friendly_name') }}
+            is overdue by {{ state_attr('sensor.family_car_oil_change', 'days_until_due') | abs }} days.
 ```
 
 ### Service Call: Complete a Task with Details
@@ -407,7 +407,7 @@ automation:
 ```yaml
 service: maintenance_supporter.complete
 data:
-  entity_id: sensor.maintenance_hvac_system_filter_replacement
+  entity_id: sensor.hvac_system_filter_replacement
   notes: "Replaced with HEPA filter model XYZ-400"
   cost: 45.99
   duration: 30
@@ -510,6 +510,20 @@ Source icons (clock for time-based, trending-up for sensor-based, with adaptive 
 
 The dashboard strategy's `group_by: calendar` mode wraps four instances of this card (week / fortnight / month / year) as separate views, with the chips hidden because the tab bar already serves as the window selector.
 
+### Entity naming
+
+<a id="entity-naming"></a>
+
+Each task becomes one sensor. Home Assistant builds its `entity_id` from the **object** (the device) plus the **task** name — there is **no shared `maintenance_` prefix**:
+
+| Object | Task | Entity ID |
+|---|---|---|
+| Family Car | Oil Change | `sensor.family_car_oil_change` |
+| HVAC System | Filter Replacement | `sensor.hvac_system_filter_replacement` |
+| Water Softener | Refill Salt | `sensor.water_softener_refill_salt` |
+
+Because the names vary per setup, **don't filter by entity-id prefix** in templates — filter by integration instead, using `integration_entities('maintenance_supporter')`. Each sensor's state is one of `ok`, `due_soon`, `overdue`, `triggered`.
+
 ### Template Sensor: Count Overdue Tasks
 
 ```yaml
@@ -518,9 +532,9 @@ template:
       - name: "Overdue Maintenance Tasks"
         unit_of_measurement: "tasks"
         state: >
-          {{ states.sensor
-             | selectattr('entity_id', 'match', 'sensor.maintenance_')
-             | selectattr('state', 'eq', 'overdue')
+          {{ integration_entities('maintenance_supporter')
+             | select('match', 'sensor.')
+             | select('is_state', 'overdue')
              | list | count }}
 ```
 
