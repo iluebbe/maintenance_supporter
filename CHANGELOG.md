@@ -2,6 +2,14 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.8] - 2026-05-20
+
+### 🐛 Sensor trigger stuck at OK after a brief `unavailable`/`unknown` blip
+
+A threshold (or counter) trigger that had already fired would silently fall back to **OK** if the monitored sensor briefly went `unavailable` or `unknown` and then returned with the value still beyond the threshold. Reported for a heating system: `system pressure < 1.4 bar` triggered correctly, but that sensor flaps to `unknown` many times a day, and the first blip after triggering left the task stuck at OK despite the low pressure — exactly the kind of alarm you don't want silently cleared.
+
+Root cause: the base trigger handler deactivated the trigger on `unavailable`/`unknown` but left the threshold debounce latch (`_threshold_exceeded`) set, so the next re-evaluation short-circuited and never re-armed. A transient `unavailable`/`unknown` now carries "no new data" — it no longer deactivates an active trigger (a genuinely missing trigger entity is still surfaced via the repair flow). Affects **threshold** and **counter** triggers (shared base handler); `state_change` and `runtime` already handled it correctly. Pinned with regression tests for `unknown`, `unavailable`, and non-numeric states.
+
 ## [2.3.7] - 2026-05-20
 
 ### 🐛 Lovelace card: sort by due date within a status
