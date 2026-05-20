@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.7] - 2026-05-20
+
+### 🐛 Lovelace card: sort by due date within a status
+
+Reported on the community forum — a task due in 3 days could appear above one due in 1 day. The card sorted by status only (overdue / triggered / due_soon / ok), and because `Array.sort` is stable, same-status tasks kept their backend/creation order instead of their urgency. Added a secondary sort: within a status, soonest-due first; tasks with no due date sort last. Pinned with a component test (`__tests__/card-sort-due-date.test.ts`).
+
 ## [2.3.6] - 2026-05-20
 
 ### 📝 Docs: corrected entity-id naming and the "count overdue" template (#56)
