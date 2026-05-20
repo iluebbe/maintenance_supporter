@@ -174,19 +174,23 @@ class BaseTrigger(ABC):
             )
             self._logged_unavailable = False
 
-        # Handle unavailable/unknown with log-once pattern
+        # Handle unavailable/unknown with log-once pattern.
+        # A transient unavailable/unknown carries no measurement, so we treat
+        # it as "no new data" and do NOT deactivate an active trigger here.
+        # Deactivating on a blip dropped real (alarm) triggers and, combined
+        # with the threshold for-minutes debounce latch, left tasks stuck at
+        # OK once the value returned below threshold. A genuinely missing
+        # trigger entity is surfaced via the missing_trigger_entity repair
+        # flow instead. (Numeric-only triggers: any non-numeric value below
+        # is likewise ignored via the _get_numeric_value None check.)
         if new_state.state in ("unavailable", "unknown"):
             if not self._logged_unavailable:
                 _LOGGER.warning(
-                    "Trigger entity %s became %s",
+                    "Trigger entity %s became %s — keeping last trigger state",
                     self.entity_id,
                     new_state.state,
                 )
                 self._logged_unavailable = True
-            # Deactivate trigger when entity becomes unavailable
-            if self._triggered:
-                self._triggered = False
-                self._on_trigger_deactivated(self._current_value or 0.0)
             return
 
         # Entity is back to a valid state
