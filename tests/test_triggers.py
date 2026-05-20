@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, State
 from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.const import (
@@ -2722,3 +2722,172 @@ class TestBugFixRegressions:
         assert trigger.current_delta == 500
 
         await trigger.async_teardown()
+
+
+# ─── 7.x Unavailable / unknown handling (prod heating bug) ───────────────
+
+
+def _state_event(entity_id: str, old: str | None, new: str | None) -> MagicMock:
+    """Build a minimal state-changed event for the base trigger handler."""
+    evt = MagicMock()
+    evt.data = {
+        "old_state": State(entity_id, old) if old is not None else None,
+        "new_state": State(entity_id, new) if new is not None else None,
+    }
+    return evt
+
+
+class TestTriggerUnavailableNoOp:
+    """A transient unavailable/unknown must not deactivate an active trigger.
+
+    Regression for the production heating bug: ``sensor.heizung_systemdruck``
+    triggered (pressure < 1.4 bar for 60 min), then flapped to ``unknown``
+    (which that sensor does many times a day). The old base handler
+    deactivated on unavailable/unknown but left the threshold debounce latch
+    set, so when the value returned still-below-threshold the task was stuck
+    at OK. Fix: treat unavailable/unknown as "no new data" — no deactivation.
+    """
+
+    async def test_unknown_does_not_deactivate_active_threshold(
+        self, hass: HomeAssistant
+    ) -> None:
+        set_sensor_state(hass, "sensor.pressure", "1.5")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.pressure",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 1.4,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+
+        # Pressure drops below threshold → triggers (for_minutes=0 = immediate)
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.5", "1.3")
+        )
+        assert trigger._triggered is True
+
+        # Sensor blips to unknown → must NOT deactivate
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.3", "unknown")
+        )
+        assert trigger._triggered is True
+
+        # Value returns, still below threshold → stays triggered
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "unknown", "1.3")
+        )
+        assert trigger._triggered is True
+
+    async def test_unavailable_does_not_deactivate_active_threshold(
+        self, hass: HomeAssistant
+    ) -> None:
+        set_sensor_state(hass, "sensor.pressure", "1.5")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.pressure",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 1.4,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.5", "1.3")
+        )
+        assert trigger._triggered is True
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.3", "unavailable")
+        )
+        assert trigger._triggered is True
+
+    async def test_stuck_ok_repro_for_minutes_latch(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Exact prod sequence with the 60-min debounce latch already set."""
+        set_sensor_state(hass, "sensor.pressure", "1.3")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.pressure",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 1.4,
+            "trigger_for_minutes": 60,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+        # Simulate the for-timer having fired: active + debounce latch set
+        trigger._triggered = True
+        trigger._threshold_exceeded = True
+        trigger._current_value = 1.3
+
+        # unknown blip → keeps state, keeps latch
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.3", "unknown")
+        )
+        assert trigger._triggered is True
+        assert trigger._threshold_exceeded is True
+
+        # value returns still below 1.4 → must stay triggered (was stuck OK)
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "unknown", "1.3")
+        )
+        assert trigger._triggered is True
+
+    async def test_non_numeric_text_is_noop(self, hass: HomeAssistant) -> None:
+        set_sensor_state(hass, "sensor.pressure", "1.5")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.pressure",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 1.4,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.5", "1.3")
+        )
+        assert trigger._triggered is True
+        # A non-numeric, non-unavailable state is ignored (no deactivation)
+        trigger._handle_state_change_event(
+            _state_event("sensor.pressure", "1.3", "n/a")
+        )
+        assert trigger._triggered is True
+
+    async def test_unknown_does_not_deactivate_active_counter(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Counter shares the base handler → same fix applies."""
+        set_sensor_state(hass, "sensor.cycles", "5")
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.cycles",
+            "attribute": None,
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 10,
+        }
+        trigger = CounterTrigger(hass, entity, config)
+        trigger._handle_state_change_event(
+            _state_event("sensor.cycles", "5", "10")
+        )
+        assert trigger._triggered is True
+        trigger._handle_state_change_event(
+            _state_event("sensor.cycles", "10", "unknown")
+        )
+        assert trigger._triggered is True
+
+    async def test_debounce_still_resets_on_return_to_normal(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Pre-trigger flapping (1.3 → 1.4) must still cancel the debounce."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.pressure",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 1.4,
+            "trigger_for_minutes": 60,
+        }
+        trigger = ThresholdTrigger(hass, entity, config)
+        assert trigger.evaluate(1.3) is False  # starts the 60-min timer
+        assert trigger._threshold_exceeded is True
+        assert trigger.evaluate(1.4) is False  # back to normal → resets latch
+        assert trigger._threshold_exceeded is False
