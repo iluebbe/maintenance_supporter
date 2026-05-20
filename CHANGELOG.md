@@ -2,6 +2,14 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.3.6] - 2026-05-20
+
+### 📝 Docs: corrected entity-id naming and the "count overdue" template (#56)
+
+The README documented entity IDs with a `sensor.maintenance_*` prefix that the integration never produces. Real task sensors are named `sensor.<object>_<task>` (Home Assistant's `has_entity_name` convention — the object is the device, the task is the entity), e.g. `sensor.family_car_oil_change`. The documented "count overdue tasks" template filtered on `match('sensor.maintenance_')` and therefore always returned 0.
+
+Filter by integration instead — `integration_entities('maintenance_supporter') | select('match', 'sensor.') | select('is_state', 'overdue')` (verified against a 59-sensor setup). Also corrected the automation/service examples that used the bad prefix and added an **Entity naming** section. No code change: entity IDs are unchanged — renaming them would break existing automations and dashboards.
+
 ## [2.3.5] - 2026-05-12
 
 ### 🔎 Self-diagnostic logging in the dashboard strategy bundle
