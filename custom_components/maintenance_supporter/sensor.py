@@ -5,16 +5,23 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_ENTITY_LOGIC,
+    DOMAIN,
     GLOBAL_UNIQUE_ID,
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
@@ -22,7 +29,18 @@ from .const import (
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
+from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
+
+# (metric key in compute_status_counts, mdi icon) for the global summary sensors
+SUMMARY_METRICS: list[tuple[str, str]] = [
+    ("overdue", "mdi:alert-circle"),
+    ("due_soon", "mdi:clock-alert-outline"),
+    ("triggered", "mdi:flash"),
+    ("needs_attention", "mdi:wrench-clock"),
+    ("ok", "mdi:check-circle"),
+    ("total_tasks", "mdi:format-list-checks"),
+]
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -38,8 +56,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensor entities for a maintenance object."""
-    # Skip global entry
+    # Global entry: expose the aggregate summary sensors instead of per-task ones.
     if entry.unique_id == GLOBAL_UNIQUE_ID:
+        runtime_data = entry.runtime_data
+        summary = runtime_data.summary_coordinator if runtime_data else None
+        if summary is not None:
+            async_add_entities(
+                MaintenanceSummarySensor(summary, key, icon)
+                for key, icon in SUMMARY_METRICS
+            )
         return
 
     runtime_data = entry.runtime_data
@@ -394,3 +419,43 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         if days <= warning_days:
             return MaintenanceStatus.DUE_SOON
         return MaintenanceStatus.OK
+
+
+class MaintenanceSummarySensor(
+    CoordinatorEntity[MaintenanceSummaryCoordinator], SensorEntity
+):
+    """Aggregate count sensor on the global Maintenance Supporter hub device.
+
+    Counts come from the shared summary coordinator (which uses the same
+    ``compute_status_counts`` aggregator as the statistics WebSocket endpoint),
+    so these entities, the panel KPI chips, and the dashboard-strategy headline
+    always agree.
+    """
+
+    _attr_has_entity_name = True
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "tasks"
+
+    def __init__(
+        self,
+        coordinator: MaintenanceSummaryCoordinator,
+        key: str,
+        icon: str,
+    ) -> None:
+        """Initialize a summary sensor for one metric key."""
+        super().__init__(coordinator)
+        self._key = key
+        self._attr_translation_key = f"summary_{key}"
+        self._attr_unique_id = f"{GLOBAL_UNIQUE_ID}_summary_{key}"
+        self._attr_icon = icon
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, GLOBAL_UNIQUE_ID)},
+            name="Maintenance Supporter",
+            entry_type=DeviceEntryType.SERVICE,
+        )
+
+    @property
+    def native_value(self) -> int:
+        """Return the current count for this metric."""
+        data = self.coordinator.data or {}
+        return int(data.get(self._key, 0))

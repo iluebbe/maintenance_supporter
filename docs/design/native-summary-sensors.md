@@ -1,6 +1,6 @@
 # Design: Native summary sensors (aggregate counts)
 
-> **Status:** Draft / not yet implemented. This document is the plan to pick up later.
+> **Status:** Implemented (PR #57). The open questions below were resolved during implementation — see "Resolved decisions" at the end.
 > Tracking discussion: [#49 "UI ideas — panel and Lovelace card"](https://github.com/iluebbe/maintenance_supporter/discussions/49)
 
 ## Problem
@@ -85,3 +85,14 @@ Decisions to confirm when implementing:
 2. Listener-per-coordinator vs. single global signal — which is robust against the poll path without double-counting?
 3. Any value in a `task_entity_ids` list attribute, or do the per-task sensors already cover drill-down? (Lean: omit.)
 4. Should vacation-mode-paused tasks be excluded like disabled ones?
+
+## Resolved decisions (as implemented)
+
+1. **Both** `needs_attention` *and* `ok` are exposed — six sensors total: overdue / due_soon / triggered / needs_attention / ok / total_tasks. `ok` was added because the dashboard-strategy headline shows it (and now reads it from the entity).
+2. **Listener-per-coordinator + `SIGNAL_NEW_OBJECT_ENTRY` + trigger bus events**, mirroring `ws_subscribe`. `_async_update_data` re-scans entries fresh, so add/remove is self-healing; trigger activation/deactivation is caught via `EVENT_TRIGGER_*` since it doesn't notify coordinator listeners.
+3. **Omitted** the list attribute — the per-task sensors cover drill-down; keeps the recorder lean.
+4. **Not excluded** — vacation only suppresses notifications, not status; counts reflect reality. Disabled tasks are already forced to OK by the coordinator, so they land in `ok`, never in attention.
+
+## DRY: single source of truth
+
+`helpers/aggregate.py::compute_status_counts` is the only place statuses are counted. It feeds **both** `ws_get_statistics` (panel KPI chips + Lovelace card header) **and** the summary coordinator (entities). The dashboard-strategy headline renders the summary entities via a markdown template instead of counting client-side. Verified live: entities == `/statistics` == task-sensor ground truth.

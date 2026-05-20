@@ -51,10 +51,10 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
-    CONF_TASKS,
     DOMAIN,
     SIGNAL_NEW_OBJECT_ENTRY,
 )
+from ..helpers.aggregate import compute_status_counts
 from . import (
     _build_object_response,
     _get_global_entry,
@@ -256,40 +256,18 @@ async def ws_get_statistics(
     msg: dict[str, Any],
 ) -> None:
     """Return aggregated statistics."""
-    entries = _get_object_entries(hass)
-    total_objects = len(entries)
-    total_tasks = 0
-    overdue = 0
-    due_soon = 0
-    triggered = 0
-    total_cost = 0.0
-
-    for entry in entries:
-        rd = _get_runtime_data(hass, entry.entry_id)
-        coord_data = rd.coordinator.data if rd and rd.coordinator else None
-        ct_tasks = (coord_data or {}).get(CONF_TASKS, {})
-        tasks_data = entry.data.get(CONF_TASKS, {})
-        total_tasks += len(tasks_data)
-
-        for _tid, ct in ct_tasks.items():
-            status = ct.get("_status", "ok")
-            if status == "overdue":
-                overdue += 1
-            elif status == "due_soon":
-                due_soon += 1
-            elif status == "triggered":
-                triggered += 1
-            total_cost += ct.get("_total_cost", 0.0)
-
+    # Counts come from the shared aggregator (single source of truth) so the
+    # panel/card chips and the global summary sensors can never diverge.
+    counts = compute_status_counts(hass)
     connection.send_result(
         msg["id"],
         {
-            "total_objects": total_objects,
-            "total_tasks": total_tasks,
-            "overdue": overdue,
-            "due_soon": due_soon,
-            "triggered": triggered,
-            "total_cost": round(total_cost, 2),
+            "total_objects": counts["total_objects"],
+            "total_tasks": counts["total_tasks"],
+            "overdue": counts["overdue"],
+            "due_soon": counts["due_soon"],
+            "triggered": counts["triggered"],
+            "total_cost": counts["total_cost"],
         },
     )
 

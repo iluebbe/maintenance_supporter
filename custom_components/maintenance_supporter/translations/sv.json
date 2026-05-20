@@ -1198,6 +1198,24 @@
             }
           }
         }
+      },
+      "summary_overdue": {
+        "name": "Försenat"
+      },
+      "summary_due_soon": {
+        "name": "Snart förfaller"
+      },
+      "summary_triggered": {
+        "name": "Utlöst"
+      },
+      "summary_needs_attention": {
+        "name": "Needs attention"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "summary_total_tasks": {
+        "name": "Total tasks"
       }
     },
     "calendar": {

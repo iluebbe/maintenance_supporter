@@ -196,46 +196,20 @@ const SMALL_SCREEN_CONDITION: ViewColumnsCondition = {
   max: 1,
 };
 
-interface MaintenanceStats {
-  overdue: number;
-  triggered: number;
-  due_soon: number;
-  ok: number;
-  total: number;
-}
-
-function computeStats(objects: MaintenanceObjectResp[]): MaintenanceStats {
-  const stats: MaintenanceStats = {
-    overdue: 0,
-    triggered: 0,
-    due_soon: 0,
-    ok: 0,
-    total: 0,
-  };
-  for (const obj of objects) {
-    for (const task of obj.tasks || []) {
-      stats.total++;
-      if (task.status === "overdue") stats.overdue++;
-      else if (task.status === "triggered") stats.triggered++;
-      else if (task.status === "due_soon") stats.due_soon++;
-      else if (task.status === "ok") stats.ok++;
-    }
-  }
-  return stats;
-}
-
-function kpiMarkdownCard(stats: MaintenanceStats): CardConfig {
-  // Compact one-liner. Markdown card ignored when text is empty so an
-  // all-zero state still renders cleanly ("everything's fine").
-  const parts: string[] = [];
-  if (stats.overdue) parts.push(`🔴 **${stats.overdue}** overdue`);
-  if (stats.triggered) parts.push(`⚡ **${stats.triggered}** triggered`);
-  if (stats.due_soon) parts.push(`🟡 **${stats.due_soon}** due soon`);
-  parts.push(`🟢 **${stats.ok}** ok`);
+// Headline counts come from the global summary sensors — the single source of
+// truth shared with the panel KPI chips and the statistics WS endpoint — so the
+// numbers can't drift. Rendered live via a markdown template instead of being
+// counted client-side at generation time (which froze them until reload).
+function kpiMarkdownCard(): CardConfig {
   return {
     type: "markdown",
     text_only: true,
-    content: parts.join(" · "),
+    content: [
+      "🔴 **{{ states('sensor.maintenance_supporter_overdue') }}** overdue",
+      "⚡ **{{ states('sensor.maintenance_supporter_triggered') }}** triggered",
+      "🟡 **{{ states('sensor.maintenance_supporter_due_soon') }}** due soon",
+      "🟢 **{{ states('sensor.maintenance_supporter_ok') }}** ok",
+    ].join(" · "),
   };
 }
 
@@ -289,8 +263,8 @@ function emptyStateView(): ViewConfig {
   };
 }
 
-function overviewView(stats: MaintenanceStats): ViewConfig {
-  const kpiCard = kpiMarkdownCard(stats);
+function overviewView(): ViewConfig {
+  const kpiCard = kpiMarkdownCard();
   return {
     title: "Overview",
     icon: "mdi:wrench-clock",
@@ -626,7 +600,6 @@ class MaintenanceDashboardStrategy extends HTMLElement {
       return { title: "Maintenance", views: [emptyStateView()] };
     }
 
-    const stats = computeStats(objects);
     const groupBy: GroupBy = config?.group_by ?? "area";
 
     // Record-of-builders pattern from HA core's home-overview-view-strategy
@@ -644,7 +617,7 @@ class MaintenanceDashboardStrategy extends HTMLElement {
     return {
       title: "Maintenance",
       views: [
-        overviewView(stats),
+        overviewView(),
         ...(viewBuilders[groupBy] ?? viewBuilders.area)(),
       ],
     };
