@@ -160,7 +160,12 @@ export class MaintenanceSupporterCard extends LitElement {
     }
 
     const order: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
-    tasks.sort((a, b) => (order[a.task.status] ?? 9) - (order[b.task.status] ?? 9));
+    tasks.sort((a, b) => {
+      const byStatus = (order[a.task.status] ?? 9) - (order[b.task.status] ?? 9);
+      if (byStatus !== 0) return byStatus;
+      // Within a status, soonest-due first; tasks without a due date go last.
+      return (a.task.days_until_due ?? Infinity) - (b.task.days_until_due ?? Infinity);
+    });
 
     if (max_items && max_items > 0) {
       return tasks.slice(0, max_items);
