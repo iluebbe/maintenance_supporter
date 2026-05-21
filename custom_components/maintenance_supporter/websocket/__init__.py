@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-
-if TYPE_CHECKING:
-    from .. import MaintenanceSupporterData
 
 from ..const import (
     CONF_GROUPS,
@@ -19,6 +16,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from ..helpers.aggregate import get_object_entries, get_runtime_data
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,22 +26,11 @@ _LOGGER = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def _get_object_entries(hass: HomeAssistant) -> list[ConfigEntry]:
-    """Return all non-global config entries for this domain."""
-    return [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
-
-
-def _get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporterData | None:
-    """Get runtime data for a config entry."""
-    config_entry = hass.config_entries.async_get_entry(entry_id)
-    if config_entry is None:
-        return None
-    result: MaintenanceSupporterData | None = getattr(config_entry, "runtime_data", None)
-    return result
+# Re-exported under historical underscore names for handler submodules
+# (analysis.py, vacation.py) that import them from this package. The actual
+# logic lives in helpers.aggregate (single source for cross-entry aggregation).
+_get_object_entries = get_object_entries
+_get_runtime_data = get_runtime_data
 
 
 def _get_merged_tasks(entry: ConfigEntry) -> dict[str, Any]:

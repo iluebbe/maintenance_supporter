@@ -48,6 +48,7 @@ from .const import (
     SIGNAL_NEW_OBJECT_ENTRY,
 )
 from .coordinator import MaintenanceCoordinator
+from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
 from .helpers.notification_manager import NotificationManager
 from .panel import async_register_panel, async_unregister_panel
@@ -66,6 +67,9 @@ class MaintenanceSupporterData:
 
     coordinator: MaintenanceCoordinator | None = None
     store: MaintenanceStore | None = None
+    # Only set on the global entry: aggregates status counts for the summary
+    # sensors. None on per-object entries.
+    summary_coordinator: MaintenanceSummaryCoordinator | None = None
 
 
 type MaintenanceSupporterConfigEntry = ConfigEntry[MaintenanceSupporterData]
@@ -562,8 +566,16 @@ async def async_setup_entry(
     is_global = entry.unique_id == GLOBAL_UNIQUE_ID
 
     if is_global:
-        # Global entry: no coordinator needed, just store reference
-        entry.runtime_data = MaintenanceSupporterData()
+        # Global entry: no per-object coordinator, but a summary coordinator
+        # aggregates task status counts across all objects to back the global
+        # summary sensors (sensor.maintenance_supporter_overdue, etc.).
+        summary_coordinator = MaintenanceSummaryCoordinator(hass)
+        entry.runtime_data = MaintenanceSupporterData(
+            summary_coordinator=summary_coordinator
+        )
+        summary_coordinator.async_setup_listeners()
+        entry.async_on_unload(summary_coordinator.async_teardown_listeners)
+        await summary_coordinator.async_refresh()
 
         # One-time migration: auto-enable advanced feature flags for existing users
         options = dict(entry.options or entry.data)

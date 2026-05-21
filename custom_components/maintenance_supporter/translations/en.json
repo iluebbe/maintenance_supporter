@@ -1198,7 +1198,13 @@
             }
           }
         }
-      }
+      },
+      "summary_overdue": { "name": "Overdue" },
+      "summary_due_soon": { "name": "Due soon" },
+      "summary_triggered": { "name": "Triggered" },
+      "summary_needs_attention": { "name": "Needs attention" },
+      "summary_ok": { "name": "OK" },
+      "summary_total_tasks": { "name": "Total tasks" }
     },
     "calendar": {
       "maintenance_schedule": {

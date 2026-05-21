@@ -1198,6 +1198,24 @@
             }
           }
         }
+      },
+      "summary_overdue": {
+        "name": "Po termínu"
+      },
+      "summary_due_soon": {
+        "name": "Brzy splatné"
+      },
+      "summary_triggered": {
+        "name": "Spuštěno"
+      },
+      "summary_needs_attention": {
+        "name": "Needs attention"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "summary_total_tasks": {
+        "name": "Total tasks"
       }
     },
     "calendar": {

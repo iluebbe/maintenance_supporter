@@ -524,7 +524,26 @@ Each task becomes one sensor. Home Assistant builds its `entity_id` from the **o
 
 Because the names vary per setup, **don't filter by entity-id prefix** in templates — filter by integration instead, using `integration_entities('maintenance_supporter')`. Each sensor's state is one of `ok`, `due_soon`, `overdue`, `triggered`.
 
+### Summary sensors
+
+<a id="summary-sensors"></a>
+
+The integration also exposes **aggregate count sensors** on a global *Maintenance Supporter* device — bind these to chips, badges, or pop-up cards without writing template sensors:
+
+| Entity ID | Counts |
+|---|---|
+| `sensor.maintenance_supporter_overdue` | tasks past due |
+| `sensor.maintenance_supporter_due_soon` | tasks inside their warning window |
+| `sensor.maintenance_supporter_triggered` | sensor-triggered tasks |
+| `sensor.maintenance_supporter_needs_attention` | overdue + due-soon + triggered (one number) |
+| `sensor.maintenance_supporter_ok` | tasks not needing attention |
+| `sensor.maintenance_supporter_total_tasks` | all tasks |
+
+They update live and are the **same numbers** the panel KPI chips and the dashboard-strategy headline show — one shared aggregator, so they never drift.
+
 ### Template Sensor: Count Overdue Tasks
+
+> Prefer the native `sensor.maintenance_supporter_overdue` above. The template below is only for a *custom* count the summary sensors don't expose (e.g. a single object, or a specific status combination):
 
 ```yaml
 template:

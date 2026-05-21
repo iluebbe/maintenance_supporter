@@ -392,16 +392,19 @@ async def test_degradation_attrs(
 # ─── Sensor Setup: No Coordinator ─────────────────────────────────────
 
 
-async def test_sensor_setup_no_coordinator(
+async def test_sensor_setup_global_creates_summary_sensors(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
-    """Test sensor setup returns early when runtime_data has no coordinator."""
+    """The global entry exposes the aggregate summary sensors (no per-task ones)."""
     await setup_integration(hass, global_entry)
-    # The global entry has no coordinator → sensor setup should return early
     entity_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
     sensors = [e for e in entities if e.domain == "sensor"]
-    assert len(sensors) == 0
+    assert len(sensors) == 6
+    assert all(
+        e.unique_id.startswith("maintenance_supporter_global_summary_")
+        for e in sensors
+    )
 
 
 # ─── Sensor Extra Attrs: Last Entry ───────────────────────────────────

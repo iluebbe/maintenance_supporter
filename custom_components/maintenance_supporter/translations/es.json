@@ -1198,6 +1198,24 @@
             }
           }
         }
+      },
+      "summary_overdue": {
+        "name": "Vencido"
+      },
+      "summary_due_soon": {
+        "name": "Próximo a vencer"
+      },
+      "summary_triggered": {
+        "name": "Activado"
+      },
+      "summary_needs_attention": {
+        "name": "Requiere atención"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "summary_total_tasks": {
+        "name": "Total de tareas"
       }
     },
     "calendar": {
