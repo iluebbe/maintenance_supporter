@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.4.0] - 2026-05-20
+
+### ✨ Native summary sensors (#49)
+
+Six aggregate count sensors on a global **Maintenance Supporter** device, so you can put the KPI numbers on chips, badges, or bubble-card pop-ups without writing template sensors:
+
+- `sensor.maintenance_supporter_overdue`
+- `sensor.maintenance_supporter_due_soon`
+- `sensor.maintenance_supporter_triggered`
+- `sensor.maintenance_supporter_needs_attention` (overdue + due-soon + triggered)
+- `sensor.maintenance_supporter_ok`
+- `sensor.maintenance_supporter_total_tasks`
+
+They update live (object changes, sensor triggers, object add/remove).
+
+### ♻️ One counting implementation (DRY)
+
+Status counts now come from a single aggregator (`helpers/aggregate.py::compute_status_counts`). It feeds the new summary sensors **and** the `maintenance_supporter/statistics` endpoint that powers the panel KPI chips and the Lovelace card header. The dashboard-strategy Overview headline now renders those summary entities via a markdown template instead of counting client-side at generation time — so it's live, and the entities, panel chips, and strategy headline can never show different numbers. Verified live: entities == `/statistics` == task-sensor ground truth. A regression test pins the statistics endpoint and the aggregator to the same numbers.
+
 ## [2.3.8] - 2026-05-20
 
 ### 🐛 Sensor trigger stuck at OK after a brief `unavailable`/`unknown` blip

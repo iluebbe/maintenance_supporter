@@ -289,19 +289,17 @@ async def test_sensor_shows_ok_status(
     """Test that sensor shows OK when task is not yet due."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    # Find sensor entity
+    # Task sensors expose a `parent_object` attribute; the global summary
+    # sensors (sensor.maintenance_supporter_*) do not — filter to the task one.
     states = hass.states.async_all("sensor")
-    maintenance_sensors = [
-        s for s in states if s.entity_id.startswith("sensor.maintenance_supporter")
-        or DOMAIN in (s.attributes.get("integration") or "")
+    task_sensors = [
+        s for s in states if s.attributes.get("parent_object") is not None
     ]
-    # There should be at least one sensor from the object entry
-    # The sensor value should be the status
-    if maintenance_sensors:
-        assert maintenance_sensors[0].state in [
-            MaintenanceStatus.OK,
-            MaintenanceStatus.DUE_SOON,
-        ]
+    assert task_sensors, "object task sensor should be present"
+    assert task_sensors[0].state in [
+        MaintenanceStatus.OK,
+        MaintenanceStatus.DUE_SOON,
+    ]
 
 
 async def test_sensor_shows_overdue_status(
