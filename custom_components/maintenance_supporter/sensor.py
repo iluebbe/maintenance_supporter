@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
+    ENTITY_ID_FORMAT,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
@@ -14,6 +15,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -452,6 +454,15 @@ class MaintenanceSummarySensor(
             identifiers={(DOMAIN, GLOBAL_UNIQUE_ID)},
             name="Maintenance Supporter",
             entry_type=DeviceEntryType.SERVICE,
+        )
+        # Pin a stable, language-independent entity_id. With has_entity_name the
+        # slug would otherwise derive from the translated name, so a non-English
+        # system language would yield e.g. sensor.maintenance_supporter_überfällig
+        # and break the documented IDs. The friendly name stays localized.
+        self.entity_id = async_generate_entity_id(
+            ENTITY_ID_FORMAT,
+            f"maintenance_supporter_{key}",
+            hass=coordinator.hass,
         )
 
     @property
