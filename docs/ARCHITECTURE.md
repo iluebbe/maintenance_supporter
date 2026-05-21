@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 1.0.44 | **~28,000 lines** across 70 source files (50 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,501 tests)
+**Version:** 2.4.0 | **~28,000 lines** across 72 source files (52 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,625 tests)
 
 ---
 
@@ -78,6 +78,14 @@ All data flows through `MaintenanceCoordinator` (one per object):
 - Tracks entity availability with grace periods
 - Checks budget thresholds and sends notifications
 - Writes dynamic state to Store (debounced), static config to ConfigEntry
+
+### Single-Source Status Aggregation (2.4.0+)
+Cross-object KPI counts (overdue / due_soon / triggered / needs_attention / ok / total_tasks) are computed in exactly one place — `helpers/aggregate.py::compute_status_counts`. That single function feeds three surfaces so they can never disagree:
+- the `maintenance_supporter/statistics` WebSocket endpoint (panel KPI chips + Lovelace card header — it projects the historical subset of keys),
+- the six global **summary sensors** (`sensor.maintenance_supporter_*`) via a no-poll `MaintenanceSummaryCoordinator` on the global entry, and
+- the dashboard-strategy Overview headline (which renders the summary entities through a markdown template).
+
+The summary coordinator never polls: it recomputes when any object coordinator updates, when a new object entry appears (`SIGNAL_NEW_OBJECT_ENTRY`), or when a trigger flips (`EVENT_TRIGGER_ACTIVATED` / `EVENT_TRIGGER_DEACTIVATED`) — mirroring the live-update path of `maintenance_supporter/subscribe`. Counts read each task's coordinator-computed `_status` (disabled tasks are already forced to `ok`), so the entities, panel chips, and strategy headline always show identical numbers.
 
 ### Event-Driven + Periodic Hybrid
 Trigger sensors update immediately via HA state_change events, but the coordinator still refreshes periodically to:

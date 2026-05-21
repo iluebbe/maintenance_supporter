@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.4.1] - 2026-05-21
+
+### 🐛 Stable, language-independent summary-sensor entity IDs
+
+The six summary sensors (2.4.0) used `has_entity_name`, which derives the entity-id slug from the **translated** entity name in Home Assistant's system language. On a non-English system language that produced localized IDs (e.g. `sensor.maintenance_supporter_überfällig`) that didn't match the documented `sensor.maintenance_supporter_overdue` namespace — defeating the point of sensors meant to be referenced in dashboards and templates. The entity IDs are now pinned to the documented English slugs on every install, while the **friendly name stays localized**. Existing English installs are unaffected (the ID is unchanged). Pinned with a regression test that registers the sensors under a German system language and asserts the IDs stay English.
+
 ## [2.4.0] - 2026-05-20
 
 ### ✨ Native summary sensors (#49)

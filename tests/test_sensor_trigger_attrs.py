@@ -405,6 +405,30 @@ async def test_sensor_setup_global_creates_summary_sensors(
         e.unique_id.startswith("maintenance_supporter_global_summary_")
         for e in sensors
     )
+    # Stable, documented entity IDs (see README "Summary sensors").
+    assert {e.entity_id for e in sensors} == {
+        f"sensor.maintenance_supporter_{k}"
+        for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
+    }
+
+
+async def test_summary_sensor_ids_are_language_independent(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Summary entity_ids stay English even when the HA system language isn't.
+
+    ``has_entity_name`` would otherwise derive the slug from the translated
+    name; we pin a stable entity_id so the documented IDs hold on every install.
+    """
+    hass.config.language = "de"
+    await setup_integration(hass, global_entry)
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
+    sensors = {e.entity_id for e in entities if e.domain == "sensor"}
+    assert sensors == {
+        f"sensor.maintenance_supporter_{k}"
+        for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
+    }
 
 
 # ─── Sensor Extra Attrs: Last Entry ───────────────────────────────────

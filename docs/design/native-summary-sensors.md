@@ -32,13 +32,11 @@ Created on the **global entry** (the hub), grouped under a single device named *
 | `sensor.maintenance_supporter_overdue` | count of tasks in `overdue` | measurement |
 | `sensor.maintenance_supporter_due_soon` | count of tasks in `due_soon` | measurement |
 | `sensor.maintenance_supporter_triggered` | count of tasks in `triggered` | measurement |
-| `sensor.maintenance_supporter_attention` | overdue + due_soon + triggered (one chip number) | measurement |
-| `sensor.maintenance_supporter_total` | total enabled tasks | measurement |
+| `sensor.maintenance_supporter_needs_attention` | overdue + due_soon + triggered (one chip number) | measurement |
+| `sensor.maintenance_supporter_ok` | count of tasks in `ok` | measurement |
+| `sensor.maintenance_supporter_total_tasks` | all configured tasks (disabled count as `ok`) | measurement |
 
-Decisions to confirm when implementing:
-- **`attention` vs `ok`** — ship `attention` (the actionable total, which is what chips want) rather than an `ok` count. Add `ok` only if asked.
-- **Disabled tasks** — excluded from all counts (a paused task isn't "overdue"). Confirm against `enabled` flag in task data.
-- **Attributes** — keep minimal to avoid recorder bloat. Optionally expose `task_entity_ids` (list) per state behind a thought-through size cap, or omit and let users use the existing per-task sensors. Lean: **no list attribute in v1**.
+> The table above shows the **as-shipped** entity IDs (on an English-language Home Assistant — `has_entity_name` derives the slug from the translated entity name, so a non-English *system* language localizes it). The original open decisions are recorded under **Resolved decisions** at the end: `ok` was added (six sensors, not four), disabled tasks are reported as `ok` rather than excluded, and no list attribute ships (the per-task sensors cover drill-down).
 
 ## Implementation plan (file-by-file)
 
