@@ -1209,13 +1209,13 @@
         "name": "Сработал"
       },
       "summary_needs_attention": {
-        "name": "Needs attention"
+        "name": "Требует внимания"
       },
       "summary_ok": {
         "name": "ОК"
       },
       "summary_total_tasks": {
-        "name": "Total tasks"
+        "name": "Всего задач"
       }
     },
     "calendar": {

@@ -1209,13 +1209,13 @@
         "name": "Спрацювало"
       },
       "summary_needs_attention": {
-        "name": "Needs attention"
+        "name": "Потребує уваги"
       },
       "summary_ok": {
         "name": "Норма"
       },
       "summary_total_tasks": {
-        "name": "Total tasks"
+        "name": "Усього завдань"
       }
     },
     "calendar": {

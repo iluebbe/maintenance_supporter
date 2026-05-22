@@ -1209,13 +1209,13 @@
         "name": "Wyzwolone"
       },
       "summary_needs_attention": {
-        "name": "Needs attention"
+        "name": "Wymaga uwagi"
       },
       "summary_ok": {
         "name": "OK"
       },
       "summary_total_tasks": {
-        "name": "Total tasks"
+        "name": "Łącznie zadań"
       }
     },
     "calendar": {
