@@ -19,6 +19,7 @@ from ..const import (
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
     SIGNAL_NEW_OBJECT_ENTRY,
+    SIGNAL_OBJECT_ENTRY_REMOVED,
 )
 from ..helpers.aggregate import (
     compute_status_counts,
@@ -41,7 +42,7 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=None,
         )
         self._unsubs: list[CALLBACK_TYPE] = []
-        self._attached: set[str] = set()
+        self._attached: dict[str, CALLBACK_TYPE] = {}
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Recompute counts from the shared aggregator (single source)."""
@@ -56,6 +57,11 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._unsubs.append(
             async_dispatcher_connect(
                 self.hass, SIGNAL_NEW_OBJECT_ENTRY, self._on_new_entry
+            )
+        )
+        self._unsubs.append(
+            async_dispatcher_connect(
+                self.hass, SIGNAL_OBJECT_ENTRY_REMOVED, self._on_removed
             )
         )
         # Trigger activation/deactivation updates a task's _status in place but
@@ -73,13 +79,22 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         rd = get_runtime_data(self.hass, entry_id)
         if rd and rd.coordinator:
-            self._unsubs.append(rd.coordinator.async_add_listener(self._schedule))
-            self._attached.add(entry_id)
+            self._attached[entry_id] = rd.coordinator.async_add_listener(
+                self._schedule
+            )
 
     @callback
     def _on_new_entry(self, entry_id: str) -> None:
         """A new object entry was set up — attach and recompute."""
         self._attach_entry(entry_id)
+        self._schedule()
+
+    @callback
+    def _on_removed(self, entry_id: str) -> None:
+        """An object entry was deleted — detach its listener and recompute."""
+        unsub = self._attached.pop(entry_id, None)
+        if unsub is not None:
+            unsub()
         self._schedule()
 
     @callback
@@ -95,6 +110,8 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def async_teardown_listeners(self) -> None:
         """Detach all listeners (called on global entry unload)."""
         for unsub in self._unsubs:
+            unsub()
+        for unsub in self._attached.values():
             unsub()
         self._unsubs.clear()
         self._attached.clear()
