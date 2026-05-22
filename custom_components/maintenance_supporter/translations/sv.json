@@ -1209,13 +1209,13 @@
         "name": "Utlöst"
       },
       "summary_needs_attention": {
-        "name": "Needs attention"
+        "name": "Behöver åtgärd"
       },
       "summary_ok": {
         "name": "OK"
       },
       "summary_total_tasks": {
-        "name": "Total tasks"
+        "name": "Totalt antal uppgifter"
       }
     },
     "calendar": {

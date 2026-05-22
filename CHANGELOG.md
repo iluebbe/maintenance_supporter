@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.4.3] - 2026-05-22
+
+### 🌐 i18n: localized summary sensor names in six more languages
+
+The `Needs attention` and `Total tasks` summary-sensor names still fell back to English on **Czech, Polish, Portuguese, Russian, Swedish, and Ukrainian** installs (the other languages were already translated in 2.4.0). They're now localized — `sensor.maintenance_supporter_needs_attention` and `sensor.maintenance_supporter_total_tasks` show translated friendly names everywhere.
+
 ## [2.4.2] - 2026-05-22
 
 ### 🐛 Summary sensors update immediately when an object is deleted

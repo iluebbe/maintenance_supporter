@@ -1209,13 +1209,13 @@
         "name": "Acionado"
       },
       "summary_needs_attention": {
-        "name": "Needs attention"
+        "name": "Requer Atenção"
       },
       "summary_ok": {
         "name": "OK"
       },
       "summary_total_tasks": {
-        "name": "Total tasks"
+        "name": "Total de Tarefas"
       }
     },
     "calendar": {
