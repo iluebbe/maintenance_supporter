@@ -164,6 +164,32 @@ async def test_zero_objects_all_zero(
     assert summary.data["overdue"] == 0
 
 
+async def test_object_removal_updates_counts(
+    hass: HomeAssistant, global_config_entry: MockConfigEntry
+) -> None:
+    """Deleting an object refreshes the summary counts immediately.
+
+    The coordinator listens for SIGNAL_OBJECT_ENTRY_REMOVED (dispatched from
+    async_remove_entry), so counts don't stay stale until the next event.
+    """
+    e_overdue = _obj_entry(hass, "Over", "ms_rm_over", last_performed_days=60)
+    await setup_integration(hass, global_config_entry, e_overdue)
+
+    summary = global_config_entry.runtime_data.summary_coordinator
+    assert summary is not None
+    await summary.async_refresh()
+    assert summary.data["overdue"] == 1
+    assert summary.data["total_objects"] == 1
+    assert e_overdue.entry_id in summary._attached
+
+    await hass.config_entries.async_remove(e_overdue.entry_id)
+    await hass.async_block_till_done()
+
+    assert summary.data["overdue"] == 0
+    assert summary.data["total_objects"] == 0
+    assert e_overdue.entry_id not in summary._attached
+
+
 @pytest.mark.parametrize(
     ("key", "expected"),
     [

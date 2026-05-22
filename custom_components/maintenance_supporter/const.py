@@ -357,6 +357,7 @@ class TriggerEntityState(StrEnum):
 # --- Dispatcher Signals ---
 SIGNAL_TASK_RESET = f"{DOMAIN}_task_reset_{{entry_id}}_{{task_id}}"
 SIGNAL_NEW_OBJECT_ENTRY = f"{DOMAIN}_new_object_entry"
+SIGNAL_OBJECT_ENTRY_REMOVED = f"{DOMAIN}_object_entry_removed"
 
 # --- Trigger Completion Cooldown ---
 TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes

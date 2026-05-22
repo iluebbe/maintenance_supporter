@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.4.2] - 2026-05-22
+
+### 🐛 Summary sensors update immediately when an object is deleted
+
+Deleting a maintenance object left the global summary sensors showing the old counts until the next status event or a restart — and deleting the *last* object left them stale until restart. The summary coordinator listened for object *additions* and per-object updates but not removals; it now also reacts to entry removal (a new `SIGNAL_OBJECT_ENTRY_REMOVED` dispatched from `async_remove_entry`), recomputing instantly and detaching the removed object's listener. The panel KPI chips were always correct (they recompute live per request); this aligns the entities — and the dashboard-strategy headline that reads them — with the panel. Pinned with a regression test.
+
 ## [2.4.1] - 2026-05-21
 
 ### 🐛 Stable, language-independent summary-sensor entity IDs

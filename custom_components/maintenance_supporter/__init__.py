@@ -46,6 +46,7 @@ from .const import (
     SERVICE_RESET,
     SERVICE_SKIP,
     SIGNAL_NEW_OBJECT_ENTRY,
+    SIGNAL_OBJECT_ENTRY_REMOVED,
 )
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
@@ -825,6 +826,12 @@ async def async_remove_entry(
 
     cleanup_group_refs(hass, entry_id=entry.entry_id)
     _LOGGER.debug("Removed store for entry %s", entry.entry_id)
+    # The global summary coordinator has no listener for entry removal, so tell
+    # it to drop this object from its counts immediately (otherwise the summary
+    # sensors stay stale until the next event or a restart).
+    from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+    async_dispatcher_send(hass, SIGNAL_OBJECT_ENTRY_REMOVED, entry.entry_id)
 
 
 async def async_remove_config_entry_device(
