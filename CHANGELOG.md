@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.6.2] - 2026-05-23
+
+### 🐛 Monthly/yearly interval reset to "days" on edit (#58)
+
+A task set to a **weeks / months / years** interval (or a one-time `due_date`) was silently reset to **days** as soon as its dialog was reopened and saved — and its next-due date was recomputed wrongly (e.g. a half-yearly task showing "due in 12 days"). The WebSocket response builder (`_build_task_summary`) didn't echo `interval_unit` or `due_date`, so the task dialog hydrated them as empty → "days" and the next save overwrote the real schedule. Both fields are now included in the response. This is the same class of bug as #50; the field-audit tripwire test has been extended to cover `interval_unit` and `due_date` so it can't regress again.
+
 ## [2.6.1] - 2026-05-23
 
 ### 🐛 Sensor attributes for one-time tasks + interval units
