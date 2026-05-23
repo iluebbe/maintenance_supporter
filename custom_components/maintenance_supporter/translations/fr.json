@@ -1054,7 +1054,10 @@
             }
           },
           "interval_days": {
-            "name": "Intervalle (jours)"
+            "name": "Intervalle"
+          },
+          "interval_unit": {
+            "name": "Unité d'intervalle"
           },
           "warning_days": {
             "name": "Jours d'avertissement"
@@ -1245,6 +1248,9 @@
               "completion": "À partir de l'achèvement",
               "planned": "À partir de la date prévue"
             }
+          },
+          "due_date": {
+            "name": "Date d'échéance"
           }
         }
       },

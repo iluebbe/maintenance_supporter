@@ -92,6 +92,37 @@ async def test_basic_attributes(
     assert attrs["parent_object"] == "Test Object"
 
 
+async def test_interval_unit_attribute(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """A non-default interval_unit (months) is exposed as a sensor attribute."""
+    task = build_task_data(
+        task_id=TASK_ID_1, last_performed="2026-01-15", interval_days=3
+    )
+    task["interval_unit"] = "months"
+    obj_entry = _make_entry(hass, task, unique_id="interval_unit_attrs")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    attrs = _get_sensor_state(hass, obj_entry).attributes
+    assert attrs["interval_days"] == 3
+    assert attrs["interval_unit"] == "months"
+
+
+async def test_one_time_due_date_attribute(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """A one-time task exposes its schedule_type and due_date as attributes."""
+    task = build_task_data(task_id=TASK_ID_1, interval_days=30)
+    task["schedule_type"] = ScheduleType.ONE_TIME
+    task["due_date"] = "2026-09-01"
+    obj_entry = _make_entry(hass, task, unique_id="due_date_attrs")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    attrs = _get_sensor_state(hass, obj_entry).attributes
+    assert attrs["schedule_type"] == "one_time"
+    assert attrs["due_date"] == "2026-09-01"
+
+
 async def test_times_performed_and_cost(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

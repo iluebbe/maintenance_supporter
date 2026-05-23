@@ -1054,7 +1054,10 @@
             }
           },
           "interval_days": {
-            "name": "Interwał (dni)"
+            "name": "Interwał"
+          },
+          "interval_unit": {
+            "name": "Jednostka interwału"
           },
           "warning_days": {
             "name": "Dni ostrzeżenia"
@@ -1245,6 +1248,9 @@
               "completion": "Od ukończenia",
               "planned": "Od planowanej daty"
             }
+          },
+          "due_date": {
+            "name": "Termin"
           }
         }
       },

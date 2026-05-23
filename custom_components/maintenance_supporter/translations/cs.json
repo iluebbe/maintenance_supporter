@@ -1054,7 +1054,10 @@
             }
           },
           "interval_days": {
-            "name": "Interval (dny)"
+            "name": "Interval"
+          },
+          "interval_unit": {
+            "name": "Jednotka intervalu"
           },
           "warning_days": {
             "name": "Dny upozornění"
@@ -1245,6 +1248,9 @@
               "completion": "Od dokončení",
               "planned": "Od plánovaného data"
             }
+          },
+          "due_date": {
+            "name": "Termín"
           }
         }
       },

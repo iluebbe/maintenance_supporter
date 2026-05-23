@@ -238,7 +238,9 @@ Coordinator refresh (every 5 min)
       ├─ If trigger_active → TRIGGERED
       ├─ Compute days_until_due = next_due - today
       │   (next_due anchor = last_performed if set, else created_at,
-      │    else today; + interval_days)
+      │    else today; + interval via add_interval() — days/weeks/months/years,
+      │    calendar-aware. one_time: next_due = due_date until completed,
+      │    then archived (is_done, no next_due))
       │   ├─ days < 0 → OVERDUE
       │   ├─ days <= warning_days → DUE_SOON
       │   └─ else → OK
