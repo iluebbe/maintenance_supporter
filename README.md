@@ -541,6 +541,32 @@ The integration also exposes **aggregate count sensors** on a global *Maintenanc
 
 They update live and are the **same numbers** the panel KPI chips and the dashboard-strategy headline show — one shared aggregator, so they never drift.
 
+### Action buttons
+
+Each task also exposes **action buttons** on its object device, so you can act on a task straight from a dashboard, chip, or bubble-card pop-up — the same actions the panel performs:
+
+| Entity | Action |
+|---|---|
+| `button.<object>_<task>_complete` | Mark the task done (logs a completion) |
+| `button.<object>_<task>_skip` | Skip the current cycle |
+| `button.<object>_<task>_reset` | Reset the task's schedule |
+
+(Entity IDs follow the same per-task naming as the sensors, e.g. `button.family_car_oil_change_complete`.) Buttons for disabled (paused) tasks are unavailable, and every press runs through the same logic as the `maintenance_supporter.complete` / `skip` / `reset` services — so a dashboard tap behaves exactly like the panel.
+
+To export your data, use the **`maintenance_supporter.export_data`** action (service) — it writes a JSON/YAML file to your Home Assistant config folder. (Export isn't a button entity: a button runs on the server and can't trigger a browser download.)
+
+Example — a ChoreOps-style row with status + a complete button:
+
+```yaml
+type: horizontal-stack
+cards:
+  - type: entity
+    entity: sensor.family_car_oil_change
+  - type: button
+    entity: button.family_car_oil_change_complete
+    name: Done
+```
+
 ### Template Sensor: Count Overdue Tasks
 
 > Prefer the native `sensor.maintenance_supporter_overdue` above. The template below is only for a *custom* count the summary sensors don't expose (e.g. a single object, or a specific status combination):

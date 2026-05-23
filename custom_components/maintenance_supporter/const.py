@@ -17,7 +17,12 @@ def slugify_object_name(name: str) -> str:
     consecutive underscores, and strips leading/trailing underscores.
     """
     return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", name.lower())).strip("_")
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.CALENDAR]
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.CALENDAR,
+]
 
 # --- Unique IDs ---
 GLOBAL_UNIQUE_ID = "maintenance_supporter_global"
@@ -286,6 +291,8 @@ SERVICE_COMPLETE = "complete"
 SERVICE_RESET = "reset"
 SERVICE_SKIP = "skip"
 SERVICE_EXPORT = "export_data"
+SERVICE_ADD_OBJECT = "add_object"
+SERVICE_ADD_TASK = "add_task"
 
 
 class MaintenanceStatus(StrEnum):

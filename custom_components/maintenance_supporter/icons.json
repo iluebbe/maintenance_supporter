@@ -1,5 +1,10 @@
 {
   "entity": {
+    "button": {
+      "button_complete": { "default": "mdi:check-circle" },
+      "button_skip": { "default": "mdi:skip-next" },
+      "button_reset": { "default": "mdi:restore" }
+    },
     "sensor": {
       "maintenance_task": {
         "default": "mdi:wrench",

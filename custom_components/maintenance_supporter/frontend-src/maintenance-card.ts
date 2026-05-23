@@ -12,6 +12,11 @@ import type {
 } from "./types";
 import "./maintenance-card-editor";
 import "./components/complete-dialog";
+import {
+  openCreateObjectDialog,
+  openCreateTaskDialog,
+  openTaskQuickActions,
+} from "./dialog-mount";
 
 interface FlatTask {
   entry_id: string;
@@ -177,22 +182,12 @@ export class MaintenanceSupporterCard extends LitElement {
     await this._loadData();
   };
 
-  /** v2.x: open the task editor on row click. Dispatches the same
-   *  ``ll-custom`` event the calendar card uses; the strategy bundle's
-   *  document-level handler turns it into an in-place dialog mount, falling
-   *  back to a panel deep-link when no <home-assistant>.hass is around. */
+  /** Open the per-task quick-actions dialog (Complete / Skip / Reset / Edit /
+   *  QR / Delete) — full per-task panel parity. Mounted on document.body via
+   *  the shared dialog-mount helper, so the card works on any dashboard
+   *  without depending on the strategy bundle's ll-custom handler. */
   private _openTaskDetail(entryId: string, taskId: string): void {
-    this.dispatchEvent(
-      new CustomEvent("ll-custom", {
-        detail: {
-          type: "maintenance-supporter:open-task",
-          entry_id: entryId,
-          task_id: taskId,
-        },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    openTaskQuickActions(entryId, taskId);
   }
 
   render() {
@@ -208,15 +203,35 @@ export class MaintenanceSupporterCard extends LitElement {
       <ha-card>
         <div class="card-header">
           <h1>${title}</h1>
-          ${showHeader && s
-            ? html`
-                <div class="header-stats">
-                  ${s.overdue > 0 ? html`<span class="badge overdue">${s.overdue}</span>` : nothing}
-                  ${s.due_soon > 0 ? html`<span class="badge due_soon">${s.due_soon}</span>` : nothing}
-                  ${s.triggered > 0 ? html`<span class="badge triggered">${s.triggered}</span>` : nothing}
-                </div>
-              `
-            : nothing}
+          <div class="header-right">
+            ${showHeader && s
+              ? html`
+                  <div class="header-stats">
+                    ${s.overdue > 0 ? html`<span class="badge overdue">${s.overdue}</span>` : nothing}
+                    ${s.due_soon > 0 ? html`<span class="badge due_soon">${s.due_soon}</span>` : nothing}
+                    ${s.triggered > 0 ? html`<span class="badge triggered">${s.triggered}</span>` : nothing}
+                  </div>
+                `
+              : nothing}
+            ${showActions
+              ? html`
+                  <mwc-icon-button
+                    class="hdr-add"
+                    title="${t("new_object", L)}"
+                    @click=${() => openCreateObjectDialog()}
+                  >
+                    <ha-icon icon="mdi:plus-box"></ha-icon>
+                  </mwc-icon-button>
+                  <mwc-icon-button
+                    class="hdr-add"
+                    title="${t("add_task", L)}"
+                    @click=${() => openCreateTaskDialog()}
+                  >
+                    <ha-icon icon="mdi:playlist-plus"></ha-icon>
+                  </mwc-icon-button>
+                `
+              : nothing}
+          </div>
         </div>
         ${tasks.length === 0
           ? html`<div class="empty-card">
@@ -294,7 +309,13 @@ export class MaintenanceSupporterCard extends LitElement {
       }
 
       .card-header h1 { margin: 0; font-size: 18px; font-weight: 500; }
+      .header-right { display: flex; align-items: center; gap: 6px; }
       .header-stats { display: flex; gap: 6px; }
+      .hdr-add {
+        --mdc-icon-button-size: 32px;
+        --mdc-icon-size: 20px;
+        color: var(--primary-color);
+      }
 
       .badge {
         display: inline-flex;

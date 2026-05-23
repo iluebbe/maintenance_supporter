@@ -87,6 +87,9 @@ Cross-object KPI counts (overdue / due_soon / triggered / needs_attention / ok /
 
 The summary coordinator never polls: it recomputes when any object coordinator updates, when a new object entry appears (`SIGNAL_NEW_OBJECT_ENTRY`), or when a trigger flips (`EVENT_TRIGGER_ACTIVATED` / `EVENT_TRIGGER_DEACTIVATED`) — mirroring the live-update path of `maintenance_supporter/subscribe`. Counts read each task's coordinator-computed `_status` (disabled tasks are already forced to `ok`), so the entities, panel chips, and strategy headline always show identical numbers.
 
+### Action Buttons (single action layer)
+Per-task `button.*` entities (complete / skip / reset) live on each object device, plus a global export button on the hub. They add **no new logic**: `async_press` calls the same `coordinator.complete_/skip_/reset_maintenance` methods used by the `maintenance_supporter.*` services and the mobile-notification actions — one action layer behind three front-ends (services, notifications, buttons). Task-deletion cleanup removes every per-task entity (sensor / binary_sensor / buttons) by matching the task UUID inside the `unique_id`, so no platform-specific list needs maintaining.
+
 ### Event-Driven + Periodic Hybrid
 Trigger sensors update immediately via HA state_change events, but the coordinator still refreshes periodically to:
 - Catch time-based status transitions

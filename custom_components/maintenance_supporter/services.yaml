@@ -88,3 +88,102 @@ export_data:
       default: true
       selector:
         boolean:
+
+add_object:
+  name: Add Object
+  description: Create a new maintenance object (device). Returns the new entry_id.
+  fields:
+    name:
+      name: Name
+      description: Name of the object/device.
+      required: true
+      selector:
+        text:
+    area_id:
+      name: Area
+      description: Area to assign the device to.
+      selector:
+        area:
+    manufacturer:
+      name: Manufacturer
+      selector:
+        text:
+    model:
+      name: Model
+      selector:
+        text:
+    serial_number:
+      name: Serial number
+      selector:
+        text:
+    installation_date:
+      name: Installation date
+      selector:
+        date:
+    documentation_url:
+      name: Documentation URL
+      description: Link to a manual or vendor page (http/https only).
+      selector:
+        text:
+    notes:
+      name: Notes
+      selector:
+        text:
+          multiline: true
+
+add_task:
+  name: Add Task
+  description: Add a maintenance task to an existing object. Returns the new task_id.
+  fields:
+    entry_id:
+      name: Object
+      description: The maintenance object to add the task to.
+      required: true
+      selector:
+        config_entry:
+          integration: maintenance_supporter
+    name:
+      name: Name
+      description: Name of the task.
+      required: true
+      selector:
+        text:
+    task_type:
+      name: Task type
+      description: Free-form category (e.g. inspection, service, custom).
+      selector:
+        text:
+    schedule_type:
+      name: Schedule type
+      description: "time_based (interval) or sensor_based. Default: time_based."
+      selector:
+        text:
+    interval_days:
+      name: Interval (days)
+      description: Days between occurrences (for time-based tasks).
+      selector:
+        number:
+          min: 1
+          max: 3650
+          step: 1
+          mode: box
+    warning_days:
+      name: Warning (days)
+      description: Days before due to enter the due-soon window.
+      default: 7
+      selector:
+        number:
+          min: 0
+          max: 365
+          step: 1
+          mode: box
+    enabled:
+      name: Enabled
+      default: true
+      selector:
+        boolean:
+    notes:
+      name: Notes
+      selector:
+        text:
+          multiline: true

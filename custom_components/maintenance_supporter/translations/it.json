@@ -975,6 +975,17 @@
     }
   },
   "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Completa"
+      },
+      "button_skip": {
+        "name": "{task_name} Salta"
+      },
+      "button_reset": {
+        "name": "{task_name} Reimposta"
+      }
+    },
     "sensor": {
       "maintenance_task": {
         "name": "{task_name}",

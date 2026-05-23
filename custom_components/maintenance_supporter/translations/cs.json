@@ -975,6 +975,17 @@
     }
   },
   "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Dokončit"
+      },
+      "button_skip": {
+        "name": "{task_name} Přeskočit"
+      },
+      "button_reset": {
+        "name": "{task_name} Resetovat"
+      }
+    },
     "sensor": {
       "maintenance_task": {
         "name": "{task_name}",

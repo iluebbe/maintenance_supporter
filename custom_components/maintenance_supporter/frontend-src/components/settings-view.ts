@@ -1048,6 +1048,7 @@ export class MaintenanceSettingsView extends LitElement {
         </div>
         <div class="settings-actions">
           <button @click=${this._exportJson}>${t("settings_export_json", L)}</button>
+          <button @click=${this._exportYaml}>${t("settings_export_yaml", L)}</button>
           <button @click=${this._exportCsv}>${t("settings_export_csv", L)}</button>
         </div>
         <div class="import-section">
@@ -1083,6 +1084,21 @@ export class MaintenanceSettingsView extends LitElement {
     }
   }
 
+  private async _exportYaml(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/export",
+        format: "yaml",
+        include_history: this._includeHistory,
+      }) as { data: string };
+      const ts = new Date().toISOString().slice(0, 10);
+      this._downloadFile(result.data, `maintenance_export_${ts}.yaml`, "application/yaml");
+      this._showToast(t("settings_export_success", this._lang));
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
   private async _exportCsv(): Promise<void> {
     try {
       const result = await this.hass.connection.sendMessagePromise({
@@ -1101,11 +1117,14 @@ export class MaintenanceSettingsView extends LitElement {
     if (!content) return;
     this._importLoading = true;
     try {
-      const isJson = content.startsWith("{") || content.startsWith("[");
+      // CSV exports start with the "object_name" header; anything else
+      // (JSON `{`/`[` or YAML `version:`) goes to the structured importer,
+      // which parses JSON and YAML alike.
+      const isCsv = content.startsWith("object_name");
       const result = await this.hass.connection.sendMessagePromise(
-        isJson
-          ? { type: "maintenance_supporter/json/import", json_content: content }
-          : { type: "maintenance_supporter/csv/import", csv_content: content }
+        isCsv
+          ? { type: "maintenance_supporter/csv/import", csv_content: content }
+          : { type: "maintenance_supporter/json/import", json_content: content }
       ) as { created: number };
       const count = result.created ?? 0;
       this._showToast(t("settings_import_success", this._lang).replace("{count}", String(count)));

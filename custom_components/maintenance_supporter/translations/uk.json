@@ -975,6 +975,17 @@
     }
   },
   "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Виконати"
+      },
+      "button_skip": {
+        "name": "{task_name} Пропустити"
+      },
+      "button_reset": {
+        "name": "{task_name} Скинути"
+      }
+    },
     "sensor": {
       "maintenance_task": {
         "name": "{task_name}",
