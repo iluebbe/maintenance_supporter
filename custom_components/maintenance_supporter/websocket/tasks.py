@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
@@ -19,6 +20,7 @@ from ..const import (
     CONF_OBJECT_NAME,
     CONF_TASKS,
     DOMAIN,
+    GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_DATE_LENGTH,
@@ -270,6 +272,99 @@ def _validate_compound_trigger(
 # ---------------------------------------------------------------------------
 
 
+async def async_persist_task(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    task_data: dict[str, Any],
+    *,
+    last_performed: str | None = None,
+    history: list[dict[str, Any]] | None = None,
+) -> None:
+    """Persist a freshly-built task into an object entry and reload it.
+
+    Shared by the ``task/create`` WS command and the ``add_task`` service
+    (DRY): updates ConfigEntry.data + the object's task_ids, initializes the
+    Store dynamic state, and reloads the entry so the task's entities
+    (sensor / binary_sensor / buttons) are created.
+    """
+    task_id = task_data["id"]
+    new_data = dict(entry.data)
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    new_tasks[task_id] = task_data
+    new_data[CONF_TASKS] = new_tasks
+
+    obj = dict(new_data.get(CONF_OBJECT, {}))
+    task_ids = list(obj.get("task_ids", []))
+    task_ids.append(task_id)
+    obj["task_ids"] = task_ids
+    new_data[CONF_OBJECT] = obj
+
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    if store is not None:
+        store.init_task(task_id, last_performed=last_performed)
+        if history:
+            store.set_history(task_id, history)
+        await store.async_save()
+    else:
+        # Legacy: dynamic fields live in ConfigEntry.data
+        task_data["last_performed"] = last_performed
+        task_data["history"] = history or []
+        new_tasks[task_id] = task_data
+        new_data[CONF_TASKS] = new_tasks
+        hass.config_entries.async_update_entry(entry, data=new_data)
+
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_create_task_simple(
+    hass: HomeAssistant,
+    *,
+    entry_id: str,
+    name: str,
+    task_type: str = "custom",
+    schedule_type: str = "time_based",
+    interval_days: int | None = None,
+    warning_days: int = 7,
+    enabled: bool = True,
+    notes: str | None = None,
+) -> str:
+    """Create a task with the common fields and persist it; return task_id.
+
+    The service-facing creation path — a focused subset of ws_create_task's
+    field set — sharing :func:`async_persist_task` with the WS handler (DRY).
+    For the full field set (triggers, checklists, completion actions, …) use
+    the panel / card dialogs or the ``task/create`` WS command.
+
+    Raises ValueError if the entry_id is not a maintenance object or the name
+    is empty.
+    """
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+        raise ValueError(f"No maintenance object found for entry_id {entry_id!r}")
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("Name must not be empty")
+    task_data: dict[str, Any] = {
+        "id": uuid4().hex,
+        "object_id": entry.data.get(CONF_OBJECT, {}).get("id", ""),
+        "name": name,
+        "type": task_type,
+        "enabled": enabled,
+        "schedule_type": schedule_type,
+        "warning_days": warning_days,
+        "created_at": dt_util.now().date().isoformat(),
+    }
+    if interval_days is not None:
+        task_data["interval_days"] = interval_days
+    if notes:
+        task_data["notes"] = notes
+    await async_persist_task(hass, entry, task_data)
+    return task_data["id"]
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/create",
@@ -426,38 +521,13 @@ async def ws_create_task(
         connection.send_result(msg["id"], result)
         return
 
-    new_data = dict(entry.data)
-    new_tasks = dict(new_data.get(CONF_TASKS, {}))
-    new_tasks[task_id] = task_data
-    new_data[CONF_TASKS] = new_tasks
-
-    # Update task_ids on object
-    obj = dict(new_data.get(CONF_OBJECT, {}))
-    task_ids = list(obj.get("task_ids", []))
-    task_ids.append(task_id)
-    obj["task_ids"] = task_ids
-    new_data[CONF_OBJECT] = obj
-
-    hass.config_entries.async_update_entry(entry, data=new_data)
-
-    # Initialize dynamic state in Store
-    rd = _get_runtime_data(hass, entry.entry_id)
-    store = getattr(rd, "store", None) if rd else None
-    if store is not None:
-        store.init_task(task_id, last_performed=initial_last_performed)
-        if initial_history:
-            store.set_history(task_id, initial_history)
-        await store.async_save()
-    else:
-        # Legacy: put dynamic fields in ConfigEntry.data
-        task_data["last_performed"] = initial_last_performed
-        task_data["history"] = initial_history
-        new_tasks[task_id] = task_data
-        new_data[CONF_TASKS] = new_tasks
-        hass.config_entries.async_update_entry(entry, data=new_data)
-
-    # Reload entry to pick up new task entities
-    await hass.config_entries.async_reload(entry.entry_id)
+    await async_persist_task(
+        hass,
+        entry,
+        task_data,
+        last_performed=initial_last_performed,
+        history=initial_history,
+    )
 
     result = {"task_id": task_id}
     if tc_warnings:
@@ -677,13 +747,13 @@ async def ws_delete_task(
     if nm is not None:
         nm.clear_task_state(entry.entry_id, task_id)
 
-    # Remove orphaned entity registry entries for the deleted task
+    # Remove orphaned entity registry entries for the deleted task. Match any
+    # per-task entity — sensor (`_{task_id}`), binary_sensor (`_{task_id}_overdue`),
+    # action buttons (`_{task_id}_complete/skip/reset`) and any future platform.
+    # task_id is a UUID, so the contained-segment check is unambiguous.
     ent_reg = er.async_get(hass)
     for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
-        if ent_entry.unique_id and (
-            ent_entry.unique_id.endswith(f"_{task_id}")
-            or ent_entry.unique_id.endswith(f"_{task_id}_overdue")
-        ):
+        if ent_entry.unique_id and f"_{task_id}" in ent_entry.unique_id:
             ent_reg.async_remove(ent_entry.entity_id)
 
     # Clean up group references

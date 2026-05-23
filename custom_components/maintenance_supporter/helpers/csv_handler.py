@@ -119,7 +119,9 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     # starting with "=" can't trigger a formula in Excel after
                     # the cell is unpacked.
                     "checklist": "\n".join(
-                        _csv_safe(item) for item in tdata.get("checklist", []) if item
+                        _csv_safe(item)
+                        for item in (tdata.get("checklist") or [])
+                        if item
                     ),
                 }
             )

@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.5.0] - 2026-05-23
+
+### ✨ Action buttons — act on tasks from any dashboard (#49)
+
+Each task now exposes **action buttons** on its object device — `button.<object>_<task>_complete`, `_skip`, `_reset` — so you can complete/skip/reset a task from a chip, tile, or bubble-card pop-up without opening the panel. They run through the same coordinator action layer as the services and mobile-notification actions (no duplicated logic), and a disabled (paused) task's buttons are unavailable. For data entry (cost/notes), use the card's ✓ or the panel — a button entity completes one-tap.
+
+### ✨ Lovelace card: add / edit / delete (panel parity)
+
+The card gained **+ Object** and **+ Task** header buttons, and tapping a task row opens quick-actions (Complete / Skip / Reset / Edit / QR / Delete) — reusing the panel's existing dialogs, so a dashboard can now do day-to-day management without the panel.
+
+### ✨ Create services: `add_object` and `add_task`
+
+New `maintenance_supporter.add_object` / `add_task` actions for automations and scripts; both return the new `entry_id` / `task_id` so you can chain them. They share the object/task creation path with the WebSocket commands (DRY).
+
+### ✨ YAML export & import are now first-class
+
+Added a **YAML export** button next to JSON and CSV, and the importer now accepts YAML as well as JSON — so every format (JSON / YAML / CSV) round-trips.
+
+### 🐛 Export fixes
+
+- **CSV export** crashed (`TypeError` → "action failed, try again") when a task had no checklist (`checklist: null`); `.get("checklist", [])` returned `None`, which the CSV writer iterated. Fixed across CSV and JSON/YAML export.
+- **YAML export** crashed (`RepresenterError`) on data the JSON path coerced (e.g. tuples). YAML now normalizes through JSON first, so it works whenever JSON does.
+
 ## [2.4.3] - 2026-05-22
 
 ### 🌐 i18n: localized summary sensor names in six more languages

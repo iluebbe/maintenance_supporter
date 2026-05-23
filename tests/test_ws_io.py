@@ -200,6 +200,101 @@ async def test_export_csv_empty(
     assert "object_name" in result["csv"]
 
 
+async def test_export_handles_null_checklist(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Export must not crash when a task has checklist/history = None.
+
+    Regression: a task created without a checklist persists ``checklist: None``
+    (key present, value null), so ``.get("checklist", [])`` returns None and CSV
+    export iterated it → ``TypeError`` ("action failed, try again"). Pins both
+    the CSV path (iterates) and the JSON path (was emitting null).
+    """
+    task = {**build_task_data(), "checklist": None, "history": None}
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Null Checklist",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_null_checklist",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    # CSV export — the path that crashed.
+    conn = _mock_connection()
+    await call_ws_handler(ws_export_csv, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/csv/export",
+    })
+    conn.send_error.assert_not_called()
+    conn.send_result.assert_called_once()
+    assert "object_name" in conn.send_result.call_args[0][1]["csv"]
+
+    # JSON export — must succeed too (checklist normalized to []).
+    conn = _mock_connection()
+    await call_ws_handler(ws_export_data, hass, conn, {
+        "id": 2, "type": "maintenance_supporter/export", "format": "json",
+    })
+    conn.send_error.assert_not_called()
+    conn.send_result.assert_called_once()
+    assert "data" in conn.send_result.call_args[0][1]
+
+    # YAML export — must succeed too.
+    conn = _mock_connection()
+    await call_ws_handler(ws_export_data, hass, conn, {
+        "id": 3, "type": "maintenance_supporter/export", "format": "yaml",
+    })
+    conn.send_error.assert_not_called()
+    conn.send_result.assert_called_once()
+    assert "data" in conn.send_result.call_args[0][1]
+
+
+def test_serialize_export_yaml_handles_non_native_types() -> None:
+    """YAML export must handle JSON-serializable-but-not-YAML-safe types.
+
+    Regression: yaml.safe_dump raised RepresenterError on a tuple in the real
+    export data while the JSON path coerced it to a list. Both paths now
+    normalize through JSON, so YAML export works whenever JSON export does.
+    """
+    import yaml
+
+    from custom_components.maintenance_supporter.export import serialize_export
+
+    data = {"version": 1, "objects": [{"name": "X", "weird": (1, 2, 3)}]}
+    # JSON path coerces the tuple to a list (works today).
+    assert "weird" in serialize_export(data, "json")
+    # YAML path must no longer crash and must round-trip the value as a list.
+    parsed = yaml.safe_load(serialize_export(data, "yaml"))
+    assert parsed["objects"][0]["weird"] == [1, 2, 3]
+
+
+async def test_yaml_export_import_roundtrip(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Export to YAML, then import that YAML back — first-class YAML round-trip.
+
+    Pins the option-3 contract: the structured importer (json/import) accepts
+    YAML as well as JSON, so every export format round-trips.
+    """
+    await setup_integration(hass, global_entry, object_entry)
+
+    conn = _mock_connection()
+    await call_ws_handler(ws_export_data, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/export", "format": "yaml",
+    })
+    yaml_content = conn.send_result.call_args[0][1]["data"]
+    assert "objects:" in yaml_content  # sanity: it really is YAML
+
+    conn = _mock_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 2, "type": "maintenance_supporter/json/import",
+        "json_content": yaml_content,
+    })
+    conn.send_error.assert_not_called()
+    assert conn.send_result.call_args[0][1].get("created", 0) >= 1
+
+
 # ─── ws_import_csv ───────────────────────────────────────────────────────
 
 
@@ -596,7 +691,8 @@ async def test_import_json_invalid_json(
     })
 
     conn.send_error.assert_called_once()
-    assert conn.send_error.call_args[0][1] == "invalid_json"
+    # Importer accepts JSON or YAML now; unparseable content → invalid_format.
+    assert conn.send_error.call_args[0][1] == "invalid_format"
 
 
 async def test_import_json_missing_objects_key(

@@ -202,6 +202,30 @@ async def ws_import_csv(
     connection.send_result(msg["id"], resp)
 
 
+def _parse_structured(raw: str) -> Any:
+    """Parse JSON *or* YAML export content into a Python object.
+
+    Both formats are accepted so every structured export (JSON and YAML)
+    round-trips back through the importer. Raises ValueError if the content
+    parses to neither a mapping nor a list.
+    """
+    try:
+        return json_mod.loads(raw)
+    except (json_mod.JSONDecodeError, ValueError):
+        pass
+    import yaml  # type: ignore[import-untyped]
+
+    try:
+        loaded = yaml.safe_load(raw)
+    except yaml.YAMLError as err:
+        raise ValueError("not valid JSON or YAML") from err
+    # safe_load returns a bare string/scalar for non-structured text (e.g. a
+    # CSV blob) — require an object/array so those route elsewhere cleanly.
+    if not isinstance(loaded, (dict, list)):
+        raise ValueError("not valid JSON or YAML")
+    return loaded
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/json/import",
@@ -215,16 +239,18 @@ async def ws_import_json(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Import maintenance objects from JSON content (exported by /export)."""
+    """Import maintenance objects from JSON or YAML content (from /export)."""
     raw = msg["json_content"]
     if len(raw) > 10_485_760:
-        connection.send_error(msg["id"], "too_large", "JSON content exceeds 10MB limit")
+        connection.send_error(msg["id"], "too_large", "Content exceeds 10MB limit")
         return
 
     try:
-        data = json_mod.loads(raw)
-    except (json_mod.JSONDecodeError, ValueError):
-        connection.send_error(msg["id"], "invalid_json", "Content is not valid JSON")
+        data = _parse_structured(raw)
+    except ValueError:
+        connection.send_error(
+            msg["id"], "invalid_format", "Content is not valid JSON or YAML"
+        )
         return
 
     if not isinstance(data, dict) or "objects" not in data:

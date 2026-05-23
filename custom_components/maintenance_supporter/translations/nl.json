@@ -975,6 +975,17 @@
     }
   },
   "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Voltooien"
+      },
+      "button_skip": {
+        "name": "{task_name} Overslaan"
+      },
+      "button_reset": {
+        "name": "{task_name} Resetten"
+      }
+    },
     "sensor": {
       "maintenance_task": {
         "name": "{task_name}",

@@ -9,7 +9,13 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID
-from homeassistant.core import Event, HomeAssistant, ServiceCall, callback
+from homeassistant.core import (
+    Event,
+    HomeAssistant,
+    ServiceCall,
+    SupportsResponse,
+    callback,
+)
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import (
     config_validation as cv,
@@ -41,6 +47,8 @@ from .const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     PLATFORMS,
+    SERVICE_ADD_OBJECT,
+    SERVICE_ADD_TASK,
     SERVICE_COMPLETE,
     SERVICE_EXPORT,
     SERVICE_RESET,
@@ -104,6 +112,32 @@ SERVICE_EXPORT_SCHEMA = vol.Schema(
     {
         vol.Optional("format", default="json"): vol.In(["json", "yaml"]),
         vol.Optional("include_history", default=True): cv.boolean,
+    }
+)
+
+SERVICE_ADD_OBJECT_SCHEMA = vol.Schema(
+    {
+        vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=255)),
+        vol.Optional("area_id"): cv.string,
+        vol.Optional("manufacturer"): cv.string,
+        vol.Optional("model"): cv.string,
+        vol.Optional("serial_number"): cv.string,
+        vol.Optional("installation_date"): cv.string,
+        vol.Optional("documentation_url"): cv.string,
+        vol.Optional("notes"): cv.string,
+    }
+)
+
+SERVICE_ADD_TASK_SCHEMA = vol.Schema(
+    {
+        vol.Required("entry_id"): cv.string,
+        vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=255)),
+        vol.Optional("task_type"): cv.string,
+        vol.Optional("schedule_type"): cv.string,
+        vol.Optional("interval_days"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+        vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("enabled"): cv.boolean,
+        vol.Optional("notes"): cv.string,
     }
 )
 
@@ -203,6 +237,50 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             {"format": fmt, "file_path": file_path},
         )
 
+    async def _handle_add_object(call: ServiceCall) -> dict[str, Any] | None:
+        """Handle the add_object service — create a maintenance object."""
+        from .websocket.objects import async_create_object
+        from .websocket.tasks import _is_safe_url
+
+        url = call.data.get("documentation_url")
+        if url and not _is_safe_url(url):
+            raise ServiceValidationError("Only http/https URLs are allowed")
+        try:
+            entry_id = await async_create_object(
+                hass,
+                name=call.data["name"],
+                area_id=call.data.get("area_id"),
+                manufacturer=call.data.get("manufacturer"),
+                model=call.data.get("model"),
+                serial_number=call.data.get("serial_number"),
+                installation_date=call.data.get("installation_date"),
+                documentation_url=url,
+                notes=call.data.get("notes"),
+            )
+        except ValueError as err:
+            raise ServiceValidationError(str(err)) from err
+        return {"entry_id": entry_id} if call.return_response else None
+
+    async def _handle_add_task(call: ServiceCall) -> dict[str, Any] | None:
+        """Handle the add_task service — add a task to an existing object."""
+        from .websocket.tasks import async_create_task_simple
+
+        try:
+            task_id = await async_create_task_simple(
+                hass,
+                entry_id=call.data["entry_id"],
+                name=call.data["name"],
+                task_type=call.data.get("task_type", "custom"),
+                schedule_type=call.data.get("schedule_type", "time_based"),
+                interval_days=call.data.get("interval_days"),
+                warning_days=call.data.get("warning_days", 7),
+                enabled=call.data.get("enabled", True),
+                notes=call.data.get("notes"),
+            )
+        except ValueError as err:
+            raise ServiceValidationError(str(err)) from err
+        return {"task_id": task_id} if call.return_response else None
+
     hass.services.async_register(
         DOMAIN, SERVICE_COMPLETE, _handle_complete, schema=SERVICE_COMPLETE_SCHEMA
     )
@@ -214,6 +292,20 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     )
     hass.services.async_register(
         DOMAIN, SERVICE_EXPORT, _handle_export, schema=SERVICE_EXPORT_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_ADD_OBJECT,
+        _handle_add_object,
+        schema=SERVICE_ADD_OBJECT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_ADD_TASK,
+        _handle_add_task,
+        schema=SERVICE_ADD_TASK_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     # Register WebSocket commands

@@ -975,6 +975,17 @@
     }
   },
   "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Zakończ"
+      },
+      "button_skip": {
+        "name": "{task_name} Pomiń"
+      },
+      "button_reset": {
+        "name": "{task_name} Resetuj"
+      }
+    },
     "sensor": {
       "maintenance_task": {
         "name": "{task_name}",

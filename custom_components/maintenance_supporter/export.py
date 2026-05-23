@@ -51,7 +51,7 @@ def _build_export_object(
             "responsible_user_id": tdata.get("responsible_user_id"),
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),
-            "checklist": tdata.get("checklist", []),
+            "checklist": tdata.get("checklist") or [],
             "status": ct.get("_status", "ok"),
             "days_until_due": ct.get("_days_until_due"),
             "next_due": ct.get("_next_due"),
@@ -65,7 +65,7 @@ def _build_export_object(
             task["trigger_config"] = trigger_config
 
         if include_history:
-            task["history"] = tdata.get("history", [])
+            task["history"] = tdata.get("history") or []
 
         tasks.append(task)
 
@@ -122,7 +122,16 @@ def serialize_export(data: dict[str, Any], fmt: str = "json") -> str:
         try:
             import yaml  # type: ignore[import-untyped]
 
-            return str(yaml.safe_dump(data, default_flow_style=False, allow_unicode=True))
+            # Normalize through JSON first: yaml.safe_dump rejects types the
+            # JSON path coerces (e.g. tuples → lists), so YAML export would
+            # crash on data JSON handles fine. Round-tripping keeps both
+            # formats consistent and YAML-safe.
+            normalized = json.loads(json.dumps(data, ensure_ascii=False))
+            return str(
+                yaml.safe_dump(
+                    normalized, default_flow_style=False, allow_unicode=True
+                )
+            )
         except ImportError:
             _LOGGER.warning("PyYAML not available, falling back to JSON")
             return json.dumps(data, indent=2, ensure_ascii=False)

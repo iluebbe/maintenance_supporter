@@ -84,6 +84,52 @@ async def ws_get_object(
     connection.send_result(msg["id"], _build_object_response(hass, entry, coord_data))
 
 
+async def async_create_object(
+    hass: HomeAssistant,
+    *,
+    name: str,
+    area_id: str | None = None,
+    manufacturer: str | None = None,
+    model: str | None = None,
+    serial_number: str | None = None,
+    installation_date: str | None = None,
+    documentation_url: str | None = None,
+    notes: str | None = None,
+) -> str:
+    """Create a maintenance object (config entry) and return its entry_id.
+
+    Shared creation primitive for the ``object/create`` WS command and the
+    ``add_object`` service (DRY). Inputs are normalized here; callers do their
+    own validation/error reporting (the WS layer keeps its specific error
+    codes). Raises ValueError if the config flow does not create an entry.
+    """
+    data = {
+        CONF_OBJECT: {
+            "id": uuid4().hex,
+            CONF_OBJECT_NAME: name.strip(),
+            CONF_OBJECT_AREA: area_id,
+            CONF_OBJECT_MANUFACTURER: (manufacturer or "").strip() or None,
+            CONF_OBJECT_MODEL: (model or "").strip() or None,
+            CONF_OBJECT_SERIAL_NUMBER: (serial_number or "").strip() or None,
+            CONF_OBJECT_INSTALLATION_DATE: installation_date,
+            CONF_OBJECT_DOCUMENTATION_URL: (documentation_url or "").strip() or None,
+            CONF_OBJECT_NOTES: (
+                notes.strip() if isinstance(notes, str) and notes.strip() else None
+            ),
+            "task_ids": [],
+        },
+        CONF_TASKS: {},
+    }
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "websocket"}, data=data
+    )
+    if result["type"] != "create_entry":
+        raise ValueError(
+            f"Failed to create object: {result.get('reason', 'unknown')}"
+        )
+    return result["result"].entry_id
+
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/object/create",
@@ -143,35 +189,22 @@ async def ws_create_object(
         connection.send_result(msg["id"], {"valid": True, "entry_id": None})
         return
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": "websocket"},
-        data={
-            CONF_OBJECT: {
-                "id": uuid4().hex,
-                CONF_OBJECT_NAME: name,
-                CONF_OBJECT_AREA: msg.get("area_id"),
-                CONF_OBJECT_MANUFACTURER: manufacturer,
-                CONF_OBJECT_MODEL: model,
-                CONF_OBJECT_SERIAL_NUMBER: serial_number,
-                CONF_OBJECT_INSTALLATION_DATE: installation_date,
-                CONF_OBJECT_DOCUMENTATION_URL: documentation_url,
-                CONF_OBJECT_NOTES: notes,
-                "task_ids": [],
-            },
-            CONF_TASKS: {},
-        },
-    )
-
-    if result["type"] == "create_entry":
-        connection.send_result(
-            msg["id"],
-            {"entry_id": result["result"].entry_id},
+    try:
+        entry_id = await async_create_object(
+            hass,
+            name=name,
+            area_id=msg.get("area_id"),
+            manufacturer=manufacturer,
+            model=model,
+            serial_number=serial_number,
+            installation_date=installation_date,
+            documentation_url=documentation_url,
+            notes=notes,
         )
-    else:
-        connection.send_error(
-            msg["id"], "create_failed", f"Failed to create object: {result.get('reason', 'unknown')}"
-        )
+    except ValueError as err:
+        connection.send_error(msg["id"], "create_failed", str(err))
+        return
+    connection.send_result(msg["id"], {"entry_id": entry_id})
 
 
 @websocket_api.websocket_command(
