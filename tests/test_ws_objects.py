@@ -216,6 +216,8 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "enabled": True,
         "schedule_type": "time_based",
         "interval_days": 30,
+        "interval_unit": "months",
+        "due_date": "2026-09-01",
         "interval_anchor": "planned",
         "warning_days": 5,
         "last_performed": "2025-12-01",
@@ -265,7 +267,8 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
     # excluded from the response.)
     expected_persisted_fields = [
         "id", "name", "type", "enabled", "schedule_type",
-        "interval_days", "interval_anchor", "warning_days",
+        "interval_days", "interval_unit", "due_date",
+        "interval_anchor", "warning_days",
         "last_performed", "schedule_time",
         "notes", "documentation_url",
         "entity_slug", "custom_icon", "nfc_tag_id",

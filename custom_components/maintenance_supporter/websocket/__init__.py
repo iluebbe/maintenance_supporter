@@ -99,6 +99,13 @@ def _build_task_summary(
         "enabled": task_data.get("enabled", True),
         "schedule_type": task_data.get("schedule_type", "time_based"),
         "interval_days": task_data.get("interval_days"),
+        # interval_unit + due_date are persisted by ws_create_task/ws_update_task
+        # and the config/options flows. They MUST be echoed here (same #50 trap as
+        # on_complete_action below): without interval_unit the task-dialog hydrates
+        # `task.interval_unit || "days"` = "days", so the next save silently resets
+        # a months/years task back to days and corrupts next_due. (issue #58)
+        "interval_unit": task_data.get("interval_unit", "days"),
+        "due_date": task_data.get("due_date"),
         "interval_anchor": task_data.get("interval_anchor", "completion"),
         "last_planned_due": task_data.get("last_planned_due"),
         "schedule_time": task_data.get("schedule_time"),
