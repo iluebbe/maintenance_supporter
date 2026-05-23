@@ -257,6 +257,77 @@ async def test_time_based_task_flow(
     assert task["created_at"] == dt_util.now().date().isoformat()
 
 
+async def test_one_time_task_flow(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """One-time task flow: pick one_time → set due_date → task is created."""
+    result = await _navigate_to_add_task(hass, global_config_entry)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Replace Smoke Detector",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.ONE_TIME,
+        },
+    )
+    assert result["step_id"] == "one_time"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"due_date": "2026-09-01", CONF_TASK_WARNING_DAYS: 7},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_menu"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"next_step_id": "finish"},
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    tasks = result["data"][CONF_TASKS]
+    task = list(tasks.values())[0]
+    assert task["schedule_type"] == ScheduleType.ONE_TIME
+    assert task["due_date"] == "2026-09-01"
+
+
+async def test_time_based_interval_unit_flow(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """Time-based flow persists a non-default interval_unit (e.g. months)."""
+    result = await _navigate_to_add_task(hass, global_config_entry)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Quarterly Service",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.SERVICE,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.TIME_BASED,
+        },
+    )
+    assert result["step_id"] == "time_based"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_INTERVAL_DAYS: 3,
+            "interval_unit": "months",
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"next_step_id": "finish"},
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    task = list(result["data"][CONF_TASKS].values())[0]
+    assert task["interval_days"] == 3
+    assert task["interval_unit"] == "months"
+
+
 async def test_time_based_invalid_interval(
     hass: HomeAssistant, global_config_entry: ConfigEntry
 ) -> None:

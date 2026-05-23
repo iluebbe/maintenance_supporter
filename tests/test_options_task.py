@@ -718,6 +718,48 @@ async def test_add_task_time_based_full_flow(
     assert new_task["created_at"] == today_iso
 
 
+async def test_add_task_one_time_flow(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Test add task → one-time schedule full flow (due_date persisted)."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "add_task"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "One Shot",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.ONE_TIME,
+            "go_back": False,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "opt_one_time"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            "due_date": "2026-09-01",
+            CONF_TASK_WARNING_DAYS: 3,
+            "go_back": False,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "init"
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    new_task = next(
+        t for t in entry.data[CONF_TASKS].values() if t["name"] == "One Shot"
+    )
+    assert new_task["schedule_type"] == ScheduleType.ONE_TIME
+    assert new_task["due_date"] == "2026-09-01"
+
+
 async def test_add_task_go_back(
     hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
 ) -> None:

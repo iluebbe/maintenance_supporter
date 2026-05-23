@@ -425,6 +425,59 @@ async def test_csv_roundtrip_preserves_schedule_time(
     assert task.get("schedule_time") == "09:30"
 
 
+async def test_csv_roundtrip_preserves_interval_unit_and_due_date(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """interval_unit (months) and one-time due_date round-trip through CSV."""
+    from custom_components.maintenance_supporter.helpers.csv_handler import (
+        export_objects_csv,
+        import_objects_csv,
+    )
+
+    await setup_integration(hass, global_entry)
+
+    entry = MockConfigEntry(
+        domain="maintenance_supporter",
+        title="CSV IntervalUnit",
+        unique_id="maintenance_supporter_csv_interval_unit",
+        data={
+            "object": {
+                "id": "obj1", "name": "CSV IntervalUnit",
+                "task_ids": ["t1", "t2"],
+            },
+            "tasks": {
+                "t1": {
+                    "id": "t1", "object_id": "obj1", "name": "Monthly",
+                    "type": "service", "schedule_type": "time_based",
+                    "interval_days": 3, "interval_unit": "months",
+                    "warning_days": 1, "enabled": True,
+                },
+                "t2": {
+                    "id": "t2", "object_id": "obj1", "name": "One Shot",
+                    "type": "inspection", "schedule_type": "one_time",
+                    "due_date": "2026-09-01", "warning_days": 1, "enabled": True,
+                },
+            },
+        },
+    )
+    entry.add_to_hass(hass)
+
+    csv_text = export_objects_csv(hass)
+    assert "months" in csv_text
+    assert "2026-09-01" in csv_text
+
+    parsed = import_objects_csv(csv_text)
+    entry_parsed = next(
+        o for o in parsed if o["object"]["name"] == "CSV IntervalUnit"
+    )
+    tasks = entry_parsed["tasks"]
+    monthly = next(t for t in tasks.values() if t["name"] == "Monthly")
+    one_shot = next(t for t in tasks.values() if t["name"] == "One Shot")
+    assert monthly.get("interval_unit") == "months"
+    assert one_shot.get("schedule_type") == "one_time"
+    assert one_shot.get("due_date") == "2026-09-01"
+
+
 async def test_csv_import_drops_malformed_schedule_time(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

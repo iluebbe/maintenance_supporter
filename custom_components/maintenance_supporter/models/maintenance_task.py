@@ -17,6 +17,7 @@ from ..const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
+from ..helpers.dates import add_interval
 
 
 @dataclass
@@ -36,12 +37,14 @@ class MaintenanceTask:
     # --- Schedule ---
     schedule_type: str = ScheduleType.TIME_BASED
     interval_days: int | None = None
+    interval_unit: str = "days"  # days | weeks | months | years (calendar-aware)
     warning_days: int = DEFAULT_WARNING_DAYS
     last_performed: str | None = None  # ISO format YYYY-MM-DD
     created_at: str | None = None  # ISO date: fallback anchor for next_due when last_performed is None
     interval_anchor: str = "completion"  # "completion" or "planned"
     last_planned_due: str | None = None  # ISO date: anchor for planned mode
     schedule_time: str | None = None  # "HH:MM" in HA's configured TZ; None = midnight (default)
+    due_date: str | None = None  # ISO date: one-time task due date (ScheduleType.ONE_TIME)
 
     # --- Trigger ---
     trigger_config: dict[str, Any] | None = None
@@ -72,22 +75,32 @@ class MaintenanceTask:
 
     @property
     def next_due(self) -> date | None:
-        """Calculate the next due date based on last_performed and interval.
+        """Calculate the next due date.
 
-        When interval_anchor is "planned", the next due date is computed from
-        the *previously planned* due date rather than the actual completion
-        date.  This prevents schedule drift for strictly periodic tasks.
+        - ``one_time`` tasks are due on ``due_date`` and return ``None`` once
+          completed (they archive instead of re-arming).
+        - Otherwise the date is ``last_performed (or created_at) + interval``,
+          where the interval honours ``interval_unit`` (days/weeks/months/years).
+          With ``interval_anchor == "planned"`` the date is computed from the
+          previously planned due date to avoid drift for strictly periodic tasks.
 
         Example (30-day interval, planned for March 1):
           - Completed March 5 → next due: March 31 (not April 4)
-          - If the task has not been completed, the date may be in the past, correctly showing OVERDUE status.
+          - If never completed the date may be in the past → OVERDUE.
         """
+        # One-time: due on the fixed date; archived (no re-arm) once completed.
+        if self.schedule_type == ScheduleType.ONE_TIME:
+            if self.last_performed is not None or not self.due_date:
+                return None
+            try:
+                return date.fromisoformat(self.due_date)
+            except (ValueError, TypeError):
+                return None
+
         if not self.interval_days or self.interval_days <= 0:
             return None
         if self.last_performed is None:
-            # First-time anchor: use created_at if known, else today.
-            # Without this fallback the next_due would always be "today" and
-            # the task would never transition to OVERDUE (issue #30).
+            # First-time anchor: use created_at if known, else today (issue #30).
             try:
                 anchor_date = (
                     date.fromisoformat(self.created_at)
@@ -96,33 +109,38 @@ class MaintenanceTask:
                 )
             except (ValueError, TypeError):
                 anchor_date = dt_util.now().date()
-            return anchor_date + timedelta(days=self.interval_days)
+            return add_interval(anchor_date, self.interval_days, self.interval_unit)
         try:
             last = date.fromisoformat(self.last_performed)
         except (ValueError, TypeError):
             return None
 
-        if self.interval_anchor == "planned" and self.interval_days > 0:
-            # Anchor from the previously planned due date (saved on complete/skip)
-            # so that late completions don't cause schedule drift.
-            # Example: 30-day interval, planned March 1, completed March 5
-            #   → last_planned_due="2026-03-01", next due = March 31 (not April 4)
+        if self.interval_anchor == "planned":
+            # Anchor from the previously planned due date so late completions
+            # don't drift the schedule.
             anchor = last  # fallback: use completion date
             if self.last_planned_due:
                 try:
                     anchor = date.fromisoformat(self.last_planned_due)
                 except (ValueError, TypeError):
                     pass  # fall back to last_performed
+            if self.interval_unit in (None, "days", "weeks"):
+                # O(1) for fixed-length units.
+                step = self.interval_days * (7 if self.interval_unit == "weeks" else 1)
+                days_gap = (last - anchor).days
+                periods = 1 if days_gap < 0 else (days_gap // step) + 1
+                return anchor + timedelta(days=periods * step)
+            # Calendar units (months/years): step until past last_performed.
+            candidate = anchor
+            for _ in range(2000):
+                candidate = add_interval(
+                    candidate, self.interval_days, self.interval_unit
+                )
+                if candidate > last:
+                    return candidate
+            return candidate
 
-            # O(1) arithmetic to find the first candidate after last_performed
-            days_gap = (last - anchor).days
-            if days_gap < 0:
-                periods = 1
-            else:
-                periods = (days_gap // self.interval_days) + 1
-            return anchor + timedelta(days=periods * self.interval_days)
-
-        return last + timedelta(days=self.interval_days)
+        return add_interval(last, self.interval_days, self.interval_unit)
 
     @property
     def days_until_due(self) -> int | None:
@@ -171,6 +189,14 @@ class MaintenanceTask:
         if days <= effective_warning:
             return MaintenanceStatus.DUE_SOON
         return MaintenanceStatus.OK
+
+    @property
+    def is_done(self) -> bool:
+        """True for a completed one-time task (archived; never re-arms)."""
+        return (
+            self.schedule_type == ScheduleType.ONE_TIME
+            and self.last_performed is not None
+        )
 
     @property
     def times_performed(self) -> int:
@@ -327,6 +353,10 @@ class MaintenanceTask:
         }
         if self.interval_days is not None:
             data["interval_days"] = self.interval_days
+        if self.interval_unit != "days":
+            data["interval_unit"] = self.interval_unit
+        if self.due_date is not None:
+            data["due_date"] = self.due_date
         if self.interval_anchor != "completion":
             data["interval_anchor"] = self.interval_anchor
         if self.last_planned_due is not None:
@@ -366,6 +396,8 @@ class MaintenanceTask:
             enabled=data.get("enabled", True),
             schedule_type=data.get("schedule_type", ScheduleType.TIME_BASED),
             interval_days=data.get("interval_days"),
+            interval_unit=data.get("interval_unit", "days"),
+            due_date=data.get("due_date"),
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             last_performed=data.get("last_performed"),
             created_at=data.get("created_at"),

@@ -274,6 +274,11 @@ export const panelStyles = css`
     color: white;
   }
 
+  .status-chip.done {
+    background: #78909c;
+    color: white;
+  }
+
   .user-badge {
     display: inline-flex;
     align-items: center;

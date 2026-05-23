@@ -373,6 +373,8 @@ async def async_create_task_simple(
         vol.Optional("task_type", default="custom"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("schedule_type", default="time_based"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1, max=MAX_INTERVAL_DAYS)), None),
+        vol.Optional("interval_unit", default="days"): vol.In(["days", "weeks", "months", "years"]),
+        vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor", default="completion"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days", default=7): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
@@ -437,6 +439,10 @@ async def ws_create_task(
 
     if msg.get("interval_days") is not None:
         task_data["interval_days"] = msg["interval_days"]
+    if msg.get("interval_unit", "days") != "days":
+        task_data["interval_unit"] = msg["interval_unit"]
+    if msg.get("due_date") is not None:
+        task_data["due_date"] = msg["due_date"]
     if msg.get("interval_anchor", "completion") != "completion":
         task_data["interval_anchor"] = msg["interval_anchor"]
     if msg.get("last_performed") is not None:
@@ -545,6 +551,8 @@ async def ws_create_task(
         vol.Optional("enabled"): bool,
         vol.Optional("schedule_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1, max=MAX_INTERVAL_DAYS)), None),
+        vol.Optional("interval_unit"): vol.In(["days", "weeks", "months", "years"]),
+        vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
@@ -643,6 +651,8 @@ async def ws_update_task(
         "enabled": "enabled",
         "schedule_type": "schedule_type",
         "interval_days": "interval_days",
+        "interval_unit": "interval_unit",
+        "due_date": "due_date",
         "interval_anchor": "interval_anchor",
         "warning_days": "warning_days",
         "last_performed": "last_performed",

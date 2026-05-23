@@ -126,18 +126,34 @@
         "title": "Tidsbaserat schema",
         "description": "Konfigurera tidsintervallet för denna underhållsuppgift.",
         "data": {
-          "interval_days": "Intervall (dagar)",
+          "interval_days": "Intervall",
+          "interval_unit": "Intervallenhet",
           "last_performed": "Senast utförd",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "interval_anchor": "Intervallankare"
         },
         "data_description": {
-          "interval_days": "Antal dagar mellan underhållscykler.",
+          "interval_days": "Hur ofta detta underhåll upprepas, kombinerat med intervallenheten.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "last_performed": "När detta underhåll utfördes senast. Lämna tomt om det aldrig utförts.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till uppgiftsskapande utan att spara.",
           "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum."
+        }
+      },
+      "one_time": {
+        "title": "Engångsuppgift",
+        "description": "Konfigurera en enskild, icke återkommande underhållsuppgift. Den arkiveras när den slutförts.",
+        "data": {
+          "due_date": "Förfallodatum",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "due_date": "Datumet då denna engångsuppgift ska vara klar.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till uppgiftsskapande utan att spara."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "Den valda entiteten finns inte eller har inga numeriska data.",
       "invalid_attribute": "Det valda attributet är inte tillgängligt för denna entitet.",
       "invalid_threshold": "Minst en tröskel (över eller under) måste anges.",
+      "invalid_due_date": "Ett förfallodatum krävs för engångsuppgifter.",
       "invalid_interval": "Intervallet måste vara ett positivt tal.",
       "min_exceeds_max": "Minimiintervallet får inte överstiga maximalt intervall.",
       "invalid_notify_service": "Ogiltigt format för aviseringstjänst. Använd ”notify.service_name” (t.ex. notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Uppgiftsnamn",
           "type": "Underhållstyp",
-          "interval_days": "Intervall (dagar)",
+          "interval_days": "Intervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
+          "due_date": "Förfallodatum",
           "enabled": "Aktiverad",
           "notes": "Anteckningar",
           "documentation_url": "Dokumentations-URL",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
           "type": "Kategori av underhållsarbete.",
-          "interval_days": "Antal dagar mellan underhållscykler.",
+          "interval_days": "Hur ofta detta underhåll upprepas, kombinerat med intervallenheten.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "due_date": "Datumet då denna engångsuppgift ska vara klar.",
           "enabled": "När inaktiverad pausas schemaläggning och utlösare. Uppgiften tas inte bort.",
           "notes": "Ytterligare anteckningar eller instruktioner för denna uppgift.",
           "documentation_url": "Länk till extern dokumentation eller manual för denna uppgift.",
@@ -813,18 +834,34 @@
         "title": "Tidsbaserat schema",
         "description": "Konfigurera tidsintervallet för denna uppgift.",
         "data": {
-          "interval_days": "Intervall (dagar)",
+          "interval_days": "Intervall",
+          "interval_unit": "Intervallenhet",
           "last_performed": "Senast utförd",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka",
           "interval_anchor": "Intervallankare"
         },
         "data_description": {
-          "interval_days": "Antal dagar mellan underhållscykler.",
+          "interval_days": "Hur ofta detta underhåll upprepas, kombinerat med intervallenheten.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "last_performed": "När detta underhåll utfördes senast. Lämna tomt om det aldrig utförts.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till huvudmenyn utan att spara.",
           "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum."
+        }
+      },
+      "opt_one_time": {
+        "title": "Engångsuppgift",
+        "description": "Konfigurera en enskild, icke återkommande underhållsuppgift. Den arkiveras när den slutförts.",
+        "data": {
+          "due_date": "Förfallodatum",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "due_date": "Datumet då denna engångsuppgift ska vara klar.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till huvudmenyn utan att spara."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Tidsbaserad",
               "sensor_based": "Sensorbaserad",
+              "one_time": "Engångs",
               "manual": "Manuell"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Tidsbaserad",
         "sensor_based": "Sensorbaserad",
+        "one_time": "Engångs",
         "manual": "Manuell"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dagar",
+        "weeks": "Veckor",
+        "months": "Månader",
+        "years": "År"
       }
     },
     "trigger_type": {

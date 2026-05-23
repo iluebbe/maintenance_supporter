@@ -126,18 +126,34 @@
         "title": "Tijdgebaseerd schema",
         "description": "Configureer het tijdsinterval voor deze onderhoudstaak.",
         "data": {
-          "interval_days": "Interval (dagen)",
+          "interval_days": "Interval",
+          "interval_unit": "Intervaleenheid",
           "last_performed": "Laatst uitgevoerd",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "interval_anchor": "Interval-anker"
         },
         "data_description": {
-          "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
+          "interval_days": "Hoe vaak dit onderhoud zich herhaalt, gecombineerd met de intervaleenheid.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit gedaan.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar taakaanmaak zonder op te slaan.",
           "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum."
+        }
+      },
+      "one_time": {
+        "title": "Eenmalige taak",
+        "description": "Configureer een enkele, niet-terugkerende onderhoudstaak. Deze wordt gearchiveerd zodra hij voltooid is.",
+        "data": {
+          "due_date": "Vervaldatum",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "due_date": "De datum waarop deze eenmalige taak verschuldigd is.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar taakaanmaak zonder op te slaan."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "De geselecteerde entiteit bestaat niet of heeft geen numerieke gegevens.",
       "invalid_attribute": "Het geselecteerde attribuut is niet beschikbaar op deze entiteit.",
       "invalid_threshold": "Er moet minimaal één drempel (boven of onder) worden ingesteld.",
+      "invalid_due_date": "Voor eenmalige taken is een vervaldatum vereist.",
       "invalid_interval": "Het interval moet een positief getal zijn.",
       "min_exceeds_max": "Het minimuminterval mag het maximuminterval niet overschrijden.",
       "invalid_notify_service": "Ongeldig formaat voor de meldingsservice. Gebruik 'notify.servicenaam' (bijv. notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Taaknaam",
           "type": "Onderhoudstype",
-          "interval_days": "Interval (dagen)",
+          "interval_days": "Interval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
+          "due_date": "Vervaldatum",
           "enabled": "Ingeschakeld",
           "notes": "Notities",
           "documentation_url": "Documentatie-URL",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
           "type": "De categorie van het onderhoudwerk.",
-          "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
+          "interval_days": "Hoe vaak dit onderhoud zich herhaalt, gecombineerd met de intervaleenheid.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
+          "due_date": "De datum waarop deze eenmalige taak verschuldigd is.",
           "enabled": "Wanneer uitgeschakeld, worden planning en triggers gepauzeerd. De taak wordt niet verwijderd.",
           "notes": "Aanvullende notities of instructies voor deze taak.",
           "documentation_url": "Link naar externe documentatie of handleiding voor deze taak.",
@@ -813,18 +834,34 @@
         "title": "Tijdgebaseerd schema",
         "description": "Configureer het tijdsinterval voor deze taak.",
         "data": {
-          "interval_days": "Interval (dagen)",
+          "interval_days": "Interval",
+          "interval_unit": "Intervaleenheid",
           "last_performed": "Laatst uitgevoerd",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug",
           "interval_anchor": "Interval-anker"
         },
         "data_description": {
-          "interval_days": "Aantal dagen tussen onderhoudsbeurten.",
+          "interval_days": "Hoe vaak dit onderhoud zich herhaalt, gecombineerd met de intervaleenheid.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg als nooit uitgevoerd.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
           "go_back": "Terug naar het hoofdmenu zonder op te slaan.",
           "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum."
+        }
+      },
+      "opt_one_time": {
+        "title": "Eenmalige taak",
+        "description": "Configureer een enkele, niet-terugkerende onderhoudstaak. Deze wordt gearchiveerd zodra hij voltooid is.",
+        "data": {
+          "due_date": "Vervaldatum",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "due_date": "De datum waarop deze eenmalige taak verschuldigd is.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Tijdgebaseerd",
               "sensor_based": "Sensorgebaseerd",
+              "one_time": "Eenmalig",
               "manual": "Handmatig"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Tijdgebaseerd",
         "sensor_based": "Sensorgebaseerd",
+        "one_time": "Eenmalig",
         "manual": "Handmatig"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dagen",
+        "weeks": "Weken",
+        "months": "Maanden",
+        "years": "Jaren"
       }
     },
     "trigger_type": {

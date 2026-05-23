@@ -171,6 +171,8 @@ CONF_TASK_INTERVAL_DAYS = "interval_days"
 CONF_TASK_WARNING_DAYS = "warning_days"
 CONF_TASK_LAST_PERFORMED = "last_performed"
 CONF_TASK_SCHEDULE_TYPE = "schedule_type"
+CONF_TASK_INTERVAL_UNIT = "interval_unit"
+CONF_TASK_DUE_DATE = "due_date"
 CONF_TASK_NOTES = "notes"
 CONF_TASK_DOCUMENTATION_URL = "documentation_url"
 CONF_TASK_ICON = "custom_icon"
@@ -321,6 +323,7 @@ class ScheduleType(StrEnum):
     TIME_BASED = "time_based"
     SENSOR_BASED = "sensor_based"
     MANUAL = "manual"
+    ONE_TIME = "one_time"
 
 
 class TriggerType(StrEnum):

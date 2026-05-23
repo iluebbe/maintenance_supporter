@@ -35,6 +35,8 @@ _COLUMNS = [
     "enabled",
     "schedule_type",
     "interval_days",
+    "interval_unit",
+    "due_date",
     "interval_anchor",
     "schedule_time",
     "warning_days",
@@ -102,6 +104,8 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "enabled": tdata.get("enabled", True),
                     "schedule_type": tdata.get("schedule_type", "time_based"),
                     "interval_days": tdata.get("interval_days", ""),
+                    "interval_unit": tdata.get("interval_unit", "days"),
+                    "due_date": tdata.get("due_date", ""),
                     "interval_anchor": tdata.get("interval_anchor", "completion"),
                     "schedule_time": tdata.get("schedule_time", ""),
                     "warning_days": tdata.get("warning_days", 7),
@@ -187,6 +191,14 @@ def import_objects_csv(
         interval = row.get("interval_days", "").strip()
         if interval:
             task_data["interval_days"] = _safe_int(interval, None)
+
+        interval_unit = (row.get("interval_unit") or "").strip().lower()
+        if interval_unit in ("days", "weeks", "months", "years"):
+            task_data["interval_unit"] = interval_unit
+
+        due_date = (row.get("due_date") or "").strip()
+        if due_date and re.fullmatch(r"\d{4}-\d{2}-\d{2}", due_date):
+            task_data["due_date"] = due_date
 
         anchor = (row.get("interval_anchor") or "").strip()
         if anchor in ("planned", "completion"):
