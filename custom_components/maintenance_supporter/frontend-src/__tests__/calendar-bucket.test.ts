@@ -134,6 +134,60 @@ describe("buildCalendarBuckets", () => {
     expect(events.length).to.equal(MAX_OCCURRENCES_PER_TASK);
   });
 
+  it("a months/years interval does not project at daily steps (issue #59)", () => {
+    // interval_days=1 + unit=years → one occurrence per ~year, so a 30-day
+    // window holds only the single next_due, NOT 5 daily-spaced projections.
+    const buckets = buildCalendarBuckets(
+      [obj("Boiler", [task({
+        next_due: addDays(TODAY_ISO, 3),
+        days_until_due: 3,
+        interval_days: 1,
+        interval_unit: "years",
+        schedule_type: "time_based",
+      })])],
+      TODAY, 30
+    );
+    const events = buckets.flatMap((b) => b.events);
+    expect(events.length).to.equal(1);
+    expect(events[0].projected).to.equal(false);
+  });
+
+  it("projects a weekly (unit=weeks) task at ~7-day steps (#59)", () => {
+    const buckets = buildCalendarBuckets(
+      [obj("Pool", [task({
+        next_due: addDays(TODAY_ISO, 2),
+        days_until_due: 2,
+        interval_days: 1,
+        interval_unit: "weeks",
+        schedule_type: "time_based",
+      })])],
+      TODAY, 30
+    );
+    const events = buckets.flatMap((b) => b.events);
+    // +2, +9, +16, +23 — same as interval_days:7, NOT daily spam.
+    expect(events.length).to.equal(4);
+    expect(events[0].date).to.equal(addDays(TODAY_ISO, 2));
+    expect(events[1].date).to.equal(addDays(TODAY_ISO, 9));
+  });
+
+  it("projects a monthly (unit=months) task at ~30-day steps (#59)", () => {
+    const buckets = buildCalendarBuckets(
+      [obj("Filter", [task({
+        next_due: addDays(TODAY_ISO, 3),
+        days_until_due: 3,
+        interval_days: 1,
+        interval_unit: "months",
+        schedule_type: "time_based",
+      })])],
+      TODAY, 70
+    );
+    const events = buckets.flatMap((b) => b.events);
+    // round(30.4368) = 30 → +3, +33, +63 within a 70-day window.
+    expect(events.length).to.equal(3);
+    expect(events[0].date).to.equal(addDays(TODAY_ISO, 3));
+    expect(events[1].date).to.equal(addDays(TODAY_ISO, 33));
+  });
+
   it("does NOT project sensor-triggered tasks beyond next_due", () => {
     const buckets = buildCalendarBuckets(
       [obj("HVAC", [task({

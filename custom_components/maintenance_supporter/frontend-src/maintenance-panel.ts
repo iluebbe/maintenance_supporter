@@ -2,7 +2,8 @@
 
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays, formatInterval } from "./styles";
+import { daysProgress } from "./helpers/interval";
 import { panelStyles } from "./panel-styles";
 import type {
   HomeAssistant,
@@ -414,6 +415,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           times_performed: task.times_performed,
           total_cost: task.total_cost,
           interval_days: task.interval_days ?? null,
+          interval_unit: task.interval_unit ?? null,
           interval_anchor: task.interval_anchor ?? null,
           is_done: task.is_done ?? false,
           history: task.history || [],
@@ -1388,9 +1390,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     let barColor = STATUS_COLORS.ok;
     let daysOverflow = false;
     if (hasDaysBar && row.days_until_due !== null) {
-      const rawPct = ((row.interval_days! - row.days_until_due) / row.interval_days!) * 100;
-      pct = Math.max(0, Math.min(100, rawPct));
-      daysOverflow = rawPct > 100;
+      const p = daysProgress(row.interval_days, row.days_until_due, row.interval_unit);
+      pct = p.pct;
+      daysOverflow = p.overflow;
       if (row.status === "overdue") barColor = STATUS_COLORS.overdue;
       else if (row.status === "due_soon") barColor = STATUS_COLORS.due_soon;
     }
@@ -1602,10 +1604,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     if (task.days_until_due == null || !task.interval_days || task.interval_days <= 0) return nothing;
 
-    const elapsed = task.interval_days - task.days_until_due;
-    const rawPct = (elapsed / task.interval_days) * 100;
-    const pct = Math.max(0, Math.min(100, rawPct));
-    const daysOverflow = rawPct > 100;
+    // Unit-aware (issue #59): a "1 year" task has span ≈365 d, not 1 d.
+    const { pct, overflow: daysOverflow } = daysProgress(
+      task.interval_days, task.days_until_due, task.interval_unit,
+    );
 
     let barColor = "var(--success-color, #4caf50)";
     if (task.status === "overdue") barColor = "var(--error-color, #f44336)";
@@ -1990,7 +1992,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("interval", L)}</div>
-          <div class="kpi-value">${task.interval_days != null ? `${task.interval_days} ${t("days", L)}` : "—"}</div>
+          <div class="kpi-value">${task.interval_days != null ? formatInterval(task.interval_days, task.interval_unit, L) : "—"}</div>
           ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
             <div class="kpi-subtext">${t("recommended", L)}: ${task.suggested_interval}${task.interval_analysis?.confidence_interval_low != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""}</div>
           ` : nothing}

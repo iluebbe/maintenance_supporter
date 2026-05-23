@@ -286,6 +286,7 @@ export interface TaskRow {
   times_performed: number;
   total_cost: number;
   interval_days: number | null;
+  interval_unit?: string | null;
   interval_anchor: "completion" | "planned" | null;
   is_done: boolean;
   history: HistoryEntry[];
