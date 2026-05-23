@@ -183,6 +183,10 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Statistics, budget status, and interval analysis
 - See [Architecture](docs/ARCHITECTURE.md) for the complete command reference
 
+## Roadmap
+
+Planned and proposed features (multi-assignee rotation, a native to-do entity, multiple per-task reminders, calendar-pattern schedules, and more) live in [ROADMAP.md](ROADMAP.md). Ideas and votes welcome via issues or the [Ideas discussions](https://github.com/iluebbe/maintenance_supporter/discussions).
+
 ## Installation
 
 ### HACS (Recommended)
