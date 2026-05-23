@@ -1054,7 +1054,10 @@
             }
           },
           "interval_days": {
-            "name": "Intervallo (giorni)"
+            "name": "Intervallo"
+          },
+          "interval_unit": {
+            "name": "Unità di intervallo"
           },
           "warning_days": {
             "name": "Giorni di avviso"
@@ -1245,6 +1248,9 @@
               "completion": "Dal completamento",
               "planned": "Dalla data pianificata"
             }
+          },
+          "due_date": {
+            "name": "Scadenza"
           }
         }
       },

@@ -126,8 +126,10 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `name` | string | *(required)* | — | Display name of the task |
 | `type` | enum | `custom` | — | Category: `cleaning`, `inspection`, `replacement`, `calibration`, `service`, `custom` |
 | `enabled` | bool | `true` | — | Whether the task is active. Disabled tasks always show `ok` |
-| `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `manual` |
-| `interval_days` | int | 30 | 1–3650 | Days between maintenance cycles (time-based and sensor-based) |
+| `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `one_time`, `manual` |
+| `interval_days` | int | 30 | 1–3650 | Interval length between maintenance cycles, combined with `interval_unit` (time-based and sensor-based) |
+| `interval_unit` | enum | `days` | — | Unit for `interval_days`: `days`, `weeks`, `months`, `years`. Months/years use real calendar arithmetic (last-day clamping, leap years). Only values other than `days` change pre-2.6.0 behaviour |
+| `due_date` | date | *(none)* | — | Due date for a `one_time` task. The task stays active until completed, then is archived (`is_done` — hidden from the card, shown as *Completed* in the panel). Required for `one_time`; ignored for other modes |
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
 | `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
 | `warning_days` | int | 7 | 1–365 | Days before due date when status changes to `due_soon` |

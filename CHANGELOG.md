@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.6.1] - 2026-05-23
+
+### 🐛 Sensor attributes for one-time tasks + interval units
+
+The per-task sensor now exposes **`interval_unit`** and **`due_date`** as attributes, so monthly/yearly and one-time tasks read correctly in templates and automations — previously a "3 months" task showed `interval_days: 3` with no unit, and a one-time task hid its due date. Attribute display names are localized in all 12 languages.
+
+### 📝 Docs
+
+Updated README, CONFIGURATION and ARCHITECTURE for one-time tasks + calendar interval units (days / weeks / months / years), and corrected the sensor attribute name `next_due_date` → `next_due` in the README.
+
 ## [2.6.0] - 2026-05-23
 
 ### ✨ One-time tasks (#54, forum)
