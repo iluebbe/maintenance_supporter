@@ -2,6 +2,23 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.6.3] - 2026-05-24
+
+### 🐛 Weeks/months/years units now render correctly in the UI (#59)
+
+The new interval units were stored and computed correctly on the backend, but
+several frontend surfaces still treated the interval as raw days — so a "1 year"
+task (interval `1`) looked broken:
+- the task-detail countdown bar (and overview row bar) stayed near 0 %,
+- the **calendar** projected a yearly/monthly task at ~1-day steps, spamming the
+  window with daily occurrences, and
+- interval labels read e.g. "1 days" instead of "1 Years".
+
+All of these now use the real, unit-aware day-span via a shared helper
+(`intervalSpanDays` / `daysProgress`), so progress bars, the calendar tab, the
+Lovelace calendar card, and the KPI/quick-action labels are calendar-correct for
+days/weeks/months/years. New browser tests cover the projection and progress math.
+
 ## [2.6.2] - 2026-05-23
 
 ### 🐛 Monthly/yearly interval reset to "days" on edit (#58)

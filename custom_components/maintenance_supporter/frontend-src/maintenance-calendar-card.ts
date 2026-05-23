@@ -235,7 +235,11 @@ export class MaintenanceCalendarCard extends LitElement {
         ? ` (${Math.abs(ev.days_until_due)}d ${t("overdue", L).toLowerCase()})`
         : "";
       const recurEvery = ev.projected && ev.interval_days
-        ? html`<span class="cal-event-recur">${t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))}</span>`
+        ? html`<span class="cal-event-recur">${
+            ev.interval_unit && ev.interval_unit !== "days"
+              ? `${ev.interval_days} ${t("unit_" + ev.interval_unit, L)}`
+              : t("cal_every_n_days", L).replace("{n}", String(ev.interval_days))
+          }</span>`
         : nothing;
       const isSensor = ev.schedule_type === "sensor_based";
       const sourceIcon = isSensor

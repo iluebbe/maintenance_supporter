@@ -14,7 +14,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime } from "../styles";
+import { sharedStyles, t, STATUS_COLORS, formatDate, formatDateTime, formatInterval } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
@@ -485,7 +485,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     ? html`<span><strong>${t("last_performed", L) || "Last"}:</strong> ${formatDate(task.last_performed, L)}</span>`
                     : nothing}
                   ${task.interval_days != null
-                    ? html`<span><strong>${t("interval", L) || "Interval"}:</strong> ${task.interval_days}d</span>`
+                    ? html`<span><strong>${t("interval", L) || "Interval"}:</strong> ${formatInterval(task.interval_days, task.interval_unit, L)}</span>`
                     : nothing}
                 </div>
               </div>

@@ -5563,6 +5563,17 @@ export function formatDueDays(days: number | null | undefined, lang?: string): s
   return `${days} ${days === 1 ? t("day", l) : t("days", l)}`;
 }
 
+/** Localized interval label, e.g. "3 Months" / "7 Days" (issue #59 — was
+ *  hard-coded to days). Uses the unit_* keys from the schedule dialog. */
+export function formatInterval(
+  intervalDays: number | null | undefined,
+  unit?: string | null,
+  lang?: string,
+): string {
+  if (intervalDays === null || intervalDays === undefined) return "—";
+  return `${intervalDays} ${t("unit_" + (unit || "days"), lang)}`;
+}
+
 /** Dispatch HA native "More Info" dialog for an entity. */
 export function fireMoreInfo(ev: Event, entityId: string) {
   (ev.currentTarget as HTMLElement).dispatchEvent(

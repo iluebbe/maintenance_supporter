@@ -15,6 +15,7 @@
  */
 
 import type { MaintenanceObjectResponse } from "../types";
+import { intervalSpanDays } from "./interval";
 
 export const MAX_OCCURRENCES_PER_TASK = 5;
 
@@ -31,6 +32,8 @@ export interface CalendarEvent {
   projected: boolean;
   schedule_type: string;
   interval_days: number | null;
+  /** v2.6.3 (#59): interval unit so the "every N …" label + projection match. */
+  interval_unit?: string | null;
   responsible_user_id: string | null;
   avg_cost: number | null;
   /** v1.5.1: source indicator. */
@@ -133,23 +136,31 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     projected,
     schedule_type: task.schedule_type,
     interval_days: task.interval_days ?? null,
+    interval_unit: task.interval_unit ?? null,
     responsible_user_id: task.responsible_user_id ?? null,
     avg_cost: computeAvgCost(task.history),
     adaptive_enabled: !!task.adaptive_config?.enabled,
     prediction_confidence: task.threshold_prediction_confidence ?? null,
   });
 
+  // Step between projected occurrences, unit-aware (issue #59): a weeks/months/
+  // years interval must advance by its real day-span, not the raw count (else a
+  // "1 year" task projects at 1-day steps and spams the window).
+  const stepDays = Math.max(
+    1, Math.round(intervalSpanDays(task.interval_days, task.interval_unit)),
+  );
+
   // Overdue / triggered → bucket on today (windowStart) regardless of next_due
   if (task.status === "overdue" || task.status === "triggered") {
     out.push(baseEvent(windowStart, false));
     // Continue projecting from "today" forward for time-based tasks
     if (task.schedule_type === "time_based" && task.interval_days && task.interval_days > 0) {
-      let cursor = addDaysIso(windowStart, task.interval_days);
+      let cursor = addDaysIso(windowStart, stepDays);
       let count = 1;
       while (cursor <= windowEnd && count < MAX_OCCURRENCES_PER_TASK) {
         out.push(baseEvent(cursor, true));
         count++;
-        cursor = addDaysIso(cursor, task.interval_days);
+        cursor = addDaysIso(cursor, stepDays);
       }
     }
     return out;
@@ -169,7 +180,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
 
   // Subsequent projected occurrences (time-based only, with interval_days)
   if (task.schedule_type === "time_based" && task.interval_days && task.interval_days > 0) {
-    let cursor = addDaysIso(firstDate, task.interval_days);
+    let cursor = addDaysIso(firstDate, stepDays);
     let count = out.length;
     while (cursor <= windowEnd && count < MAX_OCCURRENCES_PER_TASK) {
       // Skip occurrences before window start (when next_due itself was past)
@@ -177,7 +188,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
         out.push(baseEvent(cursor, true));
         count++;
       }
-      cursor = addDaysIso(cursor, task.interval_days);
+      cursor = addDaysIso(cursor, stepDays);
     }
   }
 
