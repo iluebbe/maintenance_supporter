@@ -91,8 +91,10 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 ### Task Management
 - Create maintenance objects (devices, equipment, appliances) and assign tasks to them
 - Six task types: cleaning, inspection, replacement, calibration, service, custom
-- Three scheduling modes: **time-based** (interval in days), **sensor-based** (triggered by entity state), **manual**
+- Four scheduling modes: **time-based** (recurring interval), **sensor-based** (triggered by entity state), **one-time** (single due date, archived once done), **manual**
+- **Interval units**: time-based intervals can be **days, weeks, months or years** — months and years use real calendar arithmetic (last-day clamping, leap years)
 - Task status tracking: OK, Due Soon, Overdue, Triggered
+- **One-time tasks**: schedule a non-recurring job with an explicit due date; completing it archives the task (hidden from the card, shown as *Completed* in the panel)
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
 - **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift
 - **Time-of-day scheduling** (optional, advanced): tasks flip to OVERDUE at a configured `HH:MM` in HA's timezone instead of at midnight. Calendar events become timed 30-min blocks so mobile calendars can set real reminders. Enable under Settings → Features.

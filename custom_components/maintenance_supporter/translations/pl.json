@@ -126,18 +126,34 @@
         "title": "Harmonogram czasowy",
         "description": "Skonfiguruj interwał czasowy dla tego zadania konserwacji.",
         "data": {
-          "interval_days": "Interwał (dni)",
+          "interval_days": "Interwał",
+          "interval_unit": "Jednostka interwału",
           "last_performed": "Ostatnio wykonane",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "interval_anchor": "Punkt odniesienia interwału"
         },
         "data_description": {
-          "interval_days": "Liczba dni między cyklami konserwacji.",
+          "interval_days": "Jak często ta konserwacja się powtarza, w połączeniu z jednostką interwału.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "last_performed": "Kiedy ta konserwacja była ostatnio wykonana. Pozostaw puste, jeśli nigdy nie wykonano.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do tworzenia zadania bez zapisywania.",
           "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty."
+        }
+      },
+      "one_time": {
+        "title": "Zadanie jednorazowe",
+        "description": "Skonfiguruj pojedyncze, niepowtarzające się zadanie konserwacji. Po ukończeniu jest archiwizowane.",
+        "data": {
+          "due_date": "Termin",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "due_date": "Data, do której to jednorazowe zadanie ma być wykonane.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do tworzenia zadania bez zapisywania."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "Wybrana encja nie istnieje lub nie ma danych liczbowych.",
       "invalid_attribute": "Wybrany atrybut nie jest dostępny dla tej encji.",
       "invalid_threshold": "Należy ustawić co najmniej jeden próg (powyżej lub poniżej).",
+      "invalid_due_date": "Dla zadań jednorazowych wymagany jest termin.",
       "invalid_interval": "Interwał musi być liczbą dodatnią.",
       "min_exceeds_max": "Minimalny interwał nie może przekraczać maksymalnego.",
       "invalid_notify_service": "Nieprawidłowy format usługi powiadomień. Użyj „notify.service_name” (np. notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Nazwa zadania",
           "type": "Typ konserwacji",
-          "interval_days": "Interwał (dni)",
+          "interval_days": "Interwał",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
+          "due_date": "Termin",
           "enabled": "Włączone",
           "notes": "Notatki",
           "documentation_url": "URL dokumentacji",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
           "type": "Kategoria pracy konserwacyjnej.",
-          "interval_days": "Liczba dni między cyklami konserwacji.",
+          "interval_days": "Jak często ta konserwacja się powtarza, w połączeniu z jednostką interwału.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "due_date": "Data, do której to jednorazowe zadanie ma być wykonane.",
           "enabled": "Po wyłączeniu planowanie i wyzwalacze są wstrzymane. Zadanie nie jest usuwane.",
           "notes": "Dodatkowe notatki lub instrukcje dla tego zadania.",
           "documentation_url": "Link do zewnętrznej dokumentacji lub instrukcji dla tego zadania.",
@@ -813,18 +834,34 @@
         "title": "Harmonogram czasowy",
         "description": "Skonfiguruj interwał czasowy dla tego zadania.",
         "data": {
-          "interval_days": "Interwał (dni)",
+          "interval_days": "Interwał",
+          "interval_unit": "Jednostka interwału",
           "last_performed": "Ostatnio wykonane",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć",
           "interval_anchor": "Punkt odniesienia interwału"
         },
         "data_description": {
-          "interval_days": "Liczba dni między cyklami konserwacji.",
+          "interval_days": "Jak często ta konserwacja się powtarza, w połączeniu z jednostką interwału.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "last_performed": "Kiedy ta konserwacja była ostatnio wykonana. Pozostaw puste, jeśli nigdy nie wykonano.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do menu głównego bez zapisywania.",
           "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty."
+        }
+      },
+      "opt_one_time": {
+        "title": "Zadanie jednorazowe",
+        "description": "Skonfiguruj pojedyncze, niepowtarzające się zadanie konserwacji. Po ukończeniu jest archiwizowane.",
+        "data": {
+          "due_date": "Termin",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "due_date": "Data, do której to jednorazowe zadanie ma być wykonane.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do menu głównego bez zapisywania."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Czasowy",
               "sensor_based": "Czujnikowy",
+              "one_time": "Jednorazowo",
               "manual": "Ręczny"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Czasowy",
         "sensor_based": "Czujnikowy",
+        "one_time": "Jednorazowo",
         "manual": "Ręczny"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dni",
+        "weeks": "Tygodnie",
+        "months": "Miesiące",
+        "years": "Lata"
       }
     },
     "trigger_type": {

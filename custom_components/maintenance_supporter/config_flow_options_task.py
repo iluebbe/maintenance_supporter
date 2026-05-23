@@ -38,10 +38,12 @@ from .const import (
     CONF_RESPONSIBLE_USER_ID,
     CONF_SENSOR_PREDICTION_ENABLED,
     CONF_TASK_DOCUMENTATION_URL,
+    CONF_TASK_DUE_DATE,
     CONF_TASK_ENABLED,
     CONF_TASK_ICON,
     CONF_TASK_INTERVAL_ANCHOR,
     CONF_TASK_INTERVAL_DAYS,
+    CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_LAST_PERFORMED,
     CONF_TASK_NAME,
     CONF_TASK_NFC_TAG,
@@ -110,6 +112,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             task_data["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
+        if CONF_TASK_INTERVAL_UNIT in self._current_task:
+            task_data["interval_unit"] = self._current_task[CONF_TASK_INTERVAL_UNIT]
+        if CONF_TASK_DUE_DATE in self._current_task:
+            task_data["due_date"] = self._current_task[CONF_TASK_DUE_DATE]
         anchor = self._current_task.get(CONF_TASK_INTERVAL_ANCHOR, "completion")
         if anchor != "completion":
             task_data["interval_anchor"] = anchor
@@ -304,6 +310,14 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 updated_task["type"] = user_input.get(CONF_TASK_TYPE, updated_task.get("type"))
                 if user_input.get(CONF_TASK_INTERVAL_DAYS):
                     updated_task["interval_days"] = int(user_input[CONF_TASK_INTERVAL_DAYS])
+                if CONF_TASK_INTERVAL_UNIT in user_input:
+                    unit = user_input[CONF_TASK_INTERVAL_UNIT]
+                    if unit and unit != "days":
+                        updated_task["interval_unit"] = unit
+                    else:
+                        updated_task.pop("interval_unit", None)
+                if user_input.get(CONF_TASK_DUE_DATE):
+                    updated_task["due_date"] = str(user_input[CONF_TASK_DUE_DATE])
                 if CONF_TASK_INTERVAL_ANCHOR in user_input:
                     updated_task["interval_anchor"] = user_input[CONF_TASK_INTERVAL_ANCHOR]
                 # schedule_time only present when global advanced flag is on; clear by submitting "".
@@ -382,6 +396,11 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             if task.get(CONF_TASK_NFC_TAG)
             else vol.Optional(CONF_TASK_NFC_TAG)
         )
+        due_date_key = (
+            vol.Required(CONF_TASK_DUE_DATE, default=task.get(CONF_TASK_DUE_DATE))
+            if task.get(CONF_TASK_DUE_DATE)
+            else vol.Required(CONF_TASK_DUE_DATE)
+        )
         # Build user dropdown options
         users = await self.hass.auth.async_get_users()
         user_options = [selector.SelectOptionDict(value="", label="\u2014")]
@@ -428,6 +447,16 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                                 )
                             ),
                             vol.Optional(
+                                CONF_TASK_INTERVAL_UNIT,
+                                default=task.get("interval_unit", "days"),
+                            ): selector.SelectSelector(
+                                selector.SelectSelectorConfig(
+                                    options=["days", "weeks", "months", "years"],
+                                    mode=selector.SelectSelectorMode.DROPDOWN,
+                                    translation_key="interval_unit",
+                                )
+                            ),
+                            vol.Optional(
                                 CONF_TASK_INTERVAL_ANCHOR,
                                 default=task.get("interval_anchor", "completion"),
                             ): selector.SelectSelector(
@@ -453,6 +482,11 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             ),
                         }
                         if task.get("schedule_type") == ScheduleType.TIME_BASED
+                        else dict[Any, Any]()
+                    ),
+                    **(
+                        {due_date_key: selector.DateSelector()}
+                        if task.get("schedule_type") == ScheduleType.ONE_TIME
                         else dict[Any, Any]()
                     ),
                     vol.Optional(
@@ -910,6 +944,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 return await self.async_step_opt_time_based()
             if schedule == ScheduleType.SENSOR_BASED:
                 return await self.async_step_opt_sensor_select()
+            if schedule == ScheduleType.ONE_TIME:
+                return await self.async_step_opt_one_time()
             # Manual
             return await self.async_step_opt_manual()
 
@@ -964,6 +1000,9 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
             else:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
+                unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
+                if unit != "days":
+                    self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                     CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
@@ -988,6 +1027,15 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         )
                     ),
                     vol.Optional(
+                        CONF_TASK_INTERVAL_UNIT, default="days"
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["days", "weeks", "months", "years"],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="interval_unit",
+                        )
+                    ),
+                    vol.Optional(
                         CONF_TASK_INTERVAL_ANCHOR, default="completion"
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
@@ -999,6 +1047,47 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         )
                     ),
                     vol.Optional("last_performed"): selector.DateSelector(),
+                    vol.Optional(
+                        CONF_TASK_WARNING_DAYS,
+                        default=get_default_warning_days(self.hass),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    vol.Optional(
+                        "go_back", default=False
+                    ): selector.BooleanSelector(),
+                }
+            ),
+            errors=errors,
+        )
+
+    async def async_step_opt_one_time(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure a one-time (non-recurring) task for new task."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            if user_input.get("go_back"):
+                return self._show_init_menu()
+
+            due_date = user_input.get(CONF_TASK_DUE_DATE)
+            if not due_date:
+                errors[CONF_TASK_DUE_DATE] = "invalid_due_date"
+            else:
+                self._current_task[CONF_TASK_DUE_DATE] = str(due_date)
+                self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
+                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
+                )
+                return self._save_new_task()
+
+        return self.async_show_form(
+            step_id="opt_one_time",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_TASK_DUE_DATE): selector.DateSelector(),
                     vol.Optional(
                         CONF_TASK_WARNING_DAYS,
                         default=get_default_warning_days(self.hass),

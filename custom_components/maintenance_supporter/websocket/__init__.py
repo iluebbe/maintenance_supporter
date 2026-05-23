@@ -142,6 +142,7 @@ def _build_task_summary(
         "quick_complete_defaults": task_data.get("quick_complete_defaults"),
         # Computed fields from coordinator
         "status": ct.get("_status", "ok"),
+        "is_done": ct.get("_is_done", False),
         "days_until_due": ct.get("_days_until_due"),
         "next_due": ct.get("_next_due"),
         "trigger_active": ct.get("_trigger_active", False),

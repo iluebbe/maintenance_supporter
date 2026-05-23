@@ -126,18 +126,34 @@
         "title": "Zeitbasierter Plan",
         "description": "Konfigurieren Sie das Zeitintervall für diese Wartungsaufgabe.",
         "data": {
-          "interval_days": "Intervall (Tage)",
+          "interval_days": "Intervall",
+          "interval_unit": "Intervalleinheit",
           "last_performed": "Zuletzt durchgeführt",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "interval_anchor": "Intervall-Anker"
         },
         "data_description": {
-          "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
+          "interval_days": "Wie oft diese Wartung wiederholt wird, zusammen mit der Intervalleinheit.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn noch nie durchgeführt.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Aufgabenerstellung ohne zu speichern.",
           "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum."
+        }
+      },
+      "one_time": {
+        "title": "Einmalige Aufgabe",
+        "description": "Konfiguriere eine einzelne, nicht wiederkehrende Wartungsaufgabe. Sie wird nach Abschluss archiviert.",
+        "data": {
+          "due_date": "Fälligkeitsdatum",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "due_date": "Das Datum, an dem diese einmalige Aufgabe fällig ist.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, an denen eine Warnung angezeigt wird.",
+          "go_back": "Zur Aufgabenerstellung zurückkehren, ohne zu speichern."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "Die ausgewählte Entität existiert nicht oder hat keine numerischen Daten.",
       "invalid_attribute": "Das ausgewählte Attribut ist bei dieser Entität nicht verfügbar.",
       "invalid_threshold": "Mindestens ein Schwellwert (über oder unter) muss gesetzt werden.",
+      "invalid_due_date": "Für einmalige Aufgaben ist ein Fälligkeitsdatum erforderlich.",
       "invalid_interval": "Das Intervall muss eine positive Zahl sein.",
       "min_exceeds_max": "Das Mindestintervall darf das Höchstintervall nicht überschreiten.",
       "invalid_notify_service": "Ungültiges Format des Benachrichtigungsdienstes. Verwenden Sie 'notify.dienstname' (z.B. notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Aufgabenname",
           "type": "Wartungstyp",
-          "interval_days": "Intervall (Tage)",
+          "interval_days": "Intervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
+          "due_date": "Fälligkeitsdatum",
           "enabled": "Aktiviert",
           "notes": "Notizen",
           "documentation_url": "Dokumentations-URL",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
           "type": "Die Kategorie der Wartungsarbeit.",
-          "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
+          "interval_days": "Wie oft diese Wartung wiederholt wird, zusammen mit der Intervalleinheit.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
+          "due_date": "Das Datum, an dem diese einmalige Aufgabe fällig ist.",
           "enabled": "Wenn deaktiviert, werden Planung und Auslöser pausiert. Die Aufgabe wird nicht gelöscht.",
           "notes": "Zusätzliche Notizen oder Anweisungen für diese Aufgabe.",
           "documentation_url": "Link zu externer Dokumentation oder Handbuch für diese Aufgabe.",
@@ -720,18 +741,34 @@
         "title": "Zeitbasierter Plan",
         "description": "Konfigurieren Sie das Zeitintervall für diese Aufgabe.",
         "data": {
-          "interval_days": "Intervall (Tage)",
+          "interval_days": "Intervall",
+          "interval_unit": "Intervalleinheit",
           "last_performed": "Zuletzt durchgeführt",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück",
           "interval_anchor": "Intervall-Anker"
         },
         "data_description": {
-          "interval_days": "Anzahl der Tage zwischen den Wartungsdurchläufen.",
+          "interval_days": "Wie oft diese Wartung wiederholt wird, zusammen mit der Intervalleinheit.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, wenn nie durchgeführt.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung.",
           "go_back": "Zurück zum Hauptmenü ohne zu speichern.",
           "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum."
+        }
+      },
+      "opt_one_time": {
+        "title": "Einmalige Aufgabe",
+        "description": "Konfiguriere eine einzelne, nicht wiederkehrende Wartungsaufgabe. Sie wird nach Abschluss archiviert.",
+        "data": {
+          "due_date": "Fälligkeitsdatum",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "due_date": "Das Datum, an dem diese einmalige Aufgabe fällig ist.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, an denen eine Warnung angezeigt wird.",
+          "go_back": "Zum Hauptmenü zurückkehren, ohne zu speichern."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Zeitbasiert",
               "sensor_based": "Sensorbasiert",
+              "one_time": "Einmalig",
               "manual": "Manuell"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Zeitbasiert",
         "sensor_based": "Sensorbasiert",
+        "one_time": "Einmalig",
         "manual": "Manuell"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Tage",
+        "weeks": "Wochen",
+        "months": "Monate",
+        "years": "Jahre"
       }
     },
     "trigger_type": {

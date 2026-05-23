@@ -40,6 +40,8 @@ def _build_export_object(
             "enabled": tdata.get("enabled", True),
             "schedule_type": tdata.get("schedule_type", "time_based"),
             "interval_days": tdata.get("interval_days"),
+            "interval_unit": tdata.get("interval_unit", "days"),
+            "due_date": tdata.get("due_date"),
             "interval_anchor": tdata.get("interval_anchor", "completion"),
             "last_planned_due": tdata.get("last_planned_due"),
             "warning_days": tdata.get("warning_days", 7),

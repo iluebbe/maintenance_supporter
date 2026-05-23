@@ -126,18 +126,34 @@
         "title": "Agendamento Baseado no Tempo",
         "description": "Configure o intervalo de tempo para esta tarefa de manutenção.",
         "data": {
-          "interval_days": "Intervalo (dias)",
+          "interval_days": "Intervalo",
+          "interval_unit": "Unidade de intervalo",
           "last_performed": "Última realização",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "interval_anchor": "Âncora do intervalo"
         },
         "data_description": {
-          "interval_days": "Número de dias entre execuções de manutenção.",
+          "interval_days": "Com que frequência esta manutenção se repete, combinada com a unidade de intervalo.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "last_performed": "Quando esta manutenção foi realizada pela última vez. Deixe vazio se nunca foi feita.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Regressar à criação da tarefa sem guardar.",
           "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original."
+        }
+      },
+      "one_time": {
+        "title": "Tarefa única",
+        "description": "Configure uma única tarefa de manutenção não recorrente. É arquivada após a conclusão.",
+        "data": {
+          "due_date": "Data de vencimento",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "due_date": "A data em que esta tarefa única vence.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à criação da tarefa sem guardar."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "A entidade selecionada não existe ou não tem dados numéricos.",
       "invalid_attribute": "O atributo selecionado não está disponível nesta entidade.",
       "invalid_threshold": "Pelo menos um limiar (acima ou abaixo) deve ser definido.",
+      "invalid_due_date": "É necessária uma data de vencimento para tarefas únicas.",
       "invalid_interval": "O intervalo deve ser um número positivo.",
       "min_exceeds_max": "O intervalo mínimo não deve exceder o intervalo máximo.",
       "invalid_notify_service": "Formato de serviço de notificação inválido. Use 'notify.nome_do_servico' (ex.: notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Nome da tarefa",
           "type": "Tipo de manutenção",
-          "interval_days": "Intervalo (dias)",
+          "interval_days": "Intervalo",
+          "interval_unit": "Unidade de intervalo",
           "warning_days": "Dias de aviso antes do vencimento",
+          "due_date": "Data de vencimento",
           "enabled": "Ativado",
           "notes": "Notas",
           "documentation_url": "URL de documentação",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
           "type": "A categoria do trabalho de manutenção.",
-          "interval_days": "Número de dias entre execuções de manutenção.",
+          "interval_days": "Com que frequência esta manutenção se repete, combinada com a unidade de intervalo.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "due_date": "A data em que esta tarefa única vence.",
           "enabled": "Quando desativado, o agendamento e os acionamentos são pausados. A tarefa não é eliminada.",
           "notes": "Notas ou instruções adicionais para esta tarefa.",
           "documentation_url": "Ligação para documentação externa ou manual para esta tarefa.",
@@ -813,18 +834,34 @@
         "title": "Agendamento Baseado no Tempo",
         "description": "Configure o intervalo de tempo para esta tarefa.",
         "data": {
-          "interval_days": "Intervalo (dias)",
+          "interval_days": "Intervalo",
+          "interval_unit": "Unidade de intervalo",
           "last_performed": "Última realização",
           "warning_days": "Dias de aviso antes do vencimento",
           "go_back": "Voltar",
           "interval_anchor": "Âncora do intervalo"
         },
         "data_description": {
-          "interval_days": "Número de dias entre execuções de manutenção.",
+          "interval_days": "Com que frequência esta manutenção se repete, combinada com a unidade de intervalo.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
           "last_performed": "Quando esta manutenção foi realizada pela última vez. Deixe vazio se nunca foi feita.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
           "go_back": "Regressar ao menu principal sem guardar.",
           "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original."
+        }
+      },
+      "opt_one_time": {
+        "title": "Tarefa única",
+        "description": "Configure uma única tarefa de manutenção não recorrente. É arquivada após a conclusão.",
+        "data": {
+          "due_date": "Data de vencimento",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "due_date": "A data em que esta tarefa única vence.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar ao menu principal sem guardar."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Baseado no tempo",
               "sensor_based": "Baseado em sensor",
+              "one_time": "Única",
               "manual": "Manual"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Baseado no tempo",
         "sensor_based": "Baseado em sensor",
+        "one_time": "Única",
         "manual": "Manual"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dias",
+        "weeks": "Semanas",
+        "months": "Meses",
+        "years": "Anos"
       }
     },
     "trigger_type": {

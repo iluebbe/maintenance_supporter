@@ -126,18 +126,34 @@
         "title": "Pianificazione temporale",
         "description": "Configura l'intervallo di tempo per questa attività di manutenzione.",
         "data": {
-          "interval_days": "Intervallo (giorni)",
+          "interval_days": "Intervallo",
+          "interval_unit": "Unità di intervallo",
           "last_performed": "Ultima esecuzione",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "interval_anchor": "Ancoraggio intervallo"
         },
         "data_description": {
-          "interval_days": "Numero di giorni tra i cicli di manutenzione.",
+          "interval_days": "Con quale frequenza si ripete questa manutenzione, combinata con l'unità di intervallo.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
           "last_performed": "Data dell'ultima manutenzione eseguita. Lasciare vuoto se mai eseguita.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "go_back": "Tornare alla creazione dell'attività senza salvare.",
           "interval_anchor": "Come viene calcolata la prossima data di scadenza dopo il completamento. 'Pianificato' previene lo slittamento ancorandosi alla data pianificata."
+        }
+      },
+      "one_time": {
+        "title": "Attività una tantum",
+        "description": "Configura una singola attività di manutenzione non ricorrente. Viene archiviata una volta completata.",
+        "data": {
+          "due_date": "Scadenza",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro"
+        },
+        "data_description": {
+          "due_date": "La data in cui questa attività una tantum è prevista.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "go_back": "Tornare alla creazione dell'attività senza salvare."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "L'entità selezionata non esiste o non ha dati numerici.",
       "invalid_attribute": "L'attributo selezionato non è disponibile per questa entità.",
       "invalid_threshold": "Almeno una soglia (superiore o inferiore) deve essere impostata.",
+      "invalid_due_date": "Per le attività una tantum è richiesta una scadenza.",
       "invalid_interval": "L'intervallo deve essere un numero positivo.",
       "min_exceeds_max": "L'intervallo minimo non deve superare l'intervallo massimo.",
       "invalid_notify_service": "Formato del servizio di notifica non valido. Usa 'notify.nome_servizio' (es.: notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Nome attività",
           "type": "Tipo di manutenzione",
-          "interval_days": "Intervallo (giorni)",
+          "interval_days": "Intervallo",
+          "interval_unit": "Unità di intervallo",
           "warning_days": "Giorni di avviso prima della scadenza",
+          "due_date": "Scadenza",
           "enabled": "Abilitato",
           "notes": "Note",
           "documentation_url": "URL documentazione",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
           "type": "La categoria del lavoro di manutenzione.",
-          "interval_days": "Numero di giorni tra le esecuzioni di manutenzione.",
+          "interval_days": "Con quale frequenza si ripete questa manutenzione, combinata con l'unità di intervallo.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "due_date": "La data in cui questa attività una tantum è prevista.",
           "enabled": "Quando disabilitato, la pianificazione e i trigger vengono sospesi. L'attività non viene eliminata.",
           "notes": "Note aggiuntive o istruzioni per questa attività.",
           "documentation_url": "Link alla documentazione esterna o al manuale per questa attività.",
@@ -813,18 +834,34 @@
         "title": "Pianificazione temporale",
         "description": "Configurare l'intervallo di tempo per questa attività.",
         "data": {
-          "interval_days": "Intervallo (giorni)",
+          "interval_days": "Intervallo",
+          "interval_unit": "Unità di intervallo",
           "last_performed": "Ultima esecuzione",
           "warning_days": "Giorni di avviso prima della scadenza",
           "go_back": "Indietro",
           "interval_anchor": "Ancoraggio intervallo"
         },
         "data_description": {
-          "interval_days": "Numero di giorni tra le esecuzioni di manutenzione.",
+          "interval_days": "Con quale frequenza si ripete questa manutenzione, combinata con l'unità di intervallo.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
           "last_performed": "Quando questa manutenzione è stata eseguita l'ultima volta. Lasciare vuoto se mai eseguita.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
           "go_back": "Tornare al menu principale senza salvare.",
           "interval_anchor": "Come viene calcolata la prossima data di scadenza dopo il completamento. 'Pianificato' previene lo slittamento ancorandosi alla data pianificata."
+        }
+      },
+      "opt_one_time": {
+        "title": "Attività una tantum",
+        "description": "Configura una singola attività di manutenzione non ricorrente. Viene archiviata una volta completata.",
+        "data": {
+          "due_date": "Scadenza",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro"
+        },
+        "data_description": {
+          "due_date": "La data in cui questa attività una tantum è prevista.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "go_back": "Tornare al menu principale senza salvare."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Temporale",
               "sensor_based": "Basato su sensore",
+              "one_time": "Una tantum",
               "manual": "Manuale"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Temporale",
         "sensor_based": "Basato su sensore",
+        "one_time": "Una tantum",
         "manual": "Manuale"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Giorni",
+        "weeks": "Settimane",
+        "months": "Mesi",
+        "years": "Anni"
       }
     },
     "trigger_type": {

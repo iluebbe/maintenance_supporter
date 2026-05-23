@@ -31,8 +31,10 @@ from .const import (
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
+    CONF_TASK_DUE_DATE,
     CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
+    CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
     CONF_TASK_SCHEDULE_TYPE,
@@ -594,6 +596,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 return await self.async_step_time_based()
             if schedule == ScheduleType.SENSOR_BASED:
                 return await self.async_step_sensor_select()
+            if schedule == ScheduleType.ONE_TIME:
+                return await self.async_step_one_time()
             # Manual
             return await self.async_step_manual()
 
@@ -651,6 +655,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
             else:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
+                unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
+                if unit != "days":
+                    self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                     CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
@@ -674,7 +681,58 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    vol.Optional(
+                        CONF_TASK_INTERVAL_UNIT, default="days"
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["days", "weeks", "months", "years"],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="interval_unit",
+                        )
+                    ),
                     vol.Optional("last_performed"): selector.DateSelector(),
+                    vol.Optional(
+                        CONF_TASK_WARNING_DAYS,
+                        default=get_default_warning_days(self.hass),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=365,
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
+                }
+            ),
+            errors=errors,
+        )
+
+    async def async_step_one_time(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure a one-time (non-recurring) task."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_add_task()
+
+            due_date = user_input.get(CONF_TASK_DUE_DATE)
+            if not due_date:
+                errors[CONF_TASK_DUE_DATE] = "invalid_due_date"
+            else:
+                self._current_task[CONF_TASK_DUE_DATE] = str(due_date)
+                self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
+                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
+                )
+                return self._save_task_and_return()
+
+        return self.async_show_form(
+            step_id="one_time",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_TASK_DUE_DATE): selector.DateSelector(),
                     vol.Optional(
                         CONF_TASK_WARNING_DAYS,
                         default=get_default_warning_days(self.hass),
@@ -975,6 +1033,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             task_data["interval_days"] = int(
                 self._current_task[CONF_TASK_INTERVAL_DAYS]
             )
+        if CONF_TASK_INTERVAL_UNIT in self._current_task:
+            task_data["interval_unit"] = self._current_task[CONF_TASK_INTERVAL_UNIT]
+        if CONF_TASK_DUE_DATE in self._current_task:
+            task_data["due_date"] = self._current_task[CONF_TASK_DUE_DATE]
         if "last_performed" in self._current_task:
             task_data["last_performed"] = self._current_task["last_performed"]
         if "trigger_config" in self._current_task:

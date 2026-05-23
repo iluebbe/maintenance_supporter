@@ -126,17 +126,33 @@
         "title": "Time-based Schedule",
         "description": "Configure the time interval for this maintenance task.",
         "data": {
-          "interval_days": "Interval (days)",
+          "interval_days": "Interval",
+          "interval_unit": "Interval unit",
           "interval_anchor": "Interval anchor",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
         "data_description": {
-          "interval_days": "Number of days between maintenance runs.",
+          "interval_days": "How often this maintenance repeats, combined with the interval unit.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to task creation without saving."
+        }
+      },
+      "one_time": {
+        "title": "One-time Task",
+        "description": "Configure a single, non-recurring maintenance task. It is archived once completed.",
+        "data": {
+          "due_date": "Due date",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "due_date": "The date this one-time task is due.",
+          "warning_days": "Number of days before the due date to show a warning.",
           "go_back": "Return to task creation without saving."
         }
       },
@@ -401,6 +417,7 @@
       "invalid_attribute": "The selected attribute is not available on this entity.",
       "invalid_threshold": "At least one threshold (above or below) must be set.",
       "invalid_interval": "Interval must be a positive number.",
+      "invalid_due_date": "A due date is required for one-time tasks.",
       "min_exceeds_max": "Minimum interval must not exceed maximum interval.",
       "invalid_notify_service": "Invalid notification service format. Use 'notify.service_name' (e.g., notify.mobile_app_phone).",
       "notify_service_not_found": "This notification service was not found in Home Assistant. Please verify the service name.",
@@ -605,7 +622,9 @@
         "data": {
           "name": "Task name",
           "type": "Maintenance type",
-          "interval_days": "Interval (days)",
+          "interval_days": "Interval",
+          "interval_unit": "Interval unit",
+          "due_date": "Due date",
           "interval_anchor": "Interval anchor",
           "warning_days": "Warning days before due",
           "enabled": "Enabled",
@@ -620,7 +639,9 @@
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
           "type": "The category of maintenance work.",
-          "interval_days": "Number of days between maintenance runs.",
+          "interval_days": "How often this maintenance repeats, combined with the interval unit.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "due_date": "The date this one-time task is due.",
           "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date.",
           "warning_days": "Number of days before due date to show a warning.",
           "enabled": "When disabled, scheduling and triggers are paused. The task is not deleted.",
@@ -696,17 +717,33 @@
         "title": "Time-based Schedule",
         "description": "Configure the time interval for this task.",
         "data": {
-          "interval_days": "Interval (days)",
+          "interval_days": "Interval",
+          "interval_unit": "Interval unit",
           "interval_anchor": "Interval anchor",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
         "data_description": {
-          "interval_days": "Number of days between maintenance runs.",
+          "interval_days": "How often this maintenance repeats, combined with the interval unit.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "interval_anchor": "How the next due date is calculated after completion. 'Planned' prevents schedule drift by anchoring to the original due date.",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to the main menu without saving."
+        }
+      },
+      "opt_one_time": {
+        "title": "One-time Task",
+        "description": "Configure a single, non-recurring maintenance task. It is archived once completed.",
+        "data": {
+          "due_date": "Due date",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "due_date": "The date this one-time task is due.",
+          "warning_days": "Number of days before the due date to show a warning.",
           "go_back": "Return to the main menu without saving."
         }
       },
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Time-based",
               "sensor_based": "Sensor-based",
+              "one_time": "One-time",
               "manual": "Manual"
             }
           },
@@ -1341,7 +1379,16 @@
       "options": {
         "time_based": "Time-based",
         "sensor_based": "Sensor-based",
+        "one_time": "One-time",
         "manual": "Manual"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Days",
+        "weeks": "Weeks",
+        "months": "Months",
+        "years": "Years"
       }
     },
     "trigger_type": {

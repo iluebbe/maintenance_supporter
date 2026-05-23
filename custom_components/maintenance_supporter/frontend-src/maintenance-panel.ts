@@ -415,6 +415,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           total_cost: task.total_cost,
           interval_days: task.interval_days ?? null,
           interval_anchor: task.interval_anchor ?? null,
+          is_done: task.is_done ?? false,
           history: task.history || [],
           enabled: task.enabled,
           nfc_tag_id: task.nfc_tag_id ?? null,
@@ -1401,7 +1402,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
         <span class="cell-badges">
-          <span class="status-badge ${row.status}">${t(row.status, L)}</span>
+          <span class="status-badge ${row.is_done ? 'done' : row.status}">${row.is_done ? t("completed", L) : t(row.status, L)}</span>
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
           ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
         </span>
@@ -1683,7 +1684,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               return (so[a.status] ?? 9) - (so[b.status] ?? 9) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
             }).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
-                <span class="status-badge ${task.status}">${t(task.status, L)}</span>
+                <span class="status-badge ${task.is_done ? 'done' : task.status}">${task.is_done ? t("completed", L) : t(task.status, L)}</span>
                 ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                 ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
@@ -1719,9 +1720,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     const objName = obj?.object.name || "";
     const isOperator = this._isOperator;
 
-    // Determine status chip — use the backend-computed status
-    const statusClass = task.status === "due_soon" ? "warning" : (task.status || "ok");
-    const statusText = t(task.status || "ok", L);
+    // Determine status chip — use the backend-computed status. A completed
+    // one-time task is shown as archived ("done") rather than its raw "ok".
+    const statusClass = task.is_done ? "done" : (task.status === "due_soon" ? "warning" : (task.status || "ok"));
+    const statusText = task.is_done ? t("completed", L) : t(task.status || "ok", L);
 
     return html`
       <div class="task-header">

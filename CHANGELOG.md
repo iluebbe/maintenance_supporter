@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.6.0] - 2026-05-23
+
+### ✨ One-time tasks (#54, forum)
+
+Tasks can now be scheduled as **one-time** — a single, non-recurring job with an explicit **due date**. It behaves like any other task (status, warnings, completion, history) until you complete it, then it is **archived**: it no longer counts as active, disappears from the card, and shows a muted **"Completed"** badge in the panel. Pick *One-time* as the schedule type in the task dialog, the config flow, or the options flow.
+
+### ✨ Calendar interval units — weeks, months, years (#54)
+
+Time-based tasks are no longer days-only. Choose an **interval unit** — *days, weeks, months* or *years* — and the next due date is computed with real calendar arithmetic (a "3 months" task due on the 31st clamps to the last valid day; leap years are handled). No external dependencies. Existing tasks keep behaving as days.
+
+### 🔁 Round-trip everywhere
+
+The two new fields (`interval_unit`, `due_date`) are persisted and exported/imported across **JSON, YAML and CSV**, and surfaced through the WebSocket API and the config/options flows — all 12 translations updated. New round-trip and flow tests cover every path.
+
 ## [2.5.0] - 2026-05-23
 
 ### ✨ Action buttons — act on tasks from any dashboard (#49)

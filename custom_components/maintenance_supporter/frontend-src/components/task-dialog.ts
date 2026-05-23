@@ -10,7 +10,7 @@ import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
-const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "manual"];
+const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "one_time", "manual"];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 
 export class MaintenanceTaskDialog extends LitElement {
@@ -33,6 +33,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _type = "custom";
   @state() private _scheduleType = "time_based";
   @state() private _intervalDays = "30";
+  @state() private _intervalUnit = "days";
+  @state() private _dueDate = "";
   @state() private _warningDays = "7";
   @state() private _intervalAnchor: "completion" | "planned" = "completion";
   @state() private _notes = "";
@@ -137,6 +139,8 @@ export class MaintenanceTaskDialog extends LitElement {
     // safety_interval back to 30 on next edit, silently overwriting the
     // user's intent the moment they touched any other field and saved.
     this._intervalDays = task.interval_days != null ? String(task.interval_days) : "";
+    this._intervalUnit = task.interval_unit || "days";
+    this._dueDate = task.due_date || "";
     this._warningDays = task.warning_days.toString();
     this._intervalAnchor = task.interval_anchor || "completion";
     this._notes = task.notes || "";
@@ -210,6 +214,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._type = "custom";
     this._scheduleType = "time_based";
     this._intervalDays = "30";
+    this._intervalUnit = "days";
+    this._dueDate = "";
     this._warningDays = String(this.defaultWarningDays);
     this._intervalAnchor = "completion";
     this._notes = "";
@@ -544,17 +550,20 @@ export class MaintenanceTaskDialog extends LitElement {
 
       if (this._taskId) data.task_id = this._taskId;
 
-      if (this._scheduleType !== "manual") {
-        if (this._intervalDays) {
+      if (this._scheduleType === "one_time") {
+        data.due_date = this._dueDate || null;
+        data.interval_days = null;
+      } else {
+        // Switching away from one-time clears the stale due_date on edit.
+        if (this._taskId) data.due_date = null;
+        if (this._scheduleType !== "manual" && this._intervalDays) {
           data.interval_days = parseInt(this._intervalDays, 10);
+          data.interval_unit = this._intervalUnit;
           data.interval_anchor = this._intervalAnchor;
         } else if (this._taskId) {
           data.interval_days = null;
           data.interval_anchor = "completion";
         }
-      } else if (this._taskId) {
-        data.interval_days = null;
-        data.interval_anchor = "completion";
       }
 
       data.notes = this._notes || null;
@@ -897,11 +906,22 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._scheduleType === "time_based"
             ? html`
                 <ms-textfield
-                  label="${t("interval_days", L)}"
+                  label="${t("interval_value", L)}"
                   type="number"
                   .value=${this._intervalDays}
                   @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
                 ></ms-textfield>
+                <div class="select-row">
+                  <label>${t("interval_unit", L)}</label>
+                  <select
+                    .value=${this._intervalUnit}
+                    @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
+                  >
+                    ${["days", "weeks", "months", "years"].map(
+                      (u) => html`<option value=${u} ?selected=${u === this._intervalUnit}>${t("unit_" + u, L)}</option>`
+                    )}
+                  </select>
+                </div>
                 <div class="select-row">
                   <label>${t("interval_anchor", L)}</label>
                   <select
@@ -921,6 +941,16 @@ export class MaintenanceTaskDialog extends LitElement {
                     @input=${(e: Event) => (this._scheduleTime = (e.target as HTMLInputElement).value)}
                   ></ms-textfield>
                 ` : nothing}
+              `
+            : nothing}
+          ${this._scheduleType === "one_time"
+            ? html`
+                <ms-textfield
+                  label="${t("due_date", L)}"
+                  type="date"
+                  .value=${this._dueDate}
+                  @input=${(e: Event) => (this._dueDate = (e.target as HTMLInputElement).value)}
+                ></ms-textfield>
               `
             : nothing}
           <ms-textfield

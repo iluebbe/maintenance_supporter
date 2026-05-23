@@ -96,8 +96,10 @@ export interface MaintenanceTask {
   name: string;
   type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "custom"
   enabled: boolean;
-  schedule_type: string; // "time_based" | "sensor_based" | "manual"
+  schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual"
   interval_days?: number | null;
+  interval_unit?: string; // "days" | "weeks" | "months" | "years"
+  due_date?: string | null; // one-time task due date (ISO)
   interval_anchor?: "completion" | "planned";
   schedule_time?: string | null;  // "HH:MM" or null/undefined = midnight
   warning_days: number;
@@ -123,6 +125,8 @@ export interface MaintenanceTask {
   history: HistoryEntry[];
   // Computed
   status: string; // "ok" | "due_soon" | "overdue" | "triggered"
+  /** True for a one-time task that has been completed (archived). */
+  is_done?: boolean;
   days_until_due?: number | null;
   next_due?: string | null;
   trigger_active: boolean;
@@ -283,6 +287,7 @@ export interface TaskRow {
   total_cost: number;
   interval_days: number | null;
   interval_anchor: "completion" | "planned" | null;
+  is_done: boolean;
   history: HistoryEntry[];
   enabled: boolean;
   nfc_tag_id: string | null;

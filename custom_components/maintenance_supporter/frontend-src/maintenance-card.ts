@@ -142,6 +142,8 @@ export class MaintenanceSupporterCard extends LitElement {
     for (const obj of this._objects) {
       if (filter_objects?.length && !filter_objects.includes(obj.object.name)) continue;
       for (const task of obj.tasks) {
+        // Completed one-time tasks are archived — hide from the active list.
+        if (task.is_done) continue;
         if (filter_status?.length && !filter_status.includes(task.status)) continue;
         // entity_ids: HA-native filter — match the task's sensor or
         // binary_sensor entity_id. Both fields come pre-resolved from the

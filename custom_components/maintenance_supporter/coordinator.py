@@ -180,6 +180,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task_result["_next_due"] = (
                 task.next_due.isoformat() if task.next_due else None
             )
+            task_result["_is_done"] = task.is_done
             task_result["_trigger_active"] = task._trigger_active
             task_result["_trigger_current_value"] = task._trigger_current_value
             task_result["_trigger_entity_state"] = self._trigger_entity_states.get(

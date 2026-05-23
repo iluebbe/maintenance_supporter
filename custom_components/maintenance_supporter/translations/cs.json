@@ -126,18 +126,34 @@
         "title": "Časový harmonogram",
         "description": "Nakonfigurujte časový interval pro tento úkol údržby.",
         "data": {
-          "interval_days": "Interval (dny)",
+          "interval_days": "Interval",
+          "interval_unit": "Jednotka intervalu",
           "last_performed": "Naposledy provedeno",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět",
           "interval_anchor": "Kotva intervalu"
         },
         "data_description": {
-          "interval_days": "Počet dní mezi cykly údržby.",
+          "interval_days": "Jak často se tato údržba opakuje, ve spojení s jednotkou intervalu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "last_performed": "Kdy byla tato údržba naposledy provedena. Nechte prázdné, pokud nikdy.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
           "go_back": "Návrat k vytvoření úkolu bez uložení.",
           "interval_anchor": "Jak se počítá další termín po dokončení. „Plánovaný“ zabraňuje posunu harmonogramu ukotvením k původnímu termínu."
+        }
+      },
+      "one_time": {
+        "title": "Jednorázový úkol",
+        "description": "Nakonfigurujte jeden, neopakující se úkol údržby. Po dokončení je archivován.",
+        "data": {
+          "due_date": "Termín",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "due_date": "Datum, kdy je tento jednorázový úkol splatný.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "go_back": "Návrat k vytvoření úkolu bez uložení."
         }
       },
       "sensor_select": {
@@ -400,6 +416,7 @@
       "invalid_entity": "Vybraná entita neexistuje nebo nemá číselná data.",
       "invalid_attribute": "Vybraný atribut není pro tuto entitu k dispozici.",
       "invalid_threshold": "Musí být nastaven alespoň jeden práh (nad nebo pod).",
+      "invalid_due_date": "Pro jednorázové úkoly je vyžadován termín.",
       "invalid_interval": "Interval musí být kladné číslo.",
       "min_exceeds_max": "Minimální interval nesmí překročit maximální interval.",
       "invalid_notify_service": "Neplatný formát služby oznámení. Použijte „notify.service_name“ (např. notify.mobile_app_phone).",
@@ -605,8 +622,10 @@
         "data": {
           "name": "Název úkolu",
           "type": "Typ údržby",
-          "interval_days": "Interval (dny)",
+          "interval_days": "Interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
+          "due_date": "Termín",
           "enabled": "Povoleno",
           "notes": "Poznámky",
           "documentation_url": "URL dokumentace",
@@ -620,8 +639,10 @@
         "data_description": {
           "name": "Popisný název tohoto úkolu (např. „Čištění filtru“, „Výměna oleje“).",
           "type": "Kategorie údržbové práce.",
-          "interval_days": "Počet dní mezi cykly údržby.",
+          "interval_days": "Jak často se tato údržba opakuje, ve spojení s jednotkou intervalu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "due_date": "Datum, kdy je tento jednorázový úkol splatný.",
           "enabled": "Po vypnutí jsou plánování a spouště pozastaveny. Úkol není odstraněn.",
           "notes": "Další poznámky nebo pokyny pro tento úkol.",
           "documentation_url": "Odkaz na externí dokumentaci nebo návod pro tento úkol.",
@@ -813,18 +834,34 @@
         "title": "Časový harmonogram",
         "description": "Nakonfigurujte časový interval pro tento úkol.",
         "data": {
-          "interval_days": "Interval (dny)",
+          "interval_days": "Interval",
+          "interval_unit": "Jednotka intervalu",
           "last_performed": "Naposledy provedeno",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět",
           "interval_anchor": "Kotva intervalu"
         },
         "data_description": {
-          "interval_days": "Počet dní mezi cykly údržby.",
+          "interval_days": "Jak často se tato údržba opakuje, ve spojení s jednotkou intervalu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "last_performed": "Kdy byla tato údržba naposledy provedena. Nechte prázdné, pokud nikdy.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
           "go_back": "Návrat do hlavní nabídky bez uložení.",
           "interval_anchor": "Jak se počítá další termín po dokončení. „Plánovaný“ zabraňuje posunu harmonogramu ukotvením k původnímu termínu."
+        }
+      },
+      "opt_one_time": {
+        "title": "Jednorázový úkol",
+        "description": "Nakonfigurujte jeden, neopakující se úkol údržby. Po dokončení je archivován.",
+        "data": {
+          "due_date": "Termín",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "due_date": "Datum, kdy je tento jednorázový úkol splatný.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "go_back": "Návrat do hlavní nabídky bez uložení."
         }
       },
       "opt_manual": {
@@ -1012,6 +1049,7 @@
             "state": {
               "time_based": "Časový",
               "sensor_based": "Senzorový",
+              "one_time": "Jednorázově",
               "manual": "Ruční"
             }
           },
@@ -1275,7 +1313,16 @@
       "options": {
         "time_based": "Časový",
         "sensor_based": "Senzorový",
+        "one_time": "Jednorázově",
         "manual": "Ruční"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dny",
+        "weeks": "Týdny",
+        "months": "Měsíce",
+        "years": "Roky"
       }
     },
     "trigger_type": {
