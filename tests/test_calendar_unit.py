@@ -12,6 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.calendar import (
     MaintenanceCalendar,
+    _recurrence_text,
 )
 from custom_components.maintenance_supporter.const import (
     CONF_ADVANCED_SCHEDULE_TIME,
@@ -458,3 +459,79 @@ def test_create_event_overdue(
     )
     if event is not None:
         assert "Overdue Task" in event.summary
+
+
+# ─── _recurrence_text (calendar-kind event labels, babel-localized) ────
+
+
+def _cal_task(schedule: dict[str, Any]) -> MaintenanceTask:
+    return MaintenanceTask.from_dict({
+        "id": TASK_ID_1,
+        "name": "Cal",
+        "type": "service",
+        "enabled": True,
+        "schedule": schedule,
+        "created_at": dt_util.now().date().isoformat(),
+        "warning_days": 1,
+        "history": [],
+    })
+
+
+def test_recurrence_text_nth_weekday() -> None:
+    """nth_weekday → localized "{nth}. {weekday}" via babel (the headline case)."""
+    t = _cal_task({"kind": "nth_weekday", "nth": 1, "weekday": 5})
+    assert _recurrence_text(t, "de") == "1. Samstag"
+    assert _recurrence_text(t, "en") == "1. Saturday"
+    # French weekday names are lowercase — babel handles the locale convention
+    assert _recurrence_text(t, "fr") == "1. samedi"
+
+
+def test_recurrence_text_last_weekday() -> None:
+    """nth == -1 → "Letzter Samstag" (localized "last" word + babel weekday)."""
+    t = _cal_task({"kind": "nth_weekday", "nth": -1, "weekday": 5})
+    assert _recurrence_text(t, "de") == "Letzter Samstag"
+    assert _recurrence_text(t, "en") == "Last Saturday"
+
+
+def test_recurrence_text_weekdays() -> None:
+    """weekdays → abbreviated names joined with " & "."""
+    t = _cal_task({"kind": "weekdays", "weekdays": [0, 3]})
+    assert _recurrence_text(t, "de") == "Mo. & Do."
+
+
+def test_recurrence_text_day_of_month() -> None:
+    """day_of_month → localized "day" word + number."""
+    t = _cal_task({"kind": "day_of_month", "day": 15})
+    assert _recurrence_text(t, "de") == "Tag 15"
+    assert _recurrence_text(t, "en") == "Day 15"
+
+
+def test_recurrence_text_interval_fallback() -> None:
+    """Non-calendar tasks fall back to the real day-span (3 months → ~90 days)."""
+    t = MaintenanceTask.from_dict({
+        "id": TASK_ID_1,
+        "name": "Int",
+        "type": "service",
+        "enabled": True,
+        "schedule_type": ScheduleType.TIME_BASED,
+        "interval_days": 3,
+        "interval_unit": "months",
+        "warning_days": 1,
+        "history": [],
+    })
+    assert _recurrence_text(t, "en") == "90 days"
+
+
+def test_create_event_calendar_kind_description_localized(
+    hass: HomeAssistant,
+    calendar_entity: MaintenanceCalendar,
+) -> None:
+    """End-to-end: the calendar event description carries the localized label."""
+    hass.config.language = "de"
+    task = _cal_task({"kind": "nth_weekday", "nth": 1, "weekday": 5})
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(
+        task, "Object", today, today + timedelta(days=90)
+    )
+    assert event is not None
+    assert "1. Samstag" in event.description

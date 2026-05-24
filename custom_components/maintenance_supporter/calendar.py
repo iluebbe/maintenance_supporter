@@ -44,6 +44,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Typ",
         "interval": "Intervall",
         "interval_days": "{days} Tage",
+        "cal_last": "Letzter",
+        "cal_day": "Tag",
         "last_performed": "Zuletzt durchgeführt",
         "never": "Nie",
         "manually_triggered": "Manuell ausgelöste Wartungsaufgabe",
@@ -59,6 +61,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Type",
         "interval": "Interval",
         "interval_days": "{days} dagen",
+        "cal_last": "Laatste",
+        "cal_day": "Dag",
         "last_performed": "Laatst uitgevoerd",
         "never": "Nooit",
         "manually_triggered": "Handmatig geactiveerde onderhoudstaak",
@@ -74,6 +78,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Type",
         "interval": "Intervalle",
         "interval_days": "{days} jours",
+        "cal_last": "Dernier",
+        "cal_day": "Jour",
         "last_performed": "Dernière exécution",
         "never": "Jamais",
         "manually_triggered": "Tâche de maintenance déclenchée manuellement",
@@ -89,6 +95,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Tipo",
         "interval": "Intervallo",
         "interval_days": "{days} giorni",
+        "cal_last": "Ultimo",
+        "cal_day": "Giorno",
         "last_performed": "Ultima esecuzione",
         "never": "Mai",
         "manually_triggered": "Attività di manutenzione attivata manualmente",
@@ -104,6 +112,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Tipo",
         "interval": "Intervalo",
         "interval_days": "{days} días",
+        "cal_last": "Último",
+        "cal_day": "Día",
         "last_performed": "Última ejecución",
         "never": "Nunca",
         "manually_triggered": "Tarea de mantenimiento activada manualmente",
@@ -119,6 +129,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Type",
         "interval": "Interval",
         "interval_days": "{days} days",
+        "cal_last": "Last",
+        "cal_day": "Day",
         "last_performed": "Last performed",
         "never": "Never",
         "manually_triggered": "Manually triggered maintenance task",
@@ -134,6 +146,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Тип",
         "interval": "Интервал",
         "interval_days": "{days} дней",
+        "cal_last": "Последний",
+        "cal_day": "День",
         "last_performed": "Последнее выполнение",
         "never": "Никогда",
         "manually_triggered": "Задача обслуживания запущена вручную",
@@ -149,6 +163,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Тип",
         "interval": "Інтервал",
         "interval_days": "{days} днів",
+        "cal_last": "Останній",
+        "cal_day": "День",
         "last_performed": "Останнє виконання",
         "never": "Ніколи",
         "manually_triggered": "Завдання обслуговування запущено вручну",
@@ -164,6 +180,8 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "type": "Tipo",
         "interval": "Intervalo",
         "interval_days": "{days} dias",
+        "cal_last": "Último",
+        "cal_day": "Dia",
         "last_performed": "Última execução",
         "never": "Nunca",
         "manually_triggered": "Tarefa de manutenção acionada manualmente",
@@ -185,6 +203,45 @@ def _cal_t(key: str, lang: str, **kwargs: str) -> str:
     if kwargs:
         text = text.format(**kwargs)
     return text
+
+
+def _recurrence_text(task: MaintenanceTask, lang: str) -> str:
+    """Localized recurrence label for the calendar event description.
+
+    Covers the calendar kinds (weekdays / nth_weekday / day_of_month) using
+    babel weekday names so "1. Samstag" reads localized; falls back to the
+    real day-span for interval/legacy tasks (so a 3-month task reads "~90
+    days", not "3 days").
+    """
+    raw = task.schedule_raw if isinstance(task.schedule_raw, dict) else None
+    kind = raw.get("kind") if raw else None
+    if raw is not None and kind in ("weekdays", "nth_weekday", "day_of_month"):
+        from babel.dates import get_day_names  # HA dependency; lazy import
+
+        loc = lang or "en"
+        try:
+            if kind == "weekdays":
+                names = get_day_names("abbreviated", locale=loc)
+                days = [d for d in raw.get("weekdays") or [] if isinstance(d, int) and 0 <= d <= 6]
+                return " & ".join(names[d] for d in days)
+            if kind == "nth_weekday":
+                wd, nth = raw.get("weekday"), raw.get("nth")
+                if not isinstance(wd, int) or not isinstance(nth, int):
+                    return ""
+                name = get_day_names("wide", locale=loc)[wd]
+                ordinal = _cal_t("cal_last", lang) if nth == -1 else f"{nth}."
+                return f"{ordinal} {name}"
+            # day_of_month
+            day = raw.get("day")
+            return f"{_cal_t('cal_day', lang)} {day}" if isinstance(day, int) else ""
+        except (KeyError, LookupError, ValueError):
+            return ""
+    # interval / legacy flat → real day-span
+    return (
+        _cal_t("interval_days", lang, days=str(interval_span_days(task.interval_days, task.interval_unit)))
+        if task.interval_days
+        else ""
+    )
 
 
 async def async_setup_entry(
@@ -396,10 +453,7 @@ class MaintenanceCalendar(CalendarEntity):
         type_translated = _cal_t(task.type, lang) if task.type else task.type
         # Show the real day-span so a 3-month task reads "~90 days", not "3 days"
         # (the calendar event itself is already placed at the unit-aware next_due).
-        interval_text = (
-            _cal_t("interval_days", lang, days=str(interval_span_days(task.interval_days, task.interval_unit)))
-            if task.interval_days else ""
-        )
+        interval_text = _recurrence_text(task, lang)
         last_perf = str(task.last_performed) if task.last_performed else _cal_t("never", lang)
 
         # Build event window. Default: all-day. When schedule_time is set
