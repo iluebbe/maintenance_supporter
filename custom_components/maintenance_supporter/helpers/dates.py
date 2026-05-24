@@ -14,6 +14,16 @@ from datetime import date, timedelta
 INTERVAL_UNITS = ("days", "weeks", "months", "years")
 
 
+def parse_iso_date(value: str | None) -> date | None:
+    """ISO date string → ``date``; ``None`` when absent or malformed."""
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+
+
 def _add_months(anchor: date, months: int) -> date:
     """Advance ``anchor`` by ``months`` calendar months, clamping the day."""
     total = anchor.month - 1 + months
