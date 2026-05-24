@@ -35,6 +35,7 @@ from ..const import (
     MAX_URL_LENGTH,
     HistoryEntryType,
 )
+from ..helpers.dates import INTERVAL_UNITS
 from . import (
     _build_task_summary,
     _get_merged_tasks,
@@ -379,7 +380,7 @@ async def async_create_task_simple(
         vol.Optional("task_type", default="custom"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("schedule_type", default="time_based"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1, max=MAX_INTERVAL_DAYS)), None),
-        vol.Optional("interval_unit", default="days"): vol.In(["days", "weeks", "months", "years"]),
+        vol.Optional("interval_unit", default="days"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor", default="completion"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days", default=7): vol.All(int, vol.Range(min=0, max=365)),
@@ -557,7 +558,7 @@ async def ws_create_task(
         vol.Optional("enabled"): bool,
         vol.Optional("schedule_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=1, max=MAX_INTERVAL_DAYS)), None),
-        vol.Optional("interval_unit"): vol.In(["days", "weeks", "months", "years"]),
+        vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor"): vol.In(["completion", "planned"]),
         vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),

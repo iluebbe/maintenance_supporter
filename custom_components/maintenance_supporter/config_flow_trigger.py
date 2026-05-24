@@ -29,8 +29,10 @@ from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
+    apply_interval_unit,
     async_get_threshold_suggestions,
     format_threshold_placeholders,
+    interval_unit_selector,
 )
 from .const import (
     CONF_COMPOUND_CONDITIONS,
@@ -394,9 +396,7 @@ class TriggerConfigMixin:
                 interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
                 if interval and interval > 0:
                     self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
-                    unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
-                    if unit != "days":
-                        self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
+                    apply_interval_unit(self._current_task, user_input)
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                     CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
@@ -459,13 +459,7 @@ class TriggerConfigMixin:
             ),
             vol.Optional(
                 CONF_TASK_INTERVAL_UNIT, default="days"
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=["days", "weeks", "months", "years"],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    translation_key="interval_unit",
-                )
-            ),
+            ): interval_unit_selector(),
             vol.Optional(
                 CONF_TASK_WARNING_DAYS,
                 default=get_default_warning_days(self.hass),
@@ -513,9 +507,7 @@ class TriggerConfigMixin:
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
             if interval and interval > 0:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
-                unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
-                if unit != "days":
-                    self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
+                apply_interval_unit(self._current_task, user_input)
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                 CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
@@ -574,13 +566,7 @@ class TriggerConfigMixin:
             ),
             vol.Optional(
                 CONF_TASK_INTERVAL_UNIT, default="days"
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=["days", "weeks", "months", "years"],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    translation_key="interval_unit",
-                )
-            ),
+            ): interval_unit_selector(),
             vol.Optional(
                 CONF_TASK_WARNING_DAYS,
                 default=get_default_warning_days(self.hass),
@@ -639,9 +625,7 @@ class TriggerConfigMixin:
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
             if interval and interval > 0:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
-                unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
-                if unit != "days":
-                    self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
+                apply_interval_unit(self._current_task, user_input)
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                 CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
@@ -698,13 +682,7 @@ class TriggerConfigMixin:
             ),
             vol.Optional(
                 CONF_TASK_INTERVAL_UNIT, default="days"
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=["days", "weeks", "months", "years"],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    translation_key="interval_unit",
-                )
-            ),
+            ): interval_unit_selector(),
             vol.Optional(
                 CONF_TASK_WARNING_DAYS,
                 default=get_default_warning_days(self.hass),
@@ -761,9 +739,7 @@ class TriggerConfigMixin:
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
             if interval and interval > 0:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
-                unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
-                if unit != "days":
-                    self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
+                apply_interval_unit(self._current_task, user_input)
             self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                 CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
             )
@@ -821,13 +797,7 @@ class TriggerConfigMixin:
             ),
             vol.Optional(
                 CONF_TASK_INTERVAL_UNIT, default="days"
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=["days", "weeks", "months", "years"],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    translation_key="interval_unit",
-                )
-            ),
+            ): interval_unit_selector(),
             vol.Optional(
                 CONF_TASK_WARNING_DAYS,
                 default=get_default_warning_days(self.hass),

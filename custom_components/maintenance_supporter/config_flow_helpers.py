@@ -7,11 +7,41 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import selector
 
+from .const import CONF_TASK_INTERVAL_UNIT
+from .helpers.dates import INTERVAL_UNITS
 from .helpers.entity_analyzer import EntityAnalyzer
 from .helpers.threshold_calculator import ThresholdCalculator, ThresholdSuggestions
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def interval_unit_selector() -> selector.SelectSelector:
+    """Shared days/weeks/months/years dropdown for the interval unit.
+
+    DRY single source for the time-based interval AND the sensor safety-interval
+    steps across the config + options flows (previously duplicated 7×). Options
+    come from the canonical ``INTERVAL_UNITS``; ``translation_key`` localizes them
+    via ``selector.interval_unit.options`` in strings.json.
+    """
+    return selector.SelectSelector(
+        selector.SelectSelectorConfig(
+            options=list(INTERVAL_UNITS),
+            mode=selector.SelectSelectorMode.DROPDOWN,
+            translation_key="interval_unit",
+        )
+    )
+
+
+def apply_interval_unit(target: dict[str, Any], user_input: dict[str, Any]) -> None:
+    """Persist ``interval_unit`` from a flow step into ``target`` only when it
+    differs from the implicit default ``days`` (keeps stored task dicts minimal).
+    DRY: replaces the ``if unit != "days"`` block duplicated across flow steps.
+    """
+    unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
+    if unit != "days":
+        target[CONF_TASK_INTERVAL_UNIT] = unit
 
 
 async def async_get_threshold_suggestions(

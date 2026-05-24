@@ -16,6 +16,7 @@ from homeassistant.config_entries import (
 from homeassistant.core import State, callback
 from homeassistant.helpers import selector
 
+from .config_flow_helpers import apply_interval_unit, interval_unit_selector
 from .config_flow_options_global import validate_notify_service
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
@@ -655,9 +656,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 errors[CONF_TASK_INTERVAL_DAYS] = "invalid_interval"
             else:
                 self._current_task[CONF_TASK_INTERVAL_DAYS] = interval
-                unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
-                if unit != "days":
-                    self._current_task[CONF_TASK_INTERVAL_UNIT] = unit
+                apply_interval_unit(self._current_task, user_input)
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                     CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
@@ -683,13 +682,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     ),
                     vol.Optional(
                         CONF_TASK_INTERVAL_UNIT, default="days"
-                    ): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=["days", "weeks", "months", "years"],
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                            translation_key="interval_unit",
-                        )
-                    ),
+                    ): interval_unit_selector(),
                     vol.Optional("last_performed"): selector.DateSelector(),
                     vol.Optional(
                         CONF_TASK_WARNING_DAYS,
