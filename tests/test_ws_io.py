@@ -332,6 +332,35 @@ async def test_json_import_preserves_interval_unit_and_due_date(
     assert read_legacy_fields(oneshot)["due_date"] == "2026-09-01"
 
 
+async def test_json_import_preserves_calendar_kind(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """JSON import keeps a calendar kind (nth_weekday) via the nested schedule."""
+    import json as _json
+
+    await setup_integration(hass, global_entry)
+    payload = _json.dumps({"version": 1, "objects": [{
+        "object": {"name": "CalKindObj"},
+        "tasks": [
+            {"name": "Smoke alarm",
+             "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5}},
+        ],
+    }]})
+    conn = _mock_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": payload,
+    })
+    conn.send_error.assert_not_called()
+
+    entry = next(
+        e for e in hass.config_entries.async_entries("maintenance_supporter")
+        if e.data.get("object", {}).get("name") == "CalKindObj"
+    )
+    task = next(iter(entry.data.get("tasks", {}).values()))
+    assert task["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+
+
 # ─── ws_import_csv ───────────────────────────────────────────────────────
 
 
