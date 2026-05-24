@@ -91,16 +91,33 @@ export interface IntervalAnalysis {
   confidence_interval_high?: number | null;
 }
 
+/** Nested recurrence object (schedule-model v2). The flat fields above remain
+ *  for the interval/one_time kinds; the calendar kinds (weekdays / nth_weekday /
+ *  day_of_month) can only be expressed here. weekday: 0=Mon … 6=Sun. */
+export interface TaskSchedule {
+  kind: string; // interval | weekdays | nth_weekday | day_of_month | one_time | manual
+  every?: number | null;
+  unit?: string;
+  anchor?: string;
+  due_date?: string | null;
+  weekdays?: number[];
+  nth?: number;       // 1..5, or -1 = last
+  weekday?: number;
+  day?: number;       // 1..31
+  months?: number[];
+}
+
 export interface MaintenanceTask {
   id: string;
   name: string;
   type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "custom"
   enabled: boolean;
-  schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual"
+  schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual" | calendar kind
   interval_days?: number | null;
   interval_unit?: string; // "days" | "weeks" | "months" | "years"
   due_date?: string | null; // one-time task due date (ISO)
   interval_anchor?: "completion" | "planned";
+  schedule?: TaskSchedule; // nested recurrence (calendar kinds read this)
   schedule_time?: string | null;  // "HH:MM" or null/undefined = midnight
   warning_days: number;
   last_performed?: string | null;

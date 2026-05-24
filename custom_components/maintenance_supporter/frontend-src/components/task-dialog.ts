@@ -10,8 +10,18 @@ import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
-const SCHEDULE_TYPE_KEYS = ["time_based", "sensor_based", "one_time", "manual"];
+const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "sensor_based", "one_time", "manual"];
+const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
+
+/** Short localized weekday names (0=Mon … 6=Sun), via Intl — no i18n keys. */
+function weekdayNames(lang?: string): string[] {
+  const locale = (lang || "en").substring(0, 2);
+  // 2024-01-01 is a Monday; format the 7 days following it.
+  return Array.from({ length: 7 }, (_, i) =>
+    new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, { weekday: "short", timeZone: "UTC" })
+  );
+}
 
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -37,6 +47,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _dueDate = "";
   @state() private _warningDays = "7";
   @state() private _intervalAnchor: "completion" | "planned" = "completion";
+  // Calendar kinds (Phase 4): weekdays (0=Mon…6=Sun), nth_weekday, day_of_month
+  @state() private _weekdays: number[] = [];
+  @state() private _nth = "1";          // "1".."5" or "-1" (last)
+  @state() private _nthWeekday = "5";   // Saturday
+  @state() private _domDay = "1";
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
@@ -141,6 +156,12 @@ export class MaintenanceTaskDialog extends LitElement {
     this._intervalDays = task.interval_days != null ? String(task.interval_days) : "";
     this._intervalUnit = task.interval_unit || "days";
     this._dueDate = task.due_date || "";
+    // Calendar kinds read the nested schedule (the only place they live).
+    const sched = task.schedule;
+    this._weekdays = sched?.kind === "weekdays" ? [...(sched.weekdays ?? [])] : [];
+    this._nth = sched?.kind === "nth_weekday" ? String(sched.nth ?? 1) : "1";
+    this._nthWeekday = sched?.kind === "nth_weekday" ? String(sched.weekday ?? 5) : "5";
+    this._domDay = sched?.kind === "day_of_month" ? String(sched.day ?? 1) : "1";
     this._warningDays = task.warning_days.toString();
     this._intervalAnchor = task.interval_anchor || "completion";
     this._notes = task.notes || "";
@@ -218,6 +239,10 @@ export class MaintenanceTaskDialog extends LitElement {
     this._dueDate = "";
     this._warningDays = String(this.defaultWarningDays);
     this._intervalAnchor = "completion";
+    this._weekdays = [];
+    this._nth = "1";
+    this._nthWeekday = "5";
+    this._domDay = "1";
     this._notes = "";
     this._documentationUrl = "";
     this._customIcon = "";
@@ -553,6 +578,12 @@ export class MaintenanceTaskDialog extends LitElement {
       if (this._scheduleType === "one_time") {
         data.due_date = this._dueDate || null;
         data.interval_days = null;
+      } else if (CALENDAR_KINDS.includes(this._scheduleType)) {
+        // Calendar kinds are sent as the nested schedule; the backend prefers
+        // it over the flat fields and clears any stale interval/due_date.
+        data.schedule = this._buildSchedule();
+        data.interval_days = null;
+        if (this._taskId) data.due_date = null;
       } else {
         // Switching away from one-time clears the stale due_date on edit.
         if (this._taskId) data.due_date = null;
@@ -790,6 +821,76 @@ export class MaintenanceTaskDialog extends LitElement {
       </div>`;
   }
 
+  private _toggleWeekday(i: number): void {
+    this._weekdays = this._weekdays.includes(i)
+      ? this._weekdays.filter((d) => d !== i)
+      : [...this._weekdays, i];
+  }
+
+  /** Build the nested `schedule` object for the selected calendar kind. */
+  private _buildSchedule(): Record<string, unknown> {
+    if (this._scheduleType === "weekdays") {
+      return { kind: "weekdays", weekdays: [...this._weekdays].sort((a, b) => a - b) };
+    }
+    if (this._scheduleType === "nth_weekday") {
+      return {
+        kind: "nth_weekday",
+        nth: parseInt(this._nth, 10),
+        weekday: parseInt(this._nthWeekday, 10),
+      };
+    }
+    return { kind: "day_of_month", day: parseInt(this._domDay, 10) || 1 };
+  }
+
+  /** Per-kind field groups for the calendar recurrence kinds. */
+  private _renderCalendarFields() {
+    const L = this._lang;
+    const days = weekdayNames(L);
+    if (this._scheduleType === "weekdays") {
+      return html`
+        <label class="field-label">${t("recurrence_on_days", L)}</label>
+        <div class="weekday-chips">
+          ${days.map((name, i) => html`
+            <button
+              type="button"
+              class="weekday-chip ${this._weekdays.includes(i) ? "selected" : ""}"
+              @click=${() => this._toggleWeekday(i)}
+            >${name}</button>`)}
+        </div>`;
+    }
+    if (this._scheduleType === "nth_weekday") {
+      const nths: Array<[string, string]> = [
+        ["1", t("ord_1", L)], ["2", t("ord_2", L)], ["3", t("ord_3", L)],
+        ["4", t("ord_4", L)], ["5", t("ord_5", L)], ["-1", t("ord_last", L)],
+      ];
+      return html`
+        <div class="select-row">
+          <label>${t("recurrence_occurrence", L)}</label>
+          <select .value=${this._nth} @change=${(e: Event) => (this._nth = (e.target as HTMLSelectElement).value)}>
+            ${nths.map(([v, lbl]) => html`<option value=${v} ?selected=${v === this._nth}>${lbl}</option>`)}
+          </select>
+        </div>
+        <div class="select-row">
+          <label>${t("recurrence_weekday", L)}</label>
+          <select .value=${this._nthWeekday} @change=${(e: Event) => (this._nthWeekday = (e.target as HTMLSelectElement).value)}>
+            ${days.map((name, i) => html`<option value=${String(i)} ?selected=${String(i) === this._nthWeekday}>${name}</option>`)}
+          </select>
+        </div>`;
+    }
+    if (this._scheduleType === "day_of_month") {
+      return html`
+        <ms-textfield
+          label="${t("recurrence_day", L)}"
+          type="number"
+          min="1"
+          max="31"
+          .value=${this._domDay}
+          @input=${(e: Event) => (this._domDay = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>`;
+    }
+    return nothing;
+  }
+
   private _renderTriggerTypeFields() {
     const L = this._lang;
     if (this._triggerType === "threshold") {
@@ -952,6 +1053,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 ` : nothing}
               `
             : nothing}
+          ${this._renderCalendarFields()}
           ${this._scheduleType === "one_time"
             ? html`
                 <ms-textfield
@@ -1229,6 +1331,29 @@ export class MaintenanceTaskDialog extends LitElement {
       background: var(--card-background-color, #fff);
       color: var(--primary-text-color);
       font-size: 14px;
+    }
+    .field-label {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+    .weekday-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .weekday-chip {
+      padding: 6px 12px;
+      border: 1px solid var(--divider-color);
+      border-radius: 16px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .weekday-chip.selected {
+      background: var(--primary-color, #03a9f4);
+      color: var(--text-primary-color, #fff);
+      border-color: var(--primary-color, #03a9f4);
     }
     .error {
       color: var(--error-color, #f44336);
