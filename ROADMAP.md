@@ -32,7 +32,7 @@ reminders (e.g. **14 days / 3 days / on the due date**) and an optional repeat
 cadence once a task is overdue. Runs through the existing notification manager,
 so rate-limiting, quiet hours, and bundling apply automatically.
 
-### 💡 Calendar-pattern schedules
+### 🛠️ Calendar-pattern schedules
 In addition to the day/week/month/year intervals, support calendar-anchored
 recurrence:
 - specific **weekdays** ("every Mon & Thu — skim the pool"),
@@ -41,6 +41,10 @@ recurrence:
 
 Extends the calendar-aware interval engine (last-day clamping, leap years) and
 the calendar projection already used by the panel + calendar entity.
+
+*Implemented and tested across the task dialog, config & options flows, the
+add-task service, import/export (JSON/YAML), and the localized calendar-entity
+label — in all 12 UI languages. Ships with the next release.*
 
 ---
 
