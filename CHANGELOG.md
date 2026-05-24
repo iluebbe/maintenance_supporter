@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.7.0] - 2026-05-24
+
+### ✨ Calendar-pattern schedules
+
+Beyond day/week/month/year intervals, a task can now follow calendar-anchored recurrence:
+
+- **Specific weekdays** — e.g. "every Mon & Thu".
+- **Nth weekday of the month** — e.g. "1st Saturday" (test the smoke alarms); 1st–5th or *last*, with an optional month restriction.
+- **Day of the month** — e.g. "the 15th", clamped to the month length (so a "31" lands on Feb 28/29).
+
+Choose the pattern from the **Schedule type** selector in the task dialog, the initial config flow, and the per-task options flow. The recurrence appears everywhere a task does — the panel, the Lovelace card, the calendar-entity event ("1st Saturday"), and the vacation projection — localized in all 12 languages. The `add_task` service accepts the new kinds, and they round-trip through **JSON/YAML import-export** intact (CSV degrades them to `manual`, since flat columns can't represent them).
+
+### 🧹 Internal — recurrence model rebuild
+
+A task's scheduling data moved from flat, leak-prone fields (`interval_days` / `interval_unit` / `schedule_type` / …) to a single **Schedule value object** — a discriminated union keyed by `kind`, stored as a nested `schedule` object. Consumers now read computed values (`next_due`, `span_days`) instead of raw rule fields, which makes the unit-misnomer bug class (#58/#59) structurally impossible and is what made calendar patterns expressible in the first place. **Existing tasks migrate automatically and losslessly** (config-entry `minor_version 2 → 3`); old `.storage` data and old export files keep loading unchanged.
+
 ## [2.6.4] - 2026-05-24
 
 ### 🐛 Sensor (trigger) tasks: choose the safety-interval unit (#58/#59 follow-up)
