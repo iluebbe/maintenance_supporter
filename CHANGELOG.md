@@ -19,6 +19,15 @@ All of these now use the real, unit-aware day-span via a shared helper
 Lovelace calendar card, and the KPI/quick-action labels are calendar-correct for
 days/weeks/months/years. New browser tests cover the projection and progress math.
 
+### 🐛 Due-soon alerts for weeks/months/years tasks (#58 follow-up)
+
+A weeks/months/years task didn't warn early enough: the "due soon" window was
+capped at the raw interval *count* (`min(warning_days, interval_days)`), so a
+6-**month** task with a 14-day warning collapsed to a 6-day window and stayed
+OK until ~6 days out. The cap now measures the interval in real calendar days
+(`interval_span_days`), so the warning fires exactly as configured. Pinned with
+regression tests.
+
 ## [2.6.2] - 2026-05-23
 
 ### 🐛 Monthly/yearly interval reset to "days" on edit (#58)

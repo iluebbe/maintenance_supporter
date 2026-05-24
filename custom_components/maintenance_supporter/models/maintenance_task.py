@@ -17,7 +17,7 @@ from ..const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
-from ..helpers.dates import add_interval
+from ..helpers.dates import add_interval, interval_span_days
 
 
 @dataclass
@@ -185,7 +185,11 @@ class MaintenanceTask:
         # Without this, a task with schedule_time="09:00" would only flip at midnight.
         if days == 0 and self._is_past_schedule_time():
             return MaintenanceStatus.OVERDUE
-        effective_warning = min(self.warning_days, self.interval_days) if self.interval_days else self.warning_days
+        # Don't let the warning window exceed one interval, but measure the
+        # interval in real days — a 6-*month* task (interval_days=6) must not
+        # collapse a 14-day warning to min(14, 6) (issue #58). Unit-aware span.
+        span = interval_span_days(self.interval_days, self.interval_unit)
+        effective_warning = min(self.warning_days, span) if span else self.warning_days
         if days <= effective_warning:
             return MaintenanceStatus.DUE_SOON
         return MaintenanceStatus.OK
