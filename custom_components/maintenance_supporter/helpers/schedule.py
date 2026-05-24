@@ -17,8 +17,10 @@ boundary so this module is pure and trivially unit-testable.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, timedelta
+from typing import Any
 
 from .dates import add_interval, interval_span_days, parse_iso_date
 
@@ -126,3 +128,50 @@ class Schedule:
         if self.kind == KIND_INTERVAL:
             return interval_span_days(self.every, self.unit)
         return 0
+
+    # --- serialization (Phase 3: nested `schedule` storage) ----------------
+
+    def to_dict(self) -> dict[str, Any]:
+        """Canonical nested form for storage. Defaults are omitted to keep the
+        stored dict minimal (``unit`` defaults to days, ``anchor`` to completion)."""
+        d: dict[str, Any] = {"kind": self.kind}
+        if self.kind == KIND_INTERVAL:
+            d["every"] = self.every
+            if self.unit and self.unit != "days":
+                d["unit"] = self.unit
+            if self.anchor and self.anchor != "completion":
+                d["anchor"] = self.anchor
+        elif self.kind == KIND_ONE_TIME and self.due_date is not None:
+            d["due_date"] = self.due_date.isoformat()
+        return d
+
+    @classmethod
+    def from_dict(cls, d: Mapping[str, Any]) -> Schedule:
+        """Read the nested form produced by :meth:`to_dict`."""
+        kind = d.get("kind", KIND_MANUAL)
+        if kind == KIND_ONE_TIME:
+            return cls(kind=KIND_ONE_TIME, due_date=parse_iso_date(d.get("due_date")))
+        if kind == KIND_INTERVAL:
+            return cls(
+                kind=KIND_INTERVAL,
+                every=d.get("every"),
+                unit=d.get("unit") or "days",
+                anchor=d.get("anchor") or "completion",
+            )
+        return cls(kind=KIND_MANUAL)
+
+    @classmethod
+    def parse(cls, task: Mapping[str, Any]) -> Schedule:
+        """Build from a task dict — nested ``schedule`` if present, else the flat
+        v2.6.x fields. The single read path during/after migration (and for old
+        exports), so both formats are accepted forever."""
+        nested = task.get("schedule")
+        if isinstance(nested, Mapping):
+            return cls.from_dict(nested)
+        return cls.from_legacy(
+            schedule_type=task.get("schedule_type"),
+            interval_days=task.get("interval_days"),
+            interval_unit=task.get("interval_unit"),
+            interval_anchor=task.get("interval_anchor"),
+            due_date=task.get("due_date"),
+        )

@@ -116,3 +116,44 @@ def test_span_days_unit_aware() -> None:
     assert 180 <= Schedule(kind=KIND_INTERVAL, every=6, unit="months").span_days() <= 186
     assert Schedule(kind=KIND_MANUAL).span_days() == 0
     assert Schedule(kind=KIND_ONE_TIME, due_date=date(2026, 9, 1)).span_days() == 0
+
+
+# ─── serialization (Phase 3) ─────────────────────────────────────────────
+
+
+def test_to_dict_omits_defaults() -> None:
+    assert Schedule(kind=KIND_INTERVAL, every=7).to_dict() == {
+        "kind": "interval", "every": 7,
+    }  # unit=days + anchor=completion omitted
+    assert Schedule(kind=KIND_MANUAL).to_dict() == {"kind": "manual"}
+
+
+def test_to_from_dict_roundtrip() -> None:
+    for s in (
+        Schedule(kind=KIND_INTERVAL, every=6, unit="months", anchor="planned"),
+        Schedule(kind=KIND_INTERVAL, every=3, unit="weeks"),
+        Schedule(kind=KIND_ONE_TIME, due_date=date(2026, 9, 1)),
+        Schedule(kind=KIND_MANUAL),
+    ):
+        assert Schedule.from_dict(s.to_dict()) == s
+
+
+def test_parse_prefers_nested_else_legacy() -> None:
+    # nested
+    nested = {"schedule": {"kind": "interval", "every": 6, "unit": "months"}}
+    assert Schedule.parse(nested) == Schedule(kind=KIND_INTERVAL, every=6, unit="months")
+    # legacy flat (no `schedule` key)
+    legacy = {"schedule_type": "time_based", "interval_days": 6, "interval_unit": "months"}
+    assert Schedule.parse(legacy) == Schedule(kind=KIND_INTERVAL, every=6, unit="months")
+    # nested wins when both present
+    both = {**legacy, "schedule": {"kind": "manual"}}
+    assert Schedule.parse(both).kind == KIND_MANUAL
+
+
+def test_legacy_to_nested_equivalence() -> None:
+    # The migration path: from_legacy → to_dict → from_dict yields the same rule.
+    legacy = Schedule.from_legacy(
+        schedule_type="time_based", interval_days=6, interval_unit="months",
+        interval_anchor="planned", due_date=None,
+    )
+    assert Schedule.from_dict(legacy.to_dict()) == legacy
