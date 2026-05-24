@@ -82,6 +82,7 @@ const DE: Translations = {
   ord_4: "4.",
   ord_5: "5.",
   ord_last: "Letzter",
+  day_word: "Tag",
   interval_value: "Intervall",
   interval_unit: "Einheit",
   unit_days: "Tage",
@@ -603,6 +604,7 @@ const EN: Translations = {
   ord_4: "4th",
   ord_5: "5th",
   ord_last: "Last",
+  day_word: "Day",
   interval_value: "Interval",
   interval_unit: "Unit",
   unit_days: "Days",
@@ -1123,6 +1125,7 @@ const NL: Translations = {
   ord_4: "4e",
   ord_5: "5e",
   ord_last: "Laatste",
+  day_word: "Dag",
   interval_value: "Interval",
   interval_unit: "Eenheid",
   unit_days: "Dagen",
@@ -1583,6 +1586,7 @@ const FR: Translations = {
   ord_4: "4e",
   ord_5: "5e",
   ord_last: "Dernier",
+  day_word: "Jour",
   interval_value: "Intervalle",
   interval_unit: "Unité",
   unit_days: "Jours",
@@ -2043,6 +2047,7 @@ const IT: Translations = {
   ord_4: "4º",
   ord_5: "5º",
   ord_last: "Ultimo",
+  day_word: "Giorno",
   interval_value: "Intervallo",
   interval_unit: "Unità",
   unit_days: "Giorni",
@@ -2503,6 +2508,7 @@ const ES: Translations = {
   ord_4: "4.º",
   ord_5: "5.º",
   ord_last: "Último",
+  day_word: "Día",
   interval_value: "Intervalo",
   interval_unit: "Unidad",
   unit_days: "Días",
@@ -2963,6 +2969,7 @@ const PT: Translations = {
   ord_4: "4.º",
   ord_5: "5.º",
   ord_last: "Último",
+  day_word: "Dia",
   interval_value: "Intervalo",
   interval_unit: "Unidade",
   unit_days: "Dias",
@@ -3420,6 +3427,7 @@ const UK: Translations = {
   ord_4: "4-й",
   ord_5: "5-й",
   ord_last: "Останній",
+  day_word: "День",
   interval_value: "Інтервал",
   interval_unit: "Одиниця",
   unit_days: "Дні",
@@ -3891,6 +3899,7 @@ const RU: Translations = {
   ord_4: "4-й",
   ord_5: "5-й",
   ord_last: "Последний",
+  day_word: "День",
   interval_value: "Интервал",
   interval_unit: "Единица",
   unit_days: "Дни",
@@ -4362,6 +4371,7 @@ const PL: Translations = {
   ord_4: "4.",
   ord_5: "5.",
   ord_last: "Ostatni",
+  day_word: "Dzień",
   interval_value: "Interwał",
   interval_unit: "Jednostka",
   unit_days: "Dni",
@@ -4819,6 +4829,7 @@ const CS: Translations = {
   ord_4: "4.",
   ord_5: "5.",
   ord_last: "Poslední",
+  day_word: "Den",
   interval_value: "Interval",
   interval_unit: "Jednotka",
   unit_days: "Dny",
@@ -5276,6 +5287,7 @@ const SV: Translations = {
   ord_4: "4:e",
   ord_5: "5:e",
   ord_last: "Sista",
+  day_word: "Dag",
   interval_value: "Intervall",
   interval_unit: "Enhet",
   unit_days: "Dagar",
@@ -5740,6 +5752,53 @@ export function formatInterval(
 ): string {
   if (intervalDays === null || intervalDays === undefined) return "—";
   return `${intervalDays} ${t("unit_" + (unit || "days"), lang)}`;
+}
+
+/** Localized weekday name (0=Mon … 6=Sun) via Intl — 2024-01-01 is a Monday.
+ *  Single source for the dialog selectors AND formatRecurrence (DRY). */
+export function weekdayName(i: number, lang?: string, style: "long" | "short" = "long"): string {
+  const locale = (lang || "en").substring(0, 2);
+  return new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, { weekday: style, timeZone: "UTC" });
+}
+
+/** Recurrence shape carried on the WS payload (see types.TaskSchedule). */
+interface RecurrenceLike {
+  schedule?: {
+    kind?: string; every?: number | null; unit?: string;
+    weekdays?: number[]; nth?: number; weekday?: number; day?: number;
+  } | null;
+  interval_days?: number | null;
+  interval_unit?: string | null;
+  due_date?: string | null;
+  schedule_type?: string;
+}
+
+/** A task's recurrence as a localized human label, for ANY schedule kind.
+ *  The single recurrence formatter (DRY) — interval / weekdays / nth_weekday /
+ *  day_of_month / one_time / manual. Used by the panel, card, and quick-actions. */
+export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
+  const s = task.schedule;
+  switch (s?.kind) {
+    case "weekdays":
+      return (s.weekdays || []).map((d) => weekdayName(d, lang, "short")).join(" & ") || "—";
+    case "nth_weekday": {
+      if (s.weekday == null || s.nth == null) return "—";
+      const ord = s.nth === -1 ? t("ord_last", lang) : t("ord_" + s.nth, lang);
+      return `${ord} ${weekdayName(s.weekday, lang, "long")}`;
+    }
+    case "day_of_month":
+      return s.day != null ? `${t("day_word", lang)} ${s.day}` : "—";
+    case "one_time":
+      return task.due_date ? formatDate(task.due_date, lang) : t("one_time", lang);
+    case "manual":
+      return t("manual", lang);
+    case "interval":
+      return formatInterval(s.every, s.unit, lang);
+  }
+  // legacy / no nested schedule
+  if (task.schedule_type === "one_time") return task.due_date ? formatDate(task.due_date, lang) : t("one_time", lang);
+  if (task.schedule_type === "manual") return t("manual", lang);
+  return task.interval_days != null ? formatInterval(task.interval_days, task.interval_unit, lang) : "—";
 }
 
 /** Dispatch HA native "More Info" dialog for an entity. */
