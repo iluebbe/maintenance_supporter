@@ -156,6 +156,26 @@
           "go_back": "Návrat k vytvoření úkolu bez uložení."
         }
       },
+      "calendar": {
+        "title": "Kalendářní harmonogram",
+        "description": "Nakonfigurujte opakování založené na kalendáři (dny v týdnu, n-tý den v týdnu v měsíci nebo den v měsíci).",
+        "data": {
+          "weekdays": "V tyto dny v týdnu",
+          "nth": "Který výskyt",
+          "weekday": "Den v týdnu",
+          "day": "Den v měsíci",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "weekdays": "Úkol se opakuje v každý vybraný den v týdnu.",
+          "nth": "Který výskyt v měsíci (např. 1., nebo Poslední).",
+          "weekday": "Den v týdnu pro pravidlo n-tého dne v týdnu (např. sobota).",
+          "day": "Den v měsíci (1-31; omezeno na délku měsíce).",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "go_back": "Návrat k vytvoření úkolu bez uložení."
+        }
+      },
       "sensor_select": {
         "title": "Vyberte spouštěcí senzor",
         "description": "Vyberte entitu Home Assistant pro monitorování pro tento úkol údržby.",

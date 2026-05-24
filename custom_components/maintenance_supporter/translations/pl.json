@@ -156,6 +156,26 @@
           "go_back": "Wróć do tworzenia zadania bez zapisywania."
         }
       },
+      "calendar": {
+        "title": "Harmonogram kalendarzowy",
+        "description": "Skonfiguruj powtarzanie oparte na kalendarzu (dni tygodnia, n-ty dzień tygodnia w miesiącu lub dzień miesiąca).",
+        "data": {
+          "weekdays": "W te dni tygodnia",
+          "nth": "Które wystąpienie",
+          "weekday": "Dzień tygodnia",
+          "day": "Dzień miesiąca",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "weekdays": "Zadanie powtarza się w każdy wybrany dzień tygodnia.",
+          "nth": "Które wystąpienie w miesiącu (np. 1., lub Ostatnie).",
+          "weekday": "Dzień tygodnia dla reguły n-tego dnia tygodnia (np. sobota).",
+          "day": "Dzień miesiąca (1-31; ograniczony do długości miesiąca).",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do tworzenia zadania bez zapisywania."
+        }
+      },
       "sensor_select": {
         "title": "Wybierz czujnik wyzwalający",
         "description": "Wybierz encję Home Assistant do monitorowania dla tego zadania konserwacji.",

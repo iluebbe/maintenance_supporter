@@ -156,6 +156,26 @@
           "go_back": "Terug naar taakaanmaak zonder op te slaan."
         }
       },
+      "calendar": {
+        "title": "Kalenderschema",
+        "description": "Configureer een kalendergebaseerde herhaling (weekdagen, n-de weekdag van de maand of een dag van de maand).",
+        "data": {
+          "weekdays": "Op deze weekdagen",
+          "nth": "Welke keer",
+          "weekday": "Weekdag",
+          "day": "Dag van de maand",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "weekdays": "De taak herhaalt zich op elke geselecteerde weekdag.",
+          "nth": "Welke keer in de maand (bijv. 1e, of Laatste).",
+          "weekday": "De weekdag voor de regel van de n-de weekdag (bijv. zaterdag).",
+          "day": "Dag van de maand (1-31; begrensd tot de lengte van de maand).",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
+          "go_back": "Terug naar taakaanmaak zonder op te slaan."
+        }
+      },
       "sensor_select": {
         "title": "Selecteer triggersensor",
         "description": "Kies een Home Assistant-entiteit om te monitoren voor deze onderhoudstaak.",

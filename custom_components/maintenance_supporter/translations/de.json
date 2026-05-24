@@ -156,6 +156,26 @@
           "go_back": "Zur Aufgabenerstellung zurückkehren, ohne zu speichern."
         }
       },
+      "calendar": {
+        "title": "Kalenderplan",
+        "description": "Konfiguriere eine kalenderbasierte Wiederholung (Wochentage, n-ter Wochentag des Monats oder ein Tag im Monat).",
+        "data": {
+          "weekdays": "An diesen Wochentagen",
+          "nth": "Welches Vorkommen",
+          "weekday": "Wochentag",
+          "day": "Tag des Monats",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "weekdays": "Die Aufgabe wiederholt sich an jedem ausgewählten Wochentag.",
+          "nth": "Welches Vorkommen im Monat (z. B. 1. oder Letzter).",
+          "weekday": "Der Wochentag für die Regel des n-ten Wochentags (z. B. Samstag).",
+          "day": "Tag des Monats (1-31; auf die Länge des Monats begrenzt).",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, an denen eine Warnung angezeigt wird.",
+          "go_back": "Zur Aufgabenerstellung zurückkehren, ohne zu speichern."
+        }
+      },
       "sensor_select": {
         "title": "Trigger-Sensor auswählen",
         "description": "Wählen Sie eine Home Assistant Entität zur Überwachung für diese Wartungsaufgabe.",

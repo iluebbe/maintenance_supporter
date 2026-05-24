@@ -156,6 +156,26 @@
           "go_back": "Regressar à criação da tarefa sem guardar."
         }
       },
+      "calendar": {
+        "title": "Agendamento por Calendário",
+        "description": "Configure uma recorrência baseada no calendário (dias da semana, n-ésimo dia da semana do mês ou um dia do mês).",
+        "data": {
+          "weekdays": "Nestes dias da semana",
+          "nth": "Que ocorrência",
+          "weekday": "Dia da semana",
+          "day": "Dia do mês",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "weekdays": "A tarefa repete-se em cada dia da semana selecionado.",
+          "nth": "Que ocorrência no mês (por ex., 1.º, ou Último).",
+          "weekday": "O dia da semana para a regra do n-ésimo dia (por ex., sábado).",
+          "day": "Dia do mês (1-31; limitado à duração do mês).",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à criação da tarefa sem guardar."
+        }
+      },
       "sensor_select": {
         "title": "Selecionar Sensor de Acionamento",
         "description": "Escolha uma entidade do Home Assistant para monitorizar nesta tarefa de manutenção.",

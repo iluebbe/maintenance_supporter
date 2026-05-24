@@ -16,7 +16,13 @@ from homeassistant.config_entries import (
 from homeassistant.core import State, callback
 from homeassistant.helpers import selector
 
-from .config_flow_helpers import apply_interval_unit, interval_unit_selector
+from .config_flow_helpers import (
+    CALENDAR_KIND_VALUES,
+    apply_interval_unit,
+    calendar_schema,
+    interval_unit_selector,
+    schedule_from_calendar_input,
+)
 from .config_flow_options_global import validate_notify_service
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
@@ -51,7 +57,7 @@ from .const import (
     slugify_object_name,
 )
 from .helpers.global_options import get_default_warning_days
-from .helpers.schedule import normalize_task_storage
+from .helpers.schedule import KIND_WEEKDAYS, normalize_task_storage
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -598,6 +604,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
             if schedule == ScheduleType.TIME_BASED:
                 return await self.async_step_time_based()
+            if schedule in CALENDAR_KIND_VALUES:
+                return await self.async_step_calendar()
             if schedule == ScheduleType.SENSOR_BASED:
                 return await self.async_step_sensor_select()
             if schedule == ScheduleType.ONE_TIME:
@@ -606,7 +614,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             return await self.async_step_manual()
 
         type_options = [t.value for t in MaintenanceTypeEnum]
-        schedule_options = [s.value for s in ScheduleType]
+        schedule_options = [
+            ScheduleType.TIME_BASED,
+            *CALENDAR_KIND_VALUES,
+            ScheduleType.SENSOR_BASED,
+            ScheduleType.ONE_TIME,
+            ScheduleType.MANUAL,
+        ]
 
         return self.async_show_form(
             step_id="add_task",
@@ -702,6 +716,41 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 }
             ),
             errors=errors,
+        )
+
+    async def async_step_calendar(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Configure a calendar recurrence kind (weekdays / nth_weekday /
+        day_of_month) during initial setup."""
+        errors: dict[str, str] = {}
+        kind = self._current_task.get(CONF_TASK_SCHEDULE_TYPE, KIND_WEEKDAYS)
+
+        if user_input is not None:
+            if user_input.get("go_back"):
+                return await self.async_step_add_task()
+            schedule = schedule_from_calendar_input(kind, user_input)
+            if schedule is None:
+                errors["base"] = "invalid_schedule"
+            else:
+                self._current_task["schedule"] = schedule
+                self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
+                    CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
+                )
+                return self._save_task_and_return()
+
+        schema = calendar_schema(kind).extend({
+            vol.Optional(
+                CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)
+            ): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                )
+            ),
+            vol.Optional("go_back", default=False): selector.BooleanSelector(),
+        })
+        return self.async_show_form(
+            step_id="calendar", data_schema=schema, errors=errors,
         )
 
     async def async_step_one_time(
@@ -1028,6 +1077,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             # Anchor for next_due fallback when last_performed is None (issue #30).
             "created_at": dt_util.now().date().isoformat(),
         }
+
+        # Calendar kinds carry a pre-built nested schedule; create_entry
+        # normalizes it (treated as authoritative over the flat fields).
+        if "schedule" in self._current_task:
+            task_data["schedule"] = self._current_task["schedule"]
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
             task_data["interval_days"] = int(

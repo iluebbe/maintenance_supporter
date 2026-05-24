@@ -15,7 +15,14 @@ from homeassistant.core import State
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector
 
-from .config_flow_helpers import apply_interval_unit, interval_unit_selector
+from .config_flow_helpers import (
+    CALENDAR_KIND_VALUES,
+    apply_interval_unit,
+    calendar_current,
+    calendar_schema,
+    interval_unit_selector,
+    schedule_from_calendar_input,
+)
 from .config_flow_trigger import TriggerConfigMixin
 from .const import (
     CONF_ADAPTIVE_CONFIG,
@@ -68,20 +75,10 @@ from .const import (
 )
 from .helpers.global_options import get_default_warning_days
 from .helpers.schedule import (
-    KIND_DAY_OF_MONTH,
-    KIND_NTH_WEEKDAY,
     KIND_WEEKDAYS,
-    Schedule,
     normalize_task_storage,
     read_legacy_fields,
 )
-
-# Calendar recurrence kinds offered in the options flow (Phase 4). Hardcoded
-# English labels for the weekday/occurrence sub-options keep the config-flow
-# i18n surface small; the kind names themselves are translated via strings.json.
-_CALENDAR_KIND_VALUES = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
-_WEEKDAY_LABELS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-_NTH_OPTIONS = (("1", "1st"), ("2", "2nd"), ("3", "3rd"), ("4", "4th"), ("5", "5th"), ("-1", "Last"))
 
 
 class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
@@ -357,8 +354,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 # Calendar kinds: rebuild the nested schedule from the form fields
                 # (normalize, in _update_config_entry, treats it as authoritative).
                 edit_kind = read_legacy_fields(task)["schedule_type"]
-                if edit_kind in _CALENDAR_KIND_VALUES:
-                    schedule = self._schedule_from_calendar_input(edit_kind, user_input)
+                if edit_kind in CALENDAR_KIND_VALUES:
+                    schedule = schedule_from_calendar_input(edit_kind, user_input)
                     if schedule is not None:
                         for key in ("interval_days", "interval_unit", "interval_anchor", "due_date"):
                             updated_task.pop(key, None)
@@ -534,10 +531,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     # Calendar kinds (Phase 4): per-kind fields, prefilled from
                     # the task's nested schedule.
                     **(
-                        self._calendar_schema(
-                            sched["schedule_type"], self._calendar_current(task)
+                        calendar_schema(
+                            sched["schedule_type"], calendar_current(task)
                         ).schema
-                        if sched["schedule_type"] in _CALENDAR_KIND_VALUES
+                        if sched["schedule_type"] in CALENDAR_KIND_VALUES
                         else dict[Any, Any]()
                     ),
                     vol.Optional(
@@ -993,7 +990,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
             if schedule == ScheduleType.TIME_BASED:
                 return await self.async_step_opt_time_based()
-            if schedule in _CALENDAR_KIND_VALUES:
+            if schedule in CALENDAR_KIND_VALUES:
                 return await self.async_step_opt_calendar()
             if schedule == ScheduleType.SENSOR_BASED:
                 return await self.async_step_opt_sensor_select()
@@ -1007,7 +1004,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         # trigger/one-time/manual kinds.
         schedule_options = [
             ScheduleType.TIME_BASED,
-            *_CALENDAR_KIND_VALUES,
+            *CALENDAR_KIND_VALUES,
             ScheduleType.SENSOR_BASED,
             ScheduleType.ONE_TIME,
             ScheduleType.MANUAL,
@@ -1116,84 +1113,6 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             errors=errors,
         )
 
-    def _calendar_schema(
-        self, kind: str, current: dict[str, Any] | None = None
-    ) -> vol.Schema:
-        """Voluptuous schema for a calendar kind's fields (weekdays /
-        nth_weekday / day_of_month). Shared by the add + edit flows."""
-        cur = current or {}
-        weekday_opts = [
-            selector.SelectOptionDict(value=str(i), label=lbl)
-            for i, lbl in enumerate(_WEEKDAY_LABELS)
-        ]
-        fields: dict[Any, Any] = {}
-        if kind == KIND_WEEKDAYS:
-            fields[vol.Required("weekdays", default=cur.get("weekdays", []))] = (
-                selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=weekday_opts, multiple=True,
-                        mode=selector.SelectSelectorMode.LIST,
-                    )
-                )
-            )
-        elif kind == KIND_NTH_WEEKDAY:
-            fields[vol.Required("nth", default=cur.get("nth", "1"))] = (
-                selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[selector.SelectOptionDict(value=v, label=lbl)
-                                 for v, lbl in _NTH_OPTIONS],
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                )
-            )
-            fields[vol.Required("weekday", default=cur.get("weekday", "5"))] = (
-                selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=weekday_opts,
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                    )
-                )
-            )
-        elif kind == KIND_DAY_OF_MONTH:
-            fields[vol.Required("day", default=cur.get("day", 1))] = (
-                selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1, max=31, step=1, mode=selector.NumberSelectorMode.BOX
-                    )
-                )
-            )
-        return vol.Schema(fields)
-
-    @staticmethod
-    def _schedule_from_calendar_input(
-        kind: str, user_input: dict[str, Any]
-    ) -> dict[str, Any] | None:
-        """Build the nested `schedule` dict from a calendar step's user_input."""
-        if kind == KIND_WEEKDAYS:
-            days = sorted(int(d) for d in user_input.get("weekdays", []))
-            return {"kind": KIND_WEEKDAYS, "weekdays": days} if days else None
-        if kind == KIND_NTH_WEEKDAY:
-            return {
-                "kind": KIND_NTH_WEEKDAY,
-                "nth": int(user_input["nth"]),
-                "weekday": int(user_input["weekday"]),
-            }
-        if kind == KIND_DAY_OF_MONTH:
-            return {"kind": KIND_DAY_OF_MONTH, "day": int(user_input.get("day", 1))}
-        return None
-
-    @staticmethod
-    def _calendar_current(task: dict[str, Any]) -> dict[str, Any]:
-        """Current calendar-field values from a task's nested schedule, in the
-        shape `_calendar_schema` defaults expect (selector values are strings)."""
-        s = Schedule.parse(task)
-        return {
-            "weekdays": [str(d) for d in s.weekdays],
-            "nth": str(s.nth) if s.nth is not None else "1",
-            "weekday": str(s.weekday) if s.weekday is not None else "5",
-            "day": s.day or 1,
-        }
-
     async def async_step_opt_calendar(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -1204,7 +1123,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
         if user_input is not None:
             if user_input.get("go_back"):
                 return self._show_init_menu()
-            schedule = self._schedule_from_calendar_input(kind, user_input)
+            schedule = schedule_from_calendar_input(kind, user_input)
             if schedule is None:
                 errors["base"] = "invalid_schedule"
             else:
@@ -1216,7 +1135,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     self._current_task["last_performed"] = str(user_input["last_performed"])
                 return self._save_new_task()
 
-        schema = self._calendar_schema(kind).extend({
+        schema = calendar_schema(kind).extend({
             vol.Optional("last_performed"): selector.DateSelector(),
             vol.Optional(
                 CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)

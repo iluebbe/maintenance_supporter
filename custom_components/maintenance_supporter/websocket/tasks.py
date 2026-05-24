@@ -340,6 +340,7 @@ async def async_create_task_simple(
     warning_days: int = 7,
     enabled: bool = True,
     notes: str | None = None,
+    schedule: dict[str, Any] | None = None,
 ) -> str:
     """Create a task with the common fields and persist it; return task_id.
 
@@ -367,6 +368,10 @@ async def async_create_task_simple(
         "warning_days": warning_days,
         "created_at": dt_util.now().date().isoformat(),
     }
+    if schedule:
+        # Calendar kinds: persist the nested schedule (normalize treats it as
+        # authoritative over the flat fields).
+        task_data["schedule"] = schedule
     if interval_days is not None:
         task_data["interval_days"] = interval_days
     if interval_unit and interval_unit != "days":

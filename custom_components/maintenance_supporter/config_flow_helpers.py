@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
@@ -12,9 +13,103 @@ from homeassistant.helpers import selector
 from .const import CONF_TASK_INTERVAL_UNIT
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.entity_analyzer import EntityAnalyzer
+from .helpers.schedule import (
+    KIND_DAY_OF_MONTH,
+    KIND_NTH_WEEKDAY,
+    KIND_WEEKDAYS,
+    Schedule,
+)
 from .helpers.threshold_calculator import ThresholdCalculator, ThresholdSuggestions
 
 _LOGGER = logging.getLogger(__name__)
+
+# Calendar recurrence kinds offered in the config + options flows (Phase 4).
+# Hardcoded English labels for the weekday/occurrence sub-options keep the
+# config-flow i18n surface small; the kind names are translated via strings.json.
+CALENDAR_KIND_VALUES = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
+_WEEKDAY_LABELS = (
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+)
+_NTH_OPTIONS = (
+    ("1", "1st"), ("2", "2nd"), ("3", "3rd"), ("4", "4th"), ("5", "5th"), ("-1", "Last"),
+)
+
+
+def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Schema:
+    """Voluptuous schema for a calendar kind's fields (weekdays / nth_weekday /
+    day_of_month). Shared by the config + options flows (DRY). Callers extend it
+    with their own warning_days / last_performed / go_back fields."""
+    cur = current or {}
+    weekday_opts = [
+        selector.SelectOptionDict(value=str(i), label=lbl)
+        for i, lbl in enumerate(_WEEKDAY_LABELS)
+    ]
+    fields: dict[Any, Any] = {}
+    if kind == KIND_WEEKDAYS:
+        fields[vol.Required("weekdays", default=cur.get("weekdays", []))] = (
+            selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=weekday_opts, multiple=True,
+                    mode=selector.SelectSelectorMode.LIST,
+                )
+            )
+        )
+    elif kind == KIND_NTH_WEEKDAY:
+        fields[vol.Required("nth", default=cur.get("nth", "1"))] = (
+            selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[selector.SelectOptionDict(value=v, label=lbl)
+                             for v, lbl in _NTH_OPTIONS],
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            )
+        )
+        fields[vol.Required("weekday", default=cur.get("weekday", "5"))] = (
+            selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=weekday_opts, mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            )
+        )
+    elif kind == KIND_DAY_OF_MONTH:
+        fields[vol.Required("day", default=cur.get("day", 1))] = (
+            selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1, max=31, step=1, mode=selector.NumberSelectorMode.BOX
+                )
+            )
+        )
+    return vol.Schema(fields)
+
+
+def schedule_from_calendar_input(
+    kind: str, user_input: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Build the nested `schedule` dict from a calendar step's user_input."""
+    if kind == KIND_WEEKDAYS:
+        days = sorted(int(d) for d in user_input.get("weekdays", []))
+        return {"kind": KIND_WEEKDAYS, "weekdays": days} if days else None
+    if kind == KIND_NTH_WEEKDAY:
+        return {
+            "kind": KIND_NTH_WEEKDAY,
+            "nth": int(user_input["nth"]),
+            "weekday": int(user_input["weekday"]),
+        }
+    if kind == KIND_DAY_OF_MONTH:
+        return {"kind": KIND_DAY_OF_MONTH, "day": int(user_input.get("day", 1))}
+    return None
+
+
+def calendar_current(task: dict[str, Any]) -> dict[str, Any]:
+    """Current calendar-field values from a task's nested schedule, in the shape
+    `calendar_schema` defaults expect (selector values are strings)."""
+    s = Schedule.parse(task)
+    return {
+        "weekdays": [str(d) for d in s.weekdays],
+        "nth": str(s.nth) if s.nth is not None else "1",
+        "weekday": str(s.weekday) if s.weekday is not None else "5",
+        "day": s.day or 1,
+    }
 
 
 def interval_unit_selector() -> selector.SelectSelector:

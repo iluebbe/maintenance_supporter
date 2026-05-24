@@ -156,6 +156,26 @@
           "go_back": "Return to task creation without saving."
         }
       },
+      "calendar": {
+        "title": "Calendar Schedule",
+        "description": "Configure a calendar-based recurrence (weekdays, nth weekday of the month, or a day of the month).",
+        "data": {
+          "weekdays": "On these weekdays",
+          "nth": "Which occurrence",
+          "weekday": "Weekday",
+          "day": "Day of month",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back"
+        },
+        "data_description": {
+          "weekdays": "The task repeats on each selected weekday.",
+          "nth": "Which occurrence in the month (e.g. 1st, or Last).",
+          "weekday": "The weekday for the nth-weekday rule (e.g. Saturday).",
+          "day": "Day of the month (1-31; clamped to the month's length).",
+          "warning_days": "Number of days before the due date to show a warning.",
+          "go_back": "Return to task creation without saving."
+        }
+      },
       "sensor_select": {
         "title": "Select Trigger Sensor",
         "description": "Choose a Home Assistant entity to monitor for this maintenance task.",
