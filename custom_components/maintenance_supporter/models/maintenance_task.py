@@ -46,6 +46,10 @@ class MaintenanceTask:
     last_planned_due: str | None = None  # ISO date: anchor for planned mode
     schedule_time: str | None = None  # "HH:MM" in HA's configured TZ; None = midnight (default)
     due_date: str | None = None  # ISO date: one-time task due date (ScheduleType.ONE_TIME)
+    # Raw nested schedule dict (schedule-model v2). The source of truth for the
+    # calendar kinds (weekdays/nth_weekday/day_of_month), which the flat fields
+    # above can't represent. None for legacy/flat-only data.
+    schedule_raw: dict[str, Any] | None = None
 
     # --- Trigger ---
     trigger_config: dict[str, Any] | None = None
@@ -106,8 +110,13 @@ class MaintenanceTask:
         )
 
     def _schedule(self) -> Schedule:
-        """The recurrence as a value object, built from the stored fields
-        (legacy-backed adapter — see docs/design/schedule-model-v2.md)."""
+        """The recurrence as a value object (see docs/design/schedule-model-v2.md).
+
+        A nested ``schedule_raw`` is authoritative — it's the only representation
+        that carries the calendar kinds (weekdays / nth_weekday / day_of_month).
+        Otherwise fall back to the flat fields (legacy / old exports)."""
+        if isinstance(self.schedule_raw, dict) and self.schedule_raw.get("kind"):
+            return Schedule.from_dict(self.schedule_raw)
         return Schedule.from_legacy(
             schedule_type=self.schedule_type,
             interval_days=self.interval_days,
@@ -379,6 +388,7 @@ class MaintenanceTask:
             interval_days=sched["interval_days"],
             interval_unit=sched["interval_unit"],
             due_date=sched["due_date"],
+            schedule_raw=data.get("schedule") if isinstance(data.get("schedule"), dict) else None,
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             last_performed=data.get("last_performed"),
             created_at=data.get("created_at"),
