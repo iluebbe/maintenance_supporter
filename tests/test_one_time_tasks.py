@@ -219,3 +219,32 @@ def test_serialization_roundtrip_new_fields() -> None:
     # Default unit (days) must NOT be serialized (lean nested dicts).
     plain = MaintenanceTask(schedule_type=ScheduleType.TIME_BASED, interval_days=7)
     assert "unit" not in plain.to_dict()["schedule"]
+
+
+def test_model_next_due_calendar_kinds() -> None:
+    """MaintenanceTask.from_dict(nested calendar schedule) → next_due computes.
+
+    Regression for the gap the live E2E caught: from_dict flattened the nested
+    schedule (read_legacy_fields → schedule_type=kind, interval_days=None) and
+    _schedule() rebuilt via from_legacy → manual → next_due None. The model must
+    keep schedule_raw and compute from it. First-time anchors on created_at, so
+    these are deterministic. 2026-05-24 is a Sunday.
+    """
+    nth = MaintenanceTask.from_dict({
+        "id": "t1", "name": "Smoke alarm", "created_at": "2026-05-24",
+        "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
+    })
+    assert nth.next_due == date(2026, 6, 6)  # May's 1st Sat passed → June 6
+    assert nth.next_due.weekday() == 5
+
+    dom = MaintenanceTask.from_dict({
+        "id": "t2", "name": "Rent", "created_at": "2026-05-24",
+        "schedule": {"kind": "day_of_month", "day": 15},
+    })
+    assert dom.next_due == date(2026, 6, 15)  # May 15 passed → June 15
+
+    wd = MaintenanceTask.from_dict({
+        "id": "t3", "name": "Floors", "created_at": "2026-05-24",
+        "schedule": {"kind": "weekdays", "weekdays": [0, 3]},
+    })
+    assert wd.next_due == date(2026, 5, 25)  # next Mon on/after Sun 2026-05-24
