@@ -60,14 +60,16 @@ def _build_task_summary(
     from homeassistant.helpers import entity_registry as er
 
     from ..entity.triggers import normalize_entity_ids
-    from ..helpers.schedule import read_legacy_fields
+    from ..helpers.schedule import Schedule, read_legacy_fields
 
     ct = coordinator_task or {}
 
-    # Recurrence is echoed in the flat shape the task-dialog expects, derived
-    # from whichever storage shape this task uses (flat v2.6.x or nested
-    # `schedule`). See read_legacy_fields / issue #58.
+    # Recurrence is echoed in the flat shape the task-dialog expects (derived
+    # from whichever storage shape this task uses — see read_legacy_fields /
+    # issue #58) AND as the nested `schedule` object, which is the only way to
+    # express the calendar kinds (weekdays / nth_weekday / day_of_month).
     sched = read_legacy_fields(task_data)
+    schedule_obj = Schedule.parse(task_data).to_dict()
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")
@@ -113,6 +115,9 @@ def _build_task_summary(
         "interval_unit": sched["interval_unit"],
         "due_date": sched["due_date"],
         "interval_anchor": sched["interval_anchor"],
+        # Nested recurrence object — the frontend reads this for the calendar
+        # kinds; the flat fields above remain for interval/one_time back-compat.
+        "schedule": schedule_obj,
         "last_planned_due": task_data.get("last_planned_due"),
         "schedule_time": task_data.get("schedule_time"),
         "warning_days": task_data.get("warning_days", 7),
