@@ -85,14 +85,23 @@ def _result_payload(conn: MagicMock) -> dict[str, Any]:
 def _persisted_task(
     hass: HomeAssistant, entry_id: str, task_id: str
 ) -> dict[str, Any]:
-    """Read a task as it sits in ConfigEntry.data after save."""
+    """Read a task as it sits in ConfigEntry.data after save.
+
+    Recurrence is stored nested (schedule-model v2); we overlay its flat view
+    (interval_days / schedule_type / due_date / ...) so value-roundtrip
+    assertions read those directly regardless of the storage shape.
+    """
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        read_legacy_fields,
+    )
+
     entry = hass.config_entries.async_get_entry(entry_id)
     assert entry is not None, f"Entry {entry_id} disappeared after save"
     tasks: dict[str, dict[str, Any]] = entry.data.get(CONF_TASKS, {})
     assert task_id in tasks, (
         f"Task {task_id} not found in {entry_id} — saved task list: {list(tasks)}"
     )
-    return tasks[task_id]
+    return {**tasks[task_id], **read_legacy_fields(tasks[task_id])}
 
 
 async def _create_task_via_ws(

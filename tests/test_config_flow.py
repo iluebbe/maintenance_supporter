@@ -47,6 +47,9 @@ from custom_components.maintenance_supporter.const import (
     ScheduleType,
     TriggerType,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 
 from .conftest import (
     build_object_data,
@@ -248,8 +251,8 @@ async def test_time_based_task_flow(
     assert len(tasks) == 1
     task = list(tasks.values())[0]
     assert task["name"] == "Filter Cleaning"
-    assert task["interval_days"] == 30
-    assert task["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task)["interval_days"] == 30
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.TIME_BASED
     # Regression (issue #30): config-flow task creation must stamp `created_at`
     # so next_due has a stable anchor when last_performed is None.
     from homeassistant.util import dt as dt_util
@@ -288,8 +291,8 @@ async def test_one_time_task_flow(
 
     tasks = result["data"][CONF_TASKS]
     task = list(tasks.values())[0]
-    assert task["schedule_type"] == ScheduleType.ONE_TIME
-    assert task["due_date"] == "2026-09-01"
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.ONE_TIME
+    assert read_legacy_fields(task)["due_date"] == "2026-09-01"
 
 
 async def test_time_based_interval_unit_flow(
@@ -324,8 +327,8 @@ async def test_time_based_interval_unit_flow(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     task = list(result["data"][CONF_TASKS].values())[0]
-    assert task["interval_days"] == 3
-    assert task["interval_unit"] == "months"
+    assert read_legacy_fields(task)["interval_days"] == 3
+    assert read_legacy_fields(task)["interval_unit"] == "months"
 
 
 async def test_time_based_invalid_interval(
@@ -625,7 +628,7 @@ async def test_manual_task_flow(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     task = list(result["data"][CONF_TASKS].values())[0]
-    assert task["schedule_type"] == ScheduleType.MANUAL
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.MANUAL
 
 
 # ─── 3.6 Multiple Tasks ─────────────────────────────────────────────────

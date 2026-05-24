@@ -15,6 +15,9 @@ from custom_components.maintenance_supporter.const import (
     GLOBAL_UNIQUE_ID,
     ScheduleType,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 from custom_components.maintenance_supporter.repairs import (
     MissingTriggerEntityRepairFlow,
     async_create_fix_flow,
@@ -285,7 +288,7 @@ async def test_repair_remove_single_to_time_based(
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert entry is not None
     task = entry.data[CONF_TASKS][TASK_ID_1]
-    assert task["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.TIME_BASED
     assert "trigger_config" not in task
 
 
@@ -314,7 +317,7 @@ async def test_repair_remove_single_to_manual(
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert updated is not None
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["schedule_type"] == ScheduleType.MANUAL
+    assert read_legacy_fields(task_data)["schedule_type"] == ScheduleType.MANUAL
 
 
 async def test_repair_remove_multi_keeps_remaining(

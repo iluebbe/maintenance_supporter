@@ -13,6 +13,9 @@ from custom_components.maintenance_supporter.const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 from custom_components.maintenance_supporter.websocket.io import (
     ws_export_csv,
     ws_export_data,
@@ -325,8 +328,8 @@ async def test_json_import_preserves_interval_unit_and_due_date(
     tasks = list(entry.data.get("tasks", {}).values())
     monthly = next(t for t in tasks if t["name"] == "Monthly")
     oneshot = next(t for t in tasks if t["name"] == "OneShot")
-    assert monthly["interval_unit"] == "months"
-    assert oneshot["due_date"] == "2026-09-01"
+    assert read_legacy_fields(monthly)["interval_unit"] == "months"
+    assert read_legacy_fields(oneshot)["due_date"] == "2026-09-01"
 
 
 # ─── ws_import_csv ───────────────────────────────────────────────────────

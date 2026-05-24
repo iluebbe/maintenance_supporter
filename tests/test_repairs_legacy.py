@@ -23,6 +23,9 @@ from custom_components.maintenance_supporter.const import (
     HistoryEntryType,
     ScheduleType,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 from custom_components.maintenance_supporter.repairs import (
     MissingTriggerEntityRepairFlow,
 )
@@ -280,8 +283,8 @@ async def test_remove_trigger_safety_interval_fallback(
     assert updated is not None
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
     # Should convert to time_based using the safety interval
-    assert task_data["schedule_type"] == ScheduleType.TIME_BASED
-    assert task_data["interval_days"] == 14
+    assert read_legacy_fields(task_data)["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task_data)["interval_days"] == 14
     assert "trigger_config" not in task_data
 
 
@@ -313,7 +316,7 @@ async def test_remove_trigger_legacy_no_store(
     # Trigger should have been removed
     assert "trigger_config" not in task_data
     # Should convert to time_based since interval_days exists
-    assert task_data["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task_data)["schedule_type"] == ScheduleType.TIME_BASED
     # History should contain a trigger_removed entry via legacy path
     history = task_data.get("history", [])
     assert len(history) >= 1
@@ -385,7 +388,7 @@ async def test_remove_trigger_legacy_to_manual(
     updated = hass.config_entries.async_get_entry(obj_entry.entry_id)
     assert updated is not None
     task_data = updated.data[CONF_TASKS][TASK_ID_1]
-    assert task_data["schedule_type"] == ScheduleType.MANUAL
+    assert read_legacy_fields(task_data)["schedule_type"] == ScheduleType.MANUAL
     # History written via legacy path
     history = task_data.get("history", [])
     assert any(h["type"] == HistoryEntryType.TRIGGER_REMOVED for h in history)

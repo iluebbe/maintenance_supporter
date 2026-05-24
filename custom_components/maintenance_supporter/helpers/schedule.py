@@ -186,6 +186,60 @@ class Schedule:
 # whether it also carries a safety interval.
 
 
+FLAT_RECURRENCE_KEYS = (
+    "schedule_type",
+    "interval_days",
+    "interval_unit",
+    "interval_anchor",
+    "due_date",
+)
+
+
+def normalize_task_storage(task: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a copy of ``task`` with its recurrence stored as nested ``schedule``.
+
+    The single flat→nested writer used by the migration and by every persist
+    path, so new and existing tasks converge on one storage shape. The flat
+    recurrence keys are dropped; every other field is preserved exactly.
+    Sensor-ness stays in ``trigger_config`` (the derived ``schedule_type`` is
+    reconstructed on read by :func:`read_legacy_fields`).
+
+    Overlays are resolved so an edit takes effect: when a caller copies a stored
+    (nested) task and overlays flat fields — the options edit flow does exactly
+    this — the present flat keys win, but any absent ones fall back to the
+    existing nested schedule. So changing only ``interval_days`` keeps the unit
+    (the issue #58 class) instead of silently resetting it to days.
+
+    Idempotent: a pure-nested task (no flat keys) is returned unchanged.
+    """
+    out = dict(task)
+    has_flat = any(key in out for key in FLAT_RECURRENCE_KEYS)
+    has_nested = isinstance(out.get("schedule"), Mapping)
+    if has_nested and not has_flat:
+        return out
+    if not has_nested and not has_flat:
+        out["schedule"] = Schedule(kind=KIND_MANUAL).to_dict()
+        return out
+
+    # Effective flat view: nested-derived base, overridden by present flat keys.
+    merged = read_legacy_fields(out)  # nested-derived (hybrid) or flat (pure)
+    for key in FLAT_RECURRENCE_KEYS:
+        if key in out:
+            merged[key] = out[key]
+    schedule = Schedule.from_legacy(
+        schedule_type=merged["schedule_type"],
+        interval_days=merged["interval_days"],
+        interval_unit=merged["interval_unit"],
+        interval_anchor=merged["interval_anchor"],
+        due_date=merged["due_date"],
+    ).to_dict()
+
+    for key in FLAT_RECURRENCE_KEYS:
+        out.pop(key, None)
+    out["schedule"] = schedule
+    return out
+
+
 def legacy_schedule_type(schedule: Schedule, *, has_trigger: bool) -> str:
     """The v2.6.x ``schedule_type`` string for a Schedule + trigger presence."""
     if has_trigger:

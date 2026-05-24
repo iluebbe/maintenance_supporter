@@ -36,6 +36,7 @@ from ..const import (
     HistoryEntryType,
 )
 from ..helpers.dates import INTERVAL_UNITS
+from ..helpers.schedule import normalize_task_storage
 from . import (
     _build_task_summary,
     _get_merged_tasks,
@@ -288,6 +289,8 @@ async def async_persist_task(
     Store dynamic state, and reloads the entry so the task's entities
     (sensor / binary_sensor / buttons) are created.
     """
+    # Store recurrence in the canonical nested `schedule` shape (schedule-model v2).
+    task_data = normalize_task_storage(task_data)
     task_id = task_data["id"]
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -700,7 +703,7 @@ async def ws_update_task(
                 rd.store.clear_trigger_runtime(task_id)
                 rd.store.async_delay_save()
 
-    tasks_data[task_id] = task
+    tasks_data[task_id] = normalize_task_storage(task)
     new_data = dict(entry.data)
     new_data[CONF_TASKS] = tasks_data
     hass.config_entries.async_update_entry(entry, data=new_data)

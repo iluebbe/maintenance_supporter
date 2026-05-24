@@ -43,6 +43,7 @@ from .const import (
     ScheduleType,
     TriggerEntityState,
 )
+from .helpers.schedule import normalize_task_storage, read_legacy_fields
 from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
 from .storage import MaintenanceStore
@@ -1137,12 +1138,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         task_dict = dict(tasks_data[task_id])
-        old_interval = task_dict.get("interval_days")
+        fields = read_legacy_fields(task_dict)
+        old_interval = fields["interval_days"]
+        # The suggested interval is expressed in days; rebuild the recurrence as
+        # a days interval (preserving the anchor) and store it nested. Adaptive
+        # is gated to day-based tasks upstream, so this can't reinterpret a
+        # weeks/months/years task.
+        task_dict.pop("schedule", None)
+        task_dict["schedule_type"] = "time_based"
         task_dict["interval_days"] = interval
-        # The suggested interval is expressed in days; normalize the unit so a
-        # weeks/months/years task isn't reinterpreted (defensive — adaptive is
-        # already gated to day-based tasks upstream).
-        task_dict.pop("interval_unit", None)
+        task_dict["interval_unit"] = "days"
+        task_dict["interval_anchor"] = fields["interval_anchor"]
+        task_dict = normalize_task_storage(task_dict)
         tasks_data[task_id] = task_dict
 
         await self._async_persist_tasks(tasks_data)

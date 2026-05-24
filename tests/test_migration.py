@@ -436,7 +436,7 @@ async def test_migrate_entry_backfills_created_at_for_new_task(
 
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
     assert refreshed is not None
-    assert refreshed.minor_version == 2
+    assert refreshed.minor_version == 3
     migrated_task = refreshed.data[CONF_TASKS][TASK_ID_1]
     assert migrated_task["created_at"] == dt_util.now().date().isoformat()
 
@@ -491,14 +491,14 @@ async def test_migrate_entry_skips_tasks_with_last_performed(
     assert refreshed is not None
     # last_performed is the anchor, so created_at is not added
     assert "created_at" not in refreshed.data[CONF_TASKS][TASK_ID_1]
-    assert refreshed.minor_version == 2
+    assert refreshed.minor_version == 3
 
 
 async def test_migrate_entry_idempotent(
     hass: HomeAssistant,
     global_config_entry: MockConfigEntry,
 ) -> None:
-    """Running migration twice is a no-op once minor_version >= 2."""
+    """Running migration twice is a no-op once minor_version >= 3."""
     from custom_components.maintenance_supporter import async_migrate_entry
 
     task = build_task_data(last_performed=None, history=[])
@@ -515,11 +515,50 @@ async def test_migrate_entry_idempotent(
     assert refreshed is not None
     first_created = refreshed.data[CONF_TASKS][TASK_ID_1]["created_at"]
 
-    # Second call: short-circuits because minor_version is already 2
+    # Second call: short-circuits because minor_version is already 3
     await async_migrate_entry(hass, refreshed)
     refreshed2 = hass.config_entries.async_get_entry(entry.entry_id)
     assert refreshed2 is not None
     assert refreshed2.data[CONF_TASKS][TASK_ID_1]["created_at"] == first_created
+
+
+async def test_migrate_entry_v2_to_v3_nests_schedule(
+    hass: HomeAssistant,
+    global_config_entry: MockConfigEntry,
+) -> None:
+    """minor_version 2 → 3 moves flat recurrence fields into nested `schedule`."""
+    from custom_components.maintenance_supporter import async_migrate_entry
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        read_legacy_fields,
+    )
+
+    task = build_task_data(interval_days=6, last_performed="2026-01-01")
+    task["interval_unit"] = "months"
+    task["schedule_type"] = ScheduleType.TIME_BASED
+
+    entry = MockConfigEntry(
+        version=1, minor_version=2, domain=DOMAIN,
+        title="Mig v3", data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user", unique_id="maintenance_supporter_mig_v3",
+    )
+    entry.add_to_hass(hass)
+
+    assert await async_migrate_entry(hass, entry) is True
+    refreshed = hass.config_entries.async_get_entry(entry.entry_id)
+    assert refreshed is not None
+    assert refreshed.minor_version == 3
+
+    migrated = refreshed.data[CONF_TASKS][TASK_ID_1]
+    # Flat recurrence fields are gone; the nested schedule carries them.
+    assert "interval_days" not in migrated
+    assert "interval_unit" not in migrated
+    assert "schedule_type" not in migrated
+    assert migrated["schedule"] == {"kind": "interval", "every": 6, "unit": "months"}
+    # Reading it back yields the original recurrence (behaviour-preserving).
+    fields = read_legacy_fields(migrated)
+    assert fields["interval_days"] == 6
+    assert fields["interval_unit"] == "months"
+    assert fields["schedule_type"] == ScheduleType.TIME_BASED
 
 
 async def test_create_task_sets_created_at(

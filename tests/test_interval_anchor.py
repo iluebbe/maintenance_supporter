@@ -257,14 +257,15 @@ class TestIntervalAnchorSerialization:
         assert "interval_anchor" not in data
 
     def test_to_dict_includes_planned(self) -> None:
-        """'planned' is explicitly included in to_dict output."""
+        """'planned' is carried in the nested schedule (schedule-model v2)."""
         task = MaintenanceTask(
             id=TASK_ID_1,
             name="Test",
+            interval_days=30,
             interval_anchor="planned",
         )
         data = task.to_dict()
-        assert data["interval_anchor"] == "planned"
+        assert data["schedule"]["anchor"] == "planned"
 
     def test_from_dict_default(self) -> None:
         """from_dict without interval_anchor defaults to 'completion'."""
