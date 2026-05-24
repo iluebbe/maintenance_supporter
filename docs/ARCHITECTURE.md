@@ -544,13 +544,6 @@ None of these are **missing/broken** — every frontend call has a matching back
 
 Two remaining Config-Flow-only surfaces are design choices, not drift: **adaptive tuning knobs** (`adaptive_enabled`, `ewa_alpha`, `min/max_interval_days`, `seasonal_enabled`, `sensor_prediction_enabled`) and **compound-trigger editing** are exposed only via per-task Options → Adaptive Scheduling / Edit Trigger steps. The panel reads them but does not edit them.
 
-### Three-surface sync audit (v1.0.36)
-
-A schema-level audit compared every WebSocket handler, Config-Flow step, and panel call. Two genuine sync bugs surfaced and were fixed:
-
-1. **`created_at` missing in 3 Config-Flow task-creation paths** (`_save_task_and_return`, `async_step_template_customize`, `_save_new_task`). The field was set only by `ws_create_task`, and the one-shot migration (`minor_version 1 → 2`) did not run for newly-created entries, so any task created via Config Flow after installation reproduced issue #30 (`next_due` fell back to `today + interval` and shifted forward every day). All three paths now stamp `"created_at": dt_util.now().date().isoformat()`, matching the WebSocket path exactly. Regression asserts added to `test_time_based_task_flow`, `test_template_customize_submit_creates_entry`, and `test_add_task_time_based_full_flow`.
-2. **Test notification drift.** `ws_test_notification` included `MS_TEST_COMPLETE/SKIP/SNOOZE` action buttons; `async_step_test_notification` sent plain title+message. Both callers now route through `send_test_notification(hass, options)` in `config_flow_options_global.py` so the rendered notification is identical regardless of entry point.
-
 ### Time-of-day scheduling (v1.0.41)
 
 The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) is a sub-day refinement of the OVERDUE transition. Key architectural decisions:
@@ -573,7 +566,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (96%, 1,433 tests) |
+| test-coverage (>95%) | Silver | Yes (95%, 1,712 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -595,7 +588,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**1,433 tests** across **70 test files** with **96% code coverage**.
+**1,712 tests** across **83 test files** with **95% code coverage**.
 
 ### Coverage by Module
 
