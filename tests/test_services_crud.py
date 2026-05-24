@@ -87,6 +87,42 @@ async def test_add_task_service_adds_task(
     assert task["interval_days"] == 365
 
 
+async def test_add_task_service_interval_unit_and_due_date(
+    hass: HomeAssistant, global_config_entry: MockConfigEntry
+) -> None:
+    """add_task service persists interval_unit (months) and a one-time due_date."""
+    await setup_integration(hass, global_config_entry)
+    obj = await hass.services.async_call(
+        DOMAIN, "add_object", {"name": "HVAC"}, blocking=True, return_response=True
+    )
+    await hass.async_block_till_done()
+    entry_id = obj["entry_id"]
+
+    res = await hass.services.async_call(
+        DOMAIN, "add_task",
+        {"entry_id": entry_id, "name": "Quarterly", "interval_days": 3,
+         "interval_unit": "months"},
+        blocking=True, return_response=True,
+    )
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_get_entry(entry_id)
+    monthly = entry.data[CONF_TASKS][res["task_id"]]
+    assert monthly["interval_days"] == 3
+    assert monthly["interval_unit"] == "months"
+
+    res2 = await hass.services.async_call(
+        DOMAIN, "add_task",
+        {"entry_id": entry_id, "name": "Inspect", "schedule_type": "one_time",
+         "due_date": "2026-09-01"},
+        blocking=True, return_response=True,
+    )
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_get_entry(entry_id)
+    oneshot = entry.data[CONF_TASKS][res2["task_id"]]
+    assert oneshot["schedule_type"] == "one_time"
+    assert oneshot["due_date"] == "2026-09-01"
+
+
 async def test_add_task_service_rejects_unknown_entry(
     hass: HomeAssistant, global_config_entry: MockConfigEntry
 ) -> None:

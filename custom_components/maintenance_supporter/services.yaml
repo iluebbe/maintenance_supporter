@@ -159,14 +159,29 @@ add_task:
       selector:
         text:
     interval_days:
-      name: Interval (days)
-      description: Days between occurrences (for time-based tasks).
+      name: Interval
+      description: Interval length between occurrences (for time-based tasks), combined with interval_unit.
       selector:
         number:
           min: 1
           max: 3650
           step: 1
           mode: box
+    interval_unit:
+      name: Interval unit
+      description: "Unit for the interval: days, weeks, months or years. Default: days."
+      selector:
+        select:
+          options:
+            - days
+            - weeks
+            - months
+            - years
+    due_date:
+      name: Due date
+      description: Due date (YYYY-MM-DD) for a one-time task (schedule_type one_time).
+      selector:
+        text:
     warning_days:
       name: Warning (days)
       description: Days before due to enter the due-soon window.

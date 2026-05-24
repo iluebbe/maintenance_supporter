@@ -327,6 +327,8 @@ async def async_create_task_simple(
     task_type: str = "custom",
     schedule_type: str = "time_based",
     interval_days: int | None = None,
+    interval_unit: str = "days",
+    due_date: str | None = None,
     warning_days: int = 7,
     enabled: bool = True,
     notes: str | None = None,
@@ -359,6 +361,10 @@ async def async_create_task_simple(
     }
     if interval_days is not None:
         task_data["interval_days"] = interval_days
+    if interval_unit and interval_unit != "days":
+        task_data["interval_unit"] = interval_unit
+    if due_date:
+        task_data["due_date"] = due_date
     if notes:
         task_data["notes"] = notes
     await async_persist_task(hass, entry, task_data)

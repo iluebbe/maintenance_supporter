@@ -295,6 +295,40 @@ async def test_yaml_export_import_roundtrip(
     assert conn.send_result.call_args[0][1].get("created", 0) >= 1
 
 
+async def test_json_import_preserves_interval_unit_and_due_date(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """JSON/YAML import keeps interval_unit + one-time due_date (round-trip, #58/#59)."""
+    import json as _json
+
+    await setup_integration(hass, global_entry)
+    payload = _json.dumps({"version": 1, "objects": [{
+        "object": {"name": "ImportedUnitObj"},
+        "tasks": [
+            {"name": "Monthly", "schedule_type": "time_based",
+             "interval_days": 3, "interval_unit": "months"},
+            {"name": "OneShot", "schedule_type": "one_time",
+             "due_date": "2026-09-01"},
+        ],
+    }]})
+    conn = _mock_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": payload,
+    })
+    conn.send_error.assert_not_called()
+
+    entry = next(
+        e for e in hass.config_entries.async_entries("maintenance_supporter")
+        if e.data.get("object", {}).get("name") == "ImportedUnitObj"
+    )
+    tasks = list(entry.data.get("tasks", {}).values())
+    monthly = next(t for t in tasks if t["name"] == "Monthly")
+    oneshot = next(t for t in tasks if t["name"] == "OneShot")
+    assert monthly["interval_unit"] == "months"
+    assert oneshot["due_date"] == "2026-09-01"
+
+
 # ─── ws_import_csv ───────────────────────────────────────────────────────
 
 
