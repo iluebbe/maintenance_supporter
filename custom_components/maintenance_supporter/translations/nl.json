@@ -199,7 +199,8 @@
           "trigger_above": "Activeren bij waarde boven",
           "trigger_below": "Activeren bij waarde onder",
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel daalt.",
           "trigger_for_minutes": "De waarde moet gedurende dit aantal minuten de drempel overschrijden voordat activering plaatsvindt.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Doelwaarde",
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Onderhoud activeren wanneer deze opgetelde waarde bereikt is.",
           "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "Van status (optioneel)",
           "trigger_to_state": "Naar status (optioneel)",
           "trigger_target_changes": "Aantal wijzigingen voor activering",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor elke status.",
           "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Doellooptijd (uren)",
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren totale looptijd.",
           "trigger_on_states": "Welke sensorstatussen als 'actief' gelden. Leeg laten voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
@@ -918,7 +926,8 @@
           "trigger_above": "Activeren bij waarde boven",
           "trigger_below": "Activeren bij waarde onder",
           "trigger_for_minutes": "Gedurende minimaal (minuten)",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -927,6 +936,7 @@
           "trigger_below": "Onderhoud activeren wanneer de waarde onder deze drempel komt.",
           "trigger_for_minutes": "De waarde moet de drempel gedurende dit aantal minuten overschrijden voor activering.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -936,7 +946,8 @@
         "data": {
           "trigger_target_value": "Doelwaarde",
           "trigger_delta_mode": "Deltamodus (wijzigingen tellen, niet absoluut)",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -944,6 +955,7 @@
           "trigger_target_value": "Onderhoud activeren wanneer deze gecumuleerde waarde is bereikt.",
           "trigger_delta_mode": "Indien ingeschakeld, telt het verschil vanaf een basislijn in plaats van de absolute waarde.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de tellertrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -954,7 +966,8 @@
           "trigger_from_state": "Van status (optioneel)",
           "trigger_to_state": "Naar status (optioneel)",
           "trigger_target_changes": "Aantal wijzigingen voor activering",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -963,6 +976,7 @@
           "trigger_to_state": "Alleen overgangen naar deze status tellen. Laat leeg voor alle.",
           "trigger_target_changes": "Aantal overeenkomende statuswijzigingen voordat onderhoud wordt geactiveerd.",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de statuswijzigingstrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
@@ -972,7 +986,8 @@
         "data": {
           "trigger_runtime_hours": "Doellooptijd (uren)",
           "trigger_on_states": "Actieve statussen (kommagescheiden)",
-          "interval_days": "Veiligheidsinterval (dagen)",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
           "warning_days": "Waarschuwingsdagen voor deadline",
           "go_back": "Terug"
         },
@@ -980,6 +995,7 @@
           "trigger_runtime_hours": "Onderhoud activeren na dit aantal uren gecumuleerde looptijd.",
           "trigger_on_states": "Welke sensorstatussen tellen als 'actief'. Laat leeg voor standaard: on, 1, true. Voorbeeld: in_use, running",
           "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de looptijdtrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },

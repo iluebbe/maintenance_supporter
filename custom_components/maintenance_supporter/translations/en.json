@@ -199,7 +199,8 @@
           "trigger_above": "Trigger when above",
           "trigger_below": "Trigger when below",
           "trigger_for_minutes": "For at least (minutes)",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Trigger maintenance when value falls below this threshold.",
           "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
           "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Target value",
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
           "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
           "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "From state (optional)",
           "trigger_to_state": "To state (optional)",
           "trigger_target_changes": "Number of changes to trigger",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
           "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
           "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Target runtime (hours)",
           "trigger_on_states": "Active states (comma-separated)",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
           "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
           "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning.",
           "go_back": "Return to trigger type selection without saving."
         }
@@ -918,7 +926,8 @@
           "trigger_above": "Trigger when above",
           "trigger_below": "Trigger when below",
           "trigger_for_minutes": "For at least (minutes)",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -927,6 +936,7 @@
           "trigger_below": "Trigger maintenance when value falls below this threshold.",
           "trigger_for_minutes": "Value must exceed threshold for this many minutes before triggering.",
           "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -936,7 +946,8 @@
         "data": {
           "trigger_target_value": "Target value",
           "trigger_delta_mode": "Delta mode (count changes, not absolute)",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -944,6 +955,7 @@
           "trigger_target_value": "Trigger maintenance when this accumulated value is reached.",
           "trigger_delta_mode": "If enabled, counts the difference from a baseline instead of the absolute value.",
           "interval_days": "Optional time-based safety interval in addition to the counter trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -954,7 +966,8 @@
           "trigger_from_state": "From state (optional)",
           "trigger_to_state": "To state (optional)",
           "trigger_target_changes": "Number of changes to trigger",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -963,6 +976,7 @@
           "trigger_to_state": "Only count transitions to this state. Leave empty for any.",
           "trigger_target_changes": "Number of matching state changes before triggering maintenance.",
           "interval_days": "Optional time-based safety interval in addition to the state change trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },
@@ -972,7 +986,8 @@
         "data": {
           "trigger_runtime_hours": "Target runtime (hours)",
           "trigger_on_states": "Active states (comma-separated)",
-          "interval_days": "Safety interval (days)",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
           "warning_days": "Warning days before due",
           "go_back": "Go back"
         },
@@ -980,6 +995,7 @@
           "trigger_runtime_hours": "Trigger maintenance after this many hours of accumulated runtime.",
           "trigger_on_states": "Which sensor states count as 'active'. Leave empty for default: on, 1, true. Example: in_use, running",
           "interval_days": "Optional time-based safety interval in addition to the runtime trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
           "warning_days": "Number of days before due date to show a warning."
         }
       },

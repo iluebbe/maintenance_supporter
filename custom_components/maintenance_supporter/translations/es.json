@@ -199,7 +199,8 @@
           "trigger_above": "Activar cuando superior a",
           "trigger_below": "Activar cuando inferior a",
           "trigger_for_minutes": "Durante al menos (minutos)",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Activar mantenimiento cuando el valor caiga por debajo de este umbral.",
           "trigger_for_minutes": "El valor debe superar el umbral durante este número de minutos antes de la activación.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de sensor.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Valor objetivo",
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Activar mantenimiento cuando se alcance este valor acumulado.",
           "trigger_delta_mode": "Si está activado, cuenta la diferencia respecto a una base en lugar del valor absoluto.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de contador.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "Desde estado (opcional)",
           "trigger_to_state": "Hacia estado (opcional)",
           "trigger_target_changes": "Número de cambios para activar",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Contar solo transiciones hacia este estado. Dejar vacío para todos.",
           "trigger_target_changes": "Número de cambios de estado correspondientes antes de activar el mantenimiento.",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de cambio de estado.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Tiempo de funcionamiento objetivo (horas)",
           "trigger_on_states": "Estados activos (separados por comas)",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Activar mantenimiento después de este número de horas de funcionamiento acumulado.",
           "trigger_on_states": "Qué estados del sensor se consideran 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
           "interval_days": "Intervalo de seguridad temporal opcional además del disparador de tiempo de funcionamiento.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes del vencimiento para mostrar un aviso.",
           "go_back": "Volver a la selección de tipo de trigger sin guardar."
         }
@@ -918,7 +926,8 @@
           "trigger_above": "Activar cuando superior a",
           "trigger_below": "Activar cuando inferior a",
           "trigger_for_minutes": "Durante al menos (minutos)",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -927,6 +936,7 @@
           "trigger_below": "Activar mantenimiento cuando el valor caiga por debajo de este umbral.",
           "trigger_for_minutes": "El valor debe exceder el umbral durante estos minutos antes de activarse.",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador del sensor.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -936,7 +946,8 @@
         "data": {
           "trigger_target_value": "Valor objetivo",
           "trigger_delta_mode": "Modo delta (contar cambios, no valor absoluto)",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -944,6 +955,7 @@
           "trigger_target_value": "Activar mantenimiento cuando se alcance este valor acumulado.",
           "trigger_delta_mode": "Si está activado, cuenta la diferencia desde una línea base en lugar del valor absoluto.",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador del contador.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -954,7 +966,8 @@
           "trigger_from_state": "Desde estado (opcional)",
           "trigger_to_state": "Hacia estado (opcional)",
           "trigger_target_changes": "Número de cambios para activar",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -963,6 +976,7 @@
           "trigger_to_state": "Solo contar transiciones hacia este estado. Dejar vacío para cualquiera.",
           "trigger_target_changes": "Número de cambios de estado coincidentes antes de activar el mantenimiento.",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de cambio de estado.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },
@@ -972,7 +986,8 @@
         "data": {
           "trigger_runtime_hours": "Tiempo de funcionamiento objetivo (horas)",
           "trigger_on_states": "Estados activos (separados por comas)",
-          "interval_days": "Intervalo de seguridad (días)",
+          "interval_days": "Intervalo de seguridad",
+          "interval_unit": "Unidad de intervalo",
           "warning_days": "Días de aviso antes del vencimiento",
           "go_back": "Volver"
         },
@@ -980,6 +995,7 @@
           "trigger_runtime_hours": "Activar mantenimiento después de estas horas de tiempo de ejecución acumulado.",
           "trigger_on_states": "Qué estados del sensor cuentan como 'activo'. Dejar vacío para predeterminado: on, 1, true. Ejemplo: in_use, running",
           "interval_days": "Intervalo de seguridad basado en tiempo opcional además del disparador de tiempo de ejecución.",
+          "interval_unit": "Unidad del intervalo: días, semanas, meses o años. Los meses y años siguen el calendario.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia."
         }
       },

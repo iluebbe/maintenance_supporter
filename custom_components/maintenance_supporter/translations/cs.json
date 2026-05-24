@@ -199,7 +199,8 @@
           "trigger_above": "Spustit nad",
           "trigger_below": "Spustit pod",
           "trigger_for_minutes": "Po dobu alespoň (minut)",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Spustit údržbu, když hodnota klesne pod tento práh.",
           "trigger_for_minutes": "Hodnota musí překračovat práh tolik minut před spuštěním.",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči senzoru.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
           "go_back": "Návrat k výběru typu spouště bez uložení."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Cílová hodnota",
           "trigger_delta_mode": "Delta režim (počítej změny, ne absolutní hodnotu)",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Spustit údržbu, když je dosaženo této kumulované hodnoty.",
           "trigger_delta_mode": "Pokud je povoleno, počítá rozdíl od základní hodnoty místo absolutní hodnoty.",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči čítače.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
           "go_back": "Návrat k výběru typu spouště bez uložení."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "Ze stavu (volitelné)",
           "trigger_to_state": "Do stavu (volitelné)",
           "trigger_target_changes": "Počet změn pro spuštění",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Počítat pouze přechody do tohoto stavu. Nechte prázdné pro libovolný.",
           "trigger_target_changes": "Počet odpovídajících změn stavu před spuštěním údržby.",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči změny stavu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
           "go_back": "Návrat k výběru typu spouště bez uložení."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Cílová doba běhu (hodiny)",
           "trigger_on_states": "Aktivní stavy (oddělené čárkou)",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Spustit údržbu po tolika hodinách kumulované doby běhu.",
           "trigger_on_states": "Které stavy senzoru se počítají jako „aktivní“. Nechte prázdné pro výchozí: on, 1, true. Příklad: in_use, running",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči doby běhu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
           "go_back": "Návrat k výběru typu spouště bez uložení."
         }
@@ -918,7 +926,8 @@
           "trigger_above": "Spustit nad",
           "trigger_below": "Spustit pod",
           "trigger_for_minutes": "Po dobu alespoň (minut)",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -927,6 +936,7 @@
           "trigger_below": "Spustit údržbu, když hodnota klesne pod tento práh.",
           "trigger_for_minutes": "Hodnota musí překračovat práh tolik minut před spuštěním.",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči senzoru.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění."
         }
       },
@@ -936,7 +946,8 @@
         "data": {
           "trigger_target_value": "Cílová hodnota",
           "trigger_delta_mode": "Delta režim (počítej změny, ne absolutní hodnotu)",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -944,6 +955,7 @@
           "trigger_target_value": "Spustit údržbu, když je dosaženo této kumulované hodnoty.",
           "trigger_delta_mode": "Pokud je povoleno, počítá rozdíl od základní hodnoty místo absolutní hodnoty.",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči čítače.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění."
         }
       },
@@ -954,7 +966,8 @@
           "trigger_from_state": "Ze stavu (volitelné)",
           "trigger_to_state": "Do stavu (volitelné)",
           "trigger_target_changes": "Počet změn pro spuštění",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -963,6 +976,7 @@
           "trigger_to_state": "Počítat pouze přechody do tohoto stavu. Nechte prázdné pro libovolný.",
           "trigger_target_changes": "Počet odpovídajících změn stavu před spuštěním údržby.",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči změny stavu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění."
         }
       },
@@ -972,7 +986,8 @@
         "data": {
           "trigger_runtime_hours": "Cílová doba běhu (hodiny)",
           "trigger_on_states": "Aktivní stavy (oddělené čárkou)",
-          "interval_days": "Bezpečnostní interval (dny)",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
           "warning_days": "Dny upozornění před termínem",
           "go_back": "Zpět"
         },
@@ -980,6 +995,7 @@
           "trigger_runtime_hours": "Spustit údržbu po tolika hodinách kumulované doby běhu.",
           "trigger_on_states": "Které stavy senzoru se počítají jako „aktivní“. Nechte prázdné pro výchozí: on, 1, true. Příklad: in_use, running",
           "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči doby běhu.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění."
         }
       },
