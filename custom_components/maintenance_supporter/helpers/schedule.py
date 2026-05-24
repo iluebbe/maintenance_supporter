@@ -22,13 +22,27 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any
 
-from .dates import add_interval, interval_span_days, parse_iso_date
+from .dates import (
+    add_interval,
+    interval_span_days,
+    next_day_of_month,
+    next_nth_weekday,
+    next_weekday_in_set,
+    parse_iso_date,
+)
 
-# Recurrence kinds. Phase 2 covers the v2.6.x set; weekdays / nth_weekday /
-# day_of_month arrive with the roadmap feature (Phase 4).
+# Recurrence kinds. Phase 2 covers the v2.6.x set; the calendar kinds
+# (weekdays / nth_weekday / day_of_month) arrive with the roadmap feature.
 KIND_INTERVAL = "interval"
 KIND_ONE_TIME = "one_time"
 KIND_MANUAL = "manual"
+KIND_WEEKDAYS = "weekdays"          # e.g. every Mon & Thu
+KIND_NTH_WEEKDAY = "nth_weekday"    # e.g. 1st Saturday of the month
+KIND_DAY_OF_MONTH = "day_of_month"  # e.g. the 15th
+
+# The calendar kinds are fixed schedules (occurrences are absolute dates), so the
+# completion/planned anchor distinction doesn't apply to them.
+_CALENDAR_KINDS = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
 
 # Planned-anchor month/year stepping is bounded to avoid an unbounded loop on
 # absurd data (a task untouched for >2000 cycles falls back to the last step).
@@ -45,6 +59,11 @@ class Schedule:
     unit: str = "days"                # days | weeks | months | years
     anchor: str = "completion"        # completion | planned
     due_date: date | None = None      # one_time
+    weekdays: tuple[int, ...] = ()    # weekdays kind: 0=Mon … 6=Sun
+    nth: int | None = None            # nth_weekday kind: 1..5, or -1 = last
+    weekday: int | None = None        # nth_weekday kind: 0=Mon … 6=Sun
+    day: int | None = None            # day_of_month kind: 1..31 (clamped)
+    months: tuple[int, ...] = ()      # nth_weekday/day_of_month: restrict months (1..12)
 
     @classmethod
     def from_legacy(
@@ -89,6 +108,15 @@ class Schedule:
                 return None
             return self.due_date
 
+        if self.kind in _CALENDAR_KINDS:
+            # Fixed calendar schedule. First-time anchors on created_at/today so
+            # a never-done task stays visibly overdue once its date passes (the
+            # #30 lesson); after completion it's the next occurrence strictly
+            # after last_performed. The completion/planned anchor doesn't apply.
+            if last_performed is not None:
+                return self._calendar_occurrence(last_performed, inclusive=False)
+            return self._calendar_occurrence(created_at or today, inclusive=True)
+
         if self.kind != KIND_INTERVAL:
             return None
 
@@ -119,14 +147,36 @@ class Schedule:
 
         return add_interval(last_performed, every, self.unit)
 
+    def _calendar_occurrence(self, ref: date, *, inclusive: bool) -> date | None:
+        """Next occurrence of a calendar kind on/after ``ref``."""
+        months = self.months or None
+        if self.kind == KIND_WEEKDAYS:
+            return next_weekday_in_set(ref, self.weekdays, inclusive=inclusive)
+        if self.kind == KIND_NTH_WEEKDAY:
+            if self.nth is None or self.weekday is None:
+                return None
+            return next_nth_weekday(
+                ref, self.nth, self.weekday, months, inclusive=inclusive
+            )
+        if self.kind == KIND_DAY_OF_MONTH:
+            if self.day is None:
+                return None
+            return next_day_of_month(ref, self.day, months, inclusive=inclusive)
+        return None
+
     def span_days(self) -> int:
-        """Approximate length of one cycle in days (0 when there is no interval).
+        """Approximate length of one cycle in days (0 when there is no recurrence).
 
         For progress bars and the due-soon warning cap — unit-aware, so a
-        6-month task is ~183 days, not 6.
+        6-month task is ~183 days, not 6. The calendar kinds use a nominal cycle
+        (weekly → 7, monthly patterns → 30).
         """
         if self.kind == KIND_INTERVAL:
             return interval_span_days(self.every, self.unit)
+        if self.kind == KIND_WEEKDAYS:
+            return 7
+        if self.kind in (KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH):
+            return 30
         return 0
 
     # --- serialization (Phase 3: nested `schedule` storage) ----------------
@@ -143,6 +193,17 @@ class Schedule:
                 d["anchor"] = self.anchor
         elif self.kind == KIND_ONE_TIME and self.due_date is not None:
             d["due_date"] = self.due_date.isoformat()
+        elif self.kind == KIND_WEEKDAYS:
+            d["weekdays"] = list(self.weekdays)
+        elif self.kind == KIND_NTH_WEEKDAY:
+            d["nth"] = self.nth
+            d["weekday"] = self.weekday
+            if self.months:
+                d["months"] = list(self.months)
+        elif self.kind == KIND_DAY_OF_MONTH:
+            d["day"] = self.day
+            if self.months:
+                d["months"] = list(self.months)
         return d
 
     @classmethod
@@ -157,6 +218,21 @@ class Schedule:
                 every=d.get("every"),
                 unit=d.get("unit") or "days",
                 anchor=d.get("anchor") or "completion",
+            )
+        if kind == KIND_WEEKDAYS:
+            return cls(kind=KIND_WEEKDAYS, weekdays=tuple(d.get("weekdays") or ()))
+        if kind == KIND_NTH_WEEKDAY:
+            return cls(
+                kind=KIND_NTH_WEEKDAY,
+                nth=d.get("nth"),
+                weekday=d.get("weekday"),
+                months=tuple(d.get("months") or ()),
+            )
+        if kind == KIND_DAY_OF_MONTH:
+            return cls(
+                kind=KIND_DAY_OF_MONTH,
+                day=d.get("day"),
+                months=tuple(d.get("months") or ()),
             )
         return cls(kind=KIND_MANUAL)
 
@@ -213,8 +289,15 @@ def normalize_task_storage(task: Mapping[str, Any]) -> dict[str, Any]:
     Idempotent: a pure-nested task (no flat keys) is returned unchanged.
     """
     out = dict(task)
+    nested = out.get("schedule")
+    if isinstance(nested, Mapping) and nested.get("kind") in _CALENDAR_KINDS:
+        # Calendar kinds can't be expressed via the flat fields, so the nested
+        # schedule is authoritative — keep it and drop any stray flat keys.
+        for key in FLAT_RECURRENCE_KEYS:
+            out.pop(key, None)
+        return out
     has_flat = any(key in out for key in FLAT_RECURRENCE_KEYS)
-    has_nested = isinstance(out.get("schedule"), Mapping)
+    has_nested = isinstance(nested, Mapping)
     if has_nested and not has_flat:
         return out
     if not has_nested and not has_flat:
@@ -241,14 +324,21 @@ def normalize_task_storage(task: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def legacy_schedule_type(schedule: Schedule, *, has_trigger: bool) -> str:
-    """The v2.6.x ``schedule_type`` string for a Schedule + trigger presence."""
+    """The v2.6.x ``schedule_type`` string for a Schedule + trigger presence.
+
+    The calendar kinds have no v2.6.x equivalent, so they surface their own kind
+    (``nth_weekday`` etc.); consumers that understand them read the nested
+    ``schedule`` directly, the rest get a coarse but honest label.
+    """
     if has_trigger:
         return "sensor_based"
     if schedule.kind == KIND_ONE_TIME:
         return "one_time"
     if schedule.kind == KIND_INTERVAL:
         return "time_based"
-    return "manual"
+    if schedule.kind == KIND_MANUAL:
+        return "manual"
+    return schedule.kind
 
 
 def read_legacy_fields(task: Mapping[str, Any]) -> dict[str, Any]:

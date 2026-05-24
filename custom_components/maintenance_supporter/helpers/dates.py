@@ -48,6 +48,98 @@ def add_interval(anchor: date, n: int, unit: str = "days") -> date:
     return anchor + timedelta(days=n)
 
 
+def nth_weekday_of_month(
+    year: int, month: int, nth: int, weekday: int
+) -> date | None:
+    """The ``nth`` ``weekday`` of ``(year, month)``; ``None`` if it doesn't exist.
+
+    ``weekday`` is 0=Mon … 6=Sun (``date.weekday()``). ``nth`` is 1..5, or -1 for
+    the last occurrence. A 5th occurrence that the month doesn't have → ``None``.
+    """
+    last_day = calendar.monthrange(year, month)[1]
+    if nth == -1:
+        anchor = date(year, month, last_day)
+        return anchor - timedelta(days=(anchor.weekday() - weekday) % 7)
+    first = date(year, month, 1)
+    day = 1 + (weekday - first.weekday()) % 7 + (nth - 1) * 7
+    if day > last_day:
+        return None
+    return date(year, month, day)
+
+
+def next_weekday_in_set(
+    ref: date, weekdays: tuple[int, ...], *, inclusive: bool
+) -> date | None:
+    """Next date on/after ``ref`` whose weekday is in ``weekdays`` (0=Mon…6=Sun).
+
+    ``inclusive`` includes ``ref`` itself; otherwise the search starts the next
+    day. ``None`` when ``weekdays`` is empty.
+    """
+    if not weekdays:
+        return None
+    start = ref if inclusive else ref + timedelta(days=1)
+    for offset in range(7):
+        candidate = start + timedelta(days=offset)
+        if candidate.weekday() in weekdays:
+            return candidate
+    return None  # unreachable for a non-empty set
+
+
+def _iter_months(year: int, month: int, limit: int = 60):
+    """Yield ``(year, month)`` forward from the given month, ``limit`` times."""
+    for _ in range(limit):
+        yield year, month
+        month += 1
+        if month > 12:
+            month = 1
+            year += 1
+
+
+def next_nth_weekday(
+    ref: date,
+    nth: int,
+    weekday: int,
+    months: tuple[int, ...] | None = None,
+    *,
+    inclusive: bool,
+) -> date | None:
+    """Next ``nth``-``weekday``-of-month occurrence on/after ``ref``.
+
+    Optionally restricted to ``months`` (1=Jan…12=Dec). ``None`` if no occurrence
+    is found within a bounded horizon (e.g. a 5th weekday restricted to a month
+    that never has one).
+    """
+    for year, month in _iter_months(ref.year, ref.month):
+        if months and month not in months:
+            continue
+        occ = nth_weekday_of_month(year, month, nth, weekday)
+        if occ is not None and (occ >= ref if inclusive else occ > ref):
+            return occ
+    return None
+
+
+def next_day_of_month(
+    ref: date,
+    day: int,
+    months: tuple[int, ...] | None = None,
+    *,
+    inclusive: bool,
+) -> date | None:
+    """Next ``day``-of-month occurrence on/after ``ref`` (day clamped to month).
+
+    ``day`` 1..31 is clamped to the month's length (e.g. 31 → Feb 28/29).
+    Optionally restricted to ``months``.
+    """
+    for year, month in _iter_months(ref.year, ref.month):
+        if months and month not in months:
+            continue
+        clamped = min(day, calendar.monthrange(year, month)[1])
+        candidate = date(year, month, clamped)
+        if candidate >= ref if inclusive else candidate > ref:
+            return candidate
+    return None
+
+
 def interval_span_days(n: int | None, unit: str = "days") -> int:
     """Length of one ``n``-``unit`` interval in days, calendar-aware.
 
