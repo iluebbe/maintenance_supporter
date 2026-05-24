@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, time, timedelta
+from datetime import date, time
 from typing import Any
 from uuid import uuid4
 
@@ -17,7 +17,8 @@ from ..const import (
     MaintenanceTypeEnum,
     ScheduleType,
 )
-from ..helpers.dates import add_interval, interval_span_days
+from ..helpers.dates import parse_iso_date
+from ..helpers.schedule import Schedule
 
 
 @dataclass
@@ -88,59 +89,32 @@ class MaintenanceTask:
           - Completed March 5 → next due: March 31 (not April 4)
           - If never completed the date may be in the past → OVERDUE.
         """
-        # One-time: due on the fixed date; archived (no re-arm) once completed.
-        if self.schedule_type == ScheduleType.ONE_TIME:
-            if self.last_performed is not None or not self.due_date:
-                return None
+        # Recurrence is computed by the Schedule value object
+        # (helpers/schedule.py, Phase 2). ISO parsing stays here at the boundary;
+        # a *malformed* last_performed preserves the historical "no next_due".
+        last: date | None = None
+        if self.last_performed:
             try:
-                return date.fromisoformat(self.due_date)
+                last = date.fromisoformat(self.last_performed)
             except (ValueError, TypeError):
                 return None
+        return self._schedule().next_due(
+            last_performed=last,
+            created_at=parse_iso_date(self.created_at),
+            last_planned_due=parse_iso_date(self.last_planned_due),
+            today=dt_util.now().date(),
+        )
 
-        if not self.interval_days or self.interval_days <= 0:
-            return None
-        if self.last_performed is None:
-            # First-time anchor: use created_at if known, else today (issue #30).
-            try:
-                anchor_date = (
-                    date.fromisoformat(self.created_at)
-                    if self.created_at
-                    else dt_util.now().date()
-                )
-            except (ValueError, TypeError):
-                anchor_date = dt_util.now().date()
-            return add_interval(anchor_date, self.interval_days, self.interval_unit)
-        try:
-            last = date.fromisoformat(self.last_performed)
-        except (ValueError, TypeError):
-            return None
-
-        if self.interval_anchor == "planned":
-            # Anchor from the previously planned due date so late completions
-            # don't drift the schedule.
-            anchor = last  # fallback: use completion date
-            if self.last_planned_due:
-                try:
-                    anchor = date.fromisoformat(self.last_planned_due)
-                except (ValueError, TypeError):
-                    pass  # fall back to last_performed
-            if self.interval_unit in (None, "days", "weeks"):
-                # O(1) for fixed-length units.
-                step = self.interval_days * (7 if self.interval_unit == "weeks" else 1)
-                days_gap = (last - anchor).days
-                periods = 1 if days_gap < 0 else (days_gap // step) + 1
-                return anchor + timedelta(days=periods * step)
-            # Calendar units (months/years): step until past last_performed.
-            candidate = anchor
-            for _ in range(2000):
-                candidate = add_interval(
-                    candidate, self.interval_days, self.interval_unit
-                )
-                if candidate > last:
-                    return candidate
-            return candidate
-
-        return add_interval(last, self.interval_days, self.interval_unit)
+    def _schedule(self) -> Schedule:
+        """The recurrence as a value object, built from the stored fields
+        (legacy-backed adapter — see docs/design/schedule-model-v2.md)."""
+        return Schedule.from_legacy(
+            schedule_type=self.schedule_type,
+            interval_days=self.interval_days,
+            interval_unit=self.interval_unit,
+            interval_anchor=self.interval_anchor,
+            due_date=self.due_date,
+        )
 
     @property
     def days_until_due(self) -> int | None:
@@ -185,10 +159,11 @@ class MaintenanceTask:
         # Without this, a task with schedule_time="09:00" would only flip at midnight.
         if days == 0 and self._is_past_schedule_time():
             return MaintenanceStatus.OVERDUE
-        # Don't let the warning window exceed one interval, but measure the
-        # interval in real days — a 6-*month* task (interval_days=6) must not
-        # collapse a 14-day warning to min(14, 6) (issue #58). Unit-aware span.
-        span = interval_span_days(self.interval_days, self.interval_unit)
+        # Don't let the warning window exceed one interval, measured in real
+        # days via the Schedule (a 6-*month* task must not collapse a 14-day
+        # warning to min(14, 6) — issue #58). Single source: the Schedule, not
+        # raw interval fields.
+        span = self._schedule().span_days()
         effective_warning = min(self.warning_days, span) if span else self.warning_days
         if days <= effective_warning:
             return MaintenanceStatus.DUE_SOON
