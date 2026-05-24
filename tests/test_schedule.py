@@ -10,11 +10,15 @@ from __future__ import annotations
 from datetime import date
 
 from custom_components.maintenance_supporter.helpers.schedule import (
+    KIND_DAY_OF_MONTH,
     KIND_INTERVAL,
     KIND_MANUAL,
+    KIND_NTH_WEEKDAY,
     KIND_ONE_TIME,
+    KIND_WEEKDAYS,
     Schedule,
     legacy_schedule_type,
+    normalize_task_storage,
     read_legacy_fields,
 )
 
@@ -150,6 +154,101 @@ def test_parse_prefers_nested_else_legacy() -> None:
     # nested wins when both present
     both = {**legacy, "schedule": {"kind": "manual"}}
     assert Schedule.parse(both).kind == KIND_MANUAL
+
+
+# ─── calendar kinds (Phase 4) ────────────────────────────────────────────
+
+
+def test_weekdays_next_due() -> None:
+    s = Schedule(kind=KIND_WEEKDAYS, weekdays=(0, 3))  # Mon & Thu
+    # first-time: on/after today (Sun 2026-05-24 → Mon 2026-05-25)
+    assert _nd(s, last=None, today=date(2026, 5, 24)) == date(2026, 5, 25)
+    # after completion on Mon → next is Thu
+    assert _nd(s, last=date(2026, 5, 25)) == date(2026, 5, 28)
+    # empty set → None
+    assert _nd(Schedule(kind=KIND_WEEKDAYS), last=None, today=date(2026, 5, 24)) is None
+
+
+def test_nth_weekday_next_due() -> None:
+    s = Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5)  # 1st Saturday
+    # May's 1st Sat (May 2) already passed by the 24th → June 6
+    assert _nd(s, last=None, today=date(2026, 5, 24)) == date(2026, 6, 6)
+    # after completion June 6 → July 4
+    assert _nd(s, last=date(2026, 6, 6)) == date(2026, 7, 4)
+
+
+def test_nth_weekday_last() -> None:
+    s = Schedule(kind=KIND_NTH_WEEKDAY, nth=-1, weekday=5)  # last Saturday
+    assert _nd(s, last=None, today=date(2026, 5, 1)) == date(2026, 5, 30)
+
+
+def test_nth_weekday_5th_skips_months_without_one() -> None:
+    # 5th Saturday: Feb/Mar/Apr 2026 have none; next is May 30.
+    s = Schedule(kind=KIND_NTH_WEEKDAY, nth=5, weekday=5)
+    assert _nd(s, last=None, today=date(2026, 2, 1)) == date(2026, 5, 30)
+
+
+def test_nth_weekday_months_restriction() -> None:
+    s = Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5, months=(1, 7))
+    assert _nd(s, last=None, today=date(2026, 5, 24)) == date(2026, 7, 4)
+
+
+def test_day_of_month_next_due() -> None:
+    s = Schedule(kind=KIND_DAY_OF_MONTH, day=15)
+    # May 15 passed by the 24th → June 15
+    assert _nd(s, last=None, today=date(2026, 5, 24)) == date(2026, 6, 15)
+    assert _nd(s, last=date(2026, 6, 15)) == date(2026, 7, 15)
+
+
+def test_day_of_month_clamps_to_month_length() -> None:
+    s = Schedule(kind=KIND_DAY_OF_MONTH, day=31)
+    assert _nd(s, last=date(2026, 1, 31)) == date(2026, 2, 28)
+
+
+def test_calendar_span_days() -> None:
+    assert Schedule(kind=KIND_WEEKDAYS, weekdays=(0,)).span_days() == 7
+    assert Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5).span_days() == 30
+    assert Schedule(kind=KIND_DAY_OF_MONTH, day=15).span_days() == 30
+
+
+def test_calendar_kinds_roundtrip() -> None:
+    for s in (
+        Schedule(kind=KIND_WEEKDAYS, weekdays=(0, 3)),
+        Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5),
+        Schedule(kind=KIND_NTH_WEEKDAY, nth=-1, weekday=5, months=(1, 4, 7, 10)),
+        Schedule(kind=KIND_DAY_OF_MONTH, day=15),
+        Schedule(kind=KIND_DAY_OF_MONTH, day=31, months=(2,)),
+    ):
+        assert Schedule.from_dict(s.to_dict()) == s
+
+
+def test_nth_weekday_smoke_alarm_worked_example() -> None:
+    # design doc §6: {kind: nth_weekday, nth: 1, weekday: 5} — "1st Saturday"
+    s = Schedule.from_dict({"kind": "nth_weekday", "nth": 1, "weekday": 5})
+    nd = _nd(s, last=None, today=date(2026, 5, 24))
+    assert nd == date(2026, 6, 6)
+    assert nd.weekday() == 5  # a Saturday
+
+
+def test_normalize_preserves_calendar_kind() -> None:
+    # A calendar kind survives normalize even with a stray flat key — it can't
+    # be rebuilt from the flat fields, so the nested schedule is authoritative.
+    out = normalize_task_storage(
+        {"schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
+         "schedule_type": "manual", "name": "Smoke alarm"}
+    )
+    assert out["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+    assert "schedule_type" not in out
+    assert out["name"] == "Smoke alarm"
+
+
+def test_legacy_schedule_type_surfaces_calendar_kinds() -> None:
+    assert legacy_schedule_type(
+        Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5), has_trigger=False
+    ) == "nth_weekday"
+    assert legacy_schedule_type(
+        Schedule(kind=KIND_WEEKDAYS, weekdays=(0,)), has_trigger=False
+    ) == "weekdays"
 
 
 def test_legacy_to_nested_equivalence() -> None:
