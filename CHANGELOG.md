@@ -14,6 +14,16 @@ next to the safety interval in both the **panel task dialog** and the
 the sensor fires first" task can be configured directly. The "Safety interval
 (days)" label is now just "Safety interval", localized in all 12 languages.
 
+A 360° sweep closed the remaining `interval_unit` / `due_date` gaps so the unit
+works on **every** create/edit/round-trip path:
+- the **`add_task` service** now accepts `interval_unit` + `due_date` (schema,
+  handler, and `services.yaml`), so automations can create month/year/one-time tasks;
+- **JSON / YAML import** now preserves `interval_unit` + `due_date` (they were
+  written on export but dropped on import — round-trip is whole again).
+
+(The Lovelace **card / dashboard** create + edit already use the shared task
+dialog, so they were covered automatically.)
+
 ## [2.6.3] - 2026-05-24
 
 ### 🐛 Weeks/months/years units now render correctly in the UI (#59)

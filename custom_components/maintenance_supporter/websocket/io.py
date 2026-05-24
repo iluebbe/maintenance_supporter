@@ -308,7 +308,8 @@ async def ws_import_json(
                 "history": task_entry.get("history", []),
             }
             for key in (
-                "interval_days", "interval_anchor", "last_planned_due",
+                "interval_days", "interval_unit", "due_date",
+                "interval_anchor", "last_planned_due",
                 "last_performed", "notes", "documentation_url",
                 "custom_icon", "nfc_tag_id", "responsible_user_id",
                 "entity_slug", "trigger_config", "adaptive_config",
