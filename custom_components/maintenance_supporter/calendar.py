@@ -20,6 +20,7 @@ from .const import (
     MaintenanceStatus,
     ScheduleType,
 )
+from .helpers.dates import interval_span_days
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
@@ -393,7 +394,12 @@ class MaintenanceCalendar(CalendarEntity):
 
         # Build translated description
         type_translated = _cal_t(task.type, lang) if task.type else task.type
-        interval_text = _cal_t("interval_days", lang, days=str(task.interval_days)) if task.interval_days else ""
+        # Show the real day-span so a 3-month task reads "~90 days", not "3 days"
+        # (the calendar event itself is already placed at the unit-aware next_due).
+        interval_text = (
+            _cal_t("interval_days", lang, days=str(interval_span_days(task.interval_days, task.interval_unit)))
+            if task.interval_days else ""
+        )
         last_perf = str(task.last_performed) if task.last_performed else _cal_t("never", lang)
 
         # Build event window. Default: all-day. When schedule_time is set

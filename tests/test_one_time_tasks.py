@@ -42,6 +42,29 @@ def test_add_interval_years_clamps_leap_day() -> None:
     assert add_interval(date(2024, 2, 29), 1, "years") == date(2025, 2, 28)
 
 
+def test_vacation_preview_honors_interval_unit() -> None:
+    """Vacation preview must project a 6-month task ~6 months out, not 6 days
+    (it used `anchor + timedelta(days=interval_days)`). Audit follow-up."""
+    from custom_components.maintenance_supporter.helpers.vacation import (
+        _project_time_based,
+    )
+
+    today = date(2026, 5, 1)
+    events = _project_time_based(
+        last_performed=date(2026, 4, 1),
+        created_at=None,
+        interval_days=6,
+        warning_days=7,
+        today=today,
+        window_start=today,
+        window_end=date(2026, 12, 31),
+        interval_unit="months",
+    )
+    # next_due = 2026-04-01 + 6 months = 2026-10-01 (not 2026-04-07).
+    assert any(e.date == date(2026, 10, 1) and e.status == "overdue" for e in events)
+    assert all(e.date != date(2026, 4, 7) for e in events)
+
+
 def test_interval_span_days_is_unit_aware() -> None:
     from custom_components.maintenance_supporter.helpers.dates import (
         interval_span_days,

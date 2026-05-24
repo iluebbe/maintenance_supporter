@@ -211,8 +211,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task_result["_average_duration"] = task.average_duration
             task_result["_last_entry"] = task.last_entry
 
-            # Adaptive scheduling analysis
-            if task.adaptive_config and task.adaptive_config.get("enabled"):
+            # Adaptive scheduling analysis — day-based tasks only. The analyzer
+            # reasons entirely in days and applying a suggestion overwrites
+            # interval_days; on a weeks/months/years task that would corrupt the
+            # schedule (e.g. interval_days=90 left with unit=months → +90 months).
+            if (
+                task.adaptive_config
+                and task.adaptive_config.get("enabled")
+                and task.interval_unit in (None, "days")
+            ):
                 from .helpers.interval_analyzer import IntervalAnalyzer
 
                 analyzer = IntervalAnalyzer()
@@ -1132,6 +1139,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task_dict = dict(tasks_data[task_id])
         old_interval = task_dict.get("interval_days")
         task_dict["interval_days"] = interval
+        # The suggested interval is expressed in days; normalize the unit so a
+        # weeks/months/years task isn't reinterpreted (defensive — adaptive is
+        # already gated to day-based tasks upstream).
+        task_dict.pop("interval_unit", None)
         tasks_data[task_id] = task_dict
 
         await self._async_persist_tasks(tasks_data)

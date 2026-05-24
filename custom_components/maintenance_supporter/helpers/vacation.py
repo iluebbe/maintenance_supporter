@@ -29,6 +29,7 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
+from .dates import add_interval
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -144,12 +145,15 @@ def _project_time_based(
     today: date,
     window_start: date,
     window_end: date,
+    interval_unit: str | None = None,
 ) -> list[PreviewEvent]:
     """Project DUE_SOON / OVERDUE dates for a time-based task."""
     if not interval_days or interval_days <= 0:
         return []
     anchor = last_performed or created_at or today
-    next_due = anchor + timedelta(days=interval_days)
+    # Unit-aware (weeks/months/years), not raw days — else a 6-month task would
+    # preview as due in 6 days during vacation planning.
+    next_due = add_interval(anchor, interval_days, interval_unit or "days")
     due_soon_from = next_due - timedelta(days=max(0, warning_days))
 
     events: list[PreviewEvent] = []
@@ -213,6 +217,7 @@ def compute_preview(
                 today=today,
                 window_start=window_start,
                 window_end=window_end,
+                interval_unit=t.get("interval_unit"),
             )
             kind = "time_based"
             confidence = "deterministic"
