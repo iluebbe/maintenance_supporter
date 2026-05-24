@@ -2,8 +2,8 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-1712_passed-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
+[![Tests](https://img.shields.io/badge/tests-1998_passed-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
 A Home Assistant custom integration for tracking and managing maintenance tasks across your devices and equipment. Schedule time-based or sensor-triggered maintenance, get notifications when tasks are due, and keep a complete maintenance history — with adaptive scheduling that learns from your patterns.
@@ -676,7 +676,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-1,712 tests across 83 test files with **95% code coverage**.
+1,998 tests across 87 test files with **98% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -704,7 +704,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8125
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (1,712 tests):
+# Run tests (1,998 tests):
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 
