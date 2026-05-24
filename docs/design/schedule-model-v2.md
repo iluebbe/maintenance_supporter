@@ -1,6 +1,10 @@
 # Design: Schedule model v2 — a discriminated-union recurrence
 
-**Status:** Proposed · **Target:** v2.7 (with the "nth weekday of month" roadmap item) · **Date:** 2026-05-24
+**Status:** Implemented — pending release · **Date:** 2026-05-24
+
+> This is the active plan for an unreleased feature. Per the `docs/design`
+> convention, it will be removed once the feature ships — shipped features are
+> recorded in [CHANGELOG.md](../../CHANGELOG.md).
 
 ## 1. Motivation
 
