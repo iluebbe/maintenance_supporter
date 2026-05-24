@@ -18,7 +18,7 @@ from ..const import (
     ScheduleType,
 )
 from ..helpers.dates import parse_iso_date
-from ..helpers.schedule import Schedule
+from ..helpers.schedule import Schedule, read_legacy_fields
 
 
 @dataclass
@@ -366,21 +366,28 @@ class MaintenanceTask:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MaintenanceTask:
-        """Deserialize from dictionary."""
+        """Deserialize from dictionary.
+
+        Accepts both the nested ``schedule`` storage (Phase 3) and the flat
+        v2.6.x fields via :func:`read_legacy_fields` — the recurrence is held
+        in flat attributes in memory either way, so every existing reader of
+        ``task.interval_days`` etc. is unaffected.
+        """
+        sched = read_legacy_fields(data)
         return cls(
             id=data.get("id", uuid4().hex),
             object_id=data.get("object_id", ""),
             name=data.get("name", ""),
             type=data.get("type", MaintenanceTypeEnum.CUSTOM),
             enabled=data.get("enabled", True),
-            schedule_type=data.get("schedule_type", ScheduleType.TIME_BASED),
-            interval_days=data.get("interval_days"),
-            interval_unit=data.get("interval_unit", "days"),
-            due_date=data.get("due_date"),
+            schedule_type=sched["schedule_type"],
+            interval_days=sched["interval_days"],
+            interval_unit=sched["interval_unit"],
+            due_date=sched["due_date"],
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
             last_performed=data.get("last_performed"),
             created_at=data.get("created_at"),
-            interval_anchor=data.get("interval_anchor", "completion"),
+            interval_anchor=sched["interval_anchor"],
             last_planned_due=data.get("last_planned_due"),
             schedule_time=data.get("schedule_time"),
             trigger_config=data.get("trigger_config"),

@@ -67,6 +67,7 @@ from .const import (
     TriggerType,
 )
 from .helpers.global_options import get_default_warning_days
+from .helpers.schedule import read_legacy_fields
 
 
 class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
@@ -419,6 +420,11 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             CONF_RESPONSIBLE_USER_ID, default=user_id_default
         )
 
+        # Prefill the recurrence from whichever storage shape this task uses
+        # (flat v2.6.x or nested `schedule`). Reading raw flat keys here would
+        # silently reset a migrated task's interval on the next save (issue #58).
+        sched = read_legacy_fields(task)
+
         return self.async_show_form(
             step_id="edit_task",
             data_schema=vol.Schema(
@@ -441,7 +447,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                         {
                             vol.Optional(
                                 CONF_TASK_INTERVAL_DAYS,
-                                default=task.get("interval_days", DEFAULT_INTERVAL_DAYS),
+                                default=sched["interval_days"] or DEFAULT_INTERVAL_DAYS,
                             ): selector.NumberSelector(
                                 selector.NumberSelectorConfig(
                                     min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
@@ -449,11 +455,11 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                             ),
                             vol.Optional(
                                 CONF_TASK_INTERVAL_UNIT,
-                                default=task.get("interval_unit", "days"),
+                                default=sched["interval_unit"],
                             ): interval_unit_selector(),
                             vol.Optional(
                                 CONF_TASK_INTERVAL_ANCHOR,
-                                default=task.get("interval_anchor", "completion"),
+                                default=sched["interval_anchor"],
                             ): selector.SelectSelector(
                                 selector.SelectSelectorConfig(
                                     options=[
@@ -476,12 +482,12 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                                 else dict[Any, Any]()
                             ),
                         }
-                        if task.get("schedule_type") == ScheduleType.TIME_BASED
+                        if sched["schedule_type"] == ScheduleType.TIME_BASED
                         else dict[Any, Any]()
                     ),
                     **(
                         {due_date_key: selector.DateSelector()}
-                        if task.get("schedule_type") == ScheduleType.ONE_TIME
+                        if sched["schedule_type"] == ScheduleType.ONE_TIME
                         else dict[Any, Any]()
                     ),
                     vol.Optional(
@@ -1367,7 +1373,8 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
 
             # Store base_interval for blending if not yet set
             if "base_interval" not in adaptive_config:
-                adaptive_config["base_interval"] = task.get("interval_days", 30)
+                base = read_legacy_fields(task)["interval_days"]
+                adaptive_config["base_interval"] = base if base is not None else 30
 
             if store is not None:
                 store.set_adaptive_config(self._selected_task_id or "", adaptive_config)

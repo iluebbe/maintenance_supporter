@@ -175,3 +175,53 @@ class Schedule:
             interval_anchor=task.get("interval_anchor"),
             due_date=task.get("due_date"),
         )
+
+
+# --- flat <-> nested adapters (Phase 3) ------------------------------------
+#
+# Readers that still speak the flat v2.6.x shape (the WS payload, export, CSV,
+# the edit-form prefill) go through these so there is exactly one translation
+# point. ``schedule_type`` is *derived*: sensors (a trigger) are orthogonal to
+# the recurrence kind, so a triggered task reports "sensor_based" regardless of
+# whether it also carries a safety interval.
+
+
+def legacy_schedule_type(schedule: Schedule, *, has_trigger: bool) -> str:
+    """The v2.6.x ``schedule_type`` string for a Schedule + trigger presence."""
+    if has_trigger:
+        return "sensor_based"
+    if schedule.kind == KIND_ONE_TIME:
+        return "one_time"
+    if schedule.kind == KIND_INTERVAL:
+        return "time_based"
+    return "manual"
+
+
+def read_legacy_fields(task: Mapping[str, Any]) -> dict[str, Any]:
+    """The flat recurrence view of a task dict, accepting either storage shape.
+
+    A flat (v2.6.x) task is returned field-for-field as stored — so existing
+    readers are behaviour-identical until the data is actually migrated. A
+    task with a nested ``schedule`` is translated back to the flat view its
+    consumers expect (``interval_days`` carries the count, ``due_date`` the ISO
+    string, etc.). Missing values use the long-standing flat defaults.
+    """
+    nested = task.get("schedule")
+    if not isinstance(nested, Mapping):
+        return {
+            "schedule_type": task.get("schedule_type", "time_based"),
+            "interval_days": task.get("interval_days"),
+            "interval_unit": task.get("interval_unit", "days"),
+            "interval_anchor": task.get("interval_anchor", "completion"),
+            "due_date": task.get("due_date"),
+        }
+    sched = Schedule.from_dict(nested)
+    return {
+        "schedule_type": legacy_schedule_type(
+            sched, has_trigger=bool(task.get("trigger_config"))
+        ),
+        "interval_days": sched.every,
+        "interval_unit": sched.unit,
+        "interval_anchor": sched.anchor,
+        "due_date": sched.due_date.isoformat() if sched.due_date else None,
+    }

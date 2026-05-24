@@ -33,6 +33,7 @@ from .coordinator import MaintenanceCoordinator
 from .entity.entity_base import MaintenanceEntity
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
+from .helpers.schedule import read_legacy_fields
 
 # (metric key in compute_status_counts, mdi icon) for the global summary sensors
 SUMMARY_METRICS: list[tuple[str, str]] = [
@@ -174,13 +175,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         if not task:
             return {}
 
+        sched = read_legacy_fields(task)
         attrs: dict[str, Any] = {
             "maintenance_type": task.get("type"),
-            "schedule_type": task.get("schedule_type"),
-            "interval_days": task.get("interval_days"),
-            "interval_unit": task.get("interval_unit", "days"),
-            "interval_anchor": task.get("interval_anchor", "completion"),
-            "due_date": task.get("due_date"),
+            "schedule_type": sched["schedule_type"],
+            "interval_days": sched["interval_days"],
+            "interval_unit": sched["interval_unit"],
+            "interval_anchor": sched["interval_anchor"],
+            "due_date": sched["due_date"],
             "warning_days": task.get("warning_days"),
             "last_performed": task.get("last_performed"),
             "next_due": task.get("_next_due"),

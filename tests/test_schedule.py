@@ -14,6 +14,8 @@ from custom_components.maintenance_supporter.helpers.schedule import (
     KIND_MANUAL,
     KIND_ONE_TIME,
     Schedule,
+    legacy_schedule_type,
+    read_legacy_fields,
 )
 
 TODAY = date(2026, 5, 1)
@@ -157,3 +159,43 @@ def test_legacy_to_nested_equivalence() -> None:
         interval_anchor="planned", due_date=None,
     )
     assert Schedule.from_dict(legacy.to_dict()) == legacy
+
+
+# ─── flat <-> nested adapters (Phase 3.2) ────────────────────────────────
+
+
+def test_legacy_schedule_type_derivation() -> None:
+    # A trigger makes it sensor_based regardless of recurrence kind.
+    assert legacy_schedule_type(Schedule(kind=KIND_INTERVAL, every=90), has_trigger=True) == "sensor_based"
+    assert legacy_schedule_type(Schedule(kind=KIND_MANUAL), has_trigger=True) == "sensor_based"
+    # Otherwise it follows the kind.
+    assert legacy_schedule_type(Schedule(kind=KIND_INTERVAL, every=7), has_trigger=False) == "time_based"
+    assert legacy_schedule_type(Schedule(kind=KIND_ONE_TIME), has_trigger=False) == "one_time"
+    assert legacy_schedule_type(Schedule(kind=KIND_MANUAL), has_trigger=False) == "manual"
+
+
+def test_read_legacy_fields_flat_passthrough() -> None:
+    # A flat v2.6.x task is returned field-for-field (behaviour-preserving).
+    flat = {
+        "schedule_type": "time_based", "interval_days": 6, "interval_unit": "months",
+        "interval_anchor": "planned", "due_date": None,
+    }
+    assert read_legacy_fields(flat) == flat
+    # Missing values use the long-standing flat defaults.
+    assert read_legacy_fields({}) == {
+        "schedule_type": "time_based", "interval_days": None,
+        "interval_unit": "days", "interval_anchor": "completion", "due_date": None,
+    }
+
+
+def test_read_legacy_fields_translates_nested() -> None:
+    nested = {"schedule": {"kind": "interval", "every": 6, "unit": "months", "anchor": "planned"}}
+    assert read_legacy_fields(nested) == {
+        "schedule_type": "time_based", "interval_days": 6, "interval_unit": "months",
+        "interval_anchor": "planned", "due_date": None,
+    }
+    # nested one_time → due_date echoed as ISO string
+    assert read_legacy_fields({"schedule": {"kind": "one_time", "due_date": "2026-09-01"}})["due_date"] == "2026-09-01"
+    # nested interval + trigger → sensor_based
+    sensor = {"schedule": {"kind": "interval", "every": 90}, "trigger_config": {"type": "counter"}}
+    assert read_legacy_fields(sensor)["schedule_type"] == "sensor_based"

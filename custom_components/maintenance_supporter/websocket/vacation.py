@@ -21,6 +21,7 @@ from ..const import (
     DOMAIN,
     MAX_ID_LENGTH,
 )
+from ..helpers.schedule import read_legacy_fields
 from ..helpers.vacation import compute_preview, get_vacation_state
 from . import _get_global_entry, _get_object_entries
 
@@ -184,15 +185,16 @@ async def ws_vacation_preview(
         )
 
         for task_id, task_data in merged.items():
+            sched = read_legacy_fields(task_data)
             tasks.append(
                 {
                     "task_id": task_id,
                     "entry_id": entry.entry_id,
                     "object_name": obj_name,
                     "task_name": task_data.get("name", ""),
-                    "schedule_type": task_data.get("schedule_type", "time_based"),
-                    "interval_days": task_data.get("interval_days"),
-                    "interval_unit": task_data.get("interval_unit"),
+                    "schedule_type": sched["schedule_type"],
+                    "interval_days": sched["interval_days"],
+                    "interval_unit": sched["interval_unit"],
                     "warning_days": task_data.get("warning_days", 7),
                     "last_performed": task_data.get("last_performed"),
                     "created_at": task_data.get("created_at"),
