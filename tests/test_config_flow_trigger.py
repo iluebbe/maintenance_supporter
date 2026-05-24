@@ -133,6 +133,50 @@ async def test_runtime_trigger_full_flow(
     assert task["trigger_config"][CONF_TRIGGER_RUNTIME_HOURS] == 200
 
 
+async def test_sensor_safety_interval_honors_unit(
+    hass: HomeAssistant, global_config_entry: ConfigEntry,
+) -> None:
+    """A sensor task's safety interval must persist interval_unit (e.g. months),
+    not just days — the config-flow trigger step exposes the unit selector now."""
+    hass.states.async_set("sensor.pump_hours", "120.5", {"unit_of_measurement": "h"})
+
+    result = await _navigate_to_add_task(hass, global_config_entry)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Runtime + months safety",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.SERVICE,
+            CONF_TASK_SCHEDULE_TYPE: ScheduleType.SENSOR_BASED,
+        },
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.pump_hours"]},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.RUNTIME},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TRIGGER_RUNTIME_HOURS: 200,
+            "interval_days": 3,
+            "interval_unit": "months",
+            CONF_TASK_WARNING_DAYS: 7,
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": "finish"},
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    task = list(result["data"][CONF_TASKS].values())[0]
+    assert task["interval_days"] == 3
+    assert task["interval_unit"] == "months"
+
+
 async def test_runtime_trigger_custom_on_states(
     hass: HomeAssistant, global_config_entry: ConfigEntry,
 ) -> None:

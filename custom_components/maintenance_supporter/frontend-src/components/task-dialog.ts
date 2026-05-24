@@ -763,11 +763,24 @@ export class MaintenanceTaskDialog extends LitElement {
       </div>
       ${this._renderTriggerTypeFields()}
       <ms-textfield
-        label="${t("safety_interval_days", L)}"
+        label="${t("safety_interval", L)}"
         type="number"
         .value=${this._intervalDays}
         @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
       ></ms-textfield>
+      ${this._intervalDays
+        ? html`<div class="select-row">
+            <label>${t("interval_unit", L)}</label>
+            <select
+              .value=${this._intervalUnit}
+              @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
+            >
+              ${["days", "weeks", "months", "years"].map(
+                (u) => html`<option value=${u} ?selected=${u === this._intervalUnit}>${t("unit_" + u, L)}</option>`
+              )}
+            </select>
+          </div>`
+        : nothing}
     `;
   }
 

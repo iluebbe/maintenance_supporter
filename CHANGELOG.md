@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.6.4] - 2026-05-24
+
+### 🐛 Sensor (trigger) tasks: choose the safety-interval unit (#58/#59 follow-up)
+
+The optional time-based **safety interval** on sensor-triggered tasks could only
+be set in **days** from the UI, even though the backend already supported
+weeks/months/years. The unit selector (days / weeks / months / years) now appears
+next to the safety interval in both the **panel task dialog** and the
+**config/options-flow trigger steps** — so e.g. a "service every 6 months unless
+the sensor fires first" task can be configured directly. The "Safety interval
+(days)" label is now just "Safety interval", localized in all 12 languages.
+
 ## [2.6.3] - 2026-05-24
 
 ### 🐛 Weeks/months/years units now render correctly in the UI (#59)

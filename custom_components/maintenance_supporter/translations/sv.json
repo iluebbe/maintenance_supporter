@@ -199,7 +199,8 @@
           "trigger_above": "Utlös när över",
           "trigger_below": "Utlös när under",
           "trigger_for_minutes": "Under minst (minuter)",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Utlös underhåll när värdet faller under denna tröskel.",
           "trigger_for_minutes": "Värdet måste överskrida tröskeln så här många minuter innan utlösning.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Målvärde",
           "trigger_delta_mode": "Delta-läge (räkna ändringar, inte absolut)",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Utlös underhåll när detta ackumulerade värde nås.",
           "trigger_delta_mode": "Om aktiverad räknas skillnaden från en baslinje istället för det absoluta värdet.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver räknarutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "Från tillstånd (valfritt)",
           "trigger_to_state": "Till tillstånd (valfritt)",
           "trigger_target_changes": "Antal ändringar för utlösning",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Räkna endast övergångar till detta tillstånd. Lämna tomt för alla.",
           "trigger_target_changes": "Antal matchande tillståndsändringar innan underhåll utlöses.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Mål-körtid (timmar)",
           "trigger_on_states": "Aktiva tillstånd (kommaseparerat)",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",
           "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
           "go_back": "Återgå till val av utlösartyp utan att spara."
         }
@@ -918,7 +926,8 @@
           "trigger_above": "Utlös när över",
           "trigger_below": "Utlös när under",
           "trigger_for_minutes": "Under minst (minuter)",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -927,6 +936,7 @@
           "trigger_below": "Utlös underhåll när värdet faller under denna tröskel.",
           "trigger_for_minutes": "Värdet måste överskrida tröskeln så här många minuter innan utlösning.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver sensorutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -936,7 +946,8 @@
         "data": {
           "trigger_target_value": "Målvärde",
           "trigger_delta_mode": "Delta-läge (räkna ändringar, inte absolut)",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -944,6 +955,7 @@
           "trigger_target_value": "Utlös underhåll när detta ackumulerade värde nås.",
           "trigger_delta_mode": "Om aktiverad räknas skillnaden från en baslinje istället för det absoluta värdet.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver räknarutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -954,7 +966,8 @@
           "trigger_from_state": "Från tillstånd (valfritt)",
           "trigger_to_state": "Till tillstånd (valfritt)",
           "trigger_target_changes": "Antal ändringar för utlösning",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -963,6 +976,7 @@
           "trigger_to_state": "Räkna endast övergångar till detta tillstånd. Lämna tomt för alla.",
           "trigger_target_changes": "Antal matchande tillståndsändringar innan underhåll utlöses.",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver utlösaren för tillståndsändring.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },
@@ -972,7 +986,8 @@
         "data": {
           "trigger_runtime_hours": "Mål-körtid (timmar)",
           "trigger_on_states": "Aktiva tillstånd (kommaseparerat)",
-          "interval_days": "Säkerhetsintervall (dagar)",
+          "interval_days": "Säkerhetsintervall",
+          "interval_unit": "Intervallenhet",
           "warning_days": "Dagar för varning före förfall",
           "go_back": "Tillbaka"
         },
@@ -980,6 +995,7 @@
           "trigger_runtime_hours": "Utlös underhåll efter så här många timmar ackumulerad körtid.",
           "trigger_on_states": "Vilka sensortillstånd som räknas som ”aktiva”. Lämna tomt för standard: on, 1, true. Exempel: in_use, running",
           "interval_days": "Valfritt tidsbaserat säkerhetsintervall utöver körtidsutlösaren.",
+          "interval_unit": "Enhet för intervallet: dagar, veckor, månader eller år. Månader och år följer kalendern.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas."
         }
       },

@@ -199,7 +199,8 @@
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
           "trigger_for_minutes": "Für mindestens (Minuten)",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellwert fällt.",
           "trigger_for_minutes": "Der Wert muss den Schwellwert für diese Anzahl Minuten überschreiten, bevor ausgelöst wird.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Trigger.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Zielwert",
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Wartung auslösen, wenn dieser akkumulierte Wert erreicht ist.",
           "trigger_delta_mode": "Wenn aktiviert, wird die Differenz ab einer Basislinie gezählt statt des absoluten Werts.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Trigger.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "Von Zustand (optional)",
           "trigger_to_state": "Zu Zustand (optional)",
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
           "trigger_target_changes": "Anzahl der passenden Zustandsänderungen vor Auslösung der Wartung.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandswechsel-Trigger.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl akkumulierter Betriebsstunden.",
           "trigger_on_states": "Welche Sensor-Zustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Trigger.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl Tage vor Fälligkeit für Warnung.",
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
@@ -825,7 +833,8 @@
           "trigger_above": "Auslösen wenn über",
           "trigger_below": "Auslösen wenn unter",
           "trigger_for_minutes": "Für mindestens (Minuten)",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -834,6 +843,7 @@
           "trigger_below": "Wartung auslösen, wenn der Wert unter diesen Schwellenwert fällt.",
           "trigger_for_minutes": "Der Wert muss den Schwellenwert für diese Anzahl von Minuten überschreiten.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Auslöser.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -843,7 +853,8 @@
         "data": {
           "trigger_target_value": "Zielwert",
           "trigger_delta_mode": "Delta-Modus (Änderungen zählen, nicht absolut)",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -851,6 +862,7 @@
           "trigger_target_value": "Wartung auslösen, wenn dieser kumulierte Wert erreicht ist.",
           "trigger_delta_mode": "Wenn aktiviert, zählt die Differenz von einer Basislinie statt des absoluten Werts.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zähler-Auslöser.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -861,7 +873,8 @@
           "trigger_from_state": "Von Zustand (optional)",
           "trigger_to_state": "Zu Zustand (optional)",
           "trigger_target_changes": "Anzahl Wechsel zum Auslösen",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -870,6 +883,7 @@
           "trigger_to_state": "Nur Übergänge zu diesem Zustand zählen. Leer lassen für alle.",
           "trigger_target_changes": "Anzahl der übereinstimmenden Zustandsänderungen vor Auslösung der Wartung.",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Zustandsänderungs-Auslöser.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
@@ -879,7 +893,8 @@
         "data": {
           "trigger_runtime_hours": "Ziel-Laufzeit (Stunden)",
           "trigger_on_states": "Aktive Zustände (kommagetrennt)",
-          "interval_days": "Sicherheitsintervall (Tage)",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
           "warning_days": "Warntage vor Fälligkeit",
           "go_back": "Zurück"
         },
@@ -887,6 +902,7 @@
           "trigger_runtime_hours": "Wartung auslösen nach dieser Anzahl von Stunden kumulierter Laufzeit.",
           "trigger_on_states": "Welche Sensorzustände als 'aktiv' gelten. Leer lassen für Standard: on, 1, true. Beispiel: in_use, running",
           "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Laufzeit-Auslöser.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },

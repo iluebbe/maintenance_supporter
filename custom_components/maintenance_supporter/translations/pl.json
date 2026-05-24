@@ -199,7 +199,8 @@
           "trigger_above": "Wyzwalaj powyżej",
           "trigger_below": "Wyzwalaj poniżej",
           "trigger_for_minutes": "Przez co najmniej (minuty)",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -208,6 +209,7 @@
           "trigger_below": "Wyzwalaj konserwację, gdy wartość spadnie poniżej tego progu.",
           "trigger_for_minutes": "Wartość musi przekraczać próg przez tyle minut przed wyzwoleniem.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -218,7 +220,8 @@
         "data": {
           "trigger_target_value": "Wartość docelowa",
           "trigger_delta_mode": "Tryb różnicowy (licz zmiany, nie wartość bezwzględną)",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -226,6 +229,7 @@
           "trigger_target_value": "Wyzwalaj konserwację, gdy ta skumulowana wartość zostanie osiągnięta.",
           "trigger_delta_mode": "Jeśli włączone, liczy różnicę względem linii bazowej zamiast wartości bezwzględnej.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza licznika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -237,7 +241,8 @@
           "trigger_from_state": "Ze stanu (opcjonalnie)",
           "trigger_to_state": "Do stanu (opcjonalnie)",
           "trigger_target_changes": "Liczba zmian do wyzwolenia",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -246,6 +251,7 @@
           "trigger_to_state": "Zliczaj tylko przejścia do tego stanu. Pozostaw puste dla dowolnego.",
           "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem konserwacji.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -256,7 +262,8 @@
         "data": {
           "trigger_runtime_hours": "Docelowy czas pracy (godziny)",
           "trigger_on_states": "Stany aktywne (oddzielone przecinkami)",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -264,6 +271,7 @@
           "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",
           "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
@@ -918,7 +926,8 @@
           "trigger_above": "Wyzwalaj powyżej",
           "trigger_below": "Wyzwalaj poniżej",
           "trigger_for_minutes": "Przez co najmniej (minuty)",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -927,6 +936,7 @@
           "trigger_below": "Wyzwalaj konserwację, gdy wartość spadnie poniżej tego progu.",
           "trigger_for_minutes": "Wartość musi przekraczać próg przez tyle minut przed wyzwoleniem.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -936,7 +946,8 @@
         "data": {
           "trigger_target_value": "Wartość docelowa",
           "trigger_delta_mode": "Tryb różnicowy (licz zmiany, nie wartość bezwzględną)",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -944,6 +955,7 @@
           "trigger_target_value": "Wyzwalaj konserwację, gdy ta skumulowana wartość zostanie osiągnięta.",
           "trigger_delta_mode": "Jeśli włączone, liczy różnicę względem linii bazowej zamiast wartości bezwzględnej.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza licznika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -954,7 +966,8 @@
           "trigger_from_state": "Ze stanu (opcjonalnie)",
           "trigger_to_state": "Do stanu (opcjonalnie)",
           "trigger_target_changes": "Liczba zmian do wyzwolenia",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -963,6 +976,7 @@
           "trigger_to_state": "Zliczaj tylko przejścia do tego stanu. Pozostaw puste dla dowolnego.",
           "trigger_target_changes": "Liczba pasujących zmian stanu przed wyzwoleniem konserwacji.",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza zmiany stanu.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
@@ -972,7 +986,8 @@
         "data": {
           "trigger_runtime_hours": "Docelowy czas pracy (godziny)",
           "trigger_on_states": "Stany aktywne (oddzielone przecinkami)",
-          "interval_days": "Interwał bezpieczeństwa (dni)",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
           "warning_days": "Dni ostrzeżenia przed terminem",
           "go_back": "Wróć"
         },
@@ -980,6 +995,7 @@
           "trigger_runtime_hours": "Wyzwalaj konserwację po tylu godzinach skumulowanego czasu pracy.",
           "trigger_on_states": "Które stany czujnika liczą się jako „aktywne”. Pozostaw puste dla domyślnych: on, 1, true. Przykład: in_use, running",
           "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czasu pracy.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
