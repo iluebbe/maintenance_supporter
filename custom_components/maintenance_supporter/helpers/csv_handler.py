@@ -21,6 +21,7 @@ from ..const import (
 )
 from .dates import INTERVAL_UNITS
 from .global_options import get_default_warning_days
+from .schedule import read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,6 +94,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
 
         for tid, tdata in tasks_data.items():
             ct = ct_tasks.get(tid, {})
+            sched = read_legacy_fields(tdata)
             writer.writerow(
                 {
                     "object_name": _csv_safe(obj_data.get("name", "")),
@@ -103,11 +105,11 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "task_name": _csv_safe(tdata.get("name", "")),
                     "task_type": tdata.get("type", "custom"),
                     "enabled": tdata.get("enabled", True),
-                    "schedule_type": tdata.get("schedule_type", "time_based"),
-                    "interval_days": tdata.get("interval_days", ""),
-                    "interval_unit": tdata.get("interval_unit", "days"),
-                    "due_date": tdata.get("due_date", ""),
-                    "interval_anchor": tdata.get("interval_anchor", "completion"),
+                    "schedule_type": sched["schedule_type"],
+                    "interval_days": sched["interval_days"] if sched["interval_days"] is not None else "",
+                    "interval_unit": sched["interval_unit"],
+                    "due_date": sched["due_date"] or "",
+                    "interval_anchor": sched["interval_anchor"],
                     "schedule_time": tdata.get("schedule_time", ""),
                     "warning_days": tdata.get("warning_days", 7),
                     "last_performed": tdata.get("last_performed", ""),

@@ -16,6 +16,7 @@ from .const import (
     MaintenanceStatus,
     TriggerEntityState,
 )
+from .helpers.schedule import read_legacy_fields
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
@@ -136,8 +137,8 @@ def _calculate_statistics(data: Mapping[str, Any]) -> dict[str, Any]:
             stats["tasks_by_type"].get(task_type, 0) + 1
         )
 
-        # By schedule
-        schedule = task.get("schedule_type", "unknown")
+        # By schedule (accepts flat v2.6.x or nested `schedule` storage)
+        schedule = read_legacy_fields(task)["schedule_type"]
         stats["tasks_by_schedule"][schedule] = (
             stats["tasks_by_schedule"].get(schedule, 0) + 1
         )
@@ -220,7 +221,8 @@ def _check_data_quality(data: Mapping[str, Any]) -> list[str]:
         if not task.get("name"):
             warnings.append(f"Task {task_id} has no name")
 
-        if task.get("schedule_type") == "time_based" and not task.get("interval_days"):
+        sched = read_legacy_fields(task)
+        if sched["schedule_type"] == "time_based" and not sched["interval_days"]:
             warnings.append(
                 f"Task '{task.get('name', task_id)}' is time-based but has no interval"
             )

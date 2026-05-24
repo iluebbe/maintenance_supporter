@@ -33,6 +33,7 @@ from ..const import (
     SOUTHERN_SEASONS,
     MaintenanceFeedback,
 )
+from .schedule import read_legacy_fields
 
 # Feedback multipliers for EWA: adjusts effective interval based on need
 FEEDBACK_MULTIPLIERS: dict[str, float] = {
@@ -115,7 +116,7 @@ class IntervalAnalyzer:
         Returns:
             IntervalAnalysis with all computed metrics and recommendation.
         """
-        current_interval = task_data.get("interval_days") or 30
+        current_interval = read_legacy_fields(task_data)["interval_days"] or 30
         history = task_data.get("history", [])
         intervals = self._compute_intervals_from_history(history)
         data_points = len(intervals)

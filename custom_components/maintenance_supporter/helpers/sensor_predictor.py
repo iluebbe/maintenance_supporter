@@ -27,6 +27,7 @@ from ..const import (
     DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS,
     DEFAULT_ENVIRONMENTAL_MIN_COMPLETIONS,
 )
+from .schedule import read_legacy_fields
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -117,8 +118,9 @@ class SensorPredictor:
 
         Returns None if task is not sensor_based or has no trigger entity.
         """
-        # Guard: only for sensor_based tasks with trigger config
-        if task_data.get("schedule_type") != "sensor_based":
+        # Guard: only for sensor_based tasks with trigger config (schedule_type
+        # is derived from the trigger when storage is nested — read_legacy_fields)
+        if read_legacy_fields(task_data)["schedule_type"] != "sensor_based":
             return None
 
         trigger_config = task_data.get("trigger_config") or {}

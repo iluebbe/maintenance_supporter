@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .helpers.schedule import read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,16 +34,17 @@ def _build_export_object(
     tasks = []
     for tid, tdata in tasks_data.items():
         ct = ct_tasks.get(tid, {})
+        sched = read_legacy_fields(tdata)
         task: dict[str, Any] = {
             "id": tid,
             "name": tdata.get("name", ""),
             "type": tdata.get("type", "custom"),
             "enabled": tdata.get("enabled", True),
-            "schedule_type": tdata.get("schedule_type", "time_based"),
-            "interval_days": tdata.get("interval_days"),
-            "interval_unit": tdata.get("interval_unit", "days"),
-            "due_date": tdata.get("due_date"),
-            "interval_anchor": tdata.get("interval_anchor", "completion"),
+            "schedule_type": sched["schedule_type"],
+            "interval_days": sched["interval_days"],
+            "interval_unit": sched["interval_unit"],
+            "due_date": sched["due_date"],
+            "interval_anchor": sched["interval_anchor"],
             "last_planned_due": tdata.get("last_planned_due"),
             "warning_days": tdata.get("warning_days", 7),
             "last_performed": tdata.get("last_performed"),

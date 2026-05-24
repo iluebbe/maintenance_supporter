@@ -60,8 +60,14 @@ def _build_task_summary(
     from homeassistant.helpers import entity_registry as er
 
     from ..entity.triggers import normalize_entity_ids
+    from ..helpers.schedule import read_legacy_fields
 
     ct = coordinator_task or {}
+
+    # Recurrence is echoed in the flat shape the task-dialog expects, derived
+    # from whichever storage shape this task uses (flat v2.6.x or nested
+    # `schedule`). See read_legacy_fields / issue #58.
+    sched = read_legacy_fields(task_data)
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")
@@ -97,16 +103,16 @@ def _build_task_summary(
         "name": task_data.get("name", ""),
         "type": task_data.get("type", "custom"),
         "enabled": task_data.get("enabled", True),
-        "schedule_type": task_data.get("schedule_type", "time_based"),
-        "interval_days": task_data.get("interval_days"),
+        "schedule_type": sched["schedule_type"],
+        "interval_days": sched["interval_days"],
         # interval_unit + due_date are persisted by ws_create_task/ws_update_task
         # and the config/options flows. They MUST be echoed here (same #50 trap as
         # on_complete_action below): without interval_unit the task-dialog hydrates
         # `task.interval_unit || "days"` = "days", so the next save silently resets
         # a months/years task back to days and corrupts next_due. (issue #58)
-        "interval_unit": task_data.get("interval_unit", "days"),
-        "due_date": task_data.get("due_date"),
-        "interval_anchor": task_data.get("interval_anchor", "completion"),
+        "interval_unit": sched["interval_unit"],
+        "due_date": sched["due_date"],
+        "interval_anchor": sched["interval_anchor"],
         "last_planned_due": task_data.get("last_planned_due"),
         "schedule_time": task_data.get("schedule_time"),
         "warning_days": task_data.get("warning_days", 7),
