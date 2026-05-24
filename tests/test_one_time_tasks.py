@@ -42,6 +42,58 @@ def test_add_interval_years_clamps_leap_day() -> None:
     assert add_interval(date(2024, 2, 29), 1, "years") == date(2025, 2, 28)
 
 
+def test_interval_span_days_is_unit_aware() -> None:
+    from custom_components.maintenance_supporter.helpers.dates import (
+        interval_span_days,
+    )
+
+    assert interval_span_days(5, "days") == 5
+    assert interval_span_days(2, "weeks") == 14
+    assert 180 <= interval_span_days(6, "months") <= 184
+    assert 364 <= interval_span_days(1, "years") <= 366
+    assert interval_span_days(0, "months") == 0
+    assert interval_span_days(None) == 0
+
+
+def test_warning_window_not_capped_by_month_count() -> None:
+    """#58 follow-up (alerts not working): a 6-month task with warning_days=14
+    must flip to DUE_SOON ~10 days out. The warning window must use the real
+    interval span, not min(14, interval_days=6) which left it OK at 11 days.
+    """
+    today = dt_util.now().date()
+    # last_performed chosen so next_due ≈ today + 10 (inside the 14-day warning
+    # window, but beyond the bare interval count of 6).
+    last = add_interval(today + timedelta(days=10), -6, "months")
+    t = MaintenanceTask(
+        schedule_type=ScheduleType.TIME_BASED,
+        interval_days=6,
+        interval_unit="months",
+        warning_days=14,
+        interval_anchor="completion",
+        last_performed=last.isoformat(),
+    )
+    assert t.days_until_due is not None
+    assert 6 < t.days_until_due <= 14  # inside warning window, above raw count
+    assert t.status == MaintenanceStatus.DUE_SOON
+
+
+def test_warning_window_days_unit_unchanged() -> None:
+    """Regression guard: short day-interval tasks still cap warning at the
+    interval (a 3-day task shouldn't be permanently due-soon with warning 7)."""
+    today = dt_util.now().date()
+    t = MaintenanceTask(
+        schedule_type=ScheduleType.TIME_BASED,
+        interval_days=3,
+        interval_unit="days",
+        warning_days=7,
+        interval_anchor="completion",
+        last_performed=today.isoformat(),  # next_due = today + 3 → days=3
+    )
+    # span = 3 days, so effective warning = min(7, 3) = 3; days_until_due = 3 → due_soon
+    assert t.days_until_due == 3
+    assert t.status == MaintenanceStatus.DUE_SOON
+
+
 # ─── one-time tasks ──────────────────────────────────────────────────────
 
 
