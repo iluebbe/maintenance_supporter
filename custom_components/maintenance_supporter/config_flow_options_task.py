@@ -67,7 +67,7 @@ from .const import (
     TriggerType,
 )
 from .helpers.global_options import get_default_warning_days
-from .helpers.schedule import read_legacy_fields
+from .helpers.schedule import normalize_task_storage, read_legacy_fields
 
 
 class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
@@ -84,7 +84,20 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
     # --- Helpers ---
 
     def _update_config_entry(self, new_data: dict[str, Any]) -> None:
-        """Update the config entry with new data."""
+        """Update the config entry with new data.
+
+        Recurrence is normalized to the nested ``schedule`` storage here — the
+        single persist path for add/edit task — so every saved task converges
+        on one storage shape (idempotent for already-nested tasks).
+        """
+        tasks = new_data.get(CONF_TASKS)
+        if tasks:
+            new_data = {
+                **new_data,
+                CONF_TASKS: {
+                    tid: normalize_task_storage(td) for tid, td in tasks.items()
+                },
+            }
         self.hass.config_entries.async_update_entry(
             self.config_entry, data=new_data
         )

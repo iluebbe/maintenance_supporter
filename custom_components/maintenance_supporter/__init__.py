@@ -61,6 +61,7 @@ from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.notification_manager import NotificationManager
+from .helpers.schedule import normalize_task_storage
 from .panel import async_register_panel, async_unregister_panel
 from .storage import MaintenanceStore, async_migrate_to_store
 from .websocket import async_register_commands
@@ -609,51 +610,68 @@ async def async_migrate_entry(
     timestamp when available, otherwise today. This locks the next_due
     fallback anchor so the schedule advances normally instead of always
     pointing at "today".
+
+    minor_version 2 → 3 (schedule-model v2): move the flat recurrence fields
+    (interval_days / interval_unit / interval_anchor / schedule_type / due_date)
+    into a single nested ``schedule`` object. Behaviour is identical — readers
+    accept both shapes — this just makes storage canonical and unblocks the
+    calendar recurrence kinds (nth-weekday etc.).
     """
-    if entry.version > 1 or entry.minor_version >= 2:
+    if entry.version > 1 or entry.minor_version >= 3:
         return True
 
-    if entry.unique_id != GLOBAL_UNIQUE_ID:
-        from homeassistant.util import dt as dt_util
+    is_object_entry = entry.unique_id != GLOBAL_UNIQUE_ID
+    data = dict(entry.data)
+    minor = entry.minor_version
 
-        tasks_data = entry.data.get(CONF_TASKS, {})
-        if tasks_data:
-            today_iso = dt_util.now().date().isoformat()
-            new_tasks: dict[str, dict[str, Any]] = {}
-            for task_id, td in tasks_data.items():
-                if "created_at" in td or td.get("last_performed"):
-                    new_tasks[task_id] = td
-                    continue
-                # Try to recover creation date from earliest history entry
-                anchor: str = today_iso
-                history = td.get("history") or []
-                if isinstance(history, list) and history:
-                    timestamps: list[str] = [
-                        ts
-                        for h in history
-                        if isinstance(h, dict)
-                        and isinstance((ts := h.get("timestamp")), str)
-                        and ts
-                    ]
-                    if timestamps:
-                        # ISO timestamps sort lexicographically; take YYYY-MM-DD
-                        anchor = min(timestamps)[:10]
-                new_td = dict(td)
-                new_td["created_at"] = anchor
-                new_tasks[task_id] = new_td
-            new_data = dict(entry.data)
-            new_data[CONF_TASKS] = new_tasks
-            hass.config_entries.async_update_entry(
-                entry, data=new_data, minor_version=2
-            )
-            _LOGGER.info(
-                "Migrated entry %s to minor_version 2 (created_at backfilled)",
-                entry.entry_id,
-            )
-            return True
+    # 1 → 2: backfill created_at (issue #30)
+    if minor < 2:
+        if is_object_entry:
+            from homeassistant.util import dt as dt_util
 
-    # Global entry or no tasks: just bump the version
-    hass.config_entries.async_update_entry(entry, minor_version=2)
+            tasks_data = data.get(CONF_TASKS, {})
+            if tasks_data:
+                today_iso = dt_util.now().date().isoformat()
+                new_tasks: dict[str, dict[str, Any]] = {}
+                for task_id, td in tasks_data.items():
+                    if "created_at" in td or td.get("last_performed"):
+                        new_tasks[task_id] = td
+                        continue
+                    # Try to recover creation date from earliest history entry
+                    anchor: str = today_iso
+                    history = td.get("history") or []
+                    if isinstance(history, list) and history:
+                        timestamps: list[str] = [
+                            ts
+                            for h in history
+                            if isinstance(h, dict)
+                            and isinstance((ts := h.get("timestamp")), str)
+                            and ts
+                        ]
+                        if timestamps:
+                            # ISO timestamps sort lexicographically; take YYYY-MM-DD
+                            anchor = min(timestamps)[:10]
+                    new_td = dict(td)
+                    new_td["created_at"] = anchor
+                    new_tasks[task_id] = new_td
+                data[CONF_TASKS] = new_tasks
+        minor = 2
+
+    # 2 → 3: flat recurrence fields → nested `schedule` (schedule-model v2)
+    if minor < 3:
+        if is_object_entry:
+            tasks_data = data.get(CONF_TASKS, {})
+            if tasks_data:
+                data[CONF_TASKS] = {
+                    task_id: normalize_task_storage(td)
+                    for task_id, td in tasks_data.items()
+                }
+        minor = 3
+
+    hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
+    _LOGGER.info(
+        "Migrated entry %s to minor_version %s", entry.entry_id, minor
+    )
     return True
 
 

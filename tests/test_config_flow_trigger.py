@@ -29,6 +29,9 @@ from custom_components.maintenance_supporter.const import (
     ScheduleType,
     TriggerType,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 
 from .conftest import build_global_entry_data, setup_integration
 
@@ -173,8 +176,8 @@ async def test_sensor_safety_interval_honors_unit(
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     task = list(result["data"][CONF_TASKS].values())[0]
-    assert task["interval_days"] == 3
-    assert task["interval_unit"] == "months"
+    assert read_legacy_fields(task)["interval_days"] == 3
+    assert read_legacy_fields(task)["interval_unit"] == "months"
 
 
 async def test_runtime_trigger_custom_on_states(

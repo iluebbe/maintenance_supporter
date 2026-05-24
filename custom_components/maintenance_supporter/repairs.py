@@ -25,6 +25,11 @@ from .const import (
     HistoryEntryType,
     ScheduleType,
 )
+from .helpers.schedule import (
+    FLAT_RECURRENCE_KEYS,
+    normalize_task_storage,
+    read_legacy_fields,
+)
 from .models.maintenance_task import MaintenanceTask
 
 _LOGGER = logging.getLogger(__name__)
@@ -357,8 +362,8 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
                 task_dict, trigger_config, missing_entity_id
             )
 
-        # Write static changes to ConfigEntry
-        tasks_data[task_id] = task_dict
+        # Write static changes to ConfigEntry (recurrence normalized to nested)
+        tasks_data[task_id] = normalize_task_storage(task_dict)
         new_data = dict(entry.data)
         new_data[CONF_TASKS] = tasks_data
         self.hass.config_entries.async_update_entry(entry, data=new_data)
@@ -420,18 +425,27 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
 
         old_entity_id = trigger_config.get("entity_id", missing_entity_id)
         safety_interval = trigger_config.get("interval_days")
+        fields = read_legacy_fields(task_dict)
         task_dict.pop("trigger_config", None)
 
-        if safety_interval or task_dict.get("interval_days"):
-            task_dict["schedule_type"] = ScheduleType.TIME_BASED
-            if safety_interval and not task_dict.get("interval_days"):
-                task_dict["interval_days"] = safety_interval
+        # Rebuild the recurrence from a flat spec (drop the nested schedule so
+        # the change takes effect; the caller normalizes back to nested).
+        task_dict.pop("schedule", None)
+        for key in FLAT_RECURRENCE_KEYS:
+            task_dict.pop(key, None)
+        if safety_interval or fields["interval_days"]:
+            new_type = ScheduleType.TIME_BASED
+            task_dict["schedule_type"] = new_type
+            task_dict["interval_days"] = fields["interval_days"] or safety_interval
+            task_dict["interval_unit"] = fields["interval_unit"]
+            task_dict["interval_anchor"] = fields["interval_anchor"]
         else:
-            task_dict["schedule_type"] = ScheduleType.MANUAL
+            new_type = ScheduleType.MANUAL
+            task_dict["schedule_type"] = new_type
 
         return (
             f"Sensor trigger removed (entity was: {old_entity_id}). "
-            f"Schedule converted to {task_dict.get('schedule_type', 'manual')}."
+            f"Schedule converted to {new_type}."
         )
 
     def _remove_from_compound(

@@ -36,6 +36,9 @@ from custom_components.maintenance_supporter.const import (
     ScheduleType,
     TriggerType,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 
 from .conftest import (
     TASK_ID_1,
@@ -360,7 +363,7 @@ async def test_edit_task_submit(
     assert entry is not None
     task = entry.data[CONF_TASKS][TASK_ID_1]
     assert task["name"] == "Renamed Task"
-    assert task["interval_days"] == 45
+    assert read_legacy_fields(task)["interval_days"] == 45
 
 
 # ─── Edit Trigger Summary ────────────────────────────────────────────────
@@ -446,7 +449,7 @@ async def test_remove_trigger_confirm(
     task = entry.data[CONF_TASKS][TASK_ID_1]
     assert "trigger_config" not in task
     # Should revert to time_based
-    assert task["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.TIME_BASED
 
 
 async def test_remove_trigger_go_back(
@@ -756,8 +759,8 @@ async def test_add_task_one_time_flow(
     new_task = next(
         t for t in entry.data[CONF_TASKS].values() if t["name"] == "One Shot"
     )
-    assert new_task["schedule_type"] == ScheduleType.ONE_TIME
-    assert new_task["due_date"] == "2026-09-01"
+    assert read_legacy_fields(new_task)["schedule_type"] == ScheduleType.ONE_TIME
+    assert read_legacy_fields(new_task)["due_date"] == "2026-09-01"
 
 
 async def test_add_task_go_back(

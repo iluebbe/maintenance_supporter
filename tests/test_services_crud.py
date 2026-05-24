@@ -17,6 +17,9 @@ from custom_components.maintenance_supporter.const import (
     CONF_TASKS,
     DOMAIN,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 
 from .conftest import setup_integration
 
@@ -84,7 +87,7 @@ async def test_add_task_service_adds_task(
     assert entry is not None
     task = entry.data[CONF_TASKS][task_id]
     assert task["name"] == "Annual service"
-    assert task["interval_days"] == 365
+    assert read_legacy_fields(task)["interval_days"] == 365
 
 
 async def test_add_task_service_interval_unit_and_due_date(
@@ -107,8 +110,8 @@ async def test_add_task_service_interval_unit_and_due_date(
     await hass.async_block_till_done()
     entry = hass.config_entries.async_get_entry(entry_id)
     monthly = entry.data[CONF_TASKS][res["task_id"]]
-    assert monthly["interval_days"] == 3
-    assert monthly["interval_unit"] == "months"
+    assert read_legacy_fields(monthly)["interval_days"] == 3
+    assert read_legacy_fields(monthly)["interval_unit"] == "months"
 
     res2 = await hass.services.async_call(
         DOMAIN, "add_task",
@@ -119,8 +122,8 @@ async def test_add_task_service_interval_unit_and_due_date(
     await hass.async_block_till_done()
     entry = hass.config_entries.async_get_entry(entry_id)
     oneshot = entry.data[CONF_TASKS][res2["task_id"]]
-    assert oneshot["schedule_type"] == "one_time"
-    assert oneshot["due_date"] == "2026-09-01"
+    assert read_legacy_fields(oneshot)["schedule_type"] == "one_time"
+    assert read_legacy_fields(oneshot)["due_date"] == "2026-09-01"
 
 
 async def test_add_task_service_rejects_unknown_entry(

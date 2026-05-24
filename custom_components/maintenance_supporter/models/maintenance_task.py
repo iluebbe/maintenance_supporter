@@ -326,18 +326,13 @@ class MaintenanceTask:
             "name": self.name,
             "type": self.type,
             "enabled": self.enabled,
-            "schedule_type": self.schedule_type,
             "warning_days": self.warning_days,
             "history": self.history,
         }
-        if self.interval_days is not None:
-            data["interval_days"] = self.interval_days
-        if self.interval_unit != "days":
-            data["interval_unit"] = self.interval_unit
-        if self.due_date is not None:
-            data["due_date"] = self.due_date
-        if self.interval_anchor != "completion":
-            data["interval_anchor"] = self.interval_anchor
+        # Recurrence as the nested `schedule` value object (schedule-model v2).
+        # Sensor-ness stays in trigger_config; schedule_type is derived on read
+        # via read_legacy_fields, so it is no longer stored.
+        data["schedule"] = self._schedule().to_dict()
         if self.last_planned_due is not None:
             data["last_planned_due"] = self.last_planned_due
         if self.schedule_time is not None:

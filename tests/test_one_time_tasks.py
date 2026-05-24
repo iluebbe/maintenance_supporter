@@ -206,17 +206,16 @@ def test_planned_anchor_months_no_drift() -> None:
 def test_serialization_roundtrip_new_fields() -> None:
     one = MaintenanceTask(schedule_type=ScheduleType.ONE_TIME, due_date="2026-12-01")
     d = one.to_dict()
-    assert d["schedule_type"] == "one_time"
-    assert d["due_date"] == "2026-12-01"
+    assert d["schedule"] == {"kind": "one_time", "due_date": "2026-12-01"}
     assert MaintenanceTask.from_dict(d).due_date == "2026-12-01"
 
     monthly = MaintenanceTask(
         schedule_type=ScheduleType.TIME_BASED, interval_days=2, interval_unit="months"
     )
     dm = monthly.to_dict()
-    assert dm["interval_unit"] == "months"
+    assert dm["schedule"]["unit"] == "months"
     assert MaintenanceTask.from_dict(dm).interval_unit == "months"
 
-    # Default unit (days) must NOT be serialized (back-compat / lean dicts).
+    # Default unit (days) must NOT be serialized (lean nested dicts).
     plain = MaintenanceTask(schedule_type=ScheduleType.TIME_BASED, interval_days=7)
-    assert "interval_unit" not in plain.to_dict()
+    assert "unit" not in plain.to_dict()["schedule"]

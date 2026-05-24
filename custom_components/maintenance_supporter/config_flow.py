@@ -51,6 +51,7 @@ from .const import (
     slugify_object_name,
 )
 from .helpers.global_options import get_default_warning_days
+from .helpers.schedule import normalize_task_storage
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -65,7 +66,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
     """Handle a config flow for Maintenance Supporter."""
 
     VERSION = 1
-    MINOR_VERSION = 2
+    MINOR_VERSION = 3
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -457,7 +458,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             if "created_at" not in new_td:
                 new_td["created_at"] = today_iso
             cap_task_fields(new_td)
-            tasks[task_id] = new_td
+            # Store recurrence in the canonical nested `schedule` shape — this is
+            # the CSV/JSON import chokepoint (schedule-model v2).
+            tasks[task_id] = normalize_task_storage(new_td)
 
         return self.async_create_entry(
             title=object_name,
@@ -994,7 +997,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             title=object_name,
             data={
                 CONF_OBJECT: self._object_data,
-                CONF_TASKS: self._tasks,
+                # Store recurrence in the canonical nested `schedule` shape.
+                CONF_TASKS: {
+                    tid: normalize_task_storage(td)
+                    for tid, td in self._tasks.items()
+                },
             },
         )
 

@@ -214,10 +214,12 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "name": "Audit Task",
         "type": "service",
         "enabled": True,
+        # Recurrence is a discriminated union (schedule-model v2): interval and
+        # one_time are mutually exclusive. This task covers the interval fields;
+        # `due_date` is guarded by the separate one-time task below.
         "schedule_type": "time_based",
         "interval_days": 30,
         "interval_unit": "months",
-        "due_date": "2026-09-01",
         "interval_anchor": "planned",
         "warning_days": 5,
         "last_performed": "2025-12-01",
@@ -240,12 +242,25 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         },
         "quick_complete_defaults": {"notes": "default", "cost": 9.99, "duration": 15},
     }
+    # Second task: one_time, to guard `due_date` exposure (mutually exclusive
+    # with the interval fields above in schedule-model v2).
+    ot_task_id = "e" * 32
+    one_time_task: dict[str, Any] = {
+        "id": ot_task_id,
+        "object_id": "obj_audit",
+        "name": "Audit One-Time",
+        "type": "service",
+        "enabled": True,
+        "schedule_type": "one_time",
+        "due_date": "2026-09-01",
+        "warning_days": 5,
+    }
     entry = MockConfigEntry(
         version=1, minor_version=1, domain=DOMAIN,
         title="Audit",
         data=build_object_entry_data(
             object_data=build_object_data(name="Audit"),
-            tasks={task_id: fully_loaded_task},
+            tasks={task_id: fully_loaded_task, ot_task_id: one_time_task},
         ),
         source="user",
         unique_id="maintenance_supporter_audit_full_field_check",
@@ -260,14 +275,15 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
     })
 
     result = conn.send_result.call_args[0][1]
-    task_resp = result["tasks"][0]
+    task_resp = next(t for t in result["tasks"] if t["name"] == "Audit Task")
+    ot_resp = next(t for t in result["tasks"] if t["name"] == "Audit One-Time")
 
-    # Every persisted user-facing field must round-trip non-null.
-    # (object_id is internal; created_at is backend-only — both intentionally
-    # excluded from the response.)
+    # Every persisted user-facing field must round-trip non-null. (object_id is
+    # internal; created_at is backend-only — both intentionally excluded.
+    # due_date is one_time-only, guarded via ot_resp below.)
     expected_persisted_fields = [
         "id", "name", "type", "enabled", "schedule_type",
-        "interval_days", "interval_unit", "due_date",
+        "interval_days", "interval_unit",
         "interval_anchor", "warning_days",
         "last_performed", "schedule_time",
         "notes", "documentation_url",
@@ -283,6 +299,11 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         f"Tripwire: WS response is missing or null for persisted fields: "
         f"{missing}. Same failure mode as issue #50 — extend "
         f"_build_task_summary in websocket/__init__.py to expose them."
+    )
+    # due_date is one_time-only (schedule-model v2 discriminated union).
+    assert ot_resp["schedule_type"] == "one_time"
+    assert ot_resp["due_date"] == "2026-09-01", (
+        "Tripwire: one_time due_date must round-trip in the WS response."
     )
 
     # Spot-check exact value preservation for the v1.3.0 fields that

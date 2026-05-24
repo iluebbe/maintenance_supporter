@@ -49,6 +49,9 @@ from custom_components.maintenance_supporter.const import (
     ScheduleType,
     TriggerType,
 )
+from custom_components.maintenance_supporter.helpers.schedule import (
+    read_legacy_fields,
+)
 
 from .conftest import setup_integration
 
@@ -244,7 +247,7 @@ async def test_add_task_via_options(
         t for t in updated_tasks.values() if t["name"] == "New Task"
     ]
     assert len(new_task) == 1
-    assert new_task[0]["interval_days"] == 60
+    assert read_legacy_fields(new_task[0])["interval_days"] == 60
 
 
 # ─── 4.5 Object Settings ────────────────────────────────────────────────
@@ -670,7 +673,7 @@ async def test_edit_trigger_full_flow(
     task = tasks[task_id]
     assert task["trigger_config"]["entity_id"] == "sensor.water_temp"
     assert task["trigger_config"][CONF_TRIGGER_ABOVE] == 30.0
-    assert task["schedule_type"] == ScheduleType.SENSOR_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.SENSOR_BASED
 
 
 async def test_remove_trigger_shown_only_when_trigger_exists(
@@ -782,7 +785,7 @@ async def test_remove_trigger_flow(
     # Verify trigger removed and schedule reverted
     task = object_config_entry.data[CONF_TASKS][task_id]
     assert "trigger_config" not in task
-    assert task["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.TIME_BASED
 
 
 async def test_remove_trigger_cancel(
@@ -842,7 +845,7 @@ async def test_remove_trigger_cancel(
     # Trigger should still be there
     task = object_config_entry.data[CONF_TASKS][task_id]
     assert "trigger_config" in task
-    assert task["schedule_type"] == ScheduleType.SENSOR_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.SENSOR_BASED
 
 
 # ─── Helpers for auth mock ─────────────────────────────────────────────
@@ -1652,7 +1655,7 @@ async def test_remove_trigger_selective_entity_removal(
         "sensor.temp_a",
         "sensor.temp_c",
     ]
-    assert task["schedule_type"] == ScheduleType.SENSOR_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.SENSOR_BASED
 
 
 async def test_remove_trigger_all_entities_removes_trigger(
@@ -1716,4 +1719,4 @@ async def test_remove_trigger_all_entities_removes_trigger(
     # Verify trigger completely removed and schedule reverted
     task = object_config_entry.data[CONF_TASKS][task_id]
     assert "trigger_config" not in task
-    assert task["schedule_type"] == ScheduleType.TIME_BASED
+    assert read_legacy_fields(task)["schedule_type"] == ScheduleType.TIME_BASED
