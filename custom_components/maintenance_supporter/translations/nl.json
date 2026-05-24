@@ -872,6 +872,28 @@
           "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
+      "opt_calendar": {
+        "title": "Kalenderschema",
+        "description": "Configureer een kalendergebaseerde herhaling (weekdagen, n-de weekdag van de maand of een dag van de maand).",
+        "data": {
+          "weekdays": "Op deze weekdagen",
+          "nth": "Welke keer",
+          "weekday": "Weekdag",
+          "day": "Dag van de maand",
+          "last_performed": "Laatst uitgevoerd",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug"
+        },
+        "data_description": {
+          "weekdays": "De taak herhaalt zich op elke geselecteerde weekdag.",
+          "nth": "Welke keer in de maand (bijv. 1e, of Laatste).",
+          "weekday": "De weekdag voor de regel van de n-de weekdag (bijv. zaterdag).",
+          "day": "Dag van de maand (1-31; begrensd tot de lengte van de maand).",
+          "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg indien nooit.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
+        }
+      },
       "opt_manual": {
         "title": "Handmatig schema",
         "description": "Deze taak heeft geen automatische planning. U kunt deze handmatig als te doen markeren.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Tijdgebaseerd",
+        "weekdays": "Weekdagen",
+        "nth_weekday": "N-de weekdag van de maand",
+        "day_of_month": "Dag van de maand",
         "sensor_based": "Sensorgebaseerd",
         "one_time": "Eenmalig",
         "manual": "Handmatig"

@@ -91,8 +91,9 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 ### Task Management
 - Create maintenance objects (devices, equipment, appliances) and assign tasks to them
 - Six task types: cleaning, inspection, replacement, calibration, service, custom
-- Four scheduling modes: **time-based** (recurring interval), **sensor-based** (triggered by entity state), **one-time** (single due date, archived once done), **manual**
+- Scheduling modes: **time-based** (recurring interval), **calendar recurrence** (specific weekdays, *nth weekday of the month* — e.g. "1st Saturday", or a *day of the month*), **sensor-based** (triggered by entity state), **one-time** (single due date, archived once done), **manual**
 - **Interval units**: time-based intervals can be **days, weeks, months or years** — months and years use real calendar arithmetic (last-day clamping, leap years)
+- **Calendar recurrence**: pin a task to weekdays (e.g. Mon & Thu), the *nth weekday of the month* (1st–5th or last, e.g. "1st Saturday" for smoke-alarm checks), or a fixed *day of the month* (clamped to the month length)
 - Task status tracking: OK, Due Soon, Overdue, Triggered
 - **One-time tasks**: schedule a non-recurring job with an explicit due date; completing it archives the task (hidden from the card, shown as *Completed* in the panel)
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations

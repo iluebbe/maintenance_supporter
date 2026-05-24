@@ -872,6 +872,28 @@
           "go_back": "Návrat do hlavní nabídky bez uložení."
         }
       },
+      "opt_calendar": {
+        "title": "Kalendářní harmonogram",
+        "description": "Nakonfigurujte opakování založené na kalendáři (dny v týdnu, n-tý den v týdnu v měsíci nebo den v měsíci).",
+        "data": {
+          "weekdays": "V tyto dny v týdnu",
+          "nth": "Který výskyt",
+          "weekday": "Den v týdnu",
+          "day": "Den v měsíci",
+          "last_performed": "Naposledy provedeno",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět"
+        },
+        "data_description": {
+          "weekdays": "Úkol se opakuje v každý vybraný den v týdnu.",
+          "nth": "Který výskyt v měsíci (např. 1., nebo Poslední).",
+          "weekday": "Den v týdnu pro pravidlo n-tého dne v týdnu (např. sobota).",
+          "day": "Den v měsíci (1-31; omezeno na délku měsíce).",
+          "last_performed": "Kdy byla tato údržba naposledy provedena. Ponechte prázdné, pokud nikdy.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "go_back": "Návrat do hlavní nabídky bez uložení."
+        }
+      },
       "opt_manual": {
         "title": "Ruční harmonogram",
         "description": "Tento úkol nemá automatický harmonogram. Můžete ho označit jako požadovaný ručně.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Časový",
+        "weekdays": "Dny v týdnu",
+        "nth_weekday": "N-tý den v týdnu v měsíci",
+        "day_of_month": "Den v měsíci",
         "sensor_based": "Senzorový",
         "one_time": "Jednorázově",
         "manual": "Ruční"

@@ -763,6 +763,90 @@ async def test_add_task_one_time_flow(
     assert read_legacy_fields(new_task)["due_date"] == "2026-09-01"
 
 
+async def test_add_task_nth_weekday_flow(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Add task → nth_weekday calendar kind via the options flow (Phase 4)."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "add_task"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Smoke alarm",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_SCHEDULE_TYPE: "nth_weekday",
+            "go_back": False,
+        },
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "opt_calendar"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"nth": "1", "weekday": "5", CONF_TASK_WARNING_DAYS: 7, "go_back": False},
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    new_task = next(
+        t for t in entry.data[CONF_TASKS].values() if t["name"] == "Smoke alarm"
+    )
+    assert new_task["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+
+
+async def test_edit_task_calendar_kind_flow(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Edit an existing nth_weekday task via the options flow — change nth."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Seed TASK_ID_1 as a calendar-kind task, then edit it through the flow.
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    tasks = dict(entry.data[CONF_TASKS])
+    seeded = {k: v for k, v in tasks[TASK_ID_1].items()
+              if k not in ("interval_days", "interval_unit", "interval_anchor")}
+    seeded["schedule"] = {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+    tasks[TASK_ID_1] = seeded
+    hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "manage_tasks"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "edit_task"},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "edit_task"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Renamed Calendar Task",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            "nth": "2", "weekday": "5",
+            CONF_TASK_WARNING_DAYS: 7,
+            CONF_TASK_ENABLED: True,
+            "go_back": False,
+        },
+    )
+
+    refreshed = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert refreshed is not None
+    assert refreshed.data[CONF_TASKS][TASK_ID_1]["schedule"] == {
+        "kind": "nth_weekday", "nth": 2, "weekday": 5,
+    }
+
+
 async def test_add_task_go_back(
     hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
 ) -> None:
