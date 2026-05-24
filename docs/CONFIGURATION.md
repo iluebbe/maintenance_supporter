@@ -126,7 +126,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `name` | string | *(required)* | — | Display name of the task |
 | `type` | enum | `custom` | — | Category: `cleaning`, `inspection`, `replacement`, `calibration`, `service`, `custom` |
 | `enabled` | bool | `true` | — | Whether the task is active. Disabled tasks always show `ok` |
-| `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `one_time`, `manual` |
+| `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `one_time`, `manual`. The calendar kinds `weekdays`, `nth_weekday`, `day_of_month` are configured via the nested `schedule` object (below) — they can't be expressed by the flat fields — and are reported back under their own `schedule_type` value |
 | `interval_days` | int | 30 | 1–3650 | Interval length between maintenance cycles, combined with `interval_unit` (time-based and sensor-based) |
 | `interval_unit` | enum | `days` | — | Unit for `interval_days`: `days`, `weeks`, `months`, `years`. Months/years use real calendar arithmetic (last-day clamping, leap years). Only values other than `days` change pre-2.6.0 behaviour |
 | `due_date` | date | *(none)* | — | Due date for a `one_time` task. The task stays active until completed, then is archived (`is_done` — hidden from the card, shown as *Completed* in the panel). Required for `one_time`; ignored for other modes |
@@ -159,7 +159,7 @@ Available when `advanced_schedule_time_visible` is enabled globally. Applies to 
 
 **Off-behaviour:** When the feature flag is toggled **off**, the coordinator strips `schedule_time` before computing status — tasks revert to the legacy midnight semantic. The stored value stays on disk and re-applies the moment the flag is toggled back on.
 
-**Composing a weekday pattern** (no extra feature required):
+**Weekday pattern _with a time of day_:** For a plain weekday schedule, use the native **Weekdays** kind (`schedule: {"kind": "weekdays", "weekdays": [...]}`). Because `schedule_time` applies to `time_based` tasks only, pinning a weekday to a _specific time_ (e.g. "every Tuesday at 19:00") is still composed from a time-based interval:
 
 | Field | Value | Why |
 |---|---|---|

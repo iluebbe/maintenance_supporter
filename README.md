@@ -186,7 +186,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 
 ## Roadmap
 
-Planned and proposed features (multi-assignee rotation, a native to-do entity, multiple per-task reminders, calendar-pattern schedules, and more) live in [ROADMAP.md](ROADMAP.md). Ideas and votes welcome via issues or the [Ideas discussions](https://github.com/iluebbe/maintenance_supporter/discussions).
+Planned and proposed features (multi-assignee rotation, a native to-do entity, multiple per-task reminders, priority levels, and more) live in [ROADMAP.md](ROADMAP.md). Ideas and votes welcome via issues or the [Ideas discussions](https://github.com/iluebbe/maintenance_supporter/discussions).
 
 ## Installation
 
