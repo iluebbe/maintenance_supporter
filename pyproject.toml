@@ -40,7 +40,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["F401", "F811", "F841", "DTZ"]
+"tests/**/*.py" = ["F401", "F811", "F841", "DTZ", "I001"]
 "tests/conftest.py" = ["F401", "F811"]
 
 [tool.ruff.lint.isort]
@@ -48,3 +48,10 @@ known-first-party = ["custom_components.maintenance_supporter"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.coverage.run]
+# qrcodegen.py is a vendored MIT library (Project Nayuki), not our code, so it
+# is excluded from the coverage metric (it is also ruff-excluded above).
+omit = [
+    "*/helpers/qrcodegen.py",
+]
