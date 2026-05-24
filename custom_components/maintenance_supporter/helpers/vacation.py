@@ -30,6 +30,14 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
 )
 from .dates import add_interval
+from .schedule import (
+    KIND_DAY_OF_MONTH,
+    KIND_NTH_WEEKDAY,
+    KIND_WEEKDAYS,
+    Schedule,
+)
+
+_CALENDAR_KINDS = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -137,6 +145,31 @@ class PreviewEvent:
     status: str  # "due_soon" | "overdue" | "triggered_est"
 
 
+def _events_from_next_due(
+    next_due: date,
+    warning_days: int,
+    today: date,
+    window_start: date,
+    window_end: date,
+) -> list[PreviewEvent]:
+    """DUE_SOON / OVERDUE preview events for a single next-due date. Shared by
+    the interval and calendar projections (DRY)."""
+    due_soon_from = next_due - timedelta(days=max(0, warning_days))
+    events: list[PreviewEvent] = []
+    if window_start <= due_soon_from <= window_end and due_soon_from > today:
+        events.append(PreviewEvent(date=due_soon_from, status="due_soon"))
+    if window_start <= next_due <= window_end and next_due > today:
+        events.append(PreviewEvent(date=next_due, status="overdue"))
+    # Edge: task is already DUE_SOON or OVERDUE today and stays in that state
+    # — surface as a "today" event so the user can act on it before leaving.
+    if not events:
+        if today >= next_due and today <= window_end:
+            events.append(PreviewEvent(date=today, status="overdue"))
+        elif today >= due_soon_from and today <= window_end and due_soon_from <= today < next_due:
+            events.append(PreviewEvent(date=today, status="due_soon"))
+    return events
+
+
 def _project_time_based(
     last_performed: date | None,
     created_at: date | None,
@@ -154,21 +187,7 @@ def _project_time_based(
     # Unit-aware (weeks/months/years), not raw days — else a 6-month task would
     # preview as due in 6 days during vacation planning.
     next_due = add_interval(anchor, interval_days, interval_unit or "days")
-    due_soon_from = next_due - timedelta(days=max(0, warning_days))
-
-    events: list[PreviewEvent] = []
-    if window_start <= due_soon_from <= window_end and due_soon_from > today:
-        events.append(PreviewEvent(date=due_soon_from, status="due_soon"))
-    if window_start <= next_due <= window_end and next_due > today:
-        events.append(PreviewEvent(date=next_due, status="overdue"))
-    # Edge: task is already DUE_SOON or OVERDUE today and stays in that state
-    # — surface as a "today" event so the user can act on it before leaving.
-    if not events:
-        if today >= next_due and today <= window_end:
-            events.append(PreviewEvent(date=today, status="overdue"))
-        elif today >= due_soon_from and today <= window_end and due_soon_from <= today < next_due:
-            events.append(PreviewEvent(date=today, status="due_soon"))
-    return events
+    return _events_from_next_due(next_due, warning_days, today, window_start, window_end)
 
 
 def compute_preview(
@@ -228,8 +247,30 @@ def compute_preview(
             events = [PreviewEvent(date=window_start, status="triggered_est")]
             kind = "sensor_based"
             confidence = "unpredictable"
+        elif schedule_type in _CALENDAR_KINDS:
+            # Calendar kinds (weekdays / nth_weekday / day_of_month): project the
+            # next occurrence via the Schedule (the flat fields can't express it).
+            raw = t.get("schedule")
+            sched = Schedule.from_dict(raw) if isinstance(raw, dict) else None
+            nd = (
+                sched.next_due(
+                    last_performed=_coerce_date(t.get("last_performed")),
+                    created_at=_coerce_date(t.get("created_at")),
+                    last_planned_due=None,
+                    today=today,
+                )
+                if sched
+                else None
+            )
+            events = (
+                _events_from_next_due(nd, int(t.get("warning_days") or 0), today, window_start, window_end)
+                if nd
+                else []
+            )
+            kind = schedule_type
+            confidence = "deterministic"
         else:
-            # Manual tasks have no auto-due — never appear in vacation preview.
+            # Manual / one-time tasks have no auto-due — never appear here.
             continue
 
         if not events:

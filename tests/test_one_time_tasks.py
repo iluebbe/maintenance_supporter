@@ -65,6 +65,31 @@ def test_vacation_preview_honors_interval_unit() -> None:
     assert all(e.date != date(2026, 4, 7) for e in events)
 
 
+def test_vacation_preview_projects_calendar_kind() -> None:
+    """Calendar kinds (nth_weekday) are projected in the vacation preview via the
+    nested schedule — previously gated to time_based and silently dropped."""
+    from custom_components.maintenance_supporter.helpers.vacation import (
+        VacationState,
+        compute_preview,
+    )
+
+    today = date(2026, 5, 24)
+    state = VacationState(
+        enabled=True, start=date(2026, 6, 1), end=date(2026, 6, 30), buffer_days=0,
+    )
+    rows = compute_preview(state, [{
+        "task_id": "t1", "entry_id": "e", "object_name": "Home",
+        "task_name": "Smoke alarm", "schedule_type": "nth_weekday", "enabled": True,
+        "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
+        "warning_days": 0, "created_at": "2026-05-24",
+    }], today=today)
+
+    assert len(rows) == 1
+    assert rows[0]["kind"] == "nth_weekday"
+    # 1st Saturday of June 2026 = June 6, inside the vacation window.
+    assert any(e["date"] == "2026-06-06" for e in rows[0]["events"])
+
+
 def test_interval_span_days_is_unit_aware() -> None:
     from custom_components.maintenance_supporter.helpers.dates import (
         interval_span_days,
