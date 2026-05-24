@@ -310,6 +310,9 @@ async def ws_import_json(
             for key in (
                 "interval_days", "interval_unit", "due_date",
                 "interval_anchor", "last_planned_due",
+                # nested recurrence (calendar kinds) — config-flow normalize
+                # treats it as authoritative when present.
+                "schedule",
                 "last_performed", "notes", "documentation_url",
                 "custom_icon", "nfc_tag_id", "responsible_user_id",
                 "entity_slug", "trigger_config", "adaptive_config",

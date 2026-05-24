@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
-from .helpers.schedule import read_legacy_fields
+from .helpers.schedule import Schedule, read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +45,9 @@ def _build_export_object(
             "interval_unit": sched["interval_unit"],
             "due_date": sched["due_date"],
             "interval_anchor": sched["interval_anchor"],
+            # Nested recurrence — carries the calendar kinds (weekdays /
+            # nth_weekday / day_of_month) that the flat fields above can't.
+            "schedule": Schedule.parse(tdata).to_dict(),
             "last_planned_due": tdata.get("last_planned_due"),
             "warning_days": tdata.get("warning_days", 7),
             "last_performed": tdata.get("last_performed"),
