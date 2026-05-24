@@ -1410,6 +1410,20 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             on_complete=self._trigger_on_complete,
         )
 
+    # HA routes options-flow form submissions to `async_step_<step_id>`. The
+    # compound sub-steps reuse the config-flow "compound_*" step_ids (and their
+    # existing options.step.compound_* translations), so the matching method
+    # names must exist here too — otherwise submitting the compound-logic form
+    # raises UnknownStep, since the implementations are async_step_opt_compound_*.
+    async_step_compound_logic = async_step_opt_compound_logic
+    async_step_compound_condition_entity = async_step_opt_compound_condition_entity
+    async_step_compound_condition_type = async_step_opt_compound_condition_type
+    async_step_compound_condition_threshold = async_step_opt_compound_condition_threshold
+    async_step_compound_condition_counter = async_step_opt_compound_condition_counter
+    async_step_compound_condition_state_change = async_step_opt_compound_condition_state_change
+    async_step_compound_condition_runtime = async_step_opt_compound_condition_runtime
+    async_step_compound_review = async_step_opt_compound_review
+
     # --- Adaptive Scheduling ---
 
     async def async_step_adaptive_scheduling(
