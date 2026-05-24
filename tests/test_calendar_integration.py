@@ -86,8 +86,7 @@ async def test_calendar_reflects_task_completion(
     await setup_integration(hass, global_entry, obj_entry)
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
 
@@ -195,8 +194,7 @@ async def test_calendar_multi_object_aggregation(
     await setup_integration(hass, global_entry, ok_entry, due_entry, overdue_entry)
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     dt_now = dt_util.now()
     events = await calendar.async_get_events(
@@ -247,12 +245,12 @@ async def test_calendar_triggered_task_shows_today(
     await hass.async_block_till_done()
 
     task_data = coordinator.data[CONF_TASKS][TASK_ID_1]
-    if not task_data.get("_trigger_active"):
-        pytest.skip("Trigger not activated in test environment")
+    assert task_data.get("_trigger_active"), (
+        "threshold trigger should activate (sensor 0.5 < trigger_below 1.0)"
+    )
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     dt_now = dt_util.now()
     events = await calendar.async_get_events(
@@ -284,8 +282,7 @@ async def test_calendar_manual_task_only_when_triggered(
     await setup_integration(hass, global_entry, obj_entry)
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     dt_now = dt_util.now()
 
