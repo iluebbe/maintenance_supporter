@@ -131,6 +131,27 @@ if dt.tzinfo is None:
 
 This order ensures a task without history schedules from creation date instead of "today" on every refresh.
 
+### The Schedule model: discriminated-union recurrence
+
+A task's recurrence is one value object — `helpers/schedule.py::Schedule`, a frozen dataclass that is a **discriminated union** keyed by `kind`:
+
+| kind | fields | next due |
+|---|---|---|
+| `interval` | `every`, `unit` (days/weeks/months/years), `anchor` (completion/planned) | `add_interval()` from the anchor — calendar-aware (months/years clamp to month length, leap years) |
+| `weekdays` | `weekdays[]` (0=Mon … 6=Sun) | the next selected weekday |
+| `nth_weekday` | `nth` (1–5, or -1 = last), `weekday`, optional `months[]` | e.g. "1st Saturday"; `helpers/dates.py::next_nth_weekday` |
+| `day_of_month` | `day` (1–31, clamped), optional `months[]` | e.g. "the 15th"; `next_day_of_month` |
+| `one_time` | `due_date` | the date, until completed → archived (`is_done`, no re-arm) |
+| `manual` | — | none (`next_due` is `None` → always OK) |
+
+**The boundary rule (the actual point).** No consumer reads `every` / `unit` / `weekdays` / … directly; callers ask the Schedule for `next_due(...)` and `span_days()`. The recurrence math lives in exactly one place, so the unit-leak bug class — a consumer doing `timedelta(days=interval_days)` on a count that means "6 **months**" (issues #58/#59) — becomes structurally impossible. The calendar date math (nth-weekday, day-of-month clamping, month restriction) is pure and dependency-free in `helpers/dates.py`.
+
+**Storage is the nested `schedule` object** (canonical). `async_migrate_entry` (`minor_version 2 → 3`) rewrites the old flat fields (`schedule_type` / `interval_days` / `interval_unit` / `interval_anchor` / `due_date`) into it via `normalize_task_storage()` — the single flat→nested writer every persist path runs through (merge-on-overlay, so editing only `interval_days` keeps the stored unit). The calendar kinds *only* exist in this nested form.
+
+**Back-compat is permanent.** `Schedule.parse(task)` reads either shape (nested first, flat fallback), so old `.storage` data and old export files load forever. The WebSocket payload, export, CSV, and the edit-form prefill still speak the flat view via `read_legacy_fields()` (one translation point) **and** carry the nested `schedule` alongside it, so the frontend was not churned. For a calendar kind the derived `schedule_type` is the kind itself (`nth_weekday`, …): flat-only consumers get a coarse-but-honest label, nested-aware ones read `schedule`.
+
+**Sensors stay orthogonal.** A trigger (`trigger_config`) is *not* a schedule kind — a task has a recurrence (any kind, including `manual`) **and** optionally a trigger; `schedule_type == "sensor_based"` is derived from trigger presence, and status precedence (trigger active → TRIGGERED) is unchanged. `schedule_time` likewise stays a separate field (a time-of-day refinement on `time_based` tasks), not part of the `schedule` object.
+
 ---
 
 ## File Structure
@@ -198,7 +219,9 @@ custom_components/maintenance_supporter/
 │       ├── object-dialog.ts       (153 lines)  Add/edit object
 │       └── qr-dialog.ts          (400 lines)  QR code generation
 │
-├── helpers/                     (3,661 lines)
+├── helpers/                     (~5,450 lines)
+│   ├── schedule.py                (371 lines)  Schedule value object (discriminated-union recurrence) + flat/nested adapters
+│   ├── dates.py                   (156 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
 │   ├── interval_analyzer.py       (730 lines)  EWA + Weibull + seasonal analysis
 │   ├── sensor_predictor.py        (640 lines)  Degradation + environmental correlation
 │   ├── notification_manager.py    (~740 lines)  Multi-channel notification system
@@ -210,7 +233,7 @@ custom_components/maintenance_supporter/
 │   └── qrcodegen.py              (700 lines)  Vendored QR library (Nayuki, MIT)
 │
 ├── models/                        (483 lines)
-│   ├── maintenance_task.py        (344 lines)  Task: schedule, triggers, history, status, on_complete_action (1.3.0+), quick_complete_defaults (1.3.0+)
+│   ├── maintenance_task.py        (407 lines)  Task: schedule (Schedule value object), triggers, history, status, on_complete_action (1.3.0+), quick_complete_defaults (1.3.0+)
 │   ├── maintenance_object.py       (54 lines)  Object: name, area, manufacturer, model, serial_number, installation_date, documentation_url (1.4.0+)
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
@@ -237,10 +260,11 @@ Coordinator refresh (every 5 min)
       ├─ If disabled → OK (skip further evaluation)
       ├─ If trigger_active → TRIGGERED
       ├─ Compute days_until_due = next_due - today
-      │   (next_due anchor = last_performed if set, else created_at,
-      │    else today; + interval via add_interval() — days/weeks/months/years,
-      │    calendar-aware. one_time: next_due = due_date until completed,
-      │    then archived (is_done, no next_due))
+      │   (next_due comes from the task's Schedule value object — anchor =
+      │    last_performed if set, else created_at, else today; interval kinds
+      │    via add_interval() (days/weeks/months/years, calendar-aware);
+      │    weekdays / nth_weekday / day_of_month → next matching date;
+      │    one_time → due_date until completed, then archived (is_done))
       │   ├─ days < 0 → OVERDUE
       │   ├─ days <= warning_days → DUE_SOON
       │   └─ else → OK
@@ -535,7 +559,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 - **Feature-flag gating happens in the coordinator, not in the model.** The model is pure: given a `schedule_time`, it honours it. When the global flag is off, `_async_update_data()` mutates the in-memory task instance to `schedule_time = None` before calling `task.status`. Disk state is unaffected. The trade-off: enabling or disabling the feature takes effect on the next coordinator refresh (≤ 5 min), which is acceptable for maintenance scheduling.
 - **Calendar renders timed events only when both the flag is on AND a value is set.** `_create_event_for_task` gates via `self._is_schedule_time_feature_enabled()` (helper that reads the global entry's options). All-day events are the default and the fallback for malformed values.
 - **No `async_track_point_in_time` timers** per task — the 5-minute coordinator poll is the transition mechanism. Simpler lifecycle management, and the latency is well below any notification-interval setting anyway.
-- **Weekday recurrence** ("every Tuesday at 19:00") is not a separate schedule type; users compose it from existing fields: task creation on the target weekday → `interval_days=7` → `schedule_time="19:00"` → `interval_anchor="planned"` (so a late completion doesn't shift the weekday).
+- **Weekday recurrence** is now a native schedule kind (`weekdays` — see [The Schedule model](#the-schedule-model-discriminated-union-recurrence) under Core Design Decisions). Because `schedule_time` still applies to `time_based` tasks only, pinning a weekday to a *specific time* ("every Tuesday at 19:00") is composed from a time-based interval: task creation on the target weekday → `interval_days=7` → `schedule_time="19:00"` → `interval_anchor="planned"` (so a late completion doesn't shift the weekday).
 
 ---
 
