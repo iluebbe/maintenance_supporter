@@ -703,14 +703,24 @@ async def ws_update_task(
             task[data_key] = msg[msg_key]
 
     # Recurrence resolution: an explicit nested `schedule` wins (calendar kinds
-    # and kind-switches); otherwise flat recurrence fields drive it — drop any
-    # stale nested schedule so normalize_task_storage rebuilds from the flat view.
+    # and kind-switches). Otherwise rebuild from the flat view ONLY when a real
+    # legacy recurrence signal is present — a flat interval/due field, or a legacy
+    # schedule_type. A bare calendar-kind schedule_type (e.g. a client echoing
+    # the derived "nth_weekday" the payload exposed) is NOT a flat rebuild signal
+    # and must not collapse the calendar schedule to manual (the #58/#42 class).
+    _flat_recurrence_edit = any(
+        k in msg for k in ("interval_days", "interval_unit", "interval_anchor", "due_date")
+    ) or msg.get("schedule_type") in ("time_based", "one_time", "manual")
     if msg.get("schedule"):
         for key in FLAT_RECURRENCE_KEYS:
             task.pop(key, None)
         task["schedule"] = Schedule.from_dict(msg["schedule"]).to_dict()
-    elif any(key in msg for key in FLAT_RECURRENCE_KEYS):
+    elif _flat_recurrence_edit:
         task.pop("schedule", None)
+    elif "schedule_type" in msg:
+        # Calendar-kind schedule_type echo with no schedule → keep the nested
+        # schedule; drop the stray flat schedule_type so normalize stays clean.
+        task.pop("schedule_type", None)
 
     # Validate/cap newly-applied v1.3.0 fields. cap_task_fields runs the
     # full task sanitize (caches, lengths, action shape) so update-path

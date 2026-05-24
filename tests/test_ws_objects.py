@@ -285,6 +285,9 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "id", "name", "type", "enabled", "schedule_type",
         "interval_days", "interval_unit",
         "interval_anchor", "warning_days",
+        # nested recurrence object (schedule-model v2) — the canonical form the
+        # dialog reads for the calendar kinds; must be exposed (issue #50 class).
+        "schedule",
         "last_performed", "schedule_time",
         "notes", "documentation_url",
         "entity_slug", "custom_icon", "nfc_tag_id",

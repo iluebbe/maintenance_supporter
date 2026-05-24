@@ -608,6 +608,35 @@ async def test_roundtrip_calendar_kind_create_and_switch(
     assert task["schedule"] == {"kind": "day_of_month", "day": 15}
 
 
+async def test_update_preserves_calendar_schedule_on_non_recurrence_edits(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Regression for the #58/#42/#29 'edit destroys the recurrence' pattern,
+    applied to the calendar kinds: editing a non-recurrence field — or echoing
+    the *derived* schedule_type the WS payload exposed — must NOT wipe the
+    nested calendar schedule."""
+    await setup_integration(hass, global_entry, object_entry)
+    cal = {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+    task_id, _ = await _create_task_via_ws(
+        hass, object_entry.entry_id, {"name": "Smoke alarm", "schedule": cal},
+    )
+
+    # edit warning_days only
+    t = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"warning_days": 99})
+    assert t["schedule"] == cal, "warning_days edit must keep the calendar schedule"
+
+    # edit name only
+    t = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"name": "Renamed"})
+    assert t["schedule"] == cal, "name edit must keep the calendar schedule"
+
+    # echo the derived schedule_type the payload exposed (no `schedule`) — must
+    # NOT be treated as a flat rebuild that collapses the kind to manual.
+    t = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"schedule_type": "nth_weekday"})
+    assert t["schedule"] == cal, "echoing derived schedule_type must keep the schedule"
+
+
 async def test_update_clears_safety_interval_with_none(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
