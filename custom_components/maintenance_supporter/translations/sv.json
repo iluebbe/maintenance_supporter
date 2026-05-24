@@ -156,6 +156,26 @@
           "go_back": "Återgå till uppgiftsskapande utan att spara."
         }
       },
+      "calendar": {
+        "title": "Kalenderschema",
+        "description": "Konfigurera en kalenderbaserad upprepning (veckodagar, n:te veckodagen i månaden eller en dag i månaden).",
+        "data": {
+          "weekdays": "På dessa veckodagar",
+          "nth": "Vilken förekomst",
+          "weekday": "Veckodag",
+          "day": "Dag i månaden",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "weekdays": "Uppgiften upprepas varje vald veckodag.",
+          "nth": "Vilken förekomst i månaden (t.ex. 1:a, eller Sista).",
+          "weekday": "Veckodagen för regeln om n:te veckodagen (t.ex. lördag).",
+          "day": "Dag i månaden (1-31; begränsad till månadens längd).",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till uppgiftsskapande utan att spara."
+        }
+      },
       "sensor_select": {
         "title": "Välj utlösande sensor",
         "description": "Välj en Home Assistant-entitet att övervaka för denna underhållsuppgift.",

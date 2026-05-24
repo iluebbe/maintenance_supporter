@@ -295,6 +295,38 @@ async def test_one_time_task_flow(
     assert read_legacy_fields(task)["due_date"] == "2026-09-01"
 
 
+async def test_calendar_task_flow(
+    hass: HomeAssistant, global_config_entry: ConfigEntry
+) -> None:
+    """Calendar kind (nth_weekday) flow during initial setup (Phase 4)."""
+    result = await _navigate_to_add_task(hass, global_config_entry)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Smoke alarm",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.INSPECTION,
+            CONF_TASK_SCHEDULE_TYPE: "nth_weekday",
+        },
+    )
+    assert result["step_id"] == "calendar"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"nth": "1", "weekday": "5", CONF_TASK_WARNING_DAYS: 7},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "task_menu"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": "finish"},
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+    task = list(result["data"][CONF_TASKS].values())[0]
+    assert task["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+
+
 async def test_time_based_interval_unit_flow(
     hass: HomeAssistant, global_config_entry: ConfigEntry
 ) -> None:

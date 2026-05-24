@@ -126,6 +126,28 @@ async def test_add_task_service_interval_unit_and_due_date(
     assert read_legacy_fields(oneshot)["due_date"] == "2026-09-01"
 
 
+async def test_add_task_service_calendar_kind(
+    hass: HomeAssistant, global_config_entry: MockConfigEntry
+) -> None:
+    """add_task service persists a nested calendar schedule (nth_weekday)."""
+    await setup_integration(hass, global_config_entry)
+    obj = await hass.services.async_call(
+        DOMAIN, "add_object", {"name": "Hallway"}, blocking=True, return_response=True
+    )
+    await hass.async_block_till_done()
+
+    res = await hass.services.async_call(
+        DOMAIN, "add_task",
+        {"entry_id": obj["entry_id"], "name": "Smoke alarm",
+         "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5}},
+        blocking=True, return_response=True,
+    )
+    await hass.async_block_till_done()
+    entry = hass.config_entries.async_get_entry(obj["entry_id"])
+    task = entry.data[CONF_TASKS][res["task_id"]]
+    assert task["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+
+
 async def test_add_task_service_rejects_unknown_entry(
     hass: HomeAssistant, global_config_entry: MockConfigEntry
 ) -> None:

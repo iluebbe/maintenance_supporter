@@ -139,6 +139,9 @@ SERVICE_ADD_TASK_SCHEMA = vol.Schema(
         vol.Optional("interval_days"): vol.All(vol.Coerce(int), vol.Range(min=1)),
         vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): cv.string,
+        # Nested recurrence for the calendar kinds (weekdays / nth_weekday /
+        # day_of_month); takes precedence over the flat fields above.
+        vol.Optional("schedule"): dict,
         vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
         vol.Optional("enabled"): cv.boolean,
         vol.Optional("notes"): cv.string,
@@ -282,6 +285,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 warning_days=call.data.get("warning_days", 7),
                 enabled=call.data.get("enabled", True),
                 notes=call.data.get("notes"),
+                schedule=call.data.get("schedule"),
             )
         except ValueError as err:
             raise ServiceValidationError(str(err)) from err

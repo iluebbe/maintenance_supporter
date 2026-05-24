@@ -182,6 +182,16 @@ add_task:
       description: Due date (YYYY-MM-DD) for a one-time task (schedule_type one_time).
       selector:
         text:
+    schedule:
+      name: Calendar schedule
+      description: >-
+        Nested recurrence for the calendar kinds, e.g. {"kind": "nth_weekday",
+        "nth": 1, "weekday": 5} for the 1st Saturday (weekday 0=Mon … 6=Sun),
+        {"kind": "weekdays", "weekdays": [0, 3]} for Mon & Thu, or {"kind":
+        "day_of_month", "day": 15}. Takes precedence over interval_days /
+        schedule_type.
+      selector:
+        object:
     warning_days:
       name: Warning (days)
       description: Days before due to enter the due-soon window.
