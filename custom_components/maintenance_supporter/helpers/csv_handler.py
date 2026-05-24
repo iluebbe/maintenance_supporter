@@ -19,6 +19,7 @@ from ..const import (
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
 )
+from .dates import INTERVAL_UNITS
 from .global_options import get_default_warning_days
 
 _LOGGER = logging.getLogger(__name__)
@@ -193,7 +194,7 @@ def import_objects_csv(
             task_data["interval_days"] = _safe_int(interval, None)
 
         interval_unit = (row.get("interval_unit") or "").strip().lower()
-        if interval_unit in ("days", "weeks", "months", "years"):
+        if interval_unit in INTERVAL_UNITS:
             task_data["interval_unit"] = interval_unit
 
         due_date = (row.get("due_date") or "").strip()

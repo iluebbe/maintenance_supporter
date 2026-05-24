@@ -59,6 +59,7 @@ from .const import (
 from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
+from .helpers.dates import INTERVAL_UNITS
 from .helpers.notification_manager import NotificationManager
 from .panel import async_register_panel, async_unregister_panel
 from .storage import MaintenanceStore, async_migrate_to_store
@@ -135,7 +136,7 @@ SERVICE_ADD_TASK_SCHEMA = vol.Schema(
         vol.Optional("task_type"): cv.string,
         vol.Optional("schedule_type"): cv.string,
         vol.Optional("interval_days"): vol.All(vol.Coerce(int), vol.Range(min=1)),
-        vol.Optional("interval_unit"): vol.In(["days", "weeks", "months", "years"]),
+        vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): cv.string,
         vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
         vol.Optional("enabled"): cv.boolean,

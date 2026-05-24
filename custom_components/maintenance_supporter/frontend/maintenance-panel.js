@@ -2500,16 +2500,17 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
         .value=${this._intervalDays}
         @input=${t=>this._intervalDays=t.target.value}
       ></ms-textfield>
-      ${this._intervalDays?r`<div class="select-row">
-            <label>${i("interval_unit",e)}</label>
-            <select
-              .value=${this._intervalUnit}
-              @change=${t=>this._intervalUnit=t.target.value}
-            >
-              ${["days","weeks","months","years"].map(t=>r`<option value=${t} ?selected=${t===this._intervalUnit}>${i("unit_"+t,e)}</option>`)}
-            </select>
-          </div>`:d}
-    `}_renderTriggerTypeFields(){let e=this._lang;return this._triggerType==="threshold"?r`
+      ${this._intervalDays?this._renderUnitSelect():d}
+    `}_renderUnitSelect(){let e=this._lang;return r`
+      <div class="select-row">
+        <label>${i("interval_unit",e)}</label>
+        <select
+          .value=${this._intervalUnit}
+          @change=${t=>this._intervalUnit=t.target.value}
+        >
+          ${["days","weeks","months","years"].map(t=>r`<option value=${t} ?selected=${t===this._intervalUnit}>${i("unit_"+t,e)}</option>`)}
+        </select>
+      </div>`}_renderTriggerTypeFields(){let e=this._lang;return this._triggerType==="threshold"?r`
         <ms-textfield
           label="${i("trigger_above",e)}"
           type="number"
@@ -2621,15 +2622,7 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
                   .value=${this._intervalDays}
                   @input=${a=>this._intervalDays=a.target.value}
                 ></ms-textfield>
-                <div class="select-row">
-                  <label>${i("interval_unit",e)}</label>
-                  <select
-                    .value=${this._intervalUnit}
-                    @change=${a=>this._intervalUnit=a.target.value}
-                  >
-                    ${["days","weeks","months","years"].map(a=>r`<option value=${a} ?selected=${a===this._intervalUnit}>${i("unit_"+a,e)}</option>`)}
-                  </select>
-                </div>
+                ${this._renderUnitSelect()}
                 <div class="select-row">
                   <label>${i("interval_anchor",e)}</label>
                   <select

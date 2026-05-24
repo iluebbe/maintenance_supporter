@@ -768,20 +768,26 @@ export class MaintenanceTaskDialog extends LitElement {
         .value=${this._intervalDays}
         @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
       ></ms-textfield>
-      ${this._intervalDays
-        ? html`<div class="select-row">
-            <label>${t("interval_unit", L)}</label>
-            <select
-              .value=${this._intervalUnit}
-              @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
-            >
-              ${["days", "weeks", "months", "years"].map(
-                (u) => html`<option value=${u} ?selected=${u === this._intervalUnit}>${t("unit_" + u, L)}</option>`
-              )}
-            </select>
-          </div>`
-        : nothing}
+      ${this._intervalDays ? this._renderUnitSelect() : nothing}
     `;
+  }
+
+  /** Shared interval-unit dropdown (DRY: time-based interval + sensor safety
+   *  interval). Bound to _intervalUnit; options localized via unit_* keys. */
+  private _renderUnitSelect() {
+    const L = this._lang;
+    return html`
+      <div class="select-row">
+        <label>${t("interval_unit", L)}</label>
+        <select
+          .value=${this._intervalUnit}
+          @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
+        >
+          ${["days", "weeks", "months", "years"].map(
+            (u) => html`<option value=${u} ?selected=${u === this._intervalUnit}>${t("unit_" + u, L)}</option>`
+          )}
+        </select>
+      </div>`;
   }
 
   private _renderTriggerTypeFields() {
@@ -924,17 +930,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   .value=${this._intervalDays}
                   @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
                 ></ms-textfield>
-                <div class="select-row">
-                  <label>${t("interval_unit", L)}</label>
-                  <select
-                    .value=${this._intervalUnit}
-                    @change=${(e: Event) => (this._intervalUnit = (e.target as HTMLSelectElement).value)}
-                  >
-                    ${["days", "weeks", "months", "years"].map(
-                      (u) => html`<option value=${u} ?selected=${u === this._intervalUnit}>${t("unit_" + u, L)}</option>`
-                    )}
-                  </select>
-                </div>
+                ${this._renderUnitSelect()}
                 <div class="select-row">
                   <label>${t("interval_anchor", L)}</label>
                   <select
