@@ -84,12 +84,10 @@ async def test_calendar_event_property(
 
     # The calendar entity is disabled by default - access it directly
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     # The event property should return the next upcoming event
     event = cal_entity.event
@@ -108,12 +106,10 @@ async def test_calendar_async_get_events(
 
     # Get the calendar entity
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
     events = await cal_entity.async_get_events(
@@ -138,12 +134,10 @@ async def test_calendar_manual_task_no_trigger(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
     events = await cal_entity.async_get_events(
@@ -167,12 +161,10 @@ async def test_calendar_disabled_task_no_event(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
     events = await cal_entity.async_get_events(
@@ -210,12 +202,10 @@ async def test_calendar_sensor_triggered_no_due_date(
         runtime_data.coordinator.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] = True
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
     events = await cal_entity.async_get_events(
@@ -242,12 +232,10 @@ async def test_calendar_event_out_of_range(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
     # Only query next 7 days - task due in 300 days shouldn't appear
@@ -271,12 +259,10 @@ async def test_calendar_overdue_event(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
     events = await cal_entity.async_get_events(
@@ -300,12 +286,10 @@ async def test_calendar_date_objects(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_comp = hass.data.get("entity_components", {}).get("calendar")
-    if entity_comp is None:
-        pytest.skip("Calendar entity component not available")
+    assert entity_comp is not None, "calendar entity component should exist after setup"
 
     cal_entity = entity_comp.get_entity("calendar.maintenance_schedule")
-    if cal_entity is None:
-        pytest.skip("Calendar entity not found")
+    assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     # Call with plain date objects instead of datetime
     start = dt_util.now().date()

@@ -301,8 +301,7 @@ async def test_calendar_reflects_three_objects(
     await setup_integration(hass, global_entry, obj1, obj2, obj3)
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
     events = await calendar.async_get_events(
@@ -332,8 +331,7 @@ async def test_calendar_after_object_unload(
     await setup_integration(hass, global_entry, obj1, obj2, obj3)
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
     events_before = await calendar.async_get_events(
@@ -372,8 +370,7 @@ async def test_calendar_event_updates_after_task_completion(
     await setup_integration(hass, global_entry, obj1)
 
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
-    if calendar is None:
-        pytest.skip("Calendar entity not created")
+    assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
     events_before = await calendar.async_get_events(
