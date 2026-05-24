@@ -195,6 +195,8 @@ async def ws_vacation_preview(
                     "schedule_type": sched["schedule_type"],
                     "interval_days": sched["interval_days"],
                     "interval_unit": sched["interval_unit"],
+                    # Nested schedule so the preview can project calendar kinds.
+                    "schedule": task_data.get("schedule"),
                     "warning_days": task_data.get("warning_days", 7),
                     "last_performed": task_data.get("last_performed"),
                     "created_at": task_data.get("created_at"),
