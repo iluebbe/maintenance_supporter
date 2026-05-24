@@ -872,6 +872,28 @@
           "go_back": "Tornare al menu principale senza salvare."
         }
       },
+      "opt_calendar": {
+        "title": "Pianificazione a calendario",
+        "description": "Configura una ricorrenza basata sul calendario (giorni della settimana, n-esimo giorno della settimana del mese o un giorno del mese).",
+        "data": {
+          "weekdays": "In questi giorni della settimana",
+          "nth": "Quale occorrenza",
+          "weekday": "Giorno della settimana",
+          "day": "Giorno del mese",
+          "last_performed": "Ultima esecuzione",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro"
+        },
+        "data_description": {
+          "weekdays": "L'attività si ripete in ogni giorno della settimana selezionato.",
+          "nth": "Quale occorrenza nel mese (es. 1ª, o Ultima).",
+          "weekday": "Il giorno della settimana per la regola dell'n-esimo giorno (es. sabato).",
+          "day": "Giorno del mese (1-31; limitato alla durata del mese).",
+          "last_performed": "Quando è stata eseguita l'ultima volta questa manutenzione. Lascia vuoto se mai eseguita.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "go_back": "Tornare al menu principale senza salvare."
+        }
+      },
       "opt_manual": {
         "title": "Pianificazione manuale",
         "description": "Questa attività non ha una pianificazione automatica. Puoi segnarla come da fare manualmente.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Temporale",
+        "weekdays": "Giorni della settimana",
+        "nth_weekday": "N-esimo giorno della settimana del mese",
+        "day_of_month": "Giorno del mese",
         "sensor_based": "Basato su sensore",
         "one_time": "Una tantum",
         "manual": "Manuale"

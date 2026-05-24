@@ -779,6 +779,28 @@
           "go_back": "Zum Hauptmenü zurückkehren, ohne zu speichern."
         }
       },
+      "opt_calendar": {
+        "title": "Kalenderplan",
+        "description": "Konfigurieren Sie eine kalenderbasierte Wiederholung (Wochentage, n-ter Wochentag des Monats oder ein Tag im Monat).",
+        "data": {
+          "weekdays": "An diesen Wochentagen",
+          "nth": "Welches Vorkommen",
+          "weekday": "Wochentag",
+          "day": "Tag des Monats",
+          "last_performed": "Zuletzt durchgeführt",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück"
+        },
+        "data_description": {
+          "weekdays": "Die Aufgabe wiederholt sich an jedem ausgewählten Wochentag.",
+          "nth": "Welches Vorkommen im Monat (z. B. 1. oder Letzter).",
+          "weekday": "Der Wochentag für die Regel des n-ten Wochentags (z. B. Samstag).",
+          "day": "Tag des Monats (1-31; auf die Länge des Monats begrenzt).",
+          "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, falls nie.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, an denen eine Warnung angezeigt wird.",
+          "go_back": "Zum Hauptmenü zurückkehren, ohne zu speichern."
+        }
+      },
       "opt_manual": {
         "title": "Manueller Plan",
         "description": "Diese Aufgabe hat keinen automatischen Zeitplan. Sie können sie manuell als fällig markieren.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Zeitbasiert",
+        "weekdays": "Wochentage",
+        "nth_weekday": "N-ter Wochentag des Monats",
+        "day_of_month": "Tag des Monats",
         "sensor_based": "Sensorbasiert",
         "one_time": "Einmalig",
         "manual": "Manuell"

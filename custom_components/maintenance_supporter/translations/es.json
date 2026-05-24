@@ -872,6 +872,28 @@
           "go_back": "Volver al menú principal sin guardar."
         }
       },
+      "opt_calendar": {
+        "title": "Programación por calendario",
+        "description": "Configura una recurrencia basada en el calendario (días de la semana, n-ésimo día de la semana del mes o un día del mes).",
+        "data": {
+          "weekdays": "En estos días de la semana",
+          "nth": "Qué aparición",
+          "weekday": "Día de la semana",
+          "day": "Día del mes",
+          "last_performed": "Última realización",
+          "warning_days": "Días de aviso antes del vencimiento",
+          "go_back": "Volver"
+        },
+        "data_description": {
+          "weekdays": "La tarea se repite cada día de la semana seleccionado.",
+          "nth": "Qué aparición en el mes (p. ej., 1.ª, o Última).",
+          "weekday": "El día de la semana para la regla del n-ésimo día (p. ej., sábado).",
+          "day": "Día del mes (1-31; ajustado a la duración del mes).",
+          "last_performed": "Cuándo se realizó por última vez este mantenimiento. Déjelo vacío si nunca se ha hecho.",
+          "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
+          "go_back": "Volver al menú principal sin guardar."
+        }
+      },
       "opt_manual": {
         "title": "Programación manual",
         "description": "Esta tarea no tiene programación automática. Puede marcarla como pendiente manualmente.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Temporal",
+        "weekdays": "Días de la semana",
+        "nth_weekday": "N-ésimo día de la semana del mes",
+        "day_of_month": "Día del mes",
         "sensor_based": "Basado en sensor",
         "one_time": "Una vez",
         "manual": "Manual"

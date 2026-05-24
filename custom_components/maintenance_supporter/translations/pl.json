@@ -872,6 +872,28 @@
           "go_back": "Wróć do menu głównego bez zapisywania."
         }
       },
+      "opt_calendar": {
+        "title": "Harmonogram kalendarzowy",
+        "description": "Skonfiguruj powtarzanie oparte na kalendarzu (dni tygodnia, n-ty dzień tygodnia w miesiącu lub dzień miesiąca).",
+        "data": {
+          "weekdays": "W te dni tygodnia",
+          "nth": "Które wystąpienie",
+          "weekday": "Dzień tygodnia",
+          "day": "Dzień miesiąca",
+          "last_performed": "Ostatnio wykonano",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć"
+        },
+        "data_description": {
+          "weekdays": "Zadanie powtarza się w każdy wybrany dzień tygodnia.",
+          "nth": "Które wystąpienie w miesiącu (np. 1., lub Ostatnie).",
+          "weekday": "Dzień tygodnia dla reguły n-tego dnia tygodnia (np. sobota).",
+          "day": "Dzień miesiąca (1-31; ograniczony do długości miesiąca).",
+          "last_performed": "Kiedy ostatnio wykonano tę konserwację. Pozostaw puste, jeśli nigdy.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do menu głównego bez zapisywania."
+        }
+      },
       "opt_manual": {
         "title": "Harmonogram ręczny",
         "description": "To zadanie nie ma automatycznego harmonogramu. Możesz je oznaczyć jako wymagane ręcznie.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Czasowy",
+        "weekdays": "Dni tygodnia",
+        "nth_weekday": "N-ty dzień tygodnia w miesiącu",
+        "day_of_month": "Dzień miesiąca",
         "sensor_based": "Czujnikowy",
         "one_time": "Jednorazowo",
         "manual": "Ręczny"

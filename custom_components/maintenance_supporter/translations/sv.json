@@ -872,6 +872,28 @@
           "go_back": "Återgå till huvudmenyn utan att spara."
         }
       },
+      "opt_calendar": {
+        "title": "Kalenderschema",
+        "description": "Konfigurera en kalenderbaserad upprepning (veckodagar, n:te veckodagen i månaden eller en dag i månaden).",
+        "data": {
+          "weekdays": "På dessa veckodagar",
+          "nth": "Vilken förekomst",
+          "weekday": "Veckodag",
+          "day": "Dag i månaden",
+          "last_performed": "Senast utförd",
+          "warning_days": "Dagar för varning före förfall",
+          "go_back": "Tillbaka"
+        },
+        "data_description": {
+          "weekdays": "Uppgiften upprepas varje vald veckodag.",
+          "nth": "Vilken förekomst i månaden (t.ex. 1:a, eller Sista).",
+          "weekday": "Veckodagen för regeln om n:te veckodagen (t.ex. lördag).",
+          "day": "Dag i månaden (1-31; begränsad till månadens längd).",
+          "last_performed": "När detta underhåll senast utfördes. Lämna tomt om aldrig.",
+          "warning_days": "Antal dagar före förfallodagen då en varning visas.",
+          "go_back": "Återgå till huvudmenyn utan att spara."
+        }
+      },
       "opt_manual": {
         "title": "Manuellt schema",
         "description": "Denna uppgift har inget automatiskt schema. Du kan markera den som förfallen manuellt.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Tidsbaserad",
+        "weekdays": "Veckodagar",
+        "nth_weekday": "N:te veckodagen i månaden",
+        "day_of_month": "Dag i månaden",
         "sensor_based": "Sensorbaserad",
         "one_time": "Engångs",
         "manual": "Manuell"

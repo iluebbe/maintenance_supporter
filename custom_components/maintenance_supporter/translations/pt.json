@@ -872,6 +872,28 @@
           "go_back": "Regressar ao menu principal sem guardar."
         }
       },
+      "opt_calendar": {
+        "title": "Agendamento por Calendário",
+        "description": "Configure uma recorrência baseada no calendário (dias da semana, n-ésimo dia da semana do mês ou um dia do mês).",
+        "data": {
+          "weekdays": "Nestes dias da semana",
+          "nth": "Que ocorrência",
+          "weekday": "Dia da semana",
+          "day": "Dia do mês",
+          "last_performed": "Última execução",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar"
+        },
+        "data_description": {
+          "weekdays": "A tarefa repete-se em cada dia da semana selecionado.",
+          "nth": "Que ocorrência no mês (por ex., 1.º, ou Último).",
+          "weekday": "O dia da semana para a regra do n-ésimo dia (por ex., sábado).",
+          "day": "Dia do mês (1-31; limitado à duração do mês).",
+          "last_performed": "Quando esta manutenção foi executada pela última vez. Deixe vazio se nunca.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar ao menu principal sem guardar."
+        }
+      },
       "opt_manual": {
         "title": "Agendamento Manual",
         "description": "Esta tarefa não tem agendamento automático. Pode marcá-la como pendente manualmente.",
@@ -1334,6 +1356,9 @@
     "schedule_type": {
       "options": {
         "time_based": "Baseado no tempo",
+        "weekdays": "Dias da semana",
+        "nth_weekday": "N-ésimo dia da semana do mês",
+        "day_of_month": "Dia do mês",
         "sensor_based": "Baseado em sensor",
         "one_time": "Única",
         "manual": "Manual"
