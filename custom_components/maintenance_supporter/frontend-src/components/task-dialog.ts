@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
-import { t } from "../styles";
+import { t, weekdayName } from "../styles";
 import { UserService } from "../user-service";
 
 import { describeWsError } from "../ws-errors";
@@ -14,13 +14,9 @@ const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_mon
 const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
 
-/** Short localized weekday names (0=Mon … 6=Sun), via Intl — no i18n keys. */
+/** Short localized weekday names (0=Mon … 6=Sun) — uses the shared weekdayName (DRY). */
 function weekdayNames(lang?: string): string[] {
-  const locale = (lang || "en").substring(0, 2);
-  // 2024-01-01 is a Monday; format the 7 days following it.
-  return Array.from({ length: 7 }, (_, i) =>
-    new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, { weekday: "short", timeZone: "UTC" })
-  );
+  return Array.from({ length: 7 }, (_, i) => weekdayName(i, lang, "short"));
 }
 
 export class MaintenanceTaskDialog extends LitElement {

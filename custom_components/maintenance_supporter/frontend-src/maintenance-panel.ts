@@ -2,7 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays, formatInterval } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { daysProgress } from "./helpers/interval";
 import { panelStyles } from "./panel-styles";
 import type {
@@ -1992,7 +1992,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("interval", L)}</div>
-          <div class="kpi-value">${task.interval_days != null ? formatInterval(task.interval_days, task.interval_unit, L) : "—"}</div>
+          <div class="kpi-value">${formatRecurrence(task, L)}</div>
           ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
             <div class="kpi-subtext">${t("recommended", L)}: ${task.suggested_interval}${task.interval_analysis?.confidence_interval_low != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""}</div>
           ` : nothing}
