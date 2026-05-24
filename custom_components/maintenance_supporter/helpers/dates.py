@@ -9,6 +9,7 @@ drift you get from approximating "monthly" as 30 days.
 from __future__ import annotations
 
 import calendar
+from collections.abc import Iterator
 from datetime import date, timedelta
 
 INTERVAL_UNITS = ("days", "weeks", "months", "years")
@@ -85,7 +86,7 @@ def next_weekday_in_set(
     return None  # unreachable for a non-empty set
 
 
-def _iter_months(year: int, month: int, limit: int = 60):
+def _iter_months(year: int, month: int, limit: int = 60) -> Iterator[tuple[int, int]]:
     """Yield ``(year, month)`` forward from the given month, ``limit`` times."""
     for _ in range(limit):
         yield year, month

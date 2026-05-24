@@ -216,10 +216,12 @@ def _recurrence_text(task: MaintenanceTask, lang: str) -> str:
     raw = task.schedule_raw if isinstance(task.schedule_raw, dict) else None
     kind = raw.get("kind") if raw else None
     if raw is not None and kind in ("weekdays", "nth_weekday", "day_of_month"):
-        from babel.dates import get_day_names  # HA dependency; lazy import
-
         loc = lang or "en"
         try:
+            # babel (HA-provided) gives locale-correct weekday names; degrade
+            # gracefully (no label) if it is somehow absent, never crash.
+            from babel.dates import get_day_names
+
             if kind == "weekdays":
                 names = get_day_names("abbreviated", locale=loc)
                 days = [d for d in raw.get("weekdays") or [] if isinstance(d, int) and 0 <= d <= 6]
@@ -234,7 +236,7 @@ def _recurrence_text(task: MaintenanceTask, lang: str) -> str:
             # day_of_month
             day = raw.get("day")
             return f"{_cal_t('cal_day', lang)} {day}" if isinstance(day, int) else ""
-        except (KeyError, LookupError, ValueError):
+        except (ImportError, KeyError, LookupError, ValueError):
             return ""
     # interval / legacy flat → real day-span
     return (
