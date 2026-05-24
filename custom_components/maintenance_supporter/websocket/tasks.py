@@ -36,7 +36,11 @@ from ..const import (
     HistoryEntryType,
 )
 from ..helpers.dates import INTERVAL_UNITS
-from ..helpers.schedule import normalize_task_storage
+from ..helpers.schedule import (
+    FLAT_RECURRENCE_KEYS,
+    Schedule,
+    normalize_task_storage,
+)
 from . import (
     _build_task_summary,
     _get_merged_tasks,
@@ -386,6 +390,9 @@ async def async_create_task_simple(
         vol.Optional("interval_unit", default="days"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor", default="completion"): vol.In(["completion", "planned"]),
+        # Nested recurrence (calendar kinds: weekdays / nth_weekday / day_of_month).
+        # Validated/canonicalized in the handler via Schedule.from_dict.
+        vol.Optional("schedule"): vol.Any(dict, None),
         vol.Optional("warning_days", default=7): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
@@ -436,7 +443,6 @@ async def ws_create_task(
         "name": name,
         "type": msg.get("task_type", "custom"),
         "enabled": msg.get("enabled", True),
-        "schedule_type": msg.get("schedule_type", "time_based"),
         "warning_days": msg.get("warning_days", 7),
         # Anchor for next_due fallback when last_performed is None (issue #30).
         # Use HA's timezone-aware "today" to match next_due computation.
@@ -447,14 +453,20 @@ async def ws_create_task(
     initial_last_performed: str | None = None
     initial_history: list[dict[str, Any]] = []
 
-    if msg.get("interval_days") is not None:
-        task_data["interval_days"] = msg["interval_days"]
-    if msg.get("interval_unit", "days") != "days":
-        task_data["interval_unit"] = msg["interval_unit"]
-    if msg.get("due_date") is not None:
-        task_data["due_date"] = msg["due_date"]
-    if msg.get("interval_anchor", "completion") != "completion":
-        task_data["interval_anchor"] = msg["interval_anchor"]
+    # Recurrence: an explicit nested `schedule` (calendar kinds) takes
+    # precedence; otherwise build from the flat v2.6.x fields.
+    if msg.get("schedule"):
+        task_data["schedule"] = Schedule.from_dict(msg["schedule"]).to_dict()
+    else:
+        task_data["schedule_type"] = msg.get("schedule_type", "time_based")
+        if msg.get("interval_days") is not None:
+            task_data["interval_days"] = msg["interval_days"]
+        if msg.get("interval_unit", "days") != "days":
+            task_data["interval_unit"] = msg["interval_unit"]
+        if msg.get("due_date") is not None:
+            task_data["due_date"] = msg["due_date"]
+        if msg.get("interval_anchor", "completion") != "completion":
+            task_data["interval_anchor"] = msg["interval_anchor"]
     if msg.get("last_performed") is not None:
         try:
             date.fromisoformat(msg["last_performed"])
@@ -564,6 +576,8 @@ async def ws_create_task(
         vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor"): vol.In(["completion", "planned"]),
+        # Nested recurrence (calendar kinds); see create schema.
+        vol.Optional("schedule"): vol.Any(dict, None),
         vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
@@ -682,6 +696,17 @@ async def ws_update_task(
     for msg_key, data_key in field_map.items():
         if msg_key in msg:
             task[data_key] = msg[msg_key]
+
+    # Recurrence resolution: an explicit nested `schedule` wins (calendar kinds
+    # and kind-switches); otherwise flat recurrence fields drive it — drop any
+    # stale nested schedule so normalize_task_storage rebuilds from the flat view.
+    if msg.get("schedule"):
+        for key in FLAT_RECURRENCE_KEYS:
+            task.pop(key, None)
+        task["schedule"] = Schedule.from_dict(msg["schedule"]).to_dict()
+    elif any(key in msg for key in FLAT_RECURRENCE_KEYS):
+        task.pop("schedule", None)
+
     # Validate/cap newly-applied v1.3.0 fields. cap_task_fields runs the
     # full task sanitize (caches, lengths, action shape) so update-path
     # behaves identically to create-path.

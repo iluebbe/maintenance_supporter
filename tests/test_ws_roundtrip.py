@@ -584,6 +584,30 @@ async def test_update_clears_optional_field_with_none(
     assert task.get("notes") is None
 
 
+async def test_roundtrip_calendar_kind_create_and_switch(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Calendar kinds round-trip via the WS API: create as nth_weekday, then
+    switch the kind to day_of_month — both stored as the nested `schedule`."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    task_id, persisted = await _create_task_via_ws(
+        hass,
+        object_entry.entry_id,
+        {"name": "Smoke alarm", "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5}},
+    )
+    assert persisted["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
+
+    # Switch the recurrence kind via update.
+    task = await _update_task_via_ws(
+        hass, object_entry.entry_id, task_id,
+        {"schedule": {"kind": "day_of_month", "day": 15}},
+    )
+    assert task["schedule"] == {"kind": "day_of_month", "day": 15}
+
+
 async def test_update_clears_safety_interval_with_none(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
