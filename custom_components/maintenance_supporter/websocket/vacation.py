@@ -192,6 +192,7 @@ async def ws_vacation_preview(
                     "task_name": task_data.get("name", ""),
                     "schedule_type": task_data.get("schedule_type", "time_based"),
                     "interval_days": task_data.get("interval_days"),
+                    "interval_unit": task_data.get("interval_unit"),
                     "warning_days": task_data.get("warning_days", 7),
                     "last_performed": task_data.get("last_performed"),
                     "created_at": task_data.get("created_at"),

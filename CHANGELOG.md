@@ -24,6 +24,17 @@ works on **every** create/edit/round-trip path:
 (The Lovelace **card / dashboard** create + edit already use the shared task
 dialog, so they were covered automatically.)
 
+### 🐛 Audit fixes — unit-aware consumers
+
+A fresh-eyes audit found three more places that still treated the interval as raw days:
+- **Vacation preview** projected a 6-month task as due in 6 *days* — now calendar-aware.
+- **Calendar entity** event description showed "3 days" for a 3-month task — now shows the real day-span.
+- **Adaptive scheduling** (days-based by design) could corrupt a weeks/months/years task's schedule when a suggestion was applied (`interval_days` overwritten, unit left intact); adaptive is now restricted to day-unit tasks, with a defensive guard on apply.
+
+### 🧹 Internal — DRY
+
+Single-sourced the interval-unit plumbing that had been copy-pasted while threading the feature through every surface: shared `interval_unit_selector()` + `apply_interval_unit()` config-flow helpers, a frontend `_renderUnitSelect()`, and all unit literals now flow from `INTERVAL_UNITS`.
+
 ## [2.6.3] - 2026-05-24
 
 ### 🐛 Weeks/months/years units now render correctly in the UI (#59)
