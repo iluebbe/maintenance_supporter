@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.7.1] - 2026-05-25
+
+### 🐛 Compound-trigger editing in Settings → Options was broken
+
+Editing a task's **compound** trigger from **Settings → Options → Edit Trigger** raised an internal `UnknownStep` error as soon as the logic form was submitted — the options-flow compound steps were registered under names that didn't match the form IDs Home Assistant routes to. Compound triggers can be created and edited there again. (Creating a compound trigger during initial object/task setup was unaffected — only the options-flow edit path broke.)
+
+### 🧹 Internal — testing & CI hardening
+
+- **Test coverage raised to 98%** (from ~95%) and enforced in CI (`--cov-fail-under=98`) on Python 3.13 and 3.14, so regressions can't slip in.
+- CI now type-checks with `mypy --strict` (the schedule/calendar code is fully annotated) and provides `babel` for the localized calendar-entity labels.
+- Dependency: `qs` 6.15.1 → 6.15.2 in the dev/test toolchain (Dependabot).
+- Docs: refreshed test/coverage stats and replaced the stale per-module tables in ARCHITECTURE with a regenerate-on-demand command.
+
 ## [2.7.0] - 2026-05-24
 
 ### ✨ Calendar-pattern schedules

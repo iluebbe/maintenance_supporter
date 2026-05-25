@@ -590,127 +590,18 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 **2,030 tests** across **89 test files** with **98% code coverage**.
 
-### Coverage by Module
+### Coverage policy
 
-| Module | Stmts | Miss | Cover |
-|--------|-------|------|-------|
-| `__init__.py` | 246 | 6 | 98% |
-| `coordinator.py` | 528 | 9 | 98% |
-| `sensor.py` | 201 | 6 | 97% |
-| `binary_sensor.py` | 81 | 7 | 91% |
-| `calendar.py` | 124 | 0 | 100% |
-| `config_flow.py` | 260 | 14 | 95% |
-| `config_flow_helpers.py` | 22 | 3 | 86% |
-| `config_flow_options_task.py` | 523 | 11 | 98% |
-| `config_flow_options_global.py` | 148 | 0 | 100% |
-| `config_flow_trigger.py` | 335 | 50 | 85% |
-| `const.py` | 177 | 0 | 100% |
-| `diagnostics.py` | 103 | 2 | 98% |
-| `repairs.py` | 135 | 0 | 100% |
-| `panel.py` | 31 | 0 | 100% |
-| `templates.py` | 25 | 0 | 100% |
-| `storage.py` | 152 | 3 | 98% |
-| `export.py` | 51 | 4 | 92% |
-| **Triggers** | | | |
-| `base_trigger.py` | 121 | 2 | 98% |
-| `threshold.py` | 53 | 1 | 98% |
-| `counter.py` | 55 | 5 | 91% |
-| `state_change.py` | 85 | 4 | 95% |
-| `runtime.py` | 161 | 3 | 98% |
-| `compound.py` | 145 | 0 | 100% |
-| `triggers/__init__.py` | 89 | 1 | 99% |
-| **Helpers** | | | |
-| `interval_analyzer.py` | 314 | 10 | 97% |
-| `sensor_predictor.py` | 276 | 9 | 97% |
-| `notification_manager.py` | 267 | 6 | 98% |
-| `entity_analyzer.py` | 127 | 4 | 97% |
-| `entity_attributes.py` | 25 | 0 | 100% |
-| `threshold_calculator.py` | 61 | 0 | 100% |
-| `csv_handler.py` | 81 | 6 | 93% |
-| `qr_generator.py` | 69 | 2 | 97% |
-| **WebSocket** | | | |
-| `websocket/__init__.py` | 128 | 0 | 100% |
-| `websocket/tasks.py` | 343 | 2 | 99% |
-| `websocket/objects.py` | 81 | 0 | 100% |
-| `websocket/analysis.py` | 124 | 0 | 100% |
-| `websocket/users.py` | 66 | 0 | 100% |
-| `websocket/io.py` | 91 | 10 | 89% |
-| `websocket/dashboard.py` | 195 | 3 | 98% |
-| `websocket/groups.py` | 80 | 1 | 99% |
-| `websocket/tags.py` | 23 | 0 | 100% |
-| **TOTAL** | **6,934** | **248** | **96%** |
+Coverage is enforced in CI at **≥ 98%** (`--cov-fail-under=98`, on Python 3.13
+and 3.14). The vendored QR library (`helpers/qrcodegen.py`, Project Nayuki, MIT)
+is excluded from the metric via `[tool.coverage.run]` in `pyproject.toml`.
+Genuinely-unreachable defensive branches are marked `# pragma: no cover` with a
+reason. Regenerate the live per-module / per-file breakdown any time with:
 
-### Test Files
-
-| Test File | Tests | Scope |
-|-----------|-------|-------|
-| `test_triggers.py` | 85 | All trigger types, multi-entity, edge cases |
-| `test_adaptive_scheduling.py` | 55 | EWA, Weibull, interval computation |
-| `test_coverage_97.py` | 50 | Coverage batch 1: WS, coordinator, config flow edges |
-| `test_sensor_predictions.py` | 45 | Degradation analysis, threshold prediction |
-| `test_options_task.py` | 44 | Task options flow |
-| `test_ws_task_handlers.py` | 42 | WebSocket task CRUD + actions |
-| `test_sensor_predictor.py` | 41 | Pure unit tests for sensor_predictor |
-| `test_coverage_final.py` | 41 | Helper functions, diagnostics, budget edges |
-| `test_phase2_features.py` | 38 | Checklist, groups, budgets, export/CSV fields |
-| `test_seasonal_scheduling.py` | 35 | Seasonal factors, hemisphere support |
-| `test_storage.py` | 34 | Store CRUD, merge helpers, extract_dynamic, compound keys |
-| `test_options_flow.py` | 34 | Options flow management |
-| `test_notifications.py` | 32 | Notification delivery, quiet hours, bundling, dismiss |
-| `test_notification_deep.py` | 29 | Notification edge cases |
-| `test_config_flow.py` | 28 | Config flow steps, validation |
-| `test_interval_anchor.py` | 26 | Interval anchoring: completion vs planned mode, edge cases, serialization |
-| `test_options_global.py` | 26 | Global options flow |
-| `test_coordinator_prediction.py` | 25 | Sensor prediction, fallback triggers, budget |
-| `test_ws_dashboard.py` | 24 | WS dashboard commands |
-| `test_issue_fixes.py` | 24 | Regression tests for bug fixes |
-| `test_coverage_97c.py` | 24 | Coverage batch 3: sensor predictor, interval analyzer, coordinator, notifications |
-| `test_status_computation.py` | 21 | Status logic (OK, DUE_SOON, OVERDUE) |
-| `test_qr_generation.py` | 21 | QR URL building, SVG generation |
-| `test_coordinator.py` | 21 | Coordinator core logic |
-| `test_ws_objects.py` | 20 | WS object CRUD, task summary fields |
-| `test_trigger_events.py` | 19 | Event-driven trigger state changes |
-| `test_entity_analyzer.py` | 19 | Entity discovery + stats |
-| `test_coverage_97b.py` | 19 | Coverage batch 2: task options flow, trigger config flow |
-| `test_compound_trigger.py` | 19 | Compound trigger scenarios |
-| `test_ws_groups.py` | 18 | WS group CRUD, cleanup_group_refs |
-| `test_ws_analysis.py` | 18 | WS analysis commands |
-| `test_config_flow_template.py` | 18 | Object template creation |
-| `test_edge_cases.py` | 17 | Boundary conditions, error handling |
-| `test_ws_io.py` | 15 | WS import/export/QR |
-| `test_sensor_trigger_attrs.py` | 15 | Trigger-specific sensor attributes |
-| `test_panel_threshold.py` | 15 | Panel + threshold calculator |
-| `test_lifecycle_coverage.py` | 15 | Entity lifecycle, setup/teardown coverage |
-| `test_entity_attributes.py` | 15 | Entity attribute introspection: domain mapping, WS endpoint, filtering |
-| `test_sensor_attributes.py` | 14 | Sensor attribute computation |
-| `test_repair_flow.py` | 14 | Repair flow steps |
-| `test_calendar_unit.py` | 14 | Calendar event generation |
-| `test_custom_icon_nfc.py` | 13 | Custom icons, NFC tag linking, task serialization |
-| `test_coordinator_deep.py` | 13 | Coordinator deep coverage |
-| `test_panel_frontend_integration.py` | 12 | Panel registration, frontend integration |
-| `test_migration.py` | 12 | One-time migration, idempotency, crash recovery |
-| `test_entity_removal.py` | 12 | Entity/device/attribute removal |
-| `test_init_services.py` | 13 | Service handlers, unload, notification actions |
-| `test_config_flow_trigger.py` | 11 | Trigger config flow steps |
-| `test_binary_sensor.py` | 11 | Binary sensor platform: creation, is_on logic, attributes, lifecycle |
-| `test_ws_users.py` | 10 | WS user management |
-| `test_sensor_deep.py` | 8 | Sensor edge cases |
-| `test_repairs_legacy.py` | 8 | Legacy repair flow compatibility |
-| `test_integration_flows.py` | 8 | End-to-end integration flow tests |
-| `test_entity_lifecycle.py` | 8 | Entity setup/teardown |
-| `test_diagnostics.py` | 8 | Diagnostic data, PII redaction |
-| `test_compound_legacy.py` | 8 | Legacy compound trigger compatibility |
-| `test_calendar_deep.py` | 8 | Calendar edge cases |
-| `test_settings_sync.py` | 7 | Panel settings ↔ config flow sync verification |
-| `test_services.py` | 7 | Complete, skip, reset services |
-| `test_error_recovery.py` | 7 | Error recovery, graceful degradation |
-| `test_coordinator_legacy.py` | 7 | Legacy coordinator compatibility |
-| `test_ws_tags.py` | 6 | WS NFC tag listing |
-| `test_notify_status_transition.py` | 5 | Notification status transition edge cases |
-| `test_calendar.py` | 5 | Calendar basic tests |
-| `test_restart_resilience.py` | 4 | HA restart state preservation |
-| `test_concurrent_operations.py` | 4 | Concurrent operation safety |
-| `test_calendar_integration.py` | 4 | Calendar integration with HA |
+```bash
+docker exec ha-maint sh -c 'cd /config && python -m pytest tests/ \
+  --cov=custom_components/maintenance_supporter --cov-report=term-missing'
+```
 
 ---
 
