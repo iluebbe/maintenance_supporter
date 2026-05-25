@@ -63,7 +63,7 @@ jobs:
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       - name: Run tests
-        run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=97
+        run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=98
 
   docker-smoke:
     name: Docker smoke (HA starts with integration)
