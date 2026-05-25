@@ -83,7 +83,7 @@ def next_weekday_in_set(
         candidate = start + timedelta(days=offset)
         if candidate.weekday() in weekdays:
             return candidate
-    return None  # unreachable for a non-empty set
+    return None  # pragma: no cover  (unreachable: a non-empty weekday set always matches within 7 days)
 
 
 def _iter_months(year: int, month: int, limit: int = 60) -> Iterator[tuple[int, int]]:

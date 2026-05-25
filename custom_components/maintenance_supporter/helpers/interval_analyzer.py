@@ -473,10 +473,10 @@ class IntervalAnalyzer:
         # eta = exp(-b / beta)
         try:
             eta = math.exp(-b / beta)
-        except (OverflowError, ZeroDivisionError):
+        except (OverflowError, ZeroDivisionError):  # pragma: no cover  (defensive: beta>0 rules out div-zero; overflow needs pathological data)
             return None
 
-        if eta <= 0:
+        if eta <= 0:  # pragma: no cover  (math.exp is always > 0)
             return None
 
         # Compute R-squared for goodness-of-fit
