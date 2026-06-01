@@ -28,6 +28,7 @@ from .const import (
     CONF_BUDGET_YEARLY,
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_INTERVAL_DAYS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
     EVENT_TASK_COMPLETED,
@@ -288,7 +289,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
                             # Urgency check: threshold will be reached sooner
                             # than the current maintenance interval
-                            current_interval = task.interval_days or 30
+                            current_interval = (
+                                task.interval_days or DEFAULT_INTERVAL_DAYS
+                            )
                             suggested = task_result.get("_suggested_interval")
                             effective_interval = suggested or current_interval
                             if (
@@ -992,7 +995,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 analyzer = IntervalAnalyzer()
                 # Store the base interval for blending reference
                 if "base_interval" not in task.adaptive_config:
-                    task.adaptive_config["base_interval"] = task.interval_days or 30
+                    task.adaptive_config["base_interval"] = (
+                        task.interval_days or DEFAULT_INTERVAL_DAYS
+                    )
                 # Inject hemisphere, current month/date for seasonal awareness
                 task.adaptive_config["hemisphere"] = (
                     "south" if self.hass.config.latitude < 0 else "north"

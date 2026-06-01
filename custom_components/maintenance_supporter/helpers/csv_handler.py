@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
@@ -111,7 +112,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "due_date": sched["due_date"] or "",
                     "interval_anchor": sched["interval_anchor"],
                     "schedule_time": tdata.get("schedule_time", ""),
-                    "warning_days": tdata.get("warning_days", 7),
+                    "warning_days": tdata.get("warning_days", DEFAULT_WARNING_DAYS),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": _csv_safe(tdata.get("notes", "")),
                     "documentation_url": _csv_safe(tdata.get("documentation_url", "")),

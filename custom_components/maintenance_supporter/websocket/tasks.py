@@ -19,6 +19,7 @@ from ..const import (
     CONF_OBJECT,
     CONF_OBJECT_NAME,
     CONF_TASKS,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_CHECKLIST_ITEM_LENGTH,
@@ -448,7 +449,7 @@ async def ws_create_task(
         "name": name,
         "type": msg.get("task_type", "custom"),
         "enabled": msg.get("enabled", True),
-        "warning_days": msg.get("warning_days", 7),
+        "warning_days": msg.get("warning_days", DEFAULT_WARNING_DAYS),
         # Anchor for next_due fallback when last_performed is None (issue #30).
         # Use HA's timezone-aware "today" to match next_due computation.
         "created_at": dt_util.now().date().isoformat(),

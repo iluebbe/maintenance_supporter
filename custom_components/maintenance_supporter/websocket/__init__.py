@@ -13,6 +13,7 @@ from ..const import (
     CONF_GROUPS,
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
@@ -120,7 +121,7 @@ def _build_task_summary(
         "schedule": schedule_obj,
         "last_planned_due": task_data.get("last_planned_due"),
         "schedule_time": task_data.get("schedule_time"),
-        "warning_days": task_data.get("warning_days", 7),
+        "warning_days": task_data.get("warning_days", DEFAULT_WARNING_DAYS),
         "last_performed": task_data.get("last_performed"),
         "notes": task_data.get("notes"),
         "documentation_url": task_data.get("documentation_url"),

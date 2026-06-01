@@ -34,6 +34,7 @@ from .entity.entity_base import MaintenanceEntity
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 from .helpers.schedule import read_legacy_fields
+from .helpers.status import compute_status_from_task_dict
 
 # (metric key in compute_status_counts, mdi icon) for the global summary sensors
 SUMMARY_METRICS: list[tuple[str, str]] = [
@@ -412,19 +413,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
     @staticmethod
     def _compute_live_status(task: dict[str, Any]) -> str:
         """Compute task status from coordinator data dict (mirrors MaintenanceTask.status)."""
-        if task.get("_trigger_active", False):
-            return MaintenanceStatus.TRIGGERED
-
-        days = task.get("_days_until_due")
-        if days is None:
-            return MaintenanceStatus.OK
-
-        warning_days = task.get("warning_days", 7)
-        if days < 0:
-            return MaintenanceStatus.OVERDUE
-        if days <= warning_days:
-            return MaintenanceStatus.DUE_SOON
-        return MaintenanceStatus.OK
+        return compute_status_from_task_dict(task)
 
 
 class MaintenanceSummarySensor(

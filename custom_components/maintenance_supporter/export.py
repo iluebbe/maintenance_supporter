@@ -10,7 +10,13 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_OBJECT, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
+from .const import (
+    CONF_OBJECT,
+    CONF_TASKS,
+    DEFAULT_WARNING_DAYS,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+)
 from .helpers.schedule import Schedule, read_legacy_fields
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,7 +55,7 @@ def _build_export_object(
             # nth_weekday / day_of_month) that the flat fields above can't.
             "schedule": Schedule.parse(tdata).to_dict(),
             "last_planned_due": tdata.get("last_planned_due"),
-            "warning_days": tdata.get("warning_days", 7),
+            "warning_days": tdata.get("warning_days", DEFAULT_WARNING_DAYS),
             "last_performed": tdata.get("last_performed"),
             "notes": tdata.get("notes"),
             "documentation_url": tdata.get("documentation_url"),

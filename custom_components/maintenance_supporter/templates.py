@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .const import DEFAULT_WARNING_DAYS
+
 
 @dataclass
 class TaskTemplate:
@@ -13,7 +15,7 @@ class TaskTemplate:
     type: str  # MaintenanceTypeEnum value
     schedule_type: str  # ScheduleType value
     interval_days: int | None = None
-    warning_days: int = 7
+    warning_days: int = DEFAULT_WARNING_DAYS
     notes: str | None = None
 
 
