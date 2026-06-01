@@ -18,6 +18,7 @@ from ..const import (
     CONF_VACATION_END,
     CONF_VACATION_EXEMPT_TASK_IDS,
     CONF_VACATION_START,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     MAX_ID_LENGTH,
 )
@@ -28,16 +29,7 @@ from . import _get_global_entry, _get_object_entries
 
 def _state_payload(hass: HomeAssistant) -> dict[str, Any]:
     """Serialise the current VacationState for the wire."""
-    s = get_vacation_state(hass)
-    return {
-        "enabled": s.enabled,
-        "start": s.start.isoformat() if s.start else None,
-        "end": s.end.isoformat() if s.end else None,
-        "buffer_days": s.buffer_days,
-        "exempt_task_ids": sorted(s.exempt_task_ids),
-        "is_active": s.is_active(),
-        "window_end": s.window_end.isoformat() if s.window_end else None,
-    }
+    return get_vacation_state(hass).as_wire_dict()
 
 
 @websocket_api.websocket_command(
@@ -197,7 +189,7 @@ async def ws_vacation_preview(
                     "interval_unit": sched["interval_unit"],
                     # Nested schedule so the preview can project calendar kinds.
                     "schedule": task_data.get("schedule"),
-                    "warning_days": task_data.get("warning_days", 7),
+                    "warning_days": task_data.get("warning_days", DEFAULT_WARNING_DAYS),
                     "last_performed": task_data.get("last_performed"),
                     "created_at": task_data.get("created_at"),
                     "enabled": task_data.get("enabled", True),

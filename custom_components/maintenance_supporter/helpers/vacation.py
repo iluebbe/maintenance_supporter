@@ -81,6 +81,45 @@ class VacationState:
             return False
         return task_id not in self.exempt_task_ids
 
+    def as_wire_dict(self) -> dict[str, Any]:
+        """Serialise for the WS wire. Single source for /vacation/state and the
+        /settings vacation embed, so the two can never drift."""
+        return {
+            "enabled": self.enabled,
+            "start": self.start.isoformat() if self.start else None,
+            "end": self.end.isoformat() if self.end else None,
+            "buffer_days": self.buffer_days,
+            "exempt_task_ids": sorted(self.exempt_task_ids),
+            "is_active": self.is_active(),
+            "window_end": self.window_end.isoformat() if self.window_end else None,
+        }
+
+    @classmethod
+    def from_options(cls, options: Mapping[str, Any]) -> VacationState:
+        """Build a VacationState from a global-entry options mapping.
+
+        Same coercion rules as :func:`get_vacation_state` but from an already
+        resolved options dict (used by the /settings embed, which may be passed
+        an empty mapping when no global entry exists).
+        """
+        raw_exempt = options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        exempt: list[str] = []
+        if isinstance(raw_exempt, list):
+            for x in raw_exempt:
+                if isinstance(x, str):
+                    stripped = x.strip()
+                    if stripped and len(stripped) <= 64:
+                        exempt.append(stripped)
+        return cls(
+            enabled=bool(options.get(CONF_VACATION_ENABLED, False)),
+            start=_coerce_date(options.get(CONF_VACATION_START)),
+            end=_coerce_date(options.get(CONF_VACATION_END)),
+            buffer_days=_coerce_buffer(
+                options.get(CONF_VACATION_BUFFER_DAYS, DEFAULT_VACATION_BUFFER_DAYS)
+            ),
+            exempt_task_ids=frozenset(exempt),
+        )
+
 
 def _coerce_date(value: Any) -> date | None:
     """Parse an ISO YYYY-MM-DD string from config; tolerant of None / junk."""
@@ -112,24 +151,7 @@ def _global_options(hass: HomeAssistant) -> Mapping[str, Any]:
 
 def get_vacation_state(hass: HomeAssistant) -> VacationState:
     """Read the current vacation state from the global config entry."""
-    opts = _global_options(hass)
-    raw_exempt = opts.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
-    exempt: list[str] = []
-    if isinstance(raw_exempt, list):
-        for x in raw_exempt:
-            if isinstance(x, str):
-                stripped = x.strip()
-                if stripped and len(stripped) <= 64:
-                    exempt.append(stripped)
-    return VacationState(
-        enabled=bool(opts.get(CONF_VACATION_ENABLED, False)),
-        start=_coerce_date(opts.get(CONF_VACATION_START)),
-        end=_coerce_date(opts.get(CONF_VACATION_END)),
-        buffer_days=_coerce_buffer(
-            opts.get(CONF_VACATION_BUFFER_DAYS, DEFAULT_VACATION_BUFFER_DAYS)
-        ),
-        exempt_task_ids=frozenset(exempt),
-    )
+    return VacationState.from_options(_global_options(hass))
 
 
 # ---------------------------------------------------------------------------

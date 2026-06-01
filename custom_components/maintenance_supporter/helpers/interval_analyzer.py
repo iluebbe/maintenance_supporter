@@ -26,6 +26,7 @@ from ..const import (
     DEFAULT_ADAPTIVE_MIN_INTERVAL,
     DEFAULT_ADAPTIVE_RELIABILITY_TARGET,
     DEFAULT_ADAPTIVE_WEIBULL_MIN,
+    DEFAULT_INTERVAL_DAYS,
     DEFAULT_SEASONAL_FACTOR_MAX,
     DEFAULT_SEASONAL_FACTOR_MIN,
     DEFAULT_SEASONAL_MIN_DATA,
@@ -116,7 +117,9 @@ class IntervalAnalyzer:
         Returns:
             IntervalAnalysis with all computed metrics and recommendation.
         """
-        current_interval = read_legacy_fields(task_data)["interval_days"] or 30
+        current_interval = (
+            read_legacy_fields(task_data)["interval_days"] or DEFAULT_INTERVAL_DAYS
+        )
         history = task_data.get("history", [])
         intervals = self._compute_intervals_from_history(history)
         data_points = len(intervals)
@@ -334,16 +337,19 @@ class IntervalAnalyzer:
         return config
 
     @staticmethod
-    def _compute_intervals_from_history(
-        history: list[dict[str, Any]],
-    ) -> list[int]:
-        """Extract days between consecutive COMPLETED entries from history.
+    def _completed_dates(history: list[dict[str, Any]]) -> list[datetime]:
+        """Parse COMPLETED history entries into a chronologically sorted list.
+
+        Single source for the timestamp parsing + naive-TZ normalisation +
+        sort step shared by the interval extractors. Naive timestamps from
+        legacy entries are treated as HA local TZ so month boundaries (used
+        for seasonal analysis) stay consistent with the rest of the codebase.
 
         Args:
             history: List of history entry dicts with 'timestamp' and 'type'.
 
         Returns:
-            List of intervals in days between consecutive completions.
+            Sorted list of completion datetimes (TZ-aware).
         """
         completed_dates: list[datetime] = []
         for entry in history:
@@ -355,16 +361,27 @@ class IntervalAnalyzer:
             try:
                 dt = datetime.fromisoformat(ts)
                 if dt.tzinfo is None:
-                    # Naive timestamps from legacy entries: treat as HA local TZ
-                    # to keep month boundaries (used for seasonal analysis)
-                    # consistent with the rest of the codebase.
                     dt = dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 completed_dates.append(dt)
             except (ValueError, TypeError):
                 continue
 
-        # Sort chronologically
         completed_dates.sort()
+        return completed_dates
+
+    @staticmethod
+    def _compute_intervals_from_history(
+        history: list[dict[str, Any]],
+    ) -> list[int]:
+        """Extract days between consecutive COMPLETED entries from history.
+
+        Args:
+            history: List of history entry dicts with 'timestamp' and 'type'.
+
+        Returns:
+            List of intervals in days between consecutive completions.
+        """
+        completed_dates = IntervalAnalyzer._completed_dates(history)
 
         # Compute intervals between consecutive completions
         intervals: list[int] = []
@@ -546,25 +563,7 @@ class IntervalAnalyzer:
         Returns:
             List of (interval_days, month) tuples.
         """
-        completed_dates: list[datetime] = []
-        for entry in history:
-            if entry.get("type") != "completed":
-                continue
-            ts = entry.get("timestamp")
-            if not ts:
-                continue
-            try:
-                dt = datetime.fromisoformat(ts)
-                if dt.tzinfo is None:
-                    # Naive timestamps from legacy entries: treat as HA local TZ
-                    # to keep month boundaries (used for seasonal analysis)
-                    # consistent with the rest of the codebase.
-                    dt = dt.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
-                completed_dates.append(dt)
-            except (ValueError, TypeError):
-                continue
-
-        completed_dates.sort()
+        completed_dates = IntervalAnalyzer._completed_dates(history)
 
         result: list[tuple[int, int]] = []
         for i in range(1, len(completed_dates)):
