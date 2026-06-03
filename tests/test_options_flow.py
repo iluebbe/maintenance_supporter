@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_OBJECT_AREA,
     CONF_OBJECT_INSTALLATION_DATE,
     CONF_PANEL_ENABLED,
+    CONF_PANEL_TITLE,
     CONF_RESPONSIBLE_USER_ID,
     CONF_TASK_DOCUMENTATION_URL,
     CONF_TASK_ENABLED,
@@ -116,6 +117,33 @@ async def test_global_options_update(
     assert global_config_entry.options[CONF_DEFAULT_WARNING_DAYS] == 14
     assert global_config_entry.options[CONF_NOTIFICATIONS_ENABLED] is True
     assert global_config_entry.options[CONF_NOTIFY_SERVICE] == "notify.my_phone"
+
+
+async def test_global_options_panel_title_saved_and_trimmed(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """general_settings persists a custom sidebar title, trimmed (#63)."""
+    await setup_integration(hass, global_config_entry)
+
+    result = await hass.config_entries.options.async_init(
+        global_config_entry.entry_id
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"next_step_id": "general_settings"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_PANEL_ENABLED: True,
+            CONF_PANEL_TITLE: "  Upkeep  ",
+        },
+    )
+    assert result["type"] == FlowResultType.MENU
+    # Stored value is stripped of surrounding whitespace.
+    assert global_config_entry.options[CONF_PANEL_TITLE] == "Upkeep"
 
 
 # ─── 4.2 Maintenance Options Flow ───────────────────────────────────────

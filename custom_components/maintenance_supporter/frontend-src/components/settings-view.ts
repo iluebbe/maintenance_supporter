@@ -16,6 +16,7 @@ interface SettingsResponse {
     notifications_enabled: boolean;
     notify_service: string;
     panel_enabled: boolean;
+    panel_title: string;
   };
   notifications: {
     due_soon_enabled: boolean;
@@ -343,6 +344,15 @@ export class MaintenanceSettingsView extends LitElement {
           <input type="checkbox" .checked=${g.panel_enabled}
             @change=${(e: Event) => this._updateSetting("panel_enabled", (e.target as HTMLInputElement).checked)} />
         </label>
+        ${g.panel_enabled ? html`
+          <label class="setting-row">
+            <span class="setting-label">${t("settings_panel_title", L)}</span>
+            <input type="text" .value=${g.panel_title ?? ""}
+              placeholder="Maintenance"
+              maxlength="50"
+              @change=${(e: Event) => this._updateSetting("panel_title", (e.target as HTMLInputElement).value.trim())} />
+          </label>
+        ` : ""}
         <label class="setting-row">
           <span class="setting-label">${t("settings_notifications", L)}</span>
           <input type="checkbox" .checked=${g.notifications_enabled}

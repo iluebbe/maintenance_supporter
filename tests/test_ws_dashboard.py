@@ -25,6 +25,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_DEFAULT_WARNING_DAYS,
     CONF_NOTIFY_SERVICE,
     CONF_PANEL_ENABLED,
+    CONF_PANEL_TITLE,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
@@ -573,6 +574,46 @@ async def test_update_global_settings(
     options = entry.options or entry.data
     assert options[CONF_DEFAULT_WARNING_DAYS] == 14
     assert options[CONF_PANEL_ENABLED] is True
+
+
+async def test_update_global_settings_panel_title_trimmed_and_capped(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """global/update normalises panel_title: trims whitespace, caps at 50 (#63)."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {CONF_PANEL_TITLE: "  " + "Z" * 80 + "  "},
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["general"]["panel_title"] == "Z" * 50
+
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry is not None
+    options = entry.options or entry.data
+    assert options[CONF_PANEL_TITLE] == "Z" * 50
+
+
+async def test_update_global_settings_panel_title_blank_clears(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """A blank panel_title is stored as "" (clears the override → default title)."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {CONF_PANEL_TITLE: "   "},
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["general"]["panel_title"] == ""
 
 
 async def test_update_global_settings_filters_unknown_keys(

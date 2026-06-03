@@ -718,6 +718,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # already-qualified form round-trips unchanged, which is what we pin.
     "notify_service": "notify.persistent_notification",
     "panel_enabled": True,
+    # Already trimmed + under the 50-char cap, so it round-trips unchanged.
+    "panel_title": "Upkeep",
     "advanced_adaptive_visible": True,
     "advanced_predictions_visible": True,
     "advanced_seasonal_visible": True,
@@ -785,6 +787,7 @@ async def test_every_allowlisted_setting_round_trips(
         "notifications_enabled": settings["general"]["notifications_enabled"],
         "notify_service": settings["general"]["notify_service"],
         "panel_enabled": settings["general"]["panel_enabled"],
+        "panel_title": settings["general"]["panel_title"],
         **{f"advanced_{k}_visible": v for k, v in settings["features"].items()
            if k in {"adaptive", "predictions", "seasonal", "environmental",
                     "budget", "groups", "checklists"}},

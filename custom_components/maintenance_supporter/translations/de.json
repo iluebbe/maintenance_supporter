@@ -528,13 +528,15 @@
           "default_warning_days": "Standard-Warnzeit (Tage vor Fälligkeit)",
           "notifications_enabled": "Benachrichtigungen aktivieren",
           "notify_service": "Benachrichtigungsdienst",
-          "panel_enabled": "Sidebar-Panel anzeigen"
+          "panel_enabled": "Sidebar-Panel anzeigen",
+          "panel_title": "Titel des Seitenleisten-Panels"
         },
         "data_description": {
           "default_warning_days": "Anzahl der Tage vor Fälligkeit einer Wartungsaufgabe für eine Warnung.",
           "notifications_enabled": "Benachrichtigungen senden, wenn Wartungsaufgaben bald fällig oder überfällig sind.",
           "notify_service": "Der zu verwendende Benachrichtigungsdienst (z.B. notify.mobile_app_phone).",
-          "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen."
+          "panel_enabled": "Ein Maintenance Supporter Panel in der Seitenleiste anzeigen.",
+          "panel_title": "Eigener Name für den Seitenleisten-Eintrag. Leer lassen für \"Maintenance\". Praktisch, um Verwechslungen mit dem integrierten Wartungs-Dashboard von Home Assistant zu vermeiden."
         }
       },
       "notification_settings": {

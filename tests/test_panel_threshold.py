@@ -6,8 +6,17 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import DOMAIN
+from custom_components.maintenance_supporter.const import (
+    CONF_PANEL_TITLE,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    PANEL_TITLE,
+)
+from custom_components.maintenance_supporter.helpers.global_options import (
+    get_panel_title,
+)
 from custom_components.maintenance_supporter.helpers.threshold_calculator import (
     ThresholdCalculator,
 )
@@ -113,6 +122,144 @@ async def test_panel_url_versioned(hass: HomeAssistant) -> None:
             # The static path should contain the hash
             static_calls = hass.http.async_register_static_paths.call_args[0][0]  # type: ignore[attr-defined]
             assert any("abcd1234" in config.url_path for config in static_calls)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Configurable sidebar panel title (#63)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def _add_global_entry(hass: HomeAssistant, *, panel_title: object = None) -> None:
+    """Register a global config entry, optionally carrying a panel_title option."""
+    options: dict = {}
+    if panel_title is not None:
+        options[CONF_PANEL_TITLE] = panel_title
+    MockConfigEntry(
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data={},
+        options=options,
+        unique_id=GLOBAL_UNIQUE_ID,
+    ).add_to_hass(hass)
+
+
+async def test_get_panel_title_default_without_entry(hass: HomeAssistant) -> None:
+    """No global entry → fall back to the default title."""
+    assert get_panel_title(hass) == PANEL_TITLE
+
+
+async def test_get_panel_title_default_when_unset(hass: HomeAssistant) -> None:
+    """Global entry exists but no panel_title option → default."""
+    _add_global_entry(hass)
+    assert get_panel_title(hass) == PANEL_TITLE
+
+
+async def test_get_panel_title_custom(hass: HomeAssistant) -> None:
+    """A configured title is returned verbatim."""
+    _add_global_entry(hass, panel_title="Upkeep")
+    assert get_panel_title(hass) == "Upkeep"
+
+
+async def test_get_panel_title_blank_falls_back(hass: HomeAssistant) -> None:
+    """Blank / whitespace-only title falls back to the default (clear override)."""
+    _add_global_entry(hass, panel_title="   ")
+    assert get_panel_title(hass) == PANEL_TITLE
+
+
+async def test_get_panel_title_trimmed_and_capped(hass: HomeAssistant) -> None:
+    """Title is stripped and length-capped."""
+    _add_global_entry(hass, panel_title="  " + "X" * 100 + "  ")
+    result = get_panel_title(hass)
+    assert result == "X" * 50  # MAX_PANEL_TITLE_LENGTH
+    assert len(result) == 50
+
+
+async def test_get_panel_title_non_string_falls_back(hass: HomeAssistant) -> None:
+    """A non-string stored value (corrupt data) falls back to the default."""
+    _add_global_entry(hass, panel_title=123)
+    assert get_panel_title(hass) == PANEL_TITLE
+
+
+async def test_register_panel_uses_custom_title(hass: HomeAssistant) -> None:
+    """async_register_panel passes the configured sidebar title to panel_custom."""
+    hass.data.setdefault(DOMAIN, {})
+    _add_global_entry(hass, panel_title="Upkeep")
+
+    with patch(
+        "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
+        new_callable=AsyncMock,
+    ) as mock_register:
+        await async_register_panel(hass)
+
+    assert mock_register.call_args[1]["sidebar_title"] == "Upkeep"
+
+
+async def test_register_panel_default_title(hass: HomeAssistant) -> None:
+    """Without a configured title, the default is used."""
+    hass.data.setdefault(DOMAIN, {})
+
+    with patch(
+        "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
+        new_callable=AsyncMock,
+    ) as mock_register:
+        await async_register_panel(hass)
+
+    assert mock_register.call_args[1]["sidebar_title"] == PANEL_TITLE
+
+
+async def test_register_panel_force_reregisters_with_new_title(
+    hass: HomeAssistant,
+) -> None:
+    """force=True removes and re-adds the panel so a changed title takes effect."""
+    hass.data.setdefault(DOMAIN, {})
+    _add_global_entry(hass, panel_title="First")
+
+    with patch(
+        "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
+        new_callable=AsyncMock,
+    ) as mock_register:
+        await async_register_panel(hass)
+        assert mock_register.call_args[1]["sidebar_title"] == "First"
+        assert hass.data[DOMAIN].get("_panel_registered") is True
+
+        # User renames the panel; options entry now holds the new title.
+        entry = next(
+            e
+            for e in hass.config_entries.async_entries(DOMAIN)
+            if e.unique_id == GLOBAL_UNIQUE_ID
+        )
+        hass.config_entries.async_update_entry(
+            entry, options={CONF_PANEL_TITLE: "Second"}
+        )
+
+        with patch(
+            "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
+        ) as mock_remove:
+            await async_register_panel(hass, force=True)
+
+        mock_remove.assert_called_once()  # old registration dropped first
+        assert mock_register.call_args[1]["sidebar_title"] == "Second"
+        assert hass.data[DOMAIN].get("_panel_registered") is True
+
+
+async def test_register_panel_force_when_unregistered_just_registers(
+    hass: HomeAssistant,
+) -> None:
+    """force=True on a not-yet-registered panel registers it without removing."""
+    hass.data.setdefault(DOMAIN, {})
+
+    with patch(
+        "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
+    ) as mock_remove:
+        with patch(
+            "custom_components.maintenance_supporter.panel.panel_custom.async_register_panel",
+            new_callable=AsyncMock,
+        ) as mock_register:
+            await async_register_panel(hass, force=True)
+
+    mock_remove.assert_not_called()
+    mock_register.assert_called_once()
+    assert hass.data[DOMAIN].get("_panel_registered") is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════
