@@ -804,10 +804,12 @@ async def _async_sync_obj_to_device(
 async def _async_global_options_updated(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> None:
-    """React to global options changes (e.g. panel toggle)."""
+    """React to global options changes (panel toggle / sidebar title)."""
     panel_enabled = entry.options.get(CONF_PANEL_ENABLED, False)
     if panel_enabled:
-        await async_register_panel(hass)
+        # force=True so a changed sidebar title (CONF_PANEL_TITLE) re-registers
+        # the panel; it's a no-op refresh when the title is unchanged.
+        await async_register_panel(hass, force=True)
     else:
         await async_unregister_panel(hass)
     await _check_admin_panel_user_orphans(hass, entry)

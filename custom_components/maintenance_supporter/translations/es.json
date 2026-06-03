@@ -528,13 +528,15 @@
           "default_warning_days": "Días de aviso predeterminados",
           "notifications_enabled": "Activar notificaciones",
           "notify_service": "Servicio de notificación",
-          "panel_enabled": "Mostrar panel en la barra lateral"
+          "panel_enabled": "Mostrar panel en la barra lateral",
+          "panel_title": "Título del panel lateral"
         },
         "data_description": {
           "default_warning_days": "Número de días antes de que venza una tarea de mantenimiento para mostrar una advertencia.",
           "notifications_enabled": "Enviar notificaciones cuando las tareas de mantenimiento están próximas a vencer o vencidas.",
           "notify_service": "El servicio de notificación a utilizar (ej.: notify.mobile_app_phone).",
-          "panel_enabled": "Mostrar un panel de Maintenance Supporter en la barra lateral."
+          "panel_enabled": "Mostrar un panel de Maintenance Supporter en la barra lateral.",
+          "panel_title": "Nombre personalizado para la entrada de la barra lateral. Déjalo en blanco para usar \"Maintenance\". Útil para evitar conflictos con el panel de Mantenimiento integrado de Home Assistant."
         }
       },
       "notification_settings": {

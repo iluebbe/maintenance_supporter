@@ -528,13 +528,15 @@
           "default_warning_days": "Standarddagar för varning före förfall",
           "notifications_enabled": "Aktivera aviseringar",
           "notify_service": "Aviseringstjänst",
-          "panel_enabled": "Visa sidopanel"
+          "panel_enabled": "Visa sidopanel",
+          "panel_title": "Titel för sidofältspanel"
         },
         "data_description": {
           "default_warning_days": "Antal dagar före underhållsuppgiftens förfall då en varning visas.",
           "notifications_enabled": "Skicka aviseringar när underhållsuppgifter förfaller eller är försenade.",
           "notify_service": "Aviseringstjänsten som ska användas (t.ex. notify.mobile_app_phone).",
-          "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet."
+          "panel_enabled": "Visa en Maintenance Supporter-panel i sidofältet.",
+          "panel_title": "Eget namn för sidofältsposten. Lämna tomt för att använda \"Maintenance\". Användbart för att undvika krock med Home Assistants inbyggda Maintenance-panel."
         }
       },
       "notification_settings": {

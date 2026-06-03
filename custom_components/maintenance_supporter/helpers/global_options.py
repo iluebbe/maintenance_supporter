@@ -18,9 +18,12 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     CONF_DEFAULT_WARNING_DAYS,
+    CONF_PANEL_TITLE,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    MAX_PANEL_TITLE_LENGTH,
+    PANEL_TITLE,
 )
 
 
@@ -47,3 +50,20 @@ def get_default_warning_days(hass: HomeAssistant) -> int:
     if value < 0 or value > 365:
         return DEFAULT_WARNING_DAYS
     return value
+
+
+def get_panel_title(hass: HomeAssistant) -> str:
+    """Resolve the sidebar panel title for the custom panel.
+
+    Reads the user-set `panel_title` option from the global config entry so a
+    user can rename the sidebar entry (e.g. to avoid clashing with HA's built-in
+    "Maintenance" dashboard, 2026.5+). Falls back to the default `PANEL_TITLE`
+    when unset, blank, or not a string. Trimmed and length-capped.
+    """
+    raw = get_global_options(hass).get(CONF_PANEL_TITLE)
+    if not isinstance(raw, str):
+        return PANEL_TITLE
+    title = raw.strip()
+    if not title:
+        return PANEL_TITLE
+    return title[:MAX_PANEL_TITLE_LENGTH]

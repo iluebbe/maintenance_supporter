@@ -528,13 +528,15 @@
           "default_warning_days": "Výchozí dny upozornění před termínem",
           "notifications_enabled": "Povolit oznámení",
           "notify_service": "Služba oznámení",
-          "panel_enabled": "Zobrazit boční panel"
+          "panel_enabled": "Zobrazit boční panel",
+          "panel_title": "Název panelu v postranním panelu"
         },
         "data_description": {
           "default_warning_days": "Počet dní před termínem úkolu údržby pro zobrazení upozornění.",
           "notifications_enabled": "Odesílat oznámení, když se úkoly údržby blíží nebo jsou po termínu.",
           "notify_service": "Služba oznámení, kterou použít (např. notify.mobile_app_phone).",
-          "panel_enabled": "Zobrazit panel Maintenance Supporter v bočním panelu."
+          "panel_enabled": "Zobrazit panel Maintenance Supporter v bočním panelu.",
+          "panel_title": "Vlastní název pro položku v postranním panelu. Ponechte prázdné pro \"Maintenance\". Užitečné pro odlišení od vestavěného přehledu Maintenance v Home Assistantu."
         }
       },
       "notification_settings": {

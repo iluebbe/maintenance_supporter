@@ -528,13 +528,15 @@
           "default_warning_days": "Domyślne dni ostrzeżenia przed terminem",
           "notifications_enabled": "Włącz powiadomienia",
           "notify_service": "Usługa powiadomień",
-          "panel_enabled": "Pokaż panel boczny"
+          "panel_enabled": "Pokaż panel boczny",
+          "panel_title": "Tytuł panelu na pasku bocznym"
         },
         "data_description": {
           "default_warning_days": "Liczba dni przed terminem zadania konserwacji, w której wyświetlane jest ostrzeżenie.",
           "notifications_enabled": "Wysyłaj powiadomienia, gdy zadania konserwacji stają się wymagane lub przeterminowane.",
           "notify_service": "Usługa powiadomień, której należy używać (np. notify.mobile_app_phone).",
-          "panel_enabled": "Pokaż panel Maintenance Supporter w pasku bocznym."
+          "panel_enabled": "Pokaż panel Maintenance Supporter w pasku bocznym.",
+          "panel_title": "Własna nazwa wpisu na pasku bocznym. Pozostaw puste, aby użyć „Maintenance”. Przydatne, aby uniknąć kolizji z wbudowanym pulpitem Maintenance w Home Assistant."
         }
       },
       "notification_settings": {

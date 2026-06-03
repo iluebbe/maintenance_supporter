@@ -47,11 +47,13 @@ from ..const import (
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
     CONF_PANEL_ENABLED,
+    CONF_PANEL_TITLE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
     DOMAIN,
+    MAX_PANEL_TITLE_LENGTH,
     SIGNAL_NEW_OBJECT_ENTRY,
 )
 from ..helpers.aggregate import compute_status_counts
@@ -70,6 +72,7 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_NOTIFICATIONS_ENABLED: bool,
     CONF_NOTIFY_SERVICE: str,
     CONF_PANEL_ENABLED: bool,
+    CONF_PANEL_TITLE: str,
     # Advanced features
     CONF_ADVANCED_ADAPTIVE: bool,
     CONF_ADVANCED_PREDICTIONS: bool,
@@ -137,6 +140,7 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
             "panel_enabled": options.get(CONF_PANEL_ENABLED, False),
+            "panel_title": options.get(CONF_PANEL_TITLE, ""),
         },
         "notifications": {
             "due_soon_enabled": options.get(CONF_NOTIFY_DUE_SOON_ENABLED, True),
@@ -445,6 +449,16 @@ async def ws_update_global_settings(
     for key, max_len in _STR_MAX_LENGTHS.items():
         if key in filtered and len(filtered[key]) > max_len:
             del filtered[key]
+
+    # Sidebar panel title (#63): trim + cap rather than drop, so an over-long
+    # or padded value is normalised instead of silently ignored. A blank value
+    # is kept (it clears the override → panel falls back to the default title).
+    if CONF_PANEL_TITLE in filtered:
+        raw_title = filtered[CONF_PANEL_TITLE]
+        if isinstance(raw_title, str):
+            filtered[CONF_PANEL_TITLE] = raw_title.strip()[:MAX_PANEL_TITLE_LENGTH]
+        else:
+            del filtered[CONF_PANEL_TITLE]
 
     # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
     # the known set is dropped silently so a bogus value can't get into the

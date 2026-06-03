@@ -67,6 +67,7 @@ CONF_DEFAULT_WARNING_DAYS = "default_warning_days"
 CONF_NOTIFICATIONS_ENABLED = "notifications_enabled"
 CONF_NOTIFY_SERVICE = "notify_service"
 CONF_PANEL_ENABLED = "panel_enabled"
+CONF_PANEL_TITLE = "panel_title"
 
 # --- Config Keys: Advanced Feature Visibility ---
 CONF_ADVANCED_ADAPTIVE = "advanced_adaptive_visible"
@@ -378,6 +379,7 @@ MAX_TEXT_LENGTH = 2000          # notes, reason, feedback, description
 MAX_URL_LENGTH = 2048
 MAX_ICON_LENGTH = 100           # "mdi:icon-name"
 MAX_META_LENGTH = 200           # manufacturer, model, user_id, area_id, etc.
+MAX_PANEL_TITLE_LENGTH = 50     # sidebar panel title override
 MAX_TYPE_LENGTH = 50            # task_type, schedule_type
 MAX_CHECKLIST_ITEMS = 100
 MAX_CHECKLIST_ITEM_LENGTH = 500

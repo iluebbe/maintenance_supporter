@@ -49,6 +49,7 @@ from .const import (
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
     CONF_PANEL_ENABLED,
+    CONF_PANEL_TITLE,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
@@ -56,6 +57,7 @@ from .const import (
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DEFAULT_WARNING_DAYS,
+    MAX_PANEL_TITLE_LENGTH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -413,6 +415,12 @@ class GlobalOptionsFlow(OptionsFlow):
             else:
                 user_input[CONF_NOTIFY_SERVICE] = normalized
 
+            # Trim + cap the optional sidebar title; blank clears the override
+            # (panel falls back to the default "Maintenance").
+            raw_title = user_input.get(CONF_PANEL_TITLE)
+            if isinstance(raw_title, str):
+                user_input[CONF_PANEL_TITLE] = raw_title.strip()[:MAX_PANEL_TITLE_LENGTH]
+
             if not errors:
                 return self._save_and_return(user_input)
 
@@ -458,6 +466,19 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_PANEL_ENABLED,
                         default=current.get(CONF_PANEL_ENABLED, False),
                     ): selector.BooleanSelector(),
+                    # Blank clears the override → panel falls back to the default
+                    # title ("Maintenance"). suggested_value pre-fills the current
+                    # custom value, or empty when none is set.
+                    vol.Optional(
+                        CONF_PANEL_TITLE,
+                        description={
+                            "suggested_value": current.get(CONF_PANEL_TITLE, "")
+                        },
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
+                        )
+                    ),
                 }
             ),
             errors=errors,
