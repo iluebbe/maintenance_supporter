@@ -82,45 +82,19 @@ class MaintenanceDashboardStrategyShim extends HTMLElement {
   }
 }
 
-if (!customElements.get(STRATEGY_TAG)) {
-  customElements.define(STRATEGY_TAG, MaintenanceDashboardStrategyShim);
-}
-
-// ── Self-heal for HA's un-awaited extra-module load ─────────────────────────
-//
-// HA serves extra_module_url entries as fire-and-forget `import("…")` in
-// index.html, in parallel with its own core/app boot — nothing awaits them.
-// So on a COLD load that lands directly on a `custom:maintenance-supporter`
-// strategy dashboard, HA's renderer can hit its 5 s `whenDefined` timeout
-// BEFORE this shim's module finishes executing — and HA does NOT retry, it
-// just shows "Timeout waiting for strategy element …" until a manual reload.
-//
-// Since this code runs the moment our module DOES execute, we can detect that
-// late arrival and nudge HA to re-render: fire a `location-changed` event,
-// which Lovelace listens for to re-resolve the current view (now that our
-// element exists). Guarded to fire at most once, only when the document is
-// already interactive (i.e. we lost the race) — on a normal/fast load the
-// element is defined before first render and this is a no-op.
-(() => {
+function defineShim(): void {
+  // Attempt unconditionally: customElements.get() is unreliable across HA's
+  // scoped registries (it can read true while the active dashboard registry has
+  // no registration), so we always try and swallow the "already defined" throw.
+  // On a fresh (cache-busted) re-import this re-registers on the now-active
+  // registry, which is what the self-heal relies on.
   try {
-    const alreadyBooted =
-      document.readyState === "complete" || document.readyState === "interactive";
-    // Only relevant if we are actually viewing a (potentially strategy)
-    // dashboard — i.e. not on the login screen or a settings page.
-    const onLovelace = !/^\/(auth|config|developer-tools|profile|hassio)\b/.test(
-      window.location.pathname,
-    );
-    if (!alreadyBooted || !onLovelace) return;
-    // Defer one frame so HA's own boot import()s settle first; then re-fire
-    // navigation so a timed-out strategy view re-resolves with our now-defined
-    // element. Harmless when nothing timed out (HA just re-renders the same view).
-    requestAnimationFrame(() => {
-      window.dispatchEvent(new CustomEvent("location-changed"));
-    });
+    customElements.define(STRATEGY_TAG, MaintenanceDashboardStrategyShim);
   } catch {
-    /* best-effort self-heal; never block registration */
+    /* already defined in this registry — fine */
   }
-})();
+}
+defineShim();
 
 // Picker discovery (HA 2026.5+ reads window.customStrategies when the
 // "Add Dashboard" dialog opens). Idempotent — the heavy bundle pushes the
@@ -150,5 +124,136 @@ if (
       "https://github.com/iluebbe/maintenance_supporter#dashboard-strategy",
   });
 }
+
+// ── Self-heal ───────────────────────────────────────────────────────────────
+// Root cause (diagnosed live): HA's frontend uses a SCOPED custom-element
+// registry that is swapped in during boot. Our element, defined at module load,
+// can end up registered on a registry that the dashboard renderer no longer
+// uses — so `customElements.get(STRATEGY_TAG)` reads false in the active
+// registry and HA's 5 s whenDefined times out (console-only error, empty view).
+//
+// Verified recovery (9/9 on a live plugin-heavy system): RE-DEFINE on the
+// now-current registry, then bounce the view (navigate away + back) so HA's
+// <hui-panel-lovelace> reconnects and re-runs _fetchConfig — generate() then
+// finds the element and the real dashboard renders.
+//
+// Fully defensive: only acts on a Lovelace path when our element is missing
+// from the active registry; on a healthy load it never fires.
+(() => {
+  const heal = window as unknown as { __msStrategyHealActive?: boolean };
+  if (heal.__msStrategyHealActive) return; // one heal loop per page session
+  heal.__msStrategyHealActive = true;
+
+  const NON_LOVELACE =
+    /^\/(auth|config|developer-tools|profile|hassio|history|logbook|map|media-browser|energy|todo|calendar)\b/;
+
+  // NOTE: customElements.get(STRATEGY_TAG) is NOT a reliable health signal —
+  // HA's scoped registry makes it read `true` here even when the dashboard's
+  // renderer (a different registry) failed. So we gate on the RENDERED OUTCOME:
+  // a strategy dashboard that failed shows an essentially empty view.
+  const ERROR_RE =
+    /Timeout waiting for strategy element ll-strategy-(dashboard-)?maintenance-supporter/i;
+
+  // Heuristic for "we are on a broken strategy view": the lovelace view exists
+  // but is essentially empty (HA rendered the failed strategy as a blank view),
+  // OR HA surfaced our strategy error card. Walks light + shadow DOM.
+  function viewIsBroken(): boolean {
+    let hasView = false;
+    let cards = 0;
+    let ourError = false;
+    const stack: Array<Element | ShadowRoot> = [document.documentElement];
+    let scanned = 0;
+    while (stack.length && scanned < 9000) {
+      const node = stack.pop();
+      scanned++;
+      if (!node) continue;
+      const el = node as Element & { shadowRoot?: ShadowRoot | null };
+      if (el.nodeType === 1 && el.tagName) {
+        const tag = el.tagName.toLowerCase();
+        if (tag === "hui-view" || tag === "hui-sections-view") hasView = true;
+        if (tag === "ha-card" || tag === "hui-card") cards++;
+        if (tag === "hui-error-card" && ERROR_RE.test(el.textContent || "")) {
+          ourError = true;
+        }
+      }
+      if (el.shadowRoot) stack.push(el.shadowRoot);
+      const kids = (node as ParentNode).children;
+      if (kids) for (const k of Array.from(kids)) stack.push(k);
+    }
+    // Our generated dashboards always render several cards; a failed strategy
+    // leaves a near-empty view. Treat "view present but <3 cards" as broken.
+    return ourError || (hasView && cards < 3);
+  }
+
+  // URL of THIS module, so recovery can force a fresh re-import (a cache-busted
+  // import re-evaluates the module and re-runs customElements.define against the
+  // registry that is active NOW — the boot-time define may have landed on a
+  // scoped registry HA has since discarded, and a plain defineShim() call is a
+  // no-op because customElements.get() reads stale-true across scoped registries).
+  const SHIM_URL = "/maintenance_supporter_strategy_shim.js";
+
+  let bounces = 0;
+  let lastBounce = 0;
+  function recover(): void {
+    const now = Date.now();
+    if (now - lastBounce < 5000 || bounces >= 3) return; // never thrash / loop
+    lastBounce = now;
+    bounces += 1;
+    // 1) Force a fresh re-import so define() re-runs on the now-active registry.
+    //    (Verified live: this is what makes the element resolvable to HA's
+    //    dashboard renderer; a guarded re-define is not enough.)
+    void import(/* @vite-ignore */ `${SHIM_URL}?heal=${now}`)
+      .catch(() => undefined)
+      .finally(() => {
+        // 2) Bounce so HA re-fetches the strategy config; generate() now
+        //    resolves the element and the real dashboard renders.
+        const back = window.location.pathname + window.location.search;
+        history.pushState(null, "", "/lovelace");
+        window.dispatchEvent(new CustomEvent("location-changed"));
+        window.setTimeout(() => {
+          history.pushState(null, "", back);
+          window.dispatchEvent(new CustomEvent("location-changed"));
+        }, 200);
+      });
+  }
+
+  function watch(): void {
+    if (NON_LOVELACE.test(window.location.pathname)) return;
+    let ticks = 0;
+    const startedAt = Date.now();
+    const id = window.setInterval(() => {
+      ticks++;
+      try {
+        // Give HA past its ~5 s strategy timeout before judging the outcome.
+        if (Date.now() - startedAt < 6000) return;
+        if (NON_LOVELACE.test(window.location.pathname)) {
+          window.clearInterval(id);
+          return;
+        }
+        if (viewIsBroken()) {
+          recover();
+        } else {
+          window.clearInterval(id); // healthy / recovered
+        }
+        if (ticks >= 30) window.clearInterval(id); // ~15 s safety cap
+      } catch {
+        window.clearInterval(id);
+      }
+    }, 500);
+  }
+
+  try {
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", watch);
+    } else {
+      watch();
+    }
+    window.addEventListener("location-changed", () => {
+      if (!NON_LOVELACE.test(window.location.pathname)) watch();
+    });
+  } catch {
+    /* best-effort; never block registration */
+  }
+})();
 
 export {};
