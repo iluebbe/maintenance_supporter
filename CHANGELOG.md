@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.8.0] - 2026-06-04
+
+### ✨ Rename the sidebar panel (#63)
+
+The sidebar panel was hard-titled **"Maintenance"**, which collides with Home Assistant's own built-in *Maintenance* dashboard (2026.5+). You can now give it any name. Set **Sidebar panel title** in **Settings → Options → General Settings**, or directly in the panel's **Settings** tab — leave it blank to keep the default "Maintenance". The change applies immediately, no restart needed.
+
+### 🌍 Complete panel translations for 10 languages
+
+45 panel/card strings added with the v2.1–v2.4 features (vacation status chips, budget/groups quick-actions, the history dialog, KPI tooltips, delete confirmations, the loading spinner) were only translated in English and German — Dutch, French, Italian, Spanish, Portuguese, Russian, Ukrainian, Polish, Czech and Swedish users saw English placeholders for them. All ten languages are now complete, and a parity test keeps every language block in lockstep so this can't recur.
+
+### 🧹 Internal — DRY cleanups
+
+Behavior-neutral refactors from a full-codebase audit: a single shared task-status helper (was duplicated across the sensor, binary-sensor, and model), one history parse/sort routine, one vacation wire-serializer, and named constants for the warning-days / interval defaults instead of scattered literals. Added cross-layer guard tests so the Python and TypeScript copies of the interval-unit and schedule-kind vocabularies can't silently drift.
+
 ## [2.7.1] - 2026-05-25
 
 ### 🐛 Compound-trigger editing in Settings → Options was broken
