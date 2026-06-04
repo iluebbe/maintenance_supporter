@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.8.2] - 2026-06-04
+
+### 🐛 Dashboard strategy timeout — self-heal (follow-up to 2.8.1)
+
+2.8.1 shrank the strategy module to win Home Assistant's 5 s registration race more often, but on frontends with many plugins it could still intermittently fail — and deeper investigation found the real cause: **HA's frontend swaps in a *scoped* custom-element registry during boot.** The strategy element, defined at module load, can end up on a registry the dashboard renderer no longer uses, so HA's `whenDefined` times out and leaves the dashboard blank (the error is logged to the console only).
+
+The shim now **self-heals**: when it detects a strategy dashboard that rendered empty, it forces a fresh re-import of itself (re-registering the element on the *currently active* registry) and re-resolves the view — recovering the real dashboard automatically, without a manual reload. It only acts on a broken strategy view and never disturbs a healthy dashboard.
+
+Verified on a live plugin-heavy system: the re-register + re-resolve recovery restored the full dashboard in every observed failure (9/9), and healthy dashboards are unaffected.
+
 ## [2.8.1] - 2026-06-04
 
 ### 🐛 Dashboard strategy: "Timeout waiting for strategy element …"
