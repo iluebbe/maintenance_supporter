@@ -148,6 +148,13 @@ CARD_URL = "/maintenance_supporter_card"
 STRATEGY_DIR_URL = "/maintenance_supporter_strategy"
 STRATEGY_URL = f"{STRATEGY_DIR_URL}/maintenance-dashboard-strategy.js"
 STRATEGY_CHUNKS_URL = f"{STRATEGY_DIR_URL}/chunks"
+# v2.8.1 (strategy timeout fix): a tiny zero-import shim is what we register as
+# the frontend extra-module-url. It defines the dashboard-strategy element
+# synchronously (winning HA's 5 s whenDefined race under heavy plugin load) and
+# lazy-imports the full STRATEGY_URL bundle on first use. The bundle's own
+# relative ./chunks/* imports still resolve because it is served under
+# STRATEGY_DIR_URL. The shim has no relative imports, so a flat URL is fine.
+STRATEGY_SHIM_URL = "/maintenance_supporter_strategy_shim.js"
 CALENDAR_CARD_URL = "/maintenance_supporter_calendar_card"
 
 # --- Config Keys: Object ---

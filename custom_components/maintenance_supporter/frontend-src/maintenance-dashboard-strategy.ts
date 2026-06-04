@@ -527,7 +527,7 @@ function viewsByDueDate(objects: MaintenanceObjectResp[]): ViewConfig[] {
   return views;
 }
 
-class MaintenanceDashboardStrategy extends HTMLElement {
+export class MaintenanceDashboardStrategy extends HTMLElement {
   static getCreateSuggestions(_hass: HassLike) {
     return {
       title: "Maintenance Supporter",
@@ -819,8 +819,14 @@ function safeDefine(tag: string, ctor: CustomElementConstructor): "ok" | "skippe
   }
 }
 
+// NOTE: the dashboard tag (STRATEGY_TAG) is intentionally NOT defined here.
+// It is owned by the tiny zero-import shim (maintenance-strategy-shim.ts),
+// which is what HA loads via frontend_extra_module_url so registration wins
+// HA's 5 s whenDefined race even under heavy plugin load. This heavy bundle is
+// lazy-loaded by the shim on first generate()/getConfigElement(); the shim
+// calls our exported MaintenanceDashboardStrategy.generate(). We still define
+// the editor + section strategies here (not on HA's timeout-critical path).
 const _defineResults = {
-  dashboard: safeDefine(STRATEGY_TAG, MaintenanceDashboardStrategy),
   editor: safeDefine(EDITOR_TAG, MaintenanceStrategyEditor),
   section: safeDefine(SECTION_STRATEGY_TAG, MaintenanceSectionStrategy),
 };
@@ -830,17 +836,6 @@ console.log(
   _defineResults,
   "— run maintenanceSupporterDiagnose() in console for full state",
 );
-
-// Self-check: after define attempts, do customElements actually have us?
-if (!customElements.get(STRATEGY_TAG)) {
-  console.error(
-    `${LOG_PREFIX} FATAL: customElements does NOT have "${STRATEGY_TAG}" after define() returned ${_defineResults.dashboard}. ` +
-    `Open Add Dashboard → Community → Maintenance Supporter will time out. ` +
-    `Likely cause: another loaded module registered this tag with a broken class. ` +
-    `Check: window.customStrategies, customElements.get("${STRATEGY_TAG}"), ` +
-    `Settings → Dashboards → ⋮ → Resources.`,
-  );
-}
 
 // Global devtools helper — typing maintenanceSupporterDiagnose() in the
 // browser console returns a snapshot of registration state + module URLs

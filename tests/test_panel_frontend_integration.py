@@ -95,6 +95,29 @@ async def test_card_static_path_points_to_real_file(
     assert card_path.endswith(".js")
 
 
+async def test_strategy_shim_static_path_points_to_real_file(
+    hass: HomeAssistant,
+) -> None:
+    """The strategy SHIM (v2.8.1) must resolve to a real built JS file — it is
+    what HA auto-loads to register the dashboard strategy element."""
+    from custom_components.maintenance_supporter.const import STRATEGY_SHIM_URL
+
+    entry = _make_global_entry(hass, panel_enabled=False)
+    await setup_integration(hass, entry)
+
+    calls = hass.http.async_register_static_paths.call_args_list  # type: ignore[attr-defined]
+    shim_path: str | None = None
+    for call in calls:
+        for cfg in call[0][0]:
+            if cfg.url_path == STRATEGY_SHIM_URL:
+                shim_path = cfg.path
+                break
+
+    assert shim_path is not None, "Strategy shim static path not registered"
+    assert Path(shim_path).is_file(), f"Shim JS file does not exist: {shim_path}"
+    assert shim_path.endswith("maintenance-strategy-shim.js")
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Panel registration (via async_setup_entry)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -285,9 +308,13 @@ async def test_card_url_is_unversioned(hass: HomeAssistant) -> None:
 
     v1.9.0 added the calendar card and dashboard strategy as additional
     extra-module URLs — both must follow the same unversioned policy.
+    v2.8.1: the dashboard strategy is now auto-loaded via the tiny
+    STRATEGY_SHIM_URL (not the heavy STRATEGY_URL bundle), which wins HA's
+    whenDefined race and lazy-loads the bundle on first use.
     """
     from custom_components.maintenance_supporter.const import (
         CALENDAR_CARD_URL,
+        STRATEGY_SHIM_URL,
         STRATEGY_URL,
     )
 
@@ -295,8 +322,15 @@ async def test_card_url_is_unversioned(hass: HomeAssistant) -> None:
     await setup_integration(hass, entry)
 
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
-    expected = {CARD_URL, STRATEGY_URL, CALENDAR_CARD_URL}
+    expected = {CARD_URL, STRATEGY_SHIM_URL, CALENDAR_CARD_URL}
     assert expected.issubset(urls), f"Missing expected URLs: {expected - urls}"
+
+    # The heavy strategy bundle must NOT be auto-loaded — it is lazy-imported
+    # by the shim, not registered as an extra-module URL.
+    assert STRATEGY_URL not in urls, (
+        "heavy strategy bundle should not be in extra_module_url; the shim "
+        "loads it lazily"
+    )
 
     # Every registered Maintenance-Supporter URL must be unversioned.
     for url in urls & expected:
