@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.8.1] - 2026-06-04
+
+### 🐛 Dashboard strategy: "Timeout waiting for strategy element …"
+
+On systems with many frontend plugins (card-mod, layout-card, mushroom, …), opening the auto-generated Maintenance Supporter dashboard could intermittently fail with *"Timeout waiting for strategy element ll-strategy-dashboard-maintenance-supporter to be registered"*. Home Assistant loads custom frontend modules with a fire-and-forget, un-ordered `import()` and then only waits 5 s for a `custom:` strategy element to register — so on a cold load the full strategy bundle could lose that race against the rest of the frontend booting.
+
+The dashboard strategy is now registered by a **tiny, zero-import shim** that defines the element synchronously and lazy-loads the full bundle on first use, so registration wins the race far more reliably. The shim also **self-heals**: if it does load late, it nudges Home Assistant to re-render the view instead of leaving the timeout error on screen.
+
+If you still hit the error on a very busy frontend, a hard-reload (Ctrl+Shift+F5) clears it; the strategy can also be opened from the sidebar panel, which loads independently of this race.
+
 ## [2.8.0] - 2026-06-04
 
 ### ✨ Rename the sidebar panel (#63)

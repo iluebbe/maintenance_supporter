@@ -13,6 +13,7 @@ from ..const import (
     CARD_URL,
     DOMAIN,
     STRATEGY_CHUNKS_URL,
+    STRATEGY_SHIM_URL,
     STRATEGY_URL,
 )
 
@@ -42,6 +43,13 @@ async def async_register_card(hass: HomeAssistant) -> None:
     # doesn't need to know about the chunk layout.
     static_paths = [
         StaticPathConfig(CARD_URL, str(frontend_dir / "maintenance-card.js"), False),
+        # The shim (tiny, zero-import) is the frontend extra-module-url; it
+        # lazy-imports the full strategy bundle below on first use.
+        StaticPathConfig(
+            STRATEGY_SHIM_URL,
+            str(frontend_dir / "maintenance-strategy-shim.js"),
+            False,
+        ),
         StaticPathConfig(
             STRATEGY_URL,
             str(frontend_dir / "strategy" / "maintenance-dashboard-strategy.js"),
@@ -60,10 +68,15 @@ async def async_register_card(hass: HomeAssistant) -> None:
     ]
     await hass.http.async_register_static_paths(static_paths)
 
-    # Add to extra module URLs so HA auto-loads them in the frontend
+    # Add to extra module URLs so HA auto-loads them in the frontend.
+    # IMPORTANT: register the SHIM, not the heavy strategy bundle — the shim
+    # defines the dashboard-strategy element synchronously so it wins HA's 5 s
+    # whenDefined race even under heavy HACS plugin load (the bundle is loaded
+    # lazily by the shim). The heavy bundle's static path stays mounted above
+    # so the shim's import() can fetch it on demand.
     extra = hass.data.setdefault(DATA_EXTRA_MODULE_URL, set())
     extra.add(CARD_URL)
-    extra.add(STRATEGY_URL)
+    extra.add(STRATEGY_SHIM_URL)
     extra.add(CALENDAR_CARD_URL)
 
     hass.data.setdefault(DOMAIN, {})["_card_registered"] = True
