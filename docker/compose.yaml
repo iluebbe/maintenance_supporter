@@ -31,7 +31,7 @@ services:
     networks: [ha-net]
 
   homeassistant-fresh:
-    image: "ghcr.io/home-assistant/home-assistant:2026.5.0"
+    image: "ghcr.io/home-assistant/home-assistant:2026.6.1"
     container_name: ha-maint-fresh
     profiles: ["testing"]
     volumes:
