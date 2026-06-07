@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.4.0 | **~28,000 lines** across 72 source files (52 Python + 19 TypeScript) | **0 external Python dependencies** | **96% test coverage** (1,625 tests)
+**Version:** 2.8.2 | ~46,000 lines across 100+ source files (63 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,047 tests on Python 3.13 + 3.14)
 
 ---
 
@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (37 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (44 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -184,7 +184,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               43 WS commands, split by domain
+├── websocket/                               44 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py                              Object CRUD (6 handlers)
 │   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) (8 handlers)
@@ -246,7 +246,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt,ru,uk,pl}.json  10 languages (HA config flow + Repairs UI). cs/sv fall back to en.json automatically via HA's translation framework; PRs for pl/cs/sv welcome (pl shipped in v1.3.3).
+└── translations/{en,de,nl,fr,it,es,pt,ru,uk,pl,cs,sv}.json  12 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings are localized separately in frontend-src/styles.ts (same 12 languages).
 ```
 
 ---
@@ -505,7 +505,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-37 commands organized by function:
+44 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -566,7 +566,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 2,030 tests) |
+| test-coverage (>95%) | Silver | Yes (98%, 2,047 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -588,7 +588,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,030 tests** across **89 test files** with **98% code coverage**.
+**2,047 tests** across **90 test files** with **98% code coverage**.
 
 ### Coverage policy
 
@@ -625,8 +625,8 @@ Three services in `compose.yaml`:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  ha-maint (:8125)       │  ha-maint-fresh      │  playwright │
-│  HA 2026.4.1            │  (:8126)             │  v1.57.0    │
-│  + libfaketime          │  HA 2026.4.1 stock   │  run-server │
+│  HA 2026.6.1            │  (:8126)             │  v1.57.0    │
+│  + libfaketime          │  HA 2026.6.1 stock   │  run-server │
 │  custom_components r/w  │  read-only mounts    │  :3000      │
 │  config-dev/ volume     │  profile: testing    │             │
 └──────────────────────────────────────────────────────────────┘
@@ -645,7 +645,7 @@ The integration's scheduling and predictions are time-dependent. `libfaketime` a
 
 **Build** (`Dockerfile.ha-faketime`):
 1. Alpine stage compiles `libfaketime.so.1` from source
-2. Copies into HA 2026.3.1 image at `/usr/local/lib/faketime/`
+2. Copies into the HA image (ARG-pinned, currently 2026.6.1) at `/usr/local/lib/faketime/`
 3. Replaces HA's s6 run script with `ha-run-faketime.sh`
 
 **Run script** (`ha-run-faketime.sh`):
