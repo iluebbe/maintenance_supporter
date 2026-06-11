@@ -193,6 +193,23 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "service": "Serviço",
         "custom": "Personalizado",
     },
+    "zh": {
+        "type": "类型",
+        "interval": "间隔",
+        "interval_days": "{days} 天",
+        "cal_last": "最后",
+        "cal_day": "日",
+        "last_performed": "最后执行时间",
+        "never": "从未",
+        "manually_triggered": "手动触发维护任务",
+        "sensor_triggered": "{name} 的传感器触发器已激活",
+        "cleaning": "清洁",
+        "inspection": "检查",
+        "replacement": "更换",
+        "calibration": "校准",
+        "service": "服务",
+        "custom": "自定义",
+    },
 }
 
 

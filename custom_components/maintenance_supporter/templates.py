@@ -41,6 +41,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_ru": "Транспорт",
         "name_uk": "Транспорт",
         "name_pt": "Veículo",
+        "name_zh": "机动车",
     },
     "home": {
         "icon": "mdi:home",
@@ -52,6 +53,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_es": "Hogar & HVAC",
         "name_ru": "Дом и климат",
         "name_uk": "Житло та кліматичні системи",
+        "name_zh": "家",
     },
     "pool": {
         "icon": "mdi:pool",
@@ -63,6 +65,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_es": "Piscina & Jardín",
         "name_ru": "Бассейн и сад",
         "name_uk": "Басейн та сад",
+        "name_zh": "泳池",
     },
     "appliance": {
         "icon": "mdi:washing-machine",
@@ -75,6 +78,7 @@ TEMPLATE_CATEGORIES: dict[str, dict[str, str]] = {
         "name_ru": "Бытовая техника",
         "name_uk": "Побутова техніка",
         "name_pt": "Eletrodomésticos",
+        "name_zh": "家用电器",
     },
 }
 
