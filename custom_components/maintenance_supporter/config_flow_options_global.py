@@ -175,6 +175,13 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "failed": "❌ Falha ao enviar a notificação de teste. Verifique a configuração do serviço.",
         "push_message": "🔧 Notificação de teste — as suas notificações estão a funcionar!",
     },
+    "zh": {
+        "success": "✅ 测试通知发送成功！请查看您的设备。",
+        "no_service": "⚠️ 未配置通知服务。请先在“通用设置”中配置服务。",
+        "invalid_service": "❌ 通知服务格式无效。请使用 'notify.服务名称' 格式。",
+        "failed": "❌ 测试通知发送失败。请验证您的服务配置。",
+        "push_message": "🔧 测试通知 — 您的通知设置已生效！",
+    },
 }
 
 
