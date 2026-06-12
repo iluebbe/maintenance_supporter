@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.8.3] - 2026-06-12
+
+### ✨ Simplified Chinese (zh-Hans) — 13th language (#64)
+
+Maintenance Supporter now speaks **Simplified Chinese** across all three surfaces — the panel/card UI, Home Assistant's config-flow + Repairs UI, and phone notification messages. Thanks to **@austinclg** for the contribution. The panel/card bundles were rebuilt from source so the new strings actually ship to users.
+
+### 🐛 Localized notifications for regional language codes
+
+Notification messages are keyed by a 2-letter language code, but `notification_manager` read Home Assistant's full code (e.g. `zh-Hans`, `pt-BR`) without normalizing it — so localized notifications silently fell back to English for any regional code. Home Assistant always reports Chinese as `zh-Hans` / `zh-Hant`, so this was needed for the new translation to reach notifications; it also fixes Brazilian Portuguese, British English, and similar. Language normalization is now centralized in a single helper (`helpers/i18n.normalize_language`) used by every consumer, so it can't drift again.
+
 ## [2.8.2] - 2026-06-04
 
 ### 🐛 Dashboard strategy timeout — self-heal (follow-up to 2.8.1)
