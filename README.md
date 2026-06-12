@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-2047_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-2058_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -175,7 +175,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Real-time updates via WebSocket subscription (no polling)
 - User filter to show only your assigned tasks
 - **Custom sidebar panel title** (2.8.0+) — rename the panel in Settings → Options → General Settings or the panel's Settings tab (blank = default "Maintenance"); avoids clashing with HA's built-in Maintenance dashboard
-- Localized UI in **all 12 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
+- Localized UI in **all 13 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
 - 44 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
@@ -677,7 +677,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-2,047 tests across 90 test files with **98% code coverage**.
+2,058 tests across 91 test files with **98% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -705,7 +705,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8125
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (2,047 tests):
+# Run tests (2,058 tests):
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 

@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.8.2 | ~46,000 lines across 100+ source files (63 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,047 tests on Python 3.13 + 3.14)
+**Version:** 2.8.2 | ~46,000 lines across 100+ source files (64 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,058 tests on Python 3.13 + 3.14)
 
 ---
 
@@ -206,7 +206,7 @@ custom_components/maintenance_supporter/
 │   ├── maintenance-card-editor.ts  (86 lines)
 │   ├── panel-styles.ts            (891 lines)  Panel-specific CSS (incl. 1.5.0+ calendar tab styles)
 │   ├── statistics-service.ts      (215 lines)  WS statistics cache
-│   ├── styles.ts                (~3,200 lines) Shared CSS, panel i18n (12 languages — en/de/nl/fr/it/es/pt/ru/uk/pl/cs/sv), shared helpers
+│   ├── styles.ts                (~3,200 lines) Shared CSS, panel i18n (13 languages — en/de/nl/fr/it/es/pt/ru/uk/pl/cs/sv/zh), shared helpers
 │   ├── types.ts                   (286 lines)  TypeScript interfaces
 │   ├── user-service.ts            (125 lines)  HA user list cache
 │   ├── helpers/
@@ -246,7 +246,7 @@ custom_components/maintenance_supporter/
 ├── services.yaml                            Service definitions
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt,ru,uk,pl,cs,sv}.json  12 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings are localized separately in frontend-src/styles.ts (same 12 languages).
+└── translations/{en,de,nl,fr,it,es,pt,ru,uk,pl,cs,sv,zh-Hans}.json  13 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings are localized separately in frontend-src/styles.ts (same 13 languages; styles.ts keys Chinese as `zh`).
 ```
 
 ---
@@ -566,7 +566,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 2,047 tests) |
+| test-coverage (>95%) | Silver | Yes (98%, 2,058 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -588,7 +588,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,047 tests** across **90 test files** with **98% code coverage**.
+**2,058 tests** across **91 test files** with **98% code coverage**.
 
 ### Coverage policy
 
