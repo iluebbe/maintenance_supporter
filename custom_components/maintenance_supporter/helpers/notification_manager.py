@@ -373,8 +373,15 @@ class NotificationManager:
 
     @property
     def _lang(self) -> str:
-        """Get the HA system language."""
-        return self.hass.config.language or "en"
+        """Get the HA system language as a lowercase 2-letter table key.
+
+        HA emits regional codes (e.g. ``zh-Hans``, ``pt-BR``) but the
+        ``_NOTIFICATION_STRINGS`` keys are 2-letter, matching ``calendar.py``
+        and ``config_flow_options_global.py``. Normalising here makes localized
+        notifications resolve for regional-code users instead of silently
+        falling back to English.
+        """
+        return (self.hass.config.language or "en")[:2].lower()
 
     @property
     def enabled(self) -> bool:

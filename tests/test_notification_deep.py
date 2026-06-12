@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.const import (
 from custom_components.maintenance_supporter.helpers.notification_manager import (
     NotificationManager,
     _get_user_notify_services,
+    _notif_t,
 )
 
 from .conftest import build_global_entry_data
@@ -521,6 +522,32 @@ async def test_mgr_properties(hass: HomeAssistant) -> None:
     assert mgr.enabled is True
     assert mgr.notify_service == "notify.test"
     assert mgr._lang in ("en", "de", "nl", "fr", "it", "es")
+
+
+async def test_mgr_lang_normalizes_regional_code(hass: HomeAssistant) -> None:
+    """Regional HA language codes normalize to the 2-letter table key.
+
+    HA always reports Chinese as ``zh-Hans`` / ``zh-Hant`` (never bare ``zh``),
+    so without normalization the localized notification block would never
+    resolve and silently fall back to English. ``calendar.py`` and
+    ``config_flow_options_global.py`` already normalize; this keeps
+    ``notification_manager`` consistent. Regression for PR #64 (zh-Hans) and
+    every other regional code (``pt-BR``, ``en-GB``, ...).
+    """
+    _create_global_entry(hass)
+
+    # pt-BR resolves to the real Portuguese block (present today), proving the
+    # regional code reaches a localized table rather than the English fallback.
+    hass.config.language = "pt-BR"
+    mgr = NotificationManager(hass)
+    assert mgr._lang == "pt"
+    assert _notif_t("overdue_title", mgr._lang) != _notif_t("overdue_title", "en")
+
+    # zh-Hans / zh-Hant collapse to the "zh" key the translation uses.
+    hass.config.language = "zh-Hans"
+    assert NotificationManager(hass)._lang == "zh"
+    hass.config.language = "zh-Hant"
+    assert NotificationManager(hass)._lang == "zh"
 
 
 async def test_mgr_disabled(hass: HomeAssistant) -> None:
