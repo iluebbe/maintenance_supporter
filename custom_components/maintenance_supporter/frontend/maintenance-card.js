@@ -2973,7 +2973,7 @@ ${c?`<div class="sub">${c}</div>`:""}
         ${n.map(([r,_])=>s`
             <div class="meta-item">
               <span class="meta-label">${r}</span>
-              <span class="meta-value">${r.toLowerCase().includes("doc")||r.toLowerCase().includes("url")?s`<a href="${_}" target="_blank" rel="noopener">${_}</a>`:_}</span>
+              <span class="meta-value">${/^https?:\/\//i.test(_)?s`<a href="${_}" target="_blank" rel="noopener noreferrer">${_}</a>`:_}</span>
             </div>
           `)}
       </div>

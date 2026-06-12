@@ -21,8 +21,10 @@ from .helpers.schedule import read_legacy_fields
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
 
-# Fields to redact from diagnostics
+# Fields to redact from diagnostics (downloads are admin-accessible and routinely
+# pasted into public GitHub issues, so anything free-text / identifying is redacted)
 TO_REDACT = {
+    "checklist",
     "notes",
     "documentation_url",
     "manufacturer",
@@ -196,7 +198,9 @@ def _check_trigger_status(
                     "trigger_entity": eid,
                     "trigger_type": trigger_config.get("type"),
                     "entity_available": state is not None,
-                    "entity_state": state.state if state else None,
+                    # raw entity_state intentionally omitted — it can carry PII
+                    # (e.g. a device_tracker / person location); entity_health
+                    # gives the available/unavailable/missing status for debugging.
                     "entity_health": entity_health,
                 }
             )

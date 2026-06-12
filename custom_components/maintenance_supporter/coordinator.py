@@ -1016,7 +1016,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if cost is not None:
             self._recalculate_budget_cache()
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "Maintenance completed: %s on %s", task.name, self.maintenance_object.name
         )
 
@@ -1048,7 +1048,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         await self._persist_and_signal_task_change(task_id, task)
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "Maintenance reset: %s on %s", task.name, self.maintenance_object.name
         )
 
@@ -1075,7 +1075,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         await self._persist_and_signal_task_change(task_id, task)
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "Maintenance skipped: %s on %s", task.name, self.maintenance_object.name
         )
 

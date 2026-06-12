@@ -15,6 +15,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
+from ..helpers.permissions import require_write
 from . import _get_merged_tasks, _get_runtime_data, _load_object_entry
 
 
@@ -91,7 +92,7 @@ async def ws_analyze_interval(
         vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_apply_suggestion(
     hass: HomeAssistant,
@@ -119,7 +120,7 @@ async def ws_apply_suggestion(
         vol.Required("overrides"): dict,
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_seasonal_overrides(
     hass: HomeAssistant,
@@ -207,7 +208,7 @@ async def ws_seasonal_overrides(
         vol.Optional("environmental_attribute"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_set_environmental_entity(
     hass: HomeAssistant,

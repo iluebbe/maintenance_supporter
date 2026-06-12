@@ -903,11 +903,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _renderOverview() {
     const L = this._lang;
-    const isOperator = this._isOperator;
+    const isAdmin = !!this.hass?.user?.is_admin;
     const s = this._stats;
-    // Operator mode: hide the Settings tab so end-users can't toggle features.
-    // The Calendar tab IS visible to operators (read-only view).
-    if (isOperator && this._overviewTab === "settings") {
+    // Only true HA admins get the Settings tab: global config, feature toggles,
+    // vacation and import live there and stay admin-only server-side. Operators
+    // (incl. allowlisted ones with full content CRUD) and plain users can't open
+    // it. The Calendar tab IS visible to everyone (read-only view).
+    if (!isAdmin && this._overviewTab === "settings") {
       this._overviewTab = "dashboard";
     }
     return html`
@@ -956,7 +958,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           @click=${() => { this._overviewTab = "calendar"; this._scrollContentToTop(); }}>
           ${t("tab_calendar", L)}
         </div>
-        ${!isOperator ? html`
+        ${isAdmin ? html`
           <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
             @click=${() => { this._overviewTab = "settings"; this._scrollContentToTop(); }}>
             ${t("settings", L)}

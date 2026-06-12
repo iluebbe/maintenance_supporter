@@ -313,3 +313,69 @@ async def test_ws_tasks_by_user_empty(
 
     result = conn.send_result.call_args[0][1]
     assert result["tasks"] == []
+
+
+# ─── security-audit follow-up: users/list field stripping + by_user scoping ──
+
+
+async def test_ws_list_users_strips_flags_for_non_admin(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """A non-admin caller gets only id+name — not is_admin/is_owner (enumeration)."""
+    await setup_integration(hass, global_entry)
+    users = [
+        _mock_user("u1", "Alice", is_admin=True, is_owner=True),
+        _mock_user("u2", "Bob"),
+    ]
+    hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
+    conn = _mock_connection()
+    conn.user = _mock_user("u2", "Bob", is_admin=False)
+
+    await call_ws_handler(ws_list_users, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/users/list",
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert len(result["users"]) == 2
+    for u in result["users"]:
+        assert set(u.keys()) == {"id", "name"}
+
+
+async def test_ws_tasks_by_user_self_allowed(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    assigned_object_entry: MockConfigEntry,
+) -> None:
+    """A non-admin may query their OWN task assignments."""
+    hass.auth.async_get_users = AsyncMock(return_value=[_mock_user("user1")])  # type: ignore[method-assign]
+    await setup_integration(hass, global_entry, assigned_object_entry)
+    conn = _mock_connection()
+    conn.user = _mock_user("user1", is_admin=False)
+
+    await call_ws_handler(ws_tasks_by_user, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/tasks/by_user", "user_id": "user1",
+    })
+
+    assert conn.send_error.call_count == 0
+    conn.send_result.assert_called_once()
+
+
+async def test_ws_tasks_by_user_other_rejected(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    assigned_object_entry: MockConfigEntry,
+) -> None:
+    """A non-admin may NOT query another user's task assignments."""
+    hass.auth.async_get_users = AsyncMock(return_value=[_mock_user("user1")])  # type: ignore[method-assign]
+    await setup_integration(hass, global_entry, assigned_object_entry)
+    conn = _mock_connection()
+    conn.user = _mock_user("attacker", is_admin=False)
+
+    await call_ws_handler(ws_tasks_by_user, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/tasks/by_user", "user_id": "user1",
+    })
+
+    conn.send_result.assert_not_called()
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "unauthorized"
+

@@ -5341,7 +5341,7 @@ ${ie}`,e.setTooltip)}
             `)}
         </div>
       </div>
-    `}_renderOverview(){let e=this._lang,t=this._isOperator,a=this._stats;return t&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),l`
+    `}_renderOverview(){let e=this._lang,t=!!this.hass?.user?.is_admin,a=this._stats;return!t&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),l`
       ${a?l`
             <div class="stats-bar">
               <div class="stat-item clickable"
@@ -5385,12 +5385,12 @@ ${ie}`,e.setTooltip)}
           @click=${()=>{this._overviewTab="calendar",this._scrollContentToTop()}}>
           ${i("tab_calendar",e)}
         </div>
-        ${t?d:l`
+        ${t?l`
           <div class="tab ${this._overviewTab==="settings"?"active":""}"
             @click=${()=>{this._overviewTab="settings",this._scrollContentToTop()}}>
             ${i("settings",e)}
           </div>
-        `}
+        `:d}
       </div>
       ${this._overviewTab==="dashboard"?this._renderDashboard():this._overviewTab==="calendar"?l`
             <div @ll-custom=${this._onCalendarLlCustom}>

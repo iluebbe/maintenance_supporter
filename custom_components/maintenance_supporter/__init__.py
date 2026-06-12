@@ -422,7 +422,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                         ce.entry_id,
                     )
                     continue
-                _LOGGER.info(
+                _LOGGER.debug(
                     "Completing task %s via NFC tag scan (%s)",
                     task_id,
                     tag_id,

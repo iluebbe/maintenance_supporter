@@ -37,6 +37,7 @@ from ..const import (
     HistoryEntryType,
 )
 from ..helpers.dates import INTERVAL_UNITS
+from ..helpers.permissions import require_write
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     Schedule,
@@ -55,22 +56,36 @@ from . import (
 # Validation helpers
 # ---------------------------------------------------------------------------
 
-_SAFE_URL_SCHEMES = {"http", "https", ""}
+_SAFE_URL_SCHEMES = {"http", "https"}
 
 
 def _is_safe_url(url: str | None) -> bool:
-    """Reject javascript:, data:, protocol-relative, and other dangerous URL schemes."""
+    """Reject javascript:, data:, protocol-relative and other dangerous URLs.
+
+    Only http/https and genuine path-relative URLs (no host) pass. ASCII control
+    characters and surrounding whitespace are stripped first, since urlparse and
+    browsers ignore them and they can otherwise mask a "//host" or scheme-less
+    host (e.g. ``"   //evil.com"`` or ``"\t//evil.com"``).
+    """
     if not url:
         return True
+    from urllib.parse import urlparse
+
+    cleaned = "".join(ch for ch in url if ch.isprintable()).strip()
+    if not cleaned:
+        return True
     # Block protocol-relative URLs like //evil.com
-    if url.startswith("//"):
+    if cleaned.startswith("//"):
         return False
     try:
-        from urllib.parse import urlparse
-        scheme = urlparse(url).scheme.lower()
-        return scheme in _SAFE_URL_SCHEMES
+        parsed = urlparse(cleaned)
     except Exception:  # noqa: BLE001 - any malformed URL is rejected as unsafe
         return False
+    scheme = parsed.scheme.lower()
+    if scheme in _SAFE_URL_SCHEMES:
+        return True
+    # An empty scheme is only safe for a true path-relative URL with no host.
+    return scheme == "" and not parsed.netloc
 
 
 # ---------------------------------------------------------------------------
@@ -425,7 +440,7 @@ async def async_create_task_simple(
         vol.Optional("dry_run", default=False): bool,
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_create_task(
     hass: HomeAssistant,
@@ -603,7 +618,7 @@ async def ws_create_task(
         vol.Optional("quick_complete_defaults"): vol.Any(dict, None),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_update_task(
     hass: HomeAssistant,
@@ -765,7 +780,7 @@ async def ws_update_task(
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_delete_task(
     hass: HomeAssistant,
@@ -1090,7 +1105,7 @@ async def ws_reset_task(
         vol.Optional("completed_by"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_update_history_entry(
     hass: HomeAssistant,
