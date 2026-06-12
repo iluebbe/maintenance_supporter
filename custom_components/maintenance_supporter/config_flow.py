@@ -57,6 +57,7 @@ from .const import (
     slugify_object_name,
 )
 from .helpers.global_options import get_default_warning_days
+from .helpers.i18n import normalize_language
 from .helpers.schedule import KIND_WEEKDAYS, normalize_task_storage
 from .templates import (
     TEMPLATE_CATEGORIES,
@@ -167,7 +168,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             self._template_category = user_input["template_category"]
             return await self.async_step_template_select()
 
-        lang = (getattr(self.hass.config, "language", None) or "en")[:2].lower()
+        lang = normalize_language(self.hass)
         options = [
             selector.SelectOptionDict(
                 value=cat_id,

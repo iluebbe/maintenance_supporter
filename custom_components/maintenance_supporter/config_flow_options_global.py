@@ -59,6 +59,7 @@ from .const import (
     DEFAULT_WARNING_DAYS,
     MAX_PANEL_TITLE_LENGTH,
 )
+from .helpers.i18n import normalize_language
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -187,7 +188,7 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
 
 def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
     """Get localized test notification result text."""
-    lang = (getattr(hass.config, "language", None) or "en")[:2].lower()
+    lang = normalize_language(hass)
     texts = _TEST_NOTIFICATION_RESULTS.get(lang, _TEST_NOTIFICATION_RESULTS["en"])
     return texts.get(key, texts.get("failed", key))
 
