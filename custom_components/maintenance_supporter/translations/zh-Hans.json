@@ -1,0 +1,1557 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "维护助手 (Maintenance Supporter)",
+        "description": "设置您的维护管理系统。",
+        "menu_options": {
+          "create_object": "创建维护项",
+          "create_from_template": "从模板创建",
+          "global_setup": "全局设置"
+        }
+      },
+      "create_from_template": {
+        "title": "选择模板分类",
+        "description": "选择一个分类以浏览预定义的维护模板。",
+        "data": {
+          "template_category": "分类",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "template_select": {
+        "title": "选择模板",
+        "description": "选择一个维护模板作为起点。",
+        "data": {
+          "template_id": "模板",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "go_back": "返回分类选择且不保存。"
+        }
+      },
+      "template_customize": {
+        "title": "自定义模板",
+        "description": "正在自定义 {template_name} 模板。它包含 {task_count} 项任务：{task_list}。",
+        "data": {
+          "name": "维护项名称",
+          "area_id": "区域",
+          "manufacturer": "制造商",
+          "model": "型号",
+          "serial_number": "序列号",
+          "documentation_url": "手册/文档 URL",
+          "notes": "备注",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "name": "此维护项的显示名称。",
+          "area_id": "此维护项所在的区域。",
+          "manufacturer": "该维护项的制造商。",
+          "model": "型号名称或编号。",
+          "serial_number": "该维护项的序列号。",
+          "documentation_url": "可选链接，指向 PDF 手册、厂商页面或包含此维护项参考信息的任何 URL。",
+          "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
+          "go_back": "返回模板选择且不保存。"
+        }
+      },
+      "global_setup": {
+        "title": "全局设置",
+        "description": "配置全局维护参数。",
+        "data": {
+          "default_warning_days": "默认提前预警天数",
+          "notifications_enabled": "启用通知",
+          "notify_service": "通知服务"
+        },
+        "data_description": {
+          "default_warning_days": "在维护任务到期前多少天显示预警。",
+          "notifications_enabled": "当维护任务到期时发送通知。",
+          "notify_service": "要使用的通知服务（例如：notify.mobile_app_phone）。"
+        }
+      },
+      "create_object": {
+        "title": "创建维护项",
+        "description": "定义一个需要管理维护的设备或资产。",
+        "data": {
+          "name": "维护项名称",
+          "area_id": "区域",
+          "manufacturer": "制造商",
+          "model": "型号",
+          "serial_number": "序列号",
+          "documentation_url": "手册/文档 URL",
+          "notes": "备注",
+          "installation_date": "安装日期",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "name": "此维护项的唯一名称（例如：‘泳池泵’、‘汽车’）。",
+          "area_id": "此维护项在你家中所处的区域。",
+          "manufacturer": "该维护项的制造商。",
+          "model": "型号名称或编号。",
+          "serial_number": "该维护项的序列号。",
+          "documentation_url": "可选链接，指向 PDF 手册、厂商页面或包含此维护项参考信息的任何 URL。",
+          "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
+          "installation_date": "该维护项安装或购买的日期。",
+          "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "task_menu": {
+        "title": "维护任务",
+        "description": "为 {object_name} 添加维护任务。当前已定义 {task_count} 项任务。",
+        "menu_options": {
+          "add_task": "添加维护任务",
+          "finish": "完成设置"
+        }
+      },
+      "add_task": {
+        "title": "添加维护任务",
+        "description": "为 {object_name} 定义一项维护任务。",
+        "data": {
+          "name": "任务名称",
+          "type": "维护类型",
+          "schedule_type": "计划类型",
+          "custom_icon": "任务图标",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
+          "type": "维护工作的类别。",
+          "schedule_type": "此任务的计划方式。",
+          "custom_icon": "此任务的可选自定义图标（例如：mdi:oil, mdi:filter-variant）。",
+          "go_back": "返回任务菜单且不保存。"
+        }
+      },
+      "time_based": {
+        "title": "基于时间的计划",
+        "description": "配置此维护任务的时间间隔。",
+        "data": {
+          "interval_days": "间隔数值",
+          "interval_unit": "间隔单位",
+          "last_performed": "上次执行时间",
+          "warning_days": "提前预警天数",
+          "go_back": "返回",
+          "interval_anchor": "计划锚点"
+        },
+        "data_description": {
+          "interval_days": "维护重复的频率，与间隔单位结合使用。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "last_performed": "上次执行此维护的时间。如果从未执行过请留空。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回任务创建且不保存。",
+          "interval_anchor": "完成后如何计算下次到期日。‘计划日期’ 通过锚定原始到期日来防止时间偏移。"
+        }
+      },
+      "one_time": {
+        "title": "一次性任务",
+        "description": "配置一项单一的、非经常性的维护任务。完成后将被归档。",
+        "data": {
+          "due_date": "到期日期",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "due_date": "此一次性任务到期的日期。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回任务创建且不保存。"
+        }
+      },
+      "calendar": {
+        "title": "日历计划",
+        "description": "配置基于日历的循环方式（周日期、每月第几个周几或每月某天）。",
+        "data": {
+          "weekdays": "在这些周日期",
+          "nth": "第几次发生",
+          "weekday": "周几",
+          "day": "每月日期",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "weekdays": "任务在每个选定的周日期重复。",
+          "nth": "在月份中的第几次发生（例如：第一个或最后一个）。",
+          "weekday": "针对‘每月第几个周几’规则的周日期（例如：周六）。",
+          "day": "每月的几号（1-31；将自动限制在月份长度内）。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回任务创建且不保存。"
+        }
+      },
+      "sensor_select": {
+        "title": "选择触发传感器",
+        "description": "选择一个 Home Assistant 实体来监控此维护任务。",
+        "data": {
+          "trigger_entity": "要监控的实体",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_entity": "选择应触发此维护任务的传感器实体。",
+          "go_back": "返回任务创建且不保存。"
+        }
+      },
+      "sensor_attribute": {
+        "title": "选择属性",
+        "description": "选择从 {entity_id} 监控哪个值。当前状态：{current_state} {unit}",
+        "data": {
+          "trigger_attribute": "要监控的值",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_attribute": "选择要监控的实体状态或特定属性。",
+          "go_back": "返回实体选择且不保存。"
+        }
+      },
+      "trigger_type": {
+        "title": "触发类型",
+        "description": "传感器值应如何触发维护？",
+        "data": {
+          "trigger_type": "触发类型",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_type": "阈值：当数值超过限制时触发。计数器：累计达到目标值后触发。状态变化：状态转换次数达到后触发。",
+          "go_back": "返回属性选择且不保存。"
+        }
+      },
+      "trigger_threshold": {
+        "title": "阈值配置",
+        "description": "设置 **{entity_id}** ({attribute}) 的阈值。\n当前值：**{current_value} {unit}** | 平均值：{average} | 范围：{minimum}–{maximum} ({data_period}天)\n建议上限：{suggested_above} | 建议下限：{suggested_below}",
+        "data": {
+          "trigger_above": "高于此值触发",
+          "trigger_below": "低于此值触发",
+          "trigger_for_minutes": "持续至少 (分钟)",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_above": "当数值超过此阈值时触发维护。",
+          "trigger_below": "当数值低于此阈值时触发维护。",
+          "trigger_for_minutes": "数值必须超过阈值并保持此分钟数才会触发。",
+          "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
+      "trigger_counter": {
+        "title": "计数器配置",
+        "description": "设置 {entity_id} ({attribute}) 的计数器目标。当前值：{current_value} {unit}。",
+        "data": {
+          "trigger_target_value": "目标值",
+          "trigger_delta_mode": "增量模式 (计算变化量，而非绝对值)",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_target_value": "当达到此累计值时触发维护。",
+          "trigger_delta_mode": "如果启用，将计算与基准线的差值而非使用绝对值。",
+          "interval_days": "除了计数器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
+      "trigger_state_change": {
+        "title": "状态变化配置",
+        "description": "统计 {entity_id} 的状态转换次数。",
+        "data": {
+          "trigger_from_state": "起始状态 (可选)",
+          "trigger_to_state": "目标状态 (可选)",
+          "trigger_target_changes": "触发所需的变化次数",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_from_state": "仅统计从此状态开始的转换。留空表示任意状态。",
+          "trigger_to_state": "仅统计转换到此状态的次数。留空表示任意状态。",
+          "trigger_target_changes": "触发维护前匹配的状态变化次数。",
+          "interval_days": "除了状态变化触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
+      "trigger_runtime": {
+        "title": "运行时间配置",
+        "description": "追踪 {entity_id} 的累计运行时间。当总开机时间达到目标小时数时触发维护。",
+        "data": {
+          "trigger_runtime_hours": "目标运行时间 (小时)",
+          "trigger_on_states": "激活状态 (英文逗号分隔)",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累计运行达到此小时数后触发维护。",
+          "trigger_on_states": "哪些传感器状态被视为‘激活’。留空使用默认值：on, 1, true。示例：in_use, running",
+          "interval_days": "除了运行时间触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
+      "compound_logic": {
+        "title": "组合触发器",
+        "description": "选择如何组合多个条件。",
+        "data": {
+          "compound_logic": "逻辑关系",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "compound_logic": "AND = 所有条件都必须触发。OR = 任意条件触发即可。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
+      "compound_condition_entity": {
+        "title": "条件 #{condition_num} — 实体",
+        "description": "为此条件选择实体。",
+        "data": {
+          "trigger_entity": "实体",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_entity": "监控此条件的传感器实体。",
+          "go_back": "返回上一步且不保存。"
+        }
+      },
+      "compound_condition_type": {
+        "title": "条件 #{condition_num} — 类型",
+        "description": "此条件应如何评估传感器？",
+        "data": {
+          "trigger_type": "触发类型",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_type": "用于确定此条件何时触发的方法。",
+          "go_back": "返回实体选择且不保存。"
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "条件 — 阈值",
+        "data": {
+          "trigger_above": "高于此值触发",
+          "trigger_below": "低于此值触发",
+          "trigger_for_minutes": "持续时长 (分钟)",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_above": "当数值超过此阈值时触发条件。",
+          "trigger_below": "当数值低于此阈值时触发条件。",
+          "trigger_for_minutes": "数值必须超出阈值并保持此时长。",
+          "go_back": "返回条件类型选择且不保存。"
+        }
+      },
+      "compound_condition_counter": {
+        "title": "条件 — 计数器",
+        "data": {
+          "trigger_target_value": "目标值",
+          "trigger_delta_mode": "增量模式",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_target_value": "当累计值达到此目标时触发条件。",
+          "trigger_delta_mode": "计算与基准线的变化量而非绝对值。",
+          "go_back": "返回条件类型选择且不保存。"
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "条件 — 状态变化",
+        "data": {
+          "trigger_from_state": "起始状态",
+          "trigger_to_state": "目标状态",
+          "trigger_target_changes": "变化次数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_from_state": "仅统计从此状态开始的转换。留空表示任意状态。",
+          "trigger_to_state": "仅统计转换到此状态的次数。留空表示任意状态。",
+          "trigger_target_changes": "触发前匹配的状态变化次数。",
+          "go_back": "返回条件类型选择且不保存。"
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "条件 — 运行时间",
+        "data": {
+          "trigger_runtime_hours": "目标运行时间 (小时)",
+          "trigger_on_states": "激活状态",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累计运行达到此小时数后触发条件。",
+          "trigger_on_states": "被视为‘激活’的传感器状态。留空使用默认值。",
+          "go_back": "返回条件类型选择且不保存。"
+        }
+      },
+      "compound_review": {
+        "title": "组合触发器复核",
+        "description": "已配置 {condition_count} 个条件，使用 {compound_logic} 逻辑。",
+        "data": {
+          "compound_action": "动作",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "go_back": "返回逻辑选择且不保存。"
+        }
+      },
+      "manual": {
+        "title": "手动计划",
+        "description": "此任务没有自动计划。您可以手动将其标记为到期。",
+        "data": {
+          "warning_days": "提前预警天数",
+          "notes": "备注",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "warning_days": "到期日期前多少天显示预警。",
+          "notes": "此任务的其他备注或说明。",
+          "go_back": "返回任务创建且不保存。"
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置 {name}",
+        "description": "更新此维护项的设置。",
+        "data": {
+          "name": "维护项名称",
+          "area_id": "区域",
+          "manufacturer": "制造商",
+          "model": "型号",
+          "serial_number": "序列号",
+          "documentation_url": "手册/文档 URL",
+          "notes": "备注",
+          "installation_date": "安装日期"
+        },
+        "data_description": {
+          "name": "此维护项的显示名称。",
+          "area_id": "此维护项所在的区域。",
+          "manufacturer": "该维护项的制造商。",
+          "model": "该维护项的型号。",
+          "serial_number": "该维护项的序列号。",
+          "documentation_url": "可选链接，指向 PDF 手册、厂商页面或包含此维护项参考信息的任何 URL。",
+          "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
+          "installation_date": "此维护项安装的时间。"
+        }
+      }
+    },
+    "error": {
+      "name_exists": "已存在同名的维护项。",
+      "no_tasks": "至少需要一项维护任务。",
+      "invalid_entity": "所选实体不存在或没有数值数据。",
+      "invalid_attribute": "所选属性在此实体上不可用。",
+      "invalid_threshold": "必须至少设置一个阈值（上限或下限）。",
+      "invalid_due_date": "一次性任务需要到期日期。",
+      "invalid_interval": "间隔必须为正数。",
+      "min_exceeds_max": "最小间隔不能超过最大间隔。",
+      "invalid_notify_service": "无效的通知服务格式。请使用 'notify.service_name'（例如：notify.mobile_app_phone）。",
+      "notify_service_not_found": "在 Home Assistant 中找不到此通知服务。请验证服务名称。",
+      "nfc_tag_duplicate": "此 NFC 标签已链接到另一项任务。"
+    },
+    "abort": {
+      "already_configured": "此维护项已配置。",
+      "global_already_exists": "全局设置已配置。",
+      "template_not_found": "找不到所选模板。",
+      "missing_data": "未提供必需的数据。",
+      "reconfigure_successful": "配置更新成功。",
+      "reconfigure_cancelled": "重新配置已取消。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "维护选项",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "管理任务",
+          "add_task": "添加新任务",
+          "object_settings": "维护项设置",
+          "done": "完成"
+        }
+      },
+      "global_init": {
+        "title": "全局设置",
+        "description": "配置全局维护参数。",
+        "menu_options": {
+          "general_settings": "常规设置",
+          "advanced_features": "进阶功能",
+          "panel_access": "面板权限",
+          "budget_settings": "预算设置",
+          "manage_groups": "管理分组",
+          "notification_settings": "通知设置",
+          "notification_actions": "交互式动作",
+          "test_notification": "发送测试通知",
+          "done": "完成"
+        }
+      },
+      "advanced_features": {
+        "title": "进阶功能",
+        "description": "选择要在界面中显示的进阶功能。禁用某项功能仅会从界面隐藏，不会删除任何数据。",
+        "data": {
+          "advanced_adaptive_visible": "自适应调度计划",
+          "advanced_predictions_visible": "传感器预测",
+          "advanced_seasonal_visible": "季节性调整",
+          "advanced_environmental_visible": "环境关联",
+          "advanced_budget_visible": "预算追踪",
+          "advanced_groups_visible": "分组",
+          "advanced_checklists_visible": "检查清单",
+          "advanced_schedule_time_visible": "具体时间调度"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "显示 EWA、韦伯分析以及针对任务的间隔建议。",
+          "advanced_predictions_visible": "显示传感器损耗分析和阈值预测图表。",
+          "advanced_seasonal_visible": "显示季节因子图表和每月调整数据。",
+          "advanced_environmental_visible": "显示环境关联（温度、湿度）调整。",
+          "advanced_budget_visible": "显示月度/年度预算追踪和警报。",
+          "advanced_groups_visible": "显示维护分组管理。",
+          "advanced_checklists_visible": "显示任务检查清单以进行逐步操作。",
+          "advanced_schedule_time_visible": "允许任务在一天中的特定时间变为超期，而非午夜。"
+        }
+      },
+      "panel_access": {
+        "title": "面板权限",
+        "description": "选择也应看到完整维护助手面板（创建/编辑/删除动作）的非管理员用户。管理员始终可以看到完整面板。已找到 {user_count} 个非管理员用户。",
+        "data": {
+          "admin_panel_user_ids": "拥有完整面板权限的用户"
+        },
+        "data_description": {
+          "admin_panel_user_ids": "列表中的用户可以看到完整面板；其他人在每项任务上仅能看到“完成”和“跳过”。"
+        }
+      },
+      "general_settings": {
+        "title": "常规设置",
+        "description": "配置维护助手的基本设置。",
+        "data": {
+          "default_warning_days": "默认提前预警天数",
+          "notifications_enabled": "启用通知",
+          "notify_service": "通知服务",
+          "panel_enabled": "显示侧边栏面板",
+          "panel_title": "侧边栏面板标题"
+        },
+        "data_description": {
+          "default_warning_days": "维护任务到期前多少天显示预警。",
+          "notifications_enabled": "当维护任务到期或已超期时发送通知。",
+          "notify_service": "要使用的通知服务（例如：notify.mobile_app_phone）。",
+          "panel_enabled": "在侧边栏显示维护助手面板。",
+          "panel_title": "侧边栏条目的自定义名称。留空使用 “Maintenance”。有助于避免与 Home Assistant 内置的维护面板冲突。"
+        }
+      },
+      "notification_settings": {
+        "title": "通知设置",
+        "description": "配置各种状态下通知发送的时机和频率。",
+        "data": {
+          "notify_due_soon_enabled": "即将到期时通知",
+          "notify_due_soon_interval_hours": "即将到期提醒间隔 (小时)",
+          "notify_overdue_enabled": "已超期时通知",
+          "notify_overdue_interval_hours": "超期提醒间隔 (小时)",
+          "notify_triggered_enabled": "被触发时通知",
+          "notify_triggered_interval_hours": "触发提醒间隔 (小时)",
+          "quiet_hours_enabled": "启用免打扰时段",
+          "quiet_hours_start": "免打扰开始时间",
+          "quiet_hours_end": "免打扰结束时间",
+          "max_notifications_per_day": "每日最高通知次数",
+          "notification_bundling_enabled": "合并通知",
+          "notification_bundle_threshold": "合并阈值",
+          "notification_title_style": "通知标题样式"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "即将到期提醒的重复频率。设置为 0 则仅通知一次。",
+          "notify_overdue_interval_hours": "超期提醒的重复频率。设置为 0 则仅通知一次。",
+          "notify_triggered_interval_hours": "被触发提醒的重复频率。设置为 0 则仅通知一次。",
+          "quiet_hours_enabled": "在免打扰时段内抑制通知。",
+          "max_notifications_per_day": "每天允许发送的最大通知数量。设置为 0 表示不限制。",
+          "notification_bundling_enabled": "当多项任务需要处理时，发送一条汇总通知。",
+          "notification_bundle_threshold": "触发合并通知所需的最少任务数量。",
+          "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。"
+        }
+      },
+      "notification_actions": {
+        "title": "交互式动作",
+        "description": "配置移动端通知上显示的动作按钮（需要官方 APP）。",
+        "data": {
+          "action_complete_enabled": "显示“完成”按钮",
+          "action_skip_enabled": "显示“跳过”按钮",
+          "action_snooze_enabled": "显示“稍后”按钮",
+          "snooze_duration_hours": "稍后提醒时长 (小时)"
+        },
+        "data_description": {
+          "action_complete_enabled": "在通知中添加一个按钮，直接将任务标记为已完成。",
+          "action_skip_enabled": "在通知中添加一个按钮，跳过当前维护周期。",
+          "action_snooze_enabled": "在通知中添加一个按钮，以推迟通知提醒。",
+          "snooze_duration_hours": "按下稍后提醒后，推迟通知的时长。"
+        }
+      },
+      "budget_settings": {
+        "title": "预算设置",
+        "description": "设置每月和每年的维护预算以追踪支出。",
+        "data": {
+          "budget_currency": "货币",
+          "budget_monthly": "月度预算",
+          "budget_yearly": "年度预算",
+          "budget_alerts_enabled": "启用预算警报",
+          "budget_alert_threshold": "警报阈值 (%)"
+        },
+        "data_description": {
+          "budget_currency": "用于预算显示和通知的货币单位。",
+          "budget_monthly": "每月最大维护支出。设置为 0 禁用。",
+          "budget_yearly": "每年最大维护支出。设置为 0 禁用。",
+          "budget_alerts_enabled": "当支出超过警报阈值时发送通知。",
+          "budget_alert_threshold": "发送警报时的预算百分比。"
+        }
+      },
+      "test_notification": {
+        "title": "测试通知",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "管理分组",
+        "description": "选择一个分组进行管理或创建一个新分组。",
+        "data": {
+          "selected_group": "选择分组"
+        }
+      },
+      "add_group": {
+        "title": "添加分组",
+        "description": "创建一个新的维护分组来组织相关的任务。",
+        "data": {
+          "group_name": "分组名称",
+          "group_description": "描述"
+        },
+        "data_description": {
+          "group_name": "此分组的名称（例如：‘春季维护’）。",
+          "group_description": "此分组的可选描述。"
+        }
+      },
+      "manage_tasks": {
+        "title": "管理任务",
+        "description": "选择一个任务进行编辑或移除。",
+        "data": {
+          "selected_task": "选择任务",
+          "go_back": "返回"
+        }
+      },
+      "task_action": {
+        "title": "任务动作",
+        "description": "任务：{task_name} —— 选择一个动作。",
+        "menu_options": {
+          "edit_task": "编辑任务",
+          "edit_trigger": "编辑触发器",
+          "remove_trigger": "移除触发器",
+          "edit_checklist": "编辑检查清单",
+          "adaptive_scheduling": "自适应调度计划",
+          "delete_task": "删除任务",
+          "manage_tasks": "返回"
+        }
+      },
+      "edit_task": {
+        "title": "编辑任务",
+        "description": "编辑 **{task_name}** 的设置。",
+        "data": {
+          "name": "任务名称",
+          "type": "维护类型",
+          "interval_days": "间隔数值",
+          "interval_unit": "间隔单位",
+          "warning_days": "提前预警天数",
+          "due_date": "到期日期",
+          "enabled": "已启用",
+          "notes": "备注",
+          "documentation_url": "文档 URL",
+          "last_performed": "上次执行时间",
+          "responsible_user_id": "负责人",
+          "custom_icon": "任务图标",
+          "nfc_tag_id": "NFC 标签 ID",
+          "go_back": "返回",
+          "interval_anchor": "计划锚点"
+        },
+        "data_description": {
+          "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
+          "type": "维护工作的类别。",
+          "interval_days": "维护重复的频率，与间隔单位结合使用。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "due_date": "此一次性任务到期的日期。",
+          "enabled": "禁用时，计划和触发器将暂停。任务不会被删除。",
+          "notes": "此任务的其他备注或说明。",
+          "documentation_url": "指向此任务外部文档或手册的链接。",
+          "last_performed": "上次执行此维护的时间。如果从未执行过请留空。",
+          "responsible_user_id": "负责此任务的 Home Assistant 用户。",
+          "custom_icon": "此任务的可选自定义图标（例如：mdi:oil, mdi:filter-variant）。",
+          "nfc_tag_id": "为此任务链接一个 NFC 标签。扫描标签将自动将任务标记为已完成。",
+          "go_back": "返回任务动作且不保存。",
+          "interval_anchor": "完成后如何计算下次到期日。‘计划日期’ 通过锚定原始到期日来防止时间偏移。"
+        }
+      },
+      "edit_checklist": {
+        "title": "编辑检查清单",
+        "description": "为 {task_name} 定义检查步骤。每行输入一个步骤。",
+        "data": {
+          "checklist_text": "清单步骤",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "checklist_text": "在每一行输入一个步骤。这些步骤将在完成任务时显示。",
+          "go_back": "返回任务动作且不保存。"
+        }
+      },
+      "compound_logic": {
+        "title": "组合触发器",
+        "description": "选择多个条件的组合方式。",
+        "data": {
+          "compound_logic": "逻辑关系",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "compound_logic": "AND = 所有条件都必须触发。OR = 任意条件触发即可。"
+        }
+      },
+      "compound_condition_entity": {
+        "title": "条件 #{condition_num} — 实体",
+        "description": "为此条件选择实体。",
+        "data": {
+          "trigger_entity": "实体",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_entity": "监控此条件的传感器实体。"
+        }
+      },
+      "compound_condition_type": {
+        "title": "条件 #{condition_num} — 类型",
+        "description": "此条件应如何评估传感器？",
+        "data": {
+          "trigger_type": "触发类型",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_type": "用于确定此条件何时触发的方法。"
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "条件 — 阈值",
+        "data": {
+          "trigger_above": "高于此值触发",
+          "trigger_below": "低于此值触发",
+          "trigger_for_minutes": "持续时长 (分钟)",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_above": "当数值超过此阈值时触发条件。",
+          "trigger_below": "当数值低于此阈值时触发条件。",
+          "trigger_for_minutes": "数值必须超过阈值并保持此时长。"
+        }
+      },
+      "compound_condition_counter": {
+        "title": "条件 — 计数器",
+        "data": {
+          "trigger_target_value": "目标值",
+          "trigger_delta_mode": "增量模式",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_target_value": "当累计值达到此目标时触发条件。",
+          "trigger_delta_mode": "计算与基准线的变化量而非绝对值。"
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "条件 — 状态变化",
+        "data": {
+          "trigger_from_state": "起始状态",
+          "trigger_to_state": "目标状态",
+          "trigger_target_changes": "变化次数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_from_state": "仅统计从此状态开始的转换。留空表示任意状态。",
+          "trigger_to_state": "仅统计转换到此状态的次数。留空表示任意状态。",
+          "trigger_target_changes": "触发前匹配的状态变化次数。"
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "条件 — 运行时间",
+        "data": {
+          "trigger_runtime_hours": "目标运行时间 (小时)",
+          "trigger_on_states": "激活状态",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累计运行达到此小时数后触发条件。",
+          "trigger_on_states": "被视为‘激活’的传感器状态。留空使用默认值。"
+        }
+      },
+      "compound_review": {
+        "title": "组合触发器复核",
+        "description": "已配置 {condition_count} 个条件，使用 {compound_logic} 逻辑。",
+        "data": {
+          "compound_action": "动作",
+          "go_back": "返回"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "自适应计划",
+        "description": "为 {task_name} 配置智能间隔调整。系统会根据您的完成反馈学习并建议更佳的间隔。",
+        "data": {
+          "adaptive_enabled": "启用自适应计划",
+          "ewa_alpha": "学习率 (alpha)",
+          "min_interval_days": "最小间隔 (天)",
+          "max_interval_days": "最大间隔 (天)",
+          "seasonal_enabled": "启用季节性感知",
+          "sensor_prediction_enabled": "启用基于传感器的预测",
+          "environmental_entity": "环境传感器 (可选)",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "adaptive_enabled": "启用后，系统将从您的反馈中学习并建议最佳维护间隔。",
+          "ewa_alpha": "算法对新数据的适应速度。越高越敏感，越低越稳健。",
+          "min_interval_days": "系统允许建议的最短间隔。",
+          "max_interval_days": "系统允许建议的最长间隔。",
+          "seasonal_enabled": "根据从您的维护历史中学习到的季节性模式调整建议。",
+          "sensor_prediction_enabled": "分析传感器趋势以预测何时达到阈值，并在需要时建议提前维护。",
+          "environmental_entity": "关联温度、湿度或压力传感器，以将环境条件与维护间隔挂钩。",
+          "go_back": "返回任务动作且不保存。"
+        }
+      },
+      "delete_task": {
+        "title": "删除任务",
+        "description": "确定要删除任务 {task_name} 吗？此操作无法撤销。",
+        "data": {
+          "confirm": "确认删除",
+          "go_back": "返回"
+        }
+      },
+      "remove_trigger": {
+        "title": "移除触发器",
+        "description": "从 **{task_name}** 移除触发器？\n\n**实体：** {entity_ids}\n**类型：** {trigger_type}\n**配置：** {config_details}\n\n如果所有实体都被移除，计划将恢复为基于时间的方式。",
+        "data": {
+          "entities_to_remove": "要移除的实体",
+          "confirm": "确认移除",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "entities_to_remove": "选择要从此触发器中移除的实体。如果全部移除，整个触发器将被删除。",
+          "go_back": "返回任务动作且不保存。"
+        }
+      },
+      "trigger_summary": {
+        "title": "当前触发器",
+        "description": "**{task_name}** 的触发器信息：\n\n**实体：** {entity_ids}\n**当前状态：** {current_states}\n**类型：** {trigger_type} (属性: {attribute})\n**配置：** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "编辑触发器",
+          "task_action": "返回"
+        }
+      },
+      "add_task": {
+        "title": "添加维护任务",
+        "description": "为此维护项定义一项新的维护任务。",
+        "data": {
+          "name": "任务名称",
+          "type": "维护类型",
+          "schedule_type": "计划类型",
+          "custom_icon": "任务图标",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
+          "type": "维护工作的类别。",
+          "schedule_type": "此任务的计划方式。",
+          "custom_icon": "此任务的可选自定义图标（例如：mdi:oil, mdi:filter-variant）。",
+          "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "opt_time_based": {
+        "title": "基于时间的计划",
+        "description": "配置此任务的时间间隔。",
+        "data": {
+          "interval_days": "间隔数值",
+          "interval_unit": "间隔单位",
+          "last_performed": "上次执行时间",
+          "warning_days": "提前预警天数",
+          "go_back": "返回",
+          "interval_anchor": "计划锚点"
+        },
+        "data_description": {
+          "interval_days": "维护重复的频率，与间隔单位结合使用。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "last_performed": "上次执行此维护的时间。如果从未执行过请留空。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回主菜单且不保存。",
+          "interval_anchor": "完成后如何计算下次到期日。‘计划日期’ 通过锚定原始到期日来防止时间偏移。"
+        }
+      },
+      "opt_one_time": {
+        "title": "一次性任务",
+        "description": "配置一项单一的、非经常性的维护任务。完成后将被归档。",
+        "data": {
+          "due_date": "到期日期",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "due_date": "此一次性任务到期的日期。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "opt_calendar": {
+        "title": "日历计划",
+        "description": "配置基于日历的循环方式（周日期、每月第几个周几或每月某天）。",
+        "data": {
+          "weekdays": "在这些周日期",
+          "nth": "第几次发生",
+          "weekday": "周几",
+          "day": "每月日期",
+          "last_performed": "上次执行时间",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "weekdays": "任务在每个选定的周日期重复。",
+          "nth": "在月份中的第几次发生（例如：第一个或最后一个）。",
+          "weekday": "针对‘每月第几个周几’规则的周日期（例如：周六）。",
+          "day": "每月的几号（1-31）。",
+          "last_performed": "上次执行此维护的时间。如果从未执行过请留空。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "opt_manual": {
+        "title": "手动计划",
+        "description": "此任务没有自动计划。您可以手动将其标记为到期。",
+        "data": {
+          "warning_days": "提前预警天数",
+          "notes": "备注",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "warning_days": "到期日期前多少天显示预警。",
+          "notes": "此任务的其他备注或说明。",
+          "go_back": "返回主菜单且不保存。"
+        }
+      },
+      "opt_sensor_select": {
+        "title": "选择触发传感器",
+        "description": "选择一个 Home Assistant 实体进行监控。",
+        "data": {
+          "trigger_entity": "要监控的实体",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_entity": "选择应触发此维护任务的传感器实体。"
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "选择属性",
+        "description": "选择从 {entity_id} 监控哪个值。当前状态：{current_state} {unit}",
+        "data": {
+          "trigger_attribute": "要监控的值",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_attribute": "选择要监控的实体状态或特定属性。"
+        }
+      },
+      "opt_trigger_type": {
+        "title": "触发类型",
+        "description": "传感器值应如何触发维护？",
+        "data": {
+          "trigger_type": "触发类型",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_type": "阈值：当数值超过限制时触发。计数器：累计达到目标值后触发。状态变化：状态转换次数达到后触发。"
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "阈值配置",
+        "description": "设置 **{entity_id}** ({attribute}) 的阈值。\n当前值：**{current_value} {unit}** | 平均值：{average} | 范围：{minimum}–{maximum} ({data_period}天)\n建议上限：{suggested_above} | 建议下限：{suggested_below}",
+        "data": {
+          "trigger_above": "高于此值触发",
+          "trigger_below": "低于此值触发",
+          "trigger_for_minutes": "持续至少 (分钟)",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_above": "当数值超过此阈值时触发维护。",
+          "trigger_below": "当数值低于此阈值时触发维护。",
+          "trigger_for_minutes": "数值必须超过阈值并保持此分钟数才会触发。",
+          "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。"
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "计数器配置",
+        "description": "设置 {entity_id} ({attribute}) 的计数器目标。当前值：{current_value} {unit}。",
+        "data": {
+          "trigger_target_value": "目标值",
+          "trigger_delta_mode": "增量模式 (计算变化量，而非绝对值)",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "提前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_target_value": "当达到此累计值时触发维护。",
+          "trigger_delta_mode": "如果启用，将计算与基准线的差值而非使用绝对值。",
+          "interval_days": "除了计数器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。"
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "状态变化配置",
+        "description": "统计 {entity_id} 的状态转换次数。",
+        "data": {
+          "trigger_from_state": "起始状态 (可选)",
+          "trigger_to_state": "目标状态 (可选)",
+          "trigger_target_changes": "触发所需的变化次数",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "到期前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_from_state": "仅统计从此状态开始的转换。留空表示任意状态。",
+          "trigger_to_state": "仅统计转换到此状态的次数。留空表示任意状态。",
+          "trigger_target_changes": "触发维护前匹配的状态变化次数。",
+          "interval_days": "除了状态变化触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。"
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "运行时间配置",
+        "description": "追踪 {entity_id} 的累计运行时间。",
+        "data": {
+          "trigger_runtime_hours": "目标运行时间 (小时)",
+          "trigger_on_states": "激活状态 (英文逗号分隔)",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "warning_days": "到期前预警天数",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累计运行达到此小时数后触发维护。",
+          "trigger_on_states": "哪些传感器状态被视为‘激活’。留空使用默认值：on, 1, true。示例：in_use, running",
+          "interval_days": "除了运行时间触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "warning_days": "到期日期前多少天显示预警。"
+        }
+      },
+      "object_settings": {
+        "title": "维护项设置",
+        "description": "编辑维护项详情。",
+        "data": {
+          "name": "维护项名称",
+          "manufacturer": "制造商",
+          "model": "型号",
+          "serial_number": "序列号",
+          "documentation_url": "手册/文档 URL",
+          "notes": "备注",
+          "area_id": "区域",
+          "installation_date": "安装日期",
+          "go_back": "返回"
+        },
+        "data_description": {
+          "name": "此维护项的唯一名称（例如：‘泳池泵’、‘汽车’）。",
+          "manufacturer": "该维护项的制造商。",
+          "model": "型号名称或编号。",
+          "serial_number": "该维护项的序列号。",
+          "documentation_url": "可选链接，指向 PDF 手册、厂商页面或包含此维护项参考信息的任何 URL。",
+          "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
+          "area_id": "此维护项在您家中所处的区域。",
+          "installation_date": "该维护项安装或购买的日期。",
+          "go_back": "返回主菜单且不保存。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} 已完成"
+      },
+      "button_skip": {
+        "name": "跳过 {task_name}"
+      },
+      "button_reset": {
+        "name": "重置 {task_name}"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "正常",
+          "due_soon": "即将到期",
+          "overdue": "已超期",
+          "triggered": "已触发"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "维护类型",
+            "state": {
+              "cleaning": "清洁",
+              "inspection": "检查",
+              "replacement": "更换",
+              "calibration": "校准",
+              "service": "服务",
+              "custom": "自定义"
+            }
+          },
+          "schedule_type": {
+            "name": "计划类型",
+            "state": {
+              "time_based": "基于时间",
+              "sensor_based": "基于传感器",
+              "one_time": "一次性",
+              "manual": "手动"
+            }
+          },
+          "interval_days": {
+            "name": "间隔数值"
+          },
+          "interval_unit": {
+            "name": "间隔单位"
+          },
+          "warning_days": {
+            "name": "预警天数"
+          },
+          "last_performed": {
+            "name": "上次执行时间"
+          },
+          "next_due": {
+            "name": "下次到期时间"
+          },
+          "days_until_due": {
+            "name": "距离到期天数"
+          },
+          "parent_object": {
+            "name": "所属维护项"
+          },
+          "times_performed": {
+            "name": "执行次数"
+          },
+          "total_cost": {
+            "name": "总成本"
+          },
+          "average_duration": {
+            "name": "平均时长 (分钟)"
+          },
+          "notes": {
+            "name": "备注"
+          },
+          "documentation_url": {
+            "name": "文档 URL"
+          },
+          "trigger_entity": {
+            "name": "触发实体"
+          },
+          "trigger_attribute": {
+            "name": "触发属性"
+          },
+          "trigger_type": {
+            "name": "触发类型",
+            "state": {
+              "threshold": "阈值",
+              "counter": "计数器",
+              "state_change": "状态变化",
+              "runtime": "运行时间",
+              "compound": "组合条件"
+            }
+          },
+          "trigger_active": {
+            "name": "触发器激活"
+          },
+          "trigger_current_value": {
+            "name": "触发器当前值"
+          },
+          "trigger_entity_state": {
+            "name": "触发实体状态",
+            "state": {
+              "available": "可用",
+              "unavailable": "不可用",
+              "missing": "缺失",
+              "startup": "正在启动"
+            }
+          },
+          "trigger_above": {
+            "name": "上限触发值"
+          },
+          "trigger_below": {
+            "name": "下限触发值"
+          },
+          "trigger_for_minutes": {
+            "name": "触发持续时长 (分钟)"
+          },
+          "trigger_target_value": {
+            "name": "触发目标值"
+          },
+          "trigger_delta_mode": {
+            "name": "触发增量模式"
+          },
+          "trigger_baseline_value": {
+            "name": "触发基准值"
+          },
+          "trigger_current_delta": {
+            "name": "当前增量值"
+          },
+          "trigger_from_state": {
+            "name": "起始触发状态"
+          },
+          "trigger_to_state": {
+            "name": "目标触发状态"
+          },
+          "trigger_target_changes": {
+            "name": "目标变化次数"
+          },
+          "trigger_change_count": {
+            "name": "当前变化次数"
+          },
+          "trigger_runtime_hours": {
+            "name": "目标运行时间 (小时)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "累计运行时间 (小时)"
+          },
+          "trigger_remaining_hours": {
+            "name": "剩余运行时间 (小时)"
+          },
+          "last_entry": {
+            "name": "上次记录"
+          },
+          "suggested_interval": {
+            "name": "建议间隔"
+          },
+          "interval_confidence": {
+            "name": "间隔置信度",
+            "state": {
+              "low": "低",
+              "medium": "中",
+              "high": "高"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "已启用自适应调度计划"
+          },
+          "seasonal_factor": {
+            "name": "季节因子"
+          },
+          "seasonal_reason": {
+            "name": "季节性调整依据",
+            "state": {
+              "learned": "系统学习",
+              "manual": "手动设置"
+            }
+          },
+          "degradation_rate": {
+            "name": "损耗速率"
+          },
+          "degradation_trend": {
+            "name": "损耗趋势",
+            "state": {
+              "rising": "上升",
+              "falling": "下降",
+              "stable": "稳定",
+              "insufficient_data": "数据不足"
+            }
+          },
+          "days_until_threshold": {
+            "name": "距离阈值天数"
+          },
+          "threshold_prediction_confidence": {
+            "name": "预测置信度",
+            "state": {
+              "low": "低",
+              "medium": "中",
+              "high": "高"
+            }
+          },
+          "environmental_factor": {
+            "name": "环境因子"
+          },
+          "environmental_entity": {
+            "name": "环境实体"
+          },
+          "weibull_beta": {
+            "name": "韦伯形状参数 (β)"
+          },
+          "weibull_eta": {
+            "name": "韦伯尺寸参数 (η)"
+          },
+          "weibull_r_squared": {
+            "name": "韦伯拟合度 R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "失效模式",
+            "state": {
+              "early_failures": "早期失效",
+              "random_failures": "随机失效",
+              "wear_out": "耗损失效",
+              "highly_predictable": "高度可预测"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "置信区间下限"
+          },
+          "confidence_interval_high": {
+            "name": "置信区间上限"
+          },
+          "interval_anchor": {
+            "name": "计划锚点",
+            "state": {
+              "completion": "从完成日算起",
+              "planned": "从计划日算起"
+            }
+          },
+          "due_date": {
+            "name": "到期日期"
+          }
+        }
+      },
+      "summary_overdue": { "name": "已超期" },
+      "summary_due_soon": { "name": "即将到期" },
+      "summary_triggered": { "name": "已触发" },
+      "summary_needs_attention": { "name": "待处理" },
+      "summary_ok": { "name": "正常" },
+      "summary_total_tasks": { "name": "总任务数" }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "维护日程表"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} 已超期",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "维护状态",
+            "state": {
+              "ok": "正常",
+              "due_soon": "即将到期",
+              "overdue": "已超期",
+              "triggered": "已触发"
+            }
+          },
+          "days_until_due": {
+            "name": "距离到期天数"
+          },
+          "next_due": {
+            "name": "下次到期时间"
+          },
+          "parent_object": {
+            "name": "所属维护项"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "清洁",
+        "inspection": "检查",
+        "replacement": "更换",
+        "calibration": "校准",
+        "service": "服务",
+        "custom": "自定义"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "基于时间",
+        "weekdays": "周日期",
+        "nth_weekday": "每月第几个周几",
+        "day_of_month": "每月日期",
+        "sensor_based": "基于传感器",
+        "one_time": "一次性",
+        "manual": "手动"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "天",
+        "weeks": "周",
+        "months": "月",
+        "years": "年"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "阈值",
+        "counter": "计数器",
+        "state_change": "状态变化",
+        "runtime": "运行时间",
+        "compound": "组合触发器 (多条件)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "AND (所有条件必须触发)",
+        "or": "OR (任意条件触发即可)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "任一实体触发",
+        "all": "所有实体均触发"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "默认 (显示状态标题)",
+        "object_name": "使用维护项名称作为标题",
+        "task_name": "使用任务名称作为标题"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "完成维护",
+      "description": "将维护任务标记为已完成。",
+      "fields": {
+        "entity_id": {
+          "name": "实体",
+          "description": "要完成的维护传感器实体。"
+        },
+        "notes": {
+          "name": "备注",
+          "description": "关于所执行维护的可选备注。"
+        },
+        "cost": {
+          "name": "成本",
+          "description": "所执行维护的费用。"
+        },
+        "duration": {
+          "name": "时长",
+          "description": "维护持续时长 (分钟)。"
+        }
+      }
+    },
+    "reset": {
+      "name": "重置维护",
+      "description": "重置维护任务的最后一次执行日期。",
+      "fields": {
+        "entity_id": {
+          "name": "实体",
+          "description": "要重置的维护传感器实体。"
+        },
+        "date": {
+          "name": "日期",
+          "description": "要设置的最后执行日期。默认为今天。"
+        }
+      }
+    },
+    "skip": {
+      "name": "跳过维护",
+      "description": "跳过当前维护周期。",
+      "fields": {
+        "entity_id": {
+          "name": "实体",
+          "description": "要跳过的维护传感器实体。"
+        },
+        "reason": {
+          "name": "原因",
+          "description": "跳过该维护的可选原因。"
+        }
+      }
+    },
+    "export_data": {
+      "name": "导出数据",
+      "description": "将所有维护数据导出为 JSON 或 YAML。",
+      "fields": {
+        "format": {
+          "name": "格式",
+          "description": "导出数据的输出格式 (json 或 yaml)。"
+        },
+        "include_history": {
+          "name": "包含历史记录",
+          "description": "是否在导出中包含任务历史记录。"
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "找不到触发传感器：{task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "触发实体缺失",
+            "description": "配置为维护项 “{object_name}” 上任务 “{task_name}” 触发器的传感器实体 `{entity_id}` 已不可用。\n\n请选择解决方法：",
+            "menu_options": {
+              "replace_entity": "更换为不同实体",
+              "remove_trigger": "移除传感器触发器",
+              "dismiss": "忽略 (稍后将再次出现)"
+            }
+          },
+          "replace_entity": {
+            "title": "更换触发实体",
+            "description": "选择一个新实体来替换 `{entity_id}` 作为 “{object_name}” 上任务 “{task_name}” 的触发器。",
+            "data": {
+              "new_entity_id": "新触发实体"
+            },
+            "data_description": {
+              "new_entity_id": "选择要用作触发器的新传感器实体。"
+            }
+          },
+          "remove_trigger": {
+            "title": "移除传感器触发器",
+            "description": "这将从 “{object_name}” 的任务 “{task_name}” 中移除传感器触发器，并将计划转换为基于时间或手动。维护历史记录将被保留。\n\n原触发实体：`{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "面板访问用户已不存在",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "面板访问列表中存在孤立用户",
+            "description": "用户 `{user_id}…` 存在于维护助手面板访问列表中，但已不存在于 Home Assistant 中。该用户可能已被删除。\n\n点击 **提交** 从列表中移除该用户。（如果不处理此问题，请在修复页面使用 Home Assistant 的 **忽略** 按钮。）"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "完成动作引用了已删除的实体",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "完成动作：{stale_entity} 已不存在",
+            "description": "任务 **{task_name}** 配置了 `on_complete_action` 动作来调用 `{stale_entity}` 的服务，但该实体已不再注册在 Home Assistant 中。\n\n请选择如何修复：",
+            "menu_options": {
+              "replace_entity": "更换为不同实体",
+              "remove_action": "移除完成动作"
+            }
+          },
+          "replace_entity": {
+            "title": "更换目标实体",
+            "description": "为任务 **{task_name}** 选择用来替代 `{stale_entity}` 的新实体。",
+            "data": {
+              "new_entity": "新目标实体"
+            }
+          },
+          "remove_action": {
+            "title": "移除完成动作",
+            "description": "完全清除任务 **{task_name}** 的 `on_complete_action`。任务本身不受影响 —— 仅移除完成时的服务调用。"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "找不到实体 {entity_id} 的维护协调器。"
+    },
+    "no_task_for_entity": {
+      "message": "找不到实体 {entity_id} 的维护任务。"
+    }
+  }
+}
