@@ -123,8 +123,13 @@ def test_get_test_result_text_de(hass: HomeAssistant) -> None:
 
 
 def test_get_test_result_text_fallback(hass: HomeAssistant) -> None:
-    """Test fallback to English for unknown language."""
-    hass.config.language = "zh"
+    """Test fallback to English for an unsupported language.
+
+    Uses the non-existent ``xx`` sentinel (not a real code like ``zh``,
+    which now ships a translation) so the test stays valid as languages
+    are added.
+    """
+    hass.config.language = "xx"
     result = _get_test_result_text(hass, "success")
     assert "successfully" in result
 
