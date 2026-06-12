@@ -21,6 +21,7 @@ from .const import (
     ScheduleType,
 )
 from .helpers.dates import interval_span_days
+from .helpers.i18n import normalize_language
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
@@ -418,8 +419,8 @@ class MaintenanceCalendar(CalendarEntity):
 
     @property
     def _lang(self) -> str:
-        """Get the HA language."""
-        return (self._hass.config.language or "en")[:2].lower()
+        """Get the HA UI language as a 2-letter table key."""
+        return normalize_language(self._hass)
 
     def _create_event_for_task(
         self,

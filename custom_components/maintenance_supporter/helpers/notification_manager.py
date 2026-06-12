@@ -35,6 +35,7 @@ from ..const import (
     GLOBAL_UNIQUE_ID,
     MaintenanceStatus,
 )
+from .i18n import normalize_language
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -392,15 +393,8 @@ class NotificationManager:
 
     @property
     def _lang(self) -> str:
-        """Get the HA system language as a lowercase 2-letter table key.
-
-        HA emits regional codes (e.g. ``zh-Hans``, ``pt-BR``) but the
-        ``_NOTIFICATION_STRINGS`` keys are 2-letter, matching ``calendar.py``
-        and ``config_flow_options_global.py``. Normalising here makes localized
-        notifications resolve for regional-code users instead of silently
-        falling back to English.
-        """
-        return (self.hass.config.language or "en")[:2].lower()
+        """Get the HA UI language as a 2-letter table key."""
+        return normalize_language(self.hass)
 
     @property
     def enabled(self) -> bool:
