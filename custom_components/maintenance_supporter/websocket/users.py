@@ -15,6 +15,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_META_LENGTH,
 )
+from ..helpers.permissions import require_write, user_may_write
 from . import (
     _build_task_summary,
     _get_merged_tasks,
@@ -39,18 +40,21 @@ async def ws_list_users(
     Filters out system users (is_active=False, system_generated=True).
     """
     users_data = []
+    # Only admins receive the is_admin / is_owner flags. A non-admin caller gets
+    # just id + name (needed for the assignee selector and name display) so they
+    # cannot enumerate who is an admin/owner via this command.
+    caller_is_admin = connection.user is not None and connection.user.is_admin
 
     for user in await hass.auth.async_get_users():
         # Filter out system users and inactive users
         if not user.is_active or user.system_generated:
             continue
 
-        users_data.append({
-            "id": user.id,
-            "name": user.name,
-            "is_admin": user.is_admin,
-            "is_owner": user.is_owner,
-        })
+        entry: dict[str, Any] = {"id": user.id, "name": user.name}
+        if caller_is_admin:
+            entry["is_admin"] = user.is_admin
+            entry["is_owner"] = user.is_owner
+        users_data.append(entry)
 
     connection.send_result(msg["id"], {"users": users_data})
 
@@ -63,7 +67,7 @@ async def ws_list_users(
         vol.Optional("user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),  # None = unassign
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_assign_user(
     hass: HomeAssistant,
@@ -124,6 +128,16 @@ async def ws_tasks_by_user(
 ) -> None:
     """Return all tasks assigned to a specific user across all objects."""
     user_id = msg["user_id"]
+    # Authorization: a user may query their OWN assignments; querying another
+    # user's requires write access (admin or operator) — prevents a plain user
+    # from enumerating another user's task assignments.
+    if connection.user is None or (
+        user_id != connection.user.id and not user_may_write(hass, connection)
+    ):
+        connection.send_error(
+            msg["id"], "unauthorized", "Not authorized to view another user's tasks"
+        )
+        return
     entries = _get_object_entries(hass)
     result = []
 

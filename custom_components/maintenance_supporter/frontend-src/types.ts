@@ -366,6 +366,7 @@ export interface HomeAssistant {
 export interface HAUser {
   id: string;
   name: string;
-  is_admin: boolean;
-  is_owner: boolean;
+  // Only returned to admin callers of users/list; absent for non-admins.
+  is_admin?: boolean;
+  is_owner?: boolean;
 }

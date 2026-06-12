@@ -85,6 +85,7 @@ async def ws_get_templates(
         vol.Optional("include_history", default=True): bool,
     }
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_export_data(
     hass: HomeAssistant,
@@ -109,6 +110,7 @@ async def ws_export_data(
 @websocket_api.websocket_command(
     {vol.Required("type"): f"{DOMAIN}/csv/export"}
 )
+@websocket_api.require_admin
 @websocket_api.async_response
 async def ws_export_csv(
     hass: HomeAssistant,

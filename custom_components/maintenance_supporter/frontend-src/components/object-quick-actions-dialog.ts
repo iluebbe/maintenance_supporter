@@ -201,8 +201,10 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
             <div class="meta-item">
               <span class="meta-label">${label}</span>
               <span class="meta-value">${
-                label.toLowerCase().includes("doc") || label.toLowerCase().includes("url")
-                  ? html`<a href="${value}" target="_blank" rel="noopener">${value}</a>`
+                // Only render http(s) values as links (never javascript:/data:);
+                // value-based so it works in every UI language, not just English.
+                /^https?:\/\//i.test(value)
+                  ? html`<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`
                   : value
               }</span>
             </div>

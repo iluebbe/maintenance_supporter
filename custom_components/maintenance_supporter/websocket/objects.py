@@ -30,6 +30,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
+from ..helpers.permissions import require_write
 from . import (
     _build_object_response,
     _get_object_entries,
@@ -146,7 +147,7 @@ async def async_create_object(
         vol.Optional("dry_run", default=False): bool,
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_create_object(
     hass: HomeAssistant,
@@ -223,7 +224,7 @@ async def ws_create_object(
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_update_object(
     hass: HomeAssistant,
@@ -308,7 +309,7 @@ async def ws_update_object(
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_delete_object(
     hass: HomeAssistant,

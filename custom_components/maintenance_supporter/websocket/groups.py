@@ -16,6 +16,7 @@ from ..const import (
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
 )
+from ..helpers.permissions import require_write
 from . import _get_global_entry
 
 
@@ -54,7 +55,7 @@ async def ws_get_groups(
         ], vol.Length(max=MAX_GROUP_TASK_REFS)),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_create_group(
     hass: HomeAssistant,
@@ -102,7 +103,7 @@ async def ws_create_group(
         ], vol.Length(max=MAX_GROUP_TASK_REFS)),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_update_group(
     hass: HomeAssistant,
@@ -146,7 +147,7 @@ async def ws_update_group(
         vol.Required("group_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
 )
-@websocket_api.require_admin
+@require_write
 @websocket_api.async_response
 async def ws_delete_group(
     hass: HomeAssistant,
