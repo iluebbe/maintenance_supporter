@@ -71,7 +71,7 @@ jobs:
     needs: [frontend-build, pytest]
     timeout-minutes: 8
     env:
-      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.6.1
+      HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.6.3
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
