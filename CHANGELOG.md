@@ -2,6 +2,28 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.8.4] - 2026-06-13
+
+### ✨ Delegate write access to chosen non-admins (opt-in)
+
+You can now let specific non-admin Home Assistant users create, edit and delete maintenance content — without making them HA admins. It's **off by default**: list the users under **Panel Access**, then turn on **"Allow selected users to create, edit and delete"** (in the panel's *Settings → Panel Access* tab, or via *Settings → Devices & Services → Maintenance Supporter → Configure → Panel Access*). Admins always have full access; everyone else stays read-only (Complete / Skip / QR). Both controls are admin-only, so an operator can never grant themselves write. Localized in all 13 languages.
+
+### 🔒 Security hardening (audit follow-up)
+
+A focused security review found no critical or high issues; these close the medium/low findings (least-privilege, data-minimisation, defense-in-depth):
+
+- **Permissions are enforced server-side**, not just hidden in the UI: content create/edit/delete is admin-only (or delegated operators, see above), while global settings, import and vacation stay admin-only.
+- **User list** no longer reveals admin/owner flags to non-admin callers; `tasks/by_user` is self-or-write.
+- **Data export** (JSON + CSV) now requires admin.
+- **Documentation-URL handling hardened** — control-character / whitespace-masked and non-`http(s)` URLs are rejected, and the panel renders the link only when it is a real `http(s)` URL.
+- **Diagnostics** redact task checklists and drop the raw trigger entity state (which can carry a presence/location value) from the downloadable dump.
+- Verbose task/object-name and NFC-tag completion logs demoted to debug.
+
+### 🧹 Internal
+
+- Fixed a stale frontend i18n-parity test (the expected-language list was missing `zh` since #64).
+- **2,094 tests**, 98% coverage.
+
 ## [2.8.3] - 2026-06-12
 
 ### ✨ Simplified Chinese (zh-Hans) — 13th language (#64)

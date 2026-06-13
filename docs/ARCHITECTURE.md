@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.8.3 | ~46,000 lines across 100+ source files (64 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,058 tests on Python 3.13 + 3.14)
+**Version:** 2.8.4 | ~46,000 lines across 100+ source files (65 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,094 tests on Python 3.13 + 3.14)
 
 ---
 
@@ -440,30 +440,27 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 - **Objects view sort modes:** `alphabetical (default) / due_soonest / task_count`.
 - **Group-by:** `none (default) / area / group / user`. Tasks/objects render inside `<details>` blocks with icon + count, all open by default. Empty/unassigned items collected into a trailing "Unassigned" / "No area" section. Selection persists in `localStorage`.
 
-### Operator Mode + Per-User Panel Access (1.0.44+)
-Read-only end-user view derived from a combination of HA user role and an explicit per-user override list:
+### Operator Mode + Per-User Panel Access (1.0.44+; server-enforced + opt-in 2.8.4)
+Read-only end-user view derived from HA user role, an explicit per-user allowlist, and a master write-delegation switch. The same rule is mirrored on client and server:
 
 ```
-isOperator = !user.is_admin && !admin_panel_user_ids.includes(user.id)
+// frontend (maintenance-panel.ts) and server (helpers/permissions.py)
+isOperator     = !user.is_admin && !(operator_write_enabled && admin_panel_user_ids.includes(user.id))
+user_may_write =  user.is_admin || (operator_write_enabled && user.id in admin_panel_user_ids)
 ```
 
-| User class | Sees |
-|---|---|
-| Admin / Owner | Full panel (always) |
-| Non-admin **listed** in `admin_panel_user_ids` | Full panel |
-| Non-admin **not** listed | Operator mode (Complete / Skip / QR only) |
+| User class | `operator_write_enabled` | Result |
+|---|---|---|
+| Admin / Owner | any | Full panel + write, always |
+| Non-admin **listed** in `admin_panel_user_ids` | **on** | Full panel (create / edit / delete) |
+| Non-admin **listed** | **off** (default) | Operator mode (read-only) |
+| Non-admin **not** listed | any | Operator mode (read-only) |
 
-When operator mode is active, the panel hides every create/edit/delete control:
-- Settings tab in the Overview tab-bar
-- Both `+ New Object` buttons (Overview filter-bar + All Objects header)
-- `New Maintenance Task` button on the Tasks view
-- Object detail Edit / Add Task / Delete buttons
-- Per-task more-menu (which holds Edit / Reset / Delete)
-- The "click NFC icon to link a tag" affordance on task headers
+`operator_write_enabled` defaults **off**, so out of the box every non-admin is read-only. When operator mode is active the panel hides every create/edit/delete control (Settings tab, both `+ New Object` buttons, `New Maintenance Task`, object Edit / Add Task / Delete, the per-task more-menu, the NFC-link affordance); only `Complete`, `Skip`, and `QR Code` (read-only deeplink) remain. The Lovelace card is unaffected.
 
-Only `Complete`, `Skip`, and `QR Code` (read-only deeplink generator) remain on each task. The Lovelace card is unaffected (it never exposed edit actions in the first place). All gating is frontend-only — the WS API still accepts write commands so admins can edit via the config flow or scripts even from a non-admin device.
+**Enforcement is server-side, not just UI gating** (since the v2.8.3 security follow-up): content-CRUD WS commands carry `@require_write` (`helpers/permissions.py`), which authorises admins plus delegated operators and raises `Unauthorized` otherwise. Global config, bulk import and vacation keep `@require_admin`, and both write-delegation controls (the allowlist and the switch) are admin-only — so an operator can never edit the allowlist or flip the switch to self-grant write (no privilege escalation). The panel Settings tab is gated on real `is_admin` to match.
 
-**Storage:** `admin_panel_user_ids: list[str]` lives in the global ConfigEntry options. Default `[]`. Validated server-side as a list of strings (max 50 entries, each ≤64 chars). Editable via:
+**Storage:** `admin_panel_user_ids: list[str]` (default `[]`, validated as ≤50 strings ≤64 chars each) and `operator_write_enabled: bool` (default `false`) live in the global ConfigEntry options. Editable via:
 
 1. **Panel Settings tab → Panel Access section** — multi-checkbox listing all non-admin HA users (filtered to `is_active=True, system_generated=False`).
 2. **HA Settings → Devices & services → Maintenance Supporter → Configure → Panel Access** — same data, exposed through the config flow's options menu (`async_step_panel_access` in `config_flow_options_global.py`).
@@ -566,7 +563,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 2,058 tests) |
+| test-coverage (>95%) | Silver | Yes (98%, 2,094 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -588,7 +585,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,058 tests** across **91 test files** with **98% code coverage**.
+**2,094 tests** across **92 test files** with **98% code coverage**.
 
 ### Coverage policy
 
