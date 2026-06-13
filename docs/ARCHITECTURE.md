@@ -622,8 +622,8 @@ Three services in `compose.yaml`:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  ha-maint (:8125)       │  ha-maint-fresh      │  playwright │
-│  HA 2026.6.1            │  (:8126)             │  v1.57.0    │
-│  + libfaketime          │  HA 2026.6.1 stock   │  run-server │
+│  HA 2026.6.3            │  (:8126)             │  v1.57.0    │
+│  + libfaketime          │  HA 2026.6.3 stock   │  run-server │
 │  custom_components r/w  │  read-only mounts    │  :3000      │
 │  config-dev/ volume     │  profile: testing    │             │
 └──────────────────────────────────────────────────────────────┘
@@ -642,7 +642,7 @@ The integration's scheduling and predictions are time-dependent. `libfaketime` a
 
 **Build** (`Dockerfile.ha-faketime`):
 1. Alpine stage compiles `libfaketime.so.1` from source
-2. Copies into the HA image (ARG-pinned, currently 2026.6.1) at `/usr/local/lib/faketime/`
+2. Copies into the HA image (pinned, currently 2026.6.3) at `/usr/local/lib/faketime/`
 3. Replaces HA's s6 run script with `ha-run-faketime.sh`
 
 **Run script** (`ha-run-faketime.sh`):

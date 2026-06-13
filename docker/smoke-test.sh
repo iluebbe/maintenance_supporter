@@ -3,7 +3,7 @@
 #
 # Usage:
 #   ./docker/smoke-test.sh                 # uses default HA image
-#   HA_IMAGE=ghcr.io/.../home-assistant:2026.4.3 ./docker/smoke-test.sh
+#   HA_IMAGE=ghcr.io/.../home-assistant:2026.6.3 ./docker/smoke-test.sh
 #
 # Exit code: 0 if HA boots and our integration loads without errors,
 # non-zero otherwise. Run before pushing a release.
@@ -14,7 +14,7 @@ set -euo pipefail
 # and the bind mount lands in the wrong place.
 export MSYS_NO_PATHCONV=1
 
-HA_IMAGE="${HA_IMAGE:-ghcr.io/home-assistant/home-assistant:2026.4.3}"
+HA_IMAGE="${HA_IMAGE:-ghcr.io/home-assistant/home-assistant:2026.6.3}"
 PORT="${HA_SMOKE_PORT:-8127}"
 NAME="ha-smoke-test"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
