@@ -18,9 +18,9 @@ describe("i18n key parity (styles.ts TRANSLATIONS)", () => {
   const refKeys = Object.keys(TRANSLATIONS[REFERENCE]).sort();
 
   it("ships the expected set of UI languages", () => {
-    // de + en + the 10 backfilled locales = 12
+    // de + en + the 10 backfilled locales + zh-Hans (v2.8.3, #64) = 13
     expect(Object.keys(TRANSLATIONS).sort()).to.deep.equal(
-      ["cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk"],
+      ["cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh"],
     );
   });
 

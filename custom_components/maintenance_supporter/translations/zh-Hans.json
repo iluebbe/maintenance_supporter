@@ -513,11 +513,13 @@
       },
       "panel_access": {
         "title": "面板权限",
-        "description": "选择也应看到完整维护助手面板（创建/编辑/删除动作）的非管理员用户。管理员始终可以看到完整面板。已找到 {user_count} 个非管理员用户。",
+        "description": "管理员始终拥有完整访问权限。要将创建、编辑和删除权限委派给特定的普通用户，请开启下方选项并选择他们 — 其他用户仅能看到“完成”和“跳过”。找到 {user_count} 个普通用户。",
         "data": {
+          "operator_write_enabled": "允许所选用户创建、编辑和删除",
           "admin_panel_user_ids": "拥有完整面板权限的用户"
         },
         "data_description": {
+          "operator_write_enabled": "关闭（默认）：仅管理员可修改内容。开启：下方所选用户也获得完整访问权限。",
           "admin_panel_user_ids": "列表中的用户可以看到完整面板；其他人在每项任务上仅能看到“完成”和“跳过”。"
         }
       },

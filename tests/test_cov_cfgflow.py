@@ -477,6 +477,30 @@ async def test_global_options_panel_access_submit(
     assert result["step_id"] == "global_init"
 
 
+async def test_global_options_panel_access_operator_write_persists(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """panel_access submit persists the v2.8.4 operator_write_enabled toggle."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_OPERATOR_WRITE_ENABLED,
+    )
+
+    await setup_integration(hass, global_entry)
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "panel_access"},
+    )
+    assert result["step_id"] == "panel_access"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_OPERATOR_WRITE_ENABLED: True, "admin_panel_user_ids": []},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert global_entry.options[CONF_OPERATOR_WRITE_ENABLED] is True
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # config_flow.py coverage
 # ═══════════════════════════════════════════════════════════════════════════════

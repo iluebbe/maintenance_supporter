@@ -85,6 +85,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _features: AdvancedFeatures = { adaptive: false, predictions: false, seasonal: false, environmental: false, budget: false, groups: false, checklists: false, schedule_time: false, completion_actions: false };
   // HA user IDs (UUIDs) granted full panel access despite not being HA admins.
   @state() private _adminPanelUserIds: string[] = [];
+  // v2.8.4: master switch — the allowlist only grants the full panel when this
+  // is on (default off → every non-admin is read-only, admins unaffected).
+  @state() private _operatorWriteEnabled = false;
   // Default warning_days from the global config entry — used as the initial
   // value in the task-create dialog so the Settings → General → "Default
   // warning days" choice actually flows through to new tasks.
@@ -120,20 +123,22 @@ export class MaintenanceSupporterPanel extends LitElement {
   /**
    * Operator mode = read-only end-user mode (hides every create/edit/delete action).
    *
-   * Gating (OR of exceptions flips to full panel):
+   * Gating (full panel only when an exception applies):
    *   - admins (incl. the owner) always see the full panel
-   *   - non-admin users whose ID is in the `admin_panel_user_ids` setting
-   *     also see the full panel (per-user override)
+   *   - a non-admin sees the full panel only when operator-write delegation is
+   *     enabled AND their ID is in the `admin_panel_user_ids` allowlist
    *   - everyone else sees operator mode (Complete / Skip only)
    *
-   * The user list is managed by an admin under Settings → Panel Access
-   * (either in the panel's Settings tab or HA Config Flow).
+   * Delegation defaults OFF, so out of the box every non-admin is read-only.
+   * The switch + allowlist are managed by an admin under Settings → Panel
+   * Access (either the panel's Settings tab or the HA config flow), and the
+   * server mirrors this exact rule in helpers/permissions.user_may_write.
    */
   private get _isOperator(): boolean {
     const u = this.hass?.user;
     if (!u) return true; // pre-hass state: render safe default
     if (u.is_admin) return false;
-    return !this._adminPanelUserIds.includes(u.id);
+    return !(this._operatorWriteEnabled && this._adminPanelUserIds.includes(u.id));
   }
 
   private _popstateHandler = (e: PopStateEvent) => this._onPopState(e);
@@ -221,10 +226,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       const sr = settingsResult as {
         features: AdvancedFeatures;
         admin_panel_user_ids?: string[];
+        operator_write_enabled?: boolean;
         general?: { default_warning_days?: number };
       };
       this._features = sr.features;
       this._adminPanelUserIds = sr.admin_panel_user_ids || [];
+      this._operatorWriteEnabled = sr.operator_write_enabled ?? false;
       const dwd = sr.general?.default_warning_days;
       if (typeof dwd === "number" && dwd >= 0 && dwd <= 365) {
         this._defaultWarningDays = dwd;

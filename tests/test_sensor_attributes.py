@@ -143,6 +143,27 @@ async def test_times_performed_and_cost(
     assert attrs["average_duration"] == 45.0
 
 
+async def test_notes_and_documentation_url_attributes(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """notes + documentation_url ARE exposed as sensor attributes.
+
+    Deliberately re-exposed in v2.8.4 (v2.8.3's data-minimisation pass had
+    dropped them): a short note and a manual link are user-facing reference
+    data meant for dashboards/templates via state_attr(...), not secrets.
+    """
+    last = (dt_util.now().date() - timedelta(days=10)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    task["notes"] = "Replace filter cartridge model XR-7"
+    task["documentation_url"] = "https://example.com/manual.pdf"
+    obj_entry = _make_entry(hass, task, unique_id="notes_url_attrs")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    attrs = _get_sensor_state(hass, obj_entry).attributes
+    assert attrs["notes"] == "Replace filter cartridge model XR-7"
+    assert attrs["documentation_url"] == "https://example.com/manual.pdf"
+
+
 # ─── Trigger Attributes ──────────────────────────────────────────────────
 
 

@@ -48,6 +48,7 @@ from .const import (
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
+    CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
     CONF_QUIET_HOURS_ENABLED,
@@ -364,10 +365,12 @@ class GlobalOptionsFlow(OptionsFlow):
     async def async_step_panel_access(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Pick non-admin HA users who should also see the full admin panel.
+        """Operator write delegation + the non-admin allowlist.
 
-        Admins always see the full panel. Non-admins listed here also get it;
-        all other non-admins see the read-only operator view (Complete / Skip).
+        Admins always have full write access. The ``operator_write_enabled``
+        switch is OFF by default, so listed non-admins get only the read-only
+        operator view (Complete / Skip). Turn it on to grant the listed users
+        full create / edit / delete. Both controls are admin-only.
         """
         if user_input is not None:
             return self._save_and_return(user_input)
@@ -391,6 +394,10 @@ class GlobalOptionsFlow(OptionsFlow):
         return self.async_show_form(
             step_id="panel_access",
             data_schema=vol.Schema({
+                vol.Optional(
+                    CONF_OPERATOR_WRITE_ENABLED,
+                    default=current.get(CONF_OPERATOR_WRITE_ENABLED, False),
+                ): selector.BooleanSelector(),
                 vol.Optional(
                     CONF_ADMIN_PANEL_USER_IDS,
                     default=current.get(CONF_ADMIN_PANEL_USER_IDS, []),

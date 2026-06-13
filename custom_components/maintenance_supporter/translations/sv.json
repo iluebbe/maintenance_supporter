@@ -513,11 +513,13 @@
       },
       "panel_access": {
         "title": "Paneläåtkomst",
-        "description": "Välj icke-administrativa Home Assistant-användare som också ska se hela Maintenance Supporter-panelen (åtgärder skapa / redigera / ta bort). Administratörer ser alltid hela panelen. Hittade {user_count} icke-administrativ(a) användare.",
+        "description": "Administratörer har alltid full åtkomst. För att delegera skapa, redigera och ta bort till specifika icke-admin-användare, slå på alternativet nedan och välj dem — alla andra ser endast Slutför och Hoppa över. Hittade {user_count} icke-admin-användare.",
         "data": {
+          "operator_write_enabled": "Tillåt valda användare att skapa, redigera och ta bort",
           "admin_panel_user_ids": "Användare med fullständig paneläåtkomst"
         },
         "data_description": {
+          "operator_write_enabled": "Av (standard): endast administratörer kan ändra innehåll. På: de valda användarna nedan får också full åtkomst.",
           "admin_panel_user_ids": "Listade användare ser hela panelen; alla andra ser endast Slutför och Hoppa över på varje uppgift."
         }
       },

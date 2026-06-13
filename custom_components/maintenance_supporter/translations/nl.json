@@ -513,11 +513,13 @@
       },
       "panel_access": {
         "title": "Paneel-toegang",
-        "description": "Selecteer niet-admin Home Assistant gebruikers die ook het volledige Maintenance Supporter paneel mogen zien (aanmaken / bewerken / verwijderen). Admins zien altijd het volledige paneel. {user_count} niet-admin gebruiker(s) gevonden.",
+        "description": "Admins hebben altijd volledige toegang. Om aanmaken, bewerken en verwijderen aan specifieke niet-admins te delegeren, schakel de optie hieronder in en selecteer hen — alle anderen zien alleen Voltooien en Overslaan. {user_count} niet-admin gebruiker(s) gevonden.",
         "data": {
+          "operator_write_enabled": "Geselecteerde gebruikers laten aanmaken, bewerken en verwijderen",
           "admin_panel_user_ids": "Gebruikers met volledige paneel-toegang"
         },
         "data_description": {
+          "operator_write_enabled": "Uit (standaard): alleen admins kunnen inhoud wijzigen. Aan: de hieronder geselecteerde gebruikers krijgen ook volledige toegang.",
           "admin_panel_user_ids": "Geselecteerde gebruikers zien het volledige paneel; alle anderen zien alleen Voltooien en Overslaan."
         }
       },

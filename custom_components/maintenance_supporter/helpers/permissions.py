@@ -1,16 +1,18 @@
 """Authorization helpers for write-capable WebSocket commands.
 
-Home Assistant admins may always write. A non-admin user may write only if their
-user id is on the operator allowlist (``admin_panel_user_ids``), which an admin
-manages under Settings → Panel Access. This realises the documented "operator"
-delegation: listed users get the full create / edit / delete panel.
+Home Assistant admins may always write. A non-admin user may write only when
+operator write delegation is switched on (``operator_write_enabled`` global
+option, default OFF) AND their user id is on the operator allowlist
+(``admin_panel_user_ids``), which an admin manages under Settings → Panel
+Access. With delegation off — the shipped default — content create / edit /
+delete is admin-only and the allowlist grants read-only operator access.
 
 IMPORTANT — escalation boundary: ``require_write`` must be used ONLY on
 content-CRUD commands (object / task / group create-update-delete, user
 assignment, per-task analysis writes). Global-config, bulk-import and vacation
-commands keep ``@websocket_api.require_admin``, so an operator can never edit the
-allowlist itself (``admin_panel_user_ids`` lives in the global options, gated by
-``global/update``) — listing yourself cannot be self-granted.
+commands keep ``@websocket_api.require_admin``, so an operator can never edit
+the allowlist nor flip the delegation switch (both live in the global options,
+gated by ``global/update``) — write access cannot be self-granted.
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ from homeassistant.components.websocket_api.const import WebSocketCommandHandler
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import Unauthorized
 
-from ..const import CONF_ADMIN_PANEL_USER_IDS
+from ..const import CONF_ADMIN_PANEL_USER_IDS, CONF_OPERATOR_WRITE_ENABLED
 from .global_options import get_global_options
 
 
@@ -33,18 +35,30 @@ def operator_user_ids(hass: HomeAssistant) -> list[str]:
     return [uid for uid in raw if isinstance(uid, str)]
 
 
+def operator_write_enabled(hass: HomeAssistant) -> bool:
+    """Whether operator write delegation is switched on (default False).
+
+    Reads the ``operator_write_enabled`` global option. While False — the
+    shipped default — only HA admins may write and the panel-access allowlist
+    is read-only; an admin must explicitly enable this for allowlisted
+    non-admins to gain content CRUD.
+    """
+    return get_global_options(hass).get(CONF_OPERATOR_WRITE_ENABLED, False) is True
+
+
 def user_may_write(hass: HomeAssistant, connection: ActiveConnection) -> bool:
     """Whether the connection's user may perform content writes.
 
-    True for HA admins, and for non-admin users whose id is on the operator
-    allowlist. False for anonymous connections.
+    True for HA admins. For non-admin users, true only when operator write
+    delegation is enabled AND their id is on the operator allowlist. False for
+    anonymous connections.
     """
     user = connection.user
     if user is None:
         return False
     if user.is_admin:
         return True
-    return user.id in operator_user_ids(hass)
+    return operator_write_enabled(hass) and user.id in operator_user_ids(hass)
 
 
 def require_write(func: WebSocketCommandHandler) -> WebSocketCommandHandler:

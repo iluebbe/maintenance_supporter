@@ -86,7 +86,16 @@ CONF_ADVANCED_COMPLETION_ACTIONS = "advanced_completion_actions_visible"
 
 # Panel-access overrides: HA user IDs who get the full admin panel despite
 # not being HA admins. Empty list means only admins see the full panel.
+# The allowlist grants create/edit/delete ONLY when CONF_OPERATOR_WRITE_ENABLED
+# is also on; with it off (the default) listed users get read-only access.
 CONF_ADMIN_PANEL_USER_IDS = "admin_panel_user_ids"
+
+# v2.8.4: master switch for operator write delegation. Default OFF → only HA
+# admins may create/edit/delete and the panel-access allowlist is read-only.
+# When True, allowlisted non-admins additionally gain full content CRUD. Only
+# admins can flip it (panel Settings tab / config-flow Panel Access step, both
+# admin-gated), preserving the escalation boundary in helpers/permissions.py.
+CONF_OPERATOR_WRITE_ENABLED = "operator_write_enabled"
 
 # --- Vacation mode (v1.2.0) ---
 # When active, suppresses notifications for non-exempt tasks across the

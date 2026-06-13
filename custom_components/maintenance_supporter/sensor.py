@@ -192,10 +192,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             "times_performed": task.get("_times_performed", 0),
             "total_cost": task.get("_total_cost", 0.0),
             "average_duration": task.get("_average_duration"),
-            # SECURITY: notes + documentation_url are intentionally NOT exposed as
-            # state attributes. They are free-form / user-entered and would be
-            # written to the recorder history DB and readable by any HA user
-            # (incl. non-admins). They are served via the WS object read instead.
+            # notes + documentation_url are user-entered reference data (a short
+            # note and a manual link), exposed here so dashboards/templates can
+            # read them via state_attr(...). They are not secrets and are also
+            # served via the WS object read. (v2.8.3 briefly removed these for
+            # data-minimisation; restored in v2.8.4 — the manual link in
+            # particular is exactly what belongs on the entity.)
+            "notes": task.get("notes"),
+            "documentation_url": task.get("documentation_url"),
         }
 
         # Trigger attributes (static config only — no fast-changing values)

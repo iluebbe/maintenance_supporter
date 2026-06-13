@@ -11,6 +11,7 @@ import { UserService } from "../user-service";
 interface SettingsResponse {
   features: AdvancedFeatures;
   admin_panel_user_ids?: string[];
+  operator_write_enabled?: boolean;
   general: {
     default_warning_days: number;
     notifications_enabled: boolean;
@@ -251,6 +252,10 @@ export class MaintenanceSettingsView extends LitElement {
   private _renderPanelAccess(L: string) {
     const selected = new Set(this._settings!.admin_panel_user_ids || []);
     const nonAdmins = this._users.filter((u) => !u.is_admin);
+    // v2.8.4: the allowlist only takes effect while delegation is on. Default
+    // off → content edits stay admin-only; we hide the user list so selecting
+    // someone while nothing applies can't read as "they can now edit".
+    const writeEnabled = this._settings!.operator_write_enabled ?? false;
 
     const toggle = (uid: string, on: boolean): void => {
       const next = new Set(selected);
@@ -260,21 +265,32 @@ export class MaintenanceSettingsView extends LitElement {
 
     return html`
       <div class="settings-section">
-        <h3>${t("settings_panel_access", L)} ${selected.size > 0 ? html`<span class="section-badge">${selected.size}</span>` : nothing}</h3>
+        <h3>${t("settings_panel_access", L)} ${writeEnabled && selected.size > 0 ? html`<span class="section-badge">${selected.size}</span>` : nothing}</h3>
         <p class="section-desc">${t("settings_panel_access_desc", L)}</p>
-        ${nonAdmins.length === 0
-          ? html`<div class="setting-row hint">${t("no_non_admin_users", L)}</div>`
-          : nonAdmins.map((u) => html`
-            <label class="setting-row">
-              <span>
-                <span class="setting-label">${u.name || u.id.slice(0, 8)}</span>
-                <span class="setting-desc">${u.is_owner ? t("owner_label", L) : ""}</span>
-              </span>
-              <input type="checkbox"
-                .checked=${selected.has(u.id)}
-                @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
-            </label>
-          `)}
+        <label class="setting-row">
+          <span>
+            <span class="setting-label">${t("settings_operator_write", L)}</span>
+            <span class="setting-desc">${t("settings_operator_write_desc", L)}</span>
+          </span>
+          <input type="checkbox"
+            .checked=${writeEnabled}
+            @change=${(e: Event) => this._updateSetting("operator_write_enabled", (e.target as HTMLInputElement).checked)} />
+        </label>
+        ${!writeEnabled
+          ? nothing
+          : nonAdmins.length === 0
+            ? html`<div class="setting-row hint">${t("no_non_admin_users", L)}</div>`
+            : nonAdmins.map((u) => html`
+              <label class="setting-row">
+                <span>
+                  <span class="setting-label">${u.name || u.id.slice(0, 8)}</span>
+                  <span class="setting-desc">${u.is_owner ? t("owner_label", L) : ""}</span>
+                </span>
+                <input type="checkbox"
+                  .checked=${selected.has(u.id)}
+                  @change=${(e: Event) => toggle(u.id, (e.target as HTMLInputElement).checked)} />
+              </label>
+            `)}
       </div>
     `;
   }

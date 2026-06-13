@@ -46,6 +46,7 @@ from ..const import (
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
+    CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
     CONF_QUIET_HOURS_ENABLED,
@@ -86,6 +87,8 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     # Type-validated as a list here; element + length caps applied below in
     # ws_update_global_settings (HA installs rarely exceed ~10 entries).
     CONF_ADMIN_PANEL_USER_IDS: list,
+    # v2.8.4: master switch — when True, allowlisted non-admins gain write.
+    CONF_OPERATOR_WRITE_ENABLED: bool,
     # Notification per-status
     CONF_NOTIFY_DUE_SOON_ENABLED: bool,
     CONF_NOTIFY_DUE_SOON_INTERVAL: int,
@@ -135,6 +138,9 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
         # Top-level (not a feature toggle, not a bool): list of HA user IDs
         # whose UI gets the full admin panel even though they're not HA admins.
         "admin_panel_user_ids": options.get(CONF_ADMIN_PANEL_USER_IDS, []),
+        # v2.8.4: master switch gating whether the allowlist actually grants
+        # write. Default False → operator allowlist is read-only.
+        "operator_write_enabled": options.get(CONF_OPERATOR_WRITE_ENABLED, False),
         "general": {
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),

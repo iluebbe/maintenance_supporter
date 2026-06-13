@@ -61,6 +61,7 @@ export const DEFAULT_FEATURES: MockFeatures = {
 export const DEFAULT_SETTINGS_RESPONSE = {
   features: { ...DEFAULT_FEATURES },
   admin_panel_user_ids: [] as string[],
+  operator_write_enabled: false,
   general: {
     default_warning_days: 7,
     notifications_enabled: false,
