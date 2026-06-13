@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-2058_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-2094_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -107,7 +107,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - **Sort & group-by** in the Tasks/Objects views — sort by due date, area, assigned user, or group; group into collapsible sections by area, group, or user (1.0.44+)
 - **Overdue indicator** — object cards show a red dot the moment any of their tasks is overdue (1.0.44+)
 - **Quick task creation** — `New Maintenance Task` button on the Tasks view opens the task dialog with an Object selector dropdown, no need to navigate into the parent first (1.0.44+)
-- **Operator mode** for non-admin HA users — hides every create/edit/delete control in the panel so household members can complete tasks without changing settings. Admins can grant full panel access to selected non-admin users via the new **Panel Access** section (Settings tab or config flow). Orphaned ids surface as a fixable repair issue. Useful for shared/family/hotel setups (1.0.44+)
+- **Operator mode** for non-admin HA users — non-admins get a read-only view (Complete / Skip / QR) so household members can run tasks without changing anything. Admins can **optionally delegate** create/edit/delete to selected non-admins via the **Panel Access** section — off by default, enforced server-side, toggled from the Settings tab or config flow. Orphaned ids surface as a fixable repair issue. Useful for shared/family/hotel setups (1.0.44+; server-enforced + opt-in 2.8.4)
 - **Per-object documentation URL** (1.4.0+) — store a link to the PDF manual / vendor page on each object. Shown as a clickable link in the object-detail header *and* on every task-detail page belonging to that object (1.4.1+) so the manual is always one click away from any maintenance task
 - **Per-object notes** (1.4.10+) — free-form multiline notes attached to each object: part numbers, replacement procedures, settings reminders, "spare key in garage drawer". Rendered with `white-space: pre-wrap` so newlines and indentation survive intact
 - **Calendar tab** (1.5.0+) — rolling-list view of upcoming maintenance with a window chip toggle (**7 / 14 / 30 days, plus "1 year" since 1.5.2**; the year view collapses empty days so only the actually-eventful rows render). Time-based recurring tasks project up to 5 occurrences within the window at 55 % opacity to mark them as "hypothetical assuming you stay on schedule"; sensor-triggered tasks show only their current `next_due` since predicting the next sensor firing would be a guess. Each event row carries (1.5.1+): a small **source icon** — `mdi:clock-outline` for time-based or `mdi:trending-up` (HA primary color) for sensor-based — and, for sensor-based events, a *"predicted · {high|medium|low} confidence"* pill below the title (green / amber / red border) sourced from the `threshold_prediction_confidence` returned by the predictor. Visible in operator mode. Independent of the HA Calendar entity — stays inside the panel for the *"what's due soon?"* glance, with status pills and avg-cost per event
@@ -677,7 +677,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-2,058 tests across 91 test files with **98% code coverage**.
+2,094 tests across 92 test files with **98% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -705,7 +705,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8125
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (2,058 tests):
+# Run tests (2,094 tests):
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 
