@@ -13,11 +13,14 @@
     "@web/dev-server-esbuild": "^1.0.0",
     "@web/test-runner": "^0.20.0",
     "@web/test-runner-playwright": "^0.11.0",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "lit": "^3.3.3",
     "typescript": "^6.0.3"
   },
   "dependencies": {
     "playwright": "1.60"
+  },
+  "overrides": {
+    "esbuild": "$esbuild"
   }
 }
