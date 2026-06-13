@@ -513,11 +513,13 @@
       },
       "panel_access": {
         "title": "Acceso al panel",
-        "description": "Selecciona los usuarios de Home Assistant no administradores que también deben ver el panel completo de Maintenance Supporter (crear / editar / eliminar). Los administradores siempre ven el panel completo. Encontrados {user_count} usuario(s) no administrador(es).",
+        "description": "Los administradores siempre tienen acceso completo. Para delegar crear, editar y eliminar a no administradores específicos, activa la opción de abajo y selecciónalos — los demás solo ven Completar y Omitir. Se encontraron {user_count} usuario(s) no administrador(es).",
         "data": {
+          "operator_write_enabled": "Permitir a los usuarios seleccionados crear, editar y eliminar",
           "admin_panel_user_ids": "Usuarios con acceso completo al panel"
         },
         "data_description": {
+          "operator_write_enabled": "Desactivado (predeterminado): solo los administradores pueden modificar el contenido. Activado: los usuarios seleccionados abajo también obtienen acceso completo.",
           "admin_panel_user_ids": "Los usuarios seleccionados ven el panel completo; todos los demás solo ven Completar y Omitir."
         }
       },

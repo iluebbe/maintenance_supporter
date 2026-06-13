@@ -513,11 +513,13 @@
       },
       "panel_access": {
         "title": "Accès au panneau",
-        "description": "Sélectionnez les utilisateurs Home Assistant non administrateurs qui doivent également voir le panneau Maintenance Supporter complet (créer / modifier / supprimer). Les administrateurs voient toujours le panneau complet. {user_count} utilisateur(s) non administrateur(s) trouvé(s).",
+        "description": "Les administrateurs ont toujours un accès complet. Pour déléguer la création, la modification et la suppression à des non-administrateurs spécifiques, activez l'option ci-dessous et sélectionnez-les — les autres ne voient que Terminer et Ignorer. {user_count} utilisateur(s) non administrateur(s) trouvé(s).",
         "data": {
+          "operator_write_enabled": "Autoriser les utilisateurs sélectionnés à créer, modifier et supprimer",
           "admin_panel_user_ids": "Utilisateurs avec accès complet au panneau"
         },
         "data_description": {
+          "operator_write_enabled": "Désactivé (par défaut) : seuls les administrateurs peuvent modifier le contenu. Activé : les utilisateurs sélectionnés ci-dessous ont aussi un accès complet.",
           "admin_panel_user_ids": "Les utilisateurs sélectionnés voient le panneau complet ; tous les autres ne voient que Terminer et Ignorer."
         }
       },

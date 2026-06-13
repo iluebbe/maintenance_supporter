@@ -16,11 +16,13 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
     CONF_ADMIN_PANEL_USER_IDS,
+    CONF_OPERATOR_WRITE_ENABLED,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
 from custom_components.maintenance_supporter.helpers.permissions import (
     operator_user_ids,
+    operator_write_enabled,
     require_write,
     user_may_write,
 )
@@ -66,11 +68,16 @@ def _conn(user_id: str | None, *, is_admin: bool) -> MagicMock:
     return conn
 
 
-def _add_global(hass: HomeAssistant, allowlist: list[Any]) -> None:
+def _add_global(
+    hass: HomeAssistant, allowlist: list[Any], *, write_enabled: bool = False
+) -> None:
     MockConfigEntry(
         domain=DOMAIN,
         unique_id=GLOBAL_UNIQUE_ID,
-        options={CONF_ADMIN_PANEL_USER_IDS: allowlist},
+        options={
+            CONF_ADMIN_PANEL_USER_IDS: allowlist,
+            CONF_OPERATOR_WRITE_ENABLED: write_enabled,
+        },
     ).add_to_hass(hass)
 
 
@@ -88,13 +95,40 @@ async def test_user_may_write_admin(hass: HomeAssistant) -> None:
     assert user_may_write(hass, _conn("anyone", is_admin=True)) is True
 
 
-async def test_user_may_write_operator_allowed(hass: HomeAssistant) -> None:
-    _add_global(hass, ["op-1"])
+async def test_user_may_write_operator_allowed_when_enabled(hass: HomeAssistant) -> None:
+    # Allowlisted non-admin gets write ONLY while delegation is switched on.
+    _add_global(hass, ["op-1"], write_enabled=True)
     assert user_may_write(hass, _conn("op-1", is_admin=False)) is True
 
 
+async def test_user_may_write_operator_denied_when_disabled(hass: HomeAssistant) -> None:
+    # v2.8.4 default: delegation off → an allowlisted non-admin stays read-only.
+    _add_global(hass, ["op-1"], write_enabled=False)
+    assert user_may_write(hass, _conn("op-1", is_admin=False)) is False
+
+
+async def test_user_may_write_admin_unaffected_by_toggle(hass: HomeAssistant) -> None:
+    # Admins write regardless of the delegation switch.
+    _add_global(hass, [], write_enabled=False)
+    assert user_may_write(hass, _conn("admin-1", is_admin=True)) is True
+
+
+async def test_operator_write_enabled_helper(hass: HomeAssistant) -> None:
+    _add_global(hass, ["op-1"], write_enabled=True)
+    assert operator_write_enabled(hass) is True
+
+
+async def test_operator_write_enabled_defaults_false(hass: HomeAssistant) -> None:
+    _add_global(hass, ["op-1"])  # write_enabled omitted → False
+    assert operator_write_enabled(hass) is False
+
+
+async def test_operator_write_enabled_no_global_entry(hass: HomeAssistant) -> None:
+    assert operator_write_enabled(hass) is False
+
+
 async def test_user_may_write_plain_rejected(hass: HomeAssistant) -> None:
-    _add_global(hass, ["op-1"])
+    _add_global(hass, ["op-1"], write_enabled=True)
     assert user_may_write(hass, _conn("someone-else", is_admin=False)) is False
 
 
@@ -102,8 +136,8 @@ async def test_user_may_write_anonymous_rejected(hass: HomeAssistant) -> None:
     assert user_may_write(hass, _conn(None, is_admin=False)) is False
 
 
-async def test_require_write_allows_operator(hass: HomeAssistant) -> None:
-    _add_global(hass, ["op-1"])
+async def test_require_write_allows_operator_when_enabled(hass: HomeAssistant) -> None:
+    _add_global(hass, ["op-1"], write_enabled=True)
     seen: list[int] = []
 
     @require_write
@@ -114,8 +148,20 @@ async def test_require_write_allows_operator(hass: HomeAssistant) -> None:
     assert seen == [7]
 
 
+async def test_require_write_rejects_operator_when_disabled(hass: HomeAssistant) -> None:
+    # Even an allowlisted operator is blocked while delegation is off.
+    _add_global(hass, ["op-1"], write_enabled=False)
+
+    @require_write
+    def handler(_hass: HomeAssistant, _conn_: MagicMock, msg: dict[str, Any]) -> None:
+        raise AssertionError("handler must not run while delegation is off")
+
+    with pytest.raises(Unauthorized):
+        handler(hass, _conn("op-1", is_admin=False), {"id": 7})
+
+
 async def test_require_write_rejects_plain_user(hass: HomeAssistant) -> None:
-    _add_global(hass, ["op-1"])
+    _add_global(hass, ["op-1"], write_enabled=True)
 
     @require_write
     def handler(_hass: HomeAssistant, _conn_: MagicMock, msg: dict[str, Any]) -> None:

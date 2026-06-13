@@ -513,11 +513,13 @@
       },
       "panel_access": {
         "title": "Přístup k panelu",
-        "description": "Vyberte uživatele Home Assistant bez práv administrátora, kteří by také měli vidět úplný panel Maintenance Supporter (akce vytvořit / upravit / smazat). Administrátoři vidí úplný panel vždy. Nalezeno {user_count} uživatelů bez práv administrátora.",
+        "description": "Administrátoři mají vždy plný přístup. Chcete-li delegovat vytváření, úpravy a mazání konkrétním uživatelům bez práv administrátora, zapněte možnost níže a vyberte je — ostatní vidí pouze Dokončit a Přeskočit. Nalezeno {user_count} uživatelů bez práv administrátora.",
         "data": {
+          "operator_write_enabled": "Povolit vybraným uživatelům vytvářet, upravovat a mazat",
           "admin_panel_user_ids": "Uživatelé s úplným přístupem k panelu"
         },
         "data_description": {
+          "operator_write_enabled": "Vypnuto (výchozí): obsah mohou měnit pouze administrátoři. Zapnuto: plný přístup získají i vybraní uživatelé níže.",
           "admin_panel_user_ids": "Uvedení uživatelé vidí úplný panel; ostatní vidí pouze Dokončit a Přeskočit u každého úkolu."
         }
       },
