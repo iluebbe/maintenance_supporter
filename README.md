@@ -1,6 +1,6 @@
 # Maintenance Supporter
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
 [![Tests](https://img.shields.io/badge/tests-2094_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
@@ -193,11 +193,14 @@ Planned and proposed features (multi-assignee rotation, a native to-do entity, m
 
 ### HACS (Recommended)
 
+Maintenance Supporter is in the **HACS default store** — no custom repository needed.
+
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=iluebbe&repository=maintenance_supporter&category=Integration)
 
-1. Click the button above — or open HACS manually, click the three dots menu (top right) and select **Custom repositories**, then add `https://github.com/iluebbe/maintenance_supporter` as an **Integration**
-2. Search for "Maintenance Supporter" and install it
-3. Restart Home Assistant
+1. Open **HACS**, search for "Maintenance Supporter", and install it — or click the button above to open it directly.
+2. Restart Home Assistant
+
+> Newly added default repositories can take a little while to appear in HACS. If it isn't listed yet, use the three-dots menu (top right) → **Recheck repositories**. As a fallback you can also add it via three-dots → **Custom repositories**: `https://github.com/iluebbe/maintenance_supporter` as an **Integration**.
 
 ### Manual
 
