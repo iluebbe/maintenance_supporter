@@ -193,14 +193,12 @@ Planned and proposed features (multi-assignee rotation, a native to-do entity, m
 
 ### HACS (Recommended)
 
-Maintenance Supporter is in the **HACS default store** — no custom repository needed.
+Maintenance Supporter is available in the **HACS default store** (since 2026-06-20) — no custom repository needed.
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=iluebbe&repository=maintenance_supporter&category=Integration)
 
 1. Open **HACS**, search for "Maintenance Supporter", and install it — or click the button above to open it directly.
 2. Restart Home Assistant
-
-> Newly added default repositories can take a little while to appear in HACS. If it isn't listed yet, use the three-dots menu (top right) → **Recheck repositories**. As a fallback you can also add it via three-dots → **Custom repositories**: `https://github.com/iluebbe/maintenance_supporter` as an **Integration**.
 
 ### Manual
 
