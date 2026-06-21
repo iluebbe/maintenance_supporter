@@ -19,6 +19,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `notifications_enabled` | bool | `false` | — | Master toggle for the notification system |
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
 | `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |
+| `panel_title` | string | `""` (→ "Maintenance") | max 50 chars | Override for the sidebar panel title. Trimmed and capped at 50 characters on save. Leave blank to clear the override and fall back to the default title "Maintenance" |
 
 ### Advanced Feature Visibility
 
@@ -83,6 +84,18 @@ Mobile actionable notification buttons (requires HA Companion App).
 | `action_snooze_enabled` | bool | `false` | — | Show "Snooze" action button on notifications |
 | `snooze_duration_hours` | int | 4 | 1–72 | Hours to snooze a task when the Snooze action is used |
 
+### Vacation Mode (1.2.0+)
+
+When active, suppresses notifications for non-exempt tasks across the vacation window **plus** a trailing buffer (so a task coming due the day you return doesn't fire immediately). Existing task statuses are unaffected — only notifications are held back.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `vacation_enabled` | bool | `false` | Master toggle for vacation suppression |
+| `vacation_start` | date | `""` | First day of the vacation window (ISO `YYYY-MM-DD`) |
+| `vacation_end` | date | `""` | Last day of the vacation window (ISO `YYYY-MM-DD`) |
+| `vacation_buffer_days` | int | 3 | Extra days after `vacation_end` during which notifications stay suppressed |
+| `vacation_exempt_task_ids` | list[string] | `[]` | Task IDs exempt from suppression — these keep notifying even during the vacation window |
+
 ### Budget Settings
 
 Visible only when `advanced_budget_visible` is `true`.
@@ -133,12 +146,15 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
 | `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length). The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. |
 | `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
-| `warning_days` | int | 7 | 1–365 | Days before due date when status changes to `due_soon` |
+| `warning_days` | int | 7 | 0–365 | Days before due date when status changes to `due_soon`. Per-task minimum is `0` (`0` = warn only on the due date itself); the global `default_warning_days` has a minimum of `1` |
 | `last_performed` | date | *(none)* | — | Date the task was last completed. When unset, `next_due` is anchored on `created_at` (set to today on creation), so the task transitions to OVERDUE after `interval_days` instead of being due "today" forever. |
 | `created_at` | date | *(today on create)* | — | Anchor date for `next_due` when `last_performed` is unset. Set automatically; serialized in ConfigEntry. Migrated from earliest history timestamp for pre-v1.0.34 entries. |
 | `notes` | string | `""` | — | General notes about the task |
 | `documentation_url` | string | `""` | — | URL to external documentation or manual |
 | `responsible_user_id` | string | `""` | — | HA user ID of the person responsible for this task |
+| `custom_icon` | string (mdi) | `""` | — | Custom `mdi:` icon for the task's entities, overriding the type-based default. Max 100 chars. Picked via the icon selector in the task dialog |
+| `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag opens / completes it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
+| `entity_slug` | string | `""` | — | Override for the slug used in this task's `entity_id`s. Must match `[a-z0-9_]+` (lowercase letters, digits, underscores), max 64 chars. When unset, the slug is derived from the object and task names |
 
 ### Checklist
 
@@ -190,7 +206,7 @@ Available when `advanced_completion_actions_visible` is enabled globally. Config
 
 | Parameter | Type | Range | Description |
 |-----------|------|-------|-------------|
-| `quick_complete_defaults.notes` | string | ≤ 1000 chars | Notes to record |
+| `quick_complete_defaults.notes` | string | ≤ 2000 chars | Notes to record |
 | `quick_complete_defaults.cost` | float | 0–1,000,000 | Cost to record |
 | `quick_complete_defaults.duration` | int (minutes) | 0–525,600 | Duration to record |
 | `quick_complete_defaults.feedback` | enum | `needed` / `not_needed` | Adaptive scheduling feedback |
@@ -388,7 +404,7 @@ These values are not user-configurable but affect behavior:
 | Coordinator refresh interval | 5 min | Periodic status recomputation |
 | Startup grace period | 5 min | Time before marking entities as unavailable after HA start |
 | Missing entity threshold | 6 refreshes (~30 min) | Refreshes before creating a repair issue for unavailable entities |
-| Max history entries per task | 50 | Oldest entries auto-pruned when exceeded |
+| Max history entries per task | 500 | Oldest entries auto-pruned when exceeded |
 | Runtime persistence interval | 5 min | How often accumulated runtime hours are saved to config entry |
 | Weibull reliability target | 90% | Reliability level used for Weibull interval recommendations |
 | Seasonal factor range | 0.3x – 3.0x | Floor and ceiling for seasonal interval multipliers |

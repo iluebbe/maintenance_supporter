@@ -425,7 +425,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Two bundles:** `maintenance-panel.js` (~245KB) and `maintenance-card.js` (~111KB)
+**Four bundles:** `maintenance-panel.js` (~687KB), `maintenance-card.js` (~558KB), `maintenance-calendar-card.js` (~437KB), and `maintenance-strategy-shim.js` (~3KB, the dashboard-strategy self-heal shim)
 
 ### Panel Views
 1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter
@@ -508,14 +508,15 @@ Multi-channel notification with:
 |----------|----------|
 | **Read** | `objects`, `object`, `statistics`, `subscribe`, `templates`, `budget_status`, `groups`, `settings`, `tasks/by_user` |
 | **Object CRUD** | `object/create`, `object/update`, `object/delete` |
-| **Task CRUD** | `task/create`, `task/update`, `task/delete`, `tasks/list` |
-| **Task Actions** | `task/complete`, `task/skip`, `task/reset` |
+| **Task CRUD** | `task/list`, `task/create`, `task/update`, `task/delete` |
+| **Task Actions** | `task/complete`, `task/quick_complete`, `task/skip`, `task/reset`, `task/history/update` |
 | **Group CRUD** | `group/create`, `group/update`, `group/delete` |
-| **Global Settings** | `global/update`, `global/test_notification` |
+| **Global Settings** | `global/update` *(admin)*, `global/test_notification` *(admin)* |
 | **User Assignment** | `task/assign_user`, `users/list` |
-| **Analysis** | `analyze_interval`, `apply_suggestion`, `seasonal_overrides`, `set_environmental_entity` |
-| **Import/Export** | `export_data`, `export_csv`, `import_csv`, `import_json` |
-| **QR** | `qr/generate` |
+| **Analysis** | `task/analyze_interval`, `task/apply_suggestion`, `task/seasonal_overrides`, `task/set_environmental_entity` |
+| **Vacation** | `vacation/state`, `vacation/preview`, `vacation/update` *(admin)*, `vacation/end_now` *(admin)* |
+| **Import/Export** | `export` *(admin)*, `csv/export` *(admin)*, `csv/import` *(admin)*, `json/import` *(admin)* |
+| **QR** | `qr/generate`, `qr/batch_generate` |
 | **Entity Introspection** | `entity/attributes` |
 | **NFC Tags** | `tags/list` |
 
@@ -523,7 +524,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-As of v1.0.41, 35 of the 37 backend endpoints are consumed by the Lit panel. The remaining 2 are genuinely obsolete for the panel but kept as public API.
+The backend exposes 44 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
@@ -609,7 +610,7 @@ docker exec ha-maint sh -c 'cd /config && python -m pytest tests/ \
 - **New platform**: Add entity module, register in `const.PLATFORMS`
 - **New WS command**: Add handler in the appropriate `websocket/*.py` module, import and register in `websocket/__init__.py`
 - **New template**: Add `ObjectTemplate` to `templates.py`
-- **New language**: Add `translations/{lang}.json` for backend + dictionary in `styles.ts` for frontend (currently: EN, ES, PT, FR, DE, IT, NL)
+- **New language**: Add `translations/{lang}.json` for backend + dictionary in `styles.ts` for frontend (currently 13: cs, de, en, es, fr, it, nl, pl, pt, ru, sv, uk, zh-Hans)
 
 ---
 
