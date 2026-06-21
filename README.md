@@ -220,16 +220,19 @@ For a complete list of all configurable parameters, see [docs/CONFIGURATION.md](
 
 - **Sensor** — one entity per maintenance task. State is an enum: `ok`, `due_soon`, `overdue`, `triggered`
 - **Binary Sensor** — one entity per maintenance task (`device_class: problem`). ON when overdue or triggered, ideal for HA automations
+- **Button** — one-press complete/skip/reset per task (`button.<object>_<task>_complete` / `_skip` / `_reset`)
 - **Calendar** — one global entity showing upcoming maintenance events for all tasks
 
 ### Sensor Attributes
 
-Each sensor entity exposes attributes grouped by function:
+Each sensor entity exposes attributes grouped by function. Only stable values are exposed as entity attributes (to avoid excessive recorder writes); fast-changing trigger values are served via the WebSocket `subscribe` endpoint instead (see below).
 
-- **Schedule**: `interval_days`, `interval_unit`, `warning_days`, `days_until_due`, `next_due`, `due_date`, `last_performed`, `created_at`, `schedule_type`, `schedule_time`
-- **Trigger**: `trigger_type`, `trigger_active`, `trigger_current_value`, `trigger_entity_state` (per-entity availability)
-- **Adaptive**: `adaptive_enabled`, `suggested_interval`, `weibull_beta`, `weibull_reliability`, `seasonal_factor`
-- **Prediction**: `degradation_rate`, `predicted_trigger_date`, `environmental_factor`
+- **Core**: `maintenance_type`, `schedule_type`, `interval_days`, `interval_unit`, `interval_anchor`, `due_date`, `warning_days`, `last_performed`, `next_due`, `days_until_due`, `parent_object`, `times_performed`, `total_cost`, `average_duration`, `notes`, `documentation_url`
+- **Trigger** (only when a trigger is configured): `trigger_type`, `trigger_active`, plus type-specific fields (e.g. `trigger_above` / `trigger_below` / `trigger_for_minutes`, `trigger_target_value`, …)
+- **Adaptive** (only when adaptive scheduling is enabled): `suggested_interval`, `interval_confidence`, `adaptive_scheduling_enabled`, `seasonal_factor`, `seasonal_reason`
+- **Weibull** (after 5+ completions): `weibull_beta`, `weibull_eta`, `weibull_r_squared`, `weibull_beta_interpretation`, `confidence_interval_low`, `confidence_interval_high`
+
+> **Live values via the WebSocket `subscribe` endpoint (not recorded as sensor attributes):** `trigger_current_value`, `trigger_entity_state` (per-entity availability), `degradation_rate`, `environmental_factor`, and other fast-changing trigger/prediction values. The panel and Lovelace card read these from the live subscription.
 
 ### Events
 
@@ -241,7 +244,7 @@ Each sensor entity exposes attributes grouped by function:
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (37 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+See the [Services](#services) table below for available service calls. For the full WebSocket API (44 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
 
 ## Data Updates
 
@@ -607,10 +610,10 @@ template:
 
 ### Trigger Not Activating
 
-1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID
-2. Check the sensor's `trigger_entity_state` attribute — it shows per-entity availability (`available`, `unavailable`, `missing`)
+1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID, and confirm the source entity has a usable state there
+2. Check per-entity availability (`available`, `unavailable`, `missing`) — this is the `trigger_entity_state` live value shown on the task in the panel (it comes from the WebSocket `subscribe` feed, not from a sensor attribute)
 3. For threshold triggers with `trigger_for_minutes` > 0, the condition must hold continuously for that duration
-4. For compound triggers, check each sub-condition's status individually in the sensor attributes
+4. For compound triggers, check each sub-condition's status individually on the task in the panel
 
 ### Notifications Not Arriving
 

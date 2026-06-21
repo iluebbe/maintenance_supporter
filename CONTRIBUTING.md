@@ -45,7 +45,7 @@ Three layers, run independently or together:
 docker exec ha-maint sh -c 'cd /config && python -m pytest tests/'
 ```
 
-~1,500 unit + integration tests, ~90s. Includes 32 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
+~2,094 unit + integration tests, ~90s. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
 
 ### 2. Component (Lit, web-test-runner)
 
@@ -62,7 +62,7 @@ npm run test:watch     # dev iteration
 ```bash
 # Requires playwright-server profile up (see Docker section above)
 cd custom_components/maintenance_supporter/frontend-src
-node _smoketest-vacation.mjs       # example pattern
+node verify-strategy.mjs           # example pattern
 ```
 
 Drives WS endpoints against a live HA instance via `page.evaluate`. Used for backend smoke verification before release; we deliberately don't try to automate UI clicks through HA's deep shadow DOM.
@@ -78,15 +78,15 @@ Both must be clean before commit.
 
 ## Translations
 
-Panel strings live in `custom_components/maintenance_supporter/frontend-src/styles.ts` (12 language blocks). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
+Panel strings live in `custom_components/maintenance_supporter/frontend-src/styles.ts` (13 language blocks). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
 
 When adding a key:
 
-1. Add it to **all 12 languages** ideally. If you can only do a few, that's still useful — missing keys fall back to English silently.
-2. Run the audit script:
+1. Add it to **all 13 languages** ideally. If you can only do a few, that's still useful — missing keys fall back to English silently.
+2. Run the key-parity test:
    ```bash
    cd custom_components/maintenance_supporter/frontend-src
-   node frontend-src/_audit.mjs    # asserts every block has the same keys
+   npm test    # __tests__/i18n-parity.test.ts asserts every block has the same keys
    ```
 3. If you submitted a translation-only PR, the [Translation correction issue template](.github/ISSUE_TEMPLATE/translation.yml) lists where files live.
 
