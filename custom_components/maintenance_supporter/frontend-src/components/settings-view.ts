@@ -6,12 +6,14 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../types";
 import { t } from "../styles";
 import { UserService } from "../user-service";
+import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
 
 /* Settings response shape from WS maintenance_supporter/settings */
 interface SettingsResponse {
   features: AdvancedFeatures;
   admin_panel_user_ids?: string[];
   operator_write_enabled?: boolean;
+  objects_table_columns?: string[];
   general: {
     default_warning_days: number;
     notifications_enabled: boolean;
@@ -225,6 +227,7 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderFeatures(L)}
       ${this._renderPanelAccess(L)}
       ${this._renderGeneral(L)}
+      ${this._renderObjectsColumns(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
       ${this._renderVacation(L)}
@@ -331,6 +334,40 @@ export class MaintenanceSettingsView extends LitElement {
         `)}
       </div>
     `;
+  }
+
+  // --- Section: Objects table columns (#67) ---
+
+  private _renderObjectsColumns(L: string) {
+    const selected = sanitizeColumns(this._settings!.objects_table_columns);
+    return html`
+      <div class="settings-section" data-section="objects_table_columns">
+        <h3>${t("objects_table_columns_label", L)}</h3>
+        <p class="section-desc">${t("objects_table_columns_hint", L)}</p>
+        ${OBJECT_COLUMNS.map((col) => html`
+          <label class="setting-row">
+            <span class="setting-label">${t(col.labelKey, L)}</span>
+            <input
+              type="checkbox"
+              .checked=${selected.includes(col.key)}
+              ?disabled=${!!col.required}
+              @change=${(e: Event) => this._toggleColumn(col.key, (e.target as HTMLInputElement).checked)}
+            />
+          </label>
+        `)}
+      </div>
+    `;
+  }
+
+  private _toggleColumn(key: string, on: boolean): void {
+    const current = new Set(sanitizeColumns(this._settings!.objects_table_columns));
+    if (on) current.add(key);
+    else current.delete(key);
+    // Persist in canonical order; required columns are always kept.
+    const next = OBJECT_COLUMNS
+      .filter((c) => c.required || current.has(c.key))
+      .map((c) => c.key);
+    this._updateSetting("objects_table_columns", next);
   }
 
   // --- Section: General ---

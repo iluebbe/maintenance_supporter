@@ -82,6 +82,7 @@
           "documentation_url": "手册/文档 URL",
           "notes": "备注",
           "installation_date": "安装日期",
+          "warranty_expiry": "保修到期",
           "go_back": "返回"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "可选链接，指向 PDF 手册、厂商页面或包含此维护项参考信息的任何 URL。",
           "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
           "installation_date": "该维护项安装或购买的日期。",
+          "warranty_expiry": "此对象的制造商保修到期时间。",
           "go_back": "返回主菜单且不保存。"
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "序列号",
           "documentation_url": "手册/文档 URL",
           "notes": "备注",
-          "installation_date": "安装日期"
+          "installation_date": "安装日期",
+          "warranty_expiry": "保修到期"
         },
         "data_description": {
           "name": "此维护项的显示名称。",
@@ -434,7 +437,8 @@
           "serial_number": "该维护项的序列号。",
           "documentation_url": "可选链接，指向 PDF 手册、厂商页面或包含此维护项参考信息的任何 URL。",
           "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
-          "installation_date": "此维护项安装的时间。"
+          "installation_date": "此维护项安装的时间。",
+          "warranty_expiry": "此对象的制造商保修到期时间。"
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "备注",
           "area_id": "区域",
           "installation_date": "安装日期",
+          "warranty_expiry": "保修到期",
           "go_back": "返回"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "关于该维护项的自由备注 —— 零件编号、操作步骤、设置提醒等。",
           "area_id": "此维护项在您家中所处的区域。",
           "installation_date": "该维护项安装或购买的日期。",
+          "warranty_expiry": "此对象的制造商保修到期时间。",
           "go_back": "返回主菜单且不保存。"
         }
       }

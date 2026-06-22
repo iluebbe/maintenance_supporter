@@ -82,6 +82,7 @@
           "documentation_url": "Manual / documentation URL",
           "notes": "Notes",
           "installation_date": "Installation date",
+          "warranty_expiry": "Warranty expiry",
           "go_back": "Go back"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
           "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
           "installation_date": "When this object was installed or purchased.",
+          "warranty_expiry": "When the manufacturer warranty for this object expires.",
           "go_back": "Return to the main menu without saving."
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "Serial number",
           "documentation_url": "Manual / documentation URL",
           "notes": "Notes",
-          "installation_date": "Installation date"
+          "installation_date": "Installation date",
+          "warranty_expiry": "Warranty expiry"
         },
         "data_description": {
           "name": "The name of this maintenance object.",
@@ -434,7 +437,8 @@
           "serial_number": "The serial number of this object.",
           "documentation_url": "Optional link to a PDF manual, vendor page, or any URL with reference info for this object.",
           "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
-          "installation_date": "When this object was installed."
+          "installation_date": "When this object was installed.",
+          "warranty_expiry": "When the manufacturer warranty for this object expires."
         }
       }
     },
@@ -1055,6 +1059,7 @@
           "notes": "Notes",
           "area_id": "Area",
           "installation_date": "Installation date",
+          "warranty_expiry": "Warranty expiry",
           "go_back": "Go back"
         },
         "data_description": {
@@ -1066,6 +1071,7 @@
           "notes": "Free-form notes about the object — part numbers, procedures, settings reminders, etc.",
           "area_id": "The area in your home where this object is located.",
           "installation_date": "When this object was installed or purchased.",
+          "warranty_expiry": "When the manufacturer warranty for this object expires.",
           "go_back": "Return to the main menu without saving."
         }
       }

@@ -218,6 +218,8 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             "model": obj_data.get("model"),
             "serial_number": obj_data.get("serial_number"),
             "installation_date": obj_data.get("installation_date"),
+            # (#67): warranty expiry — exposed for the asset table + detail view
+            "warranty_expiry": obj_data.get("warranty_expiry"),
             # v1.4.0 (#43): expose to the frontend so the manual link
             # renders in the object detail header AND, since v1.4.1, on
             # every task detail page belonging to this object.
@@ -343,6 +345,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_batch_generate_qr,
         ws_export_csv,
         ws_export_data,
+        ws_export_objects_csv,
         ws_generate_qr,
         ws_get_templates,
         ws_import_csv,
@@ -396,6 +399,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_export_data)
     websocket_api.async_register_command(hass, ws_get_budget_status)
     websocket_api.async_register_command(hass, ws_export_csv)
+    websocket_api.async_register_command(hass, ws_export_objects_csv)
     websocket_api.async_register_command(hass, ws_import_csv)
     websocket_api.async_register_command(hass, ws_import_json)
     websocket_api.async_register_command(hass, ws_get_groups)

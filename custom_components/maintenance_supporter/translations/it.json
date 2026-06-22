@@ -82,6 +82,7 @@
           "documentation_url": "URL manuale / documentazione",
           "notes": "Note",
           "installation_date": "Data di installazione",
+          "warranty_expiry": "Scadenza garanzia",
           "go_back": "Indietro"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "Link opzionale a un manuale PDF, pagina del produttore o qualsiasi URL con informazioni di riferimento per questo oggetto.",
           "notes": "Note libere sull'oggetto — numeri di parti, procedure, promemoria impostazioni, ecc.",
           "installation_date": "Data di installazione o acquisto di questo oggetto.",
+          "warranty_expiry": "Quando scade la garanzia del produttore per questo oggetto.",
           "go_back": "Tornare al menu principale senza salvare."
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "Numero di serie",
           "documentation_url": "URL manuale / documentazione",
           "notes": "Note",
-          "installation_date": "Data di installazione"
+          "installation_date": "Data di installazione",
+          "warranty_expiry": "Scadenza garanzia"
         },
         "data_description": {
           "name": "Il nome di questo oggetto di manutenzione.",
@@ -434,7 +437,8 @@
           "serial_number": "Il numero di serie di questo oggetto.",
           "documentation_url": "Link opzionale a un manuale PDF, pagina del produttore o qualsiasi URL con informazioni di riferimento per questo oggetto.",
           "notes": "Note libere sull'oggetto — numeri di parti, procedure, promemoria impostazioni, ecc.",
-          "installation_date": "Quando è stato installato questo oggetto."
+          "installation_date": "Quando è stato installato questo oggetto.",
+          "warranty_expiry": "Quando scade la garanzia del produttore per questo oggetto."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Note",
           "area_id": "Area",
           "installation_date": "Data di installazione",
+          "warranty_expiry": "Scadenza garanzia",
           "go_back": "Indietro"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Note libere sull'oggetto — numeri di parti, procedure, promemoria impostazioni, ecc.",
           "area_id": "L'area della tua casa dove si trova questo oggetto.",
           "installation_date": "Quando questo oggetto è stato installato o acquistato.",
+          "warranty_expiry": "Quando scade la garanzia del produttore per questo oggetto.",
           "go_back": "Torna al menu principale senza salvare."
         }
       }

@@ -91,6 +91,11 @@ def _build_export_object(
             "model": obj_data.get("model"),
             "serial_number": obj_data.get("serial_number"),
             "installation_date": obj_data.get("installation_date"),
+            "warranty_expiry": obj_data.get("warranty_expiry"),
+            # Round-tripped so a JSON backup restores the full asset record
+            # (these were added in v1.4.0/v1.4.10 but missed here until #67).
+            "documentation_url": obj_data.get("documentation_url"),
+            "notes": obj_data.get("notes"),
         },
         "tasks": tasks,
     }

@@ -125,6 +125,26 @@ async def ws_export_csv(
 
 
 @websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/objects/csv"}
+)
+@websocket_api.async_response
+async def ws_export_objects_csv(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Export one row per maintenance object as CSV (#67).
+
+    Not admin-gated: it exposes only the asset fields the panel already sends
+    to every user via ``maintenance_supporter/objects`` (no cost/history).
+    """
+    from ..helpers.csv_handler import export_object_records_csv
+
+    csv_data = export_object_records_csv(hass)
+    connection.send_result(msg["id"], {"csv": csv_data})
+
+
+@websocket_api.websocket_command(
     {
         vol.Required("type"): f"{DOMAIN}/csv/import",
         vol.Required("csv_content"): str,
@@ -290,6 +310,11 @@ async def ws_import_json(
             "serial_number": obj_data.get("serial_number"),
             "area_id": obj_data.get("area_id"),
             "installation_date": obj_data.get("installation_date"),
+            "warranty_expiry": obj_data.get("warranty_expiry"),
+            # Imported counterparts of the export fields above; length-capped by
+            # cap_object_fields and the frontend only renders http(s) doc URLs.
+            "documentation_url": obj_data.get("documentation_url"),
+            "notes": obj_data.get("notes"),
             "task_ids": [],
         }
 

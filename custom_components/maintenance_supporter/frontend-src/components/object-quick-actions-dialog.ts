@@ -191,6 +191,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     if (obj.model) items.push([t("model", L) || "Model", obj.model]);
     if (obj.serial_number) items.push([t("serial_number", L) || "Serial", obj.serial_number]);
     if (obj.installation_date) items.push([t("installation_date", L) || "Installed", obj.installation_date]);
+    if (obj.warranty_expiry) items.push([t("warranty", L) || "Warranty", obj.warranty_expiry]);
     if (obj.documentation_url) items.push([t("documentation_url", L) || "Docs", obj.documentation_url]);
 
     if (items.length === 0) return nothing;

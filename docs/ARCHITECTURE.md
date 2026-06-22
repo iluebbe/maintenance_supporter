@@ -184,14 +184,14 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               44 WS commands, split by domain
+├── websocket/                               45 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py                              Object CRUD (6 handlers)
 │   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) (8 handlers)
 │   ├── groups.py                               Group CRUD (4 handlers)
 │   ├── analysis.py                             Adaptive scheduling (4 handlers)
 │   ├── users.py                                User management (3 handlers)
-│   ├── io.py                                   Export/import/CSV/QR/templates (7 handlers)
+│   ├── io.py                                   Export/import/CSV/QR/templates (8 handlers, incl. per-object objects/csv #67)
 │   ├── dashboard.py                            Subscribe, statistics, settings, budget, global update/test (6 handlers)
 │   ├── vacation.py                             Vacation-mode CRUD (1.2.0+) (4 handlers)
 │   └── tags.py                                 NFC tag listing (1 handler)
@@ -234,7 +234,7 @@ custom_components/maintenance_supporter/
 │
 ├── models/                        (483 lines)
 │   ├── maintenance_task.py        (407 lines)  Task: schedule (Schedule value object), triggers, history, status, on_complete_action (1.3.0+), quick_complete_defaults (1.3.0+)
-│   ├── maintenance_object.py       (54 lines)  Object: name, area, manufacturer, model, serial_number, installation_date, documentation_url (1.4.0+)
+│   ├── maintenance_object.py       (68 lines)  Object: name, area, manufacturer, model, serial_number, installation_date, warranty_expiry (#67), documentation_url (1.4.0+), notes (1.4.10+)
 │   └── maintenance_type.py         (86 lines)  Predefined maintenance categories
 │
 ├── templates.py                   (226 lines)  13 object templates (car, pool, HVAC, ...)
@@ -502,7 +502,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-44 commands organized by function:
+45 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -515,7 +515,7 @@ Multi-channel notification with:
 | **User Assignment** | `task/assign_user`, `users/list` |
 | **Analysis** | `task/analyze_interval`, `task/apply_suggestion`, `task/seasonal_overrides`, `task/set_environmental_entity` |
 | **Vacation** | `vacation/state`, `vacation/preview`, `vacation/update` *(admin)*, `vacation/end_now` *(admin)* |
-| **Import/Export** | `export` *(admin)*, `csv/export` *(admin)*, `csv/import` *(admin)*, `json/import` *(admin)* |
+| **Import/Export** | `export` *(admin)*, `csv/export` *(admin)*, `objects/csv` (#67, per-object), `csv/import` *(admin)*, `json/import` *(admin)* |
 | **QR** | `qr/generate`, `qr/batch_generate` |
 | **Entity Introspection** | `entity/attributes` |
 | **NFC Tags** | `tags/list` |
@@ -524,7 +524,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 44 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 45 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

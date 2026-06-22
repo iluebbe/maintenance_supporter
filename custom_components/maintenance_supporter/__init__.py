@@ -126,6 +126,7 @@ SERVICE_ADD_OBJECT_SCHEMA = vol.Schema(
         vol.Optional("model"): cv.string,
         vol.Optional("serial_number"): cv.string,
         vol.Optional("installation_date"): cv.string,
+        vol.Optional("warranty_expiry"): cv.string,
         vol.Optional("documentation_url"): cv.string,
         vol.Optional("notes"): cv.string,
     }
@@ -262,6 +263,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 model=call.data.get("model"),
                 serial_number=call.data.get("serial_number"),
                 installation_date=call.data.get("installation_date"),
+                warranty_expiry=call.data.get("warranty_expiry"),
                 documentation_url=url,
                 notes=call.data.get("notes"),
             )

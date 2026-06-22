@@ -82,6 +82,7 @@
           "documentation_url": "URL instrukcji / dokumentacji",
           "notes": "Notatki",
           "installation_date": "Data instalacji",
+          "warranty_expiry": "Wygaśnięcie gwarancji",
           "go_back": "Wróć"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
           "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
+          "warranty_expiry": "Kiedy wygasa gwarancja producenta dla tego obiektu.",
           "go_back": "Wróć do menu głównego bez zapisywania."
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "Numer seryjny",
           "documentation_url": "URL instrukcji / dokumentacji",
           "notes": "Notatki",
-          "installation_date": "Data instalacji"
+          "installation_date": "Data instalacji",
+          "warranty_expiry": "Wygaśnięcie gwarancji"
         },
         "data_description": {
           "name": "Nazwa tego obiektu konserwacji.",
@@ -434,7 +437,8 @@
           "serial_number": "Numer seryjny obiektu.",
           "documentation_url": "Opcjonalny link do instrukcji PDF, strony producenta lub dowolnego URL z informacjami referencyjnymi dla tego obiektu.",
           "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
-          "installation_date": "Kiedy obiekt został zainstalowany."
+          "installation_date": "Kiedy obiekt został zainstalowany.",
+          "warranty_expiry": "Kiedy wygasa gwarancja producenta dla tego obiektu."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Notatki",
           "area_id": "Obszar",
           "installation_date": "Data instalacji",
+          "warranty_expiry": "Wygaśnięcie gwarancji",
           "go_back": "Wróć"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Notatki o obiekcie — numery części, procedury, przypomnienia ustawień, itp.",
           "area_id": "Obszar w domu, w którym znajduje się ten obiekt.",
           "installation_date": "Kiedy ten obiekt został zainstalowany lub kupiony.",
+          "warranty_expiry": "Kiedy wygasa gwarancja producenta dla tego obiektu.",
           "go_back": "Wróć do menu głównego bez zapisywania."
         }
       }

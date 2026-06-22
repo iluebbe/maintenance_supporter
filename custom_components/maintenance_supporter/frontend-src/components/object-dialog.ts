@@ -19,6 +19,8 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _serialNumber = "";
   @state() private _areaId = "";
   @state() private _installationDate = "";
+  // (#67): per-object warranty expiry date
+  @state() private _warrantyExpiry = "";
   // v1.4.0 (#43): per-object link to PDF manual / vendor page
   @state() private _documentationUrl = "";
   // v1.4.10 (#46): free-form notes (multiline)
@@ -37,6 +39,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._serialNumber = "";
     this._areaId = "";
     this._installationDate = "";
+    this._warrantyExpiry = "";
     this._documentationUrl = "";
     this._notes = "";
     this._error = "";
@@ -51,6 +54,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._serialNumber = obj.serial_number || "";
     this._areaId = obj.area_id || "";
     this._installationDate = obj.installation_date || "";
+    this._warrantyExpiry = obj.warranty_expiry || "";
     this._documentationUrl = obj.documentation_url || "";
     this._notes = obj.notes || "";
     this._error = "";
@@ -72,6 +76,7 @@ export class MaintenanceObjectDialog extends LitElement {
           serial_number: this._serialNumber || null,
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
+          warranty_expiry: this._warrantyExpiry || null,
           documentation_url: this._documentationUrl.trim() || null,
           notes: this._notes.trim() || null,
         });
@@ -84,6 +89,7 @@ export class MaintenanceObjectDialog extends LitElement {
           serial_number: this._serialNumber || null,
           area_id: this._areaId || null,
           installation_date: this._installationDate || null,
+          warranty_expiry: this._warrantyExpiry || null,
           documentation_url: this._documentationUrl.trim() || null,
           notes: this._notes.trim() || null,
         });
@@ -149,6 +155,12 @@ export class MaintenanceObjectDialog extends LitElement {
             type="date"
             .value=${this._installationDate}
             @input=${(e: Event) => (this._installationDate = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("warranty_expiry_optional", L)}"
+            type="date"
+            .value=${this._warrantyExpiry}
+            @input=${(e: Event) => (this._warrantyExpiry = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
           <label class="textarea-field">
             <span class="textarea-label">${t("object_notes_optional", L)}</span>

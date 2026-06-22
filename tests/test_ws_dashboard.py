@@ -616,6 +616,54 @@ async def test_update_global_settings_panel_title_blank_clears(
     assert result["general"]["panel_title"] == ""
 
 
+async def test_update_global_settings_objects_table_columns_sanitised(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """objects_table_columns (#67): drop unknown/non-string, dedupe, keep order."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {
+            "objects_table_columns": [
+                "warranty_expiry", "bogus", "name", "warranty_expiry", 42,
+            ],
+        },
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["objects_table_columns"] == ["warranty_expiry", "name"]
+
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry is not None
+    options = entry.options or entry.data
+    assert options["objects_table_columns"] == ["warranty_expiry", "name"]
+
+
+async def test_update_global_settings_objects_table_columns_empty_defaults(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """An all-unknown column list falls back to the default set (#67)."""
+    from custom_components.maintenance_supporter.const import (
+        DEFAULT_OBJECTS_TABLE_COLUMNS,
+    )
+
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1,
+        "type": "maintenance_supporter/global/update",
+        "settings": {"objects_table_columns": ["nope", "alsobad"]},
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["objects_table_columns"] == list(DEFAULT_OBJECTS_TABLE_COLUMNS)
+
+
 async def test_update_global_settings_filters_unknown_keys(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

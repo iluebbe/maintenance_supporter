@@ -20,6 +20,7 @@ Accessible via **Settings > Devices & Services > Maintenance Supporter > Configu
 | `notify_service` | string | `""` | — | Notification service to use (e.g., `notify.mobile_app_phone`). Auto-prepends `notify.` if omitted |
 | `panel_enabled` | bool | `false` | — | Show the Maintenance Supporter sidebar panel. Takes effect immediately |
 | `panel_title` | string | `""` (→ "Maintenance") | max 50 chars | Override for the sidebar panel title. Trimmed and capped at 50 characters on save. Leave blank to clear the override and fall back to the default title "Maintenance" |
+| `objects_table_columns` (#67) | list[string] | *(9 defaults)* | known column keys | Ordered columns shown in the panel **Objects table** view (the cards/table toggle in *All objects*). Selectable from known object fields only: `name` (always on), `manufacturer`, `model`, `serial_number`, `installation_date`, `warranty_expiry`, `area_id`, `documentation_url`, `notes`, `task_count`, `actions`. Defaults to all of those except `documentation_url`/`notes`. Unknown keys are dropped server-side. Edited under **Settings tab → Objects table columns** |
 
 ### Advanced Feature Visibility
 
@@ -123,6 +124,7 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 | `model` | string | `""` | Model name (shown in device info) |
 | `serial_number` | string | `""` | Serial number (shown in device info, redacted in diagnostics) |
 | `installation_date` | date | `""` | Date the object was installed or purchased |
+| `warranty_expiry` (#67) | date | `""` | Warranty expiry date (ISO `YYYY-MM-DD`) for asset tracking. Rendered as a colour-coded status chip in the panel object-detail header and the objects table: green "valid until …", amber "expires in N days" (within 60 days), red "expired", or "—" when unset. Round-trips through JSON/CSV export & import |
 | `documentation_url` (1.4.0+) | string (URL) | `""` | Link to PDF manual / vendor page / setup guide for this object. Only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are rejected. Shown as a clickable link in the panel object-detail header AND on every task-detail page belonging to this object (1.4.1+) so the manual is always one click away from any maintenance task |
 | `notes` (1.4.10+) | string (multiline, ≤2000 chars) | `""` | Free-form notes about the object — part numbers, replacement procedures, settings reminders, "spare key in garage drawer", etc. Newlines and indentation are preserved (`white-space: pre-wrap`). Shown in a dedicated, left-bordered block under the object meta in the panel object-detail header. Editable via panel object dialog or *Object settings* in the config flow |
 

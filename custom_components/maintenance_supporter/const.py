@@ -97,6 +97,43 @@ CONF_ADMIN_PANEL_USER_IDS = "admin_panel_user_ids"
 # admin-gated), preserving the escalation boundary in helpers/permissions.py.
 CONF_OPERATOR_WRITE_ENABLED = "operator_write_enabled"
 
+# (#67): objects-table column configuration for the panel All-Objects view
+# (table mode). Global setting holding the ordered list of object columns to
+# show. Selectable from KNOWN_OBJECT_TABLE_COLUMNS only — known object fields,
+# never arbitrary state attributes.
+CONF_OBJECTS_TABLE_COLUMNS = "objects_table_columns"
+
+# Every column key the objects table can render. The Settings UI offers exactly
+# these; the WS update handler drops anything outside this set.
+KNOWN_OBJECT_TABLE_COLUMNS = [
+    "name",
+    "manufacturer",
+    "model",
+    "serial_number",
+    "installation_date",
+    "warranty_expiry",
+    "area_id",
+    "documentation_url",
+    "notes",
+    "task_count",
+    "actions",
+]
+
+# Default column set + order when the user hasn't customised it. Mirrors the
+# locked design: Name · Manufacturer · Model · Serial · Installed · Warranty ·
+# Area · Tasks · link (documentation_url + notes are opt-in extras).
+DEFAULT_OBJECTS_TABLE_COLUMNS = [
+    "name",
+    "manufacturer",
+    "model",
+    "serial_number",
+    "installation_date",
+    "warranty_expiry",
+    "area_id",
+    "task_count",
+    "actions",
+]
+
 # --- Vacation mode (v1.2.0) ---
 # When active, suppresses notifications for non-exempt tasks across the
 # vacation window plus an N-day buffer (so a task that comes due the day
@@ -174,6 +211,8 @@ CONF_OBJECT_MANUFACTURER = "manufacturer"
 CONF_OBJECT_MODEL = "model"
 CONF_OBJECT_SERIAL_NUMBER = "serial_number"
 CONF_OBJECT_INSTALLATION_DATE = "installation_date"
+# (#67): per-object warranty expiry date (ISO YYYY-MM-DD) for asset tracking
+CONF_OBJECT_WARRANTY_EXPIRY = "warranty_expiry"
 # v1.4.0 (#43): per-object link to PDF manual / vendor page
 CONF_OBJECT_DOCUMENTATION_URL = "documentation_url"
 # v1.4.10 (#46): per-object free-form notes (part numbers, procedures, etc.)

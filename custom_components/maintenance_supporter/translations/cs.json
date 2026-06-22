@@ -80,6 +80,7 @@
           "model": "Model",
           "serial_number": "Sériové číslo",
           "installation_date": "Datum instalace",
+          "warranty_expiry": "Konec záruky",
           "documentation_url": "URL návodu / dokumentace",
           "notes": "Poznámky",
           "go_back": "Zpět"
@@ -91,6 +92,7 @@
           "model": "Název nebo číslo modelu.",
           "serial_number": "Sériové číslo objektu.",
           "installation_date": "Kdy byl objekt instalován nebo zakoupen.",
+          "warranty_expiry": "Kdy vyprší záruka výrobce na tento objekt.",
           "documentation_url": "Volitelný odkaz na návod v PDF, stránku výrobce nebo libovolnou URL s referenčními informacemi pro tento objekt.",
           "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
           "go_back": "Návrat do hlavní nabídky bez uložení."
@@ -424,7 +426,8 @@
           "serial_number": "Sériové číslo",
           "documentation_url": "URL návodu / dokumentace",
           "notes": "Poznámky",
-          "installation_date": "Datum instalace"
+          "installation_date": "Datum instalace",
+          "warranty_expiry": "Konec záruky"
         },
         "data_description": {
           "name": "Název tohoto objektu údržby.",
@@ -434,7 +437,8 @@
           "serial_number": "Sériové číslo tohoto objektu.",
           "documentation_url": "Volitelný odkaz na návod v PDF, stránku výrobce nebo libovolnou URL s referenčními informacemi pro tento objekt.",
           "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
-          "installation_date": "Kdy byl objekt instalován."
+          "installation_date": "Kdy byl objekt instalován.",
+          "warranty_expiry": "Kdy vyprší záruka výrobce na tento objekt."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Poznámky",
           "area_id": "Oblast",
           "installation_date": "Datum instalace",
+          "warranty_expiry": "Konec záruky",
           "go_back": "Zpět"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Volné poznámky o objektu — čísla dílů, postupy, připomínky nastavení, atd.",
           "area_id": "Oblast ve vašem domě, kde se objekt nachází.",
           "installation_date": "Kdy byl objekt instalován nebo zakoupen.",
+          "warranty_expiry": "Kdy vyprší záruka výrobce na tento objekt.",
           "go_back": "Návrat do hlavní nabídky bez uložení."
         }
       }

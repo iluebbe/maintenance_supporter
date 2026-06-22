@@ -332,6 +332,7 @@ async def test_ws_get_object_exposes_every_persisted_object_field(
         serial_number="SN-12345",
     )
     obj_data["installation_date"] = "2024-01-15"
+    obj_data["warranty_expiry"] = "2030-01-15"
     obj_data["documentation_url"] = "https://example.com/manual.pdf"
     obj_data["notes"] = "Audit notes"
 
@@ -355,7 +356,8 @@ async def test_ws_get_object_exposes_every_persisted_object_field(
 
     expected_fields = [
         "id", "name", "area_id", "manufacturer", "model",
-        "serial_number", "installation_date", "documentation_url", "notes",
+        "serial_number", "installation_date", "warranty_expiry",
+        "documentation_url", "notes",
     ]
     missing = [f for f in expected_fields
                if f not in obj_resp or obj_resp[f] in (None, "")]

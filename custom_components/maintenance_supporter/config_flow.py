@@ -38,6 +38,7 @@ from .const import (
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
+    CONF_OBJECT_WARRANTY_EXPIRY,
     CONF_TASK_DUE_DATE,
     CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
@@ -367,6 +368,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 obj_data["installation_date"] = user_input.get(
                     CONF_OBJECT_INSTALLATION_DATE
                 )
+                obj_data["warranty_expiry"] = user_input.get(
+                    CONF_OBJECT_WARRANTY_EXPIRY
+                )
                 # v1.4.0 (#43)
                 obj_data["documentation_url"] = (
                     user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
@@ -396,6 +400,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             suggested[CONF_OBJECT_INSTALLATION_DATE] = obj_data[
                 "installation_date"
             ]
+        if obj_data.get("warranty_expiry"):
+            suggested[CONF_OBJECT_WARRANTY_EXPIRY] = obj_data[
+                "warranty_expiry"
+            ]
 
         schema = self.add_suggested_values_to_schema(
             vol.Schema(
@@ -407,6 +415,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(CONF_OBJECT_SERIAL_NUMBER): str,
                     vol.Optional(
                         CONF_OBJECT_INSTALLATION_DATE,
+                    ): selector.DateSelector(),
+                    vol.Optional(
+                        CONF_OBJECT_WARRANTY_EXPIRY,
                     ): selector.DateSelector(),
                     # v1.4.0 (#43): place under serial_number per the request
                     vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(
@@ -512,6 +523,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     CONF_OBJECT_INSTALLATION_DATE: user_input.get(
                         CONF_OBJECT_INSTALLATION_DATE
                     ),
+                    CONF_OBJECT_WARRANTY_EXPIRY: user_input.get(
+                        CONF_OBJECT_WARRANTY_EXPIRY
+                    ),
                     # v1.4.0 (#43)
                     CONF_OBJECT_DOCUMENTATION_URL: user_input.get(
                         CONF_OBJECT_DOCUMENTATION_URL
@@ -552,6 +566,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     ),
                     vol.Optional(
                         CONF_OBJECT_INSTALLATION_DATE
+                    ): selector.DateSelector(),
+                    vol.Optional(
+                        CONF_OBJECT_WARRANTY_EXPIRY
                     ): selector.DateSelector(),
                     # v1.4.0 (#43): place under serial_number per the request
                     vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(

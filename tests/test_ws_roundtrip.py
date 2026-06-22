@@ -752,6 +752,9 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "budget_alerts_enabled": True,
     "budget_alert_threshold": 75,
     "budget_currency": "USD",
+    # (#67) list setting — must use valid column keys; the WS sanitiser drops
+    # unknown keys, so a sentinel like ["abc"] would NOT round-trip.
+    "objects_table_columns": ["name", "warranty_expiry", "actions"],
 }
 
 
@@ -817,6 +820,7 @@ async def test_every_allowlisted_setting_round_trips(
         "budget_alerts_enabled": settings["budget"]["alerts_enabled"],
         "budget_alert_threshold": settings["budget"]["alert_threshold_pct"],
         "budget_currency": settings["budget"]["currency"],
+        "objects_table_columns": settings["objects_table_columns"],
     }
 
     for key, expected in _SETTING_SAMPLES.items():

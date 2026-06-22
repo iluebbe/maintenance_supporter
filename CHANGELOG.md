@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Warranty tracking + objects table (#67)
+
+- **Per-object warranty date** (`warranty_expiry`): record when each object's warranty runs out. The panel shows a colour-coded status chip — green *"valid until …"*, amber *"expires in N days"* (within 60 days), or red *"expired"* — in the object detail and the new objects table. Editable everywhere objects are: the panel dialog, the config flow, the `add_object` service, and JSON/CSV import & export.
+- **Objects table view**: the *All Objects* view gains a cards/table toggle. The table lists your objects in columns; on mobile it falls back to cards.
+- **Configurable table columns**: pick which columns the table shows under **Settings → Objects table columns** (a global setting), from known object fields — Name (always on), Manufacturer, Model, Serial number, Installed, Warranty, Area, Manual, Notes, Tasks, and an actions column. Defaults to all except Manual/Notes.
+- **Objects CSV export**: a button on the objects table downloads one row per object — including objects with no tasks (which the existing per-task CSV skips) — with the full asset record. Localized in all 13 languages.
+
+### 🐛 Fixes
+
+- **JSON/CSV export now round-trips the full object record**: `documentation_url` and `notes` were silently dropped from object export/import (since 1.4.0 / 1.4.10) — backups now preserve and restore them (alongside the new warranty date).
+- **Settings no longer bounce you out of the panel**: changing any global setting from the panel's Settings tab (a feature toggle, a table column, …) re-registered the sidebar panel, which kicked you back to the Home Assistant default dashboard. The panel is now re-registered only when the sidebar *title* actually changes.
+
 ## [2.8.4] - 2026-06-13
 
 ### ✨ Delegate write access to chosen non-admins (opt-in)

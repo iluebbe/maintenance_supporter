@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,9 +10,15 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+)
+from custom_components.maintenance_supporter.export import build_export_data
+from custom_components.maintenance_supporter.helpers.csv_handler import (
+    export_object_records_csv,
+    import_objects_csv,
 )
 from custom_components.maintenance_supporter.helpers.schedule import (
     read_legacy_fields,
@@ -19,6 +26,7 @@ from custom_components.maintenance_supporter.helpers.schedule import (
 from custom_components.maintenance_supporter.websocket.io import (
     ws_export_csv,
     ws_export_data,
+    ws_export_objects_csv,
     ws_generate_qr,
     ws_get_templates,
     ws_import_csv,
@@ -28,6 +36,7 @@ from custom_components.maintenance_supporter.websocket.io import (
 from .conftest import (
     TASK_ID_1,
     build_global_entry_data,
+    build_object_data,
     build_object_entry_data,
     build_task_data,
     call_ws_handler,
@@ -201,6 +210,109 @@ async def test_export_csv_empty(
     result = conn.send_result.call_args[0][1]
     # Should still have header row
     assert "object_name" in result["csv"]
+
+
+# ─── ws_export_objects_csv (#67, per-object) ─────────────────────────────
+
+
+async def test_export_objects_csv_one_row_per_object(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """objects/csv: one row per object incl. task-less, with the warranty col."""
+    # A task-less object with full asset fields — the per-task CSV skips these.
+    obj2 = build_object_data(name="Task-less Asset")
+    obj2["warranty_expiry"] = "2031-09-09"
+    obj2["documentation_url"] = "https://x.test/m.pdf"
+    obj2["notes"] = "spare part 12-34"
+    entry2 = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Task-less Asset",
+        data=build_object_entry_data(object_data=obj2, tasks={}),
+        source="user", unique_id="maintenance_supporter_taskless_asset",
+    )
+    entry2.add_to_hass(hass)
+    await setup_integration(hass, global_entry, object_entry, entry2)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_export_objects_csv, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/objects/csv",
+    })
+
+    conn.send_result.assert_called_once()
+    csv_text = conn.send_result.call_args[0][1]["csv"]
+    lines = [ln for ln in csv_text.splitlines() if ln.strip()]
+    assert lines[0].startswith("object_name,")
+    assert "object_warranty_expiry" in lines[0]
+    # header + exactly one row per object (2 objects)
+    assert len(lines) == 3
+    assert any("Task-less Asset" in ln and "2031-09-09" in ln for ln in lines[1:])
+    assert any("Pool Pump" in ln for ln in lines[1:])
+
+
+async def test_export_objects_csv_roundtrips_via_import(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """The per-object CSV uses object_* columns the CSV importer understands."""
+    obj = build_object_data(name="RoundTrip Asset")
+    obj["warranty_expiry"] = "2030-05-05"
+    obj["installation_date"] = "2019-01-01"
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="RoundTrip Asset",
+        data=build_object_entry_data(object_data=obj, tasks={}),
+        source="user", unique_id="maintenance_supporter_roundtrip_asset",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    csv_text = export_object_records_csv(hass)
+    parsed = import_objects_csv(csv_text, hass=hass)
+    target = [o for o in parsed if o["object"]["name"] == "RoundTrip Asset"]
+    assert target
+    assert target[0]["object"]["warranty_expiry"] == "2030-05-05"
+    assert target[0]["object"]["installation_date"] == "2019-01-01"
+
+
+async def test_json_export_import_roundtrips_doc_url_and_notes(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """documentation_url + notes survive JSON export → import (#67 gap fix)."""
+    obj = build_object_data(name="Docs Asset")
+    obj["documentation_url"] = "https://x.test/manual.pdf"
+    obj["notes"] = "torque 25Nm; filter ABC-9"
+    obj["warranty_expiry"] = "2032-02-02"
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Docs Asset",
+        data=build_object_entry_data(object_data=obj, tasks={}),
+        source="user", unique_id="maintenance_supporter_docs_asset",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    data = build_export_data(hass, include_history=False)
+    exported = next(e for e in data["objects"] if e["object"]["name"] == "Docs Asset")
+    assert exported["object"]["documentation_url"] == "https://x.test/manual.pdf"
+    assert exported["object"]["notes"] == "torque 25Nm; filter ABC-9"
+
+    # Re-import a renamed copy through the real JSON import path.
+    exported["object"]["name"] = "Docs Asset Copy"
+    conn = _mock_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json.dumps({"objects": [exported]}),
+    })
+    conn.send_result.assert_called_once()
+
+    entries = [
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if e.title == "Docs Asset Copy"
+    ]
+    assert entries
+    imported = entries[0].data[CONF_OBJECT]
+    assert imported["documentation_url"] == "https://x.test/manual.pdf"
+    assert imported["notes"] == "torque 25Nm; filter ABC-9"
+    assert imported["warranty_expiry"] == "2032-02-02"
 
 
 async def test_export_handles_null_checklist(

@@ -32,11 +32,20 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
     the user changes the sidebar title in options) — HA's panel registry has no
     in-place update, so we remove and re-add it.
     """
+    title = get_panel_title(hass)
     if hass.data.get(DOMAIN, {}).get("_panel_registered"):
         if not force:
             return
-        # Title (or other config) changed: drop the existing registration so
-        # async_register_panel below doesn't raise "Overwriting panel".
+        # The ONLY global-options change that needs a re-register is the
+        # sidebar title — HA has no in-place panel update. If the title is
+        # unchanged, return early: calling async_remove_panel on every
+        # unrelated settings change (feature toggles, objects-table columns,
+        # notification prefs, …) yanks the panel out from under anyone
+        # currently viewing it and bounces them to the HA default dashboard.
+        if hass.data.get(DOMAIN, {}).get("_panel_title") == title:
+            return
+        # Title changed: drop the existing registration so the re-register
+        # below doesn't raise "Overwriting panel".
         frontend.async_remove_panel(hass, PANEL_NAME)
         hass.data.setdefault(DOMAIN, {})["_panel_registered"] = False
 
@@ -52,7 +61,6 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
         )
         hass.data.setdefault(DOMAIN, {})["_panel_static_url"] = versioned_url
 
-    title = get_panel_title(hass)
     await panel_custom.async_register_panel(
         hass,
         frontend_url_path=PANEL_NAME,
@@ -65,6 +73,7 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
     )
 
     hass.data.setdefault(DOMAIN, {})["_panel_registered"] = True
+    hass.data.setdefault(DOMAIN, {})["_panel_title"] = title
     _LOGGER.debug(
         "Maintenance Supporter sidebar panel registered (title=%s, v=%s)",
         title,

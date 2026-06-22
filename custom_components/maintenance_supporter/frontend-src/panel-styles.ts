@@ -288,6 +288,95 @@ export const panelStyles = css`
     color: white;
   }
 
+  /* (#67) Warranty status chip — object detail meta + objects table */
+  .warranty-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .warranty-valid {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--success-color, #2e7d32);
+  }
+  .warranty-expiring {
+    background: rgba(255, 152, 0, 0.18);
+    color: var(--warning-color, #e65100);
+  }
+  .warranty-expired {
+    background: rgba(244, 67, 54, 0.16);
+    color: var(--error-color, #c62828);
+  }
+  .warranty-none {
+    color: var(--secondary-text-color);
+  }
+
+  /* (#67) All-Objects view-mode toggle (cards / table) */
+  .view-toggle {
+    display: inline-flex;
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    overflow: hidden;
+    align-self: end;
+  }
+  .view-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    background: var(--card-background-color, #fff);
+    color: var(--secondary-text-color);
+    border: none;
+    cursor: pointer;
+  }
+  .view-toggle-btn + .view-toggle-btn { border-left: 1px solid var(--divider-color); }
+  .view-toggle-btn.active {
+    background: var(--primary-color);
+    color: var(--text-primary-color, #fff);
+  }
+  .view-toggle-btn ha-icon { --mdc-icon-size: 18px; }
+
+  /* (#67) Objects table (desktop All-Objects view) */
+  .objects-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+  }
+  .objects-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .objects-table th,
+  .objects-table td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--divider-color);
+    white-space: nowrap;
+  }
+  .objects-table thead th {
+    font-weight: 600;
+    color: var(--secondary-text-color);
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.03));
+    position: sticky;
+    top: 0;
+  }
+  .objects-table tbody tr { cursor: pointer; }
+  .objects-table tbody tr:hover {
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
+  }
+  .objects-table tbody tr:last-child td { border-bottom: none; }
+  .objects-table-name { font-weight: 500; color: var(--primary-text-color); }
+  .objects-table .oc-notes {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .objects-table .oc-task_count,
+  .objects-table .oc-actions { text-align: center; }
+
   .user-badge {
     display: inline-flex;
     align-items: center;

@@ -46,6 +46,7 @@ from ..const import (
     CONF_NOTIFY_SERVICE,
     CONF_NOTIFY_TRIGGERED_ENABLED,
     CONF_NOTIFY_TRIGGERED_INTERVAL,
+    CONF_OBJECTS_TABLE_COLUMNS,
     CONF_OPERATOR_WRITE_ENABLED,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
@@ -53,7 +54,9 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    DEFAULT_OBJECTS_TABLE_COLUMNS,
     DOMAIN,
+    KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
     SIGNAL_NEW_OBJECT_ENTRY,
 )
@@ -89,6 +92,8 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_ADMIN_PANEL_USER_IDS: list,
     # v2.8.4: master switch — when True, allowlisted non-admins gain write.
     CONF_OPERATOR_WRITE_ENABLED: bool,
+    # (#67): objects-table column list (sanitised to known keys below).
+    CONF_OBJECTS_TABLE_COLUMNS: list,
     # Notification per-status
     CONF_NOTIFY_DUE_SOON_ENABLED: bool,
     CONF_NOTIFY_DUE_SOON_INTERVAL: int,
@@ -141,6 +146,10 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
         # v2.8.4: master switch gating whether the allowlist actually grants
         # write. Default False → operator allowlist is read-only.
         "operator_write_enabled": options.get(CONF_OPERATOR_WRITE_ENABLED, False),
+        # (#67): ordered objects-table columns for the panel All-Objects view.
+        "objects_table_columns": options.get(
+            CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS
+        ),
         "general": {
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
@@ -509,6 +518,22 @@ async def ws_update_global_settings(
             if len(cleaned) >= 50:
                 break
         filtered[CONF_ADMIN_PANEL_USER_IDS] = cleaned
+
+    # (#67): objects_table_columns — keep only known column keys, preserve the
+    # caller's order, dedupe. An empty/invalid result falls back to the default
+    # set (the panel also defaults defensively).
+    if CONF_OBJECTS_TABLE_COLUMNS in filtered:
+        raw_cols = filtered[CONF_OBJECTS_TABLE_COLUMNS]
+        cols: list[str] = []
+        seen_cols: set[str] = set()
+        for v in raw_cols:
+            if not isinstance(v, str) or v not in KNOWN_OBJECT_TABLE_COLUMNS:
+                continue
+            if v in seen_cols:
+                continue
+            seen_cols.add(v)
+            cols.append(v)
+        filtered[CONF_OBJECTS_TABLE_COLUMNS] = cols or list(DEFAULT_OBJECTS_TABLE_COLUMNS)
 
     if not filtered:
         connection.send_error(
