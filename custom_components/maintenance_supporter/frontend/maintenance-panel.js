@@ -1205,11 +1205,13 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
     color: var(--primary-text-color);
   }
 
-  .task-table { display: flex; flex-direction: column; }
-
-  .task-row {
-    /* Desktop: 7-column grid keeps every column aligned across rows regardless
-       of which optional chips/badges this particular row carries. */
+  /* Desktop: the LIST owns the 7-column grid and every row is a subgrid
+     spanning all columns. Sharing the tracks across rows is what actually
+     keeps the title (and every other column) aligned regardless of which
+     optional badges/chips a given row carries. A per-row grid can't: each
+     row would size its auto badges column independently, so a row with an
+     NFC badge pushed its title right of the others (issue #66). */
+  .task-table {
     display: grid;
     grid-template-columns:
       auto                         /* badges */
@@ -1219,8 +1221,15 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
       100px                        /* type */
       150px                        /* due-cell */
       auto;                        /* row-actions */
+    column-gap: 12px;
+  }
+
+  .task-row {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
     align-items: center;
-    gap: 12px;
+    column-gap: 12px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--divider-color);
     cursor: pointer;
@@ -1979,6 +1988,8 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
     width: 100%;
   }
 
+  :host([narrow]) .task-table { display: block; }
+
   :host([narrow]) .task-row {
     /* Mobile: 4-column grid keeps due-cell + actions at deterministic
        X-positions across rows regardless of content (sparkline, bar, %).
@@ -1989,7 +2000,8 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
        Task-name spans the full top row (own row above), chips span the
        full bottom row.  */
     display: grid;
-    grid-template-columns: auto minmax(80px, 1fr) 100px auto;
+    grid-column: auto;
+    grid-template-columns: auto minmax(0, 1fr) 100px auto;
     grid-template-rows: auto auto auto;
     column-gap: 8px;
     row-gap: 4px;
@@ -2163,7 +2175,7 @@ Testa tryck`,checklist_help:"Ett steg per rad. Max 100 objekt.",err_too_long:"{f
     /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
     .task-row {
       display: grid;
-      grid-template-columns: auto minmax(80px, 1fr) 100px auto;
+      grid-template-columns: auto minmax(0, 1fr) 100px auto;
       grid-template-rows: auto auto auto;
       column-gap: 8px;
       row-gap: 4px;
@@ -5700,11 +5712,13 @@ ${ie}`,e.setTooltip)}
         ${e.tasks.length===0?l`<div class="empty-state-centered">
               <p class="empty">${i("no_tasks_yet",a)}</p>
               <ha-button appearance="filled" @click=${()=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openCreate(e.entry_id)}}>${i("add_first_task",a)}</ha-button>
-            </div>`:[...e.tasks].sort((o,c)=>{let _={overdue:0,triggered:1,due_soon:2,ok:3};return(_[o.status]??9)-(_[c.status]??9)||(o.days_until_due??99999)-(c.days_until_due??99999)}).map(o=>l`
+            </div>`:l`<div class="task-table">${[...e.tasks].sort((o,c)=>{let _={overdue:0,triggered:1,due_soon:2,ok:3};return(_[o.status]??9)-(_[c.status]??9)||(o.days_until_due??99999)-(c.days_until_due??99999)}).map(o=>l`
               <div class="task-row${o.enabled?"":" task-disabled"}">
-                <span class="status-badge ${o.is_done?"done":o.status}">${o.is_done?i("completed",a):i(o.status,a)}</span>
-                ${o.enabled?d:l`<span class="badge-disabled">${i("disabled",a)}</span>`}
-                ${o.nfc_tag_id?l`<span class="nfc-badge" title="${i("nfc_linked",a)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:d}
+                <span class="cell-badges">
+                  <span class="status-badge ${o.is_done?"done":o.status}">${o.is_done?i("completed",a):i(o.status,a)}</span>
+                  ${o.enabled?d:l`<span class="badge-disabled">${i("disabled",a)}</span>`}
+                  ${o.nfc_tag_id?l`<span class="nfc-badge" title="${i("nfc_linked",a)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:d}
+                </span>
                 <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,o.id)}>${o.name}</span>
                 ${this._renderUserBadge(o)}
                 <span class="cell type">${i(o.type,a)}</span>
@@ -5722,7 +5736,7 @@ ${ie}`,e.setTooltip)}
                   </mwc-icon-button>
                 </span>
               </div>
-            `)}
+            `)}</div>`}
       </div>
     `}_renderTaskHeader(e){let t=this._lang,n=this._getObject(this._selectedEntryId)?.object.name||"",o=this._isOperator,c=e.is_done?"done":e.status==="due_soon"?"warning":e.status||"ok",_=e.is_done?i("completed",t):i(e.status||"ok",t);return l`
       <div class="task-header">

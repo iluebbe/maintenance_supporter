@@ -1690,14 +1690,16 @@ export class MaintenanceSupporterPanel extends LitElement {
                 dlg?.openCreate(obj.entry_id);
               }}>${t("add_first_task", L)}</ha-button>
             </div>`
-          : [...obj.tasks].sort((a, b) => {
+          : html`<div class="task-table">${[...obj.tasks].sort((a, b) => {
               const so: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
               return (so[a.status] ?? 9) - (so[b.status] ?? 9) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
             }).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
-                <span class="status-badge ${task.is_done ? 'done' : task.status}">${task.is_done ? t("completed", L) : t(task.status, L)}</span>
-                ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
-                ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+                <span class="cell-badges">
+                  <span class="status-badge ${task.is_done ? 'done' : task.status}">${task.is_done ? t("completed", L) : t(task.status, L)}</span>
+                  ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
+                  ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+                </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
                 ${this._renderUserBadge(task)}
                 <span class="cell type">${t(task.type, L)}</span>
@@ -1717,7 +1719,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   </mwc-icon-button>
                 </span>
               </div>
-            `)}
+            `)}</div>`}
       </div>
     `;
   }

@@ -74,11 +74,13 @@ export const panelStyles = css`
     color: var(--primary-text-color);
   }
 
-  .task-table { display: flex; flex-direction: column; }
-
-  .task-row {
-    /* Desktop: 7-column grid keeps every column aligned across rows regardless
-       of which optional chips/badges this particular row carries. */
+  /* Desktop: the LIST owns the 7-column grid and every row is a subgrid
+     spanning all columns. Sharing the tracks across rows is what actually
+     keeps the title (and every other column) aligned regardless of which
+     optional badges/chips a given row carries. A per-row grid can't: each
+     row would size its auto badges column independently, so a row with an
+     NFC badge pushed its title right of the others (issue #66). */
+  .task-table {
     display: grid;
     grid-template-columns:
       auto                         /* badges */
@@ -88,8 +90,15 @@ export const panelStyles = css`
       100px                        /* type */
       150px                        /* due-cell */
       auto;                        /* row-actions */
+    column-gap: 12px;
+  }
+
+  .task-row {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
     align-items: center;
-    gap: 12px;
+    column-gap: 12px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--divider-color);
     cursor: pointer;
@@ -848,6 +857,8 @@ export const panelStyles = css`
     width: 100%;
   }
 
+  :host([narrow]) .task-table { display: block; }
+
   :host([narrow]) .task-row {
     /* Mobile: 4-column grid keeps due-cell + actions at deterministic
        X-positions across rows regardless of content (sparkline, bar, %).
@@ -858,7 +869,8 @@ export const panelStyles = css`
        Task-name spans the full top row (own row above), chips span the
        full bottom row.  */
     display: grid;
-    grid-template-columns: auto minmax(80px, 1fr) 100px auto;
+    grid-column: auto;
+    grid-template-columns: auto minmax(0, 1fr) 100px auto;
     grid-template-rows: auto auto auto;
     column-gap: 8px;
     row-gap: 4px;
@@ -1032,7 +1044,7 @@ export const panelStyles = css`
     /* Mirror the :host([narrow]) grid layout for narrow desktop windows */
     .task-row {
       display: grid;
-      grid-template-columns: auto minmax(80px, 1fr) 100px auto;
+      grid-template-columns: auto minmax(0, 1fr) 100px auto;
       grid-template-rows: auto auto auto;
       column-gap: 8px;
       row-gap: 4px;
