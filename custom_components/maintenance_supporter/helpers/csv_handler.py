@@ -33,6 +33,8 @@ _COLUMNS = [
     "object_model",
     "object_serial_number",
     "object_area_id",
+    "object_installation_date",
+    "object_warranty_expiry",
     "task_name",
     "task_type",
     "enabled",
@@ -103,6 +105,8 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "object_model": _csv_safe(obj_data.get("model", "")),
                     "object_serial_number": _csv_safe(obj_data.get("serial_number", "")),
                     "object_area_id": obj_data.get("area_id", ""),
+                    "object_installation_date": obj_data.get("installation_date", ""),
+                    "object_warranty_expiry": obj_data.get("warranty_expiry", ""),
                     "task_name": _csv_safe(tdata.get("name", "")),
                     "task_type": tdata.get("type", "custom"),
                     "enabled": tdata.get("enabled", True),
@@ -133,6 +137,67 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     ),
                 }
             )
+
+    return output.getvalue()
+
+
+# (#67) Per-object CSV columns — one row per maintenance object (asset record).
+_OBJECT_RECORD_COLUMNS = [
+    "object_name",
+    "object_manufacturer",
+    "object_model",
+    "object_serial_number",
+    "object_area_id",
+    "object_installation_date",
+    "object_warranty_expiry",
+    "object_documentation_url",
+    "object_notes",
+    "task_count",
+]
+
+
+def export_object_records_csv(hass: HomeAssistant) -> str:
+    """Export one row per maintenance object (the objects-table download, #67).
+
+    Unlike ``export_objects_csv`` (one row per task, object fields repeated),
+    this emits exactly one row per object — including objects that have no
+    tasks, which the per-task export skips entirely — and carries the full
+    asset field set used by the objects table.
+    """
+    entries = [
+        entry
+        for entry in hass.config_entries.async_entries(DOMAIN)
+        if entry.unique_id != GLOBAL_UNIQUE_ID
+    ]
+
+    output = io.StringIO()
+    writer = csv.DictWriter(
+        output, fieldnames=_OBJECT_RECORD_COLUMNS, extrasaction="ignore"
+    )
+    writer.writeheader()
+
+    for entry in entries:
+        obj_data = entry.data.get(CONF_OBJECT, {})
+        static_tasks = entry.data.get(CONF_TASKS, {})
+        rd = getattr(entry, "runtime_data", None)
+        store = getattr(rd, "store", None) if rd else None
+        tasks_data = (
+            store.merge_all_tasks(static_tasks) if store is not None else static_tasks
+        )
+        writer.writerow(
+            {
+                "object_name": _csv_safe(obj_data.get("name", "")),
+                "object_manufacturer": _csv_safe(obj_data.get("manufacturer") or ""),
+                "object_model": _csv_safe(obj_data.get("model") or ""),
+                "object_serial_number": _csv_safe(obj_data.get("serial_number") or ""),
+                "object_area_id": obj_data.get("area_id") or "",
+                "object_installation_date": obj_data.get("installation_date") or "",
+                "object_warranty_expiry": obj_data.get("warranty_expiry") or "",
+                "object_documentation_url": _csv_safe(obj_data.get("documentation_url") or ""),
+                "object_notes": _csv_safe(obj_data.get("notes") or ""),
+                "task_count": len(tasks_data),
+            }
+        )
 
     return output.getvalue()
 
@@ -171,6 +236,8 @@ def import_objects_csv(
                     "model": (row.get("object_model") or "").strip() or None,
                     "serial_number": (row.get("object_serial_number") or "").strip() or None,
                     "area_id": (row.get("object_area_id") or "").strip() or None,
+                    "installation_date": (row.get("object_installation_date") or "").strip() or None,
+                    "warranty_expiry": (row.get("object_warranty_expiry") or "").strip() or None,
                     "task_ids": [],
                 },
                 "tasks": {},

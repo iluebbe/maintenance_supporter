@@ -35,6 +35,7 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   model: "model_optional",
   serial_number: "serial_number_optional",
   installation_date: "installation_date_optional",
+  warranty_expiry: "warranty_expiry_optional",
   checklist: "checklist_steps_optional",
   reason: "reason",
   feedback: "feedback",

@@ -4,6 +4,8 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { daysProgress } from "./helpers/interval";
+import { warrantyStatus } from "./helpers/warranty";
+import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { panelStyles } from "./panel-styles";
 import type {
   HomeAssistant,
@@ -106,6 +108,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _sortMode: SortMode = "due_date";
   @state() private _objectSortMode: ObjectSortMode = "alphabetical";
   @state() private _groupByMode: GroupByMode = "none";
+  // (#67): All-Objects view mode (cards|table) + the configurable table
+  // columns sourced from the global setting (sanitised; defaults until loaded).
+  @state() private _objectViewMode: "cards" | "table" = "cards";
+  @state() private _objectsTableColumns: string[] = DEFAULT_OBJECTS_TABLE_COLUMNS;
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -157,6 +163,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     const savedGroup = localStorage.getItem("maintenance_supporter_groupby");
     if (savedGroup && ["none", "area", "group", "user"].includes(savedGroup)) {
       this._groupByMode = savedGroup as GroupByMode;
+    }
+    const savedView = localStorage.getItem("maintenance_supporter_object_view");
+    if (savedView === "cards" || savedView === "table") {
+      this._objectViewMode = savedView;
     }
   }
 
@@ -228,6 +238,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         admin_panel_user_ids?: string[];
         operator_write_enabled?: boolean;
         general?: { default_warning_days?: number };
+        objects_table_columns?: string[];
       };
       this._features = sr.features;
       this._adminPanelUserIds = sr.admin_panel_user_ids || [];
@@ -236,6 +247,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (typeof dwd === "number" && dwd >= 0 && dwd <= 365) {
         this._defaultWarningDays = dwd;
       }
+      this._objectsTableColumns = sanitizeColumns(sr.objects_table_columns);
     }
 
     // Fetch mini-sparkline data for overview (non-blocking)
@@ -1162,9 +1174,28 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  // (#67) Localised warranty label, shared by the detail meta + table cell.
+  private _warrantyLabel(ws: ReturnType<typeof warrantyStatus>, iso: string, L: string): string {
+    if (ws.kind === "expired") return t("warranty_expired", L);
+    if (ws.kind === "expiring") {
+      return t("warranty_expires_in", L).replace("{days}", String(ws.days ?? 0));
+    }
+    return t("warranty_valid_until", L).replace("{date}", formatDate(iso, L));
+  }
+
+  // (#67) Warranty status as a coloured chip in the object detail meta.
+  private _renderWarrantyMeta(iso: string, L: string) {
+    const ws = warrantyStatus(iso);
+    return html`<p class="meta">${t("warranty", L)}:
+      <span class="warranty-chip warranty-${ws.kind}">${this._warrantyLabel(ws, iso, L)}</span></p>`;
+  }
+
   private _renderAllObjects() {
     const L = this._lang;
     const isOperator = this._isOperator;
+    // (#67) Table mode is desktop-only; narrow viewports always fall back to
+    // cards (the table's many columns don't fit a phone).
+    const tableMode = this._objectViewMode === "table" && !this.narrow;
 
     // Sort + group helpers
     const minDays = (obj: MaintenanceObjectResponse): number => {
@@ -1238,6 +1269,21 @@ export class MaintenanceSupporterPanel extends LitElement {
             <option value="task_count" ?selected=${this._objectSortMode === "task_count"}>${t("sort_task_count", L)}</option>
           </select>
         </label>
+        ${!this.narrow ? html`
+          <div class="view-toggle" role="group" aria-label="${t("view_mode_label", L)}">
+            <button
+              class="view-toggle-btn${!tableMode ? ' active' : ''}"
+              title="${t("view_cards", L)}"
+              @click=${() => this._setObjectViewMode("cards")}
+            ><ha-icon icon="mdi:view-grid-outline"></ha-icon></button>
+            <button
+              class="view-toggle-btn${tableMode ? ' active' : ''}"
+              title="${t("view_table", L)}"
+              @click=${() => this._setObjectViewMode("table")}
+            ><ha-icon icon="mdi:table"></ha-icon></button>
+          </div>
+        ` : nothing}
+        ${!tableMode ? html`
         <label class="filter-field">
           <span class="filter-label">${t("group_by_label", L)}</span>
           <select
@@ -1251,6 +1297,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <option value="area" ?selected=${this._groupByMode === "area"}>${t("groupby_area", L)}</option>
           </select>
         </label>
+        ` : nothing}
         ${!isOperator ? html`
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
@@ -1258,8 +1305,13 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${t("new_object", L)}
           </ha-button>
         ` : nothing}
+        <ha-button appearance="plain" @click=${() => this._exportObjectsCsv()}>
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${t("settings_export_csv", L)}
+        </ha-button>
       </div>
-      ${this._groupByMode === "area"
+      ${tableMode
+        ? this._renderObjectsTable(sorted)
+        : this._groupByMode === "area"
         ? html`
           ${[...groupedByArea().entries()].map(([area, objs]) => html`
             <details class="group-section" open>
@@ -1274,6 +1326,109 @@ export class MaintenanceSupporterPanel extends LitElement {
         `
         : html`<div class="objects-grid">${sorted.map(renderObject)}</div>`}
     `;
+  }
+
+  private _setObjectViewMode(mode: "cards" | "table"): void {
+    this._objectViewMode = mode;
+    localStorage.setItem("maintenance_supporter_object_view", mode);
+  }
+
+  // (#67 / Phase 3) Download all objects as a one-row-per-object CSV.
+  private async _exportObjectsCsv(): Promise<void> {
+    try {
+      const result = await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/objects/csv",
+      }) as { csv: string };
+      const ts = new Date().toISOString().slice(0, 10);
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `maintenance_objects_${ts}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  // (#67) Tabular All-Objects view honouring the configured columns. Desktop
+  // only — the caller falls back to cards on narrow viewports.
+  private _renderObjectsTable(objs: MaintenanceObjectResponse[]) {
+    const L = this._lang;
+    const cols = this._objectsTableColumns;
+    return html`
+      <div class="objects-table-wrap">
+        <table class="objects-table">
+          <thead>
+            <tr>
+              ${cols.map((key) => {
+                const def = OBJECT_COLUMNS.find((c) => c.key === key);
+                // The actions column header stays blank (icon-only cells).
+                const label = def && def.key !== "actions" ? t(def.labelKey, L) : "";
+                return html`<th class="oc-${key}">${label}</th>`;
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            ${objs.map((obj) => html`
+              <tr class="objects-table-row" @click=${() => this._showObject(obj.entry_id)}>
+                ${cols.map((key) => this._renderObjectCell(key, obj, L))}
+              </tr>
+            `)}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  private _renderObjectCell(key: string, obj: MaintenanceObjectResponse, L: string) {
+    const o = obj.object;
+    switch (key) {
+      case "name":
+        return html`<td class="oc-name"><span class="objects-table-name">${o.name}</span></td>`;
+      case "manufacturer":
+        return html`<td class="oc-manufacturer">${o.manufacturer || "—"}</td>`;
+      case "model":
+        return html`<td class="oc-model">${o.model || "—"}</td>`;
+      case "serial_number":
+        return html`<td class="oc-serial_number">${o.serial_number || "—"}</td>`;
+      case "installation_date":
+        return html`<td class="oc-installation_date">${o.installation_date ? formatDate(o.installation_date, L) : "—"}</td>`;
+      case "warranty_expiry":
+        return html`<td class="oc-warranty_expiry">${this._renderWarrantyCell(o.warranty_expiry, L)}</td>`;
+      case "area_id": {
+        const area = o.area_id ? (this.hass?.areas?.[o.area_id]?.name || o.area_id) : "—";
+        return html`<td class="oc-area_id">${area}</td>`;
+      }
+      case "documentation_url":
+        return html`<td class="oc-documentation_url">${
+          o.documentation_url && /^https?:\/\//i.test(o.documentation_url)
+            ? html`<a href=${o.documentation_url} target="_blank" rel="noopener noreferrer"
+                @click=${(e: Event) => e.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`
+            : "—"
+        }</td>`;
+      case "notes":
+        return html`<td class="oc-notes" title=${o.notes || ""}>${o.notes || "—"}</td>`;
+      case "task_count":
+        return html`<td class="oc-task_count">${obj.tasks.length}</td>`;
+      case "actions":
+        return html`<td class="oc-actions">
+          <mwc-icon-button title="${t("qr_code", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openQrForObject(obj.entry_id, o.name); }}>
+            <ha-icon icon="mdi:qrcode"></ha-icon>
+          </mwc-icon-button>
+        </td>`;
+      default:
+        return html`<td></td>`;
+    }
+  }
+
+  // Warranty chip for a table cell — like _renderWarrantyMeta but renders an
+  // em-dash placeholder when the object has no warranty date.
+  private _renderWarrantyCell(iso: string | null | undefined, L: string) {
+    const ws = warrantyStatus(iso);
+    if (ws.kind === "none") return html`<span class="warranty-none">—</span>`;
+    return html`<span class="warranty-chip warranty-${ws.kind}">${this._warrantyLabel(ws, iso as string, L)}</span>`;
   }
 
   private async _onSettingsChanged(): Promise<void> {
@@ -1674,6 +1829,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             </p>`
           : nothing}
         ${o.installation_date ? html`<p class="meta">${t("installed", L)}: ${formatDate(o.installation_date, L)}</p>` : nothing}
+        ${o.warranty_expiry ? this._renderWarrantyMeta(o.warranty_expiry, L) : nothing}
         ${o.notes
           ? html`<div class="object-notes">
               <div class="object-notes-label">${t("object_notes_label", L)}</div>

@@ -43,6 +43,7 @@ from .const import (
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
+    CONF_OBJECT_WARRANTY_EXPIRY,
     CONF_RESPONSIBLE_USER_ID,
     CONF_SENSOR_PREDICTION_ENABLED,
     CONF_TASK_DOCUMENTATION_URL,
@@ -1606,6 +1607,10 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                 obj[CONF_OBJECT_INSTALLATION_DATE] = str(
                     user_input[CONF_OBJECT_INSTALLATION_DATE]
                 )
+            if user_input.get(CONF_OBJECT_WARRANTY_EXPIRY):
+                obj[CONF_OBJECT_WARRANTY_EXPIRY] = str(
+                    user_input[CONF_OBJECT_WARRANTY_EXPIRY]
+                )
             # v1.4.0 (#43)
             obj[CONF_OBJECT_DOCUMENTATION_URL] = (
                 user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
@@ -1637,6 +1642,11 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
             vol.Optional(CONF_OBJECT_INSTALLATION_DATE, default=obj.get(CONF_OBJECT_INSTALLATION_DATE))
             if obj.get(CONF_OBJECT_INSTALLATION_DATE)
             else vol.Optional(CONF_OBJECT_INSTALLATION_DATE)
+        )
+        warranty_key = (
+            vol.Optional(CONF_OBJECT_WARRANTY_EXPIRY, default=obj.get(CONF_OBJECT_WARRANTY_EXPIRY))
+            if obj.get(CONF_OBJECT_WARRANTY_EXPIRY)
+            else vol.Optional(CONF_OBJECT_WARRANTY_EXPIRY)
         )
 
         return self.async_show_form(
@@ -1684,6 +1694,7 @@ class MaintenanceOptionsFlow(TriggerConfigMixin, OptionsFlow):
                     ),
                     area_key: selector.AreaSelector(),
                     install_date_key: selector.DateSelector(),
+                    warranty_key: selector.DateSelector(),
                     vol.Optional(
                         "go_back", default=False
                     ): selector.BooleanSelector(),

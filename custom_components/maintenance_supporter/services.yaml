@@ -120,6 +120,11 @@ add_object:
       name: Installation date
       selector:
         date:
+    warranty_expiry:
+      name: Warranty expiry
+      description: Warranty expiry date (used for asset tracking and reminders).
+      selector:
+        date:
     documentation_url:
       name: Documentation URL
       description: Link to a manual or vendor page (http/https only).

@@ -82,6 +82,7 @@
           "documentation_url": "Handleiding / documentatie-URL",
           "notes": "Notities",
           "installation_date": "Installatiedatum",
+          "warranty_expiry": "Garantie verloopt",
           "go_back": "Terug"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
           "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
+          "warranty_expiry": "Wanneer de fabrieksgarantie voor dit object verloopt.",
           "go_back": "Terug naar het hoofdmenu zonder op te slaan."
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "Serienummer",
           "documentation_url": "Handleiding / documentatie-URL",
           "notes": "Notities",
-          "installation_date": "Installatiedatum"
+          "installation_date": "Installatiedatum",
+          "warranty_expiry": "Garantie verloopt"
         },
         "data_description": {
           "name": "De naam van dit onderhoudsobject.",
@@ -434,7 +437,8 @@
           "serial_number": "Het serienummer van dit object.",
           "documentation_url": "Optionele link naar een PDF-handleiding, leverancierspagina of een willekeurige URL met referentie-informatie voor dit object.",
           "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
-          "installation_date": "Wanneer dit object is geïnstalleerd."
+          "installation_date": "Wanneer dit object is geïnstalleerd.",
+          "warranty_expiry": "Wanneer de fabrieksgarantie voor dit object verloopt."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Notities",
           "area_id": "Gebied",
           "installation_date": "Installatiedatum",
+          "warranty_expiry": "Garantie verloopt",
           "go_back": "Terug"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Vrije notities over het object — onderdeelnummers, procedures, instellingsherinneringen, etc.",
           "area_id": "Het gebied in uw huis waar dit object zich bevindt.",
           "installation_date": "Wanneer dit object is geïnstalleerd of gekocht.",
+          "warranty_expiry": "Wanneer de fabrieksgarantie voor dit object verloopt.",
           "go_back": "Terug naar het hoofdmenu zonder opslaan."
         }
       }

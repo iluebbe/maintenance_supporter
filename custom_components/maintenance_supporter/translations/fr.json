@@ -82,6 +82,7 @@
           "documentation_url": "URL du manuel / documentation",
           "notes": "Notes",
           "installation_date": "Date d'installation",
+          "warranty_expiry": "Fin de garantie",
           "go_back": "Retour"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
           "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
           "installation_date": "Date d'installation ou d'achat de cet objet.",
+          "warranty_expiry": "Date d'expiration de la garantie du fabricant pour cet objet.",
           "go_back": "Retourner au menu principal sans sauvegarder."
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "Numéro de série",
           "documentation_url": "URL du manuel / documentation",
           "notes": "Notes",
-          "installation_date": "Date d'installation"
+          "installation_date": "Date d'installation",
+          "warranty_expiry": "Fin de garantie"
         },
         "data_description": {
           "name": "Le nom de cet objet de maintenance.",
@@ -434,7 +437,8 @@
           "serial_number": "Le numéro de série de cet objet.",
           "documentation_url": "Lien optionnel vers un manuel PDF, une page constructeur ou toute URL contenant des informations de référence pour cet objet.",
           "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
-          "installation_date": "Quand cet objet a été installé."
+          "installation_date": "Quand cet objet a été installé.",
+          "warranty_expiry": "Date d'expiration de la garantie du fabricant pour cet objet."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Notes",
           "area_id": "Zone",
           "installation_date": "Date d'installation",
+          "warranty_expiry": "Fin de garantie",
           "go_back": "Retour"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Notes libres sur l'objet — numéros de pièces, procédures, rappels de réglages, etc.",
           "area_id": "La zone de votre maison où se trouve cet objet.",
           "installation_date": "Quand cet objet a été installé ou acheté.",
+          "warranty_expiry": "Date d'expiration de la garantie du fabricant pour cet objet.",
           "go_back": "Retour au menu principal sans enregistrer."
         }
       }

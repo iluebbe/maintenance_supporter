@@ -19,6 +19,7 @@ from ..const import (
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
     CONF_OBJECT_SERIAL_NUMBER,
+    CONF_OBJECT_WARRANTY_EXPIRY,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -94,6 +95,7 @@ async def async_create_object(
     model: str | None = None,
     serial_number: str | None = None,
     installation_date: str | None = None,
+    warranty_expiry: str | None = None,
     documentation_url: str | None = None,
     notes: str | None = None,
 ) -> str:
@@ -113,6 +115,7 @@ async def async_create_object(
             CONF_OBJECT_MODEL: (model or "").strip() or None,
             CONF_OBJECT_SERIAL_NUMBER: (serial_number or "").strip() or None,
             CONF_OBJECT_INSTALLATION_DATE: installation_date,
+            CONF_OBJECT_WARRANTY_EXPIRY: warranty_expiry,
             CONF_OBJECT_DOCUMENTATION_URL: (documentation_url or "").strip() or None,
             CONF_OBJECT_NOTES: (
                 notes.strip() if isinstance(notes, str) and notes.strip() else None
@@ -140,6 +143,7 @@ async def async_create_object(
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+        vol.Optional("warranty_expiry"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),  # (#67)
         # v1.4.0 (#43): per-object link to PDF manual / vendor page
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         # v1.4.10 (#46): free-form notes (part numbers, procedures, etc.)
@@ -175,6 +179,17 @@ async def ws_create_object(
             connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
             return
 
+    # (#67): validate warranty_expiry format if provided
+    warranty_expiry = msg.get("warranty_expiry")
+    if warranty_expiry:
+        from datetime import date as date_cls
+
+        try:
+            date_cls.fromisoformat(warranty_expiry)
+        except ValueError:
+            connection.send_error(msg["id"], "invalid_date", "Invalid warranty_expiry format (expected YYYY-MM-DD)")
+            return
+
     # v1.4.0 (#43): documentation_url
     documentation_url = (msg.get("documentation_url") or "").strip() or None
     if documentation_url and not _is_safe_url(documentation_url):
@@ -199,6 +214,7 @@ async def ws_create_object(
             model=model,
             serial_number=serial_number,
             installation_date=installation_date,
+            warranty_expiry=warranty_expiry,
             documentation_url=documentation_url,
             notes=notes,
         )
@@ -218,6 +234,7 @@ async def ws_create_object(
         vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
         vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+        vol.Optional("warranty_expiry"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),  # (#67)
         # v1.4.0 (#43): per-object link to PDF manual / vendor page
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         # v1.4.10 (#46): free-form notes
@@ -261,6 +278,16 @@ async def ws_update_object(
             connection.send_error(msg["id"], "invalid_date", "Invalid installation_date format (expected YYYY-MM-DD)")
             return
 
+    # (#67): validate warranty_expiry format if provided
+    if msg.get("warranty_expiry"):
+        from datetime import date as date_cls
+
+        try:
+            date_cls.fromisoformat(msg["warranty_expiry"])
+        except ValueError:
+            connection.send_error(msg["id"], "invalid_date", "Invalid warranty_expiry format (expected YYYY-MM-DD)")
+            return
+
     # v1.4.0 (#43): documentation_url
     if "documentation_url" in msg:
         if msg["documentation_url"] is not None:
@@ -291,6 +318,8 @@ async def ws_update_object(
         obj[CONF_OBJECT_SERIAL_NUMBER] = msg["serial_number"]
     if "installation_date" in msg:
         obj[CONF_OBJECT_INSTALLATION_DATE] = msg["installation_date"]
+    if "warranty_expiry" in msg:
+        obj[CONF_OBJECT_WARRANTY_EXPIRY] = msg["warranty_expiry"]
     if "documentation_url" in msg:
         obj[CONF_OBJECT_DOCUMENTATION_URL] = msg["documentation_url"]
     if "notes" in msg:

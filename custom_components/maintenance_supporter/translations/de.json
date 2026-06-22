@@ -82,6 +82,7 @@
           "documentation_url": "Handbuch / Dokumentations-URL",
           "notes": "Notizen",
           "installation_date": "Installationsdatum",
+          "warranty_expiry": "Garantieablauf",
           "go_back": "Zurück"
         },
         "data_description": {
@@ -93,6 +94,7 @@
           "documentation_url": "Optionaler Link zu einem PDF-Handbuch, einer Hersteller-Seite oder beliebiger URL mit Referenz-Infos zu diesem Objekt.",
           "notes": "Freie Notizen zum Objekt — Teilenummern, Verfahren, Einstellungs-Erinnerungen, etc.",
           "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
+          "warranty_expiry": "Wann die Herstellergarantie für dieses Objekt abläuft.",
           "go_back": "Zurück zum Hauptmenü ohne zu speichern."
         }
       },
@@ -424,7 +426,8 @@
           "serial_number": "Seriennummer",
           "documentation_url": "Handbuch / Dokumentations-URL",
           "notes": "Notizen",
-          "installation_date": "Installationsdatum"
+          "installation_date": "Installationsdatum",
+          "warranty_expiry": "Garantieablauf"
         },
         "data_description": {
           "name": "Der Name dieses Wartungsobjekts.",
@@ -434,7 +437,8 @@
           "serial_number": "Die Seriennummer dieses Objekts.",
           "documentation_url": "Optionaler Link zu einem PDF-Handbuch, einer Hersteller-Seite oder beliebiger URL mit Referenz-Infos zu diesem Objekt.",
           "notes": "Freie Notizen zum Objekt — Teilenummern, Verfahren, Einstellungs-Erinnerungen, etc.",
-          "installation_date": "Wann dieses Objekt installiert wurde."
+          "installation_date": "Wann dieses Objekt installiert wurde.",
+          "warranty_expiry": "Wann die Herstellergarantie für dieses Objekt abläuft."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Notizen",
           "area_id": "Bereich",
           "installation_date": "Installationsdatum",
+          "warranty_expiry": "Garantieablauf",
           "go_back": "Zurück"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Freie Notizen zum Objekt — Teilenummern, Verfahren, Einstellungs-Erinnerungen, etc.",
           "area_id": "Der Bereich in Ihrem Zuhause, in dem sich dieses Objekt befindet.",
           "installation_date": "Wann dieses Objekt installiert oder gekauft wurde.",
+          "warranty_expiry": "Wann die Herstellergarantie für dieses Objekt abläuft.",
           "go_back": "Zurück zum Hauptmenü ohne Speichern."
         }
       }

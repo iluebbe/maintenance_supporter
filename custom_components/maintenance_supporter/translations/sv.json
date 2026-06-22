@@ -80,6 +80,7 @@
           "model": "Modell",
           "serial_number": "Serienummer",
           "installation_date": "Installationsdatum",
+          "warranty_expiry": "Garantins utgång",
           "documentation_url": "URL till manual / dokumentation",
           "notes": "Anteckningar",
           "go_back": "Tillbaka"
@@ -91,6 +92,7 @@
           "model": "Modellnamn eller -nummer.",
           "serial_number": "Objektets serienummer.",
           "installation_date": "När objektet installerades eller köptes.",
+          "warranty_expiry": "När tillverkarens garanti för detta objekt går ut.",
           "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
           "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
           "go_back": "Återgå till huvudmenyn utan att spara."
@@ -424,7 +426,8 @@
           "serial_number": "Serienummer",
           "documentation_url": "URL till manual / dokumentation",
           "notes": "Anteckningar",
-          "installation_date": "Installationsdatum"
+          "installation_date": "Installationsdatum",
+          "warranty_expiry": "Garantins utgång"
         },
         "data_description": {
           "name": "Namnet på detta underhållsobjekt.",
@@ -434,7 +437,8 @@
           "serial_number": "Serienumret för detta objekt.",
           "documentation_url": "Valfri länk till en PDF-manual, leverantörssida eller valfri URL med referensinformation för detta objekt.",
           "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
-          "installation_date": "När detta objekt installerades."
+          "installation_date": "När detta objekt installerades.",
+          "warranty_expiry": "När tillverkarens garanti för detta objekt går ut."
         }
       }
     },
@@ -1057,6 +1061,7 @@
           "notes": "Anteckningar",
           "area_id": "Område",
           "installation_date": "Installationsdatum",
+          "warranty_expiry": "Garantins utgång",
           "go_back": "Tillbaka"
         },
         "data_description": {
@@ -1068,6 +1073,7 @@
           "notes": "Fria anteckningar om objektet — artikelnummer, procedurer, inställningspåminnelser, m.m.",
           "area_id": "Området i ditt hem där objektet är placerat.",
           "installation_date": "När objektet installerades eller köptes.",
+          "warranty_expiry": "När tillverkarens garanti för detta objekt går ut.",
           "go_back": "Återgå till huvudmenyn utan att spara."
         }
       }

@@ -11,6 +11,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.maintenance_supporter.const import (
     CARD_URL,
     CONF_PANEL_ENABLED,
+    CONF_PANEL_TITLE,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     PANEL_NAME,
@@ -222,6 +223,62 @@ async def test_panel_toggle_off_via_options_update(
         # Toggle panel off
         hass.config_entries.async_update_entry(
             entry, options={**entry.options, CONF_PANEL_ENABLED: False}
+        )
+        await hass.async_block_till_done()
+
+        mock_remove.assert_called_once_with(hass, PANEL_NAME)
+
+
+async def test_panel_not_reregistered_on_unrelated_options_change(
+    hass: HomeAssistant,
+) -> None:
+    """A global-options change that doesn't touch the sidebar title must NOT
+    remove + re-register the panel. Re-removing it yanked the panel out from
+    under anyone viewing it, bouncing them to the HA default dashboard on
+    every settings save (e.g. an objects-table column toggle, #67)."""
+    entry = _make_global_entry(hass, panel_enabled=True)
+
+    with (
+        patch(
+            "homeassistant.components.panel_custom.async_register_panel",
+            new_callable=AsyncMock,
+        ),
+        patch(
+            "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
+        ) as mock_remove,
+    ):
+        await setup_integration(hass, entry)
+        assert hass.data[DOMAIN].get("_panel_registered") is True
+
+        # Change a non-title global option; the panel stays enabled.
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, "max_notifications_per_day": 5}
+        )
+        await hass.async_block_till_done()
+
+        # The panel must NOT have been torn down.
+        mock_remove.assert_not_called()
+
+
+async def test_panel_reregistered_on_title_change(
+    hass: HomeAssistant,
+) -> None:
+    """Changing the sidebar title DOES re-register (HA has no in-place update)."""
+    entry = _make_global_entry(hass, panel_enabled=True)
+
+    with (
+        patch(
+            "homeassistant.components.panel_custom.async_register_panel",
+            new_callable=AsyncMock,
+        ),
+        patch(
+            "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
+        ) as mock_remove,
+    ):
+        await setup_integration(hass, entry)
+
+        hass.config_entries.async_update_entry(
+            entry, options={**entry.options, CONF_PANEL_TITLE: "My Custom Upkeep"}
         )
         await hass.async_block_till_done()
 

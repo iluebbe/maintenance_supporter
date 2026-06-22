@@ -158,7 +158,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Budget alerts at configurable thresholds
 
 ### Data Management
-- JSON, YAML, and CSV export and import (via WebSocket API and Settings panel)
+- JSON, YAML, and CSV export and import (via WebSocket API and Settings panel) — JSON/CSV round-trip the full object asset record (incl. warranty, manual URL, notes); a dedicated one-row-per-object CSV export is available from the objects table (#67)
 - QR code generation for mobile quick-actions (print, download SVG)
 - Complete maintenance history with cost, duration, and feedback tracking
 - Integration diagnostics with PII redaction
@@ -170,6 +170,8 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - **Binary sensor** entities for automation triggers
 - **Clickable entity IDs**: entity IDs in trigger sections, compound conditions, and environmental correlations open HA's "More Info" dialog on click
 - **Serial number** field on objects — displayed in panel, Device Registry, and export/import
+- **Warranty tracking** (#67): per-object `warranty_expiry` date with a colour-coded status chip (valid until / expiring within 60 days / expired) in the object detail and objects table
+- **Objects table view** (#67): toggle the *All Objects* view between cards and a sortable table; columns are configurable (Settings → Objects table columns) from known object fields; mobile falls back to cards; export all objects as CSV
 - **Task sorting**: sort by due date, object name, type, or task name (persisted)
 - **All Objects view**: clickable KPI card shows all objects including empty ones
 - Real-time updates via WebSocket subscription (no polling)
@@ -178,7 +180,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Localized UI in **all 13 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 44 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
+- 45 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -379,6 +381,12 @@ Each object can carry a link to its PDF manual / vendor page / setup guide. Set 
 Real-world fit: you're staring at the *Filter replacement* task on your phone, ready to do the work — one click and the actual PDF (or Roborock support article) opens in your browser. No more "where did I save that link" search. Combine with **Per-object NFC tag scan** for full hands-free flow: scan tag → task page opens → tap manual.
 
 URL safety: only `http://` and `https://` URLs are accepted; `javascript:`, `data:`, and protocol-relative URLs are silently rejected.
+
+### Warranty tracking + objects table (#67) — see what's still covered at a glance
+
+Give each object a **warranty expiry date** (*Edit Object → Warranty expiry*, next to *Installed*). The object detail and the objects table then show a colour-coded chip — green *"valid until 2027-05-01"*, amber *"expires in 30 days"* once it's within 60 days, or red *"expired"* — so one glance tells you what's still under warranty before you pay for a repair.
+
+The **All Objects** view has a cards/table toggle. The table lists every object in columns; choose which columns under **Settings → Objects table columns** (Name, Manufacturer, Model, Serial, Installed, Warranty, Area, Manual, Notes, Tasks, actions — defaults to all but Manual/Notes). On a phone it falls back to cards. A **CSV export** button downloads the whole list — one row per object, including ones with no tasks yet — for an asset spreadsheet.
 
 ### Notification title style (1.4.0+) — distinguish stacked notifications at a glance
 
