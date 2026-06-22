@@ -2,7 +2,7 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.9.0] - 2026-06-22
 
 ### ✨ Warranty tracking + objects table (#67)
 
@@ -13,6 +13,7 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixes
 
+- **NFC-linked task titles no longer misaligned** (#66): a task with an NFC tag had its title (and the columns after it) shifted right of the other rows in the dashboard list. The task list now uses a shared CSS subgrid so every row's columns line up regardless of which optional badges a row carries — fixed on desktop and mobile.
 - **JSON/CSV export now round-trips the full object record**: `documentation_url` and `notes` were silently dropped from object export/import (since 1.4.0 / 1.4.10) — backups now preserve and restore them (alongside the new warranty date).
 - **Settings no longer bounce you out of the panel**: changing any global setting from the panel's Settings tab (a feature toggle, a table column, …) re-registered the sidebar panel, which kicked you back to the Home Assistant default dashboard. The panel is now re-registered only when the sidebar *title* actually changes.
 
