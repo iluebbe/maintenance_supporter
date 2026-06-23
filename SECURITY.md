@@ -35,6 +35,7 @@ For context, the integration already includes (as of v1.0.39 onwards):
 - Strict allow-list for trigger config + global settings keys
 - `_check_nfc_tag_duplicate` for cross-task NFC collision
 - `_is_safe_url` rejects `javascript:` etc. for documentation_url
+- Server-side authorization on every write WebSocket command (`helpers/permissions.py`, v2.8.3+): content create/edit/delete requires an HA admin or an explicitly delegated operator, while global settings, import, and vacation stay admin-only — a non-admin can never self-grant write access (the delegation switch and allowlist are themselves admin-only)
 
 ## Versions covered
 

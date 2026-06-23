@@ -28,10 +28,10 @@ The `custom_components/maintenance_supporter/` directory is volume-mounted, so P
 ```bash
 cd custom_components/maintenance_supporter/frontend-src
 npm install                       # first time
-npm run build                     # bundles maintenance-panel.js + maintenance-card.js
+npm run build                     # builds panel, card, calendar-card + strategy-shim bundles
 ```
 
-The built bundles live at `custom_components/maintenance_supporter/frontend/`. Both are committed (HACS distributes the integration as-is, no build step on user machines).
+The built bundles live at `custom_components/maintenance_supporter/frontend/`. All are committed (HACS distributes the integration as-is, no build step on user machines).
 
 After a frontend rebuild, hard-refresh the browser (Ctrl+Shift+F5) to bypass HA's cache.
 
@@ -45,7 +45,7 @@ Three layers, run independently or together:
 docker exec ha-maint sh -c 'cd /config && python -m pytest tests/'
 ```
 
-~2,094 unit + integration tests, ~90s. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
+~2,111 unit + integration tests, ~90s. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
 
 ### 2. Component (Lit, web-test-runner)
 
