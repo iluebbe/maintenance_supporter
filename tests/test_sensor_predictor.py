@@ -1000,3 +1000,196 @@ class TestSensorPredictorDtUtil:
         assert result is not None
         assert result.days_until_threshold == 10.0
         mock_dt.now.assert_called_once()
+
+
+# === migrated from test_cov_helpers.py (behaviour-based split) ===
+
+def test_linear_regression_returns_none_for_identical_x() -> None:
+    """Line 194 (result is None): linear regression returns None for degenerate data."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import SensorPredictor
+
+    # All x same → denom = 0 → returns None
+    points = [(1000.0, v) for v in [1.0, 2.0, 3.0]]
+    result = SensorPredictor._linear_regression(points)
+    assert result is None
+
+def test_compute_threshold_prediction_counter_not_increasing() -> None:
+    """Line 288: counter trigger with slope <= 0 returns None."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+
+    degradation = DegradationAnalysis(
+        entity_id="sensor.test",
+        slope_per_day=-0.5,  # decreasing
+        trend="falling",
+        r_squared=0.8,
+        current_value=50.0,
+        data_points=10,
+        lookback_days=90,
+    )
+    trigger_config = {
+        "type": "counter",
+        "trigger_target_value": 100,
+    }
+    result = SensorPredictor._compute_threshold_prediction(degradation, trigger_config)
+    assert result is None
+
+def test_compute_threshold_prediction_days_until_zero_already_exceeded() -> None:
+    """Lines 314-316: already exceeded threshold → days_until = 0."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+
+    # above trigger but current already > threshold
+    degradation = DegradationAnalysis(
+        entity_id="sensor.test",
+        slope_per_day=1.0,  # rising
+        trend="rising",
+        r_squared=0.9,
+        current_value=120.0,  # already above threshold
+        data_points=20,
+        lookback_days=90,
+    )
+    trigger_config = {
+        "type": "threshold",
+        "trigger_above": 100.0,
+    }
+    result = SensorPredictor._compute_threshold_prediction(degradation, trigger_config)
+    assert result is not None
+    assert result.days_until_threshold == 0.0
+
+def test_compute_threshold_prediction_below_already_exceeded() -> None:
+    """Line 315: below trigger but current already < threshold → days_until=0."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+
+    degradation = DegradationAnalysis(
+        entity_id="sensor.test",
+        slope_per_day=-1.0,  # falling
+        trend="falling",
+        r_squared=0.9,
+        current_value=30.0,  # already below threshold
+        data_points=20,
+        lookback_days=90,
+    )
+    trigger_config = {
+        "type": "threshold",
+        "trigger_below": 50.0,
+    }
+    result = SensorPredictor._compute_threshold_prediction(degradation, trigger_config)
+    assert result is not None
+    assert result.days_until_threshold == 0.0
+
+def test_compute_threshold_prediction_slope_zero_returns_none() -> None:
+    """Lines 248-249 guard: slope=0 returns None."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+
+    degradation = DegradationAnalysis(
+        entity_id="sensor.test",
+        slope_per_day=0.0,
+        trend="stable",
+        r_squared=0.5,
+        current_value=50.0,
+        data_points=10,
+        lookback_days=90,
+    )
+    result = SensorPredictor._compute_threshold_prediction(degradation, {"type": "threshold", "trigger_above": 100})
+    assert result is None
+
+def test_compute_threshold_prediction_confidence_levels() -> None:
+    """Lines 300-306: confidence derived from r_squared."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+
+    def _make_deg(r2: float) -> DegradationAnalysis:
+        return DegradationAnalysis("s", 1.0, "rising", r2, 50.0, 20, 90)
+
+    for r2, expected in [(0.8, "high"), (0.5, "medium"), (0.1, "low")]:
+        result = SensorPredictor._compute_threshold_prediction(
+            _make_deg(r2), {"type": "threshold", "trigger_above": 100.0}
+        )
+        assert result is not None, f"Expected result for r2={r2}"
+        assert result.confidence == expected, f"r2={r2}: got {result.confidence}"
+
+def test_compute_threshold_prediction_counter_delta_mode() -> None:
+    """Lines 264-268: counter with delta_mode uses current - baseline."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+
+    degradation = DegradationAnalysis(
+        entity_id="sensor.counter",
+        slope_per_day=5.0,
+        trend="rising",
+        r_squared=0.9,
+        current_value=60.0,  # raw counter
+        data_points=10,
+        lookback_days=90,
+    )
+    trigger_config = {
+        "type": "counter",
+        "trigger_target_value": 50,
+        "trigger_delta_mode": True,
+        "trigger_baseline_value": 20,
+    }
+    # current_delta = 60 - 20 = 40; target = 50 → 10 more to go at 5/day = 2 days
+    result = SensorPredictor._compute_threshold_prediction(degradation, trigger_config)
+    assert result is not None
+    assert result.days_until_threshold > 0
+
+def test_environmental_analysis_insufficient_data() -> None:
+    """Line 416 area: environmental returns has_sufficient_data=False."""
+    # This tests that the EnvironmentalAnalysis dataclass is constructed correctly
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import EnvironmentalAnalysis
+
+    analysis = EnvironmentalAnalysis(
+        entity_id="sensor.temp",
+        current_value=22.0,
+        average_value=None,
+        correlation=None,
+        adjustment_factor=1.0,
+        has_sufficient_data=False,
+        data_points=2,
+    )
+    assert analysis.has_sufficient_data is False
+    assert analysis.adjustment_factor == 1.0
+
+def test_pearson_correlation_computed() -> None:
+    """Lines 453-460 (via _pearson_correlation): returns None for short lists."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import SensorPredictor
+
+    # Less than 3 → None
+    assert SensorPredictor._pearson_correlation([1.0, 2.0], [3.0, 4.0]) is None
+
+    # Perfect correlation
+    result = SensorPredictor._pearson_correlation([1.0, 2.0, 3.0], [2.0, 4.0, 6.0])
+    assert result is not None
+    assert abs(result - 1.0) < 0.01
+
+def test_fetch_statistics_returns_empty_list_on_import_error() -> None:
+    """Line 519: returns [] when recorder module is not available."""
+    # SensorPredictor._async_fetch_statistics_points wraps ImportError gracefully;
+    # test via direct mock of the import.
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import SensorPredictor
+
+    hass_mock = MagicMock()
+    predictor = SensorPredictor(hass_mock)
+
+    import asyncio
+
+    with patch.dict("sys.modules", {"homeassistant.components.recorder": None}):
+        result = asyncio.get_event_loop().run_until_complete(
+            predictor._async_fetch_statistics_points("sensor.x", 30)
+        )
+    assert result == []

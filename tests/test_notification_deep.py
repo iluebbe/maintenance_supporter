@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.config_entries import ConfigEntry
@@ -821,3 +821,320 @@ async def test_budget_skips_non_completed_and_no_cost(
 
     coordinator = entry.runtime_data.coordinator
     await coordinator._async_check_budget({})
+
+
+# === migrated from test_cov_helpers.py (behaviour-based split) ===
+
+async def test_notification_skipped_when_vacation_active(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
+    """Lines 520-521: notification skipped during active vacation."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_END,
+        CONF_VACATION_START,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+
+    # Set up global entry with notifications enabled + active vacation
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    today = date.today()
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test",
+            CONF_VACATION_ENABLED: True,
+            CONF_VACATION_START: (today - timedelta(days=1)).isoformat(),
+            CONF_VACATION_END: (today + timedelta(days=5)).isoformat(),
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+    # Register a dummy notify service so enabled check passes
+    hass.services.async_register("notify", "test", AsyncMock())
+
+    called = False
+    orig_send = mgr._async_send_notification_to_service
+
+    async def _track(*args, **kwargs):
+        nonlocal called
+        called = True
+        return await orig_send(*args, **kwargs)
+
+    mgr._async_send_notification_to_service = _track  # type: ignore[method-assign]
+
+    from custom_components.maintenance_supporter.const import MaintenanceStatus
+    await mgr.async_task_status_changed(
+        entry_id="eid",
+        task_id="task_not_exempt",
+        task_name="Test",
+        object_name="Obj",
+        new_status=MaintenanceStatus.OVERDUE,
+    )
+    # Vacation is active and task is not exempt → notification suppressed
+    assert not called
+
+async def test_notification_no_target_services(hass: HomeAssistant) -> None:
+    """Lines 575-576: logs warning when no notification services are available."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+        MaintenanceStatus,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "",  # no global service
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+    # Override quiet hours to be off
+    with patch.object(type(mgr), "_is_quiet_hours", return_value=False):
+        await mgr.async_task_status_changed(
+            entry_id="eid",
+            task_id="t1",
+            task_name="Test",
+            object_name="Obj",
+            new_status=MaintenanceStatus.OVERDUE,
+        )
+    # No crash — just returns without sending (lines 574-576)
+
+async def test_send_bundled_title_style_object_name(hass: HomeAssistant) -> None:
+    """Line 767: bundled notification uses object_name as title when title_style = object_name."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFICATION_TITLE_STYLE,
+        CONF_NOTIFY_SERVICE,
+        CONF_QUIET_HOURS_ENABLED,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+        MaintenanceStatus,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test",
+            CONF_QUIET_HOURS_ENABLED: False,
+            CONF_NOTIFICATION_TITLE_STYLE: "object_name",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+    tasks = [{"status": MaintenanceStatus.OVERDUE, "task_name": "Filter"}]
+
+    with patch.object(mgr, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await mgr.async_send_bundled("entry1", "Pool Pump", tasks)
+
+        # title should be the object name when style = object_name
+        assert mock_hass.services.async_call.called
+        call_data = mock_hass.services.async_call.call_args[0][2]
+        assert call_data.get("title") == "Pool Pump"
+
+async def test_send_bundled_quiet_hours_skipped(hass: HomeAssistant) -> None:
+    """Line 744: bundled notifications skipped during quiet hours."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        CONF_QUIET_HOURS_ENABLED,
+        CONF_QUIET_HOURS_START,
+        CONF_QUIET_HOURS_END,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+        MaintenanceStatus,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test",
+            CONF_QUIET_HOURS_ENABLED: True,
+            CONF_QUIET_HOURS_START: "00:00",
+            CONF_QUIET_HOURS_END: "23:59",  # always quiet
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+    tasks = [{"status": MaintenanceStatus.OVERDUE, "task_name": "Filter"}]
+
+    with patch.object(mgr, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await mgr.async_send_bundled("entry1", "Pool Pump", tasks)
+
+        # quiet hours active → service not called
+        mock_hass.services.async_call.assert_not_called()
+
+async def test_budget_alert_quiet_hours_skipped(hass: HomeAssistant) -> None:
+    """Line 818: budget alert skipped during quiet hours."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        CONF_QUIET_HOURS_ENABLED,
+        CONF_QUIET_HOURS_START,
+        CONF_QUIET_HOURS_END,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test",
+            CONF_QUIET_HOURS_ENABLED: True,
+            CONF_QUIET_HOURS_START: "00:00",
+            CONF_QUIET_HOURS_END: "23:59",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+
+    with patch.object(mgr, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await mgr.async_budget_alert("monthly", 450.0, 500.0)
+
+        # quiet hours active → not called
+        mock_hass.services.async_call.assert_not_called()
+
+async def test_budget_alert_sends_notification(hass: HomeAssistant) -> None:
+    """Lines 791-792: budget alert sends notification to service."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        CONF_QUIET_HOURS_ENABLED,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test",
+            CONF_QUIET_HOURS_ENABLED: False,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+
+    with patch.object(mgr, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await mgr.async_budget_alert("monthly", 450.0, 500.0)
+
+        assert mock_hass.services.async_call.called
+        call_args = mock_hass.services.async_call.call_args[0]
+        assert call_args[0] == "notify"
+
+async def test_dismiss_task_notification(hass: HomeAssistant) -> None:
+    """Lines 894-895: async_dismiss_task_notification calls service."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.test",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+
+    with patch.object(mgr, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await mgr.async_dismiss_task_notification("my_task_id")
+
+        assert mock_hass.services.async_call.called
+        call_data = mock_hass.services.async_call.call_args[0][2]
+        assert call_data["message"] == "clear_notification"
+        assert "maintenance_my_task_id" in call_data["data"]["tag"]
+
+async def test_dismiss_task_notification_no_service(hass: HomeAssistant) -> None:
+    """Line 882: async_dismiss_task_notification returns early when no service."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_NOTIFICATIONS_ENABLED,
+        CONF_NOTIFY_SERVICE,
+        DOMAIN,
+        GLOBAL_UNIQUE_ID,
+    )
+    from custom_components.maintenance_supporter.helpers.notification_manager import NotificationManager
+    from pytest_homeassistant_custom_component.common import MockConfigEntry as MCE
+
+    entry = MCE(
+        domain=DOMAIN,
+        unique_id=GLOBAL_UNIQUE_ID,
+        data={
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "",  # empty
+        },
+    )
+    entry.add_to_hass(hass)
+
+    mgr = NotificationManager(hass)
+
+    with patch.object(mgr, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await mgr.async_dismiss_task_notification("my_task_id")
+
+        # No notify_service configured → should not call service
+        mock_hass.services.async_call.assert_not_called()
