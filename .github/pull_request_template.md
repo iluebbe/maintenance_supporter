@@ -27,9 +27,9 @@ Delete sections that don't apply.
 
 If you touched panel strings (`frontend-src/styles.ts`) or config-flow strings (`translations/*.json`):
 
-- [ ] All 12 languages updated, or
+- [ ] All 13 languages updated, or
 - [ ] At least the language(s) you can speak (other languages will fall back to English)
-- [ ] `node frontend-src/_audit.mjs` confirms key parity (or note why parity differs)
+- [ ] `cd custom_components/maintenance_supporter/frontend-src && npm test` (`__tests__/i18n-parity.test.ts`) confirms key parity (or note why parity differs)
 
 ## Notes for reviewer
 

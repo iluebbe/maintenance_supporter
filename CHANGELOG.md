@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.9.1] - 2026-06-23
+
+### 🐛 Fixes
+
+- **CSV export now works in the Home Assistant Companion app**: the objects-table CSV export and the Settings JSON/YAML/CSV exports used a download pattern (detached anchor + immediate blob-URL revoke) that silently failed inside the Companion app's WebView (reported on iOS). Downloads now mirror Home Assistant's own `fileDownload` — DOM-anchored, `target="_blank"`, late blob-URL revocation — so they complete in the mobile app as well as the browser.
+
+### 🌍 Internationalization
+
+- **Completed panel/card translations**: the calendar card's window labels (`cal_past_windows`, `cal_forward_windows`) and the history-edit dialog (`history_edit_title`, `history_edit_timestamp`) had hardcoded English fallbacks; they are now translated in all 13 languages. The object quick-actions labels were also repointed at existing localized keys, so every `t()` reference resolves (0 gaps).
+
 ## [2.9.0] - 2026-06-22
 
 ### ✨ Warranty tracking + objects table (#67)

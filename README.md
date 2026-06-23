@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/default)
 [![GitHub Release](https://img.shields.io/github/v/release/iluebbe/maintenance_supporter)](https://github.com/iluebbe/maintenance_supporter/releases)
-[![Tests](https://img.shields.io/badge/tests-2094_passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-2111_passed-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)](docs/ARCHITECTURE.md#test-coverage)
 [![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg)](https://community.home-assistant.io/t/custom-integration-maintenance-supporter-sensor-triggered-adaptive-maintenance-for-your-home/995556)
 
@@ -246,7 +246,7 @@ Each sensor entity exposes attributes grouped by function. Only stable values ar
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (44 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+See the [Services](#services) table below for available service calls. For the full WebSocket API (45 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
 
 ## Data Updates
 
@@ -689,7 +689,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-2,094 tests across 92 test files with **98% code coverage**.
+2,111 tests across 93 test files with **98% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -717,7 +717,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8125
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (2,094 tests):
+# Run tests (2,111 tests):
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 
