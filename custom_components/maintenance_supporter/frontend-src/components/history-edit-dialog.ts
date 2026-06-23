@@ -144,7 +144,7 @@ export class MaintenanceHistoryEditDialog extends LitElement {
             }} />
         </label>
         <label>
-          <span>${t("notes", L) || "Notes"}</span>
+          <span>${t("notes_label", L)}</span>
           <textarea
             rows="3"
             @input=${(e: Event) => {

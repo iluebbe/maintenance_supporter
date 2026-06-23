@@ -7,6 +7,7 @@ import type { HomeAssistant, AdvancedFeatures, BudgetStatus, HAUser } from "../t
 import { t } from "../styles";
 import { UserService } from "../user-service";
 import { OBJECT_COLUMNS, sanitizeColumns } from "../helpers/object-columns";
+import { downloadTextFile } from "../helpers/download";
 
 /* Settings response shape from WS maintenance_supporter/settings */
 interface SettingsResponse {
@@ -206,13 +207,8 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   private _downloadFile(content: string, filename: string, mime: string): void {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Companion-app safe download (target=_blank + DOM + deferred revoke).
+    downloadTextFile(content, filename, mime);
   }
 
   // --- Render ---
