@@ -1559,3 +1559,119 @@ async def test_batch_qr_skips_on_url_error(
     result = conn.send_result.call_args[0][1]
     # All rows were skipped due to ValueError — total is 0
     assert result["total"] == 0
+
+
+# ─── ws_import_json: task filtering / sanitisation ────────────────────────
+
+
+async def test_ws_import_json_empty_task_name_skipped(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json skips tasks with empty/blank names."""
+    from custom_components.maintenance_supporter.websocket.io import ws_import_json
+
+    await setup_integration(hass, global_entry)
+
+    json_data = {
+        "version": 1,
+        "objects": [
+            {
+                "object": {"name": "Test Object"},
+                "tasks": [
+                    {"name": ""},          # empty → skipped
+                    {"name": "   "},       # blank → skipped
+                    {"name": "Valid Task", "schedule_type": "time_based"},  # kept
+                ],
+            }
+        ],
+    }
+
+    conn = _mock_connection()
+    msg = {"id": 1, "json_content": json.dumps(json_data)}
+    await call_ws_handler(ws_import_json, hass, conn, msg)
+
+    assert conn.send_error.call_count == 0
+    assert conn.send_result.call_count == 1
+    payload = conn.send_result.call_args[0][1]
+    # 1 entry created (count)
+    assert payload.get("created") == 1
+    # "imported" contains entry details
+    imported = payload.get("imported", [])
+    assert len(imported) == 1
+    # Only 1 valid task created (the other 2 were skipped)
+    assert imported[0]["task_count"] == 1
+
+
+async def test_ws_import_json_invalid_interval_dropped(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json drops interval_days when it is not a positive integer."""
+    from custom_components.maintenance_supporter.websocket.io import ws_import_json
+
+    await setup_integration(hass, global_entry)
+
+    json_data = {
+        "version": 1,
+        "objects": [
+            {
+                "object": {"name": "Pump 2"},
+                "tasks": [
+                    {
+                        "name": "Bad Interval Task",
+                        "interval_days": 0,   # invalid (<1) → should be dropped
+                    },
+                ],
+            }
+        ],
+    }
+
+    conn = _mock_connection()
+    msg = {"id": 1, "json_content": json.dumps(json_data)}
+    await call_ws_handler(ws_import_json, hass, conn, msg)
+
+    assert conn.send_error.call_count == 0
+    payload = conn.send_result.call_args[0][1]
+    assert payload.get("created") == 1  # count of created entries
+    imported = payload.get("imported", [])
+    assert len(imported) == 1
+
+    # Verify the imported entry's task has no interval_days
+    imported_entry_id = imported[0]["entry_id"]
+    imported_entry = hass.config_entries.async_get_entry(imported_entry_id)
+    assert imported_entry is not None
+    tasks = imported_entry.data.get(CONF_TASKS, {})
+    assert len(tasks) == 1
+    imported_task = list(tasks.values())[0]
+    assert "interval_days" not in imported_task
+
+
+# ─── ws_generate_qr: no_url error on ValueError ───────────────────────────
+
+
+async def test_ws_qr_generate_no_url_error(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """QR generate returns no_url error when build_qr_url raises ValueError."""
+    from custom_components.maintenance_supporter.websocket.io import ws_generate_qr
+
+    await setup_integration(hass, global_entry, object_entry)
+
+    conn = _mock_connection()
+    msg = {
+        "id": 1,
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "action": "view",
+        "url_mode": "server",
+    }
+
+    with patch(
+        "custom_components.maintenance_supporter.websocket.io.build_qr_url",
+        side_effect=ValueError("No URL configured"),
+    ):
+        await call_ws_handler(ws_generate_qr, hass, conn, msg)
+
+    assert conn.send_error.call_count == 1
+    err = conn.send_error.call_args[0]
+    assert err[1] == "no_url"
+    assert "No URL" in err[2]

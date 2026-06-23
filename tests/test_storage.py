@@ -13,6 +13,8 @@ from custom_components.maintenance_supporter.storage import (
     extract_dynamic_from_task,
 )
 
+from .conftest import TASK_ID_1
+
 # ─── MaintenanceStore unit tests ─────────────────────────────────────
 
 
@@ -482,3 +484,48 @@ async def test_merge_compound_keys_without_entity_id(hass: HomeAssistant) -> Non
     assert ts["conditions"][0]["some_key"] == "some_value"
     # Condition 1: data keyed by entity_id
     assert ts["conditions"][1]["sensor.temp"]["baseline_value"] == 42.0
+
+
+# ─── extract_dynamic_from_task: trigger_config _trigger_state splits ──────
+
+
+def test_extract_dynamic_no_trigger_state() -> None:
+    """extract_dynamic_from_task with trigger_config but no _trigger_state."""
+    from custom_components.maintenance_supporter.storage import extract_dynamic_from_task
+
+    task = {
+        "id": TASK_ID_1,
+        "name": "Test",
+        "last_performed": "2024-01-01",
+        "trigger_config": {
+            "type": "threshold",
+            "trigger_above": 80.0,
+            # no _trigger_state
+        },
+    }
+    static, dynamic = extract_dynamic_from_task(task)
+    # last_performed should be dynamic
+    assert "last_performed" in dynamic
+    # trigger_config should remain in static (no runtime to extract)
+    assert "trigger_config" in static
+    assert "_trigger_state" not in static["trigger_config"]
+
+
+def test_extract_dynamic_with_trigger_state() -> None:
+    """extract_dynamic_from_task with trigger_config containing _trigger_state."""
+    from custom_components.maintenance_supporter.storage import extract_dynamic_from_task
+
+    task = {
+        "id": TASK_ID_1,
+        "name": "Test",
+        "trigger_config": {
+            "type": "threshold",
+            "trigger_above": 80.0,
+            "_trigger_state": {"baseline_value": 10.0},
+        },
+    }
+    static, dynamic = extract_dynamic_from_task(task)
+    # _trigger_state should be moved to dynamic
+    assert "trigger_runtime" in dynamic
+    assert dynamic["trigger_runtime"] == {"baseline_value": 10.0}
+    assert "_trigger_state" not in static.get("trigger_config", {})

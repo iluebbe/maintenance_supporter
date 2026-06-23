@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.maintenance_supporter.helpers.qr_generator import (
     build_qr_url,
@@ -166,3 +167,38 @@ class TestGenerateQrSvgDataUri:
         svg = urllib.parse.unquote(uri.removeprefix("data:image/svg+xml,"))
         assert "<svg" in svg
         assert "</svg>" in svg
+
+
+# ---------------------------------------------------------------------------
+# build_qr_url — url_mode variants (local / companion) against real hass
+# ---------------------------------------------------------------------------
+
+
+async def test_qr_generator_build_url_local_mode(hass: HomeAssistant) -> None:
+    """build_qr_url with url_mode='local' uses homeassistant.local:8123."""
+    from custom_components.maintenance_supporter.helpers.qr_generator import build_qr_url
+
+    url = build_qr_url(
+        hass,
+        entry_id="abc123",
+        task_id="task1",
+        action="view",
+        url_mode="local",
+    )
+    assert "homeassistant.local:8123" in url
+    assert "entry_id=abc123" in url
+
+
+async def test_qr_generator_build_url_companion_mode(hass: HomeAssistant) -> None:
+    """build_qr_url with url_mode='companion' uses homeassistant://navigate."""
+    from custom_components.maintenance_supporter.helpers.qr_generator import build_qr_url
+
+    url = build_qr_url(
+        hass,
+        entry_id="abc123",
+        action="complete",
+        url_mode="companion",
+    )
+    assert url.startswith("homeassistant://navigate")
+    assert "entry_id=abc123" in url
+    assert "action=complete" in url

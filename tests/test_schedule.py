@@ -8,6 +8,7 @@ model/coordinator tests are the behaviour-preserving net.
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 from custom_components.maintenance_supporter.helpers.schedule import (
     KIND_DAY_OF_MONTH,
@@ -21,6 +22,8 @@ from custom_components.maintenance_supporter.helpers.schedule import (
     normalize_task_storage,
     read_legacy_fields,
 )
+
+from .conftest import TASK_ID_1
 
 TODAY = date(2026, 5, 1)
 
@@ -298,3 +301,23 @@ def test_read_legacy_fields_translates_nested() -> None:
     # nested interval + trigger → sensor_based
     sensor = {"schedule": {"kind": "interval", "every": 90}, "trigger_config": {"type": "counter"}}
     assert read_legacy_fields(sensor)["schedule_type"] == "sensor_based"
+
+
+# ─── normalize: no recurrence fields → manual ────────────────────────────
+
+
+def test_schedule_normalize_no_fields_gives_manual() -> None:
+    """normalize_task_storage on a task with no recurrence fields → manual kind."""
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        normalize_task_storage,
+        KIND_MANUAL,
+    )
+
+    task: dict[str, Any] = {
+        "id": TASK_ID_1,
+        "name": "Manual Task",
+        "schedule_type": "manual",
+    }
+    result = normalize_task_storage(task)
+    assert "schedule" in result
+    assert result["schedule"]["kind"] == KIND_MANUAL

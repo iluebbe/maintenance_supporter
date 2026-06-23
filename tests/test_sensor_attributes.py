@@ -491,3 +491,24 @@ async def test_update_trigger_state_multi_all(
     assert entry is not None
     data = entry.runtime_data.coordinator.data
     assert data[CONF_TASKS][TASK_ID_1]["_trigger_active"] is True
+
+
+# ─── entity_slug → _attr_name override ───────────────────────────────────
+
+
+async def test_sensor_entity_slug_sets_name(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """When a task has entity_slug, sensor._attr_name is set to that slug."""
+    from custom_components.maintenance_supporter.sensor import MaintenanceSensor
+
+    task = build_task_data()
+    task["entity_slug"] = "my_custom_slug"
+    oe = _make_entry(hass, task, unique_id="slug_object")
+    await setup_integration(hass, global_entry, oe)
+
+    coord = oe.runtime_data.coordinator
+
+    sensor = MaintenanceSensor(coord, TASK_ID_1)
+    # entity_slug should set the name
+    assert sensor._attr_name == "my_custom_slug"

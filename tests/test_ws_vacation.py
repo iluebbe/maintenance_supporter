@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.websocket.vacation import (
 )
 
 from .conftest import (
+    TASK_ID_1,
     build_global_entry_data,
     call_ws_handler,
     setup_integration,
@@ -261,3 +262,111 @@ async def test_vacation_end_now_clamps_end_to_today(
     # enabled=False and end clamped to today
     assert result["enabled"] is False
     assert result["end"] == today.isoformat()
+
+
+# ─── ws_vacation_update: date validation ──────────────────────────────────
+
+
+async def test_ws_vacation_update_invalid_start_date(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_vacation_update rejects a non-ISO start date."""
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_update
+
+    await setup_integration(hass, covws_global_entry)
+
+    conn = _covws_conn()
+    msg = {"id": 1, "start": "not-a-date"}
+    await call_ws_handler(ws_vacation_update, hass, conn, msg)
+
+    assert conn.send_error.call_count == 1
+    err = conn.send_error.call_args[0]
+    assert err[1] == "invalid_date"
+
+
+async def test_ws_vacation_update_end_before_start(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_vacation_update rejects end date before start date."""
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_update
+
+    await setup_integration(hass, covws_global_entry)
+
+    # First set start date
+    options = {"vacation_start": "2026-06-01", "vacation_end": "2026-06-10"}
+    hass.config_entries.async_update_entry(covws_global_entry, options=options)
+
+    conn = _covws_conn()
+    msg = {
+        "id": 1,
+        "start": "2026-06-10",
+        "end": "2026-06-01",  # end before start
+    }
+    await call_ws_handler(ws_vacation_update, hass, conn, msg)
+
+    assert conn.send_error.call_count == 1
+    err = conn.send_error.call_args[0]
+    assert err[1] == "invalid_range"
+
+
+# ─── ws_vacation_update: buffer_days + exempt_task_ids ────────────────────
+
+
+async def test_ws_vacation_update_buffer_and_exempt(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_vacation_update correctly updates buffer_days and exempt_task_ids."""
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_update
+
+    await setup_integration(hass, covws_global_entry)
+
+    conn = _covws_conn()
+    msg = {
+        "id": 1,
+        "buffer_days": 3,
+        "exempt_task_ids": [TASK_ID_1, "  extra_id  ", TASK_ID_1],  # deduped, stripped
+    }
+    await call_ws_handler(ws_vacation_update, hass, conn, msg)
+
+    assert conn.send_error.call_count == 0
+    assert conn.send_result.call_count == 1
+    payload = conn.send_result.call_args[0][1]
+    assert payload["buffer_days"] == 3
+    # TASK_ID_1 should appear once (deduplicated)
+    assert TASK_ID_1 in payload["exempt_task_ids"]
+    assert payload["exempt_task_ids"].count(TASK_ID_1) == 1
+
+
+# ─── ws_vacation_end_now: future start is not clamped ─────────────────────
+
+
+async def test_ws_vacation_end_now_future_start(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_vacation_end_now does NOT clamp end when vacation hasn't started yet."""
+    from custom_components.maintenance_supporter.websocket.vacation import ws_vacation_end_now
+
+    await setup_integration(hass, covws_global_entry)
+
+    today = dt_util.now().date()
+    future_start = (today + timedelta(days=10)).isoformat()
+    future_end = (today + timedelta(days=20)).isoformat()
+    hass.config_entries.async_update_entry(
+        covws_global_entry,
+        options={
+            CONF_VACATION_ENABLED: True,
+            CONF_VACATION_START: future_start,
+            CONF_VACATION_END: future_end,
+        },
+    )
+
+    conn = _covws_conn()
+    msg = {"id": 1}
+    await call_ws_handler(ws_vacation_end_now, hass, conn, msg)
+
+    assert conn.send_error.call_count == 0
+    assert conn.send_result.call_count == 1
+    payload = conn.send_result.call_args[0][1]
+    assert payload["enabled"] is False
+    # End date should NOT be clamped to today since vacation hasn't started
+    assert payload["end"] == future_end

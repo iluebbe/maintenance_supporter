@@ -132,3 +132,20 @@ async def test_disabled_task_button_unavailable(
     state = hass.states.get(_button_entity_id(hass, obj, "complete"))
     assert state is not None
     assert state.state == "unavailable"
+
+
+async def test_button_available_false_when_no_task_data(
+    hass: HomeAssistant, global_config_entry: MockConfigEntry
+) -> None:
+    """MaintenanceActionButton.available returns False when _task_data is empty."""
+    from custom_components.maintenance_supporter.button import MaintenanceActionButton
+
+    obj = _obj_entry(hass)
+    await setup_integration(hass, global_config_entry, obj)
+
+    coord = hass.config_entries.async_get_entry(obj.entry_id).runtime_data.coordinator
+
+    btn = MaintenanceActionButton(coord, "nonexistent_task", "complete", "Complete")
+    # _task_data returns {} for nonexistent task, which is falsy
+    assert not btn._task_data  # empty dict is falsy
+    assert btn.available is False
