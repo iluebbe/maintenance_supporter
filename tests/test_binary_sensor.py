@@ -384,3 +384,39 @@ async def test_binary_sensor_handle_task_reset_missing_task(hass: HomeAssistant)
     sensor = MaintenanceBinarySensor(coord, "ghost_task_id")
     # Should return early (task not found in data)
     sensor._handle_task_reset()
+
+
+# ─── Status computation via live integration (migrated from 97c) ──────
+
+
+@pytest.fixture
+def object_entry(hass: HomeAssistant) -> MockConfigEntry:
+    task = build_task_data(last_performed="2024-06-01")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_pump",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def test_binary_sensor_status_computation(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 118, 127, 187: binary sensor returns correct values."""
+    await setup_integration(hass, global_entry, object_entry)
+    # The binary sensor should exist and have a state
+    from homeassistant.helpers.entity_registry import async_get as er_async_get
+    er = er_async_get(hass)
+    bs_entities = [
+        e for e in er.entities.values()
+        if e.platform == DOMAIN and e.domain == "binary_sensor"
+    ]
+    assert len(bs_entities) >= 1
+    state = hass.states.get(bs_entities[0].entity_id)
+    assert state is not None
+    # Task is overdue → binary sensor should be "on"
+    assert state.state == "on"

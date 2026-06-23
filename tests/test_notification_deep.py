@@ -715,3 +715,17 @@ async def test_seed_allows_repeat_after_interval(hass: HomeAssistant) -> None:
     )
 
     assert mock_service.called  # Interval elapsed → notification sent
+
+
+# ─── No global entry (migrated from test_coverage_97c.py) ─────────────
+
+
+async def test_notification_manager_no_global_entry(
+    hass: HomeAssistant,
+) -> None:
+    """Line 246: _global_options returns {} when no global entry."""
+    from custom_components.maintenance_supporter.helpers.notification_manager import (
+        NotificationManager,
+    )
+    nm = NotificationManager(hass)
+    assert nm._global_options == {}

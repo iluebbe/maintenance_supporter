@@ -774,3 +774,199 @@ async def test_environmental_non_numeric_value(
         )
 
     assert result.current_value is None
+
+
+# ─── Additional edge cases (migrated from test_coverage_97c.py) ───────
+
+
+async def test_degradation_regression_returns_none(hass: HomeAssistant) -> None:
+    """Line 192: _linear_regression returns None → insufficient_data."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        SensorPredictor,
+    )
+    sp = SensorPredictor(hass)
+
+    # 4 identical points → collinear in x, regression denom=0 → returns None
+    import time
+    now = time.time()
+    points = [(now, 5.0), (now, 5.0), (now, 5.0), (now, 5.0)]
+    result = sp._linear_regression(points)
+    # If regression returns None, we test the branch directly
+    # Call _async_compute_degradation would need recorder, so test the fallback
+    with patch.object(sp, "_async_fetch_statistics_points", return_value=points):
+        deg = await sp._async_compute_degradation("sensor.test", None, 30)
+    assert deg is not None
+    assert deg.trend == "insufficient_data"
+    assert deg.slope_per_day is None
+
+
+async def test_degradation_mean_val_zero(hass: HomeAssistant) -> None:
+    """Line 209: mean_val=0 protection → set to 1.0."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        SensorPredictor,
+    )
+    sp = SensorPredictor(hass)
+    # 10+ points that average to 0.0 → triggers mean_val=1.0 fallback
+    import time
+    now = time.time()
+    points = [
+        (now - i * 3600, (-1.0) ** i * (i % 3))  # alternating, avg ≈ 0
+        for i in range(12)
+    ]
+    # Manually ensure mean = 0
+    vals = [v for _, v in points]
+    mean_v = sum(vals) / len(vals)
+    # Adjust last point to force mean to exactly 0
+    points[-1] = (points[-1][0], points[-1][1] - mean_v * len(points))
+    with patch.object(sp, "_async_fetch_statistics_points", return_value=points):
+        deg = await sp._async_compute_degradation("sensor.zero", None, 30)
+    assert deg is not None
+    # Should not crash (mean_val was protected from zero division)
+    assert deg.slope_per_day is not None
+
+
+async def test_threshold_prediction_below_already_exceeded(
+    hass: HomeAssistant,
+) -> None:
+    """Line 291: direction='below', delta>=0 → days_until=0.0."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+    deg = DegradationAnalysis(
+        entity_id="sensor.test",
+        slope_per_day=-0.5,  # falling
+        trend="falling",
+        r_squared=0.9,
+        current_value=3.0,  # already below threshold
+        data_points=10,
+        lookback_days=30,
+    )
+    trigger_config = {"trigger_below": 5.0}
+    result = SensorPredictor._compute_threshold_prediction(deg, trigger_config)
+    assert result is not None
+    assert result.days_until_threshold == 0.0
+    assert result.threshold_direction == "below"
+
+
+async def test_threshold_prediction_no_matching_direction(
+    hass: HomeAssistant,
+) -> None:
+    """Line 284: threshold_value remains None → return None."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        DegradationAnalysis,
+        SensorPredictor,
+    )
+    deg = DegradationAnalysis(
+        entity_id="sensor.test",
+        slope_per_day=0.5,  # rising
+        trend="rising",
+        r_squared=0.9,
+        current_value=10.0,
+        data_points=10,
+        lookback_days=30,
+    )
+    # trigger_below with rising slope → no match, threshold_value stays None
+    trigger_config = {"trigger_below": 5.0}
+    result = SensorPredictor._compute_threshold_prediction(deg, trigger_config)
+    assert result is None
+
+
+async def test_env_analysis_none_attribute(hass: HomeAssistant) -> None:
+    """Line 357: environmental attribute is None → TypeError."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        SensorPredictor,
+    )
+    sp = SensorPredictor(hass)
+    # Set entity state but attribute returns None
+    hass.states.async_set("sensor.env_test", "25.0")
+    with patch.object(sp, "_async_fetch_statistics_points", return_value=[]):
+        result = await sp._async_analyze_environmental(
+            "sensor.env_test",
+            "missing_attr",  # attribute that doesn't exist
+            {},
+        )
+    assert result is not None
+    assert result.has_sufficient_data is False
+
+
+async def test_env_analysis_bad_timestamps(hass: HomeAssistant) -> None:
+    """Lines 400-401, 405: malformed timestamps and same-day completions."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        SensorPredictor,
+    )
+    sp = SensorPredictor(hass)
+    hass.states.async_set("sensor.env_temp", "20.0")
+
+    # Need 10+ env points
+    import time
+    now = time.time()
+    env_points = [(now - i * 86400, 20.0 + i * 0.1) for i in range(15)]
+
+    task_data = {
+        "history": [
+            {"timestamp": "bad_date", "type": "completed"},       # line 400-401
+            {"timestamp": "2024-01-01T00:00:00", "type": "completed"},
+            {"timestamp": "2024-01-01T12:00:00", "type": "completed"},  # line 405: same day
+            {"timestamp": "2024-02-01T00:00:00", "type": "completed"},
+        ],
+    }
+    with patch.object(sp, "_async_fetch_statistics_points", return_value=env_points):
+        result = await sp._async_analyze_environmental(
+            "sensor.env_temp", None, task_data,
+        )
+    assert result is not None
+    # Only 1 valid interval (Jan→Feb), < min completions → insufficient data
+    assert result.has_sufficient_data is False
+
+
+async def test_fetch_statistics_import_error(hass: HomeAssistant) -> None:
+    """Lines 479-481: ImportError when recorder module unavailable."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        SensorPredictor,
+    )
+    sp = SensorPredictor(hass)
+    with patch(
+        "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor._async_fetch_statistics_points",
+    ) as mock_fetch:
+        # Simulate the real code path: ImportError inside the method
+        # Actually, let's call the real method but make the import fail
+        pass
+
+    # Easier: patch the import to raise
+    with patch("builtins.__import__", side_effect=ImportError("no recorder")):
+        result = await sp._async_fetch_statistics_points("sensor.test", 30)
+    assert result == []
+
+
+async def test_parse_statistics_bad_start_and_bad_value(
+    hass: HomeAssistant,
+) -> None:
+    """Lines 520, 531-532: skip rows with bad start type or non-numeric values."""
+    from custom_components.maintenance_supporter.helpers.sensor_predictor import (
+        SensorPredictor,
+    )
+    sp = SensorPredictor(hass)
+    raw_stats = {
+        "sensor.test": [
+            {"start": "not_a_number", "mean": 10.0},  # line 520: bad start type
+            {"start": 1000000.0, "mean": "not_numeric"},  # line 531-532: bad value
+            {"start": 2000000.0, "mean": 25.0},  # valid
+        ]
+    }
+
+    # Mock recorder's async_add_executor_job to return raw_stats directly
+    from unittest.mock import AsyncMock, patch
+
+    mock_instance = MagicMock()
+    mock_instance.async_add_executor_job = AsyncMock(return_value=raw_stats)
+
+    with patch(
+        "homeassistant.components.recorder.get_instance",
+        return_value=mock_instance,
+    ):
+        result = await sp._async_fetch_statistics_points("sensor.test", 30)
+
+    # Only the valid row should remain
+    assert len(result) == 1
+    assert result[0][1] == 25.0

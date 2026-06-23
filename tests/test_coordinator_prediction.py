@@ -881,3 +881,212 @@ async def test_coordinator_persist_dynamic_state_clears_last_planned_due(hass: H
     # last_planned_due should be removed from store
     updated_state = store._data["tasks"].get(TASK_ID_1, {})
     assert "last_planned_due" not in updated_state
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# coordinator.py error-path tests (migrated from test_coverage_97c.py)
+# ═══════════════════════════════════════════════════════════════════════
+
+
+@pytest.fixture
+def object_entry(hass: HomeAssistant) -> MockConfigEntry:
+    task = build_task_data(last_performed="2024-06-01")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_pump",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def test_fallback_no_trigger_config(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Line 337: _evaluate_trigger_fallback returns early when no trigger_config."""
+    await setup_integration(hass, global_entry, object_entry)
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    # Task has no trigger_config → fallback should return without crash
+    task_obj = list(coord.tasks.values())[0]
+    assert task_obj.trigger_config is None
+    # Directly call fallback — should just return (line 337)
+    await coord._evaluate_trigger_fallback(task_obj, TASK_ID_1)
+
+
+async def test_fallback_empty_entity_ids(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 354: empty entity_ids → return."""
+    task = build_task_data(
+        last_performed="2024-06-01",
+        schedule_type="sensor_based",
+        interval_days=None,
+        trigger_config={"type": "threshold", "entity_ids": []},
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Empty Trigger",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_empty_trigger",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    task_obj = list(coord.tasks.values())[0]
+    await coord._evaluate_trigger_fallback(task_obj, TASK_ID_1)
+
+
+async def test_fallback_threshold_value_error(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 424-425, 428-430: ValueError/TypeError in trigger eval."""
+    task = build_task_data(
+        last_performed="2024-06-01",
+        schedule_type="sensor_based",
+        interval_days=None,
+        trigger_config={
+            "type": "counter",
+            "entity_ids": ["sensor.cov97c_bad"],
+            "entity_id": "sensor.cov97c_bad",
+            "trigger_target_value": 100,
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Bad Value",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_bad_val",
+    )
+    obj_entry.add_to_hass(hass)
+    # Set entity to non-numeric value
+    hass.states.async_set("sensor.cov97c_bad", "not_a_number")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    task_obj = list(coord.tasks.values())[0]
+    # Should not crash despite non-numeric value
+    await coord._evaluate_trigger_fallback(task_obj, TASK_ID_1)
+    assert task_obj._trigger_active is False
+
+
+async def test_notification_no_manager(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Line 598: NotificationManager not found → return."""
+    await setup_integration(hass, global_entry, object_entry)
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    # Remove notification manager from hass.data
+    if DOMAIN in hass.data and "_notification_manager" in hass.data[DOMAIN]:
+        del hass.data[DOMAIN]["_notification_manager"]
+    # Should not crash
+    await coord._async_notify_status_changes({
+        TASK_ID_1: {"_status": "overdue", "name": "Test"},
+    })
+
+
+async def test_persist_no_store(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Line 787: _persist_dynamic_state returns when store is None."""
+    await setup_integration(hass, global_entry, object_entry)
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    original_store = coord._store
+    coord._store = None
+    task_obj = list(coord.tasks.values())[0]
+    # Should just return without crash
+    coord._persist_dynamic_state(TASK_ID_1, task_obj)
+    coord._store = original_store
+
+
+async def test_budget_history_no_store(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 693: history from entry.data when store is None."""
+    task = build_task_data(last_performed="2024-06-01")
+    task["history"] = [
+        {"type": "completed", "timestamp": "2024-06-01T00:00:00", "cost": 25.0},
+    ]
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Budget Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_budget",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+    original_store = coord._store
+
+    # Set store to None, re-inject history into entry.data
+    rd = entry.runtime_data
+    rd.store = None
+    new_data = dict(entry.data)
+    tasks = dict(new_data[CONF_TASKS])
+    t = dict(tasks[TASK_ID_1])
+    t["history"] = [
+        {"type": "completed", "timestamp": "2026-01-15T00:00:00", "cost": 25.0},
+    ]
+    tasks[TASK_ID_1] = t
+    new_data[CONF_TASKS] = tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    # Call _recalculate_budget_cache — hits line 693 fallback
+    coord._recalculate_budget_cache()
+    cache = hass.data.get(DOMAIN, {}).get("_budget_cache", {})
+    assert cache.get("yearly_spent", 0) >= 25.0
+
+    rd.store = original_store
+
+
+async def test_budget_string_cost_no_crash(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Budget calculation handles string cost values without TypeError."""
+    from datetime import datetime
+
+    now = datetime.now()
+    ts = now.isoformat()
+    task = build_task_data(last_performed="2024-06-01")
+    task["history"] = [
+        {"type": "completed", "timestamp": ts, "cost": "50.00"},  # string!
+        {"type": "completed", "timestamp": ts, "cost": 25.0},     # normal float
+        {"type": "completed", "timestamp": ts, "cost": "invalid"}, # unparseable
+    ]
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Budget String",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97c_budget_str",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+
+    # Should not raise TypeError
+    coord._recalculate_budget_cache()
+    cache = hass.data.get(DOMAIN, {}).get("_budget_cache", {})
+    # 50.00 (string) + 25.0 (float) = 75.0 — "invalid" skipped
+    assert cache.get("yearly_spent", 0) == pytest.approx(75.0)
