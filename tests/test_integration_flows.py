@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import entity_registry as er
+
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -695,3 +698,130 @@ async def test_global_options_updated_panel_toggle(
         global_config_entry, options={CONF_PANEL_ENABLED: False}
     )
     await hass.async_block_till_done()
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):
+    reg = er.async_get(hass)
+    return [e for e in er.async_entries_for_config_entry(reg, entry.entry_id) if e.domain == domain]
+
+
+# ─── __init__.py lines 171, 188, 195, 210, 217 — ServiceValidationError paths ──
+
+
+async def test_service_complete_no_coordinator(hass: HomeAssistant) -> None:
+    """__init__ line 171: complete service raises when no coordinator found."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task})
+    await setup_integration(hass, global_entry, obj_entry)
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "complete_maintenance",
+            {"entity_id": "sensor.nonexistent_entity_xyz"},
+            blocking=True,
+        )
+
+
+async def test_service_reset_no_coordinator(hass: HomeAssistant) -> None:
+    """__init__ line 188: reset service raises when no coordinator found."""
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "reset_maintenance",
+            {"entity_id": "sensor.nonexistent_entity_xyz"},
+            blocking=True,
+        )
+
+
+async def test_service_skip_no_coordinator(hass: HomeAssistant) -> None:
+    """__init__ line 210: skip service raises when no coordinator found."""
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "skip_maintenance",
+            {"entity_id": "sensor.nonexistent_entity_xyz"},
+            blocking=True,
+        )
+
+
+async def test_service_complete_no_task_id(hass: HomeAssistant) -> None:
+    """__init__ line 195/217: complete/skip raise when task_id cannot be found.
+
+    We simulate this by using a registered entity whose unique_id doesn't
+    match any task in the entry's task dict.
+    """
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="no_task_id")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entities = _get_entities_by_domain(hass, obj_entry, "sensor")
+    if not entities:
+        pytest.skip("No sensor entities registered")
+
+    entity_id = entities[0].entity_id
+    # Temporarily remove task from entry so _get_task_id_for_entity returns None
+    new_data = {**obj_entry.data, CONF_TASKS: {}}
+    hass.config_entries.async_update_entry(obj_entry, data=new_data)
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "complete_maintenance",
+            {"entity_id": entity_id},
+            blocking=True,
+        )
+
+
+# ─── __init__.py line 267-268 — _handle_add_object ValueError ────────────────
+
+
+async def test_service_add_object_value_error(hass: HomeAssistant) -> None:
+    """__init__ line 267-268: add_object wraps ValueError as ServiceValidationError."""
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    with patch(
+        "custom_components.maintenance_supporter.websocket.objects.async_create_object",
+        side_effect=ValueError("duplicate name"),
+    ):
+        with pytest.raises(ServiceValidationError, match="duplicate name"):
+            await hass.services.async_call(
+                DOMAIN, "add_object",
+                {"name": "Test Object"},
+                blocking=True,
+            )

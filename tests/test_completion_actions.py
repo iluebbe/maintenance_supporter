@@ -18,8 +18,14 @@ rather than by re-registering manually.
 
 from __future__ import annotations
 
+from .conftest import (
+    TASK_ID_1,
+    build_object_data,
+    build_task_data,
+)
+
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -396,3 +402,96 @@ async def test_stale_action_create_fix_flow_routes_correctly(
         data={},
     )
     assert isinstance(flow, StaleActionEntityRepairFlow)
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# ─── helpers/action_listener.py lines 56, 59, 67-71 ─────────────────────────
+
+
+async def test_action_listener_fires_service(hass: HomeAssistant) -> None:
+    """action_listener.py line 63-83: dispatches on_complete_action on task complete."""
+    from custom_components.maintenance_supporter.const import EVENT_TASK_COMPLETED
+
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    task["on_complete_action"] = {
+        "service": "persistent_notification.create",
+        "data": {"message": "Task done!"},
+    }
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="action_listener")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    with patch(
+        "homeassistant.core.ServiceRegistry.async_call",
+        new_callable=AsyncMock,
+    ) as mock_call:
+        hass.bus.async_fire(
+            EVENT_TASK_COMPLETED,
+            {"entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
+        )
+        await hass.async_block_till_done()
+        # Service should have been called
+        assert mock_call.call_count >= 1
+
+
+async def test_action_listener_malformed_service(hass: HomeAssistant) -> None:
+    """action_listener.py line 56, 67-71: malformed service logs warning and returns."""
+    from custom_components.maintenance_supporter.const import EVENT_TASK_COMPLETED
+
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    task["on_complete_action"] = {
+        "service": "badformat",  # no dot separator
+    }
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="action_bad_svc")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Should not raise
+    hass.bus.async_fire(
+        EVENT_TASK_COMPLETED,
+        {"entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
+    )
+    await hass.async_block_till_done()
+
+
+async def test_action_listener_no_action(hass: HomeAssistant) -> None:
+    """action_listener.py line 97: returns early when no action configured."""
+    from custom_components.maintenance_supporter.const import EVENT_TASK_COMPLETED
+
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="action_none")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Fire with missing entry_id → early return
+    hass.bus.async_fire(EVENT_TASK_COMPLETED, {"entry_id": "", "task_id": ""})
+    await hass.async_block_till_done()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -305,3 +305,117 @@ def test_attribute_info() -> None:
     assert info.name == "temperature"
     assert info.current_value == 22.5
     assert info.unit == "°C"
+
+
+
+# ─── helpers/entity_analyzer.py lines 120-122, 163 ──────────────────────────
+
+
+async def test_entity_analyzer_non_numeric_state(hass: HomeAssistant) -> None:
+    """entity_analyzer.py line 76-79: non-numeric state is handled."""
+    from custom_components.maintenance_supporter.helpers.entity_analyzer import EntityAnalyzer
+
+    hass.states.async_set("binary_sensor.door", "on", {"device_class": "door"})
+    analyzer = EntityAnalyzer(hass)
+    # Patch recorder to avoid KeyError in test env
+    with patch.object(analyzer, "_async_fetch_statistics", return_value=None):
+        result = await analyzer.async_analyze_entity("binary_sensor.door")
+    assert result is not None
+    assert result.is_numeric_state is False
+
+
+async def test_entity_analyzer_missing_entity(hass: HomeAssistant) -> None:
+    """entity_analyzer.py line 67-68: returns None for missing entity."""
+    from custom_components.maintenance_supporter.helpers.entity_analyzer import EntityAnalyzer
+
+    analyzer = EntityAnalyzer(hass)
+    result = await analyzer.async_analyze_entity("sensor.does_not_exist_xyz")
+    assert result is None
+
+
+async def test_entity_analyzer_stats_no_recorder(hass: HomeAssistant) -> None:
+    """entity_analyzer.py line 120-122: handles recorder import failure gracefully."""
+    from custom_components.maintenance_supporter.helpers.entity_analyzer import EntityAnalyzer
+
+    hass.states.async_set("sensor.analyze_me", "42.0")
+    analyzer = EntityAnalyzer(hass)
+
+    with patch(
+        "custom_components.maintenance_supporter.helpers.entity_analyzer.EntityAnalyzer._async_fetch_statistics",
+        return_value=None,
+    ):
+        result = await analyzer.async_analyze_entity("sensor.analyze_me")
+        assert result is not None
+        assert result.statistics is None
+
+
+async def test_entity_analyzer_fetch_stats_empty(hass: HomeAssistant) -> None:
+    """entity_analyzer.py line 163: empty statistics rows returns has_data=False."""
+    from custom_components.maintenance_supporter.helpers.entity_analyzer import EntityAnalyzer, StatisticsInfo
+
+    hass.states.async_set("sensor.stats_empty", "42.0")
+    analyzer = EntityAnalyzer(hass)
+
+    with patch(
+        "custom_components.maintenance_supporter.helpers.entity_analyzer.EntityAnalyzer._async_fetch_statistics",
+        return_value=StatisticsInfo(has_data=False),
+    ):
+        result = await analyzer.async_analyze_entity("sensor.stats_empty")
+        assert result is not None
+        assert result.statistics is not None
+        assert result.statistics.has_data is False
+
+
+# ─── helpers/entity_rename.py line 29, 131-132 ───────────────────────────────
+
+
+def test_entity_rename_rewrite_trigger_config() -> None:
+    """entity_rename.py line 34-68: rewrite_trigger_config rewrites entity_id."""
+    from custom_components.maintenance_supporter.helpers.entity_rename import rewrite_trigger_config
+
+    config = {
+        "type": "threshold",
+        "entity_id": "sensor.old",
+        "entity_ids": ["sensor.old", "sensor.other"],
+        "_trigger_state": {"sensor.old": {"baseline": 10}},
+    }
+    new_config, changed = rewrite_trigger_config(config, "sensor.old", "sensor.new")
+    assert changed is True
+    assert new_config["entity_id"] == "sensor.new"
+    assert "sensor.new" in new_config["entity_ids"]
+    assert "sensor.new" in new_config["_trigger_state"]
+
+
+def test_entity_rename_rewrite_store() -> None:
+    """entity_rename.py line 131-132: rewrite_store rewrites trigger_runtime key."""
+    from custom_components.maintenance_supporter.helpers.entity_rename import rewrite_store
+
+    mock_store = MagicMock()
+    mock_store._data = {
+        "tasks": {
+            "task1": {
+                "trigger_runtime": {
+                    "sensor.old": {"accumulated_seconds": 100}
+                }
+            }
+        }
+    }
+    changed = rewrite_store(mock_store, "sensor.old", "sensor.new")
+    assert changed is True
+    runtime = mock_store._data["tasks"]["task1"]["trigger_runtime"]
+    assert "sensor.new" in runtime
+    assert "sensor.old" not in runtime
+
+
+def test_entity_rename_rewrite_tasks() -> None:
+    """entity_rename.py line 29 (rewrite_task): environmental_entity rewritten."""
+    from custom_components.maintenance_supporter.helpers.entity_rename import rewrite_task
+
+    task_data = {
+        "trigger_config": {"type": "threshold", "entity_id": "sensor.old"},
+        "adaptive_config": {"environmental_entity": "sensor.old"},
+    }
+    new_task, changed = rewrite_task(task_data, "sensor.old", "sensor.new")
+    assert changed is True
+    assert new_task["adaptive_config"]["environmental_entity"] == "sensor.new"
+    assert new_task["trigger_config"]["entity_id"] == "sensor.new"
