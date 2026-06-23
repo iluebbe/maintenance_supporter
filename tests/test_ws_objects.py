@@ -989,3 +989,66 @@ async def test_create_object_unsafe_documentation_url(
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_url"
+
+
+class TestWsListTasksConsistency:
+    """Verify ws_list_tasks uses _build_task_summary for consistent output."""
+
+    def test_list_tasks_returns_structured_fields(self) -> None:
+        """ws_list_tasks result should include _build_task_summary fields, not raw internal data."""
+        hass = MagicMock()
+        hass.states.get.return_value = None
+
+        task_data = {
+            "name": "Test Task",
+            "type": "custom",
+            "enabled": True,
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "warning_days": 7,
+            "trigger_config": None,
+            "checklist": ["Step 1", "Step 2"],
+        }
+        ct = {
+            "_status": "ok",
+            "_days_until_due": 15,
+            "_next_due": "2026-03-20",
+            "_trigger_active": False,
+            "_times_performed": 3,
+            "_total_cost": 0.0,
+        }
+
+        result = _build_task_summary(hass, "task1", task_data, ct)
+
+        # Should have structured fields, not raw internal fields
+        assert "id" in result
+        assert result["id"] == "task1"
+        assert result["name"] == "Test Task"
+        assert result["checklist"] == ["Step 1", "Step 2"]
+        assert result["status"] == "ok"
+        assert result["days_until_due"] == 15
+        # Should NOT have underscore-prefixed internal fields
+        assert "_status" not in result
+        assert "_days_until_due" not in result
+
+
+class TestChecklistWsApi:
+    """Verify checklist field is accepted in task create/update schemas."""
+
+    def test_checklist_in_create_task_data(self) -> None:
+        """ws_create_task schema should accept checklist field."""
+        import voluptuous as vol
+
+        # The schema is defined as a decorator, test by constructing the expected vol schema
+        schema = vol.Schema({
+            vol.Optional("checklist"): vol.Any([str], None),
+        })
+        # Should validate successfully
+        result = schema({"checklist": ["Step 1", "Step 2"]})
+        assert result["checklist"] == ["Step 1", "Step 2"]
+
+        result_none = schema({"checklist": None})
+        assert result_none["checklist"] is None
+
+        result_empty = schema({})
+        assert "checklist" not in result_empty

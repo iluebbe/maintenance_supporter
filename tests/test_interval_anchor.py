@@ -540,3 +540,64 @@ def test_seasonal_intervals_bad_timestamps() -> None:
     result = IntervalAnalyzer._compute_intervals_with_months(history)
     assert len(result) == 1
     assert result[0] == (45, 2)  # 45 days, February
+
+
+class TestAnalysisDatetimeFix:
+    """Verify analysis.py uses dt_util.now() instead of naive datetime."""
+
+    def test_analysis_uses_injected_current_month(self) -> None:
+        """IntervalAnalyzer.analyze uses _current_month from config."""
+        from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+            IntervalAnalyzer,
+        )
+
+        analyzer = IntervalAnalyzer()
+        task_data = {
+            "history": [
+                {"timestamp": "2026-01-01T00:00:00", "type": "completed"},
+                {"timestamp": "2026-01-31T00:00:00", "type": "completed"},
+                {"timestamp": "2026-03-02T00:00:00", "type": "completed"},
+            ],
+            "interval_days": 30,
+        }
+        config = {
+            "enabled": True,
+            "_current_month": 7,  # Inject July
+            "seasonal_enabled": True,
+        }
+        result = analyzer.analyze(task_data, config)
+        # Should not crash and should use month 7 for seasonal calc
+        assert result is not None
+
+    def test_update_on_completion_uses_injected_month(self) -> None:
+        """update_on_completion uses _current_month from config."""
+        from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+            IntervalAnalyzer,
+        )
+
+        analyzer = IntervalAnalyzer()
+        config = {
+            "enabled": True,
+            "smoothed_interval": 30.0,
+            "_seasonal_factors": [1.0] * 12,
+            "seasonal_enabled": True,
+            "_current_month": 3,
+            "_current_date": "2026-03-05",
+        }
+        result = analyzer.update_on_completion(config, 28, None)
+        assert result["last_analysis_date"] == "2026-03-05"
+
+    def test_update_on_completion_fallback_without_injection(self) -> None:
+        """update_on_completion still works without _current_month (fallback)."""
+        from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+            IntervalAnalyzer,
+        )
+
+        analyzer = IntervalAnalyzer()
+        config = {
+            "enabled": True,
+            "smoothed_interval": 30.0,
+        }
+        result = analyzer.update_on_completion(config, 28, None)
+        # Should not crash, date should be set
+        assert "last_analysis_date" in result

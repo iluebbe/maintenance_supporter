@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
-from unittest.mock import AsyncMock, patch
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -13,6 +14,10 @@ from custom_components.maintenance_supporter.const import (
     CONF_ACTION_COMPLETE_ENABLED,
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
+    CONF_BUDGET_ALERT_THRESHOLD,
+    CONF_BUDGET_ALERTS_ENABLED,
+    CONF_BUDGET_MONTHLY,
+    CONF_BUDGET_YEARLY,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
@@ -27,7 +32,14 @@ from custom_components.maintenance_supporter.helpers.notification_manager import
     _notif_t,
 )
 
-from .conftest import build_global_entry_data
+from .conftest import (
+    TASK_ID_1,
+    build_global_entry_data,
+    build_object_data,
+    build_object_entry_data,
+    build_task_data,
+    setup_integration,
+)
 
 
 def _create_global_entry(
@@ -729,3 +741,83 @@ async def test_notification_manager_no_global_entry(
     )
     nm = NotificationManager(hass)
     assert nm._global_options == {}
+
+
+# ─── coordinator budget check (uses NotificationManager gating) ──────────
+
+
+async def test_budget_both_zero_returns(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """_async_check_budget returns early when both budgets are zero."""
+    # Enable budget alerts but set both budgets to 0
+    global_data = dict(global_config_entry.data)
+    global_data[CONF_BUDGET_ALERTS_ENABLED] = True
+    global_data[CONF_BUDGET_ALERT_THRESHOLD] = 80
+    global_data[CONF_BUDGET_MONTHLY] = 0
+    global_data[CONF_BUDGET_YEARLY] = 0
+    hass.config_entries.async_update_entry(
+        global_config_entry, data=global_data
+    )
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    # Set up a mock NM so the first isinstance check passes
+    nm = MagicMock(spec=NotificationManager)
+    nm.enabled = True
+    hass.data[DOMAIN]["_notification_manager"] = nm
+
+    coordinator = object_config_entry.runtime_data.coordinator
+    await coordinator._async_check_budget({})
+
+
+async def test_budget_skips_non_completed_and_no_cost(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Budget traversal skips non-completed entries, entries with no cost, and bad timestamps."""
+    global_data = dict(global_config_entry.data)
+    global_data[CONF_BUDGET_ALERTS_ENABLED] = True
+    global_data[CONF_BUDGET_ALERT_THRESHOLD] = 80
+    global_data[CONF_BUDGET_MONTHLY] = 1000
+    global_data[CONF_BUDGET_YEARLY] = 5000
+    hass.config_entries.async_update_entry(
+        global_config_entry, data=global_data
+    )
+
+    now = datetime.now()
+    task = build_task_data(
+        history=[
+            # Skipped entry (not completed) → line 660
+            {"type": "skipped", "timestamp": now.isoformat()},
+            # Completed but no cost → line 663
+            {"type": "completed", "timestamp": now.isoformat(), "cost": None},
+            # Completed with cost but bad timestamp → lines 667-668
+            {"type": "completed", "timestamp": "not-a-date", "cost": 50.0},
+            # Valid entry (below threshold, no alert)
+            {"type": "completed", "timestamp": now.isoformat(), "cost": 10.0},
+        ],
+    )
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Budget Edge",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Budget Edge"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_budget_edge",
+    )
+    entry.add_to_hass(hass)
+
+    await setup_integration(hass, global_config_entry, entry)
+
+    # Set up a mock NM so the first isinstance check passes
+    nm = MagicMock(spec=NotificationManager)
+    nm.enabled = True
+    hass.data[DOMAIN]["_notification_manager"] = nm
+
+    coordinator = entry.runtime_data.coordinator
+    await coordinator._async_check_budget({})

@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from custom_components.maintenance_supporter.helpers.sensor_predictor import (
     DegradationAnalysis,
@@ -970,3 +971,32 @@ async def test_parse_statistics_bad_start_and_bad_value(
     # Only the valid row should remain
     assert len(result) == 1
     assert result[0][1] == 25.0
+
+
+class TestSensorPredictorDtUtil:
+    """BUG 2: sensor_predictor must use dt_util.now() not datetime.now(timezone.utc)."""
+
+    def test_predicted_date_uses_dt_util(self) -> None:
+        """_compute_threshold_prediction uses dt_util.now() for predicted_date."""
+        degradation = DegradationAnalysis(
+            entity_id="sensor.test",
+            slope_per_day=1.0,
+            trend="rising",
+            r_squared=0.9,
+            current_value=10.0,
+            data_points=100,
+            lookback_days=30,
+        )
+        trigger_config = {"type": "threshold", "trigger_above": 20.0}
+
+        with patch(
+            "custom_components.maintenance_supporter.helpers.sensor_predictor.dt_util"
+        ) as mock_dt:
+            mock_dt.now.return_value = dt_util.now()
+            result = SensorPredictor._compute_threshold_prediction(
+                degradation, trigger_config
+            )
+
+        assert result is not None
+        assert result.days_until_threshold == 10.0
+        mock_dt.now.assert_called_once()
