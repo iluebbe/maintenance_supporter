@@ -321,3 +321,75 @@ def test_schedule_normalize_no_fields_gives_manual() -> None:
     result = normalize_task_storage(task)
     assert "schedule" in result
     assert result["schedule"]["kind"] == KIND_MANUAL
+
+
+# === migrated from test_cov_helpers.py (behaviour-based split) ===
+
+def test_next_due_interval_planned_anchor_months_loop() -> None:
+    """Line 146: the 'return candidate' fallback after the loop exhausts MAX_PLANNED_STEPS."""
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        KIND_INTERVAL,
+        Schedule,
+    )
+
+    # planned anchor, months unit, late completion → candidate loop path
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months", anchor="planned")
+    # planned Jan, completed Mar 20 → next May or beyond depending on loop
+    result = s.next_due(
+        last_performed=date(2026, 3, 20),
+        created_at=None,
+        last_planned_due=date(2026, 1, 15),
+        today=date(2026, 3, 20),
+    )
+    assert result is not None and result > date(2026, 3, 20)
+
+def test_calendar_occurrence_day_of_month_none_day() -> None:
+    """Line 163/165: _calendar_occurrence returns None for KIND_DAY_OF_MONTH with day=None."""
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        KIND_DAY_OF_MONTH,
+        KIND_NTH_WEEKDAY,
+        Schedule,
+    )
+
+    # day=None → _calendar_occurrence returns None (line 163)
+    s = Schedule(kind=KIND_DAY_OF_MONTH, day=None)
+    result = s.next_due(last_performed=None, created_at=None, last_planned_due=None, today=date(2026, 5, 1))
+    assert result is None
+
+    # nth=None → _calendar_occurrence returns None (line 157)
+    s2 = Schedule(kind=KIND_NTH_WEEKDAY, nth=None, weekday=5)
+    result2 = s2.next_due(last_performed=None, created_at=None, last_planned_due=None, today=date(2026, 5, 1))
+    assert result2 is None
+
+def test_schedule_next_due_kind_interval_zero_every() -> None:
+    """Lines 125: every <= 0 returns None."""
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        KIND_INTERVAL,
+        Schedule,
+    )
+
+    s = Schedule(kind=KIND_INTERVAL, every=0)
+    result = s.next_due(last_performed=None, created_at=None, last_planned_due=None, today=date(2026, 5, 1))
+    assert result is None
+
+def test_normalize_task_storage_strips_flat_keys() -> None:
+    """Lines 304-305: normalize_task_storage removes flat recurrence keys."""
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        FLAT_RECURRENCE_KEYS,
+        normalize_task_storage,
+    )
+
+    task = {
+        "schedule_type": "time_based",
+        "interval_days": 30,
+        "interval_unit": "days",
+        "interval_anchor": "completion",
+        "due_date": None,
+        "name": "Test",
+    }
+    out = normalize_task_storage(task)
+    # Should have a nested "schedule" key and flat keys removed
+    assert "schedule" in out
+    for key in FLAT_RECURRENCE_KEYS:
+        assert key not in out
+    assert out.get("name") == "Test"

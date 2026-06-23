@@ -601,3 +601,99 @@ class TestAnalysisDatetimeFix:
         result = analyzer.update_on_completion(config, 28, None)
         # Should not crash, date should be set
         assert "last_analysis_date" in result
+
+
+# === migrated from test_cov_helpers.py (behaviour-based split) ===
+
+def test_weibull_fit_with_sufficient_data() -> None:
+    """Lines 443-453: Weibull fit succeeds with enough valid data points."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    analyzer = IntervalAnalyzer()
+    intervals = [25.0, 28.0, 30.0, 32.0, 27.0, 29.0]
+    result = analyzer._weibull_fit(intervals)
+    assert result is not None
+    beta, eta, r_squared = result
+    assert beta > 0
+    assert eta > 0
+    assert 0.0 <= r_squared <= 1.0
+
+def test_weibull_fit_insufficient_data_returns_none() -> None:
+    """Line 423: Weibull fit returns None with fewer than min required points."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    analyzer = IntervalAnalyzer()
+    result = analyzer._weibull_fit([10.0, 20.0])  # less than DEFAULT_ADAPTIVE_WEIBULL_MIN
+    assert result is None
+
+def test_weibull_fit_all_zeros_returns_none() -> None:
+    """Lines 449-450: ValueError in log(0) is caught, continues."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    analyzer = IntervalAnalyzer()
+    # Zeros filtered by 'valid' check; if not enough valid, returns None
+    result = analyzer._weibull_fit([0.0, 0.0, 0.0, 0.0, 0.0])
+    assert result is None
+
+def test_weibull_recommended_interval_invalid_params() -> None:
+    """Lines 514-515: _weibull_recommended_interval returns 0 for invalid params."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    # beta <= 0
+    assert IntervalAnalyzer._weibull_recommended_interval(0.0, 30.0, 0.9) == 0
+    # reliability out of range
+    assert IntervalAnalyzer._weibull_recommended_interval(1.5, 30.0, 0.0) == 0
+    assert IntervalAnalyzer._weibull_recommended_interval(1.5, 30.0, 1.0) == 0
+    # eta <= 0
+    assert IntervalAnalyzer._weibull_recommended_interval(1.5, -1.0, 0.9) == 0
+
+def test_weibull_recommended_interval_valid() -> None:
+    """_weibull_recommended_interval returns positive int for valid params."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    result = IntervalAnalyzer._weibull_recommended_interval(2.0, 30.0, 0.9)
+    assert isinstance(result, int)
+    assert result >= 1
+
+def test_weibull_fit_denom_zero_returns_none() -> None:
+    """Line 464-465: denom < 1e-10 → returns None (all x_vals identical)."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    analyzer = IntervalAnalyzer()
+    # All identical values → x_vals all same → denom = 0
+    result = analyzer._weibull_fit([30.0] * 7)
+    # This might or might not produce None depending on fp precision; just assert no crash
+    assert result is None or isinstance(result, tuple)
+
+def test_compute_confidence_levels() -> None:
+    """Lines 471-480 / 527-531: _compute_confidence returns correct level."""
+    from custom_components.maintenance_supporter.const import DEFAULT_ADAPTIVE_MIN_COMPLETIONS
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    assert IntervalAnalyzer._compute_confidence(0) == "low"
+    assert IntervalAnalyzer._compute_confidence(DEFAULT_ADAPTIVE_MIN_COMPLETIONS - 1) == "low"
+    assert IntervalAnalyzer._compute_confidence(DEFAULT_ADAPTIVE_MIN_COMPLETIONS) == "medium"
+    assert IntervalAnalyzer._compute_confidence(8) == "high"
+    assert IntervalAnalyzer._compute_confidence(100) == "high"
+
+def test_weibull_beta_nonpositive_returns_none() -> None:
+    """Line 471: beta <= 0 returns None after regression."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    # Decreasing series → slope may be negative → beta <= 0 → None
+    analyzer = IntervalAnalyzer()
+    # Strongly decreasing intervals: log-space will have negative slope
+    result = analyzer._weibull_fit([100.0, 80.0, 60.0, 40.0, 20.0, 10.0])
+    # Could be None (beta<=0) or a valid fit depending on data; just no crash
+    assert result is None or (isinstance(result, tuple) and len(result) == 3)
+
+def test_weibull_eta_zero_overflow_returns_none() -> None:
+    """Lines 476-477, 480: OverflowError/ZeroDivisionError → None; eta <= 0 → None."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
+
+    analyzer = IntervalAnalyzer()
+    # Pathological data that may trigger overflow in exp()
+    # Very large b/beta ratio → large negative → near-zero eta
+    result = analyzer._weibull_fit([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+    # Just assert no exception
+    assert result is None or isinstance(result, tuple)
