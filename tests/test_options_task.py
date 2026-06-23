@@ -1256,6 +1256,22 @@ def test_build_trigger_config_parts_compound() -> None:
 # ─── migrated from test_coverage_97b.py (test-structure reorg) ───
 
 @pytest.fixture
+def cov97b_object_entry(hass: HomeAssistant) -> MockConfigEntry:
+    """Carried from test_coverage_97b.py: fixed far-past last_performed so the
+    migrated tests hit the same status branches as before the structure reorg."""
+    task = build_task_data(last_performed="2024-06-01")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97b_pump",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture
 def sensor_task_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Object with a sensor-based task that has trigger_config."""
     task = build_task_data(
@@ -1287,18 +1303,18 @@ def sensor_task_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_manage_tasks_invalid_selection(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 191: selecting a nonexistent task returns to menu (bypass schema)."""
     from custom_components.maintenance_supporter.config_flow_options_task import (
         MaintenanceOptionsFlow,
     )
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     flow = MaintenanceOptionsFlow()
     flow.hass = hass
-    flow._config_entry = hass.config_entries.async_get_entry(object_entry.entry_id)  # type: ignore[attr-defined]
-    flow.handler = object_entry.entry_id
+    flow._config_entry = hass.config_entries.async_get_entry(cov97b_object_entry.entry_id)  # type: ignore[attr-defined]
+    flow.handler = cov97b_object_entry.entry_id
 
     # Call directly with a task ID that isn't in tasks_data
     result = await flow.async_step_manage_tasks(
@@ -1311,12 +1327,12 @@ async def test_manage_tasks_invalid_selection(
 
 
 async def test_add_task_with_icon(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 843, 109: adding task with custom icon."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1342,18 +1358,18 @@ async def test_add_task_with_icon(
 
 
 async def test_time_based_invalid_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 904: interval <= 0 shows error (bypass NumberSelector min=1)."""
     from custom_components.maintenance_supporter.config_flow_options_task import (
         MaintenanceOptionsFlow,
     )
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     flow = MaintenanceOptionsFlow()
     flow.hass = hass
-    flow._config_entry = hass.config_entries.async_get_entry(object_entry.entry_id)  # type: ignore[attr-defined]
-    flow.handler = object_entry.entry_id
+    flow._config_entry = hass.config_entries.async_get_entry(cov97b_object_entry.entry_id)  # type: ignore[attr-defined]
+    flow.handler = cov97b_object_entry.entry_id
     flow._current_task = {
         "name": "Bad Interval",
         "type": MaintenanceTypeEnum.CLEANING,
@@ -1373,12 +1389,12 @@ async def test_time_based_invalid_interval(
 
 
 async def test_add_task_non_completion_anchor(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 103: anchor != 'completion' stored in task_data."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1408,12 +1424,12 @@ async def test_add_task_non_completion_anchor(
 
 
 async def test_edit_task_icon_and_nfc(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 301, 306: setting icon and NFC tag during task edit."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "manage_tasks"},
     )
@@ -1519,12 +1535,12 @@ async def test_get_global_options_no_global(
 
 
 async def test_adaptive_scheduling_min_exceeds_max(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 1207: min_interval > max_interval shows error."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "manage_tasks"},
     )
@@ -1556,13 +1572,13 @@ async def test_adaptive_scheduling_min_exceeds_max(
 
 
 async def test_adaptive_scheduling_with_env_entity(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 1225: setting environmental_entity in adaptive config."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
     hass.states.async_set("sensor.outdoor_temp", "20.0")
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "manage_tasks"},
     )
@@ -1591,19 +1607,19 @@ async def test_adaptive_scheduling_with_env_entity(
 
 
 async def test_adaptive_scheduling_legacy_store_none(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 1188, 1239-1245: adaptive scheduling with store=None (legacy path)."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     # Patch store to None
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    entry = hass.config_entries.async_get_entry(cov97b_object_entry.entry_id)
     assert entry is not None
     rd = entry.runtime_data
     original_store = rd.store
     rd.store = None
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "manage_tasks"},
     )
@@ -1636,18 +1652,18 @@ async def test_adaptive_scheduling_legacy_store_none(
 
 
 async def test_save_new_task_legacy_store_none(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 131-137: saving new task with last_performed when store is None."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    entry = hass.config_entries.async_get_entry(cov97b_object_entry.entry_id)
     assert entry is not None
     rd = entry.runtime_data
     original_store = rd.store
     rd.store = None
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1677,15 +1693,15 @@ async def test_save_new_task_legacy_store_none(
 
 
 async def test_trigger_threshold_below_and_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 382, 397: threshold with trigger_below and interval_days > 0."""
     hass.states.async_set("sensor.cov97b_below", "10.0", {
         "unit_of_measurement": "°C",
     })
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1729,13 +1745,13 @@ async def test_trigger_threshold_below_and_interval(
 
 
 async def test_trigger_state_change_with_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 612: state_change trigger with interval_days > 0."""
     hass.states.async_set("sensor.cov97b_state", "on")
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1772,14 +1788,14 @@ async def test_trigger_state_change_with_interval(
 
 
 async def test_trigger_runtime_with_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 695 (go_back), 721: runtime trigger with interval_days > 0.
     Actually testing line 1082 (the wrapper) + 721 (interval)."""
     hass.states.async_set("sensor.cov97b_runtime", "on")
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1815,13 +1831,13 @@ async def test_trigger_runtime_with_interval(
 
 
 async def test_trigger_counter_with_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 503: counter trigger with interval_days > 0."""
     hass.states.async_set("sensor.cov97b_counter", "50")
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
@@ -1860,18 +1876,18 @@ async def test_trigger_counter_with_interval(
 
 
 async def test_trigger_attribute_entity_unavailable(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 242: entity_state is None when attribute step shows form."""
     from custom_components.maintenance_supporter.config_flow_options_task import (
         MaintenanceOptionsFlow,
     )
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     flow = MaintenanceOptionsFlow()
     flow.hass = hass
-    flow._config_entry = hass.config_entries.async_get_entry(object_entry.entry_id)  # type: ignore[attr-defined]
-    flow.handler = object_entry.entry_id
+    flow._config_entry = hass.config_entries.async_get_entry(cov97b_object_entry.entry_id)  # type: ignore[attr-defined]
+    flow.handler = cov97b_object_entry.entry_id
     flow._current_task = {}
     flow._trigger_entity_id = "sensor.nonexistent"
     flow._trigger_entity_state = None  # type: ignore[assignment]
@@ -1887,12 +1903,12 @@ async def test_trigger_attribute_entity_unavailable(
 
 
 async def test_trigger_sensor_empty_entity(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 182: empty entity list shows error."""
-    await setup_integration(hass, global_entry_with_advanced, object_entry)
+    await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
-    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"next_step_id": "add_task"},
     )
