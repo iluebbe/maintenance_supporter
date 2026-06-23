@@ -1675,3 +1675,84 @@ async def test_ws_qr_generate_no_url_error(
     err = conn.send_error.call_args[0]
     assert err[1] == "no_url"
     assert "No URL" in err[2]
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (websocket/io.py section)
+# ===========================================================================
+
+
+_c97_msg_id = 0
+
+
+def _c97_nid() -> int:
+    global _c97_msg_id
+    _c97_msg_id += 1
+    return _c97_msg_id
+
+
+def _c97_conn() -> MagicMock:
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.send_message = MagicMock()
+    conn.subscriptions = {}
+    conn.user = MagicMock(is_admin=True)
+    return conn
+
+
+# ─── websocket/io.py: CSV import edge cases ──────────────────────────
+
+
+async def test_csv_import_too_large(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 132-133: CSV content exceeds 1MB limit."""
+    await setup_integration(hass, global_entry)
+    conn = _c97_conn()
+    # Create content > 1MB
+    large_content = "x" * (1_048_577)
+    await call_ws_handler(ws_import_csv, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/csv/import",
+        "csv_content": large_content,
+    })
+    conn.send_error.assert_called_once()
+    assert "too_large" in str(conn.send_error.call_args)
+
+
+async def test_csv_import_too_many_objects(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 137-138: CSV contains more than 1000 objects."""
+    await setup_integration(hass, global_entry)
+    conn = _c97_conn()
+    # Mock import_objects_csv to return > 1000 objects
+    mock_objects = [{"object": {"name": f"Obj{i}"}, "tasks": {}} for i in range(1001)]
+    with patch(
+        "custom_components.maintenance_supporter.helpers.csv_handler.import_objects_csv",
+        return_value=mock_objects,
+    ):
+        await call_ws_handler(ws_import_csv, hass, conn, {
+            "id": _c97_nid(), "type": "maintenance_supporter/csv/import",
+            "csv_content": "name\nObj1",
+        })
+    conn.send_error.assert_called_once()
+    assert "too_many" in str(conn.send_error.call_args)
+
+
+# ─── websocket/io.py: QR generate task not found ─────────────────────
+
+
+async def test_qr_generate_task_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 211-213: QR generate with nonexistent task_id."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+
+    await call_ws_handler(ws_generate_qr, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/qr/generate",
+        "entry_id": object_entry.entry_id,
+        "task_id": "nonexistent_task_zzz",
+    })
+    conn.send_error.assert_called_once()

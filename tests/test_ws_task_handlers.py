@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,6 +20,8 @@ from custom_components.maintenance_supporter.websocket.groups import (
     ws_create_group,
 )
 from custom_components.maintenance_supporter.websocket.tasks import (
+    _check_nfc_tag_duplicate,
+    _is_safe_url,
     _validate_compound_trigger,
     _validate_trigger_config,
     ws_complete_task,
@@ -1398,3 +1401,396 @@ async def test_ws_quick_complete_task_entry_not_found(
     assert conn.send_error.call_count == 1
     err_args = conn.send_error.call_args[0]
     assert err_args[1] == "not_found"
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (websocket/tasks.py section)
+# ===========================================================================
+
+
+_c97_msg_id = 0
+
+
+def _c97_nid() -> int:
+    global _c97_msg_id
+    _c97_msg_id += 1
+    return _c97_msg_id
+
+
+def _c97_conn() -> MagicMock:
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.send_message = MagicMock()
+    conn.subscriptions = {}
+    conn.user = MagicMock(is_admin=True)
+    return conn
+
+
+# ─── websocket/tasks.py: _is_safe_url ─────────────────────────────────
+
+
+def test_is_safe_url_empty() -> None:
+    """Line 36: empty URL returns True."""
+    assert _is_safe_url("") is True
+    assert _is_safe_url(None) is True
+
+
+def test_is_safe_url_protocol_relative() -> None:
+    """Line 39: protocol-relative URL rejected."""
+    assert _is_safe_url("//evil.com/hack") is False
+
+
+def test_is_safe_url_javascript() -> None:
+    """Non http/https schemes rejected (line 43)."""
+    assert _is_safe_url("javascript:alert(1)") is False
+    assert _is_safe_url("data:text/html,<h1>hi</h1>") is False
+
+
+def test_is_safe_url_valid() -> None:
+    """Valid http/https URLs accepted."""
+    assert _is_safe_url("https://example.com/docs") is True
+    assert _is_safe_url("http://example.com") is True
+
+
+def test_is_safe_url_exception() -> None:
+    """Lines 44-45: exception in urlparse returns False."""
+    with patch(
+        "urllib.parse.urlparse",
+        side_effect=ValueError("bad url"),
+    ):
+        assert _is_safe_url("https://example.com") is False
+
+
+# ─── websocket/tasks.py: _check_nfc_tag_duplicate ─────────────────────
+
+
+async def test_nfc_tag_duplicate_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 67: duplicate NFC tag returns warning string."""
+    task = build_task_data()
+    task["nfc_tag_id"] = "TAG_ABC"
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pump1", source="user",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        unique_id="maintenance_supporter_nfc_dup1",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    result = _check_nfc_tag_duplicate(hass, "TAG_ABC")
+    assert result is not None
+    assert "TAG_ABC" in result
+    assert "already linked" in result
+
+
+async def test_nfc_tag_duplicate_excluded(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Excluding the same task_id should not report duplicate."""
+    task = build_task_data()
+    task["nfc_tag_id"] = "TAG_XYZ"
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pump2", source="user",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        unique_id="maintenance_supporter_nfc_dup2",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    result = _check_nfc_tag_duplicate(hass, "TAG_XYZ", exclude_task_id=TASK_ID_1)
+    assert result is None
+
+
+# ─── websocket/tasks.py: _validate_trigger_config (compound) ──────────
+
+
+def test_validate_compound_trigger_invalid_logic(hass: HomeAssistant) -> None:
+    """Line 186: invalid compound_logic."""
+    errors, _ = _validate_trigger_config(hass, {
+        "type": "compound",
+        "compound_logic": "XOR",
+        "conditions": [
+            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+            {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 20},
+        ],
+    })
+    assert any("compound_logic" in e for e in errors)
+
+
+def test_validate_compound_trigger_non_dict_condition(hass: HomeAssistant) -> None:
+    """Lines 199-200: non-dict condition."""
+    errors, _ = _validate_trigger_config(hass, {
+        "type": "compound",
+        "compound_logic": "AND",
+        "conditions": [
+            "not_a_dict",
+            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+        ],
+    })
+    assert any("must be a dict" in e for e in errors)
+
+
+def test_validate_compound_trigger_nested_compound(hass: HomeAssistant) -> None:
+    """Nested compound triggers are not allowed."""
+    errors, _ = _validate_trigger_config(hass, {
+        "type": "compound",
+        "compound_logic": "AND",
+        "conditions": [
+            {"type": "compound", "conditions": []},
+            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+        ],
+    })
+    assert any("nested compound" in e for e in errors)
+
+
+def test_validate_compound_trigger_sub_errors(hass: HomeAssistant) -> None:
+    """Line 210: sub-condition errors are prefixed with condition index."""
+    errors, _ = _validate_trigger_config(hass, {
+        "type": "compound",
+        "compound_logic": "AND",
+        "conditions": [
+            {"type": "threshold", "entity_id": "sensor.a"},  # missing above/below
+            {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 10},
+        ],
+    })
+    assert any("Condition 0:" in e for e in errors)
+
+
+def test_validate_trigger_entity_ids_backfill(hass: HomeAssistant) -> None:
+    """Line 131: entity_id is backfilled from entity_ids[0] when not set."""
+    tc: dict[str, Any] = {
+        "type": "threshold",
+        "entity_ids": ["sensor.temp1", "sensor.temp2"],
+        "trigger_above": 30,
+    }
+    hass.states.async_set("sensor.temp1", "25")
+    hass.states.async_set("sensor.temp2", "26")
+    errors, _ = _validate_trigger_config(hass, tc)
+    assert not errors
+    assert tc["entity_id"] == "sensor.temp1"
+
+
+# ─── websocket/tasks.py: ws_create_task edge paths ────────────────────
+
+
+async def test_create_task_global_entry_rejected(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 275: creating task on global entry returns not_found."""
+    await setup_integration(hass, global_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
+        "entry_id": global_entry.entry_id,
+        "name": "Test",
+    })
+    conn.send_error.assert_called_once()
+    assert "not_found" in str(conn.send_error.call_args)
+
+
+async def test_create_task_unsafe_url(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 301-302: unsafe documentation_url rejected."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
+        "entry_id": object_entry.entry_id,
+        "name": "Bad URL",
+        "documentation_url": "javascript:alert(1)",
+    })
+    conn.send_error.assert_called_once()
+    assert "invalid_url" in str(conn.send_error.call_args)
+
+
+async def test_create_task_nfc_duplicate_warning(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 323, 325, 370: NFC duplicate warning + checklist in create result."""
+    task = build_task_data()
+    task["nfc_tag_id"] = "TAG_DUP_CREATE"
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pump NFC", source="user",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        unique_id="maintenance_supporter_nfc_create",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    conn = _c97_conn()
+
+    # Create second task with same NFC tag + checklist
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
+        "entry_id": obj_entry.entry_id,
+        "name": "New Task",
+        "nfc_tag_id": "TAG_DUP_CREATE",
+        "checklist": ["Step 1", "Step 2"],
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert "warnings" in result
+    assert any("already linked" in w for w in result["warnings"])
+
+
+async def test_create_task_legacy_store_path(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 359-363: legacy path when Store is None writes to ConfigEntry.data."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    # Patch runtime_data to have store=None
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    rd = entry.runtime_data
+    original_store = rd.store
+    rd.store = None
+
+    conn = _c97_conn()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
+        "entry_id": object_entry.entry_id,
+        "name": "Legacy Task",
+        "last_performed": "2024-03-01",
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert "task_id" in result
+
+    # Restore
+    rd.store = original_store
+
+
+# ─── websocket/tasks.py: ws_update_task edge paths ────────────────────
+
+
+async def test_update_task_invalid_entity_slug(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 431-438: invalid entity_slug rejected."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_update_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/update",
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "entity_slug": "INVALID-Slug!",
+    })
+    conn.send_error.assert_called_once()
+    assert "invalid_entity_slug" in str(conn.send_error.call_args)
+
+
+async def test_update_task_nfc_duplicate_warning(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 444, 497: NFC duplicate warning on update."""
+    task1 = build_task_data(task_id=TASK_ID_1, name="Task A")
+    task1["nfc_tag_id"] = "TAG_UP1"
+    task2 = build_task_data(task_id=TASK_ID_2, name="Task B")
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Multi Task", source="user",
+        data=build_object_entry_data(
+            tasks={TASK_ID_1: task1, TASK_ID_2: task2}
+        ),
+        unique_id="maintenance_supporter_nfc_update",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, obj_entry)
+    conn = _c97_conn()
+
+    # Update task2 to have same NFC tag as task1
+    await call_ws_handler(ws_update_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/update",
+        "entry_id": obj_entry.entry_id,
+        "task_id": TASK_ID_2,
+        "nfc_tag_id": "TAG_UP1",
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result.get("warnings")
+
+
+async def test_update_task_unsafe_url(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 448-449: unsafe documentation_url on update."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_update_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/update",
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "documentation_url": "//evil.com/payload",
+    })
+    conn.send_error.assert_called_once()
+    assert "invalid_url" in str(conn.send_error.call_args)
+
+
+# ─── websocket/tasks.py: ws_list_tasks with entry_id filter ───────────
+
+
+async def test_list_tasks_filtered_by_entry_id(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Line 590: entry_id filter skips non-matching entries."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    ws_list_tasks(hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/list",
+        "entry_id": object_entry.entry_id,
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert len(result["tasks"]) == 1
+    assert result["tasks"][0]["entry_id"] == object_entry.entry_id
+
+
+# ─── websocket/tasks.py: task action not-found paths ──────────────────
+
+
+async def test_complete_task_not_found_c97(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 641-642: task not found in ws_complete_task."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_complete_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/complete",
+        "entry_id": object_entry.entry_id,
+        "task_id": "nonexistent_task_id_zzz",
+    })
+    conn.send_error.assert_called_once()
+
+
+async def test_skip_task_not_found_c97(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 677-678: task not found in ws_skip_task."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_skip_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/skip",
+        "entry_id": object_entry.entry_id,
+        "task_id": "nonexistent_task_id_zzz",
+    })
+    conn.send_error.assert_called_once()
+
+
+async def test_reset_task_not_found_c97(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 711-712: task not found in ws_reset_task."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_reset_task, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/task/reset",
+        "entry_id": object_entry.entry_id,
+        "task_id": "nonexistent_task_id_zzz",
+    })
+    conn.send_error.assert_called_once()

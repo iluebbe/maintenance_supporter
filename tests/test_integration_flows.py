@@ -15,6 +15,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_ADVANCED_SEASONAL,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_MONTHLY,
@@ -825,3 +826,123 @@ async def test_service_add_object_value_error(hass: HomeAssistant) -> None:
                 {"name": "Test Object"},
                 blocking=True,
             )
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (__init__.py section)
+# ===========================================================================
+
+
+@pytest.fixture
+def c97_object_entry(hass: HomeAssistant) -> MockConfigEntry:
+    """Object entry with one time-based task (carried from test_coverage_97.py)."""
+    task = build_task_data(last_performed="2024-06-01")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_cov97_pump",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# ─── __init__.py: service call task_id not found ──────────────────────
+
+
+async def test_service_complete_task_id_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, c97_object_entry: MockConfigEntry,
+) -> None:
+    """Lines 120 (and 144, 166): task_id not found raises ServiceValidationError."""
+    await setup_integration(hass, global_entry, c97_object_entry)
+
+    # Register a fake entity that has a unique_id that doesn't match any task
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        domain="sensor",
+        platform=DOMAIN,
+        unique_id="maintenance_supporter_pump_nomatch",
+        config_entry=c97_object_entry,
+    )
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "complete_maintenance",
+            {"entity_id": "sensor.maintenance_supporter_pump_nomatch"},
+            blocking=True,
+        )
+
+
+async def test_service_reset_task_id_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, c97_object_entry: MockConfigEntry,
+) -> None:
+    """Line 144: reset service with entity whose task_id can't be found."""
+    await setup_integration(hass, global_entry, c97_object_entry)
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        domain="sensor",
+        platform=DOMAIN,
+        unique_id="maintenance_supporter_pump_noreset",
+        config_entry=c97_object_entry,
+    )
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "reset_maintenance",
+            {"entity_id": "sensor.maintenance_supporter_pump_noreset"},
+            blocking=True,
+        )
+
+
+async def test_service_skip_task_id_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, c97_object_entry: MockConfigEntry,
+) -> None:
+    """Line 166: skip service with entity whose task_id can't be found."""
+    await setup_integration(hass, global_entry, c97_object_entry)
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        domain="sensor",
+        platform=DOMAIN,
+        unique_id="maintenance_supporter_pump_noskip",
+        config_entry=c97_object_entry,
+    )
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "skip_maintenance",
+            {"entity_id": "sensor.maintenance_supporter_pump_noskip"},
+            blocking=True,
+        )
+
+
+# ─── __init__.py: _detect_advanced_feature_usage seasonal ─────────────
+
+
+async def test_detect_seasonal_feature_usage(
+    hass: HomeAssistant,
+) -> None:
+    """Line 341: seasonal_enabled detected in _detect_advanced_feature_usage."""
+    from custom_components.maintenance_supporter import _detect_advanced_feature_usage
+
+    ge = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter", source="user",
+        data=build_global_entry_data(), unique_id=GLOBAL_UNIQUE_ID,
+    )
+    ge.add_to_hass(hass)
+
+    task = build_task_data()
+    task["adaptive_config"] = {"seasonal_enabled": True}
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Seasonal Pump", source="user",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        unique_id="maintenance_supporter_cov97_seasonal",
+    )
+    obj_entry.add_to_hass(hass)
+
+    result = _detect_advanced_feature_usage(hass, {})
+    assert result[CONF_ADVANCED_SEASONAL] is True

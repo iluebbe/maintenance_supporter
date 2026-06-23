@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import uuid4
+
 import pytest
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.data_entry_flow import FlowResultType
@@ -16,6 +18,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_GROUPS,
     CONF_DEFAULT_WARNING_DAYS,
+    CONF_GROUPS,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
     DOMAIN,
@@ -753,3 +756,177 @@ async def test_get_default_warning_days_noncasted(hass: HomeAssistant) -> None:
 
     result = get_default_warning_days(hass)
     assert result == DEFAULT_WARNING_DAYS
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py
+# (config_flow_options_global.py section)
+# ===========================================================================
+
+
+# ─── config_flow_options_global.py: redirect steps ────────────────────
+
+
+async def test_global_options_redirect_steps(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 201, 208: redirect wrapper steps."""
+    await setup_integration(hass, global_entry)
+
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        GlobalOptionsFlow,
+    )
+
+    # Create flow instance the HA way
+    flow = GlobalOptionsFlow()
+    flow.hass = hass
+    flow.handler = global_entry.entry_id
+    flow._common_handler = global_entry.entry_id  # type: ignore[attr-defined]
+    # Set config_entry via internal attribute
+    flow._config_entry = global_entry  # type: ignore[attr-defined]
+
+    # async_step_global_init → async_step_init
+    result = await flow.async_step_global_init()
+    assert result["type"] == FlowResultType.MENU
+
+    # async_step_global_options → async_step_init
+    result = await flow.async_step_global_options()
+    assert result["type"] == FlowResultType.MENU
+
+
+# ─── config_flow_options_global.py: group management ──────────────────
+
+
+async def test_manage_groups_delete(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 671-680: _delete_group removes group and returns menu."""
+    # Add a group via options
+    group_id = uuid4().hex
+    hass.config_entries.async_update_entry(
+        global_entry, options={
+            **dict(global_entry.data),
+            "advanced_groups": True,
+            CONF_GROUPS: {
+                group_id: {
+                    "name": "Test Group",
+                    "description": "A test group",
+                    "task_refs": [],
+                },
+            },
+        },
+    )
+    await setup_integration(hass, global_entry)
+
+    # Navigate to manage_groups and select the group to delete
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    assert result["type"] == FlowResultType.MENU
+    assert "manage_groups" in result["menu_options"]
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "manage_groups"},
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    # Select the group (triggers _delete_group)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"selected_group": group_id},
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    # Verify group was deleted
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry is not None
+    groups = (entry.options or entry.data).get(CONF_GROUPS, {})
+    assert group_id not in groups
+
+
+async def test_manage_groups_no_groups_redirects_to_add(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 595-597: no groups → redirect to add_group form."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        GlobalOptionsFlow,
+    )
+
+    hass.config_entries.async_update_entry(
+        global_entry, options={
+            **dict(global_entry.data),
+            "advanced_adaptive": False,
+            "advanced_groups": True,
+            CONF_GROUPS: {},
+        },
+    )
+    await setup_integration(hass, global_entry)
+
+    # Create flow instance directly to bypass menu navigation
+    flow = GlobalOptionsFlow()
+    flow.hass = hass
+    flow.handler = global_entry.entry_id
+    # Set config_entry to the current entry
+    entry = hass.config_entries.async_get_entry(global_entry.entry_id)
+    assert entry is not None
+    flow._config_entry = entry  # type: ignore[attr-defined]
+
+    # Call manage_groups directly — with no groups, should redirect to add_group
+    result = await flow.async_step_manage_groups()
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "add_group"
+
+
+async def test_manage_groups_select_add_new(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 590-591: selecting _add_new in manage_groups."""
+    group_id = uuid4().hex
+    hass.config_entries.async_update_entry(
+        global_entry, options={
+            **dict(global_entry.data),
+            "advanced_adaptive": False,
+            "advanced_groups": True,
+            CONF_GROUPS: {
+                group_id: {"name": "Existing", "description": "", "task_refs": []},
+            },
+        },
+    )
+    await setup_integration(hass, global_entry)
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "manage_groups"},
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    # Select _add_new
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"selected_group": "_add_new"},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "add_group"
+
+
+# ─── config_flow_options_global.py: test_notification flow step ───────
+
+
+async def test_config_flow_test_notification_invalid_service(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 477: test_notification step with invalid service."""
+    hass.config_entries.async_update_entry(
+        global_entry, options={
+            **dict(global_entry.data),
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "bad_service",
+        },
+    )
+    await setup_integration(hass, global_entry)
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    assert "test_notification" in result["menu_options"]
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "test_notification"},
+    )
+    # Should show form with result (invalid service)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "test_notification"

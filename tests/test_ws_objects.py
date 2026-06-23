@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.websocket.groups import (
 from custom_components.maintenance_supporter.websocket.objects import (
     ws_create_object,
     ws_delete_object,
+    ws_entity_attributes,
     ws_get_object,
     ws_get_objects,
     ws_update_object,
@@ -1052,3 +1053,91 @@ class TestChecklistWsApi:
 
         result_empty = schema({})
         assert "checklist" not in result_empty
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (websocket/objects.py section)
+# ===========================================================================
+
+
+_c97_msg_id = 0
+
+
+def _c97_nid() -> int:
+    global _c97_msg_id
+    _c97_msg_id += 1
+    return _c97_msg_id
+
+
+def _c97_conn() -> MagicMock:
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.send_message = MagicMock()
+    conn.subscriptions = {}
+    conn.user = MagicMock(is_admin=True)
+    return conn
+
+
+# ─── websocket/objects.py: ws_entity_attributes ──────────────────────
+
+
+def test_ws_entity_attributes(hass: HomeAssistant) -> None:
+    """Lines 209-212: ws_entity_attributes returns entity attribute info."""
+    hass.states.async_set("sensor.test_cov97", "25.0", {
+        "unit_of_measurement": "°C",
+        "friendly_name": "Test Sensor",
+    })
+    conn = _c97_conn()
+    ws_entity_attributes(hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/entity/attributes",
+        "entity_id": "sensor.test_cov97",
+    })
+    conn.send_result.assert_called_once()
+
+
+# ─── websocket/objects.py: create object failure path ─────────────────
+
+
+async def test_create_object_failure(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 118: create_failed when flow doesn't produce create_entry."""
+    await setup_integration(hass, global_entry)
+    conn = _c97_conn()
+
+    # Mock config flow to return abort instead of create_entry
+    with patch.object(
+        hass.config_entries.flow, "async_init",
+        return_value={"type": "abort", "reason": "test"},
+    ):
+        await call_ws_handler(ws_create_object, hass, conn, {
+            "id": _c97_nid(), "type": "maintenance_supporter/object/create",
+            "name": "Test Object",
+        })
+    conn.send_error.assert_called_once()
+    assert "create_failed" in str(conn.send_error.call_args)
+
+
+# ─── websocket/objects.py: update object installation_date ────────────
+
+
+async def test_update_object_installation_date(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Line 159: installation_date field update."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+
+    await call_ws_handler(ws_update_object, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/object/update",
+        "entry_id": object_entry.entry_id,
+        "installation_date": "2023-01-15",
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is True
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    assert entry.data["object"]["installation_date"] == "2023-01-15"
