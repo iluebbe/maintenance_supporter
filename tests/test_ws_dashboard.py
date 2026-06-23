@@ -932,3 +932,135 @@ async def test_test_notification_service_call_fails(
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert result["success"] is False
+
+
+# ===========================================================================
+# Coverage tests carried from test_cov_ws.py (websocket/dashboard.py section)
+# ===========================================================================
+
+
+def _covws_conn() -> MagicMock:
+    """Create a mock WS connection (carried from test_cov_ws.py)."""
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
+    conn.subscriptions = {}
+    conn.send_message = MagicMock()
+    return conn
+
+
+@pytest.fixture
+def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# Lines 197-200: _vacation_summary — _parse returns None for invalid date string
+async def test_settings_vacation_summary_invalid_date(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """_vacation_summary: non-date start/end strings are treated as None."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_VACATION_BUFFER_DAYS,
+        CONF_VACATION_ENABLED,
+        CONF_VACATION_END,
+        CONF_VACATION_START,
+    )
+    from custom_components.maintenance_supporter.websocket.dashboard import ws_get_settings
+
+    # Set garbage dates via entry options
+    await setup_integration(hass, covws_global_entry)
+    options = {
+        CONF_VACATION_ENABLED: True,
+        CONF_VACATION_START: "not-a-date",
+        CONF_VACATION_END: "also-bad",
+        CONF_VACATION_BUFFER_DAYS: 2,
+    }
+    hass.config_entries.async_update_entry(covws_global_entry, options=options)
+
+    conn = _covws_conn()
+    await call_ws_handler(ws_get_settings, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/settings",
+    })
+
+    result = conn.send_result.call_args[0][1]
+    vacation = result["vacation"]
+    assert vacation["start"] is None
+    assert vacation["end"] is None
+    assert vacation["is_active"] is False
+
+
+# Line 496: ws_update_global_settings — invalid notification_title_style is dropped
+async def test_update_global_settings_invalid_title_style_dropped(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_update_global_settings: unknown notification_title_style is silently dropped."""
+    from custom_components.maintenance_supporter.const import CONF_NOTIFICATION_TITLE_STYLE
+
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    # Send an unknown style; must be dropped so no error is raised but setting
+    # is not persisted
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/global/update",
+        "settings": {
+            CONF_NOTIFICATION_TITLE_STYLE: "unicorn_style",
+            # Also include a valid setting to avoid "no valid keys" error
+            "default_warning_days": 10,
+        },
+    })
+
+    result = conn.send_result.call_args[0][1]
+    # The valid setting was accepted
+    assert result is not None
+    # The garbage title_style must NOT be in the merged options
+    entry = hass.config_entries.async_get_entry(covws_global_entry.entry_id)
+    opts = entry.options or entry.data
+    assert opts.get(CONF_NOTIFICATION_TITLE_STYLE) != "unicorn_style"
+
+
+# Lines 515-530: ws_update_global_settings — admin_panel_user_ids sanitized
+async def test_update_global_settings_admin_user_ids_sanitized(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_update_global_settings: admin_panel_user_ids list is deduped and stripped."""
+    from custom_components.maintenance_supporter.const import CONF_ADMIN_PANEL_USER_IDS
+
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    raw_ids = [
+        "  abc123  ",      # should be stripped
+        "abc123",          # duplicate — should be deduped
+        "",                # empty — should be dropped
+        42,                # non-string — should be dropped
+        "valid_user_id",   # valid
+    ]
+
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/global/update",
+        "settings": {CONF_ADMIN_PANEL_USER_IDS: raw_ids},
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result is not None
+
+    entry = hass.config_entries.async_get_entry(covws_global_entry.entry_id)
+    opts = entry.options or entry.data
+    cleaned = opts.get(CONF_ADMIN_PANEL_USER_IDS, [])
+    # Duplicates removed, whitespace stripped, non-strings and empty strings dropped
+    assert "abc123" in cleaned
+    assert "valid_user_id" in cleaned
+    # Only one copy of abc123
+    assert cleaned.count("abc123") == 1
+    # No empty strings
+    assert "" not in cleaned

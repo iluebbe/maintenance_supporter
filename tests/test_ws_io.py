@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.helpers.schedule import (
     read_legacy_fields,
 )
 from custom_components.maintenance_supporter.websocket.io import (
+    ws_batch_generate_qr,
     ws_export_csv,
     ws_export_data,
     ws_export_objects_csv,
@@ -1205,3 +1206,356 @@ async def test_generate_qr_rejects_global(
     })
 
     conn.send_error.assert_called_once()
+
+
+# ===========================================================================
+# Coverage tests carried from test_cov_ws.py (websocket/io.py section)
+# ===========================================================================
+
+
+def _covws_conn() -> MagicMock:
+    """Create a mock WS connection (carried from test_cov_ws.py)."""
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
+    conn.subscriptions = {}
+    conn.send_message = MagicMock()
+    return conn
+
+
+@pytest.fixture
+def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture
+def covws_object_entry(hass: HomeAssistant) -> MockConfigEntry:
+    task = build_task_data(last_performed="2024-06-01")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_pool_pump_cov",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# Lines 177-181: CSV import — unexpected exception during flow.async_init
+async def test_csv_import_flow_exception(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_csv: exception in flow.async_init is caught, appended to errors."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    # CSV format requires object_name + task_name columns
+    csv_content = "object_name,task_name\nPump A,Filter Clean\n"
+
+    async def _raise(*args, **kwargs):
+        raise RuntimeError("simulated flow error")
+
+    with patch.object(hass.config_entries.flow, "async_init", side_effect=_raise):
+        await call_ws_handler(ws_import_csv, hass, conn, {
+            "id": 1, "type": "maintenance_supporter/csv/import",
+            "csv_content": csv_content,
+        })
+
+    # send_result is called even when all rows error
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 0
+    assert "errors" in result
+    assert any("unexpected error" in e.get("reason", "") for e in result["errors"])
+
+
+# Lines 192-193: CSV import — flow returns non-create_entry type
+async def test_csv_import_flow_aborted(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_csv: a flow result that isn't create_entry appends to errors."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    # CSV format requires object_name + task_name columns
+    csv_content = "object_name,task_name\nPump Fail,Filter\n"
+
+    async def _abort(*args, **kwargs):
+        return {"type": "abort", "reason": "already_configured"}
+
+    with patch.object(hass.config_entries.flow, "async_init", side_effect=_abort):
+        await call_ws_handler(ws_import_csv, hass, conn, {
+            "id": 1, "type": "maintenance_supporter/csv/import",
+            "csv_content": csv_content,
+        })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 0
+    assert "errors" in result
+    assert result["errors"][0]["reason"] == "already_configured"
+
+
+# Line 201: CSV import — resp includes "errors" key when errors list is non-empty
+# (already covered by tests above — this tests the resp dict branch explicitly)
+async def test_csv_import_errors_key_in_response(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_csv: 'errors' key appears in resp iff errors is non-empty."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    # CSV format requires object_name + task_name columns
+    csv_content = "object_name,task_name\nOK Pump,Filter\n"
+
+    async def _success(*args, **kwargs):
+        fake_entry = MagicMock()
+        fake_entry.entry_id = "fake123"
+        return {"type": "create_entry", "result": fake_entry}
+
+    with patch.object(hass.config_entries.flow, "async_init", side_effect=_success):
+        await call_ws_handler(ws_import_csv, hass, conn, {
+            "id": 1, "type": "maintenance_supporter/csv/import",
+            "csv_content": csv_content,
+        })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+    # No errors → key should NOT be present
+    assert "errors" not in result
+
+
+# Lines 220-221: ws_import_json — YAML parsing fallback; YAML error → invalid_format
+async def test_json_import_invalid_yaml(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: content that fails both JSON and YAML parse → invalid_format."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    # Deliberately broken YAML that yaml.safe_load raises on
+    bad_content = "key: :\n  - broken: [unclosed"
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": bad_content,
+    })
+
+    conn.send_error.assert_called_once()
+    args = conn.send_error.call_args[0]
+    assert args[1] == "invalid_format"
+
+
+# Lines 245-246: ws_import_json — oversized content
+async def test_json_import_too_large(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: content > 10MB → too_large error."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    big_content = "x" * (10_485_760 + 1)
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": big_content,
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "too_large"
+
+
+# Lines 262-263: ws_import_json — 'objects' key present but not a list
+async def test_json_import_objects_not_list(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: 'objects' is a dict (not list) → invalid_format."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    content = json.dumps({"objects": {"bad": "shape"}})
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": content,
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_format"
+
+
+# Lines 266-267: ws_import_json — objects list exceeds 1000
+async def test_json_import_too_many_objects(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: objects list > 1000 → too_many error."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    objects = [{"object": {"name": f"obj{i}"}, "tasks": []} for i in range(1001)]
+    content = json.dumps({"objects": objects})
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": content,
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "too_many"
+
+
+# Line 298: ws_import_json — task with invalid interval_days (< 1) is sanitized
+async def test_json_import_sanitizes_invalid_interval_days(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: task with interval_days=0 has that field dropped (sanitized)."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    content = json.dumps({"objects": [{
+        "object": {"name": "Sanitize Test"},
+        "tasks": [{
+            "name": "Bad interval",
+            "interval_days": 0,  # invalid — must be dropped
+        }],
+    }]})
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": content,
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+
+
+# Lines 328, 334-335: ws_import_json — task with invalid schedule_time stripped
+async def test_json_import_sanitizes_invalid_schedule_time(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: task with bad schedule_time (not HH:MM) has it dropped."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    content = json.dumps({"objects": [{
+        "object": {"name": "SchedTime Test"},
+        "tasks": [{
+            "name": "Bad schedule_time",
+            "schedule_time": "99:99",  # invalid
+        }],
+    }]})
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": content,
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+
+
+# Line 338: ws_import_json — task with out-of-range warning_days replaced by default
+async def test_json_import_sanitizes_warning_days(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: task with warning_days=999 is clamped to the default."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    content = json.dumps({"objects": [{
+        "object": {"name": "WarningDays Test"},
+        "tasks": [{
+            "name": "Bad warning days",
+            "warning_days": 999,
+        }],
+    }]})
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": content,
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+
+
+# Line 346: ws_import_json — task checklist with non-list value is dropped
+async def test_json_import_sanitizes_non_list_checklist(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_import_json: checklist that is not a list is silently dropped."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    content = json.dumps({"objects": [{
+        "object": {"name": "Checklist Test"},
+        "tasks": [{
+            "name": "Checklist task",
+            "checklist": "not a list",
+        }],
+    }]})
+
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": content,
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["created"] == 1
+
+
+# Lines 457-459: ws_batch_generate_qr — empty result set (no tasks match)
+async def test_batch_qr_empty_result(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_batch_generate_qr: filtering yields 0 targets → empty result."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_batch_generate_qr, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/qr/batch_generate",
+        "entry_ids": ["nonexistent_entry"],
+        "actions": ["complete"],
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["total"] == 0
+    assert result["qrs"] == []
+
+
+# Lines 591-595: ws_batch_generate_qr — URL build raises ValueError (no HA URL)
+async def test_batch_qr_skips_on_url_error(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_batch_generate_qr: ValueError from build_qr_url skips that row."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    with patch(
+        "custom_components.maintenance_supporter.websocket.io.build_qr_url",
+        side_effect=ValueError("no URL"),
+    ):
+        await call_ws_handler(ws_batch_generate_qr, hass, conn, {
+            "id": 1, "type": "maintenance_supporter/qr/batch_generate",
+            "actions": ["complete"],
+        })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    # All rows were skipped due to ValueError — total is 0
+    assert result["total"] == 0

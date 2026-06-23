@@ -925,3 +925,67 @@ def test_build_object_response_exposes_notes(
     result2 = _build_object_response(hass, entry2, None)
     assert "notes" in result2["object"]
     assert result2["object"]["notes"] is None
+
+
+# ===========================================================================
+# Coverage tests carried from test_cov_ws.py (websocket/objects.py section)
+# ===========================================================================
+
+
+def _covws_conn() -> MagicMock:
+    """Create a mock WS connection (carried from test_cov_ws.py)."""
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
+    conn.subscriptions = {}
+    conn.send_message = MagicMock()
+    return conn
+
+
+@pytest.fixture
+def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# Lines 169-175: ws_create_object — invalid installation_date format → invalid_date
+async def test_create_object_invalid_installation_date(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_create_object: bad installation_date format → invalid_date error."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_create_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/create",
+        "name": "Test Object",
+        "installation_date": "not-a-date",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_date"
+
+
+# Lines 180-181: ws_create_object — unsafe documentation_url → invalid_url
+async def test_create_object_unsafe_documentation_url(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_create_object: javascript: URL in documentation_url → invalid_url error."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_create_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/create",
+        "name": "Test Object",
+        "documentation_url": "javascript:alert('xss')",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_url"
