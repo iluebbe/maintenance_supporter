@@ -75,6 +75,30 @@ def _make_entry(
     return entry
 
 
+def _global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _object_entry(hass: HomeAssistant, tasks: dict | None = None) -> MockConfigEntry:
+    if tasks is None:
+        tasks = {TASK_ID_1: build_task_data()}
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks=tasks),
+        source="user", unique_id="test_object_unique",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
 # ─── Sensor Prediction Integration in _async_update_data ─────────────
 
 
@@ -779,3 +803,81 @@ async def test_budget_yearly_alert(hass: HomeAssistant) -> None:
     coordinator = entry.runtime_data.coordinator
     await coordinator._async_check_budget({})
     mock_nm.async_budget_alert.assert_called_once_with("yearly", 450.0, 500.0, "€")
+
+
+# ─── _is_schedule_time_feature_enabled (no global entry) ──────────────────
+
+
+async def test_coordinator_no_global_schedule_time_returns_false(hass: HomeAssistant) -> None:
+    """When only an object entry exists (no global), _is_schedule_time_feature_enabled returns False."""
+    # Build an object entry only — no global entry
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: build_task_data()}),
+        source="user", unique_id="only_object",
+    )
+    obj_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(obj_entry.entry_id)
+    await hass.async_block_till_done()
+
+    rd = getattr(obj_entry, "runtime_data", None)
+    coord = rd.coordinator if rd else None
+    assert coord is not None, "Coordinator should be created"
+    # Call the feature flag method — no global entry → must return False
+    result = coord._is_schedule_time_feature_enabled()
+    assert result is False
+
+
+# ─── _persist_dynamic_state: last_planned_due set / cleared ───────────────
+
+
+async def test_coordinator_persist_dynamic_state_with_last_planned_due(hass: HomeAssistant) -> None:
+    """_persist_dynamic_state sets last_planned_due in store when it's present in task dict."""
+    ge = _global_entry(hass)
+    oe = _object_entry(hass)
+    await setup_integration(hass, ge, oe)
+
+    rd = oe.runtime_data
+    coord = rd.coordinator
+
+    # Get a real task from the coordinator
+    from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+    task_data = coord.entry.data.get(CONF_TASKS, {}).get(TASK_ID_1, {})
+    task = MaintenanceTask.from_dict(task_data)
+    task.last_planned_due = "2026-01-01"
+
+    # Call _persist_dynamic_state and verify store has last_planned_due
+    coord._persist_dynamic_state(TASK_ID_1, task)
+
+    store = coord._store
+    assert store is not None
+    state = store._data["tasks"].get(TASK_ID_1, {})
+    assert state.get("last_planned_due") == "2026-01-01"
+
+
+async def test_coordinator_persist_dynamic_state_clears_last_planned_due(hass: HomeAssistant) -> None:
+    """_persist_dynamic_state deletes last_planned_due from store when task has none."""
+    ge = _global_entry(hass)
+    oe = _object_entry(hass)
+    await setup_integration(hass, ge, oe)
+
+    rd = oe.runtime_data
+    coord = rd.coordinator
+    store = coord._store
+    assert store is not None
+
+    # Pre-set last_planned_due in store
+    task_state = store._ensure_task(TASK_ID_1)
+    task_state["last_planned_due"] = "2025-12-01"
+
+    from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+    task_data = coord.entry.data.get(CONF_TASKS, {}).get(TASK_ID_1, {})
+    task = MaintenanceTask.from_dict(task_data)
+    task.last_planned_due = None  # type: ignore[assignment]  # clear it
+
+    coord._persist_dynamic_state(TASK_ID_1, task)
+
+    # last_planned_due should be removed from store
+    updated_state = store._data["tasks"].get(TASK_ID_1, {})
+    assert "last_planned_due" not in updated_state

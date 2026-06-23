@@ -1319,3 +1319,82 @@ async def test_update_history_entry_no_store(
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_loaded"
+
+
+# ─── _validate_trigger_config: unknown key stripping ──────────────────────
+
+
+def test_validate_trigger_config_strips_unknown_keys(hass: HomeAssistant) -> None:
+    """_validate_trigger_config removes keys not in _TRIGGER_ALLOWED_KEYS."""
+    from custom_components.maintenance_supporter.websocket.tasks import _validate_trigger_config
+
+    trigger = {
+        "type": "threshold",
+        "entity_id": "sensor.temp",
+        "trigger_above": 80.0,
+        "unknown_key_xyz": "should_be_removed",
+    }
+    errors, warnings = _validate_trigger_config(hass, trigger)
+    assert "unknown_key_xyz" not in trigger
+    assert errors == []
+
+
+# ─── ws_create_task: notes persisted ──────────────────────────────────────
+
+
+async def test_ws_create_task_with_notes(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """ws_create_task creates a task with notes field persisted to entry data."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
+
+    await setup_integration(hass, global_entry, object_entry)
+
+    conn = _mock_connection()
+    msg = {
+        "id": 1,
+        "entry_id": object_entry.entry_id,
+        "name": "Task With Notes",
+        "schedule_type": "time_based",
+        "interval_days": 30,
+        "warning_days": 7,
+        "notes": "This is a note",
+    }
+    await call_ws_handler(ws_create_task, hass, conn, msg)
+
+    assert conn.send_error.call_count == 0
+    assert conn.send_result.call_count == 1
+    payload = conn.send_result.call_args[0][1]
+    # ws_create_task returns {"task_id": "..."}, then the task is persisted
+    assert "task_id" in payload
+    task_id = payload["task_id"]
+
+    # Verify notes are in the persisted entry data
+    oe_reloaded = hass.config_entries.async_get_entry(object_entry.entry_id)
+    tasks = oe_reloaded.data.get(CONF_TASKS, {})
+    assert task_id in tasks
+    assert tasks[task_id].get("notes") == "This is a note"
+
+
+# ─── ws_quick_complete_task: entry not found ──────────────────────────────
+
+
+async def test_ws_quick_complete_task_entry_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """ws_quick_complete_task returns not_found when entry doesn't exist."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_quick_complete_task
+
+    await setup_integration(hass, global_entry, object_entry)
+
+    conn = _mock_connection()
+    msg = {
+        "id": 1,
+        "entry_id": "nonexistent_entry_id",
+        "task_id": TASK_ID_1,
+    }
+    await call_ws_handler(ws_quick_complete_task, hass, conn, msg)
+
+    assert conn.send_error.call_count == 1
+    err_args = conn.send_error.call_args[0]
+    assert err_args[1] == "not_found"

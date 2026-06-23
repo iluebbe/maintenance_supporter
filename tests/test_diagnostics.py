@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_OBJECT,
+    CONF_TASKS,
     DOMAIN,
 )
 from custom_components.maintenance_supporter.diagnostics import (
@@ -164,6 +168,44 @@ async def test_diagnostics_data_quality_warnings(
     warnings = diag.get("data_quality", [])
     # Should warn about trigger config without entity
     assert len(warnings) >= 1
+
+
+def test_diagnostics_check_trigger_status_no_entity_id(hass: HomeAssistant) -> None:
+    """_check_trigger_status skips tasks with trigger_config but no entity_ids."""
+    from custom_components.maintenance_supporter.diagnostics import _check_trigger_status
+
+    data: dict[str, Any] = {
+        CONF_TASKS: {
+            TASK_ID_1: {
+                "trigger_config": {
+                    "type": "threshold",
+                    "trigger_above": 80.0,
+                    # No entity_id or entity_ids — should skip
+                },
+            },
+        },
+    }
+    results = _check_trigger_status(hass, data)
+    # No entity_ids → result should be empty
+    assert results == []
+
+
+def test_diagnostics_data_quality_missing_interval_warning(hass: HomeAssistant) -> None:
+    """_check_data_quality warns when time_based task has no interval."""
+    from custom_components.maintenance_supporter.diagnostics import _check_data_quality
+
+    data: dict[str, Any] = {
+        CONF_OBJECT: {"name": "My Object"},
+        CONF_TASKS: {
+            TASK_ID_1: {
+                "name": "Interval-less Task",
+                "schedule_type": "time_based",
+                # no interval_days
+            },
+        },
+    }
+    warnings = _check_data_quality(data)
+    assert any("interval" in w.lower() or "time-based" in w.lower() for w in warnings)
 
 
 # ─── 11.3 Repairs ───────────────────────────────────────────────────────

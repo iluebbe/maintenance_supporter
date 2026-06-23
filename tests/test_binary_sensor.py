@@ -63,6 +63,30 @@ def _make_entry(
     return entry
 
 
+def _global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _object_entry(hass: HomeAssistant, tasks: dict | None = None) -> MockConfigEntry:
+    if tasks is None:
+        tasks = {TASK_ID_1: build_task_data()}
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks=tasks),
+        source="user", unique_id="test_object_unique",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
 def _get_binary_sensors(
     hass: HomeAssistant, entry: MockConfigEntry,
 ) -> list[Any]:
@@ -290,3 +314,73 @@ async def test_no_binary_sensors_for_global_entry(
     entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
     bs = [e for e in entities if e.domain == "binary_sensor"]
     assert len(bs) == 0
+
+
+# ─── Missing / absent task data ──────────────────────────────────────────
+
+
+async def test_binary_sensor_is_on_missing_task(hass: HomeAssistant) -> None:
+    """When coordinator data has no task, is_on returns None and attributes are {}."""
+    ge = _global_entry(hass)
+    oe = _object_entry(hass)
+    await setup_integration(hass, ge, oe)
+
+    from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
+
+    rd = oe.runtime_data
+    coord = rd.coordinator
+
+    # Create sensor with a task_id that doesn't exist in coordinator data
+    # _task_data returns {} (empty dict) for nonexistent task, which is falsy
+    sensor = MaintenanceBinarySensor(coord, "nonexistent_task_id")
+    assert not sensor._task_data  # empty dict is falsy
+    assert sensor.is_on is None
+    assert sensor.extra_state_attributes == {}
+
+
+def test_binary_sensor_compute_live_status_due_soon() -> None:
+    """_compute_live_status returns DUE_SOON when days > 0 but <= warning_days."""
+    from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
+
+    task = {
+        "_trigger_active": False,
+        "_days_until_due": 3,
+        "warning_days": 7,
+    }
+    status = MaintenanceBinarySensor._compute_live_status(task)
+    assert status == MaintenanceStatus.DUE_SOON
+
+
+async def test_binary_sensor_handle_task_reset_no_data(hass: HomeAssistant) -> None:
+    """_handle_task_reset does nothing when coordinator.data is None."""
+    ge = _global_entry(hass)
+    oe = _object_entry(hass)
+    await setup_integration(hass, ge, oe)
+
+    from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
+
+    rd = oe.runtime_data
+    coord = rd.coordinator
+
+    sensor = MaintenanceBinarySensor(coord, TASK_ID_1)
+    # Force coordinator data to None
+    coord.data = None
+    # Should return early without error
+    sensor._handle_task_reset()
+
+
+async def test_binary_sensor_handle_task_reset_missing_task(hass: HomeAssistant) -> None:
+    """_handle_task_reset does nothing when task is absent from coordinator data."""
+    ge = _global_entry(hass)
+    oe = _object_entry(hass)
+    await setup_integration(hass, ge, oe)
+
+    from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
+
+    rd = oe.runtime_data
+    coord = rd.coordinator
+
+    # Use a task_id not in coordinator data
+    sensor = MaintenanceBinarySensor(coord, "ghost_task_id")
+    # Should return early (task not found in data)
+    sensor._handle_task_reset()
