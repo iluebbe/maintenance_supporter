@@ -469,3 +469,76 @@ async def test_cleanup_group_refs_across_multiple_groups(
     assert len(groups[gid_a]["task_refs"]) == 0
     assert len(groups[gid_b]["task_refs"]) == 1
     assert groups[gid_b]["task_refs"][0]["task_id"] == TASK_ID_2
+
+
+# ===========================================================================
+# Coverage tests carried from test_cov_ws.py (websocket/groups.py section)
+# ===========================================================================
+
+
+def _covws_conn() -> MagicMock:
+    """Create a mock WS connection (carried from test_cov_ws.py)."""
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
+    conn.subscriptions = {}
+    conn.send_message = MagicMock()
+    return conn
+
+
+@pytest.fixture
+def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# Line 132: ws_update_group — task_refs updated
+# Renamed from test_update_group_task_refs (carried from test_cov_ws.py) to avoid
+# colliding with the existing test of the same name; this variant asserts the exact
+# replacement value and the success flag.
+async def test_update_group_task_refs_replaces_refs(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_update_group: task_refs field is updated when provided."""
+    from custom_components.maintenance_supporter.websocket.groups import (
+        ws_create_group,
+    )
+
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    # Create a group first
+    await call_ws_handler(ws_create_group, hass, conn, {
+        "id": 10, "type": "maintenance_supporter/group/create",
+        "name": "My Group",
+        "task_refs": [{"entry_id": "entry_a", "task_id": "task_a"}],
+    })
+    group_id = conn.send_result.call_args[0][1]["group_id"]
+    conn.reset_mock()
+
+    # Update task_refs
+    new_refs = [
+        {"entry_id": "entry_b", "task_id": "task_b"},
+        {"entry_id": "entry_c", "task_id": "task_c"},
+    ]
+    await call_ws_handler(ws_update_group, hass, conn, {
+        "id": 11, "type": "maintenance_supporter/group/update",
+        "group_id": group_id,
+        "task_refs": new_refs,
+    })
+
+    conn.send_result.assert_called_once()
+    assert conn.send_result.call_args[0][1]["success"] is True
+
+    # Verify the task_refs were actually updated
+    entry = hass.config_entries.async_get_entry(covws_global_entry.entry_id)
+    from custom_components.maintenance_supporter.const import CONF_GROUPS
+    groups = (entry.options or entry.data).get(CONF_GROUPS, {})
+    assert groups[group_id]["task_refs"] == new_refs

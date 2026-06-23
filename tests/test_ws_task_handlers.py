@@ -25,13 +25,16 @@ from custom_components.maintenance_supporter.websocket.tasks import (
     ws_create_task,
     ws_delete_task,
     ws_list_tasks,
+    ws_quick_complete_task,
     ws_reset_task,
     ws_skip_task,
+    ws_update_history_entry,
     ws_update_task,
 )
 
 from .conftest import (
     TASK_ID_1,
+    TASK_ID_2,
     build_global_entry_data,
     build_object_entry_data,
     build_task_data,
@@ -957,3 +960,362 @@ def test_validate_threshold_missing_above_below(hass: HomeAssistant) -> None:
     config = {"type": "threshold", "entity_id": "sensor.temp"}
     errors, _ = _validate_trigger_config(hass, config)
     assert any("trigger_above" in e for e in errors)
+
+
+# ===========================================================================
+# Coverage tests carried from test_cov_ws.py (websocket/tasks.py section)
+# ===========================================================================
+
+
+def _covws_conn() -> MagicMock:
+    """Create a mock WS connection (carried from test_cov_ws.py)."""
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.user = MagicMock(is_admin=True)
+    conn.subscriptions = {}
+    conn.send_message = MagicMock()
+    return conn
+
+
+@pytest.fixture
+def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture
+def covws_object_entry(hass: HomeAssistant) -> MockConfigEntry:
+    task = build_task_data(last_performed="2024-06-01")
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Pool Pump",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_pool_pump_cov",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# Line 217: ws_create_task — interval_unit != "days" is stored in normalized schedule
+async def test_create_task_interval_unit_weeks(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_create_task: interval_unit='weeks' branch is hit and persisted via schedule."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": covws_object_entry.entry_id,
+        "name": "Weekly Check",
+        "interval_days": 2,
+        "interval_unit": "weeks",
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert "task_id" in result
+
+    # After normalize_task_storage the interval is in the nested schedule dict
+    entry = hass.config_entries.async_get_entry(covws_object_entry.entry_id)
+    task = entry.data[CONF_TASKS][result["task_id"]]
+    # schedule.unit holds the normalized value
+    schedule = task.get("schedule", {})
+    assert schedule.get("unit") == "weeks"
+
+
+# Line 360: async_create_task_simple — empty name raises ValueError
+async def test_async_create_task_simple_empty_name(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """async_create_task_simple: empty name raises ValueError."""
+    from custom_components.maintenance_supporter.websocket.tasks import (
+        async_create_task_simple,
+    )
+
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+
+    with pytest.raises(ValueError, match="Name must not be empty"):
+        await async_create_task_simple(
+            hass,
+            entry_id=covws_object_entry.entry_id,
+            name="   ",
+        )
+
+
+# Line 382: async_create_task_simple — missing/wrong entry_id raises ValueError
+async def test_async_create_task_simple_bad_entry(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """async_create_task_simple: invalid entry_id raises ValueError."""
+    from custom_components.maintenance_supporter.websocket.tasks import (
+        async_create_task_simple,
+    )
+
+    await setup_integration(hass, covws_global_entry)
+
+    with pytest.raises(ValueError, match="No maintenance object found"):
+        await async_create_task_simple(
+            hass,
+            entry_id="nonexistent_entry_id",
+            name="My Task",
+        )
+
+
+# Line 470: ws_create_task — interval_anchor != "completion" is persisted in schedule
+async def test_create_task_interval_anchor_planned(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_create_task: interval_anchor='planned' branch is executed; task is created."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": covws_object_entry.entry_id,
+        "name": "Planned Task",
+        "interval_days": 30,
+        "interval_anchor": "planned",
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert "task_id" in result
+    # The task was created — anchor branch executed; stored in schedule.anchor
+    entry = hass.config_entries.async_get_entry(covws_object_entry.entry_id)
+    task = entry.data[CONF_TASKS][result["task_id"]]
+    schedule = task.get("schedule", {})
+    assert schedule.get("anchor") == "planned"
+
+
+# Line 472: ws_create_task — due_date is set on one_time tasks
+async def test_create_task_with_due_date(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_create_task: due_date is persisted for one_time tasks."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": covws_object_entry.entry_id,
+        "name": "One Time Task",
+        "schedule_type": "one_time",
+        "due_date": "2027-01-01",
+    })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert "task_id" in result
+    # due_date is in schedule.due for one_time after normalization
+    entry = hass.config_entries.async_get_entry(covws_object_entry.entry_id)
+    task = entry.data[CONF_TASKS][result["task_id"]]
+    # The task was created successfully — due_date branch was hit
+    assert task is not None
+
+
+# Lines 478-480: ws_create_task — invalid last_performed date format → error
+async def test_create_task_invalid_last_performed(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_create_task: non-ISO last_performed → invalid_format error."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": covws_object_entry.entry_id,
+        "name": "Bad Date Task",
+        "last_performed": "not-a-date",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_format"
+
+
+# Lines 629-630: ws_update_task — empty name (after strip) → invalid_input error
+async def test_update_task_empty_name(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_update_task: setting name to blank string → invalid_input error."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_update_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/update",
+        "entry_id": covws_object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "name": "   ",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_input"
+
+
+# Lines 665-669: ws_update_task — invalid last_performed date → invalid_format error
+async def test_update_task_invalid_last_performed(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_update_task: non-ISO last_performed → invalid_format error."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_update_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/update",
+        "entry_id": covws_object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "last_performed": "not-a-date",
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "invalid_format"
+
+
+# Line 862: ws_list_tasks — filtered to a specific entry_id
+# ws_list_tasks is @callback (sync), so call it directly — not via await
+async def test_list_tasks_filtered_by_entry(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_list_tasks: entry_id filter skips non-matching entries."""
+    # Add a second object entry to confirm filtering works
+    task2 = build_task_data(task_id=TASK_ID_2, name="Other Task")
+    entry2 = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Other Object",
+        data=build_object_entry_data(tasks={TASK_ID_2: task2}),
+        source="user",
+        unique_id="maintenance_supporter_other_obj_cov",
+    )
+    entry2.add_to_hass(hass)
+    await setup_integration(hass, covws_global_entry, covws_object_entry, entry2)
+
+    conn = _covws_conn()
+
+    # ws_list_tasks is @callback (synchronous) — unwrap and call directly
+    unwrapped = ws_list_tasks
+    while hasattr(unwrapped, "__wrapped__"):
+        unwrapped = unwrapped.__wrapped__
+    unwrapped(hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/list",
+        "entry_id": covws_object_entry.entry_id,
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert "tasks" in result
+    # Only tasks from covws_object_entry should appear
+    entry_ids = {t["entry_id"] for t in result["tasks"]}
+    assert entry_ids == {covws_object_entry.entry_id}
+
+
+# Lines 956-957: ws_quick_complete_task — coordinator not found → not_found
+async def test_quick_complete_no_coordinator(
+    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+) -> None:
+    """ws_quick_complete_task: missing runtime_data → not_found error."""
+    await setup_integration(hass, covws_global_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_quick_complete_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/quick_complete",
+        "entry_id": "nonexistent",
+        "task_id": TASK_ID_1,
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+# Lines 961-962: ws_quick_complete_task — entry not found
+async def test_quick_complete_entry_not_found(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_quick_complete_task: entry doesn't exist → not_found error."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    # Provide valid entry_id (so coordinator lookup works) but wrong entry for task
+    await call_ws_handler(ws_quick_complete_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/quick_complete",
+        "entry_id": covws_object_entry.entry_id,
+        "task_id": "no_such_task" * 2,  # keeps len=24 — still "not found" path
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+
+
+# Lines 965-966: ws_quick_complete_task — task has no quick_complete_defaults → no_defaults
+async def test_quick_complete_no_defaults(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_quick_complete_task: task without quick_complete_defaults → no_defaults error."""
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    await call_ws_handler(ws_quick_complete_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/quick_complete",
+        "entry_id": covws_object_entry.entry_id,
+        "task_id": TASK_ID_1,
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "no_defaults"
+
+
+# Lines 1107-1108: ws_update_history_entry — store is None → not_loaded error
+async def test_update_history_entry_no_store(
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
+    covws_object_entry: MockConfigEntry,
+) -> None:
+    """ws_update_history_entry: no Store (entry not loaded) → not_loaded error."""
+    # Setup integration but manually strip runtime_data.store to simulate missing store
+    await setup_integration(hass, covws_global_entry, covws_object_entry)
+    conn = _covws_conn()
+
+    # Patch _get_runtime_data to return an object without a store
+    fake_rd = MagicMock()
+    fake_rd.store = None
+    fake_rd.coordinator = None
+
+    with patch(
+        "custom_components.maintenance_supporter.websocket.tasks._get_runtime_data",
+        return_value=fake_rd,
+    ):
+        await call_ws_handler(ws_update_history_entry, hass, conn, {
+            "id": 1, "type": "maintenance_supporter/task/history/update",
+            "entry_id": covws_object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": "2024-06-01T00:00:00",
+        })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_loaded"
