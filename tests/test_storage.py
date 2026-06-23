@@ -529,3 +529,46 @@ def test_extract_dynamic_with_trigger_state() -> None:
     assert "trigger_runtime" in dynamic
     assert dynamic["trigger_runtime"] == {"baseline_value": 10.0}
     assert "_trigger_state" not in static.get("trigger_config", {})
+
+
+
+# ─── storage.py lines 229, 232-233 — merge_task_data with trigger_runtime ────
+
+
+async def test_storage_merge_with_trigger_runtime(hass: HomeAssistant) -> None:
+    """storage.py line 211-247: merge_task_data with trigger_runtime populates _trigger_state."""
+    from custom_components.maintenance_supporter.storage import MaintenanceStore
+
+    store = MaintenanceStore(hass, "test_entry_runtime")
+    task_id = "t1" * 16
+
+    static_data = {
+        "id": task_id,
+        "name": "Test",
+        "trigger_config": {"type": "counter", "entity_id": "sensor.x", "trigger_target_value": 100},
+    }
+    # Set trigger_runtime in store
+    store.set_trigger_runtime(task_id, "sensor.x", {"baseline_value": 50})
+
+    merged = store.merge_task_data(task_id, static_data)
+    assert merged["trigger_config"]["_trigger_state"]["sensor.x"]["baseline_value"] == 50
+
+
+async def test_storage_merge_with_legacy_trigger_runtime(hass: HomeAssistant) -> None:
+    """storage.py line 209-210: falls back to trigger_runtime_legacy when trigger_runtime missing."""
+    from custom_components.maintenance_supporter.storage import MaintenanceStore
+
+    store = MaintenanceStore(hass, "test_entry_legacy")
+    task_id = "t2" * 16
+
+    # Manually inject legacy runtime
+    state = store._ensure_task(task_id)
+    state["trigger_runtime_legacy"] = {"sensor.y": {"accumulated_seconds": 100}}
+
+    static_data = {
+        "id": task_id,
+        "name": "Test",
+        "trigger_config": {"type": "runtime", "entity_id": "sensor.y"},
+    }
+    merged = store.merge_task_data(task_id, static_data)
+    assert "_trigger_state" in merged.get("trigger_config", {})

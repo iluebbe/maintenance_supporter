@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+from custom_components.maintenance_supporter.const import (
+    GLOBAL_UNIQUE_ID,
+    ScheduleType,
+)
+from .conftest import (
+    build_global_entry_data,
+)
+
 from datetime import timedelta
 from typing import Any
 
@@ -514,3 +522,71 @@ def test_diagnostics_trigger_status_compound(hass: HomeAssistant) -> None:
     entity_ids = [r["trigger_entity"] for r in results]
     assert "sensor.a" in entity_ids
     assert "sensor.b" in entity_ids
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# ─── diagnostics.py lines 175-176 — get diagnostics for global and object ────
+
+
+async def test_diagnostics_global_entry(hass: HomeAssistant) -> None:
+    """diagnostics.py: get diagnostics for global entry returns overview."""
+    from custom_components.maintenance_supporter.diagnostics import async_get_config_entry_diagnostics
+
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    diag = await async_get_config_entry_diagnostics(hass, global_entry)
+    assert "overview" in diag
+    assert "total_objects" in diag["overview"]
+
+
+async def test_diagnostics_object_entry(hass: HomeAssistant) -> None:
+    """diagnostics.py line 175-176: get diagnostics for object entry includes statistics."""
+    from custom_components.maintenance_supporter.diagnostics import async_get_config_entry_diagnostics
+
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.diag_trigger", "25.0")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.diag_trigger",
+            "trigger_above": 30,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="diag_obj")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    diag = await async_get_config_entry_diagnostics(hass, obj_entry)
+    assert "statistics" in diag
+    assert "trigger_status" in diag
+    assert diag["statistics"]["total_tasks"] == 1

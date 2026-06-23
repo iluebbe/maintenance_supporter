@@ -698,3 +698,58 @@ async def test_global_options_panel_access_operator_write_persists(
     )
     assert result["type"] == FlowResultType.MENU
     assert global_entry.options[CONF_OPERATOR_WRITE_ENABLED] is True
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# ─── helpers/global_options.py lines 32, 45-46, 48 ──────────────────────────
+
+
+async def test_get_global_options_no_entry(hass: HomeAssistant) -> None:
+    """global_options.py line 32: returns empty dict when no global entry exists."""
+    from custom_components.maintenance_supporter.helpers.global_options import get_global_options
+    # No integration loaded — should return empty mapping
+    result = get_global_options(hass)
+    assert dict(result) == {}
+
+
+async def test_get_default_warning_days_invalid_value(hass: HomeAssistant) -> None:
+    """global_options.py line 45-48: invalid/OOB value falls back to DEFAULT_WARNING_DAYS."""
+    from custom_components.maintenance_supporter.helpers.global_options import get_default_warning_days
+    from custom_components.maintenance_supporter.const import DEFAULT_WARNING_DAYS
+
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    # Inject out-of-range value into options
+    opts = dict(global_entry.options or global_entry.data)
+    opts["default_warning_days"] = 400  # > 365, should fall back
+    hass.config_entries.async_update_entry(global_entry, options=opts)
+
+    result = get_default_warning_days(hass)
+    assert result == DEFAULT_WARNING_DAYS
+
+
+async def test_get_default_warning_days_noncasted(hass: HomeAssistant) -> None:
+    """global_options.py line 43-46: non-integer value falls back to DEFAULT."""
+    from custom_components.maintenance_supporter.helpers.global_options import get_default_warning_days
+    from custom_components.maintenance_supporter.const import DEFAULT_WARNING_DAYS
+
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    opts = dict(global_entry.options or global_entry.data)
+    opts["default_warning_days"] = "not_a_number"
+    hass.config_entries.async_update_entry(global_entry, options=opts)
+
+    result = get_default_warning_days(hass)
+    assert result == DEFAULT_WARNING_DAYS

@@ -7,7 +7,15 @@ use — no second code path.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from custom_components.maintenance_supporter.const import (
+    CONF_TASKS,
+    GLOBAL_UNIQUE_ID,
+)
+from .conftest import (
+    build_global_entry_data,
+)
+
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -149,3 +157,104 @@ async def test_button_available_false_when_no_task_data(
     # _task_data returns {} for nonexistent task, which is falsy
     assert not btn._task_data  # empty dict is falsy
     assert btn.available is False
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):
+    reg = er.async_get(hass)
+    return [e for e in er.async_entries_for_config_entry(reg, entry.entry_id) if e.domain == domain]
+
+
+# ─── button.py lines 56-57 — no coordinator returns early ───────────────────
+
+
+async def test_button_no_coordinator(hass: HomeAssistant) -> None:
+    """button.py line 55-57: logs error when coordinator is None."""
+    from custom_components.maintenance_supporter.button import async_setup_entry
+    from custom_components.maintenance_supporter import MaintenanceSupporterData
+
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    fake_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Fake Button", data=build_object_entry_data(),
+        source="user", unique_id="fake_no_coord_button",
+    )
+    fake_entry.add_to_hass(hass)
+    fake_entry.runtime_data = MaintenanceSupporterData(coordinator=None)
+
+    entities_added = []
+    await async_setup_entry(hass, fake_entry, entities_added.append)
+    assert entities_added == []
+
+
+# ─── button.py line 108, 110 — available property ────────────────────────────
+
+
+async def test_button_available_disabled_task(hass: HomeAssistant) -> None:
+    """button.py line 108-114: available returns False when task is disabled."""
+    global_entry = _make_global(hass)
+    task = build_task_data(enabled=False)
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="button_disabled")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    buttons = _get_entities_by_domain(hass, obj_entry, "button")
+    if not buttons:
+        pytest.skip("No button entities")
+
+    for btn in buttons:
+        state = hass.states.get(btn.entity_id)
+        assert state is not None
+        # Disabled task buttons should be unavailable
+        assert state.state == "unavailable"
+
+
+# ─── button.py line 119 — async_press raises on missing task ────────────────
+
+
+async def test_button_press_missing_task(hass: HomeAssistant) -> None:
+    """button.py line 118-119: async_press raises HomeAssistantError for missing task."""
+    from custom_components.maintenance_supporter.button import MaintenanceActionButton
+    from homeassistant.exceptions import HomeAssistantError
+
+    coord = MagicMock()
+    coord.data = {CONF_TASKS: {}}  # No task data
+    coord.entry.data = {"object": {}, CONF_TASKS: {}}
+
+    btn = MaintenanceActionButton.__new__(MaintenanceActionButton)
+    btn._task_id = "nonexistent_task"
+    btn._action = "complete"
+    btn.coordinator = coord
+
+    with pytest.raises(HomeAssistantError):
+        await btn.async_press()

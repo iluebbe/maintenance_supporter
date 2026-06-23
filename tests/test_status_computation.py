@@ -382,3 +382,77 @@ class TestHistoryProperties:
         last = task.last_entry
         assert last is not None
         assert last["type"] == "skipped"
+
+
+
+# ─── models/maintenance_type.py lines 23, 34 ─────────────────────────────────
+
+
+def test_maintenance_type_to_dict() -> None:
+    """maintenance_type.py line 21-28: to_dict serializes all fields."""
+    from custom_components.maintenance_supporter.models.maintenance_type import MaintenanceType
+
+    mt = MaintenanceType(
+        id="cleaning",
+        name="Cleaning",
+        icon="mdi:broom",
+        typical_duration=30,
+        default_interval_days=30,
+    )
+    d = mt.to_dict()
+    assert d["id"] == "cleaning"
+    assert d["name"] == "Cleaning"
+    assert d["icon"] == "mdi:broom"
+    assert d["typical_duration"] == 30
+    assert d["default_interval_days"] == 30
+
+
+def test_maintenance_type_from_dict() -> None:
+    """maintenance_type.py line 31-39: from_dict deserializes."""
+    from custom_components.maintenance_supporter.models.maintenance_type import MaintenanceType
+
+    data = {
+        "id": "inspection",
+        "name": "Inspection",
+        "icon": "mdi:magnify",
+        "typical_duration": 15,
+        "default_interval_days": 180,
+    }
+    mt = MaintenanceType.from_dict(data)
+    assert mt.id == "inspection"
+    assert mt.typical_duration == 15
+    assert mt.default_interval_days == 180
+
+
+# ─── models/maintenance_object.py line 64 ────────────────────────────────────
+
+
+def test_maintenance_object_slug() -> None:
+    """maintenance_object.py line 61-64: slug property returns slugified name."""
+    from custom_components.maintenance_supporter.models.maintenance_object import MaintenanceObject
+
+    obj = MaintenanceObject(id="abc", name="Pool Pump")
+    assert obj.slug == "pool_pump"
+
+
+def test_maintenance_object_from_dict_all_fields() -> None:
+    """maintenance_object.py line 45-59: from_dict with all optional fields."""
+    from custom_components.maintenance_supporter.models.maintenance_object import MaintenanceObject
+
+    data = {
+        "id": "test_id",
+        "name": "Test Object",
+        "area_id": "living_room",
+        "manufacturer": "ACME",
+        "model": "Widget X",
+        "serial_number": "SN-001",
+        "installation_date": "2023-01-15",
+        "documentation_url": "https://example.com/manual.pdf",
+        "notes": "Some notes",
+        "task_ids": ["task1"],
+    }
+    obj = MaintenanceObject.from_dict(data)
+    assert obj.installation_date == "2023-01-15"
+    assert obj.documentation_url == "https://example.com/manual.pdf"
+    assert obj.notes == "Some notes"
+    assert obj.slug == "test_object"

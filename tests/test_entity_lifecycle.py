@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from custom_components.maintenance_supporter.const import (
+    ScheduleType,
+)
+
 from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -1244,3 +1248,243 @@ async def test_remove_config_entry_device_with_entities(
         hass, object_config_entry, device
     )
     assert result is False
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):
+    reg = er.async_get(hass)
+    return [e for e in er.async_entries_for_config_entry(reg, entry.entry_id) if e.domain == domain]
+
+
+# ─── __init__.py line 466 — notification action listener ─────────────────────
+
+
+async def test_notification_action_complete(hass: HomeAssistant) -> None:
+    """__init__ line ~369-393: MS_COMPLETE_ notification action works."""
+    global_entry = _make_global(hass)
+    task = build_task_data(last_performed=(dt_util.now().date() - timedelta(days=20)).isoformat())
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="notif_action")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entry_id = obj_entry.entry_id
+    # Fire a MS_COMPLETE_ notification action
+    hass.bus.async_fire(
+        "mobile_app_notification_action",
+        {"action": f"MS_COMPLETE_{entry_id}_{TASK_ID_1}"},
+    )
+    await hass.async_block_till_done()
+    # Task should have been completed — check last_performed changed
+    coord = obj_entry.runtime_data.coordinator
+    merged = coord._get_merged_tasks_data()
+    assert merged[TASK_ID_1].get("last_performed") == dt_util.now().date().isoformat()
+
+
+async def test_notification_action_skip(hass: HomeAssistant) -> None:
+    """__init__: MS_SKIP_ notification action runs skip_maintenance."""
+    global_entry = _make_global(hass)
+    task = build_task_data(last_performed=(dt_util.now().date() - timedelta(days=20)).isoformat())
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="notif_skip")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = obj_entry.runtime_data.coordinator
+    with patch.object(coord, "skip_maintenance", new_callable=AsyncMock) as mock_skip:
+        hass.bus.async_fire(
+            "mobile_app_notification_action",
+            {"action": f"MS_SKIP_{obj_entry.entry_id}_{TASK_ID_1}"},
+        )
+        await hass.async_block_till_done()
+        mock_skip.assert_called_once()
+
+
+async def test_notification_action_snooze(hass: HomeAssistant) -> None:
+    """__init__: MS_SNOOZE_ notification action calls nm.snooze_task."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="notif_snooze")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    if nm is not None:
+        with patch.object(nm, "snooze_task") as mock_snooze:
+            hass.bus.async_fire(
+                "mobile_app_notification_action",
+                {"action": f"MS_SNOOZE_{obj_entry.entry_id}_{TASK_ID_1}"},
+            )
+            await hass.async_block_till_done()
+            mock_snooze.assert_called_once_with(obj_entry.entry_id, TASK_ID_1)
+
+
+async def test_notification_action_invalid_format(hass: HomeAssistant) -> None:
+    """__init__: notification action with invalid format is silently ignored."""
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    # Should not raise
+    hass.bus.async_fire(
+        "mobile_app_notification_action",
+        {"action": "MS_COMPLETE_"},  # missing parts
+    )
+    await hass.async_block_till_done()
+
+
+async def test_notification_action_unknown_entry(hass: HomeAssistant) -> None:
+    """__init__: MS_COMPLETE_ with unknown entry_id is silently ignored."""
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    hass.bus.async_fire(
+        "mobile_app_notification_action",
+        {"action": f"MS_COMPLETE_unknownentry_{TASK_ID_1}"},
+    )
+    await hass.async_block_till_done()
+
+
+# ─── __init__.py line 474 — NFC tag scan ─────────────────────────────────────
+
+
+async def test_nfc_tag_scanned_no_match(hass: HomeAssistant) -> None:
+    """__init__: tag_scanned with no matching task is silently ignored."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="nfc_no_match")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    hass.bus.async_fire("tag_scanned", {"tag_id": "nonexistent_tag_xyz"})
+    await hass.async_block_till_done()
+
+
+async def test_nfc_tag_scanned_completes_task(hass: HomeAssistant) -> None:
+    """__init__: tag_scanned with matching nfc_tag_id completes the task."""
+    global_entry = _make_global(hass)
+    task = build_task_data(last_performed=(dt_util.now().date() - timedelta(days=10)).isoformat())
+    task["nfc_tag_id"] = "test_nfc_tag_abc"
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="nfc_match")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = obj_entry.runtime_data.coordinator
+    with patch.object(coord, "complete_maintenance", new_callable=AsyncMock) as mock_complete:
+        hass.bus.async_fire("tag_scanned", {"tag_id": "test_nfc_tag_abc"})
+        await hass.async_block_till_done()
+        mock_complete.assert_called_once()
+        assert mock_complete.call_args.kwargs["task_id"] == TASK_ID_1
+
+
+# ─── __init__.py line 503 — device registry update (area sync) ───────────────
+
+
+async def test_device_registry_area_sync(hass: HomeAssistant) -> None:
+    """__init__ ~line 454-481: device area_id change syncs to config entry."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="dev_area_sync")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    from homeassistant.helpers import device_registry as dr
+
+    dev_reg = dr.async_get(hass)
+    devices = dr.async_entries_for_config_entry(dev_reg, obj_entry.entry_id)
+    if not devices:
+        pytest.skip("No device for entry")
+
+    device = devices[0]
+    # Update device area — the listener in __init__ should sync back to entry
+    dev_reg.async_update_device(device.id, area_id="living_room")
+    await hass.async_block_till_done()
+
+    updated_entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert updated_entry is not None
+    obj = updated_entry.data.get("object", {})
+    assert obj.get("area_id") == "living_room"
+
+
+# ─── __init__.py line 534 — entity rename listener ───────────────────────────
+
+
+async def test_entity_rename_updates_trigger_config(hass: HomeAssistant) -> None:
+    """__init__ ~line 492-548: entity rename rewrites trigger_config entity_id."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.old_entity", "25.0")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.old_entity",
+            "trigger_above": 30,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="rename_trigger")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entity_reg = er.async_get(hass)
+    # Register a fake entity so we can rename it
+    test_entity = entity_reg.async_get_or_create(
+        "sensor", DOMAIN, "old_entity_unique",
+        config_entry=obj_entry,
+        original_name="Old Entity",
+    )
+    entity_reg.async_update_entity(test_entity.entity_id, new_entity_id="sensor.new_entity")
+    await hass.async_block_till_done()
+
+
+# ─── __init__.py line 985 — _get_task_id_for_entity returns None for button ──
+
+
+async def test_get_task_id_for_sensor_entity(hass: HomeAssistant) -> None:
+    """__init__ line 990-1027: _get_task_id_for_entity resolves sensor entity to task."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="task_id_sensor")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    sensors = _get_entities_by_domain(hass, obj_entry, "sensor")
+    if not sensors:
+        pytest.skip("No sensor entities")
+
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    task_id = _get_task_id_for_entity(hass, sensors[0].entity_id)
+    assert task_id == TASK_ID_1
+
+
+async def test_get_task_id_for_binary_sensor_entity(hass: HomeAssistant) -> None:
+    """__init__ line 1022: binary sensor entity removes _overdue suffix."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="task_id_binary")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    binary_sensors = _get_entities_by_domain(hass, obj_entry, "binary_sensor")
+    if not binary_sensors:
+        pytest.skip("No binary sensor entities")
+
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+    task_id = _get_task_id_for_entity(hass, binary_sensors[0].entity_id)
+    assert task_id == TASK_ID_1

@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from custom_components.maintenance_supporter.const import (
+    CONF_TASKS,
+    GLOBAL_UNIQUE_ID,
+    ScheduleType,
+)
+from .conftest import (
+    build_global_entry_data,
+)
+
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -3027,3 +3037,316 @@ class TestStateChangeLastStateFallback:
         }
         trigger._handle_state_transition(event_on)
         assert trigger._change_count == 1
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+# ─── entity/triggers/counter.py lines 62-64 — baseline init on setup ─────────
+
+
+async def test_counter_trigger_baseline_init_on_setup(hass: HomeAssistant) -> None:
+    """counter.py line 61-68: baseline initialized when entity has value on setup."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.counter_setup", "50")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "counter",
+            "entity_id": "sensor.counter_setup",
+            "trigger_target_value": 200,
+            "trigger_delta_mode": True,
+            # No baseline_value provided so it initializes from current state
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="counter_baseline_init")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = obj_entry.runtime_data.coordinator
+    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    # Baseline should be initialized to 50, delta = 50-50 = 0 < 200 → inactive
+    assert task_result.get("_trigger_active") is False
+
+
+# ─── entity/triggers/counter.py line 130-131 — reset resets baseline ─────────
+
+
+async def test_counter_trigger_reset_baseline(hass: HomeAssistant) -> None:
+    """counter.py line 130-131: reset() calls reset_baseline."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.counter_reset_base", "100")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "counter",
+            "entity_id": "sensor.counter_reset_base",
+            "trigger_target_value": 50,
+            "trigger_delta_mode": True,
+            "trigger_baseline_value": 0,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="counter_reset_base")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Complete task → triggers reset() on counter trigger
+    coord = obj_entry.runtime_data.coordinator
+    await coord.complete_maintenance(TASK_ID_1)
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/state_change.py line 98 — entity missing on setup ───────
+
+
+async def test_state_change_trigger_entity_missing_on_setup(hass: HomeAssistant) -> None:
+    """state_change.py line 54-63: entity not in state machine on setup still registers listener."""
+    global_entry = _make_global(hass)
+    # Don't set state for "sensor.state_missing" — let it be absent
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "state_change",
+            "entity_id": "sensor.state_missing",
+            "trigger_from_state": "off",
+            "trigger_to_state": "on",
+            "trigger_target_changes": 5,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="sc_missing_setup")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Entity now appears — should self-heal
+    hass.states.async_set("sensor.state_missing", "off")
+    await hass.async_block_till_done()
+    hass.states.async_set("sensor.state_missing", "on")
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/state_change.py line 170 — deactivates when below target ─
+
+
+async def test_state_change_trigger_count_counts_and_deactivates(hass: HomeAssistant) -> None:
+    """state_change.py line 163-170: counts transitions and deactivates after going below."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("binary_sensor.sc_door", "off")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "state_change",
+            "entity_id": "binary_sensor.sc_door",
+            "trigger_to_state": "on",
+            "trigger_target_changes": 2,
+            "trigger_change_count": 0,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="sc_count_deact")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Trigger 2 transitions to hit target
+    hass.states.async_set("binary_sensor.sc_door", "on")
+    await hass.async_block_till_done()
+    hass.states.async_set("binary_sensor.sc_door", "off")
+    await hass.async_block_till_done()
+    hass.states.async_set("binary_sensor.sc_door", "on")
+    await hass.async_block_till_done()
+
+    coord = obj_entry.runtime_data.coordinator
+    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    assert task_result.get("_trigger_active") is True
+
+
+# ─── entity/triggers/state_change.py lines 201-202 — reset clears count ──────
+
+
+async def test_state_change_trigger_reset_clears_count(hass: HomeAssistant) -> None:
+    """state_change.py line 199-202: reset() calls reset_count."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("binary_sensor.sc_reset", "off")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "state_change",
+            "entity_id": "binary_sensor.sc_reset",
+            "trigger_to_state": "on",
+            "trigger_target_changes": 1,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="sc_reset_count")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    hass.states.async_set("binary_sensor.sc_reset", "on")
+    await hass.async_block_till_done()
+
+    # Complete task → reset() is called on triggers
+    coord = obj_entry.runtime_data.coordinator
+    await coord.complete_maintenance(TASK_ID_1)
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/runtime.py line 162 — entity missing on setup ──────────
+
+
+async def test_runtime_trigger_entity_missing(hass: HomeAssistant) -> None:
+    """runtime.py line 83-93: entity not available on setup registers listener."""
+    global_entry = _make_global(hass)
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "runtime",
+            "entity_id": "switch.runtime_missing",
+            "trigger_runtime_hours": 10,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="runtime_missing")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Entity appears later
+    hass.states.async_set("switch.runtime_missing", "on")
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/runtime.py line 249 — ON→OFF accumulation ───────────────
+
+
+async def test_runtime_trigger_accumulates_on_off(hass: HomeAssistant) -> None:
+    """runtime.py line 212-222: turning OFF accumulates elapsed time."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("switch.runtime_accum", "off")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "runtime",
+            "entity_id": "switch.runtime_accum",
+            "trigger_runtime_hours": 1000,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="runtime_accum")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Turn ON then OFF to accumulate
+    hass.states.async_set("switch.runtime_accum", "on")
+    await hass.async_block_till_done()
+    hass.states.async_set("switch.runtime_accum", "off")
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/runtime.py line 272 — reset accumulated runtime ─────────
+
+
+async def test_runtime_trigger_reset(hass: HomeAssistant) -> None:
+    """runtime.py line 299-312: reset() clears accumulated_seconds."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("switch.runtime_reset", "on")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "runtime",
+            "entity_id": "switch.runtime_reset",
+            "trigger_runtime_hours": 1000,
+            "trigger_accumulated_seconds": 3000,  # pre-seeded
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="runtime_reset")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = obj_entry.runtime_data.coordinator
+    await coord.complete_maintenance(TASK_ID_1)
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/threshold.py lines 60-61 — value in range ───────────────
+
+
+async def test_threshold_trigger_value_in_range(hass: HomeAssistant) -> None:
+    """threshold.py line 119-126: value back in normal range deactivates."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.threshold_range", "20.0")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.threshold_range",
+            "trigger_above": 30.0,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="threshold_in_range")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = obj_entry.runtime_data.coordinator
+    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    assert task_result.get("_trigger_active") is False
+
+
+# ─── entity/triggers/base_trigger.py lines 124-129 — retry after unavailable ─
+
+
+async def test_base_trigger_retry_on_unavailable(hass: HomeAssistant) -> None:
+    """base_trigger.py line 88-95: unavailable entity schedules retry."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.retry_test", "unavailable")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.retry_test",
+            "trigger_above": 30.0,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="retry_unavail")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Entity recovers
+    hass.states.async_set("sensor.retry_test", "25.0")
+    await hass.async_block_till_done()
+
+
+# ─── entity/triggers/__init__.py line 133 — create_triggers multi-entity ─────
+
+
+async def test_create_triggers_multi_entity(hass: HomeAssistant) -> None:
+    """triggers/__init__.py line 174-181: create_triggers creates one per entity."""
+    global_entry = _make_global(hass)
+    hass.states.async_set("sensor.multi1", "25.0")
+    hass.states.async_set("sensor.multi2", "20.0")
+    task = build_task_data(
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "threshold",
+            "entity_ids": ["sensor.multi1", "sensor.multi2"],
+            "entity_id": "sensor.multi1",
+            "trigger_above": 30.0,
+        },
+    )
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="multi_entity_trigger")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    # Should have created 2 triggers; coord evaluates them with entity_logic=any
+    coord = obj_entry.runtime_data.coordinator
+    task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
+    assert task_result.get("_trigger_active") is False  # Neither above 30

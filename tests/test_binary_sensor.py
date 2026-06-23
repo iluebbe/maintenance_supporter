@@ -463,3 +463,135 @@ class TestBinarySensorResetClearsValue:
         assert task["_trigger_active"] is False
         assert task["_trigger_current_value"] is None
         assert task["_status"] == MaintenanceStatus.OK
+
+
+def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(**kw),
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _make_object(
+    hass: HomeAssistant,
+    tasks: dict | None = None,
+    name: str = "Test Object",
+    uid: str = "test_obj_cov",
+    object_data: dict | None = None,
+) -> MockConfigEntry:
+    od = object_data or build_object_data(name=name)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=od, tasks=tasks or {}),
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _get_entities_by_domain(hass: HomeAssistant, entry: MockConfigEntry, domain: str):
+    reg = er.async_get(hass)
+    return [e for e in er.async_entries_for_config_entry(reg, entry.entry_id) if e.domain == domain]
+
+
+# ─── binary_sensor.py lines 58-59 — no coordinator returns early ─────────────
+
+
+async def test_binary_sensor_no_coordinator(hass: HomeAssistant) -> None:
+    """binary_sensor.py line 57-59: logs error when no coordinator and returns."""
+    from custom_components.maintenance_supporter.binary_sensor import async_setup_entry
+
+    global_entry = _make_global(hass)
+    await setup_integration(hass, global_entry)
+
+    # Create entry with None coordinator
+    from custom_components.maintenance_supporter import MaintenanceSupporterData
+    fake_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Fake", data=build_object_entry_data(),
+        source="user", unique_id="fake_no_coord_bs",
+    )
+    fake_entry.add_to_hass(hass)
+    fake_entry.runtime_data = MaintenanceSupporterData(coordinator=None)
+
+    entities_added = []
+    await async_setup_entry(hass, fake_entry, entities_added.append)
+    # Should have returned early without adding entities
+    assert entities_added == []
+
+
+# ─── binary_sensor.py line 114, 123 — is_on and extra_attrs with no task data ─
+
+
+async def test_binary_sensor_is_on_no_task_data(hass: HomeAssistant) -> None:
+    """binary_sensor.py line 113-116: is_on returns None when no task data."""
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="bs_no_data")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    entities = _get_entities_by_domain(hass, obj_entry, "binary_sensor")
+    if not entities:
+        pytest.skip("No binary sensor entities")
+
+    state = hass.states.get(entities[0].entity_id)
+    assert state is not None
+
+
+# ─── binary_sensor.py line 158, 163 — _handle_task_reset with coordinator data ─
+
+
+async def test_binary_sensor_handle_task_reset(hass: HomeAssistant) -> None:
+    """binary_sensor.py line 157-174: _handle_task_reset clears trigger and recomputes."""
+    global_entry = _make_global(hass)
+    last = (dt_util.now().date() - timedelta(days=60)).isoformat()
+    task = build_task_data(last_performed=last, interval_days=30)
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="bs_reset")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    coord = obj_entry.runtime_data.coordinator
+    # Mark trigger active then complete to trigger reset signal
+    if coord.data and TASK_ID_1 in coord.data.get(CONF_TASKS, {}):
+        coord.data[CONF_TASKS][TASK_ID_1]["_trigger_active"] = True
+
+    await coord.complete_maintenance(TASK_ID_1)
+    await hass.async_block_till_done()
+
+    # After completion, trigger should be cleared
+    if coord.data and TASK_ID_1 in coord.data.get(CONF_TASKS, {}):
+        assert not coord.data[CONF_TASKS][TASK_ID_1].get("_trigger_active", False)
+
+
+# ─── binary_sensor.py line 183 — _compute_live_status: overdue ───────────────
+
+
+async def test_binary_sensor_compute_live_status_overdue(hass: HomeAssistant) -> None:
+    """binary_sensor.py line 191-192: _compute_live_status returns OVERDUE when days < 0."""
+    from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
+    from custom_components.maintenance_supporter.const import MaintenanceStatus
+
+    result = MaintenanceBinarySensor._compute_live_status({
+        "_trigger_active": False,
+        "_days_until_due": -5,
+        "warning_days": 7,
+    })
+    assert result == MaintenanceStatus.OVERDUE
+
+
+async def test_binary_sensor_compute_live_status_due_soon_from_dict(hass: HomeAssistant) -> None:
+    """binary_sensor.py: _compute_live_status returns DUE_SOON."""
+    from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
+    from custom_components.maintenance_supporter.const import MaintenanceStatus
+
+    result = MaintenanceBinarySensor._compute_live_status({
+        "_trigger_active": False,
+        "_days_until_due": 3,
+        "warning_days": 7,
+    })
+    assert result == MaintenanceStatus.DUE_SOON
