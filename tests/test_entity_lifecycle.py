@@ -1488,3 +1488,74 @@ async def test_get_task_id_for_binary_sensor_entity(hass: HomeAssistant) -> None
     from custom_components.maintenance_supporter import _get_task_id_for_entity
     task_id = _get_task_id_for_entity(hass, binary_sensors[0].entity_id)
     assert task_id == TASK_ID_1
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (__init__.py section)
+# ===========================================================================
+
+
+# ─── __init__.py: cleanup on last entry unload ────────────────────────
+
+
+async def test_cleanup_on_last_entry_unload(
+    hass: HomeAssistant, global_config_entry: ConfigEntry,
+) -> None:
+    """Lines 447-452: domain data cleanup when no entries remain."""
+    from custom_components.maintenance_supporter import async_unload_entry
+
+    await setup_integration(hass, global_config_entry)
+    assert DOMAIN in hass.data
+
+    # Unload platforms first
+    await hass.config_entries.async_unload_platforms(
+        global_config_entry, ["sensor", "binary_sensor", "calendar"]
+    )
+
+    # Patch async_entries to return empty list to simulate no entries remaining
+    with patch.object(
+        hass.config_entries, "async_entries", return_value=[],
+    ), patch.object(
+        hass.config_entries, "async_unload_platforms", return_value=True,
+    ):
+        await async_unload_entry(hass, global_config_entry)
+
+    assert DOMAIN not in hass.data
+
+
+# ─── __init__.py: async_remove_entry for global entry (line 462) ──────
+
+
+async def test_remove_global_entry(
+    hass: HomeAssistant, global_config_entry: ConfigEntry,
+) -> None:
+    """Line 462: async_remove_entry returns early for global entry."""
+    from custom_components.maintenance_supporter import async_remove_entry
+
+    # Should return without error
+    await async_remove_entry(hass, global_config_entry)
+
+
+# ─── __init__.py: _get_coordinator_for_entity no runtime_data (497) ───
+
+
+async def test_get_coordinator_no_runtime_data(
+    hass: HomeAssistant, global_config_entry: ConfigEntry,
+) -> None:
+    """Line 497: _get_coordinator_for_entity returns None when no runtime_data."""
+    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+
+    await setup_integration(hass, global_config_entry)
+
+    # Create an entity registered against the global entry (which has no coordinator)
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        domain="sensor",
+        platform=DOMAIN,
+        unique_id="maintenance_supporter_no_coord",
+        config_entry=global_config_entry,
+    )
+
+    # Global entry has runtime_data but coordinator is None
+    result = _get_coordinator_for_entity(hass, "sensor.maintenance_supporter_no_coord")
+    assert result is None

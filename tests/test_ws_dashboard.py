@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -12,6 +12,9 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_ACTION_COMPLETE_ENABLED,
+    CONF_ACTION_SKIP_ENABLED,
+    CONF_ACTION_SNOOZE_ENABLED,
     CONF_ADVANCED_ADAPTIVE,
     CONF_ADVANCED_BUDGET,
     CONF_ADVANCED_CHECKLISTS,
@@ -23,9 +26,11 @@ from custom_components.maintenance_supporter.const import (
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_DEFAULT_WARNING_DAYS,
+    CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_SERVICE,
     CONF_PANEL_ENABLED,
     CONF_PANEL_TITLE,
+    CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
@@ -1064,3 +1069,298 @@ async def test_update_global_settings_admin_user_ids_sanitized(
     assert cleaned.count("abc123") == 1
     # No empty strings
     assert "" not in cleaned
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (websocket/dashboard.py section)
+# ===========================================================================
+
+
+_c97_msg_id = 0
+
+
+def _c97_nid() -> int:
+    global _c97_msg_id
+    _c97_msg_id += 1
+    return _c97_msg_id
+
+
+def _c97_conn() -> MagicMock:
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.send_message = MagicMock()
+    conn.subscriptions = {}
+    conn.user = MagicMock(is_admin=True)
+    return conn
+
+
+# ─── websocket/dashboard.py: triggered status in statistics ───────────
+
+
+async def test_statistics_triggered_count(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 209: triggered status is counted in statistics."""
+    # Create a sensor-based task that will show as triggered
+    task = build_task_data(
+        schedule_type="sensor_based",
+        interval_days=None,
+        trigger_config={
+            "type": "threshold",
+            "entity_id": "sensor.cov97_temp",
+            "trigger_above": 30,
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Triggered Obj", source="user",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        unique_id="maintenance_supporter_cov97_triggered",
+    )
+    obj_entry.add_to_hass(hass)
+    hass.states.async_set("sensor.cov97_temp", "50")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    conn = _c97_conn()
+    await call_ws_handler(ws_get_statistics, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/statistics",
+    })
+    result = conn.send_result.call_args[0][1]
+    # The task should be triggered since sensor value 50 > threshold 30
+    assert result["triggered"] >= 1
+
+
+# ─── websocket/dashboard.py: subscribe new entry callback ─────────────
+
+
+async def test_subscribe_new_entry_callback(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 270-271: _on_new_entry callback fires on new object entry."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+
+    await call_ws_handler(ws_subscribe, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/subscribe",
+    })
+    # Initial send_result + _forward_update
+    initial_calls = conn.send_message.call_count
+
+    # Add and set up a new object entry
+    task2 = build_task_data(task_id=TASK_ID_2, name="New Task", last_performed="2024-01-01")
+    new_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="New Pump", source="user",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="New Pump"),
+            tasks={TASK_ID_2: task2},
+        ),
+        unique_id="maintenance_supporter_cov97_new_sub",
+    )
+    new_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(new_entry.entry_id)
+    await hass.async_block_till_done()
+
+    # The _on_new_entry callback should have fired _forward_update
+    assert conn.send_message.call_count > initial_calls
+
+
+# ─── websocket/dashboard.py: subscribe already attached (line 254) ────
+
+
+async def test_subscribe_already_attached_entry(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Line 254: _attach_entry returns early if already attached."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _c97_conn()
+
+    # Subscribe — this attaches the entry
+    await call_ws_handler(ws_subscribe, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/subscribe",
+    })
+
+    # Manually trigger _on_new_entry for the already-attached entry
+    # by dispatching the signal
+    from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+    from custom_components.maintenance_supporter.const import SIGNAL_NEW_OBJECT_ENTRY
+
+    msg_count_before = conn.send_message.call_count
+    async_dispatcher_send(hass, SIGNAL_NEW_OBJECT_ENTRY, object_entry.entry_id)
+    await hass.async_block_till_done()
+    # _forward_update is still called even for already-attached entries
+    # (line 271), but _attach_entry returns early at line 254
+    assert conn.send_message.call_count >= msg_count_before
+
+
+# ─── websocket/dashboard.py: budget_status edge cases ─────────────────
+
+
+async def test_budget_status_edge_history(
+    hass: HomeAssistant,
+) -> None:
+    """Lines 325, 329, 332, 336-337: non-completed type, null cost, invalid timestamp."""
+    from custom_components.maintenance_supporter.websocket.dashboard import (
+        ws_get_budget_status,
+    )
+
+    # Global entry with budget config
+    data = build_global_entry_data()
+    data["budget_monthly"] = 500.0
+    data["budget_yearly"] = 5000.0
+    ge = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter", source="user",
+        data=data, unique_id=GLOBAL_UNIQUE_ID,
+    )
+    ge.add_to_hass(hass)
+
+    # Object with history containing edge cases
+    now = dt_util.now()
+    task = build_task_data(last_performed=(now.date() - timedelta(days=5)).isoformat())
+    task["history"] = [
+        # Line 329: type != "completed" → continue
+        {"timestamp": now.isoformat(), "type": "skipped", "cost": 100.0},
+        # Line 332: cost is None → continue
+        {"timestamp": now.isoformat(), "type": "completed", "cost": None},
+        # Lines 336-337: invalid timestamp → continue
+        {"timestamp": "not-a-date", "type": "completed", "cost": 50.0},
+        # Line 325: history from entry.data (legacy path — store is None)
+        {"timestamp": now.isoformat(), "type": "completed", "cost": 25.0},
+    ]
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Budget Edge", source="user",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Budget Edge"),
+            tasks={TASK_ID_1: task},
+        ),
+        unique_id="maintenance_supporter_cov97_budget_edge",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, ge, obj_entry)
+
+    # Patch the store to None to hit the legacy history path (line 325)
+    # Also write the history into entry.data so the legacy path finds it
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    rd = entry.runtime_data
+    original_store = rd.store
+    rd.store = None
+
+    # Re-inject history into entry.data for the legacy path
+    new_data = dict(entry.data)
+    tasks = dict(new_data.get(CONF_TASKS, {}))
+    t = dict(tasks[TASK_ID_1])
+    t["history"] = task["history"]
+    tasks[TASK_ID_1] = t
+    new_data[CONF_TASKS] = tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    conn = _c97_conn()
+    await call_ws_handler(ws_get_budget_status, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/budget_status",
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    # Only the valid completed entry with cost 25.0 should be counted
+    assert result["monthly_spent"] == 25.0
+
+    rd.store = original_store
+
+
+# ─── websocket/dashboard.py: test_notification invalid service ────────
+
+
+async def test_notification_invalid_service(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 464-471: invalid notify service in ws_test_notification."""
+    # Set up with an invalid notify service
+    hass.config_entries.async_update_entry(
+        global_entry, options={
+            **dict(global_entry.data),
+            CONF_NOTIFY_SERVICE: "invalid_service_format",
+            CONF_NOTIFICATIONS_ENABLED: True,
+        },
+    )
+    await setup_integration(hass, global_entry)
+
+    conn = _c97_conn()
+    await call_ws_handler(ws_test_notification, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/global/test_notification",
+    })
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is False
+
+
+# ─── websocket/dashboard.py: test_notification action buttons ─────────
+
+
+async def test_notification_with_action_buttons(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Lines 486-493: action buttons included in test notification."""
+    hass.config_entries.async_update_entry(
+        global_entry, options={
+            **dict(global_entry.data),
+            CONF_NOTIFY_SERVICE: "notify.mobile_app_phone",
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_ACTION_COMPLETE_ENABLED: True,
+            CONF_ACTION_SKIP_ENABLED: True,
+            CONF_ACTION_SNOOZE_ENABLED: True,
+        },
+    )
+    await setup_integration(hass, global_entry)
+
+    calls: list[dict[str, Any]] = []
+
+    original_async_call = hass.services.async_call
+
+    async def mock_async_call(
+        domain: str, service: str, service_data: dict[str, Any] | None = None, **kw: Any,
+    ) -> None:
+        if domain == "notify":
+            calls.append({"domain": domain, "service": service, "data": service_data or {}})
+            return
+        await original_async_call(domain, service, service_data, **kw)
+
+    conn = _c97_conn()
+    with patch(
+        "homeassistant.core.ServiceRegistry.async_call",
+        side_effect=mock_async_call,
+    ):
+        await call_ws_handler(ws_test_notification, hass, conn, {
+            "id": _c97_nid(), "type": "maintenance_supporter/global/test_notification",
+        })
+
+    conn.send_result.assert_called_once()
+    result = conn.send_result.call_args[0][1]
+    assert result["success"] is True
+    # Verify action buttons were included
+    assert len(calls) == 1
+    actions = calls[0]["data"].get("data", {}).get("actions", [])
+    assert len(actions) == 3
+    action_names = [a["action"] for a in actions]
+    assert "MS_TEST_COMPLETE" in action_names
+    assert "MS_TEST_SKIP" in action_names
+    assert "MS_TEST_SNOOZE" in action_names
+
+
+# ─── websocket/dashboard.py: ws_update_global_settings notify validation
+
+
+async def test_update_settings_invalid_notify_service(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Line 414: notify_service validation in global update."""
+    await setup_integration(hass, global_entry)
+    conn = _c97_conn()
+    await call_ws_handler(ws_update_global_settings, hass, conn, {
+        "id": _c97_nid(), "type": "maintenance_supporter/global/update",
+        "settings": {CONF_NOTIFY_SERVICE: "badprefix.service_name"},
+    })
+    conn.send_error.assert_called_once()

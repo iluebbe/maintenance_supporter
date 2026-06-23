@@ -433,3 +433,81 @@ async def test_set_environmental_entity_not_found_task(
     })
 
     conn.send_error.assert_called_once()
+
+
+# ===========================================================================
+# Coverage tests carried from test_coverage_97.py (websocket/analysis.py section)
+# ===========================================================================
+
+
+_c97_msg_id = 0
+
+
+def _c97_nid() -> int:
+    global _c97_msg_id
+    _c97_msg_id += 1
+    return _c97_msg_id
+
+
+def _c97_conn() -> MagicMock:
+    conn = MagicMock()
+    conn.send_result = MagicMock()
+    conn.send_error = MagicMock()
+    conn.send_message = MagicMock()
+    conn.subscriptions = {}
+    conn.user = MagicMock(is_admin=True)
+    return conn
+
+
+# ─── websocket/analysis.py: legacy fallback paths ─────────────────────
+
+
+async def test_seasonal_overrides_legacy_store_none(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 187-193: legacy path in ws_seasonal_overrides when store is None."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    rd = entry.runtime_data
+    original_store = rd.store
+    rd.store = None
+
+    conn = _c97_conn()
+    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
+        "id": _c97_nid(),
+        "type": "maintenance_supporter/task/set_seasonal_overrides",
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "overrides": {"1": 0.8, "7": 1.2},
+    })
+    conn.send_result.assert_called_once()
+
+    rd.store = original_store
+
+
+async def test_environmental_entity_legacy_store_none(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Lines 258-264: legacy path in ws_set_environmental_entity when store is None."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    rd = entry.runtime_data
+    original_store = rd.store
+    rd.store = None
+
+    conn = _c97_conn()
+    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
+        "id": _c97_nid(),
+        "type": "maintenance_supporter/task/set_environmental_entity",
+        "entry_id": object_entry.entry_id,
+        "task_id": TASK_ID_1,
+        "environmental_entity": "sensor.outdoor_temp",
+        "environmental_attribute": "temperature",
+    })
+    conn.send_result.assert_called_once()
+
+    rd.store = original_store
