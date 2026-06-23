@@ -543,3 +543,158 @@ async def test_options_flow_notification_settings_submit(
         },
     )
     assert result["type"] == FlowResultType.MENU
+
+
+# ============================================================================
+# config_flow_options_global.py coverage (migrated from test_cov_cfgflow.py)
+# ============================================================================
+
+def test_validate_notify_service_valid() -> None:
+    """validate_notify_service returns normalized, no error for valid input."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        validate_notify_service,
+    )
+
+    val, err = validate_notify_service("notify.mobile_app")
+    assert err is None
+    assert val == "notify.mobile_app"
+
+
+def test_validate_notify_service_auto_prefix() -> None:
+    """validate_notify_service auto-prepends 'notify.' (line 94)."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        validate_notify_service,
+    )
+
+    val, err = validate_notify_service("mobile_app")
+    assert err is None
+    assert val == "notify.mobile_app"
+
+
+def test_validate_notify_service_invalid_format() -> None:
+    """validate_notify_service returns error for invalid format (line 103)."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        validate_notify_service,
+    )
+
+    val, err = validate_notify_service("not.a.valid.service")
+    assert err == "invalid_notify_service"
+
+
+def test_validate_notify_service_service_not_found(hass: HomeAssistant) -> None:
+    """validate_notify_service checks hass.services and returns error if not found (line 107, 77)."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        validate_notify_service,
+    )
+
+    # hass.services.has_service returns False for "notify.nonexistent"
+    val, err = validate_notify_service("notify.nonexistent", hass=hass)
+    assert err == "notify_service_not_found"
+
+
+def test_safe_time_valid() -> None:
+    """_safe_time returns value unchanged for valid HH:MM (line 76)."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        _safe_time,
+    )
+
+    assert _safe_time("22:00", "08:00") == "22:00"
+    assert _safe_time("08:30:00", "22:00") == "08:30:00"
+
+
+def test_safe_time_invalid_returns_fallback() -> None:
+    """_safe_time returns fallback for invalid value (line 77)."""
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        _safe_time,
+    )
+
+    assert _safe_time("", "22:00") == "22:00"
+    assert _safe_time(None, "08:00") == "08:00"
+    assert _safe_time("not-a-time", "22:00") == "22:00"
+
+
+async def test_global_options_general_settings_invalid_notify(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """GlobalOptionsFlow general_settings shows error on invalid notify service (line 204)."""
+    await setup_integration(hass, global_entry)  # options flow needs entry to be loaded
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    # Navigate to general_settings
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "general_settings"},
+    )
+    assert result["step_id"] == "general_settings"
+
+    # Submit with invalid notify service
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 7,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "invalid.format.here",
+        },
+    )
+    # Should show form again with error
+    assert result["type"] == FlowResultType.FORM
+    assert "notify_service" in result.get("errors", {})
+
+
+async def test_global_options_panel_access_shows_form(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """GlobalOptionsFlow panel_access step shows form (lines 362-381)."""
+    await setup_integration(hass, global_entry)  # options flow needs loaded entry
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "panel_access"},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "panel_access"
+
+
+async def test_global_options_panel_access_submit(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """GlobalOptionsFlow panel_access submit saves and returns to menu."""
+    await setup_integration(hass, global_entry)  # options flow needs loaded entry
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "panel_access"},
+    )
+    assert result["step_id"] == "panel_access"
+
+    # Submit with no users selected
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"admin_panel_user_ids": []},
+    )
+    # Should return to menu
+    assert result["type"] == FlowResultType.MENU
+    assert result["step_id"] == "global_init"
+
+
+async def test_global_options_panel_access_operator_write_persists(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """panel_access submit persists the v2.8.4 operator_write_enabled toggle."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_OPERATOR_WRITE_ENABLED,
+    )
+
+    await setup_integration(hass, global_entry)
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "panel_access"},
+    )
+    assert result["step_id"] == "panel_access"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={CONF_OPERATOR_WRITE_ENABLED: True, "admin_panel_user_ids": []},
+    )
+    assert result["type"] == FlowResultType.MENU
+    assert global_entry.options[CONF_OPERATOR_WRITE_ENABLED] is True
