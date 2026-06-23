@@ -1103,6 +1103,32 @@ def test_calendar_current_nth_weekday() -> None:
     assert result["nth"] == "2"
     assert result["weekday"] == "4"
 
+
+async def test_threshold_suggestions_no_entity(hass: HomeAssistant) -> None:
+    """Line 24: no trigger_entity_id → empty suggestions."""
+    from custom_components.maintenance_supporter.config_flow_helpers import (
+        async_get_threshold_suggestions,
+    )
+    result = await async_get_threshold_suggestions(hass, None, {})
+    assert result.current_value is None
+
+
+async def test_threshold_suggestions_error(hass: HomeAssistant) -> None:
+    """Lines 30-32: analyzer raises → catch and return empty."""
+    from unittest.mock import patch
+
+    from custom_components.maintenance_supporter.config_flow_helpers import (
+        async_get_threshold_suggestions,
+    )
+    with patch(
+        "custom_components.maintenance_supporter.config_flow_helpers.EntityAnalyzer"
+    ) as mock_cls:
+        mock_cls.return_value.async_analyze_entity.side_effect = ValueError("boom")
+        result = await async_get_threshold_suggestions(
+            hass, "sensor.test", {},
+        )
+    assert result.current_value is None
+
 # ============================================================================
 # config_flow.py coverage (migrated from test_cov_cfgflow.py)
 # ============================================================================

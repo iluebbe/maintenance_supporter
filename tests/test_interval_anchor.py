@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -479,3 +480,63 @@ class TestResetClearsPlannedAnchor:
         task.reset(reset_date=date(2026, 2, 10))
         assert task.last_planned_due is None
         assert task.next_due == date(2026, 3, 12)
+
+
+# ─── interval_analyzer edge cases (migrated from test_coverage_97c.py) ────
+
+
+def test_compute_intervals_bad_timestamps() -> None:
+    """Lines 351, 357-358: malformed timestamps skipped."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+        IntervalAnalyzer,
+    )
+    history: list[dict[str, Any]] = [
+        {"type": "completed", "timestamp": None},        # line 351: falsy
+        {"type": "completed", "timestamp": "bad_date"},   # line 357-358
+        {"type": "completed", "timestamp": "2024-01-01T00:00:00"},
+        {"type": "completed", "timestamp": "2024-02-01T00:00:00"},
+    ]
+    intervals = IntervalAnalyzer._compute_intervals_from_history(history)
+    assert intervals == [31]  # Jan → Feb only
+
+
+def test_weibull_fit_few_valid_points() -> None:
+    """Line 426: filtered valid points < 5 → return None."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+        IntervalAnalyzer,
+    )
+    # Only 3 positive values → below DEFAULT_ADAPTIVE_WEIBULL_MIN (5)
+    result = IntervalAnalyzer._weibull_fit([10, 20, 30])
+    assert result is None
+
+
+def test_weibull_fit_few_xy_pairs() -> None:
+    """Line 447: < 3 valid x/y pairs → return None."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+        IntervalAnalyzer,
+    )
+    # 5 identical values → all get same rank, log calculations might produce <3 valid pairs
+    # Actually, 5 positive distinct values should work. Let's use values that cause
+    # log(-log(1-f)) to fail for most points.
+    # With 5 points: ranks 1-5, f = (i-0.3)/(5.4)
+    # All should be valid. Let me use 5 values where some are 0 (filtered out)
+    # leaving < 3 valid.
+    result = IntervalAnalyzer._weibull_fit([10, 0, 0, 0, 20])
+    # After filtering zeros: only 2 valid points → < DEFAULT_ADAPTIVE_WEIBULL_MIN
+    assert result is None
+
+
+def test_seasonal_intervals_bad_timestamps() -> None:
+    """Lines 549, 555-556: seasonal interval extraction with bad timestamps."""
+    from custom_components.maintenance_supporter.helpers.interval_analyzer import (
+        IntervalAnalyzer,
+    )
+    history: list[dict[str, Any]] = [
+        {"type": "completed", "timestamp": None},        # line 549
+        {"type": "completed", "timestamp": "bad"},        # line 555-556
+        {"type": "completed", "timestamp": "2024-01-01T00:00:00"},
+        {"type": "completed", "timestamp": "2024-02-15T00:00:00"},
+    ]
+    result = IntervalAnalyzer._compute_intervals_with_months(history)
+    assert len(result) == 1
+    assert result[0] == (45, 2)  # 45 days, February

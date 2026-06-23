@@ -2891,3 +2891,39 @@ class TestTriggerUnavailableNoOp:
         assert trigger._threshold_exceeded is True
         assert trigger.evaluate(1.4) is False  # back to normal → resets latch
         assert trigger._threshold_exceeded is False
+
+
+# ─── Counter / state_change property edge cases (migrated from 97c) ────
+
+
+async def test_counter_trigger_delta_mode_no_current(
+    hass: HomeAssistant,
+) -> None:
+    """Lines 99, 101: current_delta returns None when delta_mode=False or no value."""
+    from custom_components.maintenance_supporter.entity.triggers.counter import (
+        CounterTrigger,
+    )
+    trigger = CounterTrigger.__new__(CounterTrigger)
+    trigger._delta_mode = False
+    trigger._baseline_value = 10.0
+    trigger._current_value = 50.0
+    assert trigger.current_delta is None  # line 99: not delta_mode
+
+    trigger._delta_mode = True
+    trigger._baseline_value = 10.0
+    trigger._current_value = None
+    assert trigger.current_delta is None  # line 101: no current value
+
+
+async def test_state_change_evaluate(
+    hass: HomeAssistant,
+) -> None:
+    """Line 177: evaluate returns cached _triggered state."""
+    from custom_components.maintenance_supporter.entity.triggers.state_change import (
+        StateChangeTrigger,
+    )
+    trigger = StateChangeTrigger.__new__(StateChangeTrigger)
+    trigger._triggered = False
+    assert trigger.evaluate(0.0) is False  # line 177
+    trigger._triggered = True
+    assert trigger.evaluate(0.0) is True
