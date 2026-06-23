@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
@@ -319,3 +321,196 @@ async def test_repairs_removed_when_trigger_available(
         and entry.entry_id in k[1]
     }
     assert len(our_issues) == 0
+
+
+# ─── diagnostics.py edge cases ──────────────────────────────────────────
+
+
+async def test_diagnostics_overview_due_soon(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """_get_overview counts DUE_SOON tasks correctly."""
+    # Create a task that is due_soon (close to interval)
+    last = (dt_util.now().date() - timedelta(days=25)).isoformat()
+    task = build_task_data(
+        last_performed=last,
+        interval_days=30,
+        warning_days=7,
+    )
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Due Soon Object",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Due Soon Object"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_due_soon_diag",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_config_entry, entry)
+
+    from custom_components.maintenance_supporter.diagnostics import (
+        async_get_config_entry_diagnostics,
+    )
+
+    diag = await async_get_config_entry_diagnostics(hass, global_config_entry)
+    overview = diag.get("overview", {})
+    assert overview.get("due_soon_tasks", 0) >= 1
+
+
+async def test_diagnostics_trigger_health_missing_entity(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """_check_trigger_health reports MISSING when entity doesn't exist."""
+    task = build_task_data(
+        trigger_config={
+            "entity_id": "sensor.totally_missing",
+            "type": "threshold",
+            "trigger_above": 30,
+        },
+    )
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Missing Entity Diag",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Missing Entity Diag"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_missing_diag",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_config_entry, entry)
+
+    from custom_components.maintenance_supporter.diagnostics import (
+        async_get_config_entry_diagnostics,
+    )
+
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    trigger_status = diag.get("trigger_status", [])
+    assert len(trigger_status) == 1
+    assert trigger_status[0]["entity_health"] == "missing"
+
+
+async def test_diagnostics_trigger_health_unavailable(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """_check_trigger_health reports UNAVAILABLE when entity is unavailable."""
+    set_sensor_state(hass, "sensor.unavail_diag", "unavailable")
+    task = build_task_data(
+        trigger_config={
+            "entity_id": "sensor.unavail_diag",
+            "type": "threshold",
+            "trigger_above": 30,
+        },
+    )
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Unavail Diag",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Unavail Diag"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_unavail_diag",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_config_entry, entry)
+
+    from custom_components.maintenance_supporter.diagnostics import (
+        async_get_config_entry_diagnostics,
+    )
+
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    trigger_status = diag.get("trigger_status", [])
+    assert len(trigger_status) == 1
+    assert trigger_status[0]["entity_health"] == "unavailable"
+
+
+async def test_diagnostics_data_quality_all_warnings(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """_check_data_quality reports warnings for empty name, no tasks, etc."""
+    from custom_components.maintenance_supporter.diagnostics import _check_data_quality
+
+    # Object with no name, task with no name, time-based without interval
+    data: dict[str, Any] = {
+        CONF_OBJECT: {"name": ""},
+        CONF_TASKS: {
+            "task_a": {
+                "name": "",
+                "schedule_type": "time_based",
+                "interval_days": None,
+            },
+        },
+    }
+    warnings = _check_data_quality(data)
+    assert "Object has no name" in warnings
+    # Task with no name
+    assert any("has no name" in w for w in warnings)
+    # Time-based without interval
+    assert any("no interval" in w for w in warnings)
+
+    # Empty tasks
+    data2: dict[str, Any] = {
+        CONF_OBJECT: {"name": "Test"},
+        CONF_TASKS: {},
+    }
+    warnings2 = _check_data_quality(data2)
+    assert "Object has no tasks defined" in warnings2
+
+
+def test_diagnostics_no_false_warning_compound() -> None:
+    """Compound triggers should not produce 'no entity' warnings."""
+    from custom_components.maintenance_supporter.diagnostics import _check_data_quality
+
+    data = {
+        CONF_OBJECT: {"name": "Test"},
+        CONF_TASKS: {
+            "t1": {
+                "name": "Test Task",
+                "schedule_type": "sensor_based",
+                "trigger_config": {
+                    "type": "compound",
+                    "compound_logic": "AND",
+                    "conditions": [
+                        {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+                        {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 20},
+                    ],
+                },
+            }
+        },
+    }
+    warnings = _check_data_quality(data)
+    assert not any("no entity" in w.lower() for w in warnings)
+
+
+def test_diagnostics_trigger_status_compound(hass: HomeAssistant) -> None:
+    """_check_trigger_status extracts entity_ids from compound conditions."""
+    from custom_components.maintenance_supporter.diagnostics import _check_trigger_status
+
+    hass.states.async_set("sensor.a", "10")
+    hass.states.async_set("sensor.b", "20")
+
+    data = {
+        CONF_TASKS: {
+            "t1": {
+                "trigger_config": {
+                    "type": "compound",
+                    "conditions": [
+                        {"type": "threshold", "entity_id": "sensor.a"},
+                        {"type": "threshold", "entity_id": "sensor.b"},
+                    ],
+                }
+            }
+        }
+    }
+    results = _check_trigger_status(hass, data)
+    entity_ids = [r["trigger_entity"] for r in results]
+    assert "sensor.a" in entity_ids
+    assert "sensor.b" in entity_ids

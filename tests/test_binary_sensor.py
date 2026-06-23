@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -12,6 +13,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -420,3 +422,44 @@ async def test_binary_sensor_status_computation(
     assert state is not None
     # Task is overdue → binary sensor should be "on"
     assert state.state == "on"
+
+
+class TestBinarySensorResetClearsValue:
+    """Verify binary sensor _handle_task_reset clears _trigger_current_value."""
+
+    def test_handle_task_reset_clears_trigger_value(self) -> None:
+        """_handle_task_reset sets _trigger_current_value to None."""
+        from custom_components.maintenance_supporter.binary_sensor import (
+            MaintenanceBinarySensor,
+        )
+
+        # Create a mock coordinator with data containing an active trigger
+        coordinator = MagicMock()
+        coordinator.data = {
+            CONF_TASKS: {
+                "task1": {
+                    "_trigger_active": True,
+                    "_trigger_current_value": 42.5,
+                    "_status": MaintenanceStatus.TRIGGERED,
+                    "_days_until_due": 10,
+                    "warning_days": 7,
+                }
+            }
+        }
+        coordinator.entry.data = {
+            CONF_OBJECT: {"name": "Test"},
+            CONF_TASKS: {"task1": {"name": "Task 1"}},
+        }
+        coordinator.entry.entry_id = "test_entry"
+
+        sensor = MaintenanceBinarySensor.__new__(MaintenanceBinarySensor)
+        sensor.coordinator = coordinator
+        sensor._task_id = "task1"
+        sensor.async_write_ha_state = MagicMock()  # type: ignore[method-assign]
+
+        sensor._handle_task_reset()
+
+        task = coordinator.data[CONF_TASKS]["task1"]
+        assert task["_trigger_active"] is False
+        assert task["_trigger_current_value"] is None
+        assert task["_status"] == MaintenanceStatus.OK

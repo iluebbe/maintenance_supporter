@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -998,3 +999,248 @@ async def test_partial_unload_preserves_domain_data_and_listeners(
     # notification + tag_scanned + action_listener + device_registry (#48)
     # + entity_registry (v1.5.4).
     assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 5
+
+
+# ─── __init__.py _get_coordinator_for_entity ────────────────────────────
+
+
+def test_get_coordinator_for_entity_not_in_registry(
+    hass: HomeAssistant,
+) -> None:
+    """_get_coordinator_for_entity returns None when entity is not in registry."""
+    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+
+    result = _get_coordinator_for_entity(hass, "sensor.nonexistent")
+    assert result is None
+
+
+async def test_get_coordinator_for_entity_no_config_entry_id(
+    hass: HomeAssistant,
+) -> None:
+    """_get_coordinator_for_entity returns None when config_entry_id is None."""
+    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+
+    entity_reg = er.async_get(hass)
+    # Mock entity with config_entry_id=None
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.config_entry_id = None
+        mock_get.return_value = mock_entry
+        result = _get_coordinator_for_entity(hass, "sensor.fake_entity")
+    assert result is None
+
+
+async def test_get_coordinator_for_entity_config_entry_gone(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """_get_coordinator_for_entity returns None when config entry doesn't exist."""
+    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    entity_reg = er.async_get(hass)
+    # Mock entity pointing to nonexistent config entry
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.config_entry_id = "nonexistent_entry_id"
+        mock_get.return_value = mock_entry
+        result = _get_coordinator_for_entity(hass, "sensor.fake_entity")
+    assert result is None
+
+
+async def test_get_coordinator_for_entity_no_runtime_data(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """_get_coordinator_for_entity returns None when runtime_data is None."""
+    from custom_components.maintenance_supporter import _get_coordinator_for_entity
+
+    await setup_integration(hass, global_config_entry)
+
+    entity_reg = er.async_get(hass)
+    # Mock entity pointing to global entry (which has no runtime_data.coordinator)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.config_entry_id = global_config_entry.entry_id
+        mock_get.return_value = mock_entry
+        result = _get_coordinator_for_entity(hass, "sensor.fake_entity")
+    assert result is None
+
+
+# ─── __init__.py _get_task_id_for_entity ────────────────────────────────
+
+
+def test_get_task_id_for_entity_not_in_registry(
+    hass: HomeAssistant,
+) -> None:
+    """_get_task_id_for_entity returns None when entity not in registry."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    result = _get_task_id_for_entity(hass, "sensor.nonexistent")
+    assert result is None
+
+
+async def test_get_task_id_for_entity_wrong_prefix(
+    hass: HomeAssistant,
+) -> None:
+    """_get_task_id_for_entity returns None when unique_id has wrong prefix."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.unique_id = "wrong_prefix_test"
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "sensor.something")
+    assert result is None
+
+
+async def test_get_task_id_for_entity_no_config_entry_id(
+    hass: HomeAssistant,
+) -> None:
+    """_get_task_id_for_entity returns None when config_entry_id is None."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.unique_id = f"maintenance_supporter_obj_{TASK_ID_1}"
+        mock_entry.config_entry_id = None
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "sensor.something")
+    assert result is None
+
+
+async def test_get_task_id_for_entity_no_config_entry(
+    hass: HomeAssistant,
+) -> None:
+    """_get_task_id_for_entity returns None when config entry doesn't exist."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.unique_id = f"maintenance_supporter_obj_{TASK_ID_1}"
+        mock_entry.config_entry_id = "nonexistent_entry_id"
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "sensor.something")
+    assert result is None
+
+
+async def test_get_task_id_for_entity_no_matching_task(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """_get_task_id_for_entity returns None when no task matches unique_id."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        mock_entry.unique_id = "maintenance_supporter_pool_pump_ffffffffffffffffffffffffffffffff"
+        mock_entry.config_entry_id = object_config_entry.entry_id
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "sensor.something")
+    assert result is None
+
+
+async def test_get_task_id_for_entity_binary_sensor(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """_get_task_id_for_entity works for binary_sensor unique_ids (_overdue suffix)."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        # Binary sensor unique_id has _overdue suffix after task_id
+        mock_entry.unique_id = f"maintenance_supporter_pool_pump_{TASK_ID_1}_overdue"
+        mock_entry.config_entry_id = object_config_entry.entry_id
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "binary_sensor.something")
+    assert result == TASK_ID_1
+
+
+async def test_get_task_id_substring_no_false_match(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """_get_task_id_for_entity must not match on substring of task_id."""
+    from custom_components.maintenance_supporter import _get_task_id_for_entity
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    entity_reg = er.async_get(hass)
+    with patch.object(entity_reg, "async_get") as mock_get:
+        mock_entry = MagicMock()
+        # Use a unique_id where the task_id appears as a substring but not at the end
+        # e.g. task_id "abc123" appearing inside "Xabc123Y"
+        mock_entry.unique_id = f"maintenance_supporter_obj_XX{TASK_ID_1}XX"
+        mock_entry.config_entry_id = object_config_entry.entry_id
+        mock_get.return_value = mock_entry
+        result = _get_task_id_for_entity(hass, "sensor.something")
+    assert result is None
+
+
+# ─── __init__.py async_remove_config_entry_device ───────────────────────
+
+
+async def test_remove_config_entry_device_no_entities(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """async_remove_config_entry_device returns True when device has no entities."""
+    from custom_components.maintenance_supporter import async_remove_config_entry_device
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_or_create(
+        config_entry_id=object_config_entry.entry_id,
+        identifiers={(DOMAIN, "test_device_empty")},
+    )
+
+    result = await async_remove_config_entry_device(
+        hass, object_config_entry, device
+    )
+    assert result is True
+
+
+async def test_remove_config_entry_device_with_entities(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """async_remove_config_entry_device returns False when device has entities."""
+    from custom_components.maintenance_supporter import async_remove_config_entry_device
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    dev_reg = dr.async_get(hass)
+    device = dev_reg.async_get_or_create(
+        config_entry_id=object_config_entry.entry_id,
+        identifiers={(DOMAIN, "test_device_with_ent")},
+    )
+
+    entity_reg = er.async_get(hass)
+    entity_reg.async_get_or_create(
+        "sensor", DOMAIN, "device_entity_test",
+        config_entry=object_config_entry,
+        device_id=device.id,
+    )
+
+    result = await async_remove_config_entry_device(
+        hass, object_config_entry, device
+    )
+    assert result is False

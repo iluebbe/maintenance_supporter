@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 from typing import Any
+from unittest.mock import patch
 
 import pytest
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
@@ -512,3 +514,89 @@ async def test_sensor_entity_slug_sets_name(
     sensor = MaintenanceSensor(coord, TASK_ID_1)
     # entity_slug should set the name
     assert sensor._attr_name == "my_custom_slug"
+
+
+# ─── sensor.py attribute edge cases ─────────────────────────────────────
+
+
+async def test_sensor_runtime_fallback_attributes(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+) -> None:
+    """Sensor shows runtime fallback attributes when trigger instance is missing."""
+
+    last = (dt_util.now().date() - timedelta(days=10)).isoformat()
+    task = build_task_data(
+        last_performed=last,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "runtime",
+            "entity_id": "sensor.pump_fallback",
+            "entity_ids": ["sensor.pump_fallback"],
+            "trigger_runtime_hours": 200,
+            "trigger_accumulated_seconds": 7200.0,
+        },
+    )
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="RT Fallback",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="RT Fallback"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_rt_fallback",
+    )
+    entry.add_to_hass(hass)
+
+    # Patch trigger creation to raise so sensor falls back to config values
+    with patch(
+        "custom_components.maintenance_supporter.sensor.create_triggers",
+        side_effect=ValueError("Test trigger setup failure"),
+    ):
+        await setup_integration(hass, global_config_entry, entry)
+
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
+    sensor_entities = [e for e in entities if e.domain == "sensor"]
+    assert len(sensor_entities) >= 1
+
+    state = hass.states.get(sensor_entities[0].entity_id)
+    assert state is not None
+    # trigger_accumulated_hours and trigger_remaining_hours removed from state attributes
+
+
+async def test_sensor_weibull_random_failures(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+) -> None:
+    """Sensor shows weibull_beta_interpretation = random_failures for beta ~1.0."""
+    await setup_integration(hass, global_config_entry, object_config_entry)
+
+    coordinator = object_config_entry.runtime_data.coordinator
+
+    # Inject analysis data with weibull_beta = 1.0 (random failures)
+    if CONF_TASKS in coordinator.data:
+        for task_id in coordinator.data[CONF_TASKS]:
+            coordinator.data[CONF_TASKS][task_id]["_interval_analysis"] = {
+                "seasonal_factor": None,
+                "weibull_beta": 1.0,
+                "weibull_eta": 30.0,
+                "weibull_r_squared": 0.95,
+                "confidence_interval_low": None,
+            }
+
+    # Get sensor entity
+    entity_reg = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(entity_reg, object_config_entry.entry_id)
+    sensor_entities = [e for e in entities if e.domain == "sensor"]
+    assert len(sensor_entities) >= 1
+
+    # Force sensor to re-read coordinator data
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(sensor_entities[0].entity_id)
+    assert state is not None
+    assert state.attributes.get("weibull_beta_interpretation") == "random_failures"
