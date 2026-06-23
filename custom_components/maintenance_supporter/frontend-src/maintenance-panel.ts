@@ -6,6 +6,7 @@ import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTim
 import { daysProgress } from "./helpers/interval";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
+import { downloadTextFile } from "./helpers/download";
 import { panelStyles } from "./panel-styles";
 import type {
   HomeAssistant,
@@ -1340,13 +1341,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         type: "maintenance_supporter/objects/csv",
       }) as { csv: string };
       const ts = new Date().toISOString().slice(0, 10);
-      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `maintenance_objects_${ts}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadTextFile(result.csv, `maintenance_objects_${ts}.csv`, "text/csv;charset=utf-8");
     } catch {
       this._showToast(t("action_error", this._lang));
     }

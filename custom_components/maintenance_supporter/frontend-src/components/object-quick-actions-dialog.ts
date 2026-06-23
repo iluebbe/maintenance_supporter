@@ -153,7 +153,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
               ${obj.notes
                 ? html`
                     <div class="notes-section">
-                      <strong>${t("notes", L) || "Notes"}</strong>
+                      <strong>${t("object_notes_label", L)}</strong>
                       <div class="notes-body">${obj.notes}</div>
                     </div>
                   `
@@ -186,13 +186,13 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
   private _renderMetaRow(obj: MaintenanceObject) {
     const L = this._lang;
     const items: Array<[string, string]> = [];
-    if (obj.area_id) items.push([t("area", L) || "Area", obj.area_id]);
-    if (obj.manufacturer) items.push([t("manufacturer", L) || "Manufacturer", obj.manufacturer]);
-    if (obj.model) items.push([t("model", L) || "Model", obj.model]);
-    if (obj.serial_number) items.push([t("serial_number", L) || "Serial", obj.serial_number]);
-    if (obj.installation_date) items.push([t("installation_date", L) || "Installed", obj.installation_date]);
-    if (obj.warranty_expiry) items.push([t("warranty", L) || "Warranty", obj.warranty_expiry]);
-    if (obj.documentation_url) items.push([t("documentation_url", L) || "Docs", obj.documentation_url]);
+    if (obj.area_id) items.push([t("area", L), obj.area_id]);
+    if (obj.manufacturer) items.push([t("manufacturer", L), obj.manufacturer]);
+    if (obj.model) items.push([t("model", L), obj.model]);
+    if (obj.serial_number) items.push([t("serial_number_label", L), obj.serial_number]);
+    if (obj.installation_date) items.push([t("installed", L), obj.installation_date]);
+    if (obj.warranty_expiry) items.push([t("warranty", L), obj.warranty_expiry]);
+    if (obj.documentation_url) items.push([t("documentation_url_label", L), obj.documentation_url]);
 
     if (items.length === 0) return nothing;
     return html`
