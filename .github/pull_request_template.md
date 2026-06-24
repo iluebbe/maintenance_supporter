@@ -25,11 +25,11 @@ Delete sections that don't apply.
 
 ## Translations
 
-If you touched panel strings (`frontend-src/styles.ts`) or config-flow strings (`translations/*.json`):
+If you touched panel strings (`frontend-src/locales/*.json`) or config-flow strings (`translations/*.json`):
 
-- [ ] All 13 languages updated, or
+- [ ] All 18 languages updated, or
 - [ ] At least the language(s) you can speak (other languages will fall back to English)
-- [ ] `cd custom_components/maintenance_supporter/frontend-src && npm test` (`__tests__/i18n-parity.test.ts`) confirms key parity (or note why parity differs)
+- [ ] `pytest tests/test_i18n.py` confirms key parity across all languages (backend `translations/*.json` + panel `frontend-src/locales/*.json`)
 
 ## Notes for reviewer
 

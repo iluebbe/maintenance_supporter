@@ -1,0 +1,1577 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Opsæt dit system til vedligeholdelsesstyring.",
+        "menu_options": {
+          "create_object": "Opret vedligeholdelsesobjekt",
+          "create_from_template": "Opret fra skabelon",
+          "global_setup": "Globale indstillinger"
+        }
+      },
+      "create_from_template": {
+        "title": "Vælg skabelonkategori",
+        "description": "Vælg en kategori for at gennemse foruddefinerede vedligeholdelsesskabeloner.",
+        "data": {
+          "template_category": "Kategori",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "template_select": {
+        "title": "Vælg skabelon",
+        "description": "Vælg en vedligeholdelsesskabelon som udgangspunkt.",
+        "data": {
+          "template_id": "Skabelon",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "go_back": "Vend tilbage til kategorivalg uden at gemme."
+        }
+      },
+      "template_customize": {
+        "title": "Tilpas skabelon",
+        "description": "Tilpas skabelonen {template_name}. Den indeholder {task_count} opgaver: {task_list}.",
+        "data": {
+          "name": "Objektnavn",
+          "area_id": "Område",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL til manual / dokumentation",
+          "notes": "Noter",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "name": "Et navn til dette vedligeholdelsesobjekt.",
+          "area_id": "Det område, hvor dette objekt befinder sig.",
+          "manufacturer": "Objektets producent.",
+          "model": "Modelnavnet eller -nummeret.",
+          "serial_number": "Objektets serienummer.",
+          "documentation_url": "Valgfrit link til en PDF-manual, en producentside eller en hvilken som helst URL med referenceinfo for dette objekt.",
+          "notes": "Frie noter om objektet — varenumre, procedurer, indstillingspåmindelser osv.",
+          "go_back": "Vend tilbage til skabelonvalg uden at gemme."
+        }
+      },
+      "global_setup": {
+        "title": "Globale indstillinger",
+        "description": "Konfigurer globale vedligeholdelsesindstillinger.",
+        "data": {
+          "default_warning_days": "Standardadvarsel i dage før forfald",
+          "notifications_enabled": "Aktivér notifikationer",
+          "notify_service": "Notifikationstjeneste"
+        },
+        "data_description": {
+          "default_warning_days": "Antal dage før en vedligeholdelsesopgave forfalder, hvor der vises en advarsel.",
+          "notifications_enabled": "Send notifikationer, når vedligeholdelsesopgaver forfalder.",
+          "notify_service": "Den notifikationstjeneste, der skal bruges (f.eks. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Opret vedligeholdelsesobjekt",
+        "description": "Definer en enhed eller et aktiv, du vil styre vedligeholdelse for.",
+        "data": {
+          "name": "Objektnavn",
+          "area_id": "Område",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL til manual / dokumentation",
+          "notes": "Noter",
+          "installation_date": "Installationsdato",
+          "warranty_expiry": "Garantiudløb",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "name": "Et entydigt navn til dette vedligeholdelsesobjekt (f.eks. 'Poolpumpe', 'Bil').",
+          "area_id": "Det område i dit hjem, hvor dette objekt befinder sig.",
+          "manufacturer": "Objektets producent.",
+          "model": "Modelnavnet eller -nummeret.",
+          "serial_number": "Objektets serienummer.",
+          "documentation_url": "Valgfrit link til en PDF-manual, en producentside eller en hvilken som helst URL med referenceinfo for dette objekt.",
+          "notes": "Frie noter om objektet — varenumre, procedurer, indstillingspåmindelser osv.",
+          "installation_date": "Hvornår dette objekt blev installeret eller købt.",
+          "warranty_expiry": "Hvornår producentgarantien for dette objekt udløber.",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "task_menu": {
+        "title": "Vedligeholdelsesopgaver",
+        "description": "Tilføj vedligeholdelsesopgaver for {object_name}. I øjeblikket er {task_count} opgave(r) defineret.",
+        "menu_options": {
+          "add_task": "Tilføj vedligeholdelsesopgave",
+          "finish": "Afslut opsætning"
+        }
+      },
+      "add_task": {
+        "title": "Tilføj vedligeholdelsesopgave",
+        "description": "Definer en vedligeholdelsesopgave for {object_name}.",
+        "data": {
+          "name": "Opgavenavn",
+          "type": "Vedligeholdelsestype",
+          "schedule_type": "Planlægningstype",
+          "custom_icon": "Opgaveikon",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
+          "type": "Kategorien af vedligeholdelsesarbejde.",
+          "schedule_type": "Hvordan denne opgave skal planlægges.",
+          "custom_icon": "Valgfrit brugerdefineret ikon til denne opgave (f.eks. mdi:oil, mdi:filter-variant).",
+          "go_back": "Vend tilbage til opgavemenuen uden at gemme."
+        }
+      },
+      "time_based": {
+        "title": "Tidsbaseret plan",
+        "description": "Konfigurer tidsintervallet for denne vedligeholdelsesopgave.",
+        "data": {
+          "interval_days": "Interval",
+          "interval_unit": "Intervalenhed",
+          "last_performed": "Senest udført",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage",
+          "interval_anchor": "Intervalanker"
+        },
+        "data_description": {
+          "interval_days": "Hvor ofte denne vedligeholdelse gentages, kombineret med intervalenheden.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "last_performed": "Hvornår denne vedligeholdelse senest blev udført. Lad feltet stå tomt, hvis det aldrig er gjort.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til oprettelse af opgaven uden at gemme.",
+          "interval_anchor": "Hvordan den næste forfaldsdato beregnes efter fuldførelse. 'Planlagt' forhindrer tidsforskydning ved at forankre til den oprindelige forfaldsdato."
+        }
+      },
+      "one_time": {
+        "title": "Engangsopgave",
+        "description": "Konfigurer en enkelt, ikke-gentagende vedligeholdelsesopgave. Den arkiveres, når den er fuldført.",
+        "data": {
+          "due_date": "Forfaldsdato",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "due_date": "Datoen, hvor denne engangsopgave forfalder.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til oprettelse af opgaven uden at gemme."
+        }
+      },
+      "calendar": {
+        "title": "Kalenderplan",
+        "description": "Konfigurer en kalenderbaseret gentagelse (ugedage, n'te ugedag i måneden eller en dag i måneden).",
+        "data": {
+          "weekdays": "På disse ugedage",
+          "nth": "Hvilken forekomst",
+          "weekday": "Ugedag",
+          "day": "Dag i måneden",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "weekdays": "Opgaven gentages på hver valgt ugedag.",
+          "nth": "Hvilken forekomst i måneden (f.eks. 1., eller Sidste).",
+          "weekday": "Ugedagen for reglen om n'te ugedag (f.eks. lørdag).",
+          "day": "Dag i måneden (1-31; begrænses til månedens længde).",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til oprettelse af opgaven uden at gemme."
+        }
+      },
+      "sensor_select": {
+        "title": "Vælg udløsersensor",
+        "description": "Vælg en Home Assistant-enhed, der skal overvåges for denne vedligeholdelsesopgave.",
+        "data": {
+          "trigger_entity": "Enhed der skal overvåges",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_entity": "Vælg den sensorenhed, der skal udløse denne vedligeholdelsesopgave.",
+          "go_back": "Vend tilbage til oprettelse af opgaven uden at gemme."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Vælg attribut",
+        "description": "Vælg hvilken værdi der skal overvåges fra {entity_id}. Aktuel tilstand: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Værdi der skal overvåges",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_attribute": "Vælg enhedens tilstand eller en bestemt attribut, der skal overvåges.",
+          "go_back": "Vend tilbage til enhedsvalg uden at gemme."
+        }
+      },
+      "trigger_type": {
+        "title": "Udløsertype",
+        "description": "Hvordan skal sensorværdien udløse vedligeholdelse?",
+        "data": {
+          "trigger_type": "Udløsertype",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_type": "Tærskel: udløses, når værdien overskrider grænserne. Tæller: udløses efter akkumulering af en målværdi. Tilstandsændring: udløses efter et antal tilstandsovergange.",
+          "go_back": "Vend tilbage til attributvalg uden at gemme."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Tærskelkonfiguration",
+        "description": "Angiv tærskelværdier for **{entity_id}** ({attribute}).\nAktuel: **{current_value} {unit}** | Gns.: {average} | Interval: {minimum}–{maximum} ({data_period}d)\nForeslået over: {suggested_above} | Foreslået under: {suggested_below}",
+        "data": {
+          "trigger_above": "Udløs når over",
+          "trigger_below": "Udløs når under",
+          "trigger_for_minutes": "I mindst (minutter)",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_above": "Udløs vedligeholdelse, når værdien overskrider denne tærskel.",
+          "trigger_below": "Udløs vedligeholdelse, når værdien falder under denne tærskel.",
+          "trigger_for_minutes": "Værdien skal overskride tærsklen i så mange minutter, før der udløses.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over sensorudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+        }
+      },
+      "trigger_counter": {
+        "title": "Tællerkonfiguration",
+        "description": "Angiv tællermål for {entity_id} ({attribute}). Aktuel: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Målværdi",
+          "trigger_delta_mode": "Delta-tilstand (tæl ændringer, ikke absolut)",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_target_value": "Udløs vedligeholdelse, når denne akkumulerede værdi er nået.",
+          "trigger_delta_mode": "Hvis aktiveret, tælles forskellen fra en baseline i stedet for den absolutte værdi.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over tællerudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Konfiguration af tilstandsændring",
+        "description": "Tæl tilstandsovergange for {entity_id}.",
+        "data": {
+          "trigger_from_state": "Fra tilstand (valgfrit)",
+          "trigger_to_state": "Til tilstand (valgfrit)",
+          "trigger_target_changes": "Antal ændringer for at udløse",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_from_state": "Tæl kun overgange fra denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_to_state": "Tæl kun overgange til denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_target_changes": "Antal matchende tilstandsændringer, før vedligeholdelse udløses.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over udløseren for tilstandsændring.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Driftstidskonfiguration",
+        "description": "Spor akkumuleret driftstid for {entity_id}. Vedligeholdelse udløses, når den samlede tændt-tid når måltimerne.",
+        "data": {
+          "trigger_runtime_hours": "Måldriftstid (timer)",
+          "trigger_on_states": "Aktive tilstande (kommasepareret)",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Udløs vedligeholdelse efter så mange timers akkumuleret driftstid.",
+          "trigger_on_states": "Hvilke sensortilstande der tæller som 'aktive'. Lad feltet stå tomt for standard: on, 1, true. Eksempel: in_use, running",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over driftstidsudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+        }
+      },
+      "compound_logic": {
+        "title": "Sammensat udløser",
+        "description": "Vælg hvordan flere betingelser skal kombineres.",
+        "data": {
+          "compound_logic": "Logik",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "compound_logic": "OG = alle betingelser skal udløses. ELLER = enhver betingelse udløser.",
+          "go_back": "Vend tilbage til valg af udløsertype uden at gemme."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Betingelse #{condition_num} — Enhed",
+        "description": "Vælg enheden for denne betingelse.",
+        "data": {
+          "trigger_entity": "Enhed",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_entity": "Sensorenheden, der skal overvåges for denne betingelse.",
+          "go_back": "Vend tilbage til forrige trin uden at gemme."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Betingelse #{condition_num} — Type",
+        "description": "Hvordan skal denne betingelse evaluere sensoren?",
+        "data": {
+          "trigger_type": "Udløsertype",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_type": "Den metode, der bruges til at afgøre, hvornår denne betingelse udløses.",
+          "go_back": "Vend tilbage til enhedsvalg uden at gemme."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Betingelse — Tærskel",
+        "data": {
+          "trigger_above": "Udløs over",
+          "trigger_below": "Udløs under",
+          "trigger_for_minutes": "Varighed (minutter)",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_above": "Udløs, når værdien overskrider denne tærskel.",
+          "trigger_below": "Udløs, når værdien falder under denne tærskel.",
+          "trigger_for_minutes": "Værdien skal forblive ud over tærsklen i denne varighed.",
+          "go_back": "Vend tilbage til valg af betingelsestype uden at gemme."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Betingelse — Tæller",
+        "data": {
+          "trigger_target_value": "Målværdi",
+          "trigger_delta_mode": "Delta-tilstand",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_target_value": "Udløs, når den akkumulerede værdi når dette mål.",
+          "trigger_delta_mode": "Tæl ændringer fra en baseline i stedet for den absolutte værdi.",
+          "go_back": "Vend tilbage til valg af betingelsestype uden at gemme."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Betingelse — Tilstandsændring",
+        "data": {
+          "trigger_from_state": "Fra tilstand",
+          "trigger_to_state": "Til tilstand",
+          "trigger_target_changes": "Antal ændringer",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_from_state": "Tæl kun overgange fra denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_to_state": "Tæl kun overgange til denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_target_changes": "Antal matchende tilstandsændringer, før der udløses.",
+          "go_back": "Vend tilbage til valg af betingelsestype uden at gemme."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Betingelse — Driftstid",
+        "data": {
+          "trigger_runtime_hours": "Måldriftstid (timer)",
+          "trigger_on_states": "Aktive tilstande",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Udløs efter så mange timers akkumuleret driftstid.",
+          "trigger_on_states": "Sensortilstande, der tæller som 'aktive'. Lad feltet stå tomt for standard.",
+          "go_back": "Vend tilbage til valg af betingelsestype uden at gemme."
+        }
+      },
+      "compound_review": {
+        "title": "Gennemgang af sammensat udløser",
+        "description": "{condition_count} betingelse(r) konfigureret med {compound_logic}-logik.",
+        "data": {
+          "compound_action": "Handling",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "go_back": "Vend tilbage til logikvalg uden at gemme."
+        }
+      },
+      "manual": {
+        "title": "Manuel plan",
+        "description": "Denne opgave har ingen automatisk plan. Du kan markere den som forfalden manuelt.",
+        "data": {
+          "warning_days": "Advarsel i dage før forfald",
+          "notes": "Noter",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "notes": "Yderligere noter eller instruktioner til denne opgave.",
+          "go_back": "Vend tilbage til oprettelse af opgaven uden at gemme."
+        }
+      },
+      "reconfigure": {
+        "title": "Omkonfigurer {name}",
+        "description": "Opdater indstillingerne for dette vedligeholdelsesobjekt.",
+        "data": {
+          "name": "Objektnavn",
+          "area_id": "Område",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL til manual / dokumentation",
+          "notes": "Noter",
+          "installation_date": "Installationsdato",
+          "warranty_expiry": "Garantiudløb"
+        },
+        "data_description": {
+          "name": "Navnet på dette vedligeholdelsesobjekt.",
+          "area_id": "Det område, hvor dette objekt befinder sig.",
+          "manufacturer": "Producenten af dette objekt.",
+          "model": "Modellen af dette objekt.",
+          "serial_number": "Serienummeret på dette objekt.",
+          "documentation_url": "Valgfrit link til en PDF-manual, en producentside eller en hvilken som helst URL med referenceinfo for dette objekt.",
+          "notes": "Frie noter om objektet — varenumre, procedurer, indstillingspåmindelser osv.",
+          "installation_date": "Hvornår dette objekt blev installeret.",
+          "warranty_expiry": "Hvornår producentgarantien for dette objekt udløber."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Et vedligeholdelsesobjekt med dette navn findes allerede.",
+      "no_tasks": "Mindst én vedligeholdelsesopgave er påkrævet.",
+      "invalid_entity": "Den valgte enhed findes ikke eller har ingen numeriske data.",
+      "invalid_attribute": "Den valgte attribut er ikke tilgængelig på denne enhed.",
+      "invalid_threshold": "Mindst én tærskel (over eller under) skal angives.",
+      "invalid_due_date": "En forfaldsdato er påkrævet for engangsopgaver.",
+      "invalid_interval": "Intervallet skal være et positivt tal.",
+      "min_exceeds_max": "Minimumsintervallet må ikke overstige maksimumsintervallet.",
+      "invalid_notify_service": "Ugyldigt format for notifikationstjeneste. Brug 'notify.service_name' (f.eks. notify.mobile_app_phone).",
+      "notify_service_not_found": "Denne notifikationstjeneste blev ikke fundet i Home Assistant. Bekræft venligst tjenestens navn.",
+      "nfc_tag_duplicate": "Dette NFC-mærke er allerede knyttet til en anden opgave."
+    },
+    "abort": {
+      "already_configured": "Dette vedligeholdelsesobjekt er allerede konfigureret.",
+      "global_already_exists": "Globale indstillinger er allerede konfigureret.",
+      "template_not_found": "Den valgte skabelon blev ikke fundet.",
+      "missing_data": "Påkrævede data blev ikke angivet.",
+      "reconfigure_successful": "Konfigurationen blev opdateret.",
+      "reconfigure_cancelled": "Omkonfiguration annulleret."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vedligeholdelsesindstillinger",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Administrer opgaver",
+          "add_task": "Tilføj ny opgave",
+          "object_settings": "Objektindstillinger",
+          "done": "Færdig"
+        }
+      },
+      "global_init": {
+        "title": "Globale indstillinger",
+        "description": "Konfigurer globale vedligeholdelsesindstillinger.",
+        "menu_options": {
+          "general_settings": "Generelle indstillinger",
+          "advanced_features": "Avancerede funktioner",
+          "panel_access": "Paneladgang",
+          "budget_settings": "Budgetindstillinger",
+          "manage_groups": "Administrer grupper",
+          "notification_settings": "Notifikationsindstillinger",
+          "notification_actions": "Interaktive handlinger",
+          "test_notification": "Send testnotifikation",
+          "done": "Færdig"
+        }
+      },
+      "advanced_features": {
+        "title": "Avancerede funktioner",
+        "description": "Vælg hvilke avancerede funktioner der skal vises i brugerfladen. Deaktivering af en funktion skjuler den fra grænsefladen, men sletter ingen data.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptiv planlægning",
+          "advanced_predictions_visible": "Sensorforudsigelser",
+          "advanced_seasonal_visible": "Sæsonbestemte justeringer",
+          "advanced_environmental_visible": "Miljømæssig korrelation",
+          "advanced_budget_visible": "Budgetsporing",
+          "advanced_groups_visible": "Grupper",
+          "advanced_checklists_visible": "Tjeklister",
+          "advanced_schedule_time_visible": "Planlægning efter tidspunkt på dagen"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Vis EWA, Weibull-analyse og intervalforslag for opgaver.",
+          "advanced_predictions_visible": "Vis analyse af sensornedbrydning og diagrammer for tærskelforudsigelse.",
+          "advanced_seasonal_visible": "Vis diagrammer for sæsonfaktorer og data for månedlige justeringer.",
+          "advanced_environmental_visible": "Vis miljømæssige korrelationsjusteringer (temperatur, luftfugtighed).",
+          "advanced_budget_visible": "Vis månedlig/årlig budgetsporing og advarsler.",
+          "advanced_groups_visible": "Vis administration af vedligeholdelsesgrupper.",
+          "advanced_checklists_visible": "Vis opgavetjeklister for trinvis fuldførelse.",
+          "advanced_schedule_time_visible": "Tillad opgaver at blive overskredet på et bestemt tidspunkt på dagen i stedet for ved midnat."
+        }
+      },
+      "panel_access": {
+        "title": "Paneladgang",
+        "description": "Administratorer har altid fuld adgang. For at uddelegere oprettelse, redigering og sletning til bestemte ikke-administratorer skal du aktivere indstillingen nedenfor og vælge dem — alle andre ser kun Fuldfør og Spring over. Fandt {user_count} ikke-administratorbruger(e).",
+        "data": {
+          "operator_write_enabled": "Tillad valgte brugere at oprette, redigere og slette",
+          "admin_panel_user_ids": "Brugere med fuld paneladgang"
+        },
+        "data_description": {
+          "operator_write_enabled": "Fra (standard): kun administratorer kan ændre indhold. Til: de brugere, der vælges nedenfor, får også fuld adgang til at oprette/redigere/slette.",
+          "admin_panel_user_ids": "Anførte brugere ser det fulde panel; alle andre ser kun Fuldfør og Spring over på hver opgave."
+        }
+      },
+      "general_settings": {
+        "title": "Generelle indstillinger",
+        "description": "Konfigurer grundlæggende indstillinger for Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Standardadvarsel i dage før forfald",
+          "notifications_enabled": "Aktivér notifikationer",
+          "notify_service": "Notifikationstjeneste",
+          "panel_enabled": "Vis sidebjælkepanel",
+          "panel_title": "Titel på sidebjælkepanel"
+        },
+        "data_description": {
+          "default_warning_days": "Antal dage før en vedligeholdelsesopgave forfalder, hvor der vises en advarsel.",
+          "notifications_enabled": "Send notifikationer, når vedligeholdelsesopgaver forfalder eller er overskredet.",
+          "notify_service": "Den notifikationstjeneste, der skal bruges (f.eks. notify.mobile_app_phone).",
+          "panel_enabled": "Vis et Maintenance Supporter-panel i sidebjælken.",
+          "panel_title": "Brugerdefineret navn til sidebjælkeposten. Lad feltet stå tomt for at bruge \"Vedligeholdelse\". Nyttigt for at undgå sammenfald med Home Assistants indbyggede vedligeholdelses-dashboard."
+        }
+      },
+      "notification_settings": {
+        "title": "Notifikationsindstillinger",
+        "description": "Konfigurer hvornår og hvor ofte notifikationer sendes for hver status.",
+        "data": {
+          "notify_due_soon_enabled": "Notificér ved forestående forfald",
+          "notify_due_soon_interval_hours": "Påmindelsesinterval for forestående forfald (timer)",
+          "notify_overdue_enabled": "Notificér ved overskridelse",
+          "notify_overdue_interval_hours": "Påmindelsesinterval for overskridelse (timer)",
+          "notify_triggered_enabled": "Notificér ved udløsning",
+          "notify_triggered_interval_hours": "Påmindelsesinterval for udløsning (timer)",
+          "quiet_hours_enabled": "Aktivér stilletimer",
+          "quiet_hours_start": "Start på stilletimer",
+          "quiet_hours_end": "Slut på stilletimer",
+          "max_notifications_per_day": "Maks. notifikationer pr. dag",
+          "notification_bundling_enabled": "Saml notifikationer",
+          "notification_bundle_threshold": "Samlingstærskel",
+          "notification_title_style": "Stil for notifikationstitel"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Hvor ofte påmindelsen om forestående forfald skal gentages. Sæt til 0 for en enkelt notifikation.",
+          "notify_overdue_interval_hours": "Hvor ofte påmindelsen om overskridelse skal gentages. Sæt til 0 for en enkelt notifikation.",
+          "notify_triggered_interval_hours": "Hvor ofte udløsningsnotifikationen skal gentages. Sæt til 0 for en enkelt notifikation.",
+          "quiet_hours_enabled": "Undertryk notifikationer i stilletimer.",
+          "max_notifications_per_day": "Maksimalt antal notifikationer pr. dag. Sæt til 0 for ubegrænset.",
+          "notification_bundling_enabled": "Send en enkelt opsummerende notifikation, når flere opgaver kræver opmærksomhed.",
+          "notification_bundle_threshold": "Minimum antal opgaver for at udløse en samlet notifikation.",
+          "notification_title_style": "Hvad der vises som notifikationens TITEL. Standard bevarer teksten pr. status (f.eks. 'Vedligeholdelse overskredet!'). Objektnavn / Opgavenavn hjælper, når telefonnotifikationer stables."
+        }
+      },
+      "notification_actions": {
+        "title": "Interaktive handlinger",
+        "description": "Konfigurer handlingsknapper, der vises på mobilnotifikationer (kræver Companion-appen).",
+        "data": {
+          "action_complete_enabled": "Vis 'Fuldfør'-knap",
+          "action_skip_enabled": "Vis 'Spring over'-knap",
+          "action_snooze_enabled": "Vis 'Udsæt'-knap",
+          "snooze_duration_hours": "Udsættelsesvarighed (timer)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Tilføjer en knap til at markere opgaven som fuldført direkte fra notifikationen.",
+          "action_skip_enabled": "Tilføjer en knap til at springe den aktuelle vedligeholdelsescyklus over fra notifikationen.",
+          "action_snooze_enabled": "Tilføjer en knap til at udskyde notifikationspåmindelsen.",
+          "snooze_duration_hours": "Hvor længe notifikationer skal udskydes, når Udsæt trykkes."
+        }
+      },
+      "budget_settings": {
+        "title": "Budgetindstillinger",
+        "description": "Angiv månedlige og årlige vedligeholdelsesbudgetter for at spore forbruget.",
+        "data": {
+          "budget_currency": "Valuta",
+          "budget_monthly": "Månedligt budget",
+          "budget_yearly": "Årligt budget",
+          "budget_alerts_enabled": "Aktivér budgetadvarsler",
+          "budget_alert_threshold": "Advarselstærskel (%)"
+        },
+        "data_description": {
+          "budget_currency": "Valuta brugt til budgetvisning og notifikationer.",
+          "budget_monthly": "Maksimalt månedligt vedligeholdelsesforbrug. Sæt til 0 for at deaktivere.",
+          "budget_yearly": "Maksimalt årligt vedligeholdelsesforbrug. Sæt til 0 for at deaktivere.",
+          "budget_alerts_enabled": "Send en notifikation, når forbruget overstiger advarselstærsklen.",
+          "budget_alert_threshold": "Procentdel af budgettet, hvor der sendes en advarsel."
+        }
+      },
+      "test_notification": {
+        "title": "Testnotifikation",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Administrer grupper",
+        "description": "Vælg en gruppe at administrere, eller opret en ny.",
+        "data": {
+          "selected_group": "Vælg gruppe"
+        }
+      },
+      "add_group": {
+        "title": "Tilføj gruppe",
+        "description": "Opret en ny vedligeholdelsesgruppe for at organisere relaterede opgaver.",
+        "data": {
+          "group_name": "Gruppenavn",
+          "group_description": "Beskrivelse"
+        },
+        "data_description": {
+          "group_name": "Et navn til denne gruppe (f.eks. 'Forårsvedligeholdelse').",
+          "group_description": "Valgfri beskrivelse af denne gruppe."
+        }
+      },
+      "manage_tasks": {
+        "title": "Administrer opgaver",
+        "description": "Vælg en opgave at redigere eller fjerne.",
+        "data": {
+          "selected_task": "Vælg opgave",
+          "go_back": "Gå tilbage"
+        }
+      },
+      "task_action": {
+        "title": "Opgavehandlinger",
+        "description": "Opgave: {task_name} — Vælg en handling.",
+        "menu_options": {
+          "edit_task": "Rediger opgave",
+          "edit_trigger": "Rediger udløser",
+          "remove_trigger": "Fjern udløser",
+          "edit_checklist": "Rediger tjekliste",
+          "adaptive_scheduling": "Adaptiv planlægning",
+          "delete_task": "Slet opgave",
+          "manage_tasks": "Tilbage"
+        }
+      },
+      "edit_task": {
+        "title": "Rediger opgave",
+        "description": "Rediger indstillinger for **{task_name}**.",
+        "data": {
+          "name": "Opgavenavn",
+          "type": "Vedligeholdelsestype",
+          "interval_days": "Interval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "due_date": "Forfaldsdato",
+          "enabled": "Aktiveret",
+          "notes": "Noter",
+          "documentation_url": "Dokumentations-URL",
+          "last_performed": "Senest udført",
+          "responsible_user_id": "Ansvarlig bruger",
+          "custom_icon": "Opgaveikon",
+          "nfc_tag_id": "NFC-mærke-id",
+          "go_back": "Gå tilbage",
+          "interval_anchor": "Intervalanker"
+        },
+        "data_description": {
+          "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
+          "type": "Kategorien af vedligeholdelsesarbejde.",
+          "interval_days": "Hvor ofte denne vedligeholdelse gentages, kombineret med intervalenheden.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "due_date": "Datoen, hvor denne engangsopgave forfalder.",
+          "enabled": "Når deaktiveret, sættes planlægning og udløsere på pause. Opgaven slettes ikke.",
+          "notes": "Yderligere noter eller instruktioner til denne opgave.",
+          "documentation_url": "Link til ekstern dokumentation eller manual for denne opgave.",
+          "last_performed": "Hvornår denne vedligeholdelse senest blev udført. Lad feltet stå tomt, hvis det aldrig er gjort.",
+          "responsible_user_id": "Den Home Assistant-bruger, der er ansvarlig for denne opgave.",
+          "custom_icon": "Valgfrit brugerdefineret ikon til denne opgave (f.eks. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Knyt et NFC-mærke til denne opgave. Scanning af mærket markerer automatisk opgaven som fuldført.",
+          "go_back": "Vend tilbage til opgavehandlinger uden at gemme.",
+          "interval_anchor": "Hvordan den næste forfaldsdato beregnes efter fuldførelse. 'Planlagt' forhindrer tidsforskydning ved at forankre til den oprindelige forfaldsdato."
+        }
+      },
+      "edit_checklist": {
+        "title": "Rediger tjekliste",
+        "description": "Definer tjeklistetrin for {task_name}. Indtast ét trin pr. linje.",
+        "data": {
+          "checklist_text": "Tjeklistetrin",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "checklist_text": "Indtast hvert tjeklistetrin på en separat linje. Disse trin vises, når opgaven fuldføres.",
+          "go_back": "Vend tilbage til opgavehandlinger uden at gemme."
+        }
+      },
+      "compound_logic": {
+        "title": "Sammensat udløser",
+        "description": "Vælg hvordan flere betingelser skal kombineres.",
+        "data": {
+          "compound_logic": "Logik",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "compound_logic": "OG = alle betingelser skal udløses. ELLER = enhver betingelse udløser."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Betingelse #{condition_num} — Enhed",
+        "description": "Vælg enheden for denne betingelse.",
+        "data": {
+          "trigger_entity": "Enhed",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_entity": "Sensorenheden, der skal overvåges for denne betingelse."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Betingelse #{condition_num} — Type",
+        "description": "Hvordan skal denne betingelse evaluere sensoren?",
+        "data": {
+          "trigger_type": "Udløsertype",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_type": "Den metode, der bruges til at afgøre, hvornår denne betingelse udløses."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Betingelse — Tærskel",
+        "data": {
+          "trigger_above": "Udløs over",
+          "trigger_below": "Udløs under",
+          "trigger_for_minutes": "Varighed (minutter)",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_above": "Udløs, når værdien overskrider denne tærskel.",
+          "trigger_below": "Udløs, når værdien falder under denne tærskel.",
+          "trigger_for_minutes": "Værdien skal forblive ud over tærsklen i denne varighed."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Betingelse — Tæller",
+        "data": {
+          "trigger_target_value": "Målværdi",
+          "trigger_delta_mode": "Delta-tilstand",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_target_value": "Udløs, når den akkumulerede værdi når dette mål.",
+          "trigger_delta_mode": "Tæl ændringer fra en baseline i stedet for den absolutte værdi."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Betingelse — Tilstandsændring",
+        "data": {
+          "trigger_from_state": "Fra tilstand",
+          "trigger_to_state": "Til tilstand",
+          "trigger_target_changes": "Antal ændringer",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_from_state": "Tæl kun overgange fra denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_to_state": "Tæl kun overgange til denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_target_changes": "Antal matchende tilstandsændringer, før der udløses."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Betingelse — Driftstid",
+        "data": {
+          "trigger_runtime_hours": "Måldriftstid (timer)",
+          "trigger_on_states": "Aktive tilstande",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Udløs efter så mange timers akkumuleret driftstid.",
+          "trigger_on_states": "Sensortilstande, der tæller som 'aktive'. Lad feltet stå tomt for standard."
+        }
+      },
+      "compound_review": {
+        "title": "Gennemgang af sammensat udløser",
+        "description": "{condition_count} betingelse(r) konfigureret med {compound_logic}-logik.",
+        "data": {
+          "compound_action": "Handling",
+          "go_back": "Gå tilbage"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptiv planlægning",
+        "description": "Konfigurer smart intervaltilpasning for {task_name}. Systemet lærer af din fuldførelsesfeedback for at foreslå bedre intervaller.",
+        "data": {
+          "adaptive_enabled": "Aktivér adaptiv planlægning",
+          "ewa_alpha": "Læringsrate (alfa)",
+          "min_interval_days": "Minimumsinterval (dage)",
+          "max_interval_days": "Maksimumsinterval (dage)",
+          "seasonal_enabled": "Aktivér sæsonbevidsthed",
+          "sensor_prediction_enabled": "Aktivér sensordrevne forudsigelser",
+          "environmental_entity": "Miljøsensor (valgfri)",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "adaptive_enabled": "Når aktiveret, lærer systemet af din feedback og foreslår optimale vedligeholdelsesintervaller.",
+          "ewa_alpha": "Hvor hurtigt algoritmen tilpasser sig nye data. Højere = mere responsiv, lavere = mere stabil.",
+          "min_interval_days": "Det korteste interval, systemet nogensinde vil anbefale.",
+          "max_interval_days": "Det længste interval, systemet nogensinde vil anbefale.",
+          "seasonal_enabled": "Juster anbefalinger baseret på sæsonmønstre lært af din vedligeholdelseshistorik.",
+          "sensor_prediction_enabled": "Analyser sensortendenser for at forudsige, hvornår tærskler nås, og foreslå tidligere vedligeholdelse om nødvendigt.",
+          "environmental_entity": "Knyt en temperatur-, luftfugtigheds- eller tryksensor for at korrelere miljøforhold med vedligeholdelsesintervaller.",
+          "go_back": "Vend tilbage til opgavehandlinger uden at gemme."
+        }
+      },
+      "delete_task": {
+        "title": "Slet opgave",
+        "description": "Er du sikker på, at du vil slette opgaven {task_name}? Dette kan ikke fortrydes.",
+        "data": {
+          "confirm": "Bekræft sletning",
+          "go_back": "Gå tilbage"
+        }
+      },
+      "remove_trigger": {
+        "title": "Fjern udløser",
+        "description": "Fjern udløser fra **{task_name}**?\n\n**Enhed:** {entity_ids}\n**Type:** {trigger_type}\n**Konfiguration:** {config_details}\n\nHvis alle enheder fjernes, skifter planen tilbage til tidsbaseret.",
+        "data": {
+          "entities_to_remove": "Enheder der skal fjernes",
+          "confirm": "Bekræft fjernelse",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "entities_to_remove": "Vælg hvilke enheder der skal fjernes fra denne udløser. Hvis alle fjernes, slettes hele udløseren.",
+          "go_back": "Vend tilbage til opgavehandlinger uden at gemme."
+        }
+      },
+      "trigger_summary": {
+        "title": "Aktuel udløser",
+        "description": "Udløser for **{task_name}**:\n\n**Enhed:** {entity_ids}\n**Aktuel tilstand:** {current_states}\n**Type:** {trigger_type} (attribut: {attribute})\n**Konfiguration:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Rediger udløser",
+          "task_action": "Tilbage"
+        }
+      },
+      "add_task": {
+        "title": "Tilføj vedligeholdelsesopgave",
+        "description": "Definer en ny vedligeholdelsesopgave for dette objekt.",
+        "data": {
+          "name": "Opgavenavn",
+          "type": "Vedligeholdelsestype",
+          "schedule_type": "Planlægningstype",
+          "custom_icon": "Opgaveikon",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
+          "type": "Kategorien af vedligeholdelsesarbejde.",
+          "schedule_type": "Hvordan denne opgave skal planlægges.",
+          "custom_icon": "Valgfrit brugerdefineret ikon til denne opgave (f.eks. mdi:oil, mdi:filter-variant).",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "opt_time_based": {
+        "title": "Tidsbaseret plan",
+        "description": "Konfigurer tidsintervallet for denne opgave.",
+        "data": {
+          "interval_days": "Interval",
+          "interval_unit": "Intervalenhed",
+          "last_performed": "Senest udført",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage",
+          "interval_anchor": "Intervalanker"
+        },
+        "data_description": {
+          "interval_days": "Hvor ofte denne vedligeholdelse gentages, kombineret med intervalenheden.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "last_performed": "Hvornår denne vedligeholdelse senest blev udført. Lad feltet stå tomt, hvis det aldrig er gjort.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme.",
+          "interval_anchor": "Hvordan den næste forfaldsdato beregnes efter fuldførelse. 'Planlagt' forhindrer tidsforskydning ved at forankre til den oprindelige forfaldsdato."
+        }
+      },
+      "opt_one_time": {
+        "title": "Engangsopgave",
+        "description": "Konfigurer en enkelt, ikke-gentagende vedligeholdelsesopgave. Den arkiveres, når den er fuldført.",
+        "data": {
+          "due_date": "Forfaldsdato",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "due_date": "Datoen, hvor denne engangsopgave forfalder.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "opt_calendar": {
+        "title": "Kalenderplan",
+        "description": "Konfigurer en kalenderbaseret gentagelse (ugedage, n'te ugedag i måneden eller en dag i måneden).",
+        "data": {
+          "weekdays": "På disse ugedage",
+          "nth": "Hvilken forekomst",
+          "weekday": "Ugedag",
+          "day": "Dag i måneden",
+          "last_performed": "Senest udført",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "weekdays": "Opgaven gentages på hver valgt ugedag.",
+          "nth": "Hvilken forekomst i måneden (f.eks. 1., eller Sidste).",
+          "weekday": "Ugedagen for reglen om n'te ugedag (f.eks. lørdag).",
+          "day": "Dag i måneden (1-31; begrænses til månedens længde).",
+          "last_performed": "Hvornår denne vedligeholdelse senest blev udført. Lad feltet stå tomt, hvis det aldrig er gjort.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "opt_manual": {
+        "title": "Manuel plan",
+        "description": "Denne opgave har ingen automatisk plan. Du kan markere den som forfalden manuelt.",
+        "data": {
+          "warning_days": "Advarsel i dage før forfald",
+          "notes": "Noter",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel.",
+          "notes": "Yderligere noter eller instruktioner til denne opgave.",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Vælg udløsersensor",
+        "description": "Vælg en Home Assistant-enhed, der skal overvåges.",
+        "data": {
+          "trigger_entity": "Enhed der skal overvåges",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_entity": "Vælg den sensorenhed, der skal udløse denne vedligeholdelsesopgave."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Vælg attribut",
+        "description": "Vælg hvilken værdi der skal overvåges fra {entity_id}. Aktuel tilstand: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Værdi der skal overvåges",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_attribute": "Vælg enhedens tilstand eller en bestemt attribut, der skal overvåges."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Udløsertype",
+        "description": "Hvordan skal sensorværdien udløse vedligeholdelse?",
+        "data": {
+          "trigger_type": "Udløsertype",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_type": "Tærskel: udløses, når værdien overskrider grænserne. Tæller: udløses efter akkumulering af en målværdi. Tilstandsændring: udløses efter et antal tilstandsovergange."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Tærskelkonfiguration",
+        "description": "Angiv tærskelværdier for **{entity_id}** ({attribute}).\nAktuel: **{current_value} {unit}** | Gns.: {average} | Interval: {minimum}–{maximum} ({data_period}d)\nForeslået over: {suggested_above} | Foreslået under: {suggested_below}",
+        "data": {
+          "trigger_above": "Udløs når over",
+          "trigger_below": "Udløs når under",
+          "trigger_for_minutes": "I mindst (minutter)",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_above": "Udløs vedligeholdelse, når værdien overskrider denne tærskel.",
+          "trigger_below": "Udløs vedligeholdelse, når værdien falder under denne tærskel.",
+          "trigger_for_minutes": "Værdien skal overskride tærsklen i så mange minutter, før der udløses.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over sensorudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Tællerkonfiguration",
+        "description": "Angiv tællermål for {entity_id} ({attribute}). Aktuel: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Målværdi",
+          "trigger_delta_mode": "Delta-tilstand (tæl ændringer, ikke absolut)",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_target_value": "Udløs vedligeholdelse, når denne akkumulerede værdi er nået.",
+          "trigger_delta_mode": "Hvis aktiveret, tælles forskellen fra en baseline i stedet for den absolutte værdi.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over tællerudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Konfiguration af tilstandsændring",
+        "description": "Tæl tilstandsovergange for {entity_id}.",
+        "data": {
+          "trigger_from_state": "Fra tilstand (valgfrit)",
+          "trigger_to_state": "Til tilstand (valgfrit)",
+          "trigger_target_changes": "Antal ændringer for at udløse",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_from_state": "Tæl kun overgange fra denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_to_state": "Tæl kun overgange til denne tilstand. Lad feltet stå tomt for alle.",
+          "trigger_target_changes": "Antal matchende tilstandsændringer, før vedligeholdelse udløses.",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over udløseren for tilstandsændring.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Driftstidskonfiguration",
+        "description": "Spor akkumuleret driftstid for {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Måldriftstid (timer)",
+          "trigger_on_states": "Aktive tilstande (kommasepareret)",
+          "interval_days": "Sikkerhedsinterval",
+          "interval_unit": "Intervalenhed",
+          "warning_days": "Advarsel i dage før forfald",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Udløs vedligeholdelse efter så mange timers akkumuleret driftstid.",
+          "trigger_on_states": "Hvilke sensortilstande der tæller som 'aktive'. Lad feltet stå tomt for standard: on, 1, true. Eksempel: in_use, running",
+          "interval_days": "Valgfrit tidsbaseret sikkerhedsinterval ud over driftstidsudløseren.",
+          "interval_unit": "Enhed for intervallet: dage, uger, måneder eller år. Måneder og år følger kalenderen.",
+          "warning_days": "Antal dage før forfaldsdatoen, hvor der vises en advarsel."
+        }
+      },
+      "object_settings": {
+        "title": "Objektindstillinger",
+        "description": "Rediger objektdetaljer.",
+        "data": {
+          "name": "Objektnavn",
+          "manufacturer": "Producent",
+          "model": "Model",
+          "serial_number": "Serienummer",
+          "documentation_url": "URL til manual / dokumentation",
+          "notes": "Noter",
+          "area_id": "Område",
+          "installation_date": "Installationsdato",
+          "warranty_expiry": "Garantiudløb",
+          "go_back": "Gå tilbage"
+        },
+        "data_description": {
+          "name": "Et entydigt navn til dette vedligeholdelsesobjekt (f.eks. 'Poolpumpe', 'Bil').",
+          "manufacturer": "Objektets producent.",
+          "model": "Modelnavnet eller -nummeret.",
+          "serial_number": "Objektets serienummer.",
+          "documentation_url": "Valgfrit link til en PDF-manual, en producentside eller en hvilken som helst URL med referenceinfo for dette objekt.",
+          "notes": "Frie noter om objektet — varenumre, procedurer, indstillingspåmindelser osv.",
+          "area_id": "Det område i dit hjem, hvor dette objekt befinder sig.",
+          "installation_date": "Hvornår dette objekt blev installeret eller købt.",
+          "warranty_expiry": "Hvornår producentgarantien for dette objekt udløber.",
+          "go_back": "Vend tilbage til hovedmenuen uden at gemme."
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} Fuldfør"
+      },
+      "button_skip": {
+        "name": "{task_name} Spring over"
+      },
+      "button_reset": {
+        "name": "{task_name} Nulstil"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Forfalder snart",
+          "overdue": "Overskredet",
+          "triggered": "Udløst"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Vedligeholdelsestype",
+            "state": {
+              "cleaning": "Rengøring",
+              "inspection": "Inspektion",
+              "replacement": "Udskiftning",
+              "calibration": "Kalibrering",
+              "service": "Service",
+              "custom": "Brugerdefineret"
+            }
+          },
+          "schedule_type": {
+            "name": "Planlægningstype",
+            "state": {
+              "time_based": "Tidsbaseret",
+              "sensor_based": "Sensorbaseret",
+              "one_time": "Engang",
+              "manual": "Manuel"
+            }
+          },
+          "interval_days": {
+            "name": "Interval"
+          },
+          "interval_unit": {
+            "name": "Intervalenhed"
+          },
+          "warning_days": {
+            "name": "Advarselsdage"
+          },
+          "last_performed": {
+            "name": "Senest udført"
+          },
+          "next_due": {
+            "name": "Næste forfald"
+          },
+          "days_until_due": {
+            "name": "Dage til forfald"
+          },
+          "parent_object": {
+            "name": "Overordnet objekt"
+          },
+          "times_performed": {
+            "name": "Antal gange udført"
+          },
+          "total_cost": {
+            "name": "Samlede omkostninger"
+          },
+          "average_duration": {
+            "name": "Gennemsnitlig varighed (min)"
+          },
+          "notes": {
+            "name": "Noter"
+          },
+          "documentation_url": {
+            "name": "Dokumentations-URL"
+          },
+          "trigger_entity": {
+            "name": "Udløserenhed"
+          },
+          "trigger_attribute": {
+            "name": "Udløserattribut"
+          },
+          "trigger_type": {
+            "name": "Udløsertype",
+            "state": {
+              "threshold": "Tærskel",
+              "counter": "Tæller",
+              "state_change": "Tilstandsændring",
+              "runtime": "Driftstid",
+              "compound": "Sammensat"
+            }
+          },
+          "trigger_active": {
+            "name": "Udløser aktiv"
+          },
+          "trigger_current_value": {
+            "name": "Udløserens aktuelle værdi"
+          },
+          "trigger_entity_state": {
+            "name": "Udløserenhedens tilstand",
+            "state": {
+              "available": "Tilgængelig",
+              "unavailable": "Utilgængelig",
+              "missing": "Mangler",
+              "startup": "Opstart"
+            }
+          },
+          "trigger_above": {
+            "name": "Udløs over"
+          },
+          "trigger_below": {
+            "name": "Udløs under"
+          },
+          "trigger_for_minutes": {
+            "name": "Udløs i (minutter)"
+          },
+          "trigger_target_value": {
+            "name": "Udløserens målværdi"
+          },
+          "trigger_delta_mode": {
+            "name": "Udløserens delta-tilstand"
+          },
+          "trigger_baseline_value": {
+            "name": "Udløserens baseline-værdi"
+          },
+          "trigger_current_delta": {
+            "name": "Udløserens aktuelle delta"
+          },
+          "trigger_from_state": {
+            "name": "Udløs fra tilstand"
+          },
+          "trigger_to_state": {
+            "name": "Udløs til tilstand"
+          },
+          "trigger_target_changes": {
+            "name": "Udløserens mål for ændringer"
+          },
+          "trigger_change_count": {
+            "name": "Udløserens ændringsantal"
+          },
+          "trigger_runtime_hours": {
+            "name": "Måldriftstid (timer)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Akkumuleret driftstid (timer)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Resterende driftstid (timer)"
+          },
+          "last_entry": {
+            "name": "Seneste post"
+          },
+          "suggested_interval": {
+            "name": "Foreslået interval"
+          },
+          "interval_confidence": {
+            "name": "Intervalsikkerhed",
+            "state": {
+              "low": "Lav",
+              "medium": "Middel",
+              "high": "Høj"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptiv planlægning aktiveret"
+          },
+          "seasonal_factor": {
+            "name": "Sæsonfaktor"
+          },
+          "seasonal_reason": {
+            "name": "Sæsonårsag",
+            "state": {
+              "learned": "Lært",
+              "manual": "Manuel"
+            }
+          },
+          "degradation_rate": {
+            "name": "Nedbrydningsrate"
+          },
+          "degradation_trend": {
+            "name": "Nedbrydningstendens",
+            "state": {
+              "rising": "Stigende",
+              "falling": "Faldende",
+              "stable": "Stabil",
+              "insufficient_data": "Utilstrækkelige data"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Dage til tærskel"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Forudsigelsessikkerhed",
+            "state": {
+              "low": "Lav",
+              "medium": "Middel",
+              "high": "Høj"
+            }
+          },
+          "environmental_factor": {
+            "name": "Miljøfaktor"
+          },
+          "environmental_entity": {
+            "name": "Miljøenhed"
+          },
+          "weibull_beta": {
+            "name": "Weibull-form (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibull-skala (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Fejlmønster",
+            "state": {
+              "early_failures": "Tidlige fejl",
+              "random_failures": "Tilfældige fejl",
+              "wear_out": "Slitage",
+              "highly_predictable": "Meget forudsigelig"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Konfidensinterval (lav)"
+          },
+          "confidence_interval_high": {
+            "name": "Konfidensinterval (høj)"
+          },
+          "interval_anchor": {
+            "name": "Intervalanker",
+            "state": {
+              "completion": "Fra fuldførelse",
+              "planned": "Fra planlagt dato"
+            }
+          },
+          "due_date": {
+            "name": "Forfaldsdato"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "Overskredet"
+      },
+      "summary_due_soon": {
+        "name": "Forfalder snart"
+      },
+      "summary_triggered": {
+        "name": "Udløst"
+      },
+      "summary_needs_attention": {
+        "name": "Kræver opmærksomhed"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "summary_total_tasks": {
+        "name": "Opgaver i alt"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Vedligeholdelsesplan"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} overskredet",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Vedligeholdelsesstatus",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Forfalder snart",
+              "overdue": "Overskredet",
+              "triggered": "Udløst"
+            }
+          },
+          "days_until_due": {
+            "name": "Dage til forfald"
+          },
+          "next_due": {
+            "name": "Næste forfald"
+          },
+          "parent_object": {
+            "name": "Overordnet objekt"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Rengøring",
+        "inspection": "Inspektion",
+        "replacement": "Udskiftning",
+        "calibration": "Kalibrering",
+        "service": "Service",
+        "custom": "Brugerdefineret"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Tidsbaseret",
+        "weekdays": "Ugedage",
+        "nth_weekday": "N'te ugedag i måneden",
+        "day_of_month": "Dag i måneden",
+        "sensor_based": "Sensorbaseret",
+        "one_time": "Engang",
+        "manual": "Manuel"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dage",
+        "weeks": "Uger",
+        "months": "Måneder",
+        "years": "År"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Tærskel",
+        "counter": "Tæller",
+        "state_change": "Tilstandsændring",
+        "runtime": "Driftstid",
+        "compound": "Sammensat (flere betingelser)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "OG (alle betingelser skal udløses)",
+        "or": "ELLER (enhver betingelse udløser)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Enhver enhed udløser",
+        "all": "Alle enheder skal udløses"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Standard (titel pr. status)",
+        "object_name": "Objektnavn som titel",
+        "task_name": "Opgavenavn som titel"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Fuldfør vedligeholdelse",
+      "description": "Markér en vedligeholdelsesopgave som fuldført.",
+      "fields": {
+        "entity_id": {
+          "name": "Enhed",
+          "description": "Den vedligeholdelsessensorenhed, der skal fuldføres."
+        },
+        "notes": {
+          "name": "Noter",
+          "description": "Valgfri noter om den udførte vedligeholdelse."
+        },
+        "cost": {
+          "name": "Omkostning",
+          "description": "Omkostning ved den udførte vedligeholdelse."
+        },
+        "duration": {
+          "name": "Varighed",
+          "description": "Vedligeholdelsens varighed i minutter."
+        }
+      }
+    },
+    "reset": {
+      "name": "Nulstil vedligeholdelse",
+      "description": "Nulstil datoen for senest udført af en vedligeholdelsesopgave.",
+      "fields": {
+        "entity_id": {
+          "name": "Enhed",
+          "description": "Den vedligeholdelsessensorenhed, der skal nulstilles."
+        },
+        "date": {
+          "name": "Dato",
+          "description": "Datoen, der skal angives som senest udført. Standard er i dag."
+        }
+      }
+    },
+    "skip": {
+      "name": "Spring vedligeholdelse over",
+      "description": "Spring den aktuelle vedligeholdelsescyklus over.",
+      "fields": {
+        "entity_id": {
+          "name": "Enhed",
+          "description": "Den vedligeholdelsessensorenhed, der skal springes over."
+        },
+        "reason": {
+          "name": "Årsag",
+          "description": "Valgfri årsag til at springe vedligeholdelsen over."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Eksportér data",
+      "description": "Eksportér alle vedligeholdelsesdata som JSON eller YAML.",
+      "fields": {
+        "format": {
+          "name": "Format",
+          "description": "Outputformat for de eksporterede data (json eller yaml)."
+        },
+        "include_history": {
+          "name": "Inkludér historik",
+          "description": "Om opgavehistorikposter skal inkluderes i eksporten."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Udløsersensor ikke fundet: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Manglende udløserenhed",
+            "description": "Sensorenheden `{entity_id}`, der er konfigureret som udløser for opgaven \"{task_name}\" på objektet \"{object_name}\", er ikke længere tilgængelig.\n\nVælg hvordan du vil løse dette problem:",
+            "menu_options": {
+              "replace_entity": "Erstat med en anden enhed",
+              "remove_trigger": "Fjern sensorudløseren",
+              "dismiss": "Afvis (vil dukke op igen)"
+            }
+          },
+          "replace_entity": {
+            "title": "Erstat udløserenhed",
+            "description": "Vælg en ny enhed til at erstatte `{entity_id}` som udløser for opgaven \"{task_name}\" på \"{object_name}\".",
+            "data": {
+              "new_entity_id": "Ny udløserenhed"
+            },
+            "data_description": {
+              "new_entity_id": "Vælg den nye sensorenhed, der skal bruges som udløser."
+            }
+          },
+          "remove_trigger": {
+            "title": "Fjern sensorudløser",
+            "description": "Dette fjerner sensorudløseren fra opgaven \"{task_name}\" på \"{object_name}\" og konverterer planen til tidsbaseret eller manuel. Vedligeholdelseshistorikken bevares.\n\nTidligere udløserenhed: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Bruger med paneladgang findes ikke længere",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Forældreløs bruger i listen over paneladgang",
+            "description": "Brugeren `{user_id}…` er på Maintenance Supporters liste over paneladgang, men findes ikke længere i Home Assistant. Sandsynligvis blev brugeren slettet.\n\nKlik på **Indsend** for at fjerne denne bruger fra listen. (For at lade problemet være, brug i stedet Home Assistants **Ignorér**-knap på Reparationer-siden.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Fuldførelseshandling refererer til en slettet enhed",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Fuldførelseshandling: {stale_entity} findes ikke længere",
+            "description": "Opgaven **{task_name}** har en `on_complete_action` konfigureret til at kalde en tjeneste på `{stale_entity}`, men den enhed er ikke længere registreret i Home Assistant.\n\nVælg hvordan du vil reparere:",
+            "menu_options": {
+              "replace_entity": "Erstat med en anden enhed",
+              "remove_action": "Fjern fuldførelseshandlingen"
+            }
+          },
+          "replace_entity": {
+            "title": "Erstat målenhed",
+            "description": "Vælg den enhed, der skal bruges i stedet for `{stale_entity}` for opgaven **{task_name}**.",
+            "data": {
+              "new_entity": "Ny målenhed"
+            }
+          },
+          "remove_action": {
+            "title": "Fjern fuldførelseshandling",
+            "description": "Ryd `on_complete_action` fra opgaven **{task_name}** helt. Selve opgaven påvirkes ikke — kun tjenestekaldet ved fuldførelse fjernes."
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Ingen vedligeholdelseskoordinator fundet for enheden {entity_id}."
+    },
+    "no_task_for_entity": {
+      "message": "Ingen vedligeholdelsesopgave fundet for enheden {entity_id}."
+    }
+  }
+}

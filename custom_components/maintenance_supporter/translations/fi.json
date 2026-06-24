@@ -1,0 +1,1577 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Määritä huoltojen hallintajärjestelmäsi.",
+        "menu_options": {
+          "create_object": "Luo huoltokohde",
+          "create_from_template": "Luo mallista",
+          "global_setup": "Yleiset asetukset"
+        }
+      },
+      "create_from_template": {
+        "title": "Valitse malliluokka",
+        "description": "Valitse luokka selataksesi valmiita huoltomalleja.",
+        "data": {
+          "template_category": "Luokka",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "template_select": {
+        "title": "Valitse malli",
+        "description": "Valitse huoltomalli lähtökohdaksi.",
+        "data": {
+          "template_id": "Malli",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "go_back": "Palaa luokan valintaan tallentamatta."
+        }
+      },
+      "template_customize": {
+        "title": "Mukauta mallia",
+        "description": "Mukauta mallia {template_name}. Se sisältää {task_count} tehtävää: {task_list}.",
+        "data": {
+          "name": "Kohteen nimi",
+          "area_id": "Alue",
+          "manufacturer": "Valmistaja",
+          "model": "Malli",
+          "serial_number": "Sarjanumero",
+          "documentation_url": "Käyttöohjeen / dokumentaation URL-osoite",
+          "notes": "Muistiinpanot",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "name": "Tämän huoltokohteen nimi.",
+          "area_id": "Alue, jolla kohde sijaitsee.",
+          "manufacturer": "Kohteen valmistaja.",
+          "model": "Mallin nimi tai numero.",
+          "serial_number": "Kohteen sarjanumero.",
+          "documentation_url": "Valinnainen linkki PDF-käyttöohjeeseen, valmistajan sivulle tai mihin tahansa URL-osoitteeseen, jossa on kohdetta koskevia tietoja.",
+          "notes": "Vapaamuotoiset muistiinpanot kohteesta – osanumerot, toimenpiteet, asetusmuistutukset jne.",
+          "go_back": "Palaa mallin valintaan tallentamatta."
+        }
+      },
+      "global_setup": {
+        "title": "Yleiset asetukset",
+        "description": "Määritä huoltojen yleiset asetukset.",
+        "data": {
+          "default_warning_days": "Oletusvaroituspäivät ennen eräpäivää",
+          "notifications_enabled": "Ota ilmoitukset käyttöön",
+          "notify_service": "Ilmoituspalvelu"
+        },
+        "data_description": {
+          "default_warning_days": "Montako päivää ennen huoltotehtävän eräpäivää varoitus näytetään.",
+          "notifications_enabled": "Lähetä ilmoituksia, kun huoltotehtävät erääntyvät.",
+          "notify_service": "Käytettävä ilmoituspalvelu (esim. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Luo huoltokohde",
+        "description": "Määritä laite tai omaisuus, jonka huoltoa hallitaan.",
+        "data": {
+          "name": "Kohteen nimi",
+          "area_id": "Alue",
+          "manufacturer": "Valmistaja",
+          "model": "Malli",
+          "serial_number": "Sarjanumero",
+          "documentation_url": "Käyttöohjeen / dokumentaation URL-osoite",
+          "notes": "Muistiinpanot",
+          "installation_date": "Asennuspäivä",
+          "warranty_expiry": "Takuun päättyminen",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "name": "Tämän huoltokohteen yksilöllinen nimi (esim. 'Uima-altaan pumppu', 'Auto').",
+          "area_id": "Kodin alue, jolla tämä kohde sijaitsee.",
+          "manufacturer": "Kohteen valmistaja.",
+          "model": "Mallin nimi tai numero.",
+          "serial_number": "Kohteen sarjanumero.",
+          "documentation_url": "Valinnainen linkki PDF-käyttöohjeeseen, valmistajan sivulle tai mihin tahansa URL-osoitteeseen, jossa on kohdetta koskevia tietoja.",
+          "notes": "Vapaamuotoiset muistiinpanot kohteesta – osanumerot, toimenpiteet, asetusmuistutukset jne.",
+          "installation_date": "Milloin tämä kohde asennettiin tai ostettiin.",
+          "warranty_expiry": "Milloin kohteen valmistajan takuu päättyy.",
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "task_menu": {
+        "title": "Huoltotehtävät",
+        "description": "Lisää huoltotehtäviä kohteelle {object_name}. Tällä hetkellä on määritetty {task_count} tehtävää.",
+        "menu_options": {
+          "add_task": "Lisää huoltotehtävä",
+          "finish": "Viimeistele määritys"
+        }
+      },
+      "add_task": {
+        "title": "Lisää huoltotehtävä",
+        "description": "Määritä huoltotehtävä kohteelle {object_name}.",
+        "data": {
+          "name": "Tehtävän nimi",
+          "type": "Huoltotyyppi",
+          "schedule_type": "Aikataulutyyppi",
+          "custom_icon": "Tehtävän kuvake",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
+          "type": "Huoltotyön luokka.",
+          "schedule_type": "Miten tämä tehtävä aikataulutetaan.",
+          "custom_icon": "Valinnainen mukautettu kuvake tälle tehtävälle (esim. mdi:oil, mdi:filter-variant).",
+          "go_back": "Palaa tehtävävalikkoon tallentamatta."
+        }
+      },
+      "time_based": {
+        "title": "Aikaperusteinen aikataulu",
+        "description": "Määritä tämän huoltotehtävän aikaväli.",
+        "data": {
+          "interval_days": "Aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "last_performed": "Viimeksi suoritettu",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin",
+          "interval_anchor": "Aikavälin ankkuri"
+        },
+        "data_description": {
+          "interval_days": "Kuinka usein tämä huolto toistuu, yhdessä aikavälin yksikön kanssa.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "last_performed": "Milloin tämä huolto suoritettiin viimeksi. Jätä tyhjäksi, jos sitä ei ole koskaan tehty.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa tehtävän luontiin tallentamatta.",
+          "interval_anchor": "Miten seuraava eräpäivä lasketaan suorituksen jälkeen. 'Suunniteltu' estää aikataulun liukumisen ankkuroimalla alkuperäiseen eräpäivään."
+        }
+      },
+      "one_time": {
+        "title": "Kertaluonteinen tehtävä",
+        "description": "Määritä yksittäinen, toistumaton huoltotehtävä. Se arkistoidaan suorituksen jälkeen.",
+        "data": {
+          "due_date": "Eräpäivä",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "due_date": "Päivä, jolloin tämä kertaluonteinen tehtävä erääntyy.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa tehtävän luontiin tallentamatta."
+        }
+      },
+      "calendar": {
+        "title": "Kalenteriaikataulu",
+        "description": "Määritä kalenteriperusteinen toistuvuus (viikonpäivät, kuukauden n:s viikonpäivä tai kuukaudenpäivä).",
+        "data": {
+          "weekdays": "Näinä viikonpäivinä",
+          "nth": "Mikä toistumiskerta",
+          "weekday": "Viikonpäivä",
+          "day": "Kuukaudenpäivä",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "weekdays": "Tehtävä toistuu jokaisena valittuna viikonpäivänä.",
+          "nth": "Mikä toistumiskerta kuukaudessa (esim. 1. tai viimeinen).",
+          "weekday": "Viikonpäivä n:nnen viikonpäivän säännölle (esim. lauantai).",
+          "day": "Kuukaudenpäivä (1–31; rajataan kuukauden pituuteen).",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa tehtävän luontiin tallentamatta."
+        }
+      },
+      "sensor_select": {
+        "title": "Valitse laukaiseva anturi",
+        "description": "Valitse Home Assistant -entiteetti, jota tämä huoltotehtävä seuraa.",
+        "data": {
+          "trigger_entity": "Seurattava entiteetti",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_entity": "Valitse anturientiteetti, jonka tulisi laukaista tämä huoltotehtävä.",
+          "go_back": "Palaa tehtävän luontiin tallentamatta."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Valitse attribuutti",
+        "description": "Valitse, mitä arvoa seurataan entiteetistä {entity_id}. Nykyinen tila: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Seurattava arvo",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_attribute": "Valitse seurattava entiteetin tila tai tietty attribuutti.",
+          "go_back": "Palaa entiteetin valintaan tallentamatta."
+        }
+      },
+      "trigger_type": {
+        "title": "Laukaisutyyppi",
+        "description": "Miten anturin arvon tulisi laukaista huolto?",
+        "data": {
+          "trigger_type": "Laukaisutyyppi",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_type": "Kynnysarvo: laukeaa, kun arvo ylittää rajat. Laskuri: laukeaa, kun tavoitearvo on kertynyt. Tilanmuutos: laukeaa tietyn tilasiirtymämäärän jälkeen.",
+          "go_back": "Palaa attribuutin valintaan tallentamatta."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Kynnysarvon määritys",
+        "description": "Aseta kynnysarvot entiteetille **{entity_id}** ({attribute}).\nNykyinen: **{current_value} {unit}** | Keskiarvo: {average} | Vaihteluväli: {minimum}–{maximum} ({data_period} pv)\nEhdotettu yläraja: {suggested_above} | Ehdotettu alaraja: {suggested_below}",
+        "data": {
+          "trigger_above": "Laukaise yläpuolella",
+          "trigger_below": "Laukaise alapuolella",
+          "trigger_for_minutes": "Vähintään (minuuttia)",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_above": "Laukaise huolto, kun arvo ylittää tämän kynnysarvon.",
+          "trigger_below": "Laukaise huolto, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_for_minutes": "Arvon on ylitettävä kynnysarvo näin monta minuuttia ennen laukaisua.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
+      "trigger_counter": {
+        "title": "Laskurin määritys",
+        "description": "Aseta laskurin tavoite entiteetille {entity_id} ({attribute}). Nykyinen: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Tavoitearvo",
+          "trigger_delta_mode": "Erotustila (laske muutokset, ei absoluuttista arvoa)",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_target_value": "Laukaise huolto, kun tämä kertynyt arvo saavutetaan.",
+          "trigger_delta_mode": "Jos käytössä, lasketaan erotus lähtötasosta absoluuttisen arvon sijaan.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli laskurilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Tilanmuutoksen määritys",
+        "description": "Laske entiteetin {entity_id} tilasiirtymät.",
+        "data": {
+          "trigger_from_state": "Tilasta (valinnainen)",
+          "trigger_to_state": "Tilaan (valinnainen)",
+          "trigger_target_changes": "Muutosten määrä laukaisuun",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_from_state": "Laske vain siirtymät tästä tilasta. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_to_state": "Laske vain siirtymät tähän tilaan. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_target_changes": "Vastaavien tilanmuutosten määrä ennen huollon laukaisua.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli tilanmuutoslaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Käyntiajan määritys",
+        "description": "Seuraa entiteetin {entity_id} kertynyttä käyntiaikaa. Huolto laukeaa, kun kokonaiskäyntiaika saavuttaa tavoitetuntimäärän.",
+        "data": {
+          "trigger_runtime_hours": "Tavoitekäyntiaika (tuntia)",
+          "trigger_on_states": "Aktiiviset tilat (pilkulla eroteltuna)",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Laukaise huolto tämän kertyneen käyntiaikatuntimäärän jälkeen.",
+          "trigger_on_states": "Mitkä anturin tilat lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle: on, 1, true. Esimerkki: in_use, running",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli käyntiaikalaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
+      "compound_logic": {
+        "title": "Yhdistelmälaukaisin",
+        "description": "Valitse, miten useat ehdot yhdistetään.",
+        "data": {
+          "compound_logic": "Logiikka",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "compound_logic": "JA = kaikkien ehtojen on lauettava. TAI = mikä tahansa ehto laukaisee.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Ehto #{condition_num} — Entiteetti",
+        "description": "Valitse entiteetti tälle ehdolle.",
+        "data": {
+          "trigger_entity": "Entiteetti",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_entity": "Tälle ehdolle seurattava anturientiteetti.",
+          "go_back": "Palaa edelliseen vaiheeseen tallentamatta."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Ehto #{condition_num} — Tyyppi",
+        "description": "Miten tämän ehdon tulisi arvioida anturia?",
+        "data": {
+          "trigger_type": "Laukaisutyyppi",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_type": "Menetelmä, jolla määritetään, milloin tämä ehto laukeaa.",
+          "go_back": "Palaa entiteetin valintaan tallentamatta."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Ehto — Kynnysarvo",
+        "data": {
+          "trigger_above": "Laukaise yläpuolella",
+          "trigger_below": "Laukaise alapuolella",
+          "trigger_for_minutes": "Kesto (minuuttia)",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_above": "Laukaise, kun arvo ylittää tämän kynnysarvon.",
+          "trigger_below": "Laukaise, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_for_minutes": "Arvon on pysyttävä kynnysarvon ulkopuolella tämän keston ajan.",
+          "go_back": "Palaa ehtotyypin valintaan tallentamatta."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Ehto — Laskuri",
+        "data": {
+          "trigger_target_value": "Tavoitearvo",
+          "trigger_delta_mode": "Erotustila",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_target_value": "Laukaise, kun kertynyt arvo saavuttaa tämän tavoitteen.",
+          "trigger_delta_mode": "Laske muutokset lähtötasosta absoluuttisen arvon sijaan.",
+          "go_back": "Palaa ehtotyypin valintaan tallentamatta."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Ehto — Tilanmuutos",
+        "data": {
+          "trigger_from_state": "Tilasta",
+          "trigger_to_state": "Tilaan",
+          "trigger_target_changes": "Muutosten määrä",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_from_state": "Laske vain siirtymät tästä tilasta. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_to_state": "Laske vain siirtymät tähän tilaan. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_target_changes": "Vastaavien tilanmuutosten määrä ennen laukaisua.",
+          "go_back": "Palaa ehtotyypin valintaan tallentamatta."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Ehto — Käyntiaika",
+        "data": {
+          "trigger_runtime_hours": "Tavoitekäyntiaika (tuntia)",
+          "trigger_on_states": "Aktiiviset tilat",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Laukaise tämän kertyneen käyntiaikatuntimäärän jälkeen.",
+          "trigger_on_states": "Anturin tilat, jotka lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle.",
+          "go_back": "Palaa ehtotyypin valintaan tallentamatta."
+        }
+      },
+      "compound_review": {
+        "title": "Yhdistelmälaukaisimen yhteenveto",
+        "description": "{condition_count} ehtoa määritetty logiikalla {compound_logic}.",
+        "data": {
+          "compound_action": "Toiminto",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "go_back": "Palaa logiikan valintaan tallentamatta."
+        }
+      },
+      "manual": {
+        "title": "Manuaalinen aikataulu",
+        "description": "Tällä tehtävällä ei ole automaattista aikataulua. Voit merkitä sen erääntyneeksi manuaalisesti.",
+        "data": {
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "notes": "Muistiinpanot",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "notes": "Lisämuistiinpanot tai -ohjeet tälle tehtävälle.",
+          "go_back": "Palaa tehtävän luontiin tallentamatta."
+        }
+      },
+      "reconfigure": {
+        "title": "Määritä uudelleen {name}",
+        "description": "Päivitä tämän huoltokohteen asetukset.",
+        "data": {
+          "name": "Kohteen nimi",
+          "area_id": "Alue",
+          "manufacturer": "Valmistaja",
+          "model": "Malli",
+          "serial_number": "Sarjanumero",
+          "documentation_url": "Käyttöohjeen / dokumentaation URL-osoite",
+          "notes": "Muistiinpanot",
+          "installation_date": "Asennuspäivä",
+          "warranty_expiry": "Takuun päättyminen"
+        },
+        "data_description": {
+          "name": "Tämän huoltokohteen nimi.",
+          "area_id": "Alue, jolla kohde sijaitsee.",
+          "manufacturer": "Tämän kohteen valmistaja.",
+          "model": "Tämän kohteen malli.",
+          "serial_number": "Tämän kohteen sarjanumero.",
+          "documentation_url": "Valinnainen linkki PDF-käyttöohjeeseen, valmistajan sivulle tai mihin tahansa URL-osoitteeseen, jossa on kohdetta koskevia tietoja.",
+          "notes": "Vapaamuotoiset muistiinpanot kohteesta – osanumerot, toimenpiteet, asetusmuistutukset jne.",
+          "installation_date": "Milloin tämä kohde asennettiin.",
+          "warranty_expiry": "Milloin kohteen valmistajan takuu päättyy."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Tämänniminen huoltokohde on jo olemassa.",
+      "no_tasks": "Vähintään yksi huoltotehtävä vaaditaan.",
+      "invalid_entity": "Valittua entiteettiä ei ole olemassa tai sillä ei ole numeerista dataa.",
+      "invalid_attribute": "Valittu attribuutti ei ole käytettävissä tällä entiteetillä.",
+      "invalid_threshold": "Vähintään yksi kynnysarvo (ylä- tai alaraja) on asetettava.",
+      "invalid_due_date": "Eräpäivä vaaditaan kertaluonteisille tehtäville.",
+      "invalid_interval": "Aikavälin on oltava positiivinen luku.",
+      "min_exceeds_max": "Vähimmäisaikaväli ei saa ylittää enimmäisaikaväliä.",
+      "invalid_notify_service": "Virheellinen ilmoituspalvelun muoto. Käytä muotoa 'notify.service_name' (esim. notify.mobile_app_phone).",
+      "notify_service_not_found": "Tätä ilmoituspalvelua ei löytynyt Home Assistantista. Tarkista palvelun nimi.",
+      "nfc_tag_duplicate": "Tämä NFC-tunniste on jo liitetty toiseen tehtävään."
+    },
+    "abort": {
+      "already_configured": "Tämä huoltokohde on jo määritetty.",
+      "global_already_exists": "Yleiset asetukset on jo määritetty.",
+      "template_not_found": "Valittua mallia ei löytynyt.",
+      "missing_data": "Vaadittuja tietoja ei annettu.",
+      "reconfigure_successful": "Määritys päivitetty onnistuneesti.",
+      "reconfigure_cancelled": "Uudelleenmääritys peruutettu."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Huoltoasetukset",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Hallitse tehtäviä",
+          "add_task": "Lisää uusi tehtävä",
+          "object_settings": "Kohteen asetukset",
+          "done": "Valmis"
+        }
+      },
+      "global_init": {
+        "title": "Yleiset asetukset",
+        "description": "Määritä huoltojen yleiset asetukset.",
+        "menu_options": {
+          "general_settings": "Yleisasetukset",
+          "advanced_features": "Lisäominaisuudet",
+          "panel_access": "Paneelin käyttöoikeudet",
+          "budget_settings": "Budjettiasetukset",
+          "manage_groups": "Hallitse ryhmiä",
+          "notification_settings": "Ilmoitusasetukset",
+          "notification_actions": "Interaktiiviset toiminnot",
+          "test_notification": "Lähetä testi-ilmoitus",
+          "done": "Valmis"
+        }
+      },
+      "advanced_features": {
+        "title": "Lisäominaisuudet",
+        "description": "Valitse, mitkä lisäominaisuudet näytetään käyttöliittymässä. Ominaisuuden poistaminen käytöstä piilottaa sen käyttöliittymästä, mutta ei poista mitään tietoja.",
+        "data": {
+          "advanced_adaptive_visible": "Mukautuva aikataulutus",
+          "advanced_predictions_visible": "Anturiennusteet",
+          "advanced_seasonal_visible": "Kausittaiset säädöt",
+          "advanced_environmental_visible": "Ympäristökorrelaatio",
+          "advanced_budget_visible": "Budjetin seuranta",
+          "advanced_groups_visible": "Ryhmät",
+          "advanced_checklists_visible": "Tarkistuslistat",
+          "advanced_schedule_time_visible": "Kellonaikaan perustuva aikataulutus"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Näytä EWA-, Weibull-analyysi ja aikaväliehdotukset tehtäville.",
+          "advanced_predictions_visible": "Näytä anturin heikkenemisanalyysi ja kynnysarvon ennustekaaviot.",
+          "advanced_seasonal_visible": "Näytä kausikerroinkaaviot ja kuukausittaiset säätötiedot.",
+          "advanced_environmental_visible": "Näytä ympäristökorrelaation (lämpötila, kosteus) säädöt.",
+          "advanced_budget_visible": "Näytä kuukausittainen/vuosittainen budjetin seuranta ja hälytykset.",
+          "advanced_groups_visible": "Näytä huoltoryhmien hallinta.",
+          "advanced_checklists_visible": "Näytä tehtävien tarkistuslistat vaiheittaista suorittamista varten.",
+          "advanced_schedule_time_visible": "Salli tehtävien erääntyminen tiettyyn kellonaikaan keskiyön sijaan."
+        }
+      },
+      "panel_access": {
+        "title": "Paneelin käyttöoikeudet",
+        "description": "Järjestelmänvalvojilla on aina täydet käyttöoikeudet. Delegoidaksesi luonti-, muokkaus- ja poisto-oikeudet tietyille ei-järjestelmänvalvojille, ota alla oleva asetus käyttöön ja valitse heidät – kaikki muut näkevät vain Valmis- ja Ohita-toiminnot. Löytyi {user_count} ei-järjestelmänvalvojakäyttäjää.",
+        "data": {
+          "operator_write_enabled": "Salli valittujen käyttäjien luoda, muokata ja poistaa",
+          "admin_panel_user_ids": "Käyttäjät, joilla on täydet paneelin käyttöoikeudet"
+        },
+        "data_description": {
+          "operator_write_enabled": "Pois (oletus): vain järjestelmänvalvojat voivat muokata sisältöä. Päällä: myös alla valitut käyttäjät saavat täydet luonti-/muokkaus-/poisto-oikeudet.",
+          "admin_panel_user_ids": "Luetellut käyttäjät näkevät koko paneelin; kaikki muut näkevät vain Valmis- ja Ohita-toiminnot kussakin tehtävässä."
+        }
+      },
+      "general_settings": {
+        "title": "Yleisasetukset",
+        "description": "Määritä Maintenance Supporterin perusasetukset.",
+        "data": {
+          "default_warning_days": "Oletusvaroituspäivät ennen eräpäivää",
+          "notifications_enabled": "Ota ilmoitukset käyttöön",
+          "notify_service": "Ilmoituspalvelu",
+          "panel_enabled": "Näytä sivupalkin paneeli",
+          "panel_title": "Sivupalkin paneelin otsikko"
+        },
+        "data_description": {
+          "default_warning_days": "Montako päivää ennen huoltotehtävän eräpäivää varoitus näytetään.",
+          "notifications_enabled": "Lähetä ilmoituksia, kun huoltotehtävät erääntyvät tai ovat myöhässä.",
+          "notify_service": "Käytettävä ilmoituspalvelu (esim. notify.mobile_app_phone).",
+          "panel_enabled": "Näytä Maintenance Supporter -paneeli sivupalkissa.",
+          "panel_title": "Mukautettu nimi sivupalkin kohteelle. Jätä tyhjäksi käyttääksesi nimeä \"Maintenance\". Hyödyllinen Home Assistantin sisäänrakennetun Maintenance-koontinäytön kanssa tapahtuvan päällekkäisyyden välttämiseksi."
+        }
+      },
+      "notification_settings": {
+        "title": "Ilmoitusasetukset",
+        "description": "Määritä, milloin ja kuinka usein ilmoituksia lähetetään kullekin tilalle.",
+        "data": {
+          "notify_due_soon_enabled": "Ilmoita, kun erääntyy pian",
+          "notify_due_soon_interval_hours": "Pian erääntyy -muistutuksen väli (tuntia)",
+          "notify_overdue_enabled": "Ilmoita, kun on myöhässä",
+          "notify_overdue_interval_hours": "Myöhässä-muistutuksen väli (tuntia)",
+          "notify_triggered_enabled": "Ilmoita, kun laukeaa",
+          "notify_triggered_interval_hours": "Lauennut-muistutuksen väli (tuntia)",
+          "quiet_hours_enabled": "Ota hiljaiset tunnit käyttöön",
+          "quiet_hours_start": "Hiljaisten tuntien alku",
+          "quiet_hours_end": "Hiljaisten tuntien loppu",
+          "max_notifications_per_day": "Enimmäismäärä ilmoituksia päivässä",
+          "notification_bundling_enabled": "Niputa ilmoitukset",
+          "notification_bundle_threshold": "Niputuksen kynnysarvo",
+          "notification_title_style": "Ilmoituksen otsikon tyyli"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Kuinka usein pian erääntyy -muistutus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
+          "notify_overdue_interval_hours": "Kuinka usein myöhässä-muistutus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
+          "notify_triggered_interval_hours": "Kuinka usein lauennut-ilmoitus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
+          "quiet_hours_enabled": "Estä ilmoitukset hiljaisten tuntien aikana.",
+          "max_notifications_per_day": "Ilmoitusten enimmäismäärä päivässä. Aseta arvoon 0 rajoittamattomille.",
+          "notification_bundling_enabled": "Lähetä yksi yhteenvetoilmoitus, kun useat tehtävät vaativat huomiota.",
+          "notification_bundle_threshold": "Tehtävien vähimmäismäärä, joka laukaisee niputetun ilmoituksen.",
+          "notification_title_style": "Mikä näkyy ilmoituksen OTSIKKONA. Oletus säilyttää tilakohtaisen tekstin (esim. 'Huolto myöhässä!'). Kohteen nimi / Tehtävän nimi auttavat, kun puhelinilmoitukset pinoutuvat."
+        }
+      },
+      "notification_actions": {
+        "title": "Interaktiiviset toiminnot",
+        "description": "Määritä mobiili-ilmoituksissa näytettävät toimintopainikkeet (vaatii Companion-sovelluksen).",
+        "data": {
+          "action_complete_enabled": "Näytä 'Valmis'-painike",
+          "action_skip_enabled": "Näytä 'Ohita'-painike",
+          "action_snooze_enabled": "Näytä 'Torkku'-painike",
+          "snooze_duration_hours": "Torkun kesto (tuntia)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Lisää painikkeen tehtävän merkitsemiseksi suoritetuksi suoraan ilmoituksesta.",
+          "action_skip_enabled": "Lisää painikkeen nykyisen huoltosyklin ohittamiseksi ilmoituksesta.",
+          "action_snooze_enabled": "Lisää painikkeen ilmoitusmuistutuksen lykkäämiseksi.",
+          "snooze_duration_hours": "Kuinka pitkäksi aikaa ilmoituksia lykätään, kun torkkua painetaan."
+        }
+      },
+      "budget_settings": {
+        "title": "Budjettiasetukset",
+        "description": "Aseta kuukausittaiset ja vuosittaiset huoltobudjetit kulujen seuraamiseksi.",
+        "data": {
+          "budget_currency": "Valuutta",
+          "budget_monthly": "Kuukausibudjetti",
+          "budget_yearly": "Vuosibudjetti",
+          "budget_alerts_enabled": "Ota budjettihälytykset käyttöön",
+          "budget_alert_threshold": "Hälytyksen kynnysarvo (%)"
+        },
+        "data_description": {
+          "budget_currency": "Budjetin näytössä ja ilmoituksissa käytettävä valuutta.",
+          "budget_monthly": "Huoltokulujen enimmäismäärä kuukaudessa. Aseta arvoon 0 poistaaksesi käytöstä.",
+          "budget_yearly": "Huoltokulujen enimmäismäärä vuodessa. Aseta arvoon 0 poistaaksesi käytöstä.",
+          "budget_alerts_enabled": "Lähetä ilmoitus, kun kulut ylittävät hälytyksen kynnysarvon.",
+          "budget_alert_threshold": "Budjetin prosenttiosuus, jossa hälytys lähetetään."
+        }
+      },
+      "test_notification": {
+        "title": "Testi-ilmoitus",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Hallitse ryhmiä",
+        "description": "Valitse hallittava ryhmä tai luo uusi.",
+        "data": {
+          "selected_group": "Valitse ryhmä"
+        }
+      },
+      "add_group": {
+        "title": "Lisää ryhmä",
+        "description": "Luo uusi huoltoryhmä toisiinsa liittyvien tehtävien järjestämiseksi.",
+        "data": {
+          "group_name": "Ryhmän nimi",
+          "group_description": "Kuvaus"
+        },
+        "data_description": {
+          "group_name": "Tämän ryhmän nimi (esim. 'Keväthuolto').",
+          "group_description": "Valinnainen kuvaus tälle ryhmälle."
+        }
+      },
+      "manage_tasks": {
+        "title": "Hallitse tehtäviä",
+        "description": "Valitse muokattava tai poistettava tehtävä.",
+        "data": {
+          "selected_task": "Valitse tehtävä",
+          "go_back": "Palaa takaisin"
+        }
+      },
+      "task_action": {
+        "title": "Tehtävän toiminnot",
+        "description": "Tehtävä: {task_name} — Valitse toiminto.",
+        "menu_options": {
+          "edit_task": "Muokkaa tehtävää",
+          "edit_trigger": "Muokkaa laukaisinta",
+          "remove_trigger": "Poista laukaisin",
+          "edit_checklist": "Muokkaa tarkistuslistaa",
+          "adaptive_scheduling": "Mukautuva aikataulutus",
+          "delete_task": "Poista tehtävä",
+          "manage_tasks": "Takaisin"
+        }
+      },
+      "edit_task": {
+        "title": "Muokkaa tehtävää",
+        "description": "Muokkaa tehtävän **{task_name}** asetuksia.",
+        "data": {
+          "name": "Tehtävän nimi",
+          "type": "Huoltotyyppi",
+          "interval_days": "Aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "due_date": "Eräpäivä",
+          "enabled": "Käytössä",
+          "notes": "Muistiinpanot",
+          "documentation_url": "Dokumentaation URL-osoite",
+          "last_performed": "Viimeksi suoritettu",
+          "responsible_user_id": "Vastuukäyttäjä",
+          "custom_icon": "Tehtävän kuvake",
+          "nfc_tag_id": "NFC-tunnisteen tunnus",
+          "go_back": "Palaa takaisin",
+          "interval_anchor": "Aikavälin ankkuri"
+        },
+        "data_description": {
+          "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
+          "type": "Huoltotyön luokka.",
+          "interval_days": "Kuinka usein tämä huolto toistuu, yhdessä aikavälin yksikön kanssa.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "due_date": "Päivä, jolloin tämä kertaluonteinen tehtävä erääntyy.",
+          "enabled": "Kun pois käytöstä, aikataulutus ja laukaisimet on keskeytetty. Tehtävää ei poisteta.",
+          "notes": "Lisämuistiinpanot tai -ohjeet tälle tehtävälle.",
+          "documentation_url": "Linkki ulkoiseen dokumentaatioon tai käyttöohjeeseen tälle tehtävälle.",
+          "last_performed": "Milloin tämä huolto suoritettiin viimeksi. Jätä tyhjäksi, jos sitä ei ole koskaan tehty.",
+          "responsible_user_id": "Tästä tehtävästä vastaava Home Assistant -käyttäjä.",
+          "custom_icon": "Valinnainen mukautettu kuvake tälle tehtävälle (esim. mdi:oil, mdi:filter-variant).",
+          "nfc_tag_id": "Liitä NFC-tunniste tähän tehtävään. Tunnisteen skannaaminen merkitsee tehtävän automaattisesti suoritetuksi.",
+          "go_back": "Palaa tehtävän toimintoihin tallentamatta.",
+          "interval_anchor": "Miten seuraava eräpäivä lasketaan suorituksen jälkeen. 'Suunniteltu' estää aikataulun liukumisen ankkuroimalla alkuperäiseen eräpäivään."
+        }
+      },
+      "edit_checklist": {
+        "title": "Muokkaa tarkistuslistaa",
+        "description": "Määritä tarkistuslistan vaiheet tehtävälle {task_name}. Syötä yksi vaihe riviä kohden.",
+        "data": {
+          "checklist_text": "Tarkistuslistan vaiheet",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "checklist_text": "Syötä jokainen tarkistuslistan vaihe omalle rivilleen. Nämä vaiheet näytetään tehtävää suoritettaessa.",
+          "go_back": "Palaa tehtävän toimintoihin tallentamatta."
+        }
+      },
+      "compound_logic": {
+        "title": "Yhdistelmälaukaisin",
+        "description": "Valitse, miten useat ehdot yhdistetään.",
+        "data": {
+          "compound_logic": "Logiikka",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "compound_logic": "JA = kaikkien ehtojen on lauettava. TAI = mikä tahansa ehto laukaisee."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Ehto #{condition_num} — Entiteetti",
+        "description": "Valitse entiteetti tälle ehdolle.",
+        "data": {
+          "trigger_entity": "Entiteetti",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_entity": "Tälle ehdolle seurattava anturientiteetti."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Ehto #{condition_num} — Tyyppi",
+        "description": "Miten tämän ehdon tulisi arvioida anturia?",
+        "data": {
+          "trigger_type": "Laukaisutyyppi",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_type": "Menetelmä, jolla määritetään, milloin tämä ehto laukeaa."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Ehto — Kynnysarvo",
+        "data": {
+          "trigger_above": "Laukaise yläpuolella",
+          "trigger_below": "Laukaise alapuolella",
+          "trigger_for_minutes": "Kesto (minuuttia)",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_above": "Laukaise, kun arvo ylittää tämän kynnysarvon.",
+          "trigger_below": "Laukaise, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_for_minutes": "Arvon on pysyttävä kynnysarvon ulkopuolella tämän keston ajan."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Ehto — Laskuri",
+        "data": {
+          "trigger_target_value": "Tavoitearvo",
+          "trigger_delta_mode": "Erotustila",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_target_value": "Laukaise, kun kertynyt arvo saavuttaa tämän tavoitteen.",
+          "trigger_delta_mode": "Laske muutokset lähtötasosta absoluuttisen arvon sijaan."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Ehto — Tilanmuutos",
+        "data": {
+          "trigger_from_state": "Tilasta",
+          "trigger_to_state": "Tilaan",
+          "trigger_target_changes": "Muutosten määrä",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_from_state": "Laske vain siirtymät tästä tilasta. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_to_state": "Laske vain siirtymät tähän tilaan. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_target_changes": "Vastaavien tilanmuutosten määrä ennen laukaisua."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Ehto — Käyntiaika",
+        "data": {
+          "trigger_runtime_hours": "Tavoitekäyntiaika (tuntia)",
+          "trigger_on_states": "Aktiiviset tilat",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Laukaise tämän kertyneen käyntiaikatuntimäärän jälkeen.",
+          "trigger_on_states": "Anturin tilat, jotka lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle."
+        }
+      },
+      "compound_review": {
+        "title": "Yhdistelmälaukaisimen yhteenveto",
+        "description": "{condition_count} ehtoa määritetty logiikalla {compound_logic}.",
+        "data": {
+          "compound_action": "Toiminto",
+          "go_back": "Palaa takaisin"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Mukautuva aikataulutus",
+        "description": "Määritä älykäs aikavälin mukautus tehtävälle {task_name}. Järjestelmä oppii suorituspalautteestasi ehdottaakseen parempia aikavälejä.",
+        "data": {
+          "adaptive_enabled": "Ota mukautuva aikataulutus käyttöön",
+          "ewa_alpha": "Oppimisnopeus (alfa)",
+          "min_interval_days": "Vähimmäisaikaväli (päivää)",
+          "max_interval_days": "Enimmäisaikaväli (päivää)",
+          "seasonal_enabled": "Ota kausitietoisuus käyttöön",
+          "sensor_prediction_enabled": "Ota anturiperusteiset ennusteet käyttöön",
+          "environmental_entity": "Ympäristöanturi (valinnainen)",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "adaptive_enabled": "Kun käytössä, järjestelmä oppii palautteestasi ja ehdottaa optimaalisia huoltovälejä.",
+          "ewa_alpha": "Kuinka nopeasti algoritmi mukautuu uuteen dataan. Suurempi = reagoivampi, pienempi = vakaampi.",
+          "min_interval_days": "Lyhin aikaväli, jota järjestelmä koskaan suosittelee.",
+          "max_interval_days": "Pisin aikaväli, jota järjestelmä koskaan suosittelee.",
+          "seasonal_enabled": "Säädä suosituksia huoltohistoriastasi opittujen kausittaisten mallien perusteella.",
+          "sensor_prediction_enabled": "Analysoi anturin trendejä ennustaaksesi, milloin kynnysarvot saavutetaan, ja ehdota tarvittaessa aikaisempaa huoltoa.",
+          "environmental_entity": "Liitä lämpötila-, kosteus- tai paineanturi korreloidaksesi ympäristöolosuhteet huoltoväleihin.",
+          "go_back": "Palaa tehtävän toimintoihin tallentamatta."
+        }
+      },
+      "delete_task": {
+        "title": "Poista tehtävä",
+        "description": "Haluatko varmasti poistaa tehtävän {task_name}? Tätä ei voi peruuttaa.",
+        "data": {
+          "confirm": "Vahvista poisto",
+          "go_back": "Palaa takaisin"
+        }
+      },
+      "remove_trigger": {
+        "title": "Poista laukaisin",
+        "description": "Poistetaanko laukaisin tehtävältä **{task_name}**?\n\n**Entiteetti:** {entity_ids}\n**Tyyppi:** {trigger_type}\n**Määritys:** {config_details}\n\nJos kaikki entiteetit poistetaan, aikataulu palautuu aikaperusteiseksi.",
+        "data": {
+          "entities_to_remove": "Poistettavat entiteetit",
+          "confirm": "Vahvista poisto",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "entities_to_remove": "Valitse, mitkä entiteetit poistetaan tästä laukaisimesta. Jos kaikki poistetaan, koko laukaisin poistetaan.",
+          "go_back": "Palaa tehtävän toimintoihin tallentamatta."
+        }
+      },
+      "trigger_summary": {
+        "title": "Nykyinen laukaisin",
+        "description": "Laukaisin tehtävälle **{task_name}**:\n\n**Entiteetti:** {entity_ids}\n**Nykyinen tila:** {current_states}\n**Tyyppi:** {trigger_type} (attribuutti: {attribute})\n**Määritys:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Muokkaa laukaisinta",
+          "task_action": "Takaisin"
+        }
+      },
+      "add_task": {
+        "title": "Lisää huoltotehtävä",
+        "description": "Määritä uusi huoltotehtävä tälle kohteelle.",
+        "data": {
+          "name": "Tehtävän nimi",
+          "type": "Huoltotyyppi",
+          "schedule_type": "Aikataulutyyppi",
+          "custom_icon": "Tehtävän kuvake",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
+          "type": "Huoltotyön luokka.",
+          "schedule_type": "Miten tämä tehtävä aikataulutetaan.",
+          "custom_icon": "Valinnainen mukautettu kuvake tälle tehtävälle (esim. mdi:oil, mdi:filter-variant).",
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "opt_time_based": {
+        "title": "Aikaperusteinen aikataulu",
+        "description": "Määritä tämän tehtävän aikaväli.",
+        "data": {
+          "interval_days": "Aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "last_performed": "Viimeksi suoritettu",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin",
+          "interval_anchor": "Aikavälin ankkuri"
+        },
+        "data_description": {
+          "interval_days": "Kuinka usein tämä huolto toistuu, yhdessä aikavälin yksikön kanssa.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "last_performed": "Milloin tämä huolto suoritettiin viimeksi. Jätä tyhjäksi, jos sitä ei ole koskaan tehty.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa päävalikkoon tallentamatta.",
+          "interval_anchor": "Miten seuraava eräpäivä lasketaan suorituksen jälkeen. 'Suunniteltu' estää aikataulun liukumisen ankkuroimalla alkuperäiseen eräpäivään."
+        }
+      },
+      "opt_one_time": {
+        "title": "Kertaluonteinen tehtävä",
+        "description": "Määritä yksittäinen, toistumaton huoltotehtävä. Se arkistoidaan suorituksen jälkeen.",
+        "data": {
+          "due_date": "Eräpäivä",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "due_date": "Päivä, jolloin tämä kertaluonteinen tehtävä erääntyy.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "opt_calendar": {
+        "title": "Kalenteriaikataulu",
+        "description": "Määritä kalenteriperusteinen toistuvuus (viikonpäivät, kuukauden n:s viikonpäivä tai kuukaudenpäivä).",
+        "data": {
+          "weekdays": "Näinä viikonpäivinä",
+          "nth": "Mikä toistumiskerta",
+          "weekday": "Viikonpäivä",
+          "day": "Kuukaudenpäivä",
+          "last_performed": "Viimeksi suoritettu",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "weekdays": "Tehtävä toistuu jokaisena valittuna viikonpäivänä.",
+          "nth": "Mikä toistumiskerta kuukaudessa (esim. 1. tai viimeinen).",
+          "weekday": "Viikonpäivä n:nnen viikonpäivän säännölle (esim. lauantai).",
+          "day": "Kuukaudenpäivä (1–31; rajataan kuukauden pituuteen).",
+          "last_performed": "Milloin tämä huolto suoritettiin viimeksi. Jätä tyhjäksi, jos sitä ei ole koskaan tehty.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "opt_manual": {
+        "title": "Manuaalinen aikataulu",
+        "description": "Tällä tehtävällä ei ole automaattista aikataulua. Voit merkitä sen erääntyneeksi manuaalisesti.",
+        "data": {
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "notes": "Muistiinpanot",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "notes": "Lisämuistiinpanot tai -ohjeet tälle tehtävälle.",
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Valitse laukaiseva anturi",
+        "description": "Valitse seurattava Home Assistant -entiteetti.",
+        "data": {
+          "trigger_entity": "Seurattava entiteetti",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_entity": "Valitse anturientiteetti, jonka tulisi laukaista tämä huoltotehtävä."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Valitse attribuutti",
+        "description": "Valitse, mitä arvoa seurataan entiteetistä {entity_id}. Nykyinen tila: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Seurattava arvo",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_attribute": "Valitse seurattava entiteetin tila tai tietty attribuutti."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Laukaisutyyppi",
+        "description": "Miten anturin arvon tulisi laukaista huolto?",
+        "data": {
+          "trigger_type": "Laukaisutyyppi",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_type": "Kynnysarvo: laukeaa, kun arvo ylittää rajat. Laskuri: laukeaa, kun tavoitearvo on kertynyt. Tilanmuutos: laukeaa tietyn tilasiirtymämäärän jälkeen."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Kynnysarvon määritys",
+        "description": "Aseta kynnysarvot entiteetille **{entity_id}** ({attribute}).\nNykyinen: **{current_value} {unit}** | Keskiarvo: {average} | Vaihteluväli: {minimum}–{maximum} ({data_period} pv)\nEhdotettu yläraja: {suggested_above} | Ehdotettu alaraja: {suggested_below}",
+        "data": {
+          "trigger_above": "Laukaise yläpuolella",
+          "trigger_below": "Laukaise alapuolella",
+          "trigger_for_minutes": "Vähintään (minuuttia)",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_above": "Laukaise huolto, kun arvo ylittää tämän kynnysarvon.",
+          "trigger_below": "Laukaise huolto, kun arvo alittaa tämän kynnysarvon.",
+          "trigger_for_minutes": "Arvon on ylitettävä kynnysarvo näin monta minuuttia ennen laukaisua.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Laskurin määritys",
+        "description": "Aseta laskurin tavoite entiteetille {entity_id} ({attribute}). Nykyinen: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Tavoitearvo",
+          "trigger_delta_mode": "Erotustila (laske muutokset, ei absoluuttista arvoa)",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_target_value": "Laukaise huolto, kun tämä kertynyt arvo saavutetaan.",
+          "trigger_delta_mode": "Jos käytössä, lasketaan erotus lähtötasosta absoluuttisen arvon sijaan.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli laskurilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Tilanmuutoksen määritys",
+        "description": "Laske entiteetin {entity_id} tilasiirtymät.",
+        "data": {
+          "trigger_from_state": "Tilasta (valinnainen)",
+          "trigger_to_state": "Tilaan (valinnainen)",
+          "trigger_target_changes": "Muutosten määrä laukaisuun",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_from_state": "Laske vain siirtymät tästä tilasta. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_to_state": "Laske vain siirtymät tähän tilaan. Jätä tyhjäksi, jos mikä tahansa käy.",
+          "trigger_target_changes": "Vastaavien tilanmuutosten määrä ennen huollon laukaisua.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli tilanmuutoslaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Käyntiajan määritys",
+        "description": "Seuraa entiteetin {entity_id} kertynyttä käyntiaikaa.",
+        "data": {
+          "trigger_runtime_hours": "Tavoitekäyntiaika (tuntia)",
+          "trigger_on_states": "Aktiiviset tilat (pilkulla eroteltuna)",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Laukaise huolto tämän kertyneen käyntiaikatuntimäärän jälkeen.",
+          "trigger_on_states": "Mitkä anturin tilat lasketaan 'aktiivisiksi'. Jätä tyhjäksi oletukselle: on, 1, true. Esimerkki: in_use, running",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli käyntiaikalaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+        }
+      },
+      "object_settings": {
+        "title": "Kohteen asetukset",
+        "description": "Muokkaa kohteen tietoja.",
+        "data": {
+          "name": "Kohteen nimi",
+          "manufacturer": "Valmistaja",
+          "model": "Malli",
+          "serial_number": "Sarjanumero",
+          "documentation_url": "Käyttöohjeen / dokumentaation URL-osoite",
+          "notes": "Muistiinpanot",
+          "area_id": "Alue",
+          "installation_date": "Asennuspäivä",
+          "warranty_expiry": "Takuun päättyminen",
+          "go_back": "Palaa takaisin"
+        },
+        "data_description": {
+          "name": "Tämän huoltokohteen yksilöllinen nimi (esim. 'Uima-altaan pumppu', 'Auto').",
+          "manufacturer": "Kohteen valmistaja.",
+          "model": "Mallin nimi tai numero.",
+          "serial_number": "Kohteen sarjanumero.",
+          "documentation_url": "Valinnainen linkki PDF-käyttöohjeeseen, valmistajan sivulle tai mihin tahansa URL-osoitteeseen, jossa on kohdetta koskevia tietoja.",
+          "notes": "Vapaamuotoiset muistiinpanot kohteesta – osanumerot, toimenpiteet, asetusmuistutukset jne.",
+          "area_id": "Kodin alue, jolla tämä kohde sijaitsee.",
+          "installation_date": "Milloin tämä kohde asennettiin tai ostettiin.",
+          "warranty_expiry": "Milloin kohteen valmistajan takuu päättyy.",
+          "go_back": "Palaa päävalikkoon tallentamatta."
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} – Valmis"
+      },
+      "button_skip": {
+        "name": "{task_name} – Ohita"
+      },
+      "button_reset": {
+        "name": "{task_name} – Nollaa"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Erääntyy pian",
+          "overdue": "Myöhässä",
+          "triggered": "Lauennut"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Huoltotyyppi",
+            "state": {
+              "cleaning": "Puhdistus",
+              "inspection": "Tarkastus",
+              "replacement": "Vaihto",
+              "calibration": "Kalibrointi",
+              "service": "Huolto",
+              "custom": "Mukautettu"
+            }
+          },
+          "schedule_type": {
+            "name": "Aikataulutyyppi",
+            "state": {
+              "time_based": "Aikaperusteinen",
+              "sensor_based": "Anturiperusteinen",
+              "one_time": "Kertaluonteinen",
+              "manual": "Manuaalinen"
+            }
+          },
+          "interval_days": {
+            "name": "Aikaväli"
+          },
+          "interval_unit": {
+            "name": "Aikavälin yksikkö"
+          },
+          "warning_days": {
+            "name": "Varoituspäivät"
+          },
+          "last_performed": {
+            "name": "Viimeksi suoritettu"
+          },
+          "next_due": {
+            "name": "Seuraava eräpäivä"
+          },
+          "days_until_due": {
+            "name": "Päiviä eräpäivään"
+          },
+          "parent_object": {
+            "name": "Pääkohde"
+          },
+          "times_performed": {
+            "name": "Suorituskertoja"
+          },
+          "total_cost": {
+            "name": "Kokonaiskustannus"
+          },
+          "average_duration": {
+            "name": "Keskimääräinen kesto (min)"
+          },
+          "notes": {
+            "name": "Muistiinpanot"
+          },
+          "documentation_url": {
+            "name": "Dokumentaation URL-osoite"
+          },
+          "trigger_entity": {
+            "name": "Laukaiseva entiteetti"
+          },
+          "trigger_attribute": {
+            "name": "Laukaiseva attribuutti"
+          },
+          "trigger_type": {
+            "name": "Laukaisutyyppi",
+            "state": {
+              "threshold": "Kynnysarvo",
+              "counter": "Laskuri",
+              "state_change": "Tilanmuutos",
+              "runtime": "Käyntiaika",
+              "compound": "Yhdistelmä"
+            }
+          },
+          "trigger_active": {
+            "name": "Laukaisin aktiivinen"
+          },
+          "trigger_current_value": {
+            "name": "Laukaisimen nykyinen arvo"
+          },
+          "trigger_entity_state": {
+            "name": "Laukaisevan entiteetin tila",
+            "state": {
+              "available": "Käytettävissä",
+              "unavailable": "Ei käytettävissä",
+              "missing": "Puuttuu",
+              "startup": "Käynnistys"
+            }
+          },
+          "trigger_above": {
+            "name": "Laukaise yläpuolella"
+          },
+          "trigger_below": {
+            "name": "Laukaise alapuolella"
+          },
+          "trigger_for_minutes": {
+            "name": "Laukaise (minuuttia)"
+          },
+          "trigger_target_value": {
+            "name": "Laukaisimen tavoitearvo"
+          },
+          "trigger_delta_mode": {
+            "name": "Laukaisimen erotustila"
+          },
+          "trigger_baseline_value": {
+            "name": "Laukaisimen lähtötaso"
+          },
+          "trigger_current_delta": {
+            "name": "Laukaisimen nykyinen erotus"
+          },
+          "trigger_from_state": {
+            "name": "Laukaise tilasta"
+          },
+          "trigger_to_state": {
+            "name": "Laukaise tilaan"
+          },
+          "trigger_target_changes": {
+            "name": "Laukaisimen tavoitemuutokset"
+          },
+          "trigger_change_count": {
+            "name": "Laukaisimen muutoslaskuri"
+          },
+          "trigger_runtime_hours": {
+            "name": "Tavoitekäyntiaika (tuntia)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Kertynyt käyntiaika (tuntia)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Jäljellä oleva käyntiaika (tuntia)"
+          },
+          "last_entry": {
+            "name": "Viimeinen merkintä"
+          },
+          "suggested_interval": {
+            "name": "Ehdotettu aikaväli"
+          },
+          "interval_confidence": {
+            "name": "Aikavälin luottamus",
+            "state": {
+              "low": "Matala",
+              "medium": "Keskitaso",
+              "high": "Korkea"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Mukautuva aikataulutus käytössä"
+          },
+          "seasonal_factor": {
+            "name": "Kausikerroin"
+          },
+          "seasonal_reason": {
+            "name": "Kausisyy",
+            "state": {
+              "learned": "Opittu",
+              "manual": "Manuaalinen"
+            }
+          },
+          "degradation_rate": {
+            "name": "Heikkenemisnopeus"
+          },
+          "degradation_trend": {
+            "name": "Heikkenemistrendi",
+            "state": {
+              "rising": "Nouseva",
+              "falling": "Laskeva",
+              "stable": "Vakaa",
+              "insufficient_data": "Riittämättömät tiedot"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Päiviä kynnysarvoon"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Ennusteen luottamus",
+            "state": {
+              "low": "Matala",
+              "medium": "Keskitaso",
+              "high": "Korkea"
+            }
+          },
+          "environmental_factor": {
+            "name": "Ympäristökerroin"
+          },
+          "environmental_entity": {
+            "name": "Ympäristöentiteetti"
+          },
+          "weibull_beta": {
+            "name": "Weibullin muoto (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibullin skaala (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Vikaantumismalli",
+            "state": {
+              "early_failures": "Varhaiset viat",
+              "random_failures": "Satunnaiset viat",
+              "wear_out": "Kuluminen",
+              "highly_predictable": "Erittäin ennustettavissa"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Luottamusväli (alaraja)"
+          },
+          "confidence_interval_high": {
+            "name": "Luottamusväli (yläraja)"
+          },
+          "interval_anchor": {
+            "name": "Aikavälin ankkuri",
+            "state": {
+              "completion": "Suorituksesta",
+              "planned": "Suunnitellusta päivästä"
+            }
+          },
+          "due_date": {
+            "name": "Eräpäivä"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "Myöhässä"
+      },
+      "summary_due_soon": {
+        "name": "Erääntyy pian"
+      },
+      "summary_triggered": {
+        "name": "Lauennut"
+      },
+      "summary_needs_attention": {
+        "name": "Vaatii huomiota"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "summary_total_tasks": {
+        "name": "Tehtäviä yhteensä"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Huoltoaikataulu"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} myöhässä",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Huollon tila",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Erääntyy pian",
+              "overdue": "Myöhässä",
+              "triggered": "Lauennut"
+            }
+          },
+          "days_until_due": {
+            "name": "Päiviä eräpäivään"
+          },
+          "next_due": {
+            "name": "Seuraava eräpäivä"
+          },
+          "parent_object": {
+            "name": "Pääkohde"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Puhdistus",
+        "inspection": "Tarkastus",
+        "replacement": "Vaihto",
+        "calibration": "Kalibrointi",
+        "service": "Huolto",
+        "custom": "Mukautettu"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Aikaperusteinen",
+        "weekdays": "Viikonpäivät",
+        "nth_weekday": "Kuukauden n:s viikonpäivä",
+        "day_of_month": "Kuukaudenpäivä",
+        "sensor_based": "Anturiperusteinen",
+        "one_time": "Kertaluonteinen",
+        "manual": "Manuaalinen"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Päivät",
+        "weeks": "Viikot",
+        "months": "Kuukaudet",
+        "years": "Vuodet"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Kynnysarvo",
+        "counter": "Laskuri",
+        "state_change": "Tilanmuutos",
+        "runtime": "Käyntiaika",
+        "compound": "Yhdistelmä (useita ehtoja)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "JA (kaikkien ehtojen on lauettava)",
+        "or": "TAI (mikä tahansa ehto laukaisee)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Mikä tahansa entiteetti laukaisee",
+        "all": "Kaikkien entiteettien on lauettava"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Oletus (tilakohtainen otsikko)",
+        "object_name": "Kohteen nimi otsikkona",
+        "task_name": "Tehtävän nimi otsikkona"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Suorita huolto",
+      "description": "Merkitse huoltotehtävä suoritetuksi.",
+      "fields": {
+        "entity_id": {
+          "name": "Entiteetti",
+          "description": "Suoritettava huoltoanturin entiteetti."
+        },
+        "notes": {
+          "name": "Muistiinpanot",
+          "description": "Valinnaiset muistiinpanot suoritetusta huollosta."
+        },
+        "cost": {
+          "name": "Kustannus",
+          "description": "Suoritetun huollon kustannus."
+        },
+        "duration": {
+          "name": "Kesto",
+          "description": "Huollon kesto minuutteina."
+        }
+      }
+    },
+    "reset": {
+      "name": "Nollaa huolto",
+      "description": "Nollaa huoltotehtävän viimeksi suoritettu -päivä.",
+      "fields": {
+        "entity_id": {
+          "name": "Entiteetti",
+          "description": "Nollattava huoltoanturin entiteetti."
+        },
+        "date": {
+          "name": "Päivä",
+          "description": "Viimeksi suoritetuksi asetettava päivä. Oletuksena tämä päivä."
+        }
+      }
+    },
+    "skip": {
+      "name": "Ohita huolto",
+      "description": "Ohita nykyinen huoltosykli.",
+      "fields": {
+        "entity_id": {
+          "name": "Entiteetti",
+          "description": "Ohitettava huoltoanturin entiteetti."
+        },
+        "reason": {
+          "name": "Syy",
+          "description": "Valinnainen syy huollon ohittamiselle."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Vie tiedot",
+      "description": "Vie kaikki huoltotiedot JSON- tai YAML-muodossa.",
+      "fields": {
+        "format": {
+          "name": "Muoto",
+          "description": "Vietyjen tietojen tulostusmuoto (json tai yaml)."
+        },
+        "include_history": {
+          "name": "Sisällytä historia",
+          "description": "Sisällytetäänkö tehtävähistorian merkinnät vientiin."
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "Laukaisevaa anturia ei löytynyt: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Puuttuva laukaiseva entiteetti",
+            "description": "Anturientiteetti `{entity_id}`, joka on määritetty tehtävän \"{task_name}\" laukaisimeksi kohteessa \"{object_name}\", ei ole enää käytettävissä.\n\nValitse, miten tämä ongelma ratkaistaan:",
+            "menu_options": {
+              "replace_entity": "Korvaa toisella entiteetillä",
+              "remove_trigger": "Poista anturilaukaisin",
+              "dismiss": "Hylkää (ilmestyy uudelleen)"
+            }
+          },
+          "replace_entity": {
+            "title": "Korvaa laukaiseva entiteetti",
+            "description": "Valitse uusi entiteetti korvaamaan entiteetti `{entity_id}` tehtävän \"{task_name}\" laukaisimena kohteessa \"{object_name}\".",
+            "data": {
+              "new_entity_id": "Uusi laukaiseva entiteetti"
+            },
+            "data_description": {
+              "new_entity_id": "Valitse uusi anturientiteetti laukaisimeksi."
+            }
+          },
+          "remove_trigger": {
+            "title": "Poista anturilaukaisin",
+            "description": "Tämä poistaa anturilaukaisimen tehtävältä \"{task_name}\" kohteessa \"{object_name}\" ja muuntaa aikataulun aikaperusteiseksi tai manuaaliseksi. Huoltohistoria säilytetään.\n\nAiempi laukaiseva entiteetti: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Paneelin käyttöoikeuskäyttäjää ei ole enää olemassa",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Orpo käyttäjä paneelin käyttöoikeusluettelossa",
+            "description": "Käyttäjä `{user_id}…` on Maintenance Supporterin paneelin käyttöoikeusluettelossa, mutta häntä ei ole enää olemassa Home Assistantissa. Todennäköisesti käyttäjä poistettiin.\n\nNapsauta **Lähetä** poistaaksesi tämän käyttäjän luettelosta. (Jättääksesi ongelman ennalleen käytä sen sijaan Home Assistantin **Ohita**-painiketta Korjaukset-sivulla.)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Suoritustoiminto viittaa poistettuun entiteettiin",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Suoritustoiminto: {stale_entity} ei ole enää olemassa",
+            "description": "Tehtävälle **{task_name}** on määritetty `on_complete_action` kutsumaan palvelua entiteetillä `{stale_entity}`, mutta tätä entiteettiä ei ole enää rekisteröity Home Assistantiin.\n\nValitse, miten korjataan:",
+            "menu_options": {
+              "replace_entity": "Korvaa toisella entiteetillä",
+              "remove_action": "Poista suoritustoiminto"
+            }
+          },
+          "replace_entity": {
+            "title": "Korvaa kohde-entiteetti",
+            "description": "Valitse entiteetti, jota käytetään entiteetin `{stale_entity}` sijaan tehtävälle **{task_name}**.",
+            "data": {
+              "new_entity": "Uusi kohde-entiteetti"
+            }
+          },
+          "remove_action": {
+            "title": "Poista suoritustoiminto",
+            "description": "Tyhjennä `on_complete_action` kokonaan tehtävältä **{task_name}**. Tehtävä itse ei muutu – vain suorituksen yhteydessä tapahtuva palvelukutsu poistetaan."
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Entiteetille {entity_id} ei löytynyt huoltokoordinaattoria."
+    },
+    "no_task_for_entity": {
+      "message": "Entiteetille {entity_id} ei löytynyt huoltotehtävää."
+    }
+  }
+}

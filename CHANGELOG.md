@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🌍 Internationalization
+
+- **Five new languages — Danish, Finnish, Norwegian Bokmål, Japanese, Hindi.** The integration now ships **18 UI languages** across all three surfaces (sidebar panel, HA config-flow + Repairs, and phone notifications). The new translations are machine-generated and CI-checked for key + placeholder parity across every locale; native-speaker corrections via PR are very welcome.
+
 ## [2.9.2] - 2026-06-24
 
 ### 🐛 Fixes
