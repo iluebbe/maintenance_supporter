@@ -534,13 +534,15 @@
           "default_warning_days": "Default warning days before due",
           "notifications_enabled": "Enable notifications",
           "notify_service": "Notification service",
-          "panel_enabled": "Show sidebar panel"
+          "panel_enabled": "Show sidebar panel",
+          "panel_title": "Sidebar panel title"
         },
         "data_description": {
           "default_warning_days": "Number of days before a maintenance task is due to show a warning.",
           "notifications_enabled": "Send notifications when maintenance tasks become due or are overdue.",
           "notify_service": "The notification service to use (e.g., notify.mobile_app_phone).",
-          "panel_enabled": "Show a Maintenance Supporter panel in the sidebar."
+          "panel_enabled": "Show a Maintenance Supporter panel in the sidebar.",
+          "panel_title": "Custom name for the sidebar entry. Leave blank to use \"Maintenance\". Useful to avoid clashing with Home Assistant's built-in Maintenance dashboard."
         }
       },
       "notification_settings": {
