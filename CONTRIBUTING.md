@@ -78,11 +78,11 @@ Both must be clean before commit.
 
 ## Translations
 
-Panel strings live in `custom_components/maintenance_supporter/frontend-src/styles.ts` (13 language blocks). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
+Panel strings live in `custom_components/maintenance_supporter/frontend-src/locales/<lang>.json` (18 languages; runtime-loaded, only `en.json` is bundled). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
 
 When adding a key:
 
-1. Add it to **all 13 languages** ideally. If you can only do a few, that's still useful — missing keys fall back to English silently.
+1. Add it to **all 18 languages** ideally. If you can only do a few, that's still useful — missing keys fall back to English silently.
 2. Run the key-parity test:
    ```bash
    cd custom_components/maintenance_supporter/frontend-src

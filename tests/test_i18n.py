@@ -37,13 +37,15 @@ _TRANSLATIONS = _COMPONENT / "translations"
 # codes (zh, not zh-Hans) match the frontend t() table keys.
 _FRONTEND_LOCALES = _COMPONENT / "frontend-src" / "locales"
 _FRONTEND_LANGUAGES = frozenset(
-    {"de", "en", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh"}
+    {"de", "en", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh",
+     "da", "fi", "nb", "ja", "hi"}
 )
 
 # The shipped UI languages. Mirrors the frontend guard's set (which uses "zh");
 # HA's on-disk convention is the regional file name "zh-Hans".
 _EXPECTED_LANGUAGES = frozenset(
-    {"cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh-Hans"}
+    {"cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh-Hans",
+     "da", "fi", "nb", "ja", "hi"}
 )
 
 # HA/Python ``str.format`` placeholder, e.g. ``{task_name}``.

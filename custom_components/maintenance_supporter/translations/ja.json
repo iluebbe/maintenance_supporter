@@ -1,0 +1,1577 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "メンテナンス管理システムをセットアップします。",
+        "menu_options": {
+          "create_object": "メンテナンス対象を作成",
+          "create_from_template": "テンプレートから作成",
+          "global_setup": "グローバル設定"
+        }
+      },
+      "create_from_template": {
+        "title": "テンプレートのカテゴリを選択",
+        "description": "定義済みのメンテナンステンプレートを参照するカテゴリを選択してください。",
+        "data": {
+          "template_category": "カテゴリ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      },
+      "template_select": {
+        "title": "テンプレートを選択",
+        "description": "出発点として使用するメンテナンステンプレートを選択してください。",
+        "data": {
+          "template_id": "テンプレート",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "go_back": "保存せずにカテゴリ選択に戻ります。"
+        }
+      },
+      "template_customize": {
+        "title": "テンプレートをカスタマイズ",
+        "description": "{template_name} テンプレートをカスタマイズします。{task_count} 件のタスクが含まれています: {task_list}。",
+        "data": {
+          "name": "対象名",
+          "area_id": "エリア",
+          "manufacturer": "メーカー",
+          "model": "モデル",
+          "serial_number": "シリアル番号",
+          "documentation_url": "マニュアル / ドキュメントの URL",
+          "notes": "メモ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "name": "このメンテナンス対象の名前です。",
+          "area_id": "この対象が設置されているエリアです。",
+          "manufacturer": "対象のメーカーです。",
+          "model": "モデル名または型番です。",
+          "serial_number": "対象のシリアル番号です。",
+          "documentation_url": "PDF マニュアル、メーカーページ、その他この対象の参考情報がある URL への任意のリンクです。",
+          "notes": "対象に関する自由形式のメモです。部品番号、手順、設定の覚え書きなど。",
+          "go_back": "保存せずにテンプレート選択に戻ります。"
+        }
+      },
+      "global_setup": {
+        "title": "グローバル設定",
+        "description": "グローバルなメンテナンス設定を構成します。",
+        "data": {
+          "default_warning_days": "期限前の既定の警告日数",
+          "notifications_enabled": "通知を有効にする",
+          "notify_service": "通知サービス"
+        },
+        "data_description": {
+          "default_warning_days": "メンテナンスタスクの期限の何日前から警告を表示するかの日数です。",
+          "notifications_enabled": "メンテナンスタスクが期限を迎えたときに通知を送信します。",
+          "notify_service": "使用する通知サービスです (例: notify.mobile_app_phone)。"
+        }
+      },
+      "create_object": {
+        "title": "メンテナンス対象を作成",
+        "description": "メンテナンスを管理するデバイスまたは資産を定義します。",
+        "data": {
+          "name": "対象名",
+          "area_id": "エリア",
+          "manufacturer": "メーカー",
+          "model": "モデル",
+          "serial_number": "シリアル番号",
+          "documentation_url": "マニュアル / ドキュメントの URL",
+          "notes": "メモ",
+          "installation_date": "設置日",
+          "warranty_expiry": "保証期限",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "name": "このメンテナンス対象の一意の名前です (例: 「プールポンプ」「車」)。",
+          "area_id": "この対象が設置されている家の中のエリアです。",
+          "manufacturer": "対象のメーカーです。",
+          "model": "モデル名または型番です。",
+          "serial_number": "対象のシリアル番号です。",
+          "documentation_url": "PDF マニュアル、メーカーページ、その他この対象の参考情報がある URL への任意のリンクです。",
+          "notes": "対象に関する自由形式のメモです。部品番号、手順、設定の覚え書きなど。",
+          "installation_date": "この対象を設置または購入した日です。",
+          "warranty_expiry": "この対象のメーカー保証が切れる日です。",
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      },
+      "task_menu": {
+        "title": "メンテナンスタスク",
+        "description": "{object_name} のメンテナンスタスクを追加します。現在 {task_count} 件のタスクが定義されています。",
+        "menu_options": {
+          "add_task": "メンテナンスタスクを追加",
+          "finish": "セットアップを完了"
+        }
+      },
+      "add_task": {
+        "title": "メンテナンスタスクを追加",
+        "description": "{object_name} のメンテナンスタスクを定義します。",
+        "data": {
+          "name": "タスク名",
+          "type": "メンテナンスの種類",
+          "schedule_type": "スケジュールの種類",
+          "custom_icon": "タスクアイコン",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "name": "このタスクの分かりやすい名前です (例: 「フィルター清掃」「オイル交換」)。",
+          "type": "メンテナンス作業のカテゴリです。",
+          "schedule_type": "このタスクのスケジュール方法です。",
+          "custom_icon": "このタスクの任意のカスタムアイコンです (例: mdi:oil、mdi:filter-variant)。",
+          "go_back": "保存せずにタスクメニューに戻ります。"
+        }
+      },
+      "time_based": {
+        "title": "時間ベースのスケジュール",
+        "description": "このメンテナンスタスクの時間間隔を構成します。",
+        "data": {
+          "interval_days": "間隔",
+          "interval_unit": "間隔の単位",
+          "last_performed": "前回の実施",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る",
+          "interval_anchor": "間隔の基準"
+        },
+        "data_description": {
+          "interval_days": "このメンテナンスを繰り返す頻度です。間隔の単位と組み合わせて使用します。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "last_performed": "このメンテナンスを前回実施した日です。一度も実施していない場合は空欄にします。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにタスク作成に戻ります。",
+          "interval_anchor": "完了後に次回期限を計算する方法です。「予定」は元の期限日を基準とすることでスケジュールのずれを防ぎます。"
+        }
+      },
+      "one_time": {
+        "title": "一回限りのタスク",
+        "description": "繰り返さない単発のメンテナンスタスクを構成します。完了するとアーカイブされます。",
+        "data": {
+          "due_date": "期限日",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "due_date": "この一回限りのタスクの期限日です。",
+          "warning_days": "期限日の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにタスク作成に戻ります。"
+        }
+      },
+      "calendar": {
+        "title": "カレンダースケジュール",
+        "description": "カレンダーベースの繰り返しを構成します (曜日、月の第 n 曜日、または日付)。",
+        "data": {
+          "weekdays": "対象の曜日",
+          "nth": "何回目",
+          "weekday": "曜日",
+          "day": "日付",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "weekdays": "選択した各曜日にタスクが繰り返されます。",
+          "nth": "月の中で何回目か (例: 第 1、または最終)。",
+          "weekday": "第 n 曜日ルールの曜日です (例: 土曜日)。",
+          "day": "月の日付です (1〜31。その月の日数に合わせて調整されます)。",
+          "warning_days": "期限日の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにタスク作成に戻ります。"
+        }
+      },
+      "sensor_select": {
+        "title": "トリガーセンサーを選択",
+        "description": "このメンテナンスタスクで監視する Home Assistant エンティティを選択してください。",
+        "data": {
+          "trigger_entity": "監視するエンティティ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_entity": "このメンテナンスタスクをトリガーするセンサーエンティティを選択します。",
+          "go_back": "保存せずにタスク作成に戻ります。"
+        }
+      },
+      "sensor_attribute": {
+        "title": "属性を選択",
+        "description": "{entity_id} から監視する値を選択してください。現在の状態: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "監視する値",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_attribute": "監視するエンティティの状態または特定の属性を選択します。",
+          "go_back": "保存せずにエンティティ選択に戻ります。"
+        }
+      },
+      "trigger_type": {
+        "title": "トリガーの種類",
+        "description": "センサー値でメンテナンスをどのようにトリガーしますか?",
+        "data": {
+          "trigger_type": "トリガーの種類",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_type": "しきい値: 値が制限を超えたときにトリガーします。カウンター: 目標値まで累積したときにトリガーします。状態変化: 一定回数の状態遷移の後にトリガーします。",
+          "go_back": "保存せずに属性選択に戻ります。"
+        }
+      },
+      "trigger_threshold": {
+        "title": "しきい値の構成",
+        "description": "**{entity_id}** ({attribute}) のしきい値を設定します。\n現在: **{current_value} {unit}** | 平均: {average} | 範囲: {minimum}〜{maximum} ({data_period}日)\n推奨上限: {suggested_above} | 推奨下限: {suggested_below}",
+        "data": {
+          "trigger_above": "この値を超えたらトリガー",
+          "trigger_below": "この値を下回ったらトリガー",
+          "trigger_for_minutes": "最低継続時間 (分)",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_above": "値がこのしきい値を超えたときにメンテナンスをトリガーします。",
+          "trigger_below": "値がこのしきい値を下回ったときにメンテナンスをトリガーします。",
+          "trigger_for_minutes": "トリガーする前に、値がこの分数だけしきい値を超え続ける必要があります。",
+          "interval_days": "センサートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
+      "trigger_counter": {
+        "title": "カウンターの構成",
+        "description": "{entity_id} ({attribute}) のカウンター目標を設定します。現在: {current_value} {unit}。",
+        "data": {
+          "trigger_target_value": "目標値",
+          "trigger_delta_mode": "差分モード (絶対値ではなく変化量をカウント)",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_target_value": "この累積値に達したときにメンテナンスをトリガーします。",
+          "trigger_delta_mode": "有効にすると、絶対値ではなく基準値からの差分をカウントします。",
+          "interval_days": "カウンタートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
+      "trigger_state_change": {
+        "title": "状態変化の構成",
+        "description": "{entity_id} の状態遷移をカウントします。",
+        "data": {
+          "trigger_from_state": "遷移元の状態 (任意)",
+          "trigger_to_state": "遷移先の状態 (任意)",
+          "trigger_target_changes": "トリガーまでの変化回数",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_from_state": "この状態からの遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_to_state": "この状態への遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_target_changes": "メンテナンスをトリガーするまでの、一致する状態変化の回数です。",
+          "interval_days": "状態変化トリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
+      "trigger_runtime": {
+        "title": "稼働時間の構成",
+        "description": "{entity_id} の累積稼働時間を追跡します。合計オン時間が目標時間に達したときにメンテナンスがトリガーされます。",
+        "data": {
+          "trigger_runtime_hours": "目標稼働時間 (時間)",
+          "trigger_on_states": "アクティブな状態 (カンマ区切り)",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらメンテナンスをトリガーします。",
+          "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定 (on、1、true) の場合は空欄にします。例: in_use, running",
+          "interval_days": "稼働時間トリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
+      "compound_logic": {
+        "title": "複合トリガー",
+        "description": "複数の条件をどのように組み合わせるかを選択してください。",
+        "data": {
+          "compound_logic": "論理",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "compound_logic": "AND = すべての条件がトリガーされる必要があります。OR = いずれかの条件でトリガーされます。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
+      "compound_condition_entity": {
+        "title": "条件 #{condition_num} — エンティティ",
+        "description": "この条件のエンティティを選択してください。",
+        "data": {
+          "trigger_entity": "エンティティ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_entity": "この条件で監視するセンサーエンティティです。",
+          "go_back": "保存せずに前のステップに戻ります。"
+        }
+      },
+      "compound_condition_type": {
+        "title": "条件 #{condition_num} — 種類",
+        "description": "この条件でセンサーをどのように評価しますか?",
+        "data": {
+          "trigger_type": "トリガーの種類",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_type": "この条件がトリガーされるタイミングを判断する方法です。",
+          "go_back": "保存せずにエンティティ選択に戻ります。"
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "条件 — しきい値",
+        "data": {
+          "trigger_above": "この値を超えたらトリガー",
+          "trigger_below": "この値を下回ったらトリガー",
+          "trigger_for_minutes": "継続時間 (分)",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_above": "値がこのしきい値を超えたときにトリガーします。",
+          "trigger_below": "値がこのしきい値を下回ったときにトリガーします。",
+          "trigger_for_minutes": "この時間だけ値がしきい値を超え続ける必要があります。",
+          "go_back": "保存せずに条件の種類の選択に戻ります。"
+        }
+      },
+      "compound_condition_counter": {
+        "title": "条件 — カウンター",
+        "data": {
+          "trigger_target_value": "目標値",
+          "trigger_delta_mode": "差分モード",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_target_value": "累積値がこの目標に達したときにトリガーします。",
+          "trigger_delta_mode": "絶対値ではなく基準値からの変化量をカウントします。",
+          "go_back": "保存せずに条件の種類の選択に戻ります。"
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "条件 — 状態変化",
+        "data": {
+          "trigger_from_state": "遷移元の状態",
+          "trigger_to_state": "遷移先の状態",
+          "trigger_target_changes": "変化回数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_from_state": "この状態からの遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_to_state": "この状態への遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_target_changes": "トリガーするまでの、一致する状態変化の回数です。",
+          "go_back": "保存せずに条件の種類の選択に戻ります。"
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "条件 — 稼働時間",
+        "data": {
+          "trigger_runtime_hours": "目標稼働時間 (時間)",
+          "trigger_on_states": "アクティブな状態",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらトリガーします。",
+          "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定の場合は空欄にします。",
+          "go_back": "保存せずに条件の種類の選択に戻ります。"
+        }
+      },
+      "compound_review": {
+        "title": "複合トリガーの確認",
+        "description": "{compound_logic} 論理で {condition_count} 件の条件が構成されています。",
+        "data": {
+          "compound_action": "アクション",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "go_back": "保存せずに論理の選択に戻ります。"
+        }
+      },
+      "manual": {
+        "title": "手動スケジュール",
+        "description": "このタスクには自動スケジュールがありません。手動で期限到来としてマークできます。",
+        "data": {
+          "warning_days": "期限前の警告日数",
+          "notes": "メモ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "notes": "このタスクに関する追加のメモまたは手順です。",
+          "go_back": "保存せずにタスク作成に戻ります。"
+        }
+      },
+      "reconfigure": {
+        "title": "{name} を再構成",
+        "description": "このメンテナンス対象の設定を更新します。",
+        "data": {
+          "name": "対象名",
+          "area_id": "エリア",
+          "manufacturer": "メーカー",
+          "model": "モデル",
+          "serial_number": "シリアル番号",
+          "documentation_url": "マニュアル / ドキュメントの URL",
+          "notes": "メモ",
+          "installation_date": "設置日",
+          "warranty_expiry": "保証期限"
+        },
+        "data_description": {
+          "name": "このメンテナンス対象の名前です。",
+          "area_id": "この対象が設置されているエリアです。",
+          "manufacturer": "この対象のメーカーです。",
+          "model": "この対象のモデルです。",
+          "serial_number": "この対象のシリアル番号です。",
+          "documentation_url": "PDF マニュアル、メーカーページ、その他この対象の参考情報がある URL への任意のリンクです。",
+          "notes": "対象に関する自由形式のメモです。部品番号、手順、設定の覚え書きなど。",
+          "installation_date": "この対象を設置した日です。",
+          "warranty_expiry": "この対象のメーカー保証が切れる日です。"
+        }
+      }
+    },
+    "error": {
+      "name_exists": "この名前のメンテナンス対象は既に存在します。",
+      "no_tasks": "少なくとも 1 件のメンテナンスタスクが必要です。",
+      "invalid_entity": "選択したエンティティは存在しないか、数値データがありません。",
+      "invalid_attribute": "選択した属性はこのエンティティで利用できません。",
+      "invalid_threshold": "少なくとも 1 つのしきい値 (上限または下限) を設定する必要があります。",
+      "invalid_due_date": "一回限りのタスクには期限日が必要です。",
+      "invalid_interval": "間隔は正の数値である必要があります。",
+      "min_exceeds_max": "最小間隔は最大間隔を超えることはできません。",
+      "invalid_notify_service": "通知サービスの形式が無効です。「notify.service_name」を使用してください (例: notify.mobile_app_phone)。",
+      "notify_service_not_found": "この通知サービスは Home Assistant で見つかりませんでした。サービス名を確認してください。",
+      "nfc_tag_duplicate": "この NFC タグは既に別のタスクに関連付けられています。"
+    },
+    "abort": {
+      "already_configured": "このメンテナンス対象は既に構成されています。",
+      "global_already_exists": "グローバル設定は既に構成されています。",
+      "template_not_found": "選択したテンプレートが見つかりませんでした。",
+      "missing_data": "必須データが提供されませんでした。",
+      "reconfigure_successful": "構成が正常に更新されました。",
+      "reconfigure_cancelled": "再構成がキャンセルされました。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "メンテナンスのオプション",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "タスクを管理",
+          "add_task": "新しいタスクを追加",
+          "object_settings": "対象の設定",
+          "done": "完了"
+        }
+      },
+      "global_init": {
+        "title": "グローバル設定",
+        "description": "グローバルなメンテナンス設定を構成します。",
+        "menu_options": {
+          "general_settings": "一般設定",
+          "advanced_features": "高度な機能",
+          "panel_access": "パネルへのアクセス",
+          "budget_settings": "予算設定",
+          "manage_groups": "グループを管理",
+          "notification_settings": "通知設定",
+          "notification_actions": "インタラクティブなアクション",
+          "test_notification": "テスト通知を送信",
+          "done": "完了"
+        }
+      },
+      "advanced_features": {
+        "title": "高度な機能",
+        "description": "UI に表示する高度な機能を選択してください。機能を無効にするとインターフェースから非表示になりますが、データは削除されません。",
+        "data": {
+          "advanced_adaptive_visible": "適応スケジューリング",
+          "advanced_predictions_visible": "センサー予測",
+          "advanced_seasonal_visible": "季節調整",
+          "advanced_environmental_visible": "環境相関",
+          "advanced_budget_visible": "予算追跡",
+          "advanced_groups_visible": "グループ",
+          "advanced_checklists_visible": "チェックリスト",
+          "advanced_schedule_time_visible": "時刻指定スケジューリング"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "タスクの EWA、ワイブル分析、間隔の提案を表示します。",
+          "advanced_predictions_visible": "センサーの劣化分析としきい値予測チャートを表示します。",
+          "advanced_seasonal_visible": "季節要因チャートと月次調整データを表示します。",
+          "advanced_environmental_visible": "環境相関 (温度、湿度) の調整を表示します。",
+          "advanced_budget_visible": "月次/年次の予算追跡とアラートを表示します。",
+          "advanced_groups_visible": "メンテナンスグループの管理を表示します。",
+          "advanced_checklists_visible": "ステップごとの完了用のタスクチェックリストを表示します。",
+          "advanced_schedule_time_visible": "タスクが深夜ではなく特定の時刻に期限切れになるようにします。"
+        }
+      },
+      "panel_access": {
+        "title": "パネルへのアクセス",
+        "description": "管理者は常に完全なアクセス権を持ちます。作成、編集、削除を特定の非管理者に委任するには、以下のオプションをオンにして対象者を選択してください。それ以外のユーザーには「完了」と「スキップ」のみが表示されます。{user_count} 人の非管理者ユーザーが見つかりました。",
+        "data": {
+          "operator_write_enabled": "選択したユーザーに作成、編集、削除を許可する",
+          "admin_panel_user_ids": "パネルへの完全なアクセス権を持つユーザー"
+        },
+        "data_description": {
+          "operator_write_enabled": "オフ (既定): 管理者のみがコンテンツを変更できます。オン: 以下で選択したユーザーも完全な作成/編集/削除アクセス権を取得します。",
+          "admin_panel_user_ids": "リストに表示されたユーザーには完全なパネルが表示されます。それ以外のユーザーには各タスクの「完了」と「スキップ」のみが表示されます。"
+        }
+      },
+      "general_settings": {
+        "title": "一般設定",
+        "description": "Maintenance Supporter の基本設定を構成します。",
+        "data": {
+          "default_warning_days": "期限前の既定の警告日数",
+          "notifications_enabled": "通知を有効にする",
+          "notify_service": "通知サービス",
+          "panel_enabled": "サイドバーパネルを表示",
+          "panel_title": "サイドバーパネルのタイトル"
+        },
+        "data_description": {
+          "default_warning_days": "メンテナンスタスクの期限の何日前から警告を表示するかの日数です。",
+          "notifications_enabled": "メンテナンスタスクが期限を迎えたとき、または期限切れになったときに通知を送信します。",
+          "notify_service": "使用する通知サービスです (例: notify.mobile_app_phone)。",
+          "panel_enabled": "サイドバーに Maintenance Supporter パネルを表示します。",
+          "panel_title": "サイドバー項目のカスタム名です。空欄にすると「メンテナンス」が使用されます。Home Assistant 標準のメンテナンスダッシュボードとの競合を避けるのに便利です。"
+        }
+      },
+      "notification_settings": {
+        "title": "通知設定",
+        "description": "各ステータスについて、通知を送信するタイミングと頻度を構成します。",
+        "data": {
+          "notify_due_soon_enabled": "期限間近のときに通知",
+          "notify_due_soon_interval_hours": "期限間近のリマインダー間隔 (時間)",
+          "notify_overdue_enabled": "期限切れのときに通知",
+          "notify_overdue_interval_hours": "期限切れのリマインダー間隔 (時間)",
+          "notify_triggered_enabled": "トリガー時に通知",
+          "notify_triggered_interval_hours": "トリガー時のリマインダー間隔 (時間)",
+          "quiet_hours_enabled": "サイレント時間を有効にする",
+          "quiet_hours_start": "サイレント時間の開始",
+          "quiet_hours_end": "サイレント時間の終了",
+          "max_notifications_per_day": "1 日あたりの最大通知数",
+          "notification_bundling_enabled": "通知をまとめる",
+          "notification_bundle_threshold": "まとめるしきい値",
+          "notification_title_style": "通知タイトルのスタイル"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "期限間近のリマインダーを繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
+          "notify_overdue_interval_hours": "期限切れのリマインダーを繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
+          "notify_triggered_interval_hours": "トリガー通知を繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
+          "quiet_hours_enabled": "サイレント時間中は通知を抑制します。",
+          "max_notifications_per_day": "1 日あたりの最大通知数です。無制限にするには 0 に設定します。",
+          "notification_bundling_enabled": "複数のタスクが注意を必要とするときに、1 件のまとめ通知を送信します。",
+          "notification_bundle_threshold": "まとめ通知をトリガーするタスクの最小数です。",
+          "notification_title_style": "通知のタイトルとして表示される内容です。既定ではステータスごとのテキスト (例: 「メンテナンスが期限切れです!」) を維持します。対象名 / タスク名は、スマートフォンの通知が積み重なるときに役立ちます。"
+        }
+      },
+      "notification_actions": {
+        "title": "インタラクティブなアクション",
+        "description": "モバイル通知に表示されるアクションボタンを構成します (コンパニオンアプリが必要)。",
+        "data": {
+          "action_complete_enabled": "「完了」ボタンを表示",
+          "action_skip_enabled": "「スキップ」ボタンを表示",
+          "action_snooze_enabled": "「スヌーズ」ボタンを表示",
+          "snooze_duration_hours": "スヌーズ時間 (時間)"
+        },
+        "data_description": {
+          "action_complete_enabled": "通知から直接タスクを完了済みとしてマークするボタンを追加します。",
+          "action_skip_enabled": "通知から現在のメンテナンスサイクルをスキップするボタンを追加します。",
+          "action_snooze_enabled": "通知リマインダーを延期するボタンを追加します。",
+          "snooze_duration_hours": "スヌーズを押したときに通知を延期する時間です。"
+        }
+      },
+      "budget_settings": {
+        "title": "予算設定",
+        "description": "支出を追跡するために月次および年次のメンテナンス予算を設定します。",
+        "data": {
+          "budget_currency": "通貨",
+          "budget_monthly": "月次予算",
+          "budget_yearly": "年次予算",
+          "budget_alerts_enabled": "予算アラートを有効にする",
+          "budget_alert_threshold": "アラートのしきい値 (%)"
+        },
+        "data_description": {
+          "budget_currency": "予算の表示と通知に使用する通貨です。",
+          "budget_monthly": "月次のメンテナンス支出の上限です。無効にするには 0 に設定します。",
+          "budget_yearly": "年次のメンテナンス支出の上限です。無効にするには 0 に設定します。",
+          "budget_alerts_enabled": "支出がアラートのしきい値を超えたときに通知を送信します。",
+          "budget_alert_threshold": "アラートを送信する予算の割合です。"
+        }
+      },
+      "test_notification": {
+        "title": "テスト通知",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "グループを管理",
+        "description": "管理するグループを選択するか、新しいグループを作成してください。",
+        "data": {
+          "selected_group": "グループを選択"
+        }
+      },
+      "add_group": {
+        "title": "グループを追加",
+        "description": "関連するタスクを整理するための新しいメンテナンスグループを作成します。",
+        "data": {
+          "group_name": "グループ名",
+          "group_description": "説明"
+        },
+        "data_description": {
+          "group_name": "このグループの名前です (例: 「春のメンテナンス」)。",
+          "group_description": "このグループの任意の説明です。"
+        }
+      },
+      "manage_tasks": {
+        "title": "タスクを管理",
+        "description": "編集または削除するタスクを選択してください。",
+        "data": {
+          "selected_task": "タスクを選択",
+          "go_back": "戻る"
+        }
+      },
+      "task_action": {
+        "title": "タスクのアクション",
+        "description": "タスク: {task_name} — アクションを選択してください。",
+        "menu_options": {
+          "edit_task": "タスクを編集",
+          "edit_trigger": "トリガーを編集",
+          "remove_trigger": "トリガーを削除",
+          "edit_checklist": "チェックリストを編集",
+          "adaptive_scheduling": "適応スケジューリング",
+          "delete_task": "タスクを削除",
+          "manage_tasks": "戻る"
+        }
+      },
+      "edit_task": {
+        "title": "タスクを編集",
+        "description": "**{task_name}** の設定を編集します。",
+        "data": {
+          "name": "タスク名",
+          "type": "メンテナンスの種類",
+          "interval_days": "間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "due_date": "期限日",
+          "enabled": "有効",
+          "notes": "メモ",
+          "documentation_url": "ドキュメントの URL",
+          "last_performed": "前回の実施",
+          "responsible_user_id": "担当ユーザー",
+          "custom_icon": "タスクアイコン",
+          "nfc_tag_id": "NFC タグ ID",
+          "go_back": "戻る",
+          "interval_anchor": "間隔の基準"
+        },
+        "data_description": {
+          "name": "このタスクの分かりやすい名前です (例: 「フィルター清掃」「オイル交換」)。",
+          "type": "メンテナンス作業のカテゴリです。",
+          "interval_days": "このメンテナンスを繰り返す頻度です。間隔の単位と組み合わせて使用します。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "due_date": "この一回限りのタスクの期限日です。",
+          "enabled": "無効にすると、スケジューリングとトリガーが一時停止します。タスク自体は削除されません。",
+          "notes": "このタスクに関する追加のメモまたは手順です。",
+          "documentation_url": "このタスクの外部ドキュメントまたはマニュアルへのリンクです。",
+          "last_performed": "このメンテナンスを前回実施した日です。一度も実施していない場合は空欄にします。",
+          "responsible_user_id": "このタスクの担当となる Home Assistant ユーザーです。",
+          "custom_icon": "このタスクの任意のカスタムアイコンです (例: mdi:oil、mdi:filter-variant)。",
+          "nfc_tag_id": "このタスクに NFC タグを関連付けます。タグをスキャンすると自動的にタスクが完了済みとしてマークされます。",
+          "go_back": "保存せずにタスクのアクションに戻ります。",
+          "interval_anchor": "完了後に次回期限を計算する方法です。「予定」は元の期限日を基準とすることでスケジュールのずれを防ぎます。"
+        }
+      },
+      "edit_checklist": {
+        "title": "チェックリストを編集",
+        "description": "{task_name} のチェックリストの手順を定義します。1 行に 1 つの手順を入力してください。",
+        "data": {
+          "checklist_text": "チェックリストの手順",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "checklist_text": "各チェックリストの手順を別々の行に入力してください。これらの手順はタスクを完了するときに表示されます。",
+          "go_back": "保存せずにタスクのアクションに戻ります。"
+        }
+      },
+      "compound_logic": {
+        "title": "複合トリガー",
+        "description": "複数の条件をどのように組み合わせるかを選択してください。",
+        "data": {
+          "compound_logic": "論理",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "compound_logic": "AND = すべての条件がトリガーされる必要があります。OR = いずれかの条件でトリガーされます。"
+        }
+      },
+      "compound_condition_entity": {
+        "title": "条件 #{condition_num} — エンティティ",
+        "description": "この条件のエンティティを選択してください。",
+        "data": {
+          "trigger_entity": "エンティティ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_entity": "この条件で監視するセンサーエンティティです。"
+        }
+      },
+      "compound_condition_type": {
+        "title": "条件 #{condition_num} — 種類",
+        "description": "この条件でセンサーをどのように評価しますか?",
+        "data": {
+          "trigger_type": "トリガーの種類",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_type": "この条件がトリガーされるタイミングを判断する方法です。"
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "条件 — しきい値",
+        "data": {
+          "trigger_above": "この値を超えたらトリガー",
+          "trigger_below": "この値を下回ったらトリガー",
+          "trigger_for_minutes": "継続時間 (分)",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_above": "値がこのしきい値を超えたときにトリガーします。",
+          "trigger_below": "値がこのしきい値を下回ったときにトリガーします。",
+          "trigger_for_minutes": "この時間だけ値がしきい値を超え続ける必要があります。"
+        }
+      },
+      "compound_condition_counter": {
+        "title": "条件 — カウンター",
+        "data": {
+          "trigger_target_value": "目標値",
+          "trigger_delta_mode": "差分モード",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_target_value": "累積値がこの目標に達したときにトリガーします。",
+          "trigger_delta_mode": "絶対値ではなく基準値からの変化量をカウントします。"
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "条件 — 状態変化",
+        "data": {
+          "trigger_from_state": "遷移元の状態",
+          "trigger_to_state": "遷移先の状態",
+          "trigger_target_changes": "変化回数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_from_state": "この状態からの遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_to_state": "この状態への遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_target_changes": "トリガーするまでの、一致する状態変化の回数です。"
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "条件 — 稼働時間",
+        "data": {
+          "trigger_runtime_hours": "目標稼働時間 (時間)",
+          "trigger_on_states": "アクティブな状態",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらトリガーします。",
+          "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定の場合は空欄にします。"
+        }
+      },
+      "compound_review": {
+        "title": "複合トリガーの確認",
+        "description": "{compound_logic} 論理で {condition_count} 件の条件が構成されています。",
+        "data": {
+          "compound_action": "アクション",
+          "go_back": "戻る"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "適応スケジューリング",
+        "description": "{task_name} のスマートな間隔適応を構成します。システムはあなたの完了フィードバックから学習し、より適切な間隔を提案します。",
+        "data": {
+          "adaptive_enabled": "適応スケジューリングを有効にする",
+          "ewa_alpha": "学習率 (アルファ)",
+          "min_interval_days": "最小間隔 (日)",
+          "max_interval_days": "最大間隔 (日)",
+          "seasonal_enabled": "季節認識を有効にする",
+          "sensor_prediction_enabled": "センサー駆動の予測を有効にする",
+          "environmental_entity": "環境センサー (任意)",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "adaptive_enabled": "有効にすると、システムはあなたのフィードバックから学習し、最適なメンテナンス間隔を提案します。",
+          "ewa_alpha": "アルゴリズムが新しいデータに適応する速さです。高い = 反応が速い、低い = より安定。",
+          "min_interval_days": "システムが推奨する最短の間隔です。",
+          "max_interval_days": "システムが推奨する最長の間隔です。",
+          "seasonal_enabled": "メンテナンス履歴から学習した季節パターンに基づいて推奨を調整します。",
+          "sensor_prediction_enabled": "センサーの傾向を分析してしきい値に達する時期を予測し、必要に応じてより早いメンテナンスを提案します。",
+          "environmental_entity": "温度、湿度、または気圧センサーを関連付けて、環境条件とメンテナンス間隔を相関させます。",
+          "go_back": "保存せずにタスクのアクションに戻ります。"
+        }
+      },
+      "delete_task": {
+        "title": "タスクを削除",
+        "description": "タスク {task_name} を削除してもよろしいですか? この操作は元に戻せません。",
+        "data": {
+          "confirm": "削除を確認",
+          "go_back": "戻る"
+        }
+      },
+      "remove_trigger": {
+        "title": "トリガーを削除",
+        "description": "**{task_name}** からトリガーを削除しますか?\n\n**エンティティ:** {entity_ids}\n**種類:** {trigger_type}\n**構成:** {config_details}\n\nすべてのエンティティが削除されると、スケジュールは時間ベースに戻ります。",
+        "data": {
+          "entities_to_remove": "削除するエンティティ",
+          "confirm": "削除を確認",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "entities_to_remove": "このトリガーから削除するエンティティを選択します。すべて削除すると、トリガー全体が削除されます。",
+          "go_back": "保存せずにタスクのアクションに戻ります。"
+        }
+      },
+      "trigger_summary": {
+        "title": "現在のトリガー",
+        "description": "**{task_name}** のトリガー:\n\n**エンティティ:** {entity_ids}\n**現在の状態:** {current_states}\n**種類:** {trigger_type} (属性: {attribute})\n**構成:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "トリガーを編集",
+          "task_action": "戻る"
+        }
+      },
+      "add_task": {
+        "title": "メンテナンスタスクを追加",
+        "description": "この対象の新しいメンテナンスタスクを定義します。",
+        "data": {
+          "name": "タスク名",
+          "type": "メンテナンスの種類",
+          "schedule_type": "スケジュールの種類",
+          "custom_icon": "タスクアイコン",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "name": "このタスクの分かりやすい名前です (例: 「フィルター清掃」「オイル交換」)。",
+          "type": "メンテナンス作業のカテゴリです。",
+          "schedule_type": "このタスクのスケジュール方法です。",
+          "custom_icon": "このタスクの任意のカスタムアイコンです (例: mdi:oil、mdi:filter-variant)。",
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      },
+      "opt_time_based": {
+        "title": "時間ベースのスケジュール",
+        "description": "このタスクの時間間隔を構成します。",
+        "data": {
+          "interval_days": "間隔",
+          "interval_unit": "間隔の単位",
+          "last_performed": "前回の実施",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る",
+          "interval_anchor": "間隔の基準"
+        },
+        "data_description": {
+          "interval_days": "このメンテナンスを繰り返す頻度です。間隔の単位と組み合わせて使用します。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "last_performed": "このメンテナンスを前回実施した日です。一度も実施していない場合は空欄にします。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにメインメニューに戻ります。",
+          "interval_anchor": "完了後に次回期限を計算する方法です。「予定」は元の期限日を基準とすることでスケジュールのずれを防ぎます。"
+        }
+      },
+      "opt_one_time": {
+        "title": "一回限りのタスク",
+        "description": "繰り返さない単発のメンテナンスタスクを構成します。完了するとアーカイブされます。",
+        "data": {
+          "due_date": "期限日",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "due_date": "この一回限りのタスクの期限日です。",
+          "warning_days": "期限日の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      },
+      "opt_calendar": {
+        "title": "カレンダースケジュール",
+        "description": "カレンダーベースの繰り返しを構成します (曜日、月の第 n 曜日、または日付)。",
+        "data": {
+          "weekdays": "対象の曜日",
+          "nth": "何回目",
+          "weekday": "曜日",
+          "day": "日付",
+          "last_performed": "前回の実施",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "weekdays": "選択した各曜日にタスクが繰り返されます。",
+          "nth": "月の中で何回目か (例: 第 1、または最終)。",
+          "weekday": "第 n 曜日ルールの曜日です (例: 土曜日)。",
+          "day": "月の日付です (1〜31。その月の日数に合わせて調整されます)。",
+          "last_performed": "このメンテナンスを前回実施した日です。一度も実施していない場合は空欄にします。",
+          "warning_days": "期限日の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      },
+      "opt_manual": {
+        "title": "手動スケジュール",
+        "description": "このタスクには自動スケジュールがありません。手動で期限到来としてマークできます。",
+        "data": {
+          "warning_days": "期限前の警告日数",
+          "notes": "メモ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "notes": "このタスクに関する追加のメモまたは手順です。",
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      },
+      "opt_sensor_select": {
+        "title": "トリガーセンサーを選択",
+        "description": "監視する Home Assistant エンティティを選択してください。",
+        "data": {
+          "trigger_entity": "監視するエンティティ",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_entity": "このメンテナンスタスクをトリガーするセンサーエンティティを選択します。"
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "属性を選択",
+        "description": "{entity_id} から監視する値を選択してください。現在の状態: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "監視する値",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_attribute": "監視するエンティティの状態または特定の属性を選択します。"
+        }
+      },
+      "opt_trigger_type": {
+        "title": "トリガーの種類",
+        "description": "センサー値でメンテナンスをどのようにトリガーしますか?",
+        "data": {
+          "trigger_type": "トリガーの種類",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_type": "しきい値: 値が制限を超えたときにトリガーします。カウンター: 目標値まで累積したときにトリガーします。状態変化: 一定回数の状態遷移の後にトリガーします。"
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "しきい値の構成",
+        "description": "**{entity_id}** ({attribute}) のしきい値を設定します。\n現在: **{current_value} {unit}** | 平均: {average} | 範囲: {minimum}〜{maximum} ({data_period}日)\n推奨上限: {suggested_above} | 推奨下限: {suggested_below}",
+        "data": {
+          "trigger_above": "この値を超えたらトリガー",
+          "trigger_below": "この値を下回ったらトリガー",
+          "trigger_for_minutes": "最低継続時間 (分)",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_above": "値がこのしきい値を超えたときにメンテナンスをトリガーします。",
+          "trigger_below": "値がこのしきい値を下回ったときにメンテナンスをトリガーします。",
+          "trigger_for_minutes": "トリガーする前に、値がこの分数だけしきい値を超え続ける必要があります。",
+          "interval_days": "センサートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "カウンターの構成",
+        "description": "{entity_id} ({attribute}) のカウンター目標を設定します。現在: {current_value} {unit}。",
+        "data": {
+          "trigger_target_value": "目標値",
+          "trigger_delta_mode": "差分モード (絶対値ではなく変化量をカウント)",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_target_value": "この累積値に達したときにメンテナンスをトリガーします。",
+          "trigger_delta_mode": "有効にすると、絶対値ではなく基準値からの差分をカウントします。",
+          "interval_days": "カウンタートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "状態変化の構成",
+        "description": "{entity_id} の状態遷移をカウントします。",
+        "data": {
+          "trigger_from_state": "遷移元の状態 (任意)",
+          "trigger_to_state": "遷移先の状態 (任意)",
+          "trigger_target_changes": "トリガーまでの変化回数",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_from_state": "この状態からの遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_to_state": "この状態への遷移のみをカウントします。任意の状態の場合は空欄にします。",
+          "trigger_target_changes": "メンテナンスをトリガーするまでの、一致する状態変化の回数です。",
+          "interval_days": "状態変化トリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "稼働時間の構成",
+        "description": "{entity_id} の累積稼働時間を追跡します。",
+        "data": {
+          "trigger_runtime_hours": "目標稼働時間 (時間)",
+          "trigger_on_states": "アクティブな状態 (カンマ区切り)",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "累積稼働時間がこの時間数に達したらメンテナンスをトリガーします。",
+          "trigger_on_states": "「アクティブ」とみなすセンサーの状態です。既定 (on、1、true) の場合は空欄にします。例: in_use, running",
+          "interval_days": "稼働時間トリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+        }
+      },
+      "object_settings": {
+        "title": "対象の設定",
+        "description": "対象の詳細を編集します。",
+        "data": {
+          "name": "対象名",
+          "manufacturer": "メーカー",
+          "model": "モデル",
+          "serial_number": "シリアル番号",
+          "documentation_url": "マニュアル / ドキュメントの URL",
+          "notes": "メモ",
+          "area_id": "エリア",
+          "installation_date": "設置日",
+          "warranty_expiry": "保証期限",
+          "go_back": "戻る"
+        },
+        "data_description": {
+          "name": "このメンテナンス対象の一意の名前です (例: 「プールポンプ」「車」)。",
+          "manufacturer": "対象のメーカーです。",
+          "model": "モデル名または型番です。",
+          "serial_number": "対象のシリアル番号です。",
+          "documentation_url": "PDF マニュアル、メーカーページ、その他この対象の参考情報がある URL への任意のリンクです。",
+          "notes": "対象に関する自由形式のメモです。部品番号、手順、設定の覚え書きなど。",
+          "area_id": "この対象が設置されている家の中のエリアです。",
+          "installation_date": "この対象を設置または購入した日です。",
+          "warranty_expiry": "この対象のメーカー保証が切れる日です。",
+          "go_back": "保存せずにメインメニューに戻ります。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} 完了"
+      },
+      "button_skip": {
+        "name": "{task_name} スキップ"
+      },
+      "button_reset": {
+        "name": "{task_name} リセット"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "期限間近",
+          "overdue": "期限切れ",
+          "triggered": "トリガー済み"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "メンテナンスの種類",
+            "state": {
+              "cleaning": "清掃",
+              "inspection": "点検",
+              "replacement": "交換",
+              "calibration": "校正",
+              "service": "サービス",
+              "custom": "カスタム"
+            }
+          },
+          "schedule_type": {
+            "name": "スケジュールの種類",
+            "state": {
+              "time_based": "時間ベース",
+              "sensor_based": "センサーベース",
+              "one_time": "一回限り",
+              "manual": "手動"
+            }
+          },
+          "interval_days": {
+            "name": "間隔"
+          },
+          "interval_unit": {
+            "name": "間隔の単位"
+          },
+          "warning_days": {
+            "name": "警告日数"
+          },
+          "last_performed": {
+            "name": "前回の実施"
+          },
+          "next_due": {
+            "name": "次回期限"
+          },
+          "days_until_due": {
+            "name": "期限までの日数"
+          },
+          "parent_object": {
+            "name": "親対象"
+          },
+          "times_performed": {
+            "name": "実施回数"
+          },
+          "total_cost": {
+            "name": "合計コスト"
+          },
+          "average_duration": {
+            "name": "平均所要時間 (分)"
+          },
+          "notes": {
+            "name": "メモ"
+          },
+          "documentation_url": {
+            "name": "ドキュメントの URL"
+          },
+          "trigger_entity": {
+            "name": "トリガーエンティティ"
+          },
+          "trigger_attribute": {
+            "name": "トリガー属性"
+          },
+          "trigger_type": {
+            "name": "トリガーの種類",
+            "state": {
+              "threshold": "しきい値",
+              "counter": "カウンター",
+              "state_change": "状態変化",
+              "runtime": "稼働時間",
+              "compound": "複合"
+            }
+          },
+          "trigger_active": {
+            "name": "トリガーアクティブ"
+          },
+          "trigger_current_value": {
+            "name": "トリガーの現在値"
+          },
+          "trigger_entity_state": {
+            "name": "トリガーエンティティの状態",
+            "state": {
+              "available": "利用可能",
+              "unavailable": "利用不可",
+              "missing": "見つかりません",
+              "startup": "起動中"
+            }
+          },
+          "trigger_above": {
+            "name": "上限トリガー"
+          },
+          "trigger_below": {
+            "name": "下限トリガー"
+          },
+          "trigger_for_minutes": {
+            "name": "トリガー継続時間 (分)"
+          },
+          "trigger_target_value": {
+            "name": "トリガー目標値"
+          },
+          "trigger_delta_mode": {
+            "name": "トリガー差分モード"
+          },
+          "trigger_baseline_value": {
+            "name": "トリガー基準値"
+          },
+          "trigger_current_delta": {
+            "name": "トリガーの現在差分"
+          },
+          "trigger_from_state": {
+            "name": "トリガー遷移元の状態"
+          },
+          "trigger_to_state": {
+            "name": "トリガー遷移先の状態"
+          },
+          "trigger_target_changes": {
+            "name": "トリガー目標変化回数"
+          },
+          "trigger_change_count": {
+            "name": "トリガー変化回数"
+          },
+          "trigger_runtime_hours": {
+            "name": "目標稼働時間 (時間)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "累積稼働時間 (時間)"
+          },
+          "trigger_remaining_hours": {
+            "name": "残り稼働時間 (時間)"
+          },
+          "last_entry": {
+            "name": "最終エントリ"
+          },
+          "suggested_interval": {
+            "name": "推奨間隔"
+          },
+          "interval_confidence": {
+            "name": "間隔の信頼度",
+            "state": {
+              "low": "低",
+              "medium": "中",
+              "high": "高"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "適応スケジューリング有効"
+          },
+          "seasonal_factor": {
+            "name": "季節要因"
+          },
+          "seasonal_reason": {
+            "name": "季節の理由",
+            "state": {
+              "learned": "学習済み",
+              "manual": "手動"
+            }
+          },
+          "degradation_rate": {
+            "name": "劣化率"
+          },
+          "degradation_trend": {
+            "name": "劣化傾向",
+            "state": {
+              "rising": "上昇",
+              "falling": "下降",
+              "stable": "安定",
+              "insufficient_data": "データ不足"
+            }
+          },
+          "days_until_threshold": {
+            "name": "しきい値までの日数"
+          },
+          "threshold_prediction_confidence": {
+            "name": "予測の信頼度",
+            "state": {
+              "low": "低",
+              "medium": "中",
+              "high": "高"
+            }
+          },
+          "environmental_factor": {
+            "name": "環境要因"
+          },
+          "environmental_entity": {
+            "name": "環境エンティティ"
+          },
+          "weibull_beta": {
+            "name": "ワイブル形状 (β)"
+          },
+          "weibull_eta": {
+            "name": "ワイブル尺度 (η)"
+          },
+          "weibull_r_squared": {
+            "name": "ワイブル R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "故障パターン",
+            "state": {
+              "early_failures": "初期故障",
+              "random_failures": "偶発故障",
+              "wear_out": "摩耗故障",
+              "highly_predictable": "高い予測可能性"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "信頼区間 (下限)"
+          },
+          "confidence_interval_high": {
+            "name": "信頼区間 (上限)"
+          },
+          "interval_anchor": {
+            "name": "間隔の基準",
+            "state": {
+              "completion": "完了日から",
+              "planned": "予定日から"
+            }
+          },
+          "due_date": {
+            "name": "期限日"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "期限切れ"
+      },
+      "summary_due_soon": {
+        "name": "期限間近"
+      },
+      "summary_triggered": {
+        "name": "トリガー済み"
+      },
+      "summary_needs_attention": {
+        "name": "要対応"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "summary_total_tasks": {
+        "name": "タスク総数"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "メンテナンススケジュール"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} 期限切れ",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "メンテナンスのステータス",
+            "state": {
+              "ok": "OK",
+              "due_soon": "期限間近",
+              "overdue": "期限切れ",
+              "triggered": "トリガー済み"
+            }
+          },
+          "days_until_due": {
+            "name": "期限までの日数"
+          },
+          "next_due": {
+            "name": "次回期限"
+          },
+          "parent_object": {
+            "name": "親対象"
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "清掃",
+        "inspection": "点検",
+        "replacement": "交換",
+        "calibration": "校正",
+        "service": "サービス",
+        "custom": "カスタム"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "時間ベース",
+        "weekdays": "曜日",
+        "nth_weekday": "月の第 n 曜日",
+        "day_of_month": "日付",
+        "sensor_based": "センサーベース",
+        "one_time": "一回限り",
+        "manual": "手動"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "日",
+        "weeks": "週",
+        "months": "月",
+        "years": "年"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "しきい値",
+        "counter": "カウンター",
+        "state_change": "状態変化",
+        "runtime": "稼働時間",
+        "compound": "複合 (複数条件)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "AND (すべての条件がトリガーされる必要があります)",
+        "or": "OR (いずれかの条件でトリガーされます)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "いずれかのエンティティでトリガー",
+        "all": "すべてのエンティティがトリガーされる必要があります"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "既定 (ステータスごとのタイトル)",
+        "object_name": "対象名をタイトルにする",
+        "task_name": "タスク名をタイトルにする"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "メンテナンスを完了",
+      "description": "メンテナンスタスクを完了済みとしてマークします。",
+      "fields": {
+        "entity_id": {
+          "name": "エンティティ",
+          "description": "完了するメンテナンスセンサーエンティティです。"
+        },
+        "notes": {
+          "name": "メモ",
+          "description": "実施したメンテナンスに関する任意のメモです。"
+        },
+        "cost": {
+          "name": "コスト",
+          "description": "実施したメンテナンスのコストです。"
+        },
+        "duration": {
+          "name": "所要時間",
+          "description": "メンテナンスの所要時間 (分) です。"
+        }
+      }
+    },
+    "reset": {
+      "name": "メンテナンスをリセット",
+      "description": "メンテナンスタスクの前回実施日をリセットします。",
+      "fields": {
+        "entity_id": {
+          "name": "エンティティ",
+          "description": "リセットするメンテナンスセンサーエンティティです。"
+        },
+        "date": {
+          "name": "日付",
+          "description": "前回実施として設定する日付です。既定では今日です。"
+        }
+      }
+    },
+    "skip": {
+      "name": "メンテナンスをスキップ",
+      "description": "現在のメンテナンスサイクルをスキップします。",
+      "fields": {
+        "entity_id": {
+          "name": "エンティティ",
+          "description": "スキップするメンテナンスセンサーエンティティです。"
+        },
+        "reason": {
+          "name": "理由",
+          "description": "メンテナンスをスキップする任意の理由です。"
+        }
+      }
+    },
+    "export_data": {
+      "name": "データをエクスポート",
+      "description": "すべてのメンテナンスデータを JSON または YAML としてエクスポートします。",
+      "fields": {
+        "format": {
+          "name": "形式",
+          "description": "エクスポートするデータの出力形式です (json または yaml)。"
+        },
+        "include_history": {
+          "name": "履歴を含める",
+          "description": "エクスポートにタスク履歴のエントリを含めるかどうかです。"
+        }
+      }
+    }
+  },
+  "issues": {
+    "missing_trigger_entity": {
+      "title": "トリガーセンサーが見つかりません: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "トリガーエンティティがありません",
+            "description": "対象「{object_name}」のタスク「{task_name}」のトリガーとして構成されているセンサーエンティティ `{entity_id}` が利用できなくなりました。\n\nこの問題の解決方法を選択してください:",
+            "menu_options": {
+              "replace_entity": "別のエンティティに置き換える",
+              "remove_trigger": "センサートリガーを削除する",
+              "dismiss": "無視する (再表示されます)"
+            }
+          },
+          "replace_entity": {
+            "title": "トリガーエンティティを置き換える",
+            "description": "「{object_name}」のタスク「{task_name}」のトリガーとして `{entity_id}` を置き換える新しいエンティティを選択してください。",
+            "data": {
+              "new_entity_id": "新しいトリガーエンティティ"
+            },
+            "data_description": {
+              "new_entity_id": "トリガーとして使用する新しいセンサーエンティティを選択します。"
+            }
+          },
+          "remove_trigger": {
+            "title": "センサートリガーを削除",
+            "description": "「{object_name}」のタスク「{task_name}」からセンサートリガーを削除し、スケジュールを時間ベースまたは手動に変換します。メンテナンス履歴は保持されます。\n\n以前のトリガーエンティティ: `{entity_id}`"
+          }
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "パネルアクセスのユーザーが存在しなくなりました",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "パネルアクセスリストに孤立したユーザー",
+            "description": "ユーザー `{user_id}…` は Maintenance Supporter のパネルアクセスリストに含まれていますが、Home Assistant に存在しなくなりました。おそらくユーザーが削除されたためです。\n\nこのユーザーをリストから削除するには **送信** をクリックしてください。(問題をそのままにする場合は、代わりに修復ページで Home Assistant の **無視** ボタンを使用してください。)"
+          }
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "完了アクションが削除されたエンティティを参照しています",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "完了アクション: {stale_entity} が存在しなくなりました",
+            "description": "タスク **{task_name}** には `{stale_entity}` のサービスを呼び出す `on_complete_action` が構成されていますが、そのエンティティは Home Assistant に登録されなくなりました。\n\n修復方法を選択してください:",
+            "menu_options": {
+              "replace_entity": "別のエンティティに置き換える",
+              "remove_action": "完了アクションを削除する"
+            }
+          },
+          "replace_entity": {
+            "title": "対象エンティティを置き換える",
+            "description": "タスク **{task_name}** で `{stale_entity}` の代わりに使用するエンティティを選択してください。",
+            "data": {
+              "new_entity": "新しい対象エンティティ"
+            }
+          },
+          "remove_action": {
+            "title": "完了アクションを削除",
+            "description": "タスク **{task_name}** から `on_complete_action` を完全に消去します。タスク自体には影響しません。完了時のサービス呼び出しのみが削除されます。"
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "エンティティ {entity_id} のメンテナンスコーディネーターが見つかりません。"
+    },
+    "no_task_for_entity": {
+      "message": "エンティティ {entity_id} のメンテナンスタスクが見つかりません。"
+    }
+  }
+}

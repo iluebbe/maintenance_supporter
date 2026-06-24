@@ -28,7 +28,7 @@ interface Translations {
 
 // English is bundled (imported above) as the always-available fallback so
 // the panel renders instantly with a complete table — never an
-// untranslated-key flash, even if a locale fetch fails. The other 12
+// untranslated-key flash, even if a locale fetch fails. The other 17
 // languages live in served JSON (frontend/locales/<lang>.json) and are
 // fetched on demand by ensureLocale(), so a translation edit needs no bundle
 // rebuild — the fix for the recurring "stale bundle ships English to non-EN
@@ -40,6 +40,7 @@ const STORE: Record<string, Translations> = { en: EN as Translations };
 /** Languages available as runtime-loaded JSON. Keep in sync with locales/. */
 const SUPPORTED_LANGS = new Set<string>([
   "de", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh",
+  "da", "fi", "nb", "ja", "hi",
 ]);
 
 /** Served base for the runtime locale files (mirrors LOCALES_URL in const.py). */
@@ -101,7 +102,8 @@ export function setLocale(lang: string, table: Translations): void {
 function langToLocale(lang?: string): string {
   const l = (lang || "en").substring(0, 2).toLowerCase();
   const map: Record<string, string> = {
-    de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", ru: "ru-RU", uk: "uk-UA", zh: "zh-CN"
+    de: "de-DE", en: "en-US", nl: "nl-NL", fr: "fr-FR", it: "it-IT", es: "es-ES", pt: "pt-PT", ru: "ru-RU", uk: "uk-UA", zh: "zh-CN",
+    da: "da-DK", fi: "fi-FI", nb: "nb-NO", ja: "ja-JP", hi: "hi-IN"
   };
   return map[l] ?? "en-US";
 }
