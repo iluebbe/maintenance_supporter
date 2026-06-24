@@ -525,7 +525,7 @@
   "older_entries": "vanhempaa",
   "open_in_panel": "Avaa Huolto-paneelissa",
   "skip_reason": "Ohituksen syy (valinnainen)",
-  "reset_to_date": "Nollaa last_performed päivään",
+  "reset_to_date": "Nollaa viimeksi suoritettu -päivä",
   "delete_task_confirm": "Poistetaanko tämä tehtävä ja sen historia?",
   "delete_object_confirm": "Poistetaanko tämä kohde ja kaikki sen tehtävät?",
   "loading": "Ladataan…"

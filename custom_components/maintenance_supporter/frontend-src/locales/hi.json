@@ -525,7 +525,7 @@
   "older_entries": "पुराने",
   "open_in_panel": "रखरखाव पैनल में खोलें",
   "skip_reason": "छोड़ने का कारण (वैकल्पिक)",
-  "reset_to_date": "last_performed को इस पर रीसेट करें",
+  "reset_to_date": "अंतिम बार किया गया को रीसेट करें",
   "delete_task_confirm": "इस कार्य और इसके इतिहास को हटाएँ?",
   "delete_object_confirm": "इस वस्तु और इसके सभी कार्यों को हटाएँ?",
   "loading": "लोड हो रहा है…"
