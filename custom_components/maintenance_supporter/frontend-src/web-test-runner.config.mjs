@@ -19,6 +19,7 @@ export default {
   plugins: [
     esbuildPlugin({
       ts: true,
+      json: true,
       target: "es2020",
       tsconfig: "./tsconfig.json",
     }),

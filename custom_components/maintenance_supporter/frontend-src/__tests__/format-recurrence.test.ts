@@ -2,9 +2,14 @@
  *  schedule kind (Phase 4 calendar kinds). Weekday names come from Intl. */
 
 import { expect } from "@open-wc/testing";
-import { formatRecurrence } from "../styles";
+import { formatRecurrence, setLocale } from "../styles";
+import de from "../locales/de.json";
 
 describe("formatRecurrence", () => {
+  // German strings are runtime-loaded (not bundled); seed the real table so the
+  // localized-ordinal case exercises actual German, not the EN fallback.
+  before(() => setLocale("de", de as Record<string, string>));
+
   it("interval → '6 Months'", () => {
     expect(formatRecurrence({ schedule: { kind: "interval", every: 6, unit: "months" } }, "en")).to.equal("6 Months");
   });
