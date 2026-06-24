@@ -4,6 +4,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixes
+
+- **Dashboard-strategy self-heal no longer reloads unrelated dashboards (#68)**: the strategy shim's self-heal — which recovers a strategy view that lost Home Assistant's element-registration race — used a too-broad "is this view broken?" check (any Lovelace view with fewer than 3 cards) without verifying the view was actually a Maintenance Supporter strategy. On a normal dashboard with few cards it wrongly "bounced" the view (navigate away + back), reloading every card on it (including unrelated HACS cards). The self-heal is now scoped: it acts only on Home Assistant's explicit *"timeout waiting for … maintenance-supporter"* error card, or on a near-empty view whose Lovelace config is genuinely our strategy.
+
 ### 🔧 Internal
 
 - **Translation key-parity is now CI-guarded.** `tests/test_i18n.py` fails the build if any backend `translations/<lang>.json` or runtime panel locale drifts from the English key set, if `strings.json` and `translations/en.json` diverge, or on placeholder/brace errors — across all 13 languages. This caught the `panel_title` setting's label/description being present in every locale but missing from `strings.json` (now fixed).
