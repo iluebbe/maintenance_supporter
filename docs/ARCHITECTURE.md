@@ -336,7 +336,7 @@ Service call or WebSocket command
           ├─ Reset change count (if state_change trigger)
           ├─ Reset accumulated hours (if runtime trigger)
           ├─ Update adaptive config (if adaptive enabled)
-          ├─ Write dynamic state → Store (debounced 1s)
+          ├─ Write dynamic state → Store (debounced 60s)
           └─> coordinator.async_request_refresh()
               └─> All entities update via CoordinatorEntity
 ```
@@ -425,7 +425,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 
 **Build:** esbuild (TypeScript → ESM, minified)
 **Framework:** LitElement 3 with decorators
-**Four bundles:** `maintenance-panel.js` (~687KB), `maintenance-card.js` (~558KB), `maintenance-calendar-card.js` (~437KB), and `maintenance-strategy-shim.js` (~3KB, the dashboard-strategy self-heal shim)
+**Four single-file bundles** — `maintenance-panel.js` (~687KB), `maintenance-card.js` (~558KB), `maintenance-calendar-card.js` (~437KB), `maintenance-strategy-shim.js` (~3KB, the dashboard-strategy self-heal shim) — plus the code-split `maintenance-dashboard-strategy.js` entry (output to `strategy/` with content-hashed chunks)
 
 ### Panel Views
 1. **Overview (Dashboard tab)**: Statistics dashboard, group list, budget status, sparklines, user filter
