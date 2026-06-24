@@ -2,7 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, t } from "./styles";
+import { sharedStyles, STATUS_COLORS, t, ensureLocale, isLocaleLoaded } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -80,6 +80,10 @@ export class MaintenanceSupporterCard extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    const lang = this.hass?.language;
+    if (lang && !isLocaleLoaded(lang)) {
+      ensureLocale(lang).then(() => this.requestUpdate());
+    }
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;

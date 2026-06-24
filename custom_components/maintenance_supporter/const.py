@@ -202,6 +202,12 @@ STRATEGY_CHUNKS_URL = f"{STRATEGY_DIR_URL}/chunks"
 # STRATEGY_DIR_URL. The shim has no relative imports, so a flat URL is fine.
 STRATEGY_SHIM_URL = "/maintenance_supporter_strategy_shim.js"
 CALENDAR_CARD_URL = "/maintenance_supporter_calendar_card"
+# Runtime-loaded UI translations (frontend/locales/<lang>.json), served as a
+# directory so the panel/card fetch the active language on demand. Mirrors
+# LOCALES_BASE in frontend-src/styles.ts: only EN is bundled into the JS (as the
+# fallback); the other languages live here, so a translation edit needs no
+# frontend bundle rebuild.
+LOCALES_URL = "/maintenance_supporter_locales"
 
 # --- Config Keys: Object ---
 CONF_OBJECT = "object"

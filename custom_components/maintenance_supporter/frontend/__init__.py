@@ -12,6 +12,7 @@ from ..const import (
     CALENDAR_CARD_URL,
     CARD_URL,
     DOMAIN,
+    LOCALES_URL,
     STRATEGY_CHUNKS_URL,
     STRATEGY_SHIM_URL,
     STRATEGY_URL,
@@ -65,6 +66,10 @@ async def async_register_card(hass: HomeAssistant) -> None:
             str(frontend_dir / "maintenance-calendar-card.js"),
             False,
         ),
+        # Runtime-loaded UI translations: a directory of <lang>.json fetched by
+        # the panel/card on demand (only EN is bundled into the JS). cache=False
+        # so a translation edit shows up on reload without a version bump.
+        StaticPathConfig(LOCALES_URL, str(frontend_dir / "locales"), False),
     ]
     await hass.http.async_register_static_paths(static_paths)
 

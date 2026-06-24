@@ -2,7 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, ensureLocale, isLocaleLoaded, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { daysProgress } from "./helpers/interval";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
@@ -187,6 +187,13 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
+    // Lazy-load the user's UI language (non-EN tables aren't bundled) and
+    // re-render once it arrives. EN is bundled, so strings read in English
+    // until then rather than as raw keys.
+    const lang = this.hass?.language;
+    if (lang && !isLocaleLoaded(lang)) {
+      ensureLocale(lang).then(() => this.requestUpdate());
+    }
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;

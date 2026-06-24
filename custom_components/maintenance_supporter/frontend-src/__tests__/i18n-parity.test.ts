@@ -1,45 +1,42 @@
 /**
- * i18n key-parity guard.
+ * i18n runtime-loader guard.
  *
- * Every panel/card string is looked up via t(key, lang), which falls back to
- * English when a language is missing the key. That fallback silently ships
- * English text to non-English users when a feature's strings are added to EN
- * (and DE) but not the other locales — exactly what happened to the 45
- * v2.1–v2.4 keys across 10 languages. This test fails CI the moment any
- * language block drifts from the EN key set, so the gap can't recur unnoticed.
+ * The panel/card UI strings used to be one big inline `TRANSLATIONS` object in
+ * styles.ts. They now live in `frontend-src/locales/<lang>.json`: only English
+ * is bundled (imported by styles.ts) as the always-available fallback; the other
+ * 12 languages are fetched at runtime from `/maintenance_supporter_locales/` —
+ * so a translation edit needs no bundle rebuild (the stale-bundle pitfall fix).
+ *
+ * Cross-locale KEY PARITY is guarded in Python (`tests/test_i18n.py` reads every
+ * `frontend-src/locales/*.json`). This browser test guards the runtime LOADER
+ * behaviour that replaced the inline tables: bundled-EN, English fallback, and
+ * the no-fetch fast paths of ensureLocale/isLocaleLoaded.
  */
 import { expect } from "@open-wc/testing";
-import { TRANSLATIONS } from "../styles";
+import { t, isLocaleLoaded, ensureLocale } from "../styles";
 
-const REFERENCE = "en";
-
-describe("i18n key parity (styles.ts TRANSLATIONS)", () => {
-  const langs = Object.keys(TRANSLATIONS).filter((l) => l !== REFERENCE);
-  const refKeys = Object.keys(TRANSLATIONS[REFERENCE]).sort();
-
-  it("ships the expected set of UI languages", () => {
-    // de + en + the 10 backfilled locales + zh-Hans (v2.8.3, #64) = 13
-    expect(Object.keys(TRANSLATIONS).sort()).to.deep.equal(
-      ["cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh"],
-    );
+describe("i18n runtime loader", () => {
+  it("serves bundled English synchronously", () => {
+    // A key known to exist in en.json resolves with no fetch and isn't the key.
+    expect(t("loading", "en")).to.be.a("string").and.not.equal("loading");
   });
 
-  for (const lang of langs) {
-    it(`${lang} has exactly the same keys as ${REFERENCE}`, () => {
-      const keys = new Set(Object.keys(TRANSLATIONS[lang]));
-      const missing = refKeys.filter((k) => !keys.has(k));
-      const extra = [...keys].filter((k) => !refKeys.includes(k)).sort();
-      // Separate, explicit assertions so a failure names the offending keys.
-      expect(missing, `${lang} is MISSING keys (would fall back to English)`).to.deep.equal([]);
-      expect(extra, `${lang} has EXTRA keys not present in ${REFERENCE}`).to.deep.equal([]);
-    });
-  }
+  it("falls back to English for an unloaded language, then to the key", () => {
+    // German isn't bundled; before load an EN-present key falls back to EN…
+    expect(t("loading", "de")).to.equal(t("loading", "en"));
+    // …and an unknown key returns the key itself.
+    expect(t("__nonexistent_key__", "de")).to.equal("__nonexistent_key__");
+  });
 
-  it("no language has duplicate-collapsed or empty values", () => {
-    for (const lang of Object.keys(TRANSLATIONS)) {
-      for (const [key, value] of Object.entries(TRANSLATIONS[lang])) {
-        expect(value, `${lang}.${key} must be a non-empty string`).to.be.a("string").and.not.equal("");
-      }
-    }
+  it("treats English (and its regional variants) as always loaded", () => {
+    expect(isLocaleLoaded("en")).to.be.true;
+    expect(isLocaleLoaded("en-GB")).to.be.true; // normalises to "en"
+    expect(isLocaleLoaded("de")).to.be.false; // not fetched yet
+  });
+
+  it("ensureLocale resolves immediately for English and unsupported langs", async () => {
+    await ensureLocale("en"); // bundled → no-op
+    await ensureLocale("xx"); // unsupported → no fetch, stays on English
+    expect(isLocaleLoaded("xx")).to.be.false;
   });
 });

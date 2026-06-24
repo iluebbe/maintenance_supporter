@@ -1,4 +1,5 @@
 import { build } from "esbuild";
+import { cpSync, mkdirSync } from "fs";
 
 const common = {
   bundle: true,
@@ -69,5 +70,11 @@ await build({
   entryPoints: ["maintenance-calendar-card.ts"],
   outfile: "../frontend/maintenance-calendar-card.js",
 });
+
+// Copy the runtime-loaded locale tables into the served frontend dir. Only EN
+// is bundled (imported by styles.ts); the other languages are fetched at
+// runtime from frontend/locales/, so editing a translation needs no rebuild.
+mkdirSync("../frontend/locales", { recursive: true });
+cpSync("locales", "../frontend/locales", { recursive: true });
 
 console.log("Build complete.");
