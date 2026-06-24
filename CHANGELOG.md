@@ -4,6 +4,10 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🔧 Internal
+
+- **Translation key-parity is now CI-guarded.** `tests/test_i18n.py` fails the build if any backend `translations/<lang>.json` or runtime panel locale drifts from the English key set, if `strings.json` and `translations/en.json` diverge, or on placeholder/brace errors — across all 13 languages. This caught the `panel_title` setting's label/description being present in every locale but missing from `strings.json` (now fixed).
+
 ### ⚡ Frontend
 
 - **Panel/card translations now load on demand.** The 12 non-English UI language tables moved out of the JavaScript bundles into per-language JSON files (`frontend/locales/<lang>.json`) served by the integration and fetched at runtime in the user's language; English stays bundled as an instant fallback. The panel bundle shrinks ~50% (≈688→343 KB), the card ~63% and the calendar card ~81%, and a translation change no longer requires rebuilding the frontend bundle. Steady-state rendering is unchanged.
