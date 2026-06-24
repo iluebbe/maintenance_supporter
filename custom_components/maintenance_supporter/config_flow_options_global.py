@@ -524,7 +524,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFY_DUE_SOON_INTERVAL, 24),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=168, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=0, max=720, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Overdue ---
@@ -537,7 +537,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFY_OVERDUE_INTERVAL, 12),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=168, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=0, max=720, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Triggered ---
@@ -550,7 +550,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=168, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=0, max=720, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Quiet Hours ---
@@ -581,7 +581,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         ),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=100, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=0, max=1000, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Bundling ---
@@ -646,7 +646,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         ),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=1, max=72, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=1, max=168, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                 }
@@ -699,7 +699,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_MONTHLY, 0.0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=100000, step=0.01,
+                            min=0, max=10000000, step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
                             unit_of_measurement=currency_symbol,
                         )
@@ -709,7 +709,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_YEARLY, 0.0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=1000000, step=0.01,
+                            min=0, max=100000000, step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
                             unit_of_measurement=currency_symbol,
                         )

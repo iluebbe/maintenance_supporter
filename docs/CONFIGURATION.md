@@ -59,15 +59,15 @@ Visible only when `notifications_enabled` is `true`.
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `notify_due_soon_enabled` | bool | `true` | — | Send notifications for tasks entering `due_soon` status |
-| `notify_due_soon_interval_hours` | int | 24 | 0–168 | Minimum hours between repeated due-soon notifications per task. 0 = notify once |
+| `notify_due_soon_interval_hours` | int | 24 | 0–720 | Minimum hours between repeated due-soon notifications per task. 0 = notify once |
 | `notify_overdue_enabled` | bool | `true` | — | Send notifications for tasks entering `overdue` status |
-| `notify_overdue_interval_hours` | int | 12 | 0–168 | Minimum hours between repeated overdue notifications per task. 0 = notify once |
+| `notify_overdue_interval_hours` | int | 12 | 0–720 | Minimum hours between repeated overdue notifications per task. 0 = notify once |
 | `notify_triggered_enabled` | bool | `true` | — | Send notifications when a sensor trigger activates |
-| `notify_triggered_interval_hours` | int | 0 | 0–168 | Minimum hours between repeated triggered notifications per task. 0 = notify once |
+| `notify_triggered_interval_hours` | int | 0 | 0–720 | Minimum hours between repeated triggered notifications per task. 0 = notify once |
 | `quiet_hours_enabled` | bool | `true` | — | Suppress notifications during quiet hours |
 | `quiet_hours_start` | time | `22:00` | — | Start of quiet hours (HH:MM) |
 | `quiet_hours_end` | time | `08:00` | — | End of quiet hours (HH:MM) |
-| `max_notifications_per_day` | int | 0 | 0–100 | Maximum notifications per day across all tasks. 0 = unlimited |
+| `max_notifications_per_day` | int | 0 | 0–1000 | Maximum notifications per day across all tasks. 0 = unlimited |
 | `notification_bundling_enabled` | bool | `false` | — | Bundle multiple due tasks into a single notification |
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
@@ -83,7 +83,7 @@ Mobile actionable notification buttons (requires HA Companion App).
 | `action_complete_enabled` | bool | `false` | — | Show "Complete" action button on notifications |
 | `action_skip_enabled` | bool | `false` | — | Show "Skip" action button on notifications |
 | `action_snooze_enabled` | bool | `false` | — | Show "Snooze" action button on notifications |
-| `snooze_duration_hours` | int | 4 | 1–72 | Hours to snooze a task when the Snooze action is used |
+| `snooze_duration_hours` | int | 4 | 1–168 | Hours to snooze a task when the Snooze action is used |
 
 ### Vacation Mode (1.2.0+)
 
@@ -105,8 +105,8 @@ Visible only when `advanced_budget_visible` is `true`.
 
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
-| `budget_monthly` | float | 0.0 | 0–100,000 | Monthly maintenance budget. 0 = disabled |
-| `budget_yearly` | float | 0.0 | 0–1,000,000 | Yearly maintenance budget. 0 = disabled |
+| `budget_monthly` | float | 0.0 | 0–10,000,000 | Monthly maintenance budget. 0 = disabled |
+| `budget_yearly` | float | 0.0 | 0–100,000,000 | Yearly maintenance budget. 0 = disabled |
 | `budget_alerts_enabled` | bool | `false` | — | Send notification when budget threshold is reached |
 | `budget_alert_threshold` | int | 80 | 10–100 | Budget usage percentage that triggers an alert |
 

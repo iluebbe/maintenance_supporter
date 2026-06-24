@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔧 Consistency
+
+- **Global-settings validation ranges unified across the config flow and the panel.** The Integration-Options form and the panel's Settings tab (WebSocket) had drifted to different bounds for nine notification/budget settings. They now agree: the wider panel limits are adopted everywhere (e.g. snooze up to 168 h, notification intervals up to 720 h, monthly/yearly budgets up to 10M/100M, max notifications/day up to 1000), while `notification_bundle_threshold` (2–20) and `budget_alert_threshold` (10–100) are tightened on the panel path so neither can be set below its sensible documented minimum.
+
 ## [2.9.1] - 2026-06-23
 
 ### 🐛 Fixes
