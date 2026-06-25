@@ -2,7 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.10.0] - 2026-06-25
+
+### 🗄️ Archive & retention — retire tasks and objects without deleting
+
+A two-stage lifecycle (**Active → Archived → optionally Deleted**) that preserves the long-term record — cost/budget, warranty, completion history, adaptive learning — instead of losing it on a delete.
+
+- **Archive any task or object.** Archived items are **hidden by default** in the panel and on the Lovelace card; a **"Show archived" toggle** reveals them. They go **inert** — a neutral `archived` status with no triggers, notifications, calendar entries, or active status counts — with **one exception: budget**, where already-spent costs keep counting toward the period totals.
+- **Archiving an object cascades** to its tasks, and unarchiving restores exactly those. **Unarchiving a recurring task starts a fresh cycle** (next due = today + interval) instead of resurfacing as retroactively overdue. Completed one-off tasks stay "done".
+- **Auto-archive** completed one-off tasks a configurable number of days after completion (**Settings → Archive & Retention**, default 14, `0` = off). Recurring / sensor-triggered tasks are archived manually only.
+- **Auto-delete** is a separate, opt-in setting (default: never) that applies to **auto-archived one-offs only** — manually archived items are never auto-deleted.
+- New WebSocket commands `task/archive` · `task/unarchive` · `object/archive` · `object/unarchive` (operator-write permission), and Archive/Unarchive actions in the panel task & object views and the quick-action dialogs.
+
+_Terminology: a completed one-off is now consistently called **done**; **archived** is reserved for this feature._
+
+
 
 ### 🌍 Internationalization
 
