@@ -110,6 +110,17 @@ Visible only when `advanced_budget_visible` is `true`.
 | `budget_alerts_enabled` | bool | `false` | — | Send notification when budget threshold is reached |
 | `budget_alert_threshold` | int | 80 | 10–100 | Budget usage percentage that triggers an alert |
 
+### Archive & Retention (2.10.0+)
+
+Panel-managed (Settings → **Archive & Retention**). Automates retiring completed **one-off** tasks. Any task or object can also be archived / unarchived **manually** at any time (panel task & object headers, or the card's quick-action dialog).
+
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `archive_oneoff_days` | int | 14 | 0–3650 | Auto-archive a completed one-off task this many days after completion. `0` = off (archive manually only). Recurring / sensor-triggered tasks are never auto-archived — they have no terminal "done" state |
+| `delete_archived_oneoff_days` | int | 0 | 0–3650 | Auto-delete an **auto-archived** one-off task this many days after it was archived. `0` = never. Applies to auto-archived items only — **manually** archived tasks/objects are never auto-deleted (deleting a manual archive stays an explicit action) |
+
+Archived items are hidden by default in the panel and card (a *Show archived* toggle reveals them) and go **inert** — they read an `archived` status and fire nothing (no triggers, notifications, calendar entries, or active status counts) — **except budget**, where already-spent costs keep counting toward the period totals. Archiving an **object** cascades to its active tasks; unarchiving the object restores exactly those, and unarchiving a recurring task starts a fresh cycle (`next_due = today + interval`).
+
 ---
 
 ## Per-Object Settings
@@ -144,7 +155,7 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `one_time`, `manual`. The calendar kinds `weekdays`, `nth_weekday`, `day_of_month` are configured via the nested `schedule` object (below) — they can't be expressed by the flat fields — and are reported back under their own `schedule_type` value |
 | `interval_days` | int | 30 | 1–3650 | Interval length between maintenance cycles, combined with `interval_unit` (time-based and sensor-based) |
 | `interval_unit` | enum | `days` | — | Unit for `interval_days`: `days`, `weeks`, `months`, `years`. Months/years use real calendar arithmetic (last-day clamping, leap years). Only values other than `days` change pre-2.6.0 behaviour |
-| `due_date` | date | *(none)* | — | Due date for a `one_time` task. The task stays active until completed, then is archived (`is_done` — hidden from the card, shown as *Completed* in the panel). Required for `one_time`; ignored for other modes |
+| `due_date` | date | *(none)* | — | Due date for a `one_time` task. The task stays active until completed, then becomes **done** (`is_done` — hidden from the card, shown as *Completed* in the panel; distinct from the **archived** retire-state, see *Archive & Retention*). Required for `one_time`; ignored for other modes |
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
 | `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length). The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. |
 | `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |

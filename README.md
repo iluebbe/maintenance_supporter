@@ -91,11 +91,12 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 ### Task Management
 - Create maintenance objects (devices, equipment, appliances) and assign tasks to them
 - Six task types: cleaning, inspection, replacement, calibration, service, custom
-- Scheduling modes: **time-based** (recurring interval), **calendar recurrence** (specific weekdays, *nth weekday of the month* — e.g. "1st Saturday", or a *day of the month*), **sensor-based** (triggered by entity state), **one-time** (single due date, archived once done), **manual**
+- Scheduling modes: **time-based** (recurring interval), **calendar recurrence** (specific weekdays, *nth weekday of the month* — e.g. "1st Saturday", or a *day of the month*), **sensor-based** (triggered by entity state), **one-time** (single due date, marked *done* once completed), **manual**
 - **Interval units**: time-based intervals can be **days, weeks, months or years** — months and years use real calendar arithmetic (last-day clamping, leap years)
 - **Calendar recurrence**: pin a task to weekdays (e.g. Mon & Thu), the *nth weekday of the month* (1st–5th or last, e.g. "1st Saturday" for smoke-alarm checks), or a fixed *day of the month* (clamped to the month length)
 - Task status tracking: OK, Due Soon, Overdue, Triggered
-- **One-time tasks**: schedule a non-recurring job with an explicit due date; completing it archives the task (hidden from the card, shown as *Completed* in the panel)
+- **One-time tasks**: schedule a non-recurring job with an explicit due date; completing it marks it *done* (hidden from the card, shown as *Completed* in the panel)
+- **Archive & retention** (2.10.0+): archive any task or object to retire it without deleting — archived items are **hidden by default** (a *Show archived* toggle reveals them) and go **inert** (no triggers, notifications, calendar entries, or active status counts), but keep their full history and cost (budget still counts). Archiving an object cascades to its tasks; unarchiving a recurring task starts a fresh cycle. Optionally **auto-archive** completed one-off tasks N days after completion, and opt-in **auto-delete** auto-archived one-offs after a further N days (manual archives are never auto-deleted)
 - **Binary sensor** per task (`device_class: problem`) — ON when overdue or triggered, ideal for HA automations
 - **Interval anchoring**: choose between completion-based (default) or planned-date anchoring to prevent schedule drift
 - **Time-of-day scheduling** (optional, advanced): tasks flip to OVERDUE at a configured `HH:MM` in HA's timezone instead of at midnight. Calendar events become timed 30-min blocks so mobile calendars can set real reminders. Enable under Settings → Features.
