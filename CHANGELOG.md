@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.1] - 2026-06-25
+
+### 🐛 Fixes
+
+- **Archive a single task directly from the object view.** The object-detail task rows now have their own **Archive / Unarchive** action (next to Complete / Skip), so retiring one task no longer means reaching for the object-level button. That object button — which archives the object **and all its tasks** by design — is now labelled **"Archive object"** (with its existing "object and its tasks" confirmation) so the scope is unmistakable.
+
 ## [2.10.0] - 2026-06-25
 
 ### 🗄️ Archive & retention — retire tasks and objects without deleting
