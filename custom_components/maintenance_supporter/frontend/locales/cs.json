@@ -538,5 +538,7 @@
   "settings_archive": "Archiv a uchovávání",
   "settings_archive_desc": "Odkládejte dokončené jednorázové úkoly bez mazání. Archivované položky jsou skryté a neaktivní, ale zachovávají historii a náklady.",
   "settings_archive_oneoff_days": "Automaticky archivovat dokončené jednorázové úkoly po (dny, 0 = vypnuto)",
-  "settings_delete_archived_oneoff_days": "Automaticky mazat archivované jednorázové úkoly po (dny, 0 = nikdy)"
+  "settings_delete_archived_oneoff_days": "Automaticky mazat archivované jednorázové úkoly po (dny, 0 = nikdy)",
+  "archive_object": "Archivovat objekt",
+  "unarchive_object": "Obnovit objekt z archivu"
 }

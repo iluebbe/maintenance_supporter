@@ -538,5 +538,7 @@
   "settings_archive": "Archiviazione e conservazione",
   "settings_archive_desc": "Metti da parte le attività una tantum completate senza eliminarle. Gli elementi archiviati sono nascosti e inattivi, ma conservano cronologia e costi.",
   "settings_archive_oneoff_days": "Archivia automaticamente le attività una tantum completate dopo (giorni, 0 = off)",
-  "settings_delete_archived_oneoff_days": "Elimina automaticamente le attività una tantum archiviate dopo (giorni, 0 = mai)"
+  "settings_delete_archived_oneoff_days": "Elimina automaticamente le attività una tantum archiviate dopo (giorni, 0 = mai)",
+  "archive_object": "Archivia oggetto",
+  "unarchive_object": "Annulla archiviazione oggetto"
 }

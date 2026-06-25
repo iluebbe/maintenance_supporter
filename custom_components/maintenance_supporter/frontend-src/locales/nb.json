@@ -538,5 +538,7 @@
   "settings_archive": "Arkiv og oppbevaring",
   "settings_archive_desc": "Legg bort fullførte engangsoppgaver uten å slette dem. Arkiverte elementer er skjult og inaktive, men beholder historikk og kostnad.",
   "settings_archive_oneoff_days": "Arkivér fullførte engangsoppgaver automatisk etter (dager, 0 = av)",
-  "settings_delete_archived_oneoff_days": "Slett arkiverte engangsoppgaver automatisk etter (dager, 0 = aldri)"
+  "settings_delete_archived_oneoff_days": "Slett arkiverte engangsoppgaver automatisk etter (dager, 0 = aldri)",
+  "archive_object": "Arkivér objekt",
+  "unarchive_object": "Gjenopprett objekt"
 }

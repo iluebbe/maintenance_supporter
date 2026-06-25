@@ -538,5 +538,7 @@
   "settings_archive": "归档与保留",
   "settings_archive_desc": "将已完成的一次性任务归档而不删除。已归档项目会被隐藏且不再活动，但保留其历史记录和费用。",
   "settings_archive_oneoff_days": "已完成的一次性任务在多少天后自动归档（0 = 关闭）",
-  "settings_delete_archived_oneoff_days": "已归档的一次性任务在多少天后自动删除（0 = 永不）"
+  "settings_delete_archived_oneoff_days": "已归档的一次性任务在多少天后自动删除（0 = 永不）",
+  "archive_object": "归档对象",
+  "unarchive_object": "取消归档对象"
 }

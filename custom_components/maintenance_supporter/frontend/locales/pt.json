@@ -538,5 +538,7 @@
   "settings_archive": "Arquivo e retenção",
   "settings_archive_desc": "Retire tarefas únicas concluídas sem as eliminar. Os itens arquivados ficam ocultos e inativos, mas mantêm histórico e custos.",
   "settings_archive_oneoff_days": "Arquivar automaticamente tarefas únicas concluídas após (dias, 0 = desligado)",
-  "settings_delete_archived_oneoff_days": "Eliminar automaticamente tarefas únicas arquivadas após (dias, 0 = nunca)"
+  "settings_delete_archived_oneoff_days": "Eliminar automaticamente tarefas únicas arquivadas após (dias, 0 = nunca)",
+  "archive_object": "Arquivar objeto",
+  "unarchive_object": "Desarquivar objeto"
 }

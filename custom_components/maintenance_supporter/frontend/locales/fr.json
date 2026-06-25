@@ -538,5 +538,7 @@
   "settings_archive": "Archivage et conservation",
   "settings_archive_desc": "Mettez de côté les tâches ponctuelles terminées sans les supprimer. Les éléments archivés sont masqués et inactifs, mais conservent leur historique et leurs coûts.",
   "settings_archive_oneoff_days": "Archiver automatiquement les tâches ponctuelles terminées après (jours, 0 = désactivé)",
-  "settings_delete_archived_oneoff_days": "Supprimer automatiquement les tâches ponctuelles archivées après (jours, 0 = jamais)"
+  "settings_delete_archived_oneoff_days": "Supprimer automatiquement les tâches ponctuelles archivées après (jours, 0 = jamais)",
+  "archive_object": "Archiver l'objet",
+  "unarchive_object": "Désarchiver l'objet"
 }

@@ -538,5 +538,7 @@
   "settings_archive": "Archive & Retention",
   "settings_archive_desc": "Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",
   "settings_archive_oneoff_days": "Auto-archive completed one-off tasks after (days, 0 = off)",
-  "settings_delete_archived_oneoff_days": "Auto-delete archived one-off tasks after (days, 0 = never)"
+  "settings_delete_archived_oneoff_days": "Auto-delete archived one-off tasks after (days, 0 = never)",
+  "archive_object": "Archive object",
+  "unarchive_object": "Unarchive object"
 }

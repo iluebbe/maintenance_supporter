@@ -538,5 +538,7 @@
   "settings_archive": "アーカイブと保持",
   "settings_archive_desc": "完了した単発タスクを削除せずに片付けます。アーカイブされた項目は非表示で動作しませんが、履歴とコストは保持されます。",
   "settings_archive_oneoff_days": "完了した単発タスクを自動アーカイブする日数（0 = 無効）",
-  "settings_delete_archived_oneoff_days": "アーカイブ済み単発タスクを自動削除する日数（0 = しない）"
+  "settings_delete_archived_oneoff_days": "アーカイブ済み単発タスクを自動削除する日数（0 = しない）",
+  "archive_object": "オブジェクトをアーカイブ",
+  "unarchive_object": "オブジェクトのアーカイブを解除"
 }

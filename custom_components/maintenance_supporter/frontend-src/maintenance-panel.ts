@@ -687,9 +687,9 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!archived) {
       const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
       const ok = await dlg?.confirm({
-        title: t("archive", this._lang),
+        title: t("archive_object", this._lang),
         message: t("confirm_archive_object", this._lang),
-        confirmText: t("archive", this._lang),
+        confirmText: t("archive_object", this._lang),
       });
       if (!ok) return;
     }
@@ -1898,7 +1898,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               }}>${t("add_task", L)}</ha-button>
               <ha-button appearance="plain" @click=${() => this._toggleArchiveObject(obj.entry_id, !!o.archived)}>
                 <ha-icon icon="${o.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-                ${o.archived ? t("unarchive", L) : t("archive", L)}
+                ${o.archived ? t("unarchive_object", L) : t("archive_object", L)}
               </ha-button>
               <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
             ` : nothing}
@@ -1961,12 +1961,23 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${this._renderMiniSparkline(task)}
                 </span>
                 <span class="row-actions">
-                  <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
-                    <ha-icon icon="mdi:check"></ha-icon>
-                  </mwc-icon-button>
-                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(obj.entry_id, task.id); }}>
-                    <ha-icon icon="mdi:skip-next"></ha-icon>
-                  </mwc-icon-button>
+                  ${task.archived
+                    ? (!isOperator ? html`
+                        <mwc-icon-button class="btn-unarchive" title="${t("unarchive", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._toggleArchiveTask(obj.entry_id, task.id, true); }}>
+                          <ha-icon icon="mdi:archive-arrow-up-outline"></ha-icon>
+                        </mwc-icon-button>` : nothing)
+                    : html`
+                        <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
+                          <ha-icon icon="mdi:check"></ha-icon>
+                        </mwc-icon-button>
+                        <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(obj.entry_id, task.id); }}>
+                          <ha-icon icon="mdi:skip-next"></ha-icon>
+                        </mwc-icon-button>
+                        ${!isOperator ? html`
+                          <mwc-icon-button class="btn-archive" title="${t("archive", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._toggleArchiveTask(obj.entry_id, task.id, false); }}>
+                            <ha-icon icon="mdi:archive-outline"></ha-icon>
+                          </mwc-icon-button>` : nothing}
+                      `}
                 </span>
               </div>
             `)}</div>`}

@@ -538,5 +538,7 @@
   "settings_archive": "Arkistointi ja säilytys",
   "settings_archive_desc": "Siirrä valmiit kertatehtävät arkistoon poistamatta niitä. Arkistoidut kohteet ovat piilossa ja passiivisia, mutta säilyttävät historian ja kustannukset.",
   "settings_archive_oneoff_days": "Arkistoi valmiit kertatehtävät automaattisesti (päivää, 0 = pois)",
-  "settings_delete_archived_oneoff_days": "Poista arkistoidut kertatehtävät automaattisesti (päivää, 0 = ei koskaan)"
+  "settings_delete_archived_oneoff_days": "Poista arkistoidut kertatehtävät automaattisesti (päivää, 0 = ei koskaan)",
+  "archive_object": "Arkistoi kohde",
+  "unarchive_object": "Palauta kohde arkistosta"
 }
