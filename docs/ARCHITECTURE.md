@@ -87,6 +87,11 @@ Cross-object KPI counts (overdue / due_soon / triggered / needs_attention / ok /
 
 The summary coordinator never polls: it recomputes when any object coordinator updates, when a new object entry appears (`SIGNAL_NEW_OBJECT_ENTRY`), or when a trigger flips (`EVENT_TRIGGER_ACTIVATED` / `EVENT_TRIGGER_DEACTIVATED`) — mirroring the live-update path of `maintenance_supporter/subscribe`. Counts read each task's coordinator-computed `_status` (disabled tasks are already forced to `ok`), so the entities, panel chips, and strategy headline always show identical numbers.
 
+### Archive & Retention (2.10.0+)
+Tasks and objects can be **archived** — retired without deleting, so the long-term record (cost/budget, warranty, completion history, adaptive learning) survives. `archived` is a status with **highest precedence**: it's checked first in both `MaintenanceTask.status` and its dict twin `helpers/status.py::compute_status_from_task_dict`, so an archived item reads `archived` regardless of due/trigger state. That single status change makes it inert at most consumers *for free* — `archived` isn't in `_PROBLEM_STATUSES` (binary_sensor off), `notify_statuses` (no notifications), or `_COUNTED_STATUSES` (excluded from KPI counts). The rest filter explicitly: the coordinator short-circuits archived tasks (no trigger eval / adaptive / issue checks), the calendar and the `compute_status_counts` *total* skip them, action buttons go unavailable, and sensor trigger setup is skipped on reload. **Budget is the deliberate exception** — cost totals read completion *history*, not status, so already-spent costs keep counting.
+
+State lives in `entry.data` (`archived_at` ISO timestamp + `archived_reason` ∈ `manual`/`auto`/`object`) — not a `_DYNAMIC_TASK_FIELDS` field, so it survives the Store merge with no storage migration. Archiving an **object** cascades `archived_reason=object` to its active tasks; unarchiving the object reverts exactly those, while unarchiving a recurring task re-anchors `last_performed=today` for a fresh cycle. A daily **retention sweep** (`helpers/retention.py`, a 24 h `async_track_time_interval` with `cancel_on_shutdown`) auto-archives completed one-offs past `archive_oneoff_days` and auto-deletes auto-archived one-offs past `delete_archived_oneoff_days` — pure decisions `should_auto_archive` / `should_auto_delete`; manual archives are never auto-deleted. WS: `task|object/archive|unarchive` (`@require_write`).
+
 ### Action Buttons (single action layer)
 Per-task `button.*` entities (complete / skip / reset) live on each object device, plus a global export button on the hub. They add **no new logic**: `async_press` calls the same `coordinator.complete_/skip_/reset_maintenance` methods used by the `maintenance_supporter.*` services and the mobile-notification actions — one action layer behind three front-ends (services, notifications, buttons). Task-deletion cleanup removes every per-task entity (sensor / binary_sensor / buttons) by matching the task UUID inside the `unique_id`, so no platform-specific list needs maintaining.
 
@@ -141,7 +146,7 @@ A task's recurrence is one value object — `helpers/schedule.py::Schedule`, a f
 | `weekdays` | `weekdays[]` (0=Mon … 6=Sun) | the next selected weekday |
 | `nth_weekday` | `nth` (1–5, or -1 = last), `weekday`, optional `months[]` | e.g. "1st Saturday"; `helpers/dates.py::next_nth_weekday` |
 | `day_of_month` | `day` (1–31, clamped), optional `months[]` | e.g. "the 15th"; `next_day_of_month` |
-| `one_time` | `due_date` | the date, until completed → archived (`is_done`, no re-arm) |
+| `one_time` | `due_date` | the date, until completed → done (`is_done`, no re-arm) |
 | `manual` | — | none (`next_due` is `None` → always OK) |
 
 **The boundary rule (the actual point).** No consumer reads `every` / `unit` / `weekdays` / … directly; callers ask the Schedule for `next_due(...)` and `span_days()`. The recurrence math lives in exactly one place, so the unit-leak bug class — a consumer doing `timedelta(days=interval_days)` on a count that means "6 **months**" (issues #58/#59) — becomes structurally impossible. The calendar date math (nth-weekday, day-of-month clamping, month restriction) is pure and dependency-free in `helpers/dates.py`.
@@ -258,13 +263,14 @@ custom_components/maintenance_supporter/
 Coordinator refresh (every 5 min)
   └─> For each task:
       ├─ If disabled → OK (skip further evaluation)
+      ├─ If archived_at set → ARCHIVED (highest precedence; inert, skip evaluation)
       ├─ If trigger_active → TRIGGERED
       ├─ Compute days_until_due = next_due - today
       │   (next_due comes from the task's Schedule value object — anchor =
       │    last_performed if set, else created_at, else today; interval kinds
       │    via add_interval() (days/weeks/months/years, calendar-aware);
       │    weekdays / nth_weekday / day_of_month → next matching date;
-      │    one_time → due_date until completed, then archived (is_done))
+      │    one_time → due_date until completed, then done (is_done))
       │   ├─ days < 0 → OVERDUE
       │   ├─ days <= warning_days → DUE_SOON
       │   └─ else → OK
@@ -502,14 +508,14 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-45 commands organized by function:
+49 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
 | **Read** | `objects`, `object`, `statistics`, `subscribe`, `templates`, `budget_status`, `groups`, `settings`, `tasks/by_user` |
-| **Object CRUD** | `object/create`, `object/update`, `object/delete` |
+| **Object CRUD** | `object/create`, `object/update`, `object/delete`, `object/archive`, `object/unarchive` |
 | **Task CRUD** | `task/list`, `task/create`, `task/update`, `task/delete` |
-| **Task Actions** | `task/complete`, `task/quick_complete`, `task/skip`, `task/reset`, `task/history/update` |
+| **Task Actions** | `task/complete`, `task/quick_complete`, `task/skip`, `task/reset`, `task/archive`, `task/unarchive`, `task/history/update` |
 | **Group CRUD** | `group/create`, `group/update`, `group/delete` |
 | **Global Settings** | `global/update` *(admin)*, `global/test_notification` *(admin)* |
 | **User Assignment** | `task/assign_user`, `users/list` |
