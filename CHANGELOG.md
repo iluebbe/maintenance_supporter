@@ -2,6 +2,14 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.2] - 2026-06-25
+
+### 🐛 Fixes
+
+- **Archive moved to the task header.** In the task-detail view, Archive / Unarchive is now a button next to QR Code (mirroring the object's "Archive object") instead of a small per-row icon in the object's task list — clearer and easier to hit.
+- **Task-row column alignment.** In the object detail, a task with no assigned user no longer shifts the type / due / action columns out of line — the assigned-user slot is now always reserved (it already was on the dashboard).
+- **Larger Complete / Skip buttons** in the task rows.
+
 ## [2.10.1] - 2026-06-25
 
 ### 🐛 Fixes
