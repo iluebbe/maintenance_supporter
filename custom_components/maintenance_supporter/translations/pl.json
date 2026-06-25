@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Wkrótce wymagane",
           "overdue": "Przeterminowane",
-          "triggered": "Wyzwolone"
+          "triggered": "Wyzwolone",
+          "archived": "Zarchiwizowane"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Wkrótce wymagane",
               "overdue": "Przeterminowane",
-              "triggered": "Wyzwolone"
+              "triggered": "Wyzwolone",
+              "archived": "Zarchiwizowane"
             }
           },
           "days_until_due": {

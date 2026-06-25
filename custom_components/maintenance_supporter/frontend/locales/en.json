@@ -528,5 +528,15 @@
   "reset_to_date": "Reset last_performed to",
   "delete_task_confirm": "Delete this task and its history?",
   "delete_object_confirm": "Delete this object and all its tasks?",
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "archive": "Archive",
+  "unarchive": "Unarchive",
+  "archived": "Archived",
+  "show_archived": "Show archived",
+  "hide_archived": "Hide archived",
+  "confirm_archive_object": "Archive this object and its tasks? They keep their history and can be unarchived later.",
+  "settings_archive": "Archive & Retention",
+  "settings_archive_desc": "Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",
+  "settings_archive_oneoff_days": "Auto-archive completed one-off tasks after (days, 0 = off)",
+  "settings_delete_archived_oneoff_days": "Auto-delete archived one-off tasks after (days, 0 = never)"
 }

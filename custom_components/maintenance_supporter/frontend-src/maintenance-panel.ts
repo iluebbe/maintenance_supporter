@@ -113,6 +113,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   // columns sourced from the global setting (sanitised; defaults until loaded).
   @state() private _objectViewMode: "cards" | "table" = "cards";
   @state() private _objectsTableColumns: string[] = DEFAULT_OBJECTS_TABLE_COLUMNS;
+  // v2.10.0: archived tasks/objects are hidden until this toggle is on.
+  @state() private _showArchived = false;
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -406,6 +408,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     const rows: TaskRow[] = [];
     for (const obj of this._objects) {
       for (const task of obj.tasks) {
+        // v2.10.0: archived tasks are hidden unless the toggle reveals them.
+        if (!this._showArchived && task.archived) continue;
         if (this._filterStatus && task.status !== this._filterStatus) continue;
 
         // User filter
@@ -445,6 +449,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           interval_unit: task.interval_unit ?? null,
           interval_anchor: task.interval_anchor ?? null,
           is_done: task.is_done ?? false,
+          archived: task.archived ?? false,
           history: task.history || [],
           enabled: task.enabled,
           nfc_tag_id: task.nfc_tag_id ?? null,
@@ -651,6 +656,50 @@ export class MaintenanceSupporterPanel extends LitElement {
         task_id: taskId,
       });
       this._showObject(entryId);
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  // v2.10.0: archive / unarchive a single task (reversible — no confirm).
+  private async _toggleArchiveTask(entryId: string, taskId: string, archived: boolean): Promise<void> {
+    this._actionLoading = true;
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: archived
+          ? "maintenance_supporter/task/unarchive"
+          : "maintenance_supporter/task/archive",
+        entry_id: entryId,
+        task_id: taskId,
+      });
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
+  // v2.10.0: archive / unarchive an object (archiving cascades to its tasks, so
+  // confirm first; unarchiving is reversible and needs none).
+  private async _toggleArchiveObject(entryId: string, archived: boolean): Promise<void> {
+    if (!archived) {
+      const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+      const ok = await dlg?.confirm({
+        title: t("archive", this._lang),
+        message: t("confirm_archive_object", this._lang),
+        confirmText: t("archive", this._lang),
+      });
+      if (!ok) return;
+    }
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: archived
+          ? "maintenance_supporter/object/unarchive"
+          : "maintenance_supporter/object/archive",
+        entry_id: entryId,
+      });
       await this._loadData();
     } catch {
       this._showToast(t("action_error", this._lang));
@@ -1041,6 +1090,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     const rows = this._taskRows;
     const L = this._lang;
     const isOperator = this._isOperator;
+    // v2.10.0: count archived tasks so the reveal toggle can show how many are
+    // hidden (and hide itself entirely when there is nothing archived).
+    const archivedCount = this._objects.reduce(
+      (n, o) => n + o.tasks.filter((tk) => tk.archived).length, 0,
+    );
 
     return html`
       ${this._features.budget ? this._renderBudgetBar() : nothing}
@@ -1105,6 +1159,15 @@ export class MaintenanceSupporterPanel extends LitElement {
             <option value="user" ?selected=${this._groupByMode === "user"}>${t("groupby_user", L)}</option>
           </select>
         </label>
+        ${archivedCount > 0 ? html`
+          <ha-button
+            class="archived-toggle ${this._showArchived ? "active" : ""}"
+            @click=${() => { this._showArchived = !this._showArchived; }}
+          >
+            <ha-icon icon="mdi:archive-outline"></ha-icon>
+            ${this._showArchived ? t("hide_archived", L) : `${t("show_archived", L)} (${archivedCount})`}
+          </ha-button>
+        ` : nothing}
         ${!isOperator ? html`
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
@@ -1204,6 +1267,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     // (#67) Table mode is desktop-only; narrow viewports always fall back to
     // cards (the table's many columns don't fit a phone).
     const tableMode = this._objectViewMode === "table" && !this.narrow;
+    // v2.10.0: how many objects are archived (drives the reveal toggle below).
+    const archivedObjCount = this._objects.filter((o) => o.object.archived).length;
 
     // Sort + group helpers
     const minDays = (obj: MaintenanceObjectResponse): number => {
@@ -1214,7 +1279,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       }
       return m;
     };
-    const sorted = [...this._objects];
+    const sorted = this._objects.filter((o) => this._showArchived || !o.object.archived);
     if (this._objectSortMode === "alphabetical") {
       sorted.sort((a, b) => a.object.name.localeCompare(b.object.name));
     } else if (this._objectSortMode === "task_count") {
@@ -1316,6 +1381,15 @@ export class MaintenanceSupporterPanel extends LitElement {
         <ha-button appearance="plain" @click=${() => this._exportObjectsCsv()}>
           <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${t("settings_export_csv", L)}
         </ha-button>
+        ${archivedObjCount > 0 ? html`
+          <ha-button
+            class="archived-toggle ${this._showArchived ? "active" : ""}"
+            @click=${() => { this._showArchived = !this._showArchived; }}
+          >
+            <ha-icon icon="mdi:archive-outline"></ha-icon>
+            ${this._showArchived ? t("hide_archived", L) : `${t("show_archived", L)} (${archivedObjCount})`}
+          </ha-button>
+        ` : nothing}
       </div>
       ${tableMode
         ? this._renderObjectsTable(sorted)
@@ -1570,7 +1644,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     return html`
       <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
         <span class="cell-badges">
-          <span class="status-badge ${row.is_done ? 'done' : row.status}">${row.is_done ? t("completed", L) : t(row.status, L)}</span>
+          <span class="status-badge ${row.archived ? 'archived' : (row.is_done ? 'done' : row.status)}">${row.archived ? t("archived", L) : (row.is_done ? t("completed", L) : t(row.status, L))}</span>
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
           ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
         </span>
@@ -1802,6 +1876,12 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     const isOperator = this._isOperator;
 
+    // v2.10.0: archived tasks are hidden in the object detail too, unless the
+    // shared show-archived toggle is on; a per-detail toggle reveals them when
+    // this object has any (e.g. a task archived individually on an active object).
+    const archivedInObj = obj.tasks.filter((tk) => tk.archived).length;
+    const visibleTasks = obj.tasks.filter((tk) => this._showArchived || !tk.archived);
+
     return html`
       <div class="detail-section">
         <div class="detail-header">
@@ -1816,6 +1896,10 @@ export class MaintenanceSupporterPanel extends LitElement {
                 const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
                 dlg?.openCreate(obj.entry_id);
               }}>${t("add_task", L)}</ha-button>
+              <ha-button appearance="plain" @click=${() => this._toggleArchiveObject(obj.entry_id, !!o.archived)}>
+                <ha-icon icon="${o.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
+                ${o.archived ? t("unarchive", L) : t("archive", L)}
+              </ha-button>
               <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
             ` : nothing}
             <ha-button appearance="plain" @click=${() => this._openQrForObject(obj.entry_id, o.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
@@ -1839,7 +1923,15 @@ export class MaintenanceSupporterPanel extends LitElement {
             </div>`
           : nothing}
 
-        <h3>${t("tasks", L)} (${obj.tasks.length})</h3>
+        <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
+          <ha-button
+            class="archived-toggle ${this._showArchived ? "active" : ""}"
+            appearance="plain"
+            @click=${() => { this._showArchived = !this._showArchived; }}
+          >
+            <ha-icon icon="mdi:archive-outline"></ha-icon>
+            ${this._showArchived ? t("hide_archived", L) : `${t("show_archived", L)} (${archivedInObj})`}
+          </ha-button>` : nothing}</h3>
         ${obj.tasks.length === 0
           ? html`<div class="empty-state-centered">
               <p class="empty">${t("no_tasks_yet", L)}</p>
@@ -1848,13 +1940,13 @@ export class MaintenanceSupporterPanel extends LitElement {
                 dlg?.openCreate(obj.entry_id);
               }}>${t("add_first_task", L)}</ha-button>
             </div>`
-          : html`<div class="task-table">${[...obj.tasks].sort((a, b) => {
+          : html`<div class="task-table">${[...visibleTasks].sort((a, b) => {
               const so: Record<string, number> = { overdue: 0, triggered: 1, due_soon: 2, ok: 3 };
               return (so[a.status] ?? 9) - (so[b.status] ?? 9) || (a.days_until_due ?? 99999) - (b.days_until_due ?? 99999);
             }).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="cell-badges">
-                  <span class="status-badge ${task.is_done ? 'done' : task.status}">${task.is_done ? t("completed", L) : t(task.status, L)}</span>
+                  <span class="status-badge ${task.archived ? 'archived' : (task.is_done ? 'done' : task.status)}">${task.archived ? t("archived", L) : (task.is_done ? t("completed", L) : t(task.status, L))}</span>
                   ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                 </span>
@@ -1893,8 +1985,8 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     // Determine status chip — use the backend-computed status. A completed
     // one-time task is shown as archived ("done") rather than its raw "ok".
-    const statusClass = task.is_done ? "done" : (task.status === "due_soon" ? "warning" : (task.status || "ok"));
-    const statusText = task.is_done ? t("completed", L) : t(task.status || "ok", L);
+    const statusClass = task.archived ? "archived" : (task.is_done ? "done" : (task.status === "due_soon" ? "warning" : (task.status || "ok")));
+    const statusText = task.archived ? t("archived", L) : (task.is_done ? t("completed", L) : t(task.status || "ok", L));
 
     return html`
       <div class="task-header">
@@ -1923,6 +2015,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
+                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._toggleArchiveTask(this._selectedEntryId!, this._selectedTaskId!, !!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
                   <div class="popup-menu-divider"></div>
                   <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
                 </div>

@@ -108,6 +108,9 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
             return False
         if not self._task_data:
             return False
+        # Archived task → its complete/skip/reset buttons go unavailable (inert).
+        if self._task_data.get("archived_at") is not None:
+            return False
         task_cfg = self.coordinator.entry.data.get(CONF_TASKS, {}).get(
             self._task_id, {}
         )

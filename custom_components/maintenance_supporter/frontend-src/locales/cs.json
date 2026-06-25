@@ -528,5 +528,15 @@
   "reset_to_date": "Resetovat poslední provedení na",
   "delete_task_confirm": "Smazat tento úkol a jeho historii?",
   "delete_object_confirm": "Smazat tento objekt a všechny jeho úkoly?",
-  "loading": "Načítání…"
+  "loading": "Načítání…",
+  "archive": "Archivovat",
+  "unarchive": "Obnovit z archivu",
+  "archived": "Archivováno",
+  "show_archived": "Zobrazit archivované",
+  "hide_archived": "Skrýt archivované",
+  "confirm_archive_object": "Archivovat tento objekt a jeho úkoly? Historie zůstane zachována a lze ji později obnovit.",
+  "settings_archive": "Archiv a uchovávání",
+  "settings_archive_desc": "Odkládejte dokončené jednorázové úkoly bez mazání. Archivované položky jsou skryté a neaktivní, ale zachovávají historii a náklady.",
+  "settings_archive_oneoff_days": "Automaticky archivovat dokončené jednorázové úkoly po (dny, 0 = vypnuto)",
+  "settings_delete_archived_oneoff_days": "Automaticky mazat archivované jednorázové úkoly po (dny, 0 = nikdy)"
 }

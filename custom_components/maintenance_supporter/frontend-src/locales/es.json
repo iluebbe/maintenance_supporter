@@ -528,5 +528,15 @@
   "reset_to_date": "Restablecer última ejecución a",
   "delete_task_confirm": "¿Eliminar esta tarea y su historial?",
   "delete_object_confirm": "¿Eliminar este objeto y todas sus tareas?",
-  "loading": "Cargando…"
+  "loading": "Cargando…",
+  "archive": "Archivar",
+  "unarchive": "Desarchivar",
+  "archived": "Archivado",
+  "show_archived": "Mostrar archivados",
+  "hide_archived": "Ocultar archivados",
+  "confirm_archive_object": "¿Archivar este objeto y sus tareas? Se conserva el historial y se puede restaurar más tarde.",
+  "settings_archive": "Archivado y retención",
+  "settings_archive_desc": "Retira las tareas únicas completadas sin eliminarlas. Los elementos archivados se ocultan y quedan inactivos, pero conservan su historial y coste.",
+  "settings_archive_oneoff_days": "Archivar automáticamente las tareas únicas completadas tras (días, 0 = desactivado)",
+  "settings_delete_archived_oneoff_days": "Eliminar automáticamente las tareas únicas archivadas tras (días, 0 = nunca)"
 }

@@ -324,6 +324,25 @@ BUDGET_CURRENCIES: dict[str, str] = {
     "UAH": "₴",
 }
 
+# --- Archive & Retention (v2.10.0) ---
+# Global int settings (panel-managed via WS, like objects_table_columns):
+#   archive_oneoff_days          — auto-archive a completed one-off this many days
+#                                  after completion. 0 = disabled (manual only).
+#   delete_archived_oneoff_days  — auto-delete an AUTO-archived one-off this many
+#                                  days after it was archived. 0 = never. Manual
+#                                  archives are NEVER auto-deleted (delete stays explicit).
+CONF_ARCHIVE_ONEOFF_DAYS = "archive_oneoff_days"
+CONF_DELETE_ARCHIVED_ONEOFF_DAYS = "delete_archived_oneoff_days"
+DEFAULT_ARCHIVE_ONEOFF_DAYS = 14
+DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS = 0  # 0 = never
+
+# Per-task/object `archived_reason` values (stored alongside `archived_at`).
+# Drives two policies: only AUTO is eligible for auto-delete; only OBJECT is
+# undone by an object unarchive cascade (MANUAL/AUTO survive it).
+ARCHIVE_REASON_MANUAL = "manual"
+ARCHIVE_REASON_AUTO = "auto"
+ARCHIVE_REASON_OBJECT = "object"
+
 # --- Groups ---
 CONF_GROUPS = "groups"
 
@@ -366,6 +385,11 @@ class MaintenanceStatus(StrEnum):
     DUE_SOON = "due_soon"
     OVERDUE = "overdue"
     TRIGGERED = "triggered"
+    # v2.10.0: highest-precedence status. An archived task/object is retired but
+    # retained — it reads `archived`, fires nothing, and counts for nothing
+    # except budget/cost history (which is read from completion history, not
+    # status, so it is archive-agnostic by design).
+    ARCHIVED = "archived"
 
 
 class MaintenanceTypeEnum(StrEnum):

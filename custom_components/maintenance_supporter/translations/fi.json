@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Erääntyy pian",
           "overdue": "Myöhässä",
-          "triggered": "Lauennut"
+          "triggered": "Lauennut",
+          "archived": "Arkistoitu"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Erääntyy pian",
               "overdue": "Myöhässä",
-              "triggered": "Lauennut"
+              "triggered": "Lauennut",
+              "archived": "Arkistoitu"
             }
           },
           "days_until_due": {

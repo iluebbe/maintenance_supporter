@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Brzy splatné",
           "overdue": "Po termínu",
-          "triggered": "Spuštěno"
+          "triggered": "Spuštěno",
+          "archived": "Archivováno"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Brzy splatné",
               "overdue": "Po termínu",
-              "triggered": "Spuštěno"
+              "triggered": "Spuštěno",
+              "archived": "Archivováno"
             }
           },
           "days_until_due": {

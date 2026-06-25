@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Bijna verlopen",
           "overdue": "Achterstallig",
-          "triggered": "Geactiveerd"
+          "triggered": "Geactiveerd",
+          "archived": "Gearchiveerd"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Binnenkort",
               "overdue": "Achterstallig",
-              "triggered": "Geactiveerd"
+              "triggered": "Geactiveerd",
+              "archived": "Gearchiveerd"
             }
           },
           "days_until_due": {

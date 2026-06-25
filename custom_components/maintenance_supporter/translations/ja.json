@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "期限間近",
           "overdue": "期限切れ",
-          "triggered": "トリガー済み"
+          "triggered": "トリガー済み",
+          "archived": "アーカイブ済み"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "期限間近",
               "overdue": "期限切れ",
-              "triggered": "トリガー済み"
+              "triggered": "トリガー済み",
+              "archived": "アーカイブ済み"
             }
           },
           "days_until_due": {

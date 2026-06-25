@@ -102,6 +102,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         MaintenanceStatus.DUE_SOON,
         MaintenanceStatus.OVERDUE,
         MaintenanceStatus.TRIGGERED,
+        MaintenanceStatus.ARCHIVED,
     ]
 
     def __init__(
@@ -304,6 +305,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         self.async_on_remove(
             async_dispatcher_connect(self.hass, signal, self._handle_task_reset)
         )
+
+        # v2.10.0: an archived task is inert — keep the status listener above
+        # (so unarchive repaints immediately) but never wire up its triggers.
+        if task_data.get("archived_at") is not None:
+            return
 
         if not trigger_config:
             return

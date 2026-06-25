@@ -528,5 +528,15 @@
   "reset_to_date": "重置最后执行日期为",
   "delete_task_confirm": "确定删除此任务及其历史记录吗？",
   "delete_object_confirm": "确定删除此设备及其所有任务吗？",
-  "loading": "加载中…"
+  "loading": "加载中…",
+  "archive": "归档",
+  "unarchive": "取消归档",
+  "archived": "已归档",
+  "show_archived": "显示已归档",
+  "hide_archived": "隐藏已归档",
+  "confirm_archive_object": "归档此对象及其任务？历史记录将保留，以后可恢复。",
+  "settings_archive": "归档与保留",
+  "settings_archive_desc": "将已完成的一次性任务归档而不删除。已归档项目会被隐藏且不再活动，但保留其历史记录和费用。",
+  "settings_archive_oneoff_days": "已完成的一次性任务在多少天后自动归档（0 = 关闭）",
+  "settings_delete_archived_oneoff_days": "已归档的一次性任务在多少天后自动删除（0 = 永不）"
 }

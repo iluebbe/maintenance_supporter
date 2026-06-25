@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "In scadenza",
           "overdue": "In ritardo",
-          "triggered": "Attivato"
+          "triggered": "Attivato",
+          "archived": "Archiviato"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "In scadenza",
               "overdue": "Scaduta",
-              "triggered": "Attivato"
+              "triggered": "Attivato",
+              "archived": "Archiviato"
             }
           },
           "days_until_due": {

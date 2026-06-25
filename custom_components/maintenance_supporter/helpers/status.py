@@ -23,10 +23,13 @@ from ..const import DEFAULT_WARNING_DAYS, MaintenanceStatus
 def compute_status_from_task_dict(task: dict[str, Any]) -> str:
     """Compute task status from a coordinator data dict.
 
-    Mirrors :pyattr:`MaintenanceTask.status` for the trigger / overdue /
-    due-soon / ok ladder. ``_trigger_active`` and ``_days_until_due`` are the
-    coordinator-computed live fields.
+    Mirrors :pyattr:`MaintenanceTask.status` for the archived / trigger /
+    overdue / due-soon / ok ladder. ``_trigger_active`` and ``_days_until_due``
+    are the coordinator-computed live fields.
     """
+    # Archived takes precedence over everything (v2.10.0) — see the model twin.
+    if task.get("archived_at") is not None:
+        return MaintenanceStatus.ARCHIVED
     if task.get("_trigger_active", False):
         return MaintenanceStatus.TRIGGERED
 

@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Próximo do Vencimento",
           "overdue": "Em Atraso",
-          "triggered": "Acionado"
+          "triggered": "Acionado",
+          "archived": "Arquivado"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Próximo do Vencimento",
               "overdue": "Em Atraso",
-              "triggered": "Acionado"
+              "triggered": "Acionado",
+              "archived": "Arquivado"
             }
           },
           "days_until_due": {

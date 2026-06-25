@@ -528,5 +528,15 @@
   "reset_to_date": "最終実施日を次の日付にリセット",
   "delete_task_confirm": "このタスクと履歴を削除しますか？",
   "delete_object_confirm": "この対象とすべてのタスクを削除しますか？",
-  "loading": "読み込み中…"
+  "loading": "読み込み中…",
+  "archive": "アーカイブ",
+  "unarchive": "アーカイブ解除",
+  "archived": "アーカイブ済み",
+  "show_archived": "アーカイブを表示",
+  "hide_archived": "アーカイブを非表示",
+  "confirm_archive_object": "このオブジェクトとそのタスクをアーカイブしますか？履歴は保持され、後で元に戻せます。",
+  "settings_archive": "アーカイブと保持",
+  "settings_archive_desc": "完了した単発タスクを削除せずに片付けます。アーカイブされた項目は非表示で動作しませんが、履歴とコストは保持されます。",
+  "settings_archive_oneoff_days": "完了した単発タスクを自動アーカイブする日数（0 = 無効）",
+  "settings_delete_archived_oneoff_days": "アーカイブ済み単発タスクを自動削除する日数（0 = しない）"
 }

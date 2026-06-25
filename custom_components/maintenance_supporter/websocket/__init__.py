@@ -127,6 +127,12 @@ def _build_task_summary(
         "documentation_url": task_data.get("documentation_url"),
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
+        # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
+        # `archived` is the convenience bool the frontend filters on; reason is
+        # manual | auto | object. All read from the persisted (static) task dict.
+        "archived": task_data.get("archived_at") is not None,
+        "archived_at": task_data.get("archived_at"),
+        "archived_reason": task_data.get("archived_reason"),
         "responsible_user_id": task_data.get("responsible_user_id"),
         "entity_slug": task_data.get("entity_slug"),
         # Auto-derived entity_ids for this task's sensor + binary_sensor.
@@ -226,6 +232,11 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             "documentation_url": obj_data.get("documentation_url"),
             # v1.4.10 (#46): free-form notes shown below the meta block.
             "notes": obj_data.get("notes"),
+            # v2.10.0 archive: object-level archived state. `archived` bool +
+            # the raw timestamp so the panel can hide it by default and show
+            # "archived on …" in the Archived section.
+            "archived": obj_data.get("archived_at") is not None,
+            "archived_at": obj_data.get("archived_at"),
         },
         "tasks": tasks,
     }
@@ -352,15 +363,18 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_import_json,
     )
     from .objects import (
+        ws_archive_object,
         ws_create_object,
         ws_delete_object,
         ws_entity_attributes,
         ws_get_object,
         ws_get_objects,
+        ws_unarchive_object,
         ws_update_object,
     )
     from .tags import ws_list_tags
     from .tasks import (
+        ws_archive_task,
         ws_complete_task,
         ws_create_task,
         ws_delete_task,
@@ -368,6 +382,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_quick_complete_task,
         ws_reset_task,
         ws_skip_task,
+        ws_unarchive_task,
         ws_update_history_entry,
         ws_update_task,
     )
@@ -386,9 +401,13 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_object)
     websocket_api.async_register_command(hass, ws_update_object)
     websocket_api.async_register_command(hass, ws_delete_object)
+    websocket_api.async_register_command(hass, ws_archive_object)
+    websocket_api.async_register_command(hass, ws_unarchive_object)
     websocket_api.async_register_command(hass, ws_create_task)
     websocket_api.async_register_command(hass, ws_update_task)
     websocket_api.async_register_command(hass, ws_delete_task)
+    websocket_api.async_register_command(hass, ws_archive_task)
+    websocket_api.async_register_command(hass, ws_unarchive_task)
     websocket_api.async_register_command(hass, ws_list_tasks)
     websocket_api.async_register_command(hass, ws_complete_task)
     websocket_api.async_register_command(hass, ws_quick_complete_task)

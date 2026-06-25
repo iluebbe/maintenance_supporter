@@ -378,6 +378,11 @@ class MaintenanceCalendar(CalendarEntity):
             obj_data = entry.data.get(CONF_OBJECT, {})
             obj_name = obj_data.get("name", "Unknown")
 
+            # v2.10.0: an archived object contributes no calendar events (its
+            # tasks are cascade-archived too, but skip the whole entry up front).
+            if obj_data.get("archived_at") is not None:
+                continue
+
             # Use live coordinator data (has trigger state) if available,
             # fall back to config entry data
             runtime_data = getattr(entry, "runtime_data", None)
@@ -400,6 +405,9 @@ class MaintenanceCalendar(CalendarEntity):
                 task = MaintenanceTask.from_dict(task_dict)
 
                 if not task.enabled:
+                    continue
+                # Archived task → no calendar entries (inert).
+                if task.archived_at is not None:
                     continue
 
                 # Inject live trigger state from coordinator

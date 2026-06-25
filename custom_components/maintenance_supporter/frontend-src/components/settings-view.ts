@@ -50,6 +50,12 @@ interface SettingsResponse {
     currency: string;
     currency_symbol: string;
   };
+  // v2.10.0 archive automation (panel-managed). Optional for forward-compat
+  // with a backend that predates the feature.
+  archive?: {
+    oneoff_days: number;
+    delete_archived_oneoff_days: number;
+  };
   vacation: {
     enabled: boolean;
     start: string | null;
@@ -226,6 +232,7 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderObjectsColumns(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
+      ${this._renderArchive(L)}
       ${this._renderVacation(L)}
       ${this._renderPrintQr(L)}
       ${this._renderImportExport(L)}
@@ -573,6 +580,28 @@ export class MaintenanceSettingsView extends LitElement {
               @change=${(e: Event) => this._updateSetting("budget_alert_threshold", parseInt((e.target as HTMLInputElement).value, 10) || 80)} />
           </label>
         ` : nothing}
+      </div>
+    `;
+  }
+
+  // --- Section: Archive & retention (v2.10.0) ---
+
+  private _renderArchive(L: string) {
+    const a = this._settings!.archive ?? { oneoff_days: 14, delete_archived_oneoff_days: 0 };
+    return html`
+      <div class="settings-section" data-section="archive">
+        <h3>${t("settings_archive", L)}</h3>
+        <p class="section-desc">${t("settings_archive_desc", L)}</p>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_archive_oneoff_days", L)}</span>
+          <input type="number" min="0" max="3650" step="1" .value=${String(a.oneoff_days)}
+            @change=${(e: Event) => this._updateSetting("archive_oneoff_days", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+        </label>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_delete_archived_oneoff_days", L)}</span>
+          <input type="number" min="0" max="3650" step="1" .value=${String(a.delete_archived_oneoff_days)}
+            @change=${(e: Event) => this._updateSetting("delete_archived_oneoff_days", parseInt((e.target as HTMLInputElement).value, 10) || 0)} />
+        </label>
       </div>
     `;
   }

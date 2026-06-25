@@ -528,5 +528,15 @@
   "reset_to_date": "Reimposta ultima esecuzione al",
   "delete_task_confirm": "Eliminare questa attività e il suo storico?",
   "delete_object_confirm": "Eliminare questo oggetto e tutte le sue attività?",
-  "loading": "Caricamento…"
+  "loading": "Caricamento…",
+  "archive": "Archivia",
+  "unarchive": "Annulla archiviazione",
+  "archived": "Archiviato",
+  "show_archived": "Mostra archiviati",
+  "hide_archived": "Nascondi archiviati",
+  "confirm_archive_object": "Archiviare questo oggetto e le sue attività? La cronologia viene conservata e può essere ripristinata in seguito.",
+  "settings_archive": "Archiviazione e conservazione",
+  "settings_archive_desc": "Metti da parte le attività una tantum completate senza eliminarle. Gli elementi archiviati sono nascosti e inattivi, ma conservano cronologia e costi.",
+  "settings_archive_oneoff_days": "Archivia automaticamente le attività una tantum completate dopo (giorni, 0 = off)",
+  "settings_delete_archived_oneoff_days": "Elimina automaticamente le attività una tantum archiviate dopo (giorni, 0 = mai)"
 }

@@ -528,5 +528,15 @@
   "reset_to_date": "Nollaa viimeksi suoritettu -päivä",
   "delete_task_confirm": "Poistetaanko tämä tehtävä ja sen historia?",
   "delete_object_confirm": "Poistetaanko tämä kohde ja kaikki sen tehtävät?",
-  "loading": "Ladataan…"
+  "loading": "Ladataan…",
+  "archive": "Arkistoi",
+  "unarchive": "Palauta arkistosta",
+  "archived": "Arkistoitu",
+  "show_archived": "Näytä arkistoidut",
+  "hide_archived": "Piilota arkistoidut",
+  "confirm_archive_object": "Arkistoidaanko tämä kohde ja sen tehtävät? Historia säilyy ja sen voi palauttaa myöhemmin.",
+  "settings_archive": "Arkistointi ja säilytys",
+  "settings_archive_desc": "Siirrä valmiit kertatehtävät arkistoon poistamatta niitä. Arkistoidut kohteet ovat piilossa ja passiivisia, mutta säilyttävät historian ja kustannukset.",
+  "settings_archive_oneoff_days": "Arkistoi valmiit kertatehtävät automaattisesti (päivää, 0 = pois)",
+  "settings_delete_archived_oneoff_days": "Poista arkistoidut kertatehtävät automaattisesti (päivää, 0 = ei koskaan)"
 }

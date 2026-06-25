@@ -227,6 +227,32 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     }
   }
 
+  private async _onArchive(): Promise<void> {
+    if (!this._entryId || !this._taskId) return;
+    const ok = await this._runWs({
+      type: "maintenance_supporter/task/archive",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+    });
+    if (ok) {
+      this._notifyChanged("archive");
+      this.close();
+    }
+  }
+
+  private async _onUnarchive(): Promise<void> {
+    if (!this._entryId || !this._taskId) return;
+    const ok = await this._runWs({
+      type: "maintenance_supporter/task/unarchive",
+      entry_id: this._entryId,
+      task_id: this._taskId,
+    });
+    if (ok) {
+      this._notifyChanged("unarchive");
+      this.close();
+    }
+  }
+
   private _onOpenInPanel(): void {
     if (!this._entryId || !this._taskId) return;
     const path = `/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}`
@@ -551,6 +577,12 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                             <button class="btn ghost" @click=${this._onQr} ?disabled=${this._busy}>
                               <ha-icon icon="mdi:qrcode"></ha-icon>
                               ${t("qr_code", L) || "QR"}
+                            </button>
+                            <button class="btn ghost"
+                              @click=${task.archived ? this._onUnarchive : this._onArchive}
+                              ?disabled=${this._busy}>
+                              <ha-icon icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
+                              ${task.archived ? (t("unarchive", L) || "Unarchive") : (t("archive", L) || "Archive")}
                             </button>
                             <button class="btn ghost danger" @click=${this._onDelete} ?disabled=${this._busy}>
                               <ha-icon icon="mdi:delete"></ha-icon>

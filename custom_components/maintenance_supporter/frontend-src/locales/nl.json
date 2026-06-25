@@ -528,5 +528,15 @@
   "reset_to_date": "Laatst uitgevoerd terugzetten op",
   "delete_task_confirm": "Deze taak en de geschiedenis verwijderen?",
   "delete_object_confirm": "Dit object en alle taken verwijderen?",
-  "loading": "Laden…"
+  "loading": "Laden…",
+  "archive": "Archiveren",
+  "unarchive": "Dearchiveren",
+  "archived": "Gearchiveerd",
+  "show_archived": "Gearchiveerde tonen",
+  "hide_archived": "Gearchiveerde verbergen",
+  "confirm_archive_object": "Dit object en zijn taken archiveren? De geschiedenis blijft behouden en kan later worden hersteld.",
+  "settings_archive": "Archief & bewaring",
+  "settings_archive_desc": "Voltooide eenmalige taken archiveren in plaats van verwijderen. Gearchiveerde items zijn verborgen en inactief, maar behouden geschiedenis en kosten.",
+  "settings_archive_oneoff_days": "Voltooide eenmalige taken automatisch archiveren na (dagen, 0 = uit)",
+  "settings_delete_archived_oneoff_days": "Gearchiveerde eenmalige taken automatisch verwijderen na (dagen, 0 = nooit)"
 }
