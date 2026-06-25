@@ -181,7 +181,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Localized UI in **all 18 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 45 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
+- 49 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -247,7 +247,7 @@ Each sensor entity exposes attributes grouped by function. Only stable values ar
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (45 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
+See the [Services](#services) table below for available service calls. For the full WebSocket API (49 commands), see [Architecture — WebSocket API](docs/ARCHITECTURE.md#websocket-api).
 
 ## Data Updates
 
@@ -690,7 +690,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full architecture docum
 
 ## Test Coverage
 
-2,164 tests across 91 test files with **98% code coverage**.
+2,205 tests across 92 test files with **98% code coverage**.
 
 ```
 pytest tests/ --cov=custom_components.maintenance_supporter
@@ -718,7 +718,7 @@ bash scripts/init-dev.sh                # Login: dev / dev at :8125
 # Or if already initialized:
 cd docker && docker compose up -d
 
-# Run tests (2,164 tests):
+# Run tests (2,205 tests):
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -x -q"
 ```
 

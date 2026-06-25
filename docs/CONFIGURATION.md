@@ -45,12 +45,14 @@ These toggles control which advanced feature sections appear in the UI. Disablin
 > - Admins can grant non-admin users full panel access by adding their HA user IDs to the `admin_panel_user_ids` list. This is editable through:
 >   - the panel's **Settings → Panel Access** section (multi-checkbox with all non-admin users), or
 >   - HA Settings → Devices & services → Maintenance Supporter → Configure → **Panel Access**.
+> - **Write delegation (2.8.4+):** by default a listed user gets the full panel *view* but stays **read-only** (no create / edit / delete). To also let them create, edit and delete content, an admin turns on **`operator_write_enabled`** (Settings → Panel Access → *"Allow selected users to create, edit & delete"*). Admin-only commands (global settings, import, vacation, and the allowlist itself) stay admin-only regardless — so a delegated operator can never self-promote.
 >
 > If a listed user is later deleted in HA, an "orphaned panel-access user" repair issue appears with a one-click `Remove from list` action. The issue clears automatically when the id is removed or the user is recreated.
 
 | Setting key | Type | Default | Description |
 |---|---|---|---|
-| `admin_panel_user_ids` | list[string] | `[]` | HA user UUIDs (max 50, each ≤64 chars) granted full panel access despite not being HA admins. Empty list = only admins see full panel. |
+| `admin_panel_user_ids` | list[string] | `[]` | HA user UUIDs (max 50, each ≤64 chars) granted full panel access despite not being HA admins. Empty list = only admins see full panel. Read-only unless `operator_write_enabled` is also on. |
+| `operator_write_enabled` | bool | `false` | (2.8.4+) Master switch for operator write delegation. **Off** (default): the allowlist above is view-only — only HA admins can create / edit / delete. **On**: allowlisted non-admins additionally gain full content CRUD (`@require_write`). Admin-gated commands (global settings, import, vacation, allowlist) stay admin-only either way. Admin-only toggle. |
 
 ### Notification Settings
 

@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.9.2 | ~46,000 lines across 100+ source files (65 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,164 tests on Python 3.13 + 3.14)
+**Version:** 2.10.2 | ~46,000 lines across 100+ source files (66 Python + 38 TypeScript) | **0 external Python dependencies** | **98% test coverage** (2,205 tests on Python 3.13 + 3.14)
 
 ---
 
@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (45 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (49 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -189,10 +189,10 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               45 WS commands, split by domain
+├── websocket/                               49 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
-│   ├── objects.py                              Object CRUD (6 handlers)
-│   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) (9 handlers)
+│   ├── objects.py                              Object CRUD + archive (8 handlers)
+│   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) + archive (2.10.0+) (11 handlers)
 │   ├── groups.py                               Group CRUD (4 handlers)
 │   ├── analysis.py                             Adaptive scheduling (4 handlers)
 │   ├── users.py                                User management (3 handlers)
@@ -439,7 +439,7 @@ All predictions are pure-Python with no external ML dependencies. The predictor 
 3. **Overview (Settings tab)**: In-panel global settings editor — feature toggles, general settings, notification config, mobile actions, budget, JSON/CSV import/export. Writes via `maintenance_supporter/global/update` WS command (same storage as config flow options). Hidden when Operator mode is on.
 4. **Object Detail**: Metadata, task list with status indicators, action buttons, responsible user badges
 5. **Task Detail**: Full info, history table, trigger status, adaptive recommendations, sparkline charts, responsible user display
-6. **All Objects**: Card grid with per-object overdue indicator (red dot + left border), sort dropdown (alphabetical / due-soonest / task-count), and group-by-area collapsible sections (1.0.44+)
+6. **All Objects**: Card grid with per-object overdue indicator (red dot + left border), sort dropdown (alphabetical / due-soonest / task-count), and group-by-area collapsible sections (1.0.44+). A **cards / table view toggle** (#67, desktop only — narrow viewports fall back to cards) renders an asset table whose columns are configurable via the global `objects_table_columns` setting (an ordered subset of `KNOWN_OBJECT_TABLE_COLUMNS`, sanitised server-side in `ws_update_global_settings`, defaulting to `DEFAULT_OBJECTS_TABLE_COLUMNS`). Per-object **CSV export** via the `objects/csv` WS command. Archived objects are hidden here by default behind the *Show archived* toggle.
 
 ### Sort & Group-By (1.0.44+)
 - **Tasks view sort modes:** `due_date / object / type / task_name / area / assigned_user / group`. Comparator built in `_taskRows` getter; reuses TaskRow's `area_id`, `responsible_user_id`, and `group_names` fields populated by 1.0.42's chip work — no extra server data plumbing.
@@ -530,7 +530,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 45 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 49 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
@@ -570,7 +570,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 | runtime-data | Bronze | Yes |
 | docs-removal-instructions | Bronze | Yes (README → Uninstalling) |
 | config-entry-unloading | Silver | Yes |
-| test-coverage (>95%) | Silver | Yes (98%, 2,164 tests) |
+| test-coverage (>95%) | Silver | Yes (98%, 2,205 tests) |
 | strict-typing (mypy --strict) | Silver | Yes |
 | parallel-updates | Silver | Yes (sensor + calendar) |
 | docs-configuration-parameters | Silver | Yes (docs/CONFIGURATION.md) |
@@ -592,7 +592,7 @@ The `schedule_time` field on `MaintenanceTask` (`HH:MM` in HA's configured TZ) i
 
 ## Test Coverage
 
-**2,164 tests** across **91 test files** with **98% code coverage**.
+**2,205 tests** across **92 test files** with **98% code coverage**.
 
 ### Coverage policy
 
