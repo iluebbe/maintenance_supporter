@@ -148,6 +148,19 @@ export const panelStyles = css`
     opacity: 0.75;
   }
 
+  /* Row action buttons (Complete / Skip): right-aligned in their column and a
+     bit larger — the default mwc glyph reads small inside its padded button. */
+  .row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+  }
+  .row-actions mwc-icon-button {
+    --mdc-icon-button-size: 44px;
+    --mdc-icon-size: 26px;
+  }
+
   .detail-section { padding: 16px 0; }
 
   .detail-header {
