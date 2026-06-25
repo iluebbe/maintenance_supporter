@@ -45,7 +45,7 @@ Three layers, run independently or together:
 docker exec ha-maint sh -c 'cd /config && python -m pytest tests/'
 ```
 
-~2,164 unit + integration tests, ~90s. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
+~2,205 unit + integration tests, ~90s. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
 
 ### 2. Component (Lit, web-test-runner)
 
