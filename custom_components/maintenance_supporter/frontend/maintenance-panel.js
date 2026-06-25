@@ -1257,6 +1257,19 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     opacity: 0.75;
   }
 
+  /* Row action buttons (Complete / Skip): right-aligned in their column and a
+     bit larger — the default mwc glyph reads small inside its padded button. */
+  .row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+  }
+  .row-actions mwc-icon-button {
+    --mdc-icon-button-size: 44px;
+    --mdc-icon-size: 26px;
+  }
+
   .detail-section { padding: 16px 0; }
 
   .detail-header {
@@ -5899,7 +5912,7 @@ ${se}`,e.setTooltip)}
                   ${p.nfc_tag_id?n`<span class="nfc-badge" title="${s("nfc_linked",i)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:d}
                 </span>
                 <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,p.id)}>${p.name}</span>
-                ${this._renderUserBadge(p)}
+                <span class="task-sub${p.responsible_user_id?"":" task-sub-empty"}">${this._renderUserBadge(p)}</span>
                 <span class="cell type">${s(p.type,i)}</span>
                 <span class="due-cell" @click=${()=>this._showTask(e.entry_id,p.id)}>
                   <span class="due-text">${ze(p.days_until_due,i)}</span>
@@ -5907,21 +5920,12 @@ ${se}`,e.setTooltip)}
                   ${this._renderMiniSparkline(p)}
                 </span>
                 <span class="row-actions">
-                  ${p.archived?a?d:n`
-                        <mwc-icon-button class="btn-unarchive" title="${s("unarchive",i)}" .disabled=${this._actionLoading} @click=${g=>{g.stopPropagation(),this._toggleArchiveTask(e.entry_id,p.id,!0)}}>
-                          <ha-icon icon="mdi:archive-arrow-up-outline"></ha-icon>
-                        </mwc-icon-button>`:n`
-                        <mwc-icon-button class="btn-complete" title="${s("complete",i)}" @click=${g=>{g.stopPropagation(),this._openCompleteDialog(e.entry_id,p.id,p.name,this._features.checklists?p.checklist:void 0,this._features.adaptive&&!!p.adaptive_config?.enabled)}}>
-                          <ha-icon icon="mdi:check"></ha-icon>
-                        </mwc-icon-button>
-                        <mwc-icon-button class="btn-skip" title="${s("skip",i)}" .disabled=${this._actionLoading} @click=${g=>{g.stopPropagation(),this._promptSkipTask(e.entry_id,p.id)}}>
-                          <ha-icon icon="mdi:skip-next"></ha-icon>
-                        </mwc-icon-button>
-                        ${a?d:n`
-                          <mwc-icon-button class="btn-archive" title="${s("archive",i)}" .disabled=${this._actionLoading} @click=${g=>{g.stopPropagation(),this._toggleArchiveTask(e.entry_id,p.id,!1)}}>
-                            <ha-icon icon="mdi:archive-outline"></ha-icon>
-                          </mwc-icon-button>`}
-                      `}
+                  <mwc-icon-button class="btn-complete" title="${s("complete",i)}" @click=${g=>{g.stopPropagation(),this._openCompleteDialog(e.entry_id,p.id,p.name,this._features.checklists?p.checklist:void 0,this._features.adaptive&&!!p.adaptive_config?.enabled)}}>
+                    <ha-icon icon="mdi:check"></ha-icon>
+                  </mwc-icon-button>
+                  <mwc-icon-button class="btn-skip" title="${s("skip",i)}" .disabled=${this._actionLoading} @click=${g=>{g.stopPropagation(),this._promptSkipTask(e.entry_id,p.id)}}>
+                    <ha-icon icon="mdi:skip-next"></ha-icon>
+                  </mwc-icon-button>
                 </span>
               </div>
             `)}</div>`}
@@ -5942,6 +5946,12 @@ ${se}`,e.setTooltip)}
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${()=>this._openCompleteDialog(this._selectedEntryId,this._selectedTaskId,e.name,this._features.checklists?e.checklist:void 0,this._features.adaptive&&!!e.adaptive_config?.enabled)}>${s("complete",t)}</ha-button>
           <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${()=>this._promptSkipTask(this._selectedEntryId,this._selectedTaskId)}>${s("skip",t)}</ha-button>
+          ${l?d:n`
+            <ha-button appearance="plain" @click=${()=>this._toggleArchiveTask(this._selectedEntryId,this._selectedTaskId,!!e.archived)}>
+              <ha-icon icon="${e.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
+              ${e.archived?s("unarchive",t):s("archive",t)}
+            </ha-button>
+          `}
           <ha-button appearance="plain" @click=${()=>{let g=this._getObject(this._selectedEntryId)?.object;this._openQrForTask(this._selectedEntryId,this._selectedTaskId,g?.name||"",e.name)}}><ha-icon icon="mdi:qrcode"></ha-icon> ${s("qr_code",t)}</ha-button>
           ${l?d:n`
             <div class="more-menu-wrapper">
@@ -5950,7 +5960,6 @@ ${se}`,e.setTooltip)}
                 <div class="popup-menu" @click=${g=>g.stopPropagation()}>
                   <div class="popup-menu-item" @click=${()=>{this._closeMoreMenu(),this.shadowRoot.querySelector("maintenance-task-dialog")?.openEdit(this._selectedEntryId,e)}}>${s("edit",t)}</div>
                   <div class="popup-menu-item" @click=${()=>{this._closeMoreMenu(),this._promptResetTask(this._selectedEntryId,this._selectedTaskId)}}>${s("reset",t)}</div>
-                  <div class="popup-menu-item" @click=${()=>{this._closeMoreMenu(),this._toggleArchiveTask(this._selectedEntryId,this._selectedTaskId,!!e.archived)}}>${e.archived?s("unarchive",t):s("archive",t)}</div>
                   <div class="popup-menu-divider"></div>
                   <div class="popup-menu-item danger" @click=${()=>{this._closeMoreMenu(),this._deleteTask(this._selectedEntryId,this._selectedTaskId)}}>${s("delete",t)}</div>
                 </div>

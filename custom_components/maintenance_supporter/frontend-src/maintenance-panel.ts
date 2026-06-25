@@ -1951,7 +1951,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
-                ${this._renderUserBadge(task)}
+                <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${this._renderUserBadge(task)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
@@ -1961,23 +1961,12 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${this._renderMiniSparkline(task)}
                 </span>
                 <span class="row-actions">
-                  ${task.archived
-                    ? (!isOperator ? html`
-                        <mwc-icon-button class="btn-unarchive" title="${t("unarchive", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._toggleArchiveTask(obj.entry_id, task.id, true); }}>
-                          <ha-icon icon="mdi:archive-arrow-up-outline"></ha-icon>
-                        </mwc-icon-button>` : nothing)
-                    : html`
-                        <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
-                          <ha-icon icon="mdi:check"></ha-icon>
-                        </mwc-icon-button>
-                        <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(obj.entry_id, task.id); }}>
-                          <ha-icon icon="mdi:skip-next"></ha-icon>
-                        </mwc-icon-button>
-                        ${!isOperator ? html`
-                          <mwc-icon-button class="btn-archive" title="${t("archive", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._toggleArchiveTask(obj.entry_id, task.id, false); }}>
-                            <ha-icon icon="mdi:archive-outline"></ha-icon>
-                          </mwc-icon-button>` : nothing}
-                      `}
+                  <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
+                    <ha-icon icon="mdi:check"></ha-icon>
+                  </mwc-icon-button>
+                  <mwc-icon-button class="btn-skip" title="${t("skip", L)}" .disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); this._promptSkipTask(obj.entry_id, task.id); }}>
+                    <ha-icon icon="mdi:skip-next"></ha-icon>
+                  </mwc-icon-button>
                 </span>
               </div>
             `)}</div>`}
@@ -2018,6 +2007,12 @@ export class MaintenanceSupporterPanel extends LitElement {
         <div class="task-header-actions">
           <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
           <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._promptSkipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
+          ${!isOperator ? html`
+            <ha-button appearance="plain" @click=${() => this._toggleArchiveTask(this._selectedEntryId!, this._selectedTaskId!, !!task.archived)}>
+              <ha-icon icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
+              ${task.archived ? t("unarchive", L) : t("archive", L)}
+            </ha-button>
+          ` : nothing}
           <ha-button appearance="plain" @click=${() => { const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
           ${!isOperator ? html`
             <div class="more-menu-wrapper">
@@ -2026,7 +2021,6 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
-                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._toggleArchiveTask(this._selectedEntryId!, this._selectedTaskId!, !!task.archived); }}>${task.archived ? t("unarchive", L) : t("archive", L)}</div>
                   <div class="popup-menu-divider"></div>
                   <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
                 </div>
