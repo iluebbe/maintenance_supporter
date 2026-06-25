@@ -149,6 +149,26 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 result[CONF_TASKS][task_id]["_status"] = MaintenanceStatus.OK
                 continue
 
+            # v2.10.0: an archived task is inert. Short-circuit before any
+            # trigger evaluation / adaptive analysis / issue check — its status
+            # reads ARCHIVED (highest precedence, so it's excluded from notify +
+            # binary_sensor + status counts) and only cost/history-derived fields
+            # are surfaced (budget keeps counting; the detail view still renders
+            # the record).
+            if task.archived_at is not None:
+                task_result = task.to_dict()
+                task_result["_status"] = MaintenanceStatus.ARCHIVED
+                task_result["_days_until_due"] = None
+                task_result["_next_due"] = None
+                task_result["_is_done"] = task.is_done
+                task_result["_trigger_active"] = False
+                task_result["_times_performed"] = task.times_performed
+                task_result["_total_cost"] = task.total_cost
+                task_result["_average_duration"] = task.average_duration
+                task_result["_last_entry"] = task.last_entry
+                result[CONF_TASKS][task_id] = task_result
+                continue
+
             # Restore live trigger state from previous coordinator data
             # but NOT for recently completed/skipped/reset tasks
             prev_task = prev_tasks.get(task_id, {})
@@ -543,6 +563,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for task_id, task in tasks.items():
             if not task.enabled or task.trigger_config is None:
                 continue
+            # Archived tasks are inert — don't raise missing-entity issues for
+            # a trigger that's no longer doing anything.
+            if task.archived_at is not None:
+                continue
 
             entity_ids = normalize_entity_ids(task.trigger_config)
             if not entity_ids:
@@ -653,6 +677,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _check_stale_action_entities(self) -> None:
         """Create/clear repair issues for invalid on_complete_action targets."""
         for task_id, task_dict in self._get_merged_tasks_data().items():
+            if task_dict.get("archived_at") is not None:
+                continue  # archived task: inert, don't flag stale action targets
             action = task_dict.get("on_complete_action") or {}
             if not isinstance(action, dict):
                 continue

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Any
 
 import voluptuous as vol
@@ -26,6 +27,7 @@ from homeassistant.helpers import (
 from homeassistant.helpers import (
     entity_registry as er,
 )
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -550,10 +552,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         er.EVENT_ENTITY_REGISTRY_UPDATED, _on_entity_registry_update
     )
 
+    # v2.10.0: daily archive / auto-delete retention sweep (completed one-offs).
+    # The pure decision logic + the sweep live in helpers/retention; this just
+    # paces it once a day. First fire is +24h, which is plenty for a day-granular
+    # policy (a freshly due archive simply waits for the next tick).
+    from .helpers.retention import async_run_retention_sweep
+
+    async def _retention_tick(_now: Any) -> None:
+        await async_run_retention_sweep(hass)
+
+    unsub_retention = async_track_time_interval(
+        hass, _retention_tick, timedelta(hours=24), cancel_on_shutdown=True
+    )
+
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
     hass.data[DOMAIN]["_event_unsubs"] = [
         unsub_notification, unsub_tag, unsub_action,
-        unsub_device, unsub_entity,
+        unsub_device, unsub_entity, unsub_retention,
     ]
 
     return True

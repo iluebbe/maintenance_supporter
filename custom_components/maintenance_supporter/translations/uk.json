@@ -1098,7 +1098,8 @@
           "ok": "Норма",
           "due_soon": "Незабаром",
           "overdue": "Прострочено",
-          "triggered": "Спрацювало"
+          "triggered": "Спрацювало",
+          "archived": "В архіві"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "Норма",
               "due_soon": "Незабаром",
               "overdue": "Прострочено",
-              "triggered": "Спрацювало"
+              "triggered": "Спрацювало",
+              "archived": "В архіві"
             }
           },
           "days_until_due": {

@@ -146,8 +146,11 @@ export class MaintenanceSupporterCard extends LitElement {
     for (const obj of this._objects) {
       if (filter_objects?.length && !filter_objects.includes(obj.object.name)) continue;
       for (const task of obj.tasks) {
-        // Completed one-time tasks are archived — hide from the active list.
+        // Completed one-time tasks ("done") are hidden from the active list.
         if (task.is_done) continue;
+        // v2.10.0: archived tasks (and tasks of an archived object) are inert —
+        // never shown on the Lovelace card.
+        if (task.archived || obj.object.archived) continue;
         if (filter_status?.length && !filter_status.includes(task.status)) continue;
         // entity_ids: HA-native filter — match the task's sensor or
         // binary_sensor entity_id. Both fields come pre-resolved from the

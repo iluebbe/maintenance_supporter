@@ -528,5 +528,15 @@
   "reset_to_date": "last_performed setzen auf",
   "delete_task_confirm": "Diese Aufgabe und ihren Verlauf löschen?",
   "delete_object_confirm": "Dieses Objekt und alle seine Aufgaben löschen?",
-  "loading": "Laden…"
+  "loading": "Laden…",
+  "archive": "Archivieren",
+  "unarchive": "Wiederherstellen",
+  "archived": "Archiviert",
+  "show_archived": "Archivierte anzeigen",
+  "hide_archived": "Archivierte ausblenden",
+  "confirm_archive_object": "Dieses Objekt und seine Aufgaben archivieren? Verlauf bleibt erhalten, kann später wiederhergestellt werden.",
+  "settings_archive": "Archiv & Aufbewahrung",
+  "settings_archive_desc": "Erledigte einmalige Aufgaben archivieren statt löschen. Archivierte Einträge sind ausgeblendet und inaktiv, behalten aber Verlauf und Kosten.",
+  "settings_archive_oneoff_days": "Erledigte einmalige Aufgaben automatisch archivieren nach (Tage, 0 = aus)",
+  "settings_delete_archived_oneoff_days": "Archivierte einmalige Aufgaben automatisch löschen nach (Tage, 0 = nie)"
 }

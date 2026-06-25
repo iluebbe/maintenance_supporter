@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Forfalder snart",
           "overdue": "Overskredet",
-          "triggered": "Udløst"
+          "triggered": "Udløst",
+          "archived": "Arkiveret"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Forfalder snart",
               "overdue": "Overskredet",
-              "triggered": "Udløst"
+              "triggered": "Udløst",
+              "archived": "Arkiveret"
             }
           },
           "days_until_due": {

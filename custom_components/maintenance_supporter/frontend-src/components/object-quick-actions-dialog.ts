@@ -101,6 +101,37 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     }
   }
 
+  private async _onArchiveObject(): Promise<void> {
+    if (!this._entryId || !this._data) return;
+    const archived = !!this._data.object.archived;
+    if (!archived) {
+      const confirmText = t("confirm_archive_object", this._lang)
+        || "Archive this object and its tasks?";
+      if (!window.confirm(confirmText)) return;
+    }
+    this._busy = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: archived
+          ? "maintenance_supporter/object/unarchive"
+          : "maintenance_supporter/object/archive",
+        entry_id: this._entryId,
+      });
+      this.dispatchEvent(
+        new CustomEvent("object-changed", {
+          detail: { entry_id: this._entryId },
+          bubbles: true, composed: true,
+        }),
+      );
+      this.close();
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._busy = false;
+    }
+  }
+
   private _onTaskClick(taskId: string): void {
     if (!this._entryId) return;
     // Open the task quick-actions for this task — reuses existing dialog
@@ -169,6 +200,10 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                       <button class="btn" @click=${this._onEditObject} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:pencil"></ha-icon>
                         ${t("edit", L) || "Edit"}
+                      </button>
+                      <button class="btn" @click=${this._onArchiveObject} ?disabled=${this._busy}>
+                        <ha-icon icon="${obj.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
+                        ${obj.archived ? (t("unarchive", L) || "Unarchive") : (t("archive", L) || "Archive")}
                       </button>
                       <button class="btn danger" @click=${this._onDelete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:delete"></ha-icon>

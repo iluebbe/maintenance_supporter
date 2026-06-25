@@ -28,12 +28,14 @@ from ..const import (
     CONF_ADVANCED_PREDICTIONS,
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_ADVANCED_SEASONAL,
+    CONF_ARCHIVE_ONEOFF_DAYS,
     CONF_BUDGET_ALERT_THRESHOLD,
     CONF_BUDGET_ALERTS_ENABLED,
     CONF_BUDGET_CURRENCY,
     CONF_BUDGET_MONTHLY,
     CONF_BUDGET_YEARLY,
     CONF_DEFAULT_WARNING_DAYS,
+    CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -54,6 +56,8 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    DEFAULT_ARCHIVE_ONEOFF_DAYS,
+    DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DOMAIN,
     KNOWN_OBJECT_TABLE_COLUMNS,
@@ -94,6 +98,9 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_OPERATOR_WRITE_ENABLED: bool,
     # (#67): objects-table column list (sanitised to known keys below).
     CONF_OBJECTS_TABLE_COLUMNS: list,
+    # v2.10.0: archive automation (0 = disabled / never). Panel-managed.
+    CONF_ARCHIVE_ONEOFF_DAYS: int,
+    CONF_DELETE_ARCHIVED_ONEOFF_DAYS: int,
     # Notification per-status
     CONF_NOTIFY_DUE_SOON_ENABLED: bool,
     CONF_NOTIFY_DUE_SOON_INTERVAL: int,
@@ -150,6 +157,19 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
         "objects_table_columns": options.get(
             CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS
         ),
+        # v2.10.0: archive automation thresholds (panel Settings → Archive).
+        # oneoff_days: auto-archive a completed one-off after N days (0 = off).
+        # delete_archived_oneoff_days: auto-delete an auto-archived one-off N
+        # days after archiving (0 = never; manual archives are never deleted).
+        "archive": {
+            "oneoff_days": options.get(
+                CONF_ARCHIVE_ONEOFF_DAYS, DEFAULT_ARCHIVE_ONEOFF_DAYS
+            ),
+            "delete_archived_oneoff_days": options.get(
+                CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
+                DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
+            ),
+        },
         "general": {
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
@@ -442,6 +462,9 @@ async def ws_update_global_settings(
         CONF_NOTIFICATION_BUNDLE_THRESHOLD: (2, 20),
         CONF_SNOOZE_DURATION_HOURS: (1, 168),
         CONF_BUDGET_ALERT_THRESHOLD: (10, 100),
+        # v2.10.0 archive automation: 0 = disabled / never; cap ~10 years.
+        CONF_ARCHIVE_ONEOFF_DAYS: (0, 3650),
+        CONF_DELETE_ARCHIVED_ONEOFF_DAYS: (0, 3650),
     }
     _FLOAT_RANGES: dict[str, tuple[float, float]] = {
         CONF_BUDGET_MONTHLY: (0.0, 10_000_000.0),

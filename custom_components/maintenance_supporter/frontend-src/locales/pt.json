@@ -528,5 +528,15 @@
   "reset_to_date": "Repor última execução para",
   "delete_task_confirm": "Eliminar esta tarefa e o seu histórico?",
   "delete_object_confirm": "Eliminar este objeto e todas as suas tarefas?",
-  "loading": "A carregar…"
+  "loading": "A carregar…",
+  "archive": "Arquivar",
+  "unarchive": "Desarquivar",
+  "archived": "Arquivado",
+  "show_archived": "Mostrar arquivados",
+  "hide_archived": "Ocultar arquivados",
+  "confirm_archive_object": "Arquivar este objeto e as suas tarefas? O histórico é mantido e pode ser restaurado mais tarde.",
+  "settings_archive": "Arquivo e retenção",
+  "settings_archive_desc": "Retire tarefas únicas concluídas sem as eliminar. Os itens arquivados ficam ocultos e inativos, mas mantêm histórico e custos.",
+  "settings_archive_oneoff_days": "Arquivar automaticamente tarefas únicas concluídas após (dias, 0 = desligado)",
+  "settings_delete_archived_oneoff_days": "Eliminar automaticamente tarefas únicas arquivadas após (dias, 0 = nunca)"
 }

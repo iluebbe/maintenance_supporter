@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Bald fällig",
           "overdue": "Überfällig",
-          "triggered": "Ausgelöst"
+          "triggered": "Ausgelöst",
+          "archived": "Archiviert"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Bald fällig",
               "overdue": "Überfällig",
-              "triggered": "Ausgelöst"
+              "triggered": "Ausgelöst",
+              "archived": "Archiviert"
             }
           },
           "days_until_due": {

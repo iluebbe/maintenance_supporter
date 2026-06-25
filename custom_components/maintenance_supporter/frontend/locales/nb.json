@@ -528,5 +528,15 @@
   "reset_to_date": "Tilbakestill sist utført til",
   "delete_task_confirm": "Slette denne oppgaven og dens historikk?",
   "delete_object_confirm": "Slette dette objektet og alle dets oppgaver?",
-  "loading": "Laster…"
+  "loading": "Laster…",
+  "archive": "Arkivér",
+  "unarchive": "Gjenopprett",
+  "archived": "Arkivert",
+  "show_archived": "Vis arkiverte",
+  "hide_archived": "Skjul arkiverte",
+  "confirm_archive_object": "Arkivere dette objektet og oppgavene? Historikken beholdes og kan gjenopprettes senere.",
+  "settings_archive": "Arkiv og oppbevaring",
+  "settings_archive_desc": "Legg bort fullførte engangsoppgaver uten å slette dem. Arkiverte elementer er skjult og inaktive, men beholder historikk og kostnad.",
+  "settings_archive_oneoff_days": "Arkivér fullførte engangsoppgaver automatisk etter (dager, 0 = av)",
+  "settings_delete_archived_oneoff_days": "Slett arkiverte engangsoppgaver automatisk etter (dager, 0 = aldri)"
 }

@@ -528,5 +528,15 @@
   "reset_to_date": "Zresetuj ostatnie wykonanie na",
   "delete_task_confirm": "Usunąć to zadanie i jego historię?",
   "delete_object_confirm": "Usunąć ten obiekt i wszystkie jego zadania?",
-  "loading": "Ładowanie…"
+  "loading": "Ładowanie…",
+  "archive": "Archiwizuj",
+  "unarchive": "Przywróć z archiwum",
+  "archived": "Zarchiwizowane",
+  "show_archived": "Pokaż zarchiwizowane",
+  "hide_archived": "Ukryj zarchiwizowane",
+  "confirm_archive_object": "Zarchiwizować ten obiekt i jego zadania? Historia zostanie zachowana i można ją później przywrócić.",
+  "settings_archive": "Archiwum i przechowywanie",
+  "settings_archive_desc": "Odkładaj ukończone zadania jednorazowe bez usuwania. Zarchiwizowane elementy są ukryte i nieaktywne, ale zachowują historię i koszty.",
+  "settings_archive_oneoff_days": "Automatycznie archiwizuj ukończone zadania jednorazowe po (dni, 0 = wył.)",
+  "settings_delete_archived_oneoff_days": "Automatycznie usuwaj zarchiwizowane zadania jednorazowe po (dni, 0 = nigdy)"
 }

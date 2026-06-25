@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Próximo a vencer",
           "overdue": "Vencido",
-          "triggered": "Activado"
+          "triggered": "Activado",
+          "archived": "Archivado"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Próximamente",
               "overdue": "Vencida",
-              "triggered": "Activado"
+              "triggered": "Activado",
+              "archived": "Archivado"
             }
           },
           "days_until_due": {

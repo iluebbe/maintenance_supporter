@@ -60,6 +60,14 @@ class MaintenanceTask:
     custom_icon: str | None = None
     nfc_tag_id: str | None = None
 
+    # --- Archive (v2.10.0) ---
+    # archived_at is an ISO timestamp; None means active. When set, the task
+    # reads the ARCHIVED status (highest precedence) and goes inert everywhere
+    # except budget/cost history. archived_reason is one of ARCHIVE_REASON_*
+    # (manual | auto | object) and drives the auto-delete + object-cascade rules.
+    archived_at: str | None = None
+    archived_reason: str | None = None
+
     # --- User Assignment ---
     responsible_user_id: str | None = None  # HA user UUID
 
@@ -151,8 +159,19 @@ class MaintenanceTask:
         return dt_util.now().time() >= target
 
     @property
+    def archived(self) -> bool:
+        """True iff the task is archived (retired but retained)."""
+        return self.archived_at is not None
+
+    @property
     def status(self) -> MaintenanceStatus:
         """Determine the current status of this task."""
+        # Archived takes precedence over everything — a retired task is inert.
+        # Mirror this in helpers/status.compute_status_from_task_dict (the dict
+        # twin used where only coordinator data is available).
+        if self.archived_at is not None:
+            return MaintenanceStatus.ARCHIVED
+
         # Trigger takes precedence
         if self._trigger_active:
             return MaintenanceStatus.TRIGGERED
@@ -180,7 +199,12 @@ class MaintenanceTask:
 
     @property
     def is_done(self) -> bool:
-        """True for a completed one-time task (archived; never re-arms)."""
+        """True for a completed one-time task (done; never re-arms).
+
+        ("Done" is the terminal state of a one-off. It is distinct from
+        "archived" — see ``archived`` — which is the retire-but-retain state
+        added in v2.10.0 and reserved for that feature.)
+        """
         return (
             self.schedule_type == ScheduleType.ONE_TIME
             and self.last_performed is not None
@@ -360,6 +384,10 @@ class MaintenanceTask:
             data["custom_icon"] = self.custom_icon
         if self.nfc_tag_id is not None:
             data["nfc_tag_id"] = self.nfc_tag_id
+        if self.archived_at is not None:
+            data["archived_at"] = self.archived_at
+        if self.archived_reason is not None:
+            data["archived_reason"] = self.archived_reason
         if self.responsible_user_id is not None:
             data["responsible_user_id"] = self.responsible_user_id
         if self.checklist:
@@ -400,6 +428,8 @@ class MaintenanceTask:
             documentation_url=data.get("documentation_url"),
             custom_icon=data.get("custom_icon"),
             nfc_tag_id=data.get("nfc_tag_id"),
+            archived_at=data.get("archived_at"),
+            archived_reason=data.get("archived_reason"),
             responsible_user_id=data.get("responsible_user_id"),
             checklist=data.get("checklist", []),
             adaptive_config=data.get("adaptive_config"),

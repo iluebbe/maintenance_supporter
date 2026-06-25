@@ -1098,7 +1098,8 @@
           "ok": "OK",
           "due_soon": "Snart förfaller",
           "overdue": "Försenat",
-          "triggered": "Utlöst"
+          "triggered": "Utlöst",
+          "archived": "Arkiverad"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "OK",
               "due_soon": "Snart förfaller",
               "overdue": "Försenat",
-              "triggered": "Utlöst"
+              "triggered": "Utlöst",
+              "archived": "Arkiverad"
             }
           },
           "days_until_due": {

@@ -528,5 +528,15 @@
   "reset_to_date": "Nulstil senest udført til",
   "delete_task_confirm": "Slet denne opgave og dens historik?",
   "delete_object_confirm": "Slet dette objekt og alle dets opgaver?",
-  "loading": "Indlæser…"
+  "loading": "Indlæser…",
+  "archive": "Arkivér",
+  "unarchive": "Gendan",
+  "archived": "Arkiveret",
+  "show_archived": "Vis arkiverede",
+  "hide_archived": "Skjul arkiverede",
+  "confirm_archive_object": "Arkivér dette objekt og dets opgaver? Historikken bevares og kan gendannes senere.",
+  "settings_archive": "Arkiv og opbevaring",
+  "settings_archive_desc": "Læg færdige engangsopgaver væk uden at slette dem. Arkiverede elementer er skjult og inaktive, men bevarer historik og omkostninger.",
+  "settings_archive_oneoff_days": "Arkivér automatisk færdige engangsopgaver efter (dage, 0 = fra)",
+  "settings_delete_archived_oneoff_days": "Slet automatisk arkiverede engangsopgaver efter (dage, 0 = aldrig)"
 }

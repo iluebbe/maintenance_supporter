@@ -528,5 +528,15 @@
   "reset_to_date": "Återställ senast utförd till",
   "delete_task_confirm": "Ta bort denna uppgift och dess historik?",
   "delete_object_confirm": "Ta bort detta objekt och alla dess uppgifter?",
-  "loading": "Laddar…"
+  "loading": "Laddar…",
+  "archive": "Arkivera",
+  "unarchive": "Återställ",
+  "archived": "Arkiverad",
+  "show_archived": "Visa arkiverade",
+  "hide_archived": "Dölj arkiverade",
+  "confirm_archive_object": "Arkivera detta objekt och dess uppgifter? Historiken behålls och kan återställas senare.",
+  "settings_archive": "Arkiv och lagring",
+  "settings_archive_desc": "Lägg undan slutförda engångsuppgifter utan att radera dem. Arkiverade objekt döljs och är inaktiva men behåller historik och kostnad.",
+  "settings_archive_oneoff_days": "Arkivera slutförda engångsuppgifter automatiskt efter (dagar, 0 = av)",
+  "settings_delete_archived_oneoff_days": "Radera arkiverade engångsuppgifter automatiskt efter (dagar, 0 = aldrig)"
 }

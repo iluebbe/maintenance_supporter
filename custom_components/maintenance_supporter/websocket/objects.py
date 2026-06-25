@@ -8,8 +8,10 @@ from uuid import uuid4
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.util import dt as dt_util
 
 from ..const import (
+    ARCHIVE_REASON_OBJECT,
     CONF_OBJECT,
     CONF_OBJECT_AREA,
     CONF_OBJECT_DOCUMENTATION_URL,
@@ -39,7 +41,10 @@ from . import (
     _load_object_entry,
     cleanup_group_refs,
 )
-from .tasks import _is_safe_url  # v1.4.0 (#43): reuse the existing URL safety check
+from .tasks import (  # v1.4.0 (#43): reuse the existing URL safety check
+    _is_recurring_schedule,
+    _is_safe_url,
+)
 
 
 @websocket_api.websocket_command(
@@ -352,6 +357,121 @@ async def ws_delete_object(
 
     await hass.config_entries.async_remove(entry.entry_id)
     cleanup_group_refs(hass, entry_id=entry.entry_id)
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/object/archive",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_archive_object(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Archive an object and cascade to its active tasks.
+
+    Each currently-active task is archived with reason OBJECT, so a later object
+    unarchive restores exactly those. A task already archived (manually/auto)
+    keeps its own reason and is left untouched by the cascade.
+    """
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    obj = dict(entry.data.get(CONF_OBJECT, {}))
+    if obj.get("archived_at") is not None:
+        connection.send_error(msg["id"], "already_archived", "Object already archived")
+        return
+
+    now_iso = dt_util.now().isoformat()
+    obj["archived_at"] = now_iso
+
+    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
+    new_tasks: dict[str, Any] = {}
+    for tid, td in tasks_data.items():
+        td = dict(td)
+        if td.get("archived_at") is None:  # cascade only to active tasks
+            td["archived_at"] = now_iso
+            td["archived_reason"] = ARCHIVE_REASON_OBJECT
+        new_tasks[tid] = td
+
+    new_data = dict(entry.data)
+    new_data[CONF_OBJECT] = obj
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    # Reload so the object's tasks' triggers tear down and entities go inert.
+    await hass.config_entries.async_reload(entry.entry_id)
+
+    connection.send_result(msg["id"], {"success": True, "archived_at": now_iso})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/object/unarchive",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_unarchive_object(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Unarchive an object and un-cascade the tasks it had archived.
+
+    Only tasks archived BY this object (reason OBJECT) are restored; recurring
+    ones get a fresh cycle (D2). Tasks archived manually or auto-archived keep
+    their archived state — they were retired independently.
+    """
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    obj = dict(entry.data.get(CONF_OBJECT, {}))
+    if obj.get("archived_at") is None:
+        connection.send_error(msg["id"], "not_archived", "Object is not archived")
+        return
+    obj.pop("archived_at", None)
+
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    today_iso = dt_util.now().date().isoformat()
+
+    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
+    new_tasks: dict[str, Any] = {}
+    for tid, td in tasks_data.items():
+        td = dict(td)
+        if td.get("archived_reason") == ARCHIVE_REASON_OBJECT:
+            td.pop("archived_at", None)
+            td.pop("archived_reason", None)
+            # Fresh cycle for recurring tasks (D2); last_performed is dynamic →
+            # Store when present, else the static dict (legacy).
+            if _is_recurring_schedule(td):
+                if store is not None:
+                    store.set_last_performed(tid, today_iso)
+                    state = store._ensure_task(tid)
+                    state.pop("last_planned_due", None)
+                else:
+                    td["last_performed"] = today_iso
+                    td.pop("last_planned_due", None)
+        new_tasks[tid] = td
+
+    new_data = dict(entry.data)
+    new_data[CONF_OBJECT] = obj
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    if store is not None:
+        await store.async_save()
+
+    await hass.config_entries.async_reload(entry.entry_id)
+
     connection.send_result(msg["id"], {"success": True})
 
 

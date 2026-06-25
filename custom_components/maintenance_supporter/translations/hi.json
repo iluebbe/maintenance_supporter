@@ -1098,7 +1098,8 @@
           "ok": "ठीक है",
           "due_soon": "जल्द देय",
           "overdue": "अतिदेय",
-          "triggered": "ट्रिगर हुआ"
+          "triggered": "ट्रिगर हुआ",
+          "archived": "संग्रहीत"
         },
         "state_attributes": {
           "maintenance_type": {
@@ -1356,7 +1357,8 @@
               "ok": "ठीक है",
               "due_soon": "जल्द देय",
               "overdue": "अतिदेय",
-              "triggered": "ट्रिगर हुआ"
+              "triggered": "ट्रिगर हुआ",
+              "archived": "संग्रहीत"
             }
           },
           "days_until_due": {

@@ -528,5 +528,15 @@
   "reset_to_date": "Réinitialiser la dernière réalisation au",
   "delete_task_confirm": "Supprimer cette tâche et son historique ?",
   "delete_object_confirm": "Supprimer cet objet et toutes ses tâches ?",
-  "loading": "Chargement…"
+  "loading": "Chargement…",
+  "archive": "Archiver",
+  "unarchive": "Désarchiver",
+  "archived": "Archivé",
+  "show_archived": "Afficher les archivés",
+  "hide_archived": "Masquer les archivés",
+  "confirm_archive_object": "Archiver cet objet et ses tâches ? L'historique est conservé et peut être restauré plus tard.",
+  "settings_archive": "Archivage et conservation",
+  "settings_archive_desc": "Mettez de côté les tâches ponctuelles terminées sans les supprimer. Les éléments archivés sont masqués et inactifs, mais conservent leur historique et leurs coûts.",
+  "settings_archive_oneoff_days": "Archiver automatiquement les tâches ponctuelles terminées après (jours, 0 = désactivé)",
+  "settings_delete_archived_oneoff_days": "Supprimer automatiquement les tâches ponctuelles archivées après (jours, 0 = jamais)"
 }

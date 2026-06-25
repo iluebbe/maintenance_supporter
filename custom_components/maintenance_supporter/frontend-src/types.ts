@@ -14,6 +14,9 @@ export interface MaintenanceObject {
   documentation_url?: string | null;
   /** v1.4.10 (#46): free-form notes — part numbers, procedures, etc. */
   notes?: string | null;
+  /** v2.10.0 archive: archived (retire-but-retain) state; archived = archived_at != null. */
+  archived?: boolean;
+  archived_at?: string | null;
 }
 
 export interface TriggerConfig {
@@ -143,9 +146,13 @@ export interface MaintenanceTask {
   trigger_entity_infos?: TriggerEntityInfo[] | null;
   history: HistoryEntry[];
   // Computed
-  status: string; // "ok" | "due_soon" | "overdue" | "triggered"
-  /** True for a one-time task that has been completed (archived). */
+  status: string; // "ok" | "due_soon" | "overdue" | "triggered" | "archived"
+  /** True for a one-time task that has been completed (done; never re-arms). */
   is_done?: boolean;
+  /** v2.10.0 archive: archived = archived_at != null; reason is manual|auto|object. */
+  archived?: boolean;
+  archived_at?: string | null;
+  archived_reason?: string | null;
   days_until_due?: number | null;
   next_due?: string | null;
   trigger_active: boolean;
@@ -308,6 +315,7 @@ export interface TaskRow {
   interval_unit?: string | null;
   interval_anchor: "completion" | "planned" | null;
   is_done: boolean;
+  archived: boolean;
   history: HistoryEntry[];
   enabled: boolean;
   nfc_tag_id: string | null;
