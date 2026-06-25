@@ -538,5 +538,7 @@
   "settings_archive": "Archiv & Aufbewahrung",
   "settings_archive_desc": "Erledigte einmalige Aufgaben archivieren statt löschen. Archivierte Einträge sind ausgeblendet und inaktiv, behalten aber Verlauf und Kosten.",
   "settings_archive_oneoff_days": "Erledigte einmalige Aufgaben automatisch archivieren nach (Tage, 0 = aus)",
-  "settings_delete_archived_oneoff_days": "Archivierte einmalige Aufgaben automatisch löschen nach (Tage, 0 = nie)"
+  "settings_delete_archived_oneoff_days": "Archivierte einmalige Aufgaben automatisch löschen nach (Tage, 0 = nie)",
+  "archive_object": "Objekt archivieren",
+  "unarchive_object": "Objekt wiederherstellen"
 }

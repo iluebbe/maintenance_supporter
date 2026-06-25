@@ -538,5 +538,7 @@
   "settings_archive": "Arkiv och lagring",
   "settings_archive_desc": "Lägg undan slutförda engångsuppgifter utan att radera dem. Arkiverade objekt döljs och är inaktiva men behåller historik och kostnad.",
   "settings_archive_oneoff_days": "Arkivera slutförda engångsuppgifter automatiskt efter (dagar, 0 = av)",
-  "settings_delete_archived_oneoff_days": "Radera arkiverade engångsuppgifter automatiskt efter (dagar, 0 = aldrig)"
+  "settings_delete_archived_oneoff_days": "Radera arkiverade engångsuppgifter automatiskt efter (dagar, 0 = aldrig)",
+  "archive_object": "Arkivera objekt",
+  "unarchive_object": "Återställ objekt"
 }

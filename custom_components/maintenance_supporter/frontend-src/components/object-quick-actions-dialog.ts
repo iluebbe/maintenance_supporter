@@ -203,7 +203,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                       </button>
                       <button class="btn" @click=${this._onArchiveObject} ?disabled=${this._busy}>
                         <ha-icon icon="${obj.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-                        ${obj.archived ? (t("unarchive", L) || "Unarchive") : (t("archive", L) || "Archive")}
+                        ${obj.archived ? (t("unarchive_object", L) || "Unarchive object") : (t("archive_object", L) || "Archive object")}
                       </button>
                       <button class="btn danger" @click=${this._onDelete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:delete"></ha-icon>

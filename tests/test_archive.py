@@ -350,6 +350,28 @@ async def test_ws_archive_task_already_archived_errors(
     assert_ws_error(conn, "already_archived")
 
 
+async def test_ws_archive_task_archives_only_that_task(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Archiving ONE task on a multi-task object must leave the others active
+    and the object itself unarchived — task/archive must not cascade (only
+    object/archive does). Guards the single-task-only gap in the other tests."""
+    entry = _object_entry_two_tasks(hass, uid="ms_arch_one_of_two")
+    await setup_integration(hass, global_entry, entry)
+
+    conn = make_ws_connection()
+    await call_ws_handler(ws_archive_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/archive",
+        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
+    })
+    assert_ws_success(conn)
+
+    data = hass.config_entries.async_get_entry(entry.entry_id).data
+    assert data[CONF_TASKS][TASK_ID_1].get("archived_at")        # the chosen one
+    assert "archived_at" not in data[CONF_TASKS][TASK_ID_2]      # sibling untouched
+    assert "archived_at" not in data[CONF_OBJECT]                # object not archived
+
+
 async def test_ws_unarchive_recurring_task_starts_fresh_cycle(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
