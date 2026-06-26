@@ -47,6 +47,17 @@ jobs:
           test -f custom_components/maintenance_supporter/frontend/maintenance-panel.js || exit 1
           test -f custom_components/maintenance_supporter/frontend/maintenance-card.js || exit 1
 
+      # Run the frontend unit suite in real Chromium. This is the gate that
+      # catches contract bugs like #69 — the ll-custom payload tripwire fires
+      # HA's real nested fire-dom-event shape and fails if the handler regresses.
+      # Without this step the ~118 web-test-runner tests never gated a PR.
+      - name: Install Playwright Chromium
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: npx playwright install --with-deps chromium
+      - name: Frontend unit tests
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: npm test
+
   pytest:
     runs-on: ubuntu-latest
     needs: [syntax-check, lint]
