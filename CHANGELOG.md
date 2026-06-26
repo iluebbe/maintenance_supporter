@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.3] - 2026-06-26
+
+### 🐛 Fixes
+
+- **Fresh install: the auto-dashboard's empty state now works.** On a brand-new setup (zero objects), the onboarding screen had two issues — both fixed (#69):
+  - **"Add object" did nothing.** Home Assistant's `fire-dom-event` nests the payload under `ll_custom` in the dispatched event; the handler read the wrong field and silently ignored the click. It now opens the create-object dialog in place.
+  - **The page reloaded every few seconds.** The dashboard "self-heal" (which recovers a genuinely broken strategy render) mistook the legitimate single-card empty state for a broken view and bounced the page. It now recognises the rendered empty-state card as a healthy render and leaves it alone.
+
+  Both only affected the zero-objects empty state — once at least one object existed, neither path was reachable, and objects could always be created via the sidebar panel or the integration's config flow.
+
 ## [2.10.2] - 2026-06-25
 
 ### 🐛 Fixes
