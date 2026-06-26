@@ -17,7 +17,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   // Retry the strategy dashboard's cold-start whenDefined race; a real
   // regression fails every attempt.
-  retries: process.env.CI ? 3 : 1,
+  retries: process.env.CI ? 2 : 1,
   timeout: 90_000,
   expect: { timeout: 20_000 },
   reporter: process.env.CI ? [["github"], ["list"]] : [["list"]],

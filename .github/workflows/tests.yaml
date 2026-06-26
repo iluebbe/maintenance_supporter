@@ -200,7 +200,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [frontend-build, pytest]
     continue-on-error: true
-    timeout-minutes: 25
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -241,11 +241,15 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
 
-      - name: Run E2E user stories
+      # CI runs the onboarding (#69 guard) spec — the most stable part. The
+      # lifecycle spec is strategy-nav-heavy and flakes on the cold-start race;
+      # it stays a local tool (e2e/run-local.sh) until it's reworked to drive
+      # the panel (no strategy race). See e2e/README.md.
+      - name: Run E2E user stories (#69 onboarding guards)
         working-directory: e2e
         env:
           E2E_HA_URL: http://localhost:8123
-        run: npm test
+        run: npm test -- specs/onboarding.spec.ts
 
       - name: Upload Playwright report + traces on failure
         if: failure()

@@ -44,17 +44,22 @@ land in `e2e/playwright-report/` and `e2e/test-results/` on failure
 `docker run`, installs Chromium (`npx playwright install --with-deps chromium`),
 and runs against `localhost` with `retries: 3`.
 
-> **Status: non-blocking (`continue-on-error`).** The strategy dashboard's
-> cold-start `whenDefined` / scoped-registry race — the exact condition the
-> shim's self-heal recovers in production — makes tight-window navigation
-> assertions intermittently flaky in automation. So the job **surfaces failures
-> and uploads traces for review** without blocking merges. The hard gate stays
-> the unit suite (`npm test`). To promote this to a blocking gate, make the
-> strategy element registration deterministic in the harness (warm it before
-> asserting) or drive the lifecycle through the **panel** (`/maintenance-supporter`),
-> which is a registered custom panel with no strategy race. The core #69 guards
-> (empty-state renders, "Add object" opens, no self-heal reload) are the most
-> stable; navigation-assert tests flake the most.
+> **Status: non-blocking (`continue-on-error`), onboarding spec only.** CI runs
+> `specs/onboarding.spec.ts` — the #69 guards (empty-state renders, "Add object"
+> opens, no self-heal reload), the most stable part — and uploads traces on
+> failure. The **lifecycle spec is local-only** (`run-local.sh`): it is
+> strategy-navigation-heavy and flakes on HA's cold-start `whenDefined` /
+> scoped-registry race — the exact condition the shim's self-heal recovers in
+> production — which is non-deterministic in tight-window automation (an empty
+> run took 25 min and still failed on flaky navigations). The hard gate stays
+> the unit suite (`npm test`).
+>
+> **To promote E2E to a blocking gate**, remove the dependence on the racy
+> strategy-dashboard navigation: drive the lifecycle through the **panel**
+> (`/maintenance-supporter`) — a registered custom panel with no strategy race —
+> and/or warm the strategy element registration deterministically before
+> asserting. The harness, fixtures, and WS helpers here are built to support
+> that rework.
 
 ## Environment knobs
 
