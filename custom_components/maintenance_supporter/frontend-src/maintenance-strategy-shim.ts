@@ -235,6 +235,7 @@ if (
     let hasView = false;
     let cards = 0;
     let ourError = false;
+    let hasEmptyState = false;
     const stack: Array<Element | ShadowRoot> = [document.documentElement];
     let scanned = 0;
     while (stack.length && scanned < 9000) {
@@ -246,6 +247,11 @@ if (
         const tag = el.tagName.toLowerCase();
         if (tag === "hui-view" || tag === "hui-sections-view") hasView = true;
         if (tag === "ha-card" || tag === "hui-card") cards++;
+        // The zero-objects onboarding view renders exactly ONE hui-empty-state-
+        // card. That is a SUCCESSFUL strategy render, but it trips the "< 3
+        // cards" blank-view heuristic below — issue #69, where the empty state
+        // was mistaken for a broken render and the page reloaded every ~5 s.
+        if (tag === "hui-empty-state-card") hasEmptyState = true;
         if (tag === "hui-error-card" && ERROR_RE.test(el.textContent || "")) {
           ourError = true;
         }
@@ -260,6 +266,11 @@ if (
     // on the active dashboard actually being our strategy. Without that gate the
     // self-heal bounced unrelated dashboards with few cards (issue #68).
     if (ourError) return true;
+    // A rendered empty-state card means generate() ran and produced our
+    // onboarding view — that is healthy by definition, so never bounce it. A
+    // genuine strategy timeout shows hui-error-card or zero cards, never this
+    // card (issue #69).
+    if (hasEmptyState) return false;
     return hasView && cards < 3 && isOurStrategyView();
   }
 

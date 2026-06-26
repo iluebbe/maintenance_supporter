@@ -804,7 +804,7 @@ class MaintenanceSectionStrategy extends HTMLElement {
 // MIME-type problem). If they see the log but still get the timeout,
 // something else (Lovelace resource conflict, HACS plugin clash) is
 // holding the registry.
-const STRATEGY_VERSION = "2.3.5";
+const STRATEGY_VERSION = "2.3.6";
 const LOG_PREFIX = "[maintenance-supporter]";
 
 function safeDefine(tag: string, ctor: CustomElementConstructor): "ok" | "skipped" | string {
@@ -994,7 +994,18 @@ function registerLlCustomHandler(): void {
   w[LL_CUSTOM_HANDLER_FLAG] = true;
 
   document.addEventListener("ll-custom", (event: Event) => {
-    const detail = (event as CustomEvent<LlCustomEventDetail>).detail;
+    const raw = (event as CustomEvent<LlCustomEventDetail>).detail;
+    if (!raw || typeof raw !== "object") return;
+    // HA's `tap_action: { action: "fire-dom-event", ll_custom: {…} }` dispatches
+    // `ll-custom` with the ENTIRE action config as `detail`, nesting our payload
+    // under `.ll_custom` (verified live on HA 2026.6 — issue #69: "Add object"
+    // did nothing because we read `detail.type`, which was undefined). Direct
+    // dispatchers (the calendar card, the panel) put the payload at the top
+    // level. Accept both: prefer the nested `ll_custom` object when present.
+    const nested = (raw as { ll_custom?: unknown }).ll_custom;
+    const detail = (
+      nested && typeof nested === "object" ? nested : raw
+    ) as LlCustomEventDetail;
     if (!detail || typeof detail.type !== "string") return;
     if (!detail.type.startsWith("maintenance-supporter:")) return;
     const action = detail.type.slice("maintenance-supporter:".length);
