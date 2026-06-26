@@ -184,3 +184,79 @@ jobs:
       - name: Cleanup
         if: always()
         run: docker rm -f ha-test || true
+
+  # End-to-end user stories: real HA + the integration driven in a real browser.
+  # NON-BLOCKING for now (continue-on-error): the strategy dashboard's cold-start
+  # whenDefined race — the condition the shim's self-heal recovers in production
+  # — makes navigation-assert tests intermittently flaky in automation. The job
+  # still runs on every PR and uploads traces so regressions surface for review;
+  # the hard gate is the unit suite (frontend-build -> npm test). See e2e/README.md.
+  e2e:
+    name: E2E user stories (real HA + browser)
+    runs-on: ubuntu-latest
+    needs: [frontend-build, pytest]
+    continue-on-error: true
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Build frontend bundle
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: |
+          npm ci
+          node esbuild.mjs
+
+      - name: Start Home Assistant (onboarding-capable config)
+        run: |
+          mkdir -p ha-e2e-config
+          cat > ha-e2e-config/configuration.yaml <<'YAML'
+          default_config:
+          logger:
+            default: warning
+          YAML
+          docker run -d --name ha-e2e \
+            -v "${GITHUB_WORKSPACE}/ha-e2e-config:/config" \
+            -v "${GITHUB_WORKSPACE}/custom_components:/config/custom_components:ro" \
+            -e TZ=UTC -p 8123:8123 \
+            ghcr.io/home-assistant/home-assistant:2026.6.3
+
+      - name: Wait for HA API (up to 300s)
+        run: |
+          for i in $(seq 1 150); do
+            curl -sf http://localhost:8123/manifest.json >/dev/null 2>&1 && { echo "HA up after $((i*2))s"; exit 0; }
+            sleep 2
+          done
+          echo "::error::HA did not start"; docker logs ha-e2e --tail 150; exit 1
+
+      - name: Install E2E deps + Chromium
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E user stories
+        working-directory: e2e
+        env:
+          E2E_HA_URL: http://localhost:8123
+        run: npm test
+
+      - name: Upload Playwright report + traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+
+      - name: HA logs (always)
+        if: always()
+        run: docker logs ha-e2e --tail 150 || true
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f ha-e2e || true
