@@ -199,9 +199,16 @@ const result = await page.evaluate(async () => {
   //    rather than navigating. Detect by checking if the dialog element was
   //    appended to body and is in "open" state.
   try {
+    // Use HA's REAL fire-dom-event shape — the action config is the event
+    // detail and our payload sits under `.ll_custom`. Dispatching the payload
+    // at the top level (as this verifier used to) tested a shape that never
+    // occurs in production and masked issue #69.
     document.dispatchEvent(
       new CustomEvent("ll-custom", {
-        detail: { type: "maintenance-supporter:add-object" },
+        detail: {
+          action: "fire-dom-event",
+          ll_custom: { type: "maintenance-supporter:add-object" },
+        },
         bubbles: true,
         composed: true,
       }),
