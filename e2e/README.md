@@ -44,22 +44,27 @@ land in `e2e/playwright-report/` and `e2e/test-results/` on failure
 `docker run`, installs Chromium (`npx playwright install --with-deps chromium`),
 and runs against `localhost` with `retries: 3`.
 
-> **Status: non-blocking (`continue-on-error`), onboarding spec only.** CI runs
-> `specs/onboarding.spec.ts` — the #69 guards (empty-state renders, "Add object"
-> opens, no self-heal reload), the most stable part — and uploads traces on
-> failure. The **lifecycle spec is local-only** (`run-local.sh`): it is
-> strategy-navigation-heavy and flakes on HA's cold-start `whenDefined` /
-> scoped-registry race — the exact condition the shim's self-heal recovers in
-> production — which is non-deterministic in tight-window automation (an empty
-> run took 25 min and still failed on flaky navigations). The hard gate stays
-> the unit suite (`npm test`).
+> **Status: LOCAL-ONLY for now — not yet wired into CI.** Run it with
+> `run-local.sh`. The policy is **validate green in Docker first, then promote
+> to CI** — and these specs do not yet clear that bar:
 >
-> **To promote E2E to a blocking gate**, remove the dependence on the racy
-> strategy-dashboard navigation: drive the lifecycle through the **panel**
-> (`/maintenance-supporter`) — a registered custom panel with no strategy race —
-> and/or warm the strategy element registration deterministically before
-> asserting. The harness, fixtures, and WS helpers here are built to support
-> that rework.
+> - The strategy dashboard loses HA's one-shot `whenDefined` / scoped-registry
+>   race on cold loads — the exact condition the shim's self-heal recovers in
+>   production — so tight-window **navigation** assertions are non-deterministic
+>   in automation (a CI run took 14–25 min and still failed on flaky navigation).
+> - The panel (`/maintenance-supporter`) navigates reliably, but on a
+>   freshly-onboarded HA it can briefly return `404` until the integration's
+>   panel registration propagates to the frontend's panel list (a setup-timing
+>   issue to wait out, not a product bug).
+>
+> The hard CI gate stays the unit suite (`npm test`), which already includes the
+> red-green #69 `ll-custom` tripwire.
+>
+> **To make this CI-worthy** (tracked follow-up): drive the lifecycle through the
+> panel and wait for the panel to register; warm/await the strategy element
+> deterministically for the onboarding spec; then confirm several consecutive
+> green Docker runs before adding the `e2e` job back to `tests.yaml`. The
+> harness, fixtures, and WS helpers here are built to support that.
 
 ## Environment knobs
 
