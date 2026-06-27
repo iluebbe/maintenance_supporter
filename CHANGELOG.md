@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.4] - 2026-06-27
+
+### 🐛 Fixes
+
+- **The Maintenance panel is now enabled by default.** The sidebar panel (`/maintenance-supporter`) is the hub that the auto-dashboard's **"Open Maintenance panel"** button, **QR codes**, and **notifications** all link to — but it was off by default, so on a fresh install those links returned **404** (a #69 follow-up: "Open Maintenance panel does nothing"). It now defaults on. If you had previously turned it off, it stays off; you can still toggle it under the integration's options. Existing setups that never touched the setting will gain the **Maintenance** sidebar entry after updating.
+
 ## [2.10.3] - 2026-06-26
 
 ### 🐛 Fixes
