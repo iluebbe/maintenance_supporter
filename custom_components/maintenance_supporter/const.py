@@ -67,6 +67,12 @@ CONF_DEFAULT_WARNING_DAYS = "default_warning_days"
 CONF_NOTIFICATIONS_ENABLED = "notifications_enabled"
 CONF_NOTIFY_SERVICE = "notify_service"
 CONF_PANEL_ENABLED = "panel_enabled"
+# v2.10.4 (#69 follow-up): the sidebar panel is the integration's hub — the
+# auto-dashboard's "Open Maintenance panel" button, QR codes, and notifications
+# all link to /maintenance-supporter. With the panel off those links 404, so it
+# now defaults ON. An explicit opt-out (panel_enabled: false in options) is
+# still honoured. Read this default everywhere instead of inlining the literal.
+DEFAULT_PANEL_ENABLED = True
 CONF_PANEL_TITLE = "panel_title"
 
 # --- Config Keys: Advanced Feature Visibility ---

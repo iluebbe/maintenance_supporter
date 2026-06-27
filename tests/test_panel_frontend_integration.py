@@ -157,6 +157,35 @@ async def test_panel_registered_when_enabled(hass: HomeAssistant) -> None:
     assert hass.data[DOMAIN].get("_panel_registered") is True
 
 
+async def test_panel_registered_by_default_when_option_absent(
+    hass: HomeAssistant,
+) -> None:
+    """Panel registers when CONF_PANEL_ENABLED is ABSENT from options — it now
+    defaults ON (v2.10.4, #69 follow-up) so the empty-state "Open panel" button,
+    QR codes, and notifications (all linking to /maintenance-supporter) don't 404.
+    """
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        options={},  # no panel_enabled key -> the default (True) applies
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "homeassistant.components.panel_custom.async_register_panel",
+        new_callable=AsyncMock,
+    ) as mock_register:
+        await setup_integration(hass, entry)
+        mock_register.assert_called_once()
+
+    assert hass.data[DOMAIN].get("_panel_registered") is True
+
+
 async def test_panel_and_card_registered_together(
     hass: HomeAssistant,
 ) -> None:

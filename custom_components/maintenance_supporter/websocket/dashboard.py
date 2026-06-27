@@ -59,6 +59,7 @@ from ..const import (
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
+    DEFAULT_PANEL_ENABLED,
     DOMAIN,
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
@@ -174,7 +175,7 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
-            "panel_enabled": options.get(CONF_PANEL_ENABLED, False),
+            "panel_enabled": options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),
             "panel_title": options.get(CONF_PANEL_TITLE, ""),
         },
         "notifications": {
