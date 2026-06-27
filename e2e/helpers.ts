@@ -110,9 +110,26 @@ export async function getObject(page: Page, entryId: string): Promise<any> {
  *  whenDefined race), so this is reliable — but it is off by default; the
  *  global-setup enables it (panel_enabled). */
 export async function gotoPanel(page: Page): Promise<void> {
+  const panel = page.locator("maintenance-supporter-panel");
   await page.goto("/maintenance-supporter", { waitUntil: "domcontentloaded" });
-  await waitForHass(page);
-  await expect(page.locator("maintenance-supporter-panel"), "maintenance panel should render (is panel_enabled set?)").toBeVisible({ timeout: 30_000 });
+  await waitForHass(page).catch(() => {});
+  // The panel's custom-element module occasionally doesn't load/define in time
+  // on a cold page load (much rarer than the lovelace-strategy race, but real).
+  // A reload re-fetches the (now-cached) module so it defines promptly. Retry a
+  // couple of times before giving up.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (await panel.isVisible().catch(() => false)) return;
+    try {
+      await expect(panel).toBeVisible({ timeout: 12_000 });
+      return;
+    } catch {
+      if (attempt < 2) {
+        await page.reload({ waitUntil: "domcontentloaded" }).catch(() => {});
+        await waitForHass(page).catch(() => {});
+      }
+    }
+  }
+  await expect(panel, "maintenance panel should render (is panel_enabled set?)").toBeVisible({ timeout: 12_000 });
 }
 
 /**
