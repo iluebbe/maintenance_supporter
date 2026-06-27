@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.5] - 2026-06-27
+
+### 🐛 Fixes
+
+- **Per-user mobile notifications now reach the right phone.** User-targeted notifications resolved the Companion-app notify service by the device's internal identifier (a webhook UUID), so the lookup always missed and notifications silently fell back to the **global** notify service. They now resolve `notify.mobile_app_<device-name>` correctly (the slugified device name, matching how Home Assistant registers the service), including for devices renamed in HA. Thanks @SkipCool33 for the precise diagnosis (#75).
+
 ## [2.10.4] - 2026-06-27
 
 ### 🐛 Fixes

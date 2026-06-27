@@ -425,30 +425,42 @@ async def _get_user_notify_services(
     4. Return list of service names
     """
     from homeassistant.helpers import device_registry as dr
+    from homeassistant.util import slugify
 
     device_reg = dr.async_get(hass)
-    services = []
+    services: list[str] = []
+    seen: set[str] = set()
 
     # Find mobile_app config entries for this user
     for entry in hass.config_entries.async_entries("mobile_app"):
         if entry.data.get("user_id") != user_id:
             continue
 
-        # Get devices linked to this config entry
-        devices = dr.async_entries_for_config_entry(device_reg, entry.entry_id)
-        for device in devices:
-            for identifier in device.identifiers:
-                if identifier[0] == "mobile_app":
-                    device_id = identifier[1]
-                    service_name = f"notify.mobile_app_{device_id}"
+        # mobile_app registers its notify service as ``notify.mobile_app_<slug>``
+        # where <slug> = slugify(device name): the legacy notify platform
+        # slugifies each target, and mobile_app's target is
+        # ``entry.data[ATTR_DEVICE_NAME]`` ("device_name"). The previous code
+        # used the device IDENTIFIER (a webhook UUID) instead, so the lookup
+        # never matched and user notifications silently fell back to the global
+        # service (#75). Use the entry's device_name (authoritative), plus the
+        # device-registry names as a safety net (older entries without
+        # device_name, or a device the user renamed).
+        candidate_names: set[str] = {entry.data.get("device_name") or ""}
+        for device in dr.async_entries_for_config_entry(device_reg, entry.entry_id):
+            candidate_names.add(device.name_by_user or "")
+            candidate_names.add(device.name or "")
 
-                    if hass.services.has_service("notify", f"mobile_app_{device_id}"):
-                        services.append(service_name)
-                        _LOGGER.debug(
-                            "Found notify service %s for user %s",
-                            service_name,
-                            user_id,
-                        )
+        for name in candidate_names:
+            if not name:
+                continue
+            service = f"mobile_app_{slugify(name)}"
+            if service in seen or not hass.services.has_service("notify", service):
+                continue
+            seen.add(service)
+            services.append(f"notify.{service}")
+            _LOGGER.debug(
+                "Found notify service notify.%s for user %s", service, user_id
+            )
 
     return services
 
