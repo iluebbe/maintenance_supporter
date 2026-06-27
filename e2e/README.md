@@ -1,70 +1,61 @@
 # End-to-end tests
 
 User-story E2E tests that drive a **real Home Assistant** with the integration
-installed, in a **real browser**, via [`@playwright/test`]. They exist to catch
-the class of bug that unit tests can't — frontend ↔ HA contract bugs and
-rendering/interaction regressions (e.g. issue #69, where the empty-state "Add
-object" button silently did nothing and the page reloaded itself).
+installed, in a **real browser**, via [`@playwright/test`]. They catch the class
+of bug unit tests can't — frontend ↔ HA contract and rendering/interaction
+regressions (e.g. issue #69).
 
 ## User stories covered
 
-| Spec | Story |
-|------|-------|
-| `specs/onboarding.spec.ts` | A new user installs the integration and opens the dashboard with **zero objects**: the empty state renders, **"Add object" opens the create dialog**, the page **does not self-heal-bounce**, and **"Open Maintenance panel"** navigates. (#69) |
-| `specs/lifecycle.spec.ts` | The **full life of an object**: create it via the Add-object dialog → an overdue task surfaces on the dashboard → completing it records history and drops it off the due view → archiving hides it → deleting removes it. |
+| Spec | Story | CI |
+|------|-------|----|
+| `specs/lifecycle.spec.ts` | **The full life of an object**, driven through the **Maintenance panel** (`/maintenance-supporter`): create it via the dialog → a seeded overdue task surfaces → completing it records history and resets the cycle → archiving hides it → deleting removes it. | ✅ `e2e-lifecycle` job |
+| `specs/onboarding.spec.ts` | A new user opens the auto-dashboard with **zero objects** (#69): empty-state renders, **"Add object" opens the dialog**, the page **does not self-heal-bounce**, "Open Maintenance panel" navigates. | ⚠️ local-only (see below) |
+
+## Why the lifecycle drives the panel
+
+The **panel** is a registered custom panel — no lovelace **strategy**
+`whenDefined` / scoped-registry race — so its navigation and rendering are
+deterministic. (The dashboard *strategy* loses that race on cold loads — the
+condition the shim's self-heal recovers in production — which makes tight-window
+navigation assertions non-deterministic in automation; that's why the
+onboarding spec, which must use the strategy empty-state, stays local-only. The
+#69 *handler* bug is already gated reliably by the unit tripwire,
+`__tests__/ll-custom-payload.test.ts`, run by `npm test` in CI.)
+
+The panel is **off by default** (`panel_enabled`); `global-setup` flips it on
+via the `global/update` WS so the lifecycle spec can reach it.
 
 ## How it works
 
 - `global-setup.ts` onboards the fresh HA (or logs in), ensures the integration
-  is set up, creates one shared strategy dashboard (`ms-e2e`), and saves an
-  authenticated `storageState` every spec reuses.
-- `helpers.ts` provides a `ws()` call through the page's live `hass` connection
-  (seed/inspect objects + tasks), dashboard helpers, and
-  `gotoStrategyDashboard()` — which waits generously for the strategy to render
-  and lets the shim's self-heal recover HA's one-shot `whenDefined` race
-  (manually reloading races it and crashes the renderer).
-- Tests seed/mutate state over WebSocket and assert the **rendered UI** (object
-  / task names appearing and disappearing through the lifecycle), plus drive the
-  real **Add-object dialog** through the DOM.
+  is set up, **enables the panel**, creates a shared strategy dashboard, and
+  saves an authenticated `storageState` every spec reuses.
+- `helpers.ts` provides `ws()` (seed/inspect over the live `hass` connection),
+  `gotoPanel()` (reliable panel nav), and `seedObject`/`seedTask` (which wait
+  until the object/task is actually queryable, so the panel's first fetch
+  doesn't miss it).
+- The lifecycle spec loads the panel **once per test** and seeds/mutates over
+  WebSocket, asserting the panel renders/re-renders **live**.
 
 ## Running
 
-**Locally** (uses the docker `playwright-server` for a stable browser):
+**Locally** — two ways:
 
 ```bash
-./e2e/run-local.sh                       # full suite
-./e2e/run-local.sh specs/onboarding.spec.ts
+./e2e/run-local.sh                          # docker playwright-server (full Chromium)
+# or, mirroring CI (fresh local Chromium against a host-mapped HA):
+E2E_HA_URL=http://localhost:8129 npx playwright test specs/lifecycle.spec.ts
 ```
 
-It builds the bundle, boots a throwaway HA, and runs the suite. Reports/traces
-land in `e2e/playwright-report/` and `e2e/test-results/` on failure
-(`npm run report` to open).
+Validated green in Docker across repeated runs (retries=0, ~20s/run) before
+wiring to CI.
 
-**In CI**: the `e2e` job in `.github/workflows/tests.yaml` boots HA via
-`docker run`, installs Chromium (`npx playwright install --with-deps chromium`),
-and runs against `localhost` with `retries: 3`.
-
-> **Status: LOCAL-ONLY for now — not yet wired into CI.** Run it with
-> `run-local.sh`. The policy is **validate green in Docker first, then promote
-> to CI** — and these specs do not yet clear that bar:
->
-> - The strategy dashboard loses HA's one-shot `whenDefined` / scoped-registry
->   race on cold loads — the exact condition the shim's self-heal recovers in
->   production — so tight-window **navigation** assertions are non-deterministic
->   in automation (a CI run took 14–25 min and still failed on flaky navigation).
-> - The panel (`/maintenance-supporter`) navigates reliably, but on a
->   freshly-onboarded HA it can briefly return `404` until the integration's
->   panel registration propagates to the frontend's panel list (a setup-timing
->   issue to wait out, not a product bug).
->
-> The hard CI gate stays the unit suite (`npm test`), which already includes the
-> red-green #69 `ll-custom` tripwire.
->
-> **To make this CI-worthy** (tracked follow-up): drive the lifecycle through the
-> panel and wait for the panel to register; warm/await the strategy element
-> deterministically for the onboarding spec; then confirm several consecutive
-> green Docker runs before adding the `e2e` job back to `tests.yaml`. The
-> harness, fixtures, and WS helpers here are built to support that.
+**In CI** — the `e2e-lifecycle` job boots HA via `docker run`, installs Chromium
+(`npx playwright install --with-deps chromium`), and runs the lifecycle spec
+with `retries: 2`. It is **non-blocking (`continue-on-error`) for now** so a few
+CI-Linux runs confirm stability before it's promoted to a hard gate; it uploads
+traces on failure. The hard gate stays the unit suite (`npm test`).
 
 ## Environment knobs
 
@@ -76,8 +67,8 @@ and runs against `localhost` with `retries: 3`.
 
 ## Adding a spec
 
-Drop a `specs/<story>.spec.ts` in, navigate via `gotoStrategyDashboard`, seed
-with `seedObject` / `seedTask`, and assert on rendered text + `getObject`. Keep
-each test self-cleaning (`deleteAllObjects`) so order doesn't matter.
+Drop a `specs/<story>.spec.ts` in, `gotoPanel`, seed with `seedObject` /
+`seedTask`, and assert on rendered text + `getObject`. Keep each test
+self-cleaning (`deleteAllObjects`) so order doesn't matter.
 
 [`@playwright/test`]: https://playwright.dev/docs/test-intro

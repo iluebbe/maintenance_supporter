@@ -70,24 +70,49 @@ export async function deleteDashboard(page: Page, urlPath: string): Promise<void
   if (d) await ws(page, { type: "lovelace/dashboards/delete", dashboard_id: d.id }).catch(() => {});
 }
 
-/** Create a maintenance object; returns its entry_id. */
+/** Create a maintenance object; returns its entry_id once it is actually
+ *  queryable. Creating an object is a config-entry whose runtime setup is
+ *  async — if we navigate before it's queryable, the panel's initial fetch
+ *  misses it (a flaky empty render), so we poll until it appears. */
 export async function seedObject(page: Page, name: string): Promise<string> {
   const r = await ws<{ entry_id: string }>(page, { type: "maintenance_supporter/object/create", name });
+  for (let i = 0; i < 50; i++) {
+    const o = await ws<{ objects?: any[] }>(page, { type: "maintenance_supporter/objects" }).catch(() => ({ objects: [] }));
+    if ((o.objects || []).some((x) => (x.object?.entry_id ?? x.entry_id) === r.entry_id)) return r.entry_id;
+    await page.waitForTimeout(200);
+  }
   return r.entry_id;
 }
 
-/** Create a task on an object. */
+/** Create a task on an object; waits until the task is queryable. */
 export async function seedTask(
   page: Page,
   entryId: string,
   opts: Record<string, unknown>,
 ): Promise<void> {
   await ws(page, { type: "maintenance_supporter/task/create", entry_id: entryId, ...opts });
+  const name = opts.name as string | undefined;
+  if (!name) return;
+  for (let i = 0; i < 50; i++) {
+    const obj = await getObject(page, entryId).catch(() => ({ tasks: [] }));
+    if ((obj.tasks || []).some((t: any) => t.name === name)) return;
+    await page.waitForTimeout(200);
+  }
 }
 
 /** Full object snapshot (entry + tasks) from the WS read API. */
 export async function getObject(page: Page, entryId: string): Promise<any> {
   return ws(page, { type: "maintenance_supporter/object", entry_id: entryId });
+}
+
+/** Navigate to the sidebar panel (/maintenance-supporter) and wait for it to
+ *  render. The panel is a registered custom panel (no lovelace-strategy
+ *  whenDefined race), so this is reliable — but it is off by default; the
+ *  global-setup enables it (panel_enabled). */
+export async function gotoPanel(page: Page): Promise<void> {
+  await page.goto("/maintenance-supporter", { waitUntil: "domcontentloaded" });
+  await waitForHass(page);
+  await expect(page.locator("maintenance-supporter-panel"), "maintenance panel should render (is panel_enabled set?)").toBeVisible({ timeout: 30_000 });
 }
 
 /**
