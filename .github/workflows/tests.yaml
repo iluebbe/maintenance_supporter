@@ -184,3 +184,77 @@ jobs:
       - name: Cleanup
         if: always()
         run: docker rm -f ha-test || true
+
+  # End-to-end lifecycle on the real Maintenance panel (registered custom panel,
+  # no lovelace-strategy whenDefined race). Validated green in Docker before
+  # wiring here. NON-BLOCKING for the first runs (continue-on-error) so CI Linux
+  # confirms stability before it becomes a hard gate; uploads traces on failure.
+  e2e-lifecycle:
+    name: E2E lifecycle (real HA panel + browser)
+    runs-on: ubuntu-latest
+    needs: [frontend-build, pytest]
+    continue-on-error: true
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Build frontend bundle
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: |
+          npm ci
+          node esbuild.mjs
+
+      - name: Start Home Assistant (onboarding-capable)
+        run: |
+          mkdir -p ha-e2e-config
+          cat > ha-e2e-config/configuration.yaml <<'CFG'
+          default_config:
+          logger:
+            default: warning
+          CFG
+          docker run -d --name ha-e2e \
+            -v "${GITHUB_WORKSPACE}/ha-e2e-config:/config" \
+            -v "${GITHUB_WORKSPACE}/custom_components:/config/custom_components:ro" \
+            -e TZ=UTC -p 8123:8123 \
+            ghcr.io/home-assistant/home-assistant:2026.6.3
+
+      - name: Wait for HA API (up to 300s)
+        run: |
+          for i in $(seq 1 150); do
+            curl -sf http://localhost:8123/manifest.json >/dev/null 2>&1 && { echo "HA up after $((i*2))s"; exit 0; }
+            sleep 2
+          done
+          echo "::error::HA did not start"; docker logs ha-e2e --tail 150; exit 1
+
+      - name: Install E2E deps + Chromium
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E lifecycle (panel)
+        working-directory: e2e
+        env:
+          E2E_HA_URL: http://localhost:8123
+        run: npm test -- specs/lifecycle.spec.ts
+
+      - name: Upload Playwright report + traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-lifecycle-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+
+      - name: HA logs (always)
+        if: always()
+        run: docker logs ha-e2e --tail 150 || true
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f ha-e2e || true
