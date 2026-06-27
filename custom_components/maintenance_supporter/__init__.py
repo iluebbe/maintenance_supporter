@@ -46,6 +46,7 @@ from .const import (
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
     CONF_TASKS,
+    DEFAULT_PANEL_ENABLED,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -723,8 +724,8 @@ async def async_setup_entry(
             hass.config_entries.async_update_entry(entry, options=options)
             _LOGGER.info("Migrated advanced feature flags: %s", flags)
 
-        # Register panel if enabled in options
-        if entry.options.get(CONF_PANEL_ENABLED, False):
+        # Register panel if enabled in options (on by default — see const).
+        if entry.options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED):
             await async_register_panel(hass)
 
         # Listen for options changes (panel toggle)
@@ -822,7 +823,7 @@ async def _async_global_options_updated(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> None:
     """React to global options changes (panel toggle / sidebar title)."""
-    panel_enabled = entry.options.get(CONF_PANEL_ENABLED, False)
+    panel_enabled = entry.options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED)
     if panel_enabled:
         # force=True so a changed sidebar title (CONF_PANEL_TITLE) re-registers
         # the panel; it's a no-op refresh when the title is unchanged.

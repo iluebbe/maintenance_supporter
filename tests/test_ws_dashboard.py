@@ -539,7 +539,7 @@ async def test_get_settings_returns_all_sections(
     # Check general defaults
     assert result["general"]["default_warning_days"] == 7
     assert result["general"]["notifications_enabled"] is False
-    assert result["general"]["panel_enabled"] is False
+    assert result["general"]["panel_enabled"] is True  # on by default since v2.10.4 (#69 follow-up)
     # Check notification defaults
     assert result["notifications"]["due_soon_enabled"] is True
     assert result["notifications"]["quiet_hours_enabled"] is True

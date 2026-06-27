@@ -56,6 +56,7 @@ from .const import (
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
+    DEFAULT_PANEL_ENABLED,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DEFAULT_WARNING_DAYS,
     MAX_PANEL_TITLE_LENGTH,
@@ -479,7 +480,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     ),
                     vol.Optional(
                         CONF_PANEL_ENABLED,
-                        default=current.get(CONF_PANEL_ENABLED, False),
+                        default=current.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),
                     ): selector.BooleanSelector(),
                     # Blank clears the override → panel falls back to the default
                     # title ("Maintenance"). suggested_value pre-fills the current
