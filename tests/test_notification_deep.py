@@ -466,30 +466,64 @@ async def test_user_notify_services_no_mobile_app(hass: HomeAssistant) -> None:
 
 
 async def test_user_notify_services_with_mobile_app(hass: HomeAssistant) -> None:
-    """Test user notify discovery finds mobile_app services."""
+    """User notify discovery finds mobile_app services by the slugified device name.
+
+    Regression for #75: the real service is ``notify.mobile_app_<slug(device_name)>``,
+    NOT ``mobile_app_<device_identifier>`` (a webhook UUID). Here the identifier
+    deliberately differs from the device-name slug, so the old identifier-based
+    lookup would miss it and fall back to the global service.
+    """
     from homeassistant.helpers import device_registry as dr
 
-    # Create a mobile_app config entry
+    # Create a mobile_app config entry (carries the device_name mobile_app uses).
     mobile_entry = MockConfigEntry(
         domain="mobile_app",
-        data={"user_id": "user123"},
+        data={"user_id": "user123", "device_name": "Test Phone"},
         source="user",
     )
     mobile_entry.add_to_hass(hass)
 
-    # Create a device linked to that entry
+    # Device identifier is a webhook UUID — NOT the service slug.
     device_reg = dr.async_get(hass)
     device_reg.async_get_or_create(
         config_entry_id=mobile_entry.entry_id,
-        identifiers={("mobile_app", "test_phone")},
+        identifiers={("mobile_app", "a1b2c3d4-e5f6-7890-webhook-uuid")},
         name="Test Phone",
     )
 
-    # Register the corresponding notify service
+    # The real service name is the slugified device name.
     hass.services.async_register("notify", "mobile_app_test_phone", AsyncMock())
 
     services = await _get_user_notify_services(hass, "user123")
-    assert "notify.mobile_app_test_phone" in services
+    assert services == ["notify.mobile_app_test_phone"]
+
+
+async def test_user_notify_services_renamed_device(hass: HomeAssistant) -> None:
+    """#75 safety net: a device renamed in HA (name_by_user) still resolves — the
+    mobile_app service keeps the original registration name, which lives in the
+    entry's ``device_name``."""
+    from homeassistant.helpers import device_registry as dr
+
+    mobile_entry = MockConfigEntry(
+        domain="mobile_app",
+        data={"user_id": "user123", "device_name": "Original Name"},
+        source="user",
+    )
+    mobile_entry.add_to_hass(hass)
+
+    device_reg = dr.async_get(hass)
+    device = device_reg.async_get_or_create(
+        config_entry_id=mobile_entry.entry_id,
+        identifiers={("mobile_app", "webhook-uuid-xyz")},
+        name="Original Name",
+    )
+    device_reg.async_update_device(device.id, name_by_user="My Renamed Phone")
+
+    # Service still follows the original registration name.
+    hass.services.async_register("notify", "mobile_app_original_name", AsyncMock())
+
+    services = await _get_user_notify_services(hass, "user123")
+    assert "notify.mobile_app_original_name" in services
 
 
 async def test_user_notify_services_wrong_user(hass: HomeAssistant) -> None:
