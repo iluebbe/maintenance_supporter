@@ -13,7 +13,7 @@
 import { chromium, type FullConfig } from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
-import { createStrategyDashboard, waitForHass, STRATEGY_DASH } from "./helpers";
+import { createStrategyDashboard, waitForHass, ws, STRATEGY_DASH } from "./helpers";
 
 const HA = process.env.E2E_HA_URL || "http://localhost:8123";
 const REST = process.env.E2E_HA_REST_URL || HA;
@@ -107,6 +107,11 @@ export default async function globalSetup(_config: FullConfig) {
   const page = await ctx.newPage();
   await page.goto(HA + "/lovelace", { waitUntil: "domcontentloaded" });
   await waitForHass(page);
+  // The sidebar panel (/maintenance-supporter) is off by default — enable it so
+  // the panel-driven lifecycle spec can reach it. Flipping panel_enabled fires
+  // async_register_panel(force=True) on the backend.
+  await ws(page, { type: "maintenance_supporter/global/update", settings: { panel_enabled: true } }).catch(() => {});
+  await page.waitForTimeout(2500); // let the panel register
   // One shared strategy dashboard that every spec navigates to (empty-state
   // when there are no objects, populated once a spec seeds them).
   await createStrategyDashboard(page, STRATEGY_DASH);
