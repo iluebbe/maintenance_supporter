@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.7] - 2026-06-28
+
+### ✨ Notification-service dropdown in the panel too
+
+- The **Maintenance panel's** notification settings now offer the same notify-service **dropdown** that the integration's options flow gained in v2.10.6: your registered `notify.*` services (mobile apps, notify groups) are suggested as you type, so you no longer have to remember the exact slug. It stays a free-text field, so a service that registers later still works. (The generic `notify.send_message` entity-action is omitted, since our actionable reminders need the legacy services.)
+
 ## [2.10.6] - 2026-06-28
 
 ### ✨ Notification service picker + missing-service repair notice
