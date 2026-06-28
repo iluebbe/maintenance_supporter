@@ -133,6 +133,17 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     },
                 )
 
+        # Offer registered notify.* services as a dropdown (mobile_app devices,
+        # notify groups, …), excluding the generic send_message entity-action.
+        # custom_value keeps it free-text so a not-yet-registered service still
+        # works — the format-only validation above never blocks on existence.
+        # Matches the picker in the options flow + panel.
+        notify_services = sorted(
+            f"notify.{name}"
+            for name in self.hass.services.async_services().get("notify", {})
+            if name != "send_message"
+        )
+
         return self.async_show_form(
             step_id="global_setup",
             data_schema=vol.Schema(
@@ -149,9 +160,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_NOTIFY_SERVICE, default=""
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=notify_services,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=True,
                         )
                     ),
                 }

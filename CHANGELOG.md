@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.8] - 2026-06-28
+
+### ✨ Notification-service dropdown in the setup wizard too
+
+- The notify-service picker — added to the integration's options flow in v2.10.6 and the panel in v2.10.7 — is now also in the **initial setup wizard**, so choosing your `notify.*` service is consistent in all three places it can be set. As before, it stays free-text so a service that registers later still works.
+
 ## [2.10.7] - 2026-06-28
 
 ### ✨ Notification-service dropdown in the panel too
