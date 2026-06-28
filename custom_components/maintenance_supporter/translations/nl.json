@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Meldingsservice `{service}` niet gevonden",
+      "description": "Maintenance Supporter is ingesteld om meldingen te versturen via `{service}`, maar die service bestaat momenteel niet in Home Assistant, waardoor herinneringen stilletjes mislukken.\n\nMeestal betekent dit dat de service is hernoemd, of dat de integratie erachter (een mobiele app, een meldingsgroep, …) is verwijderd. Om dit op te lossen: herstel die service, of open **Instellingen → Apparaten en services → Maintenance Supporter → Configureren → Algemene instellingen** en kies een geldige `notify.*`-service.\n\nLet op: dit controleert alleen de geconfigureerde service zelf. Als meldingen sommige apparaten wel en andere niet bereiken, is waarschijnlijk een lid *binnen* je meldingsgroep verkeerd geconfigureerd — dat is hier niet zichtbaar; bekijk het **systeemlogboek** van Home Assistant (Instellingen → Systeem → Logboeken)."
     }
   },
   "exceptions": {

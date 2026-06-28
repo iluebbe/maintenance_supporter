@@ -2,6 +2,18 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.6] - 2026-06-28
+
+### ✨ Notification service picker + missing-service repair notice
+
+- **Pick your notification service from a dropdown.** Global settings no longer make you type `notify.…` and guess the exact slug — they now list every registered notify service (your mobile apps, notify groups, …) to choose from. Free text still works for a service that registers later.
+- **A missing notification service is now surfaced, not silent.** If the configured service stops existing (a phone app removed or renamed), reminders used to fail with no trace. Home Assistant now raises a repair notice naming the service so you notice. Only the configured service itself is checked — a misconfigured member *inside* a notify group is logged by Home Assistant, not here.
+- **Clearer "Test notification" result.** Success now spells out that it only confirms the service is reachable; if one specific device receives nothing, check that device in your notify group and Home Assistant's logs.
+
+### 🐛 Fixes
+
+- **No more `notify_service_not_found` blocking your settings.** Configuring a notify service that wasn't registered at that exact moment — common with `mobile_app_*` services that register lazily — used to block saving entirely. Settings now validate the format and save; a genuinely missing service is surfaced by the repair notice above instead. Thanks @Good-seb for the report (#77).
+
 ## [2.10.5] - 2026-06-27
 
 ### 🐛 Fixes

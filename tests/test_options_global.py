@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import selector
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.config_flow_options_global import (
@@ -115,14 +116,14 @@ def test_get_test_result_text_en(hass: HomeAssistant) -> None:
     """Test English result text."""
     hass.config.language = "en"
     result = _get_test_result_text(hass, "success")
-    assert "successfully" in result
+    assert "group" in result.lower()  # success copy now carries the per-device caveat
 
 
 def test_get_test_result_text_de(hass: HomeAssistant) -> None:
     """Test German result text."""
     hass.config.language = "de"
     result = _get_test_result_text(hass, "success")
-    assert "erfolgreich" in result
+    assert "Gruppe" in result  # success copy now carries the per-device caveat
 
 
 def test_get_test_result_text_fallback(hass: HomeAssistant) -> None:
@@ -134,7 +135,7 @@ def test_get_test_result_text_fallback(hass: HomeAssistant) -> None:
     """
     hass.config.language = "xx"
     result = _get_test_result_text(hass, "success")
-    assert "successfully" in result
+    assert "group" in result.lower()  # success copy now carries the per-device caveat
 
 
 def test_get_test_result_text_unknown_key(hass: HomeAssistant) -> None:
@@ -389,6 +390,59 @@ async def test_options_flow_general_settings_invalid_service(
     assert result["type"] == FlowResultType.FORM
     assert result["errors"] is not None
     assert result["errors"].get(CONF_NOTIFY_SERVICE)
+
+
+async def test_options_flow_general_settings_accepts_unregistered_service(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """#77: a valid-format but currently-unregistered notify service saves
+    instead of hard-blocking — the runtime repair issue surfaces a genuinely
+    missing one afterwards, so lazily-registered mobile_app_* services work."""
+    await setup_integration(hass, global_entry)
+    # Deliberately do NOT register notify.mobile_app_phone.
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "general_settings"},
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_DEFAULT_WARNING_DAYS: 5,
+            CONF_NOTIFICATIONS_ENABLED: True,
+            CONF_NOTIFY_SERVICE: "notify.mobile_app_phone",
+        },
+    )
+    assert result["type"] == FlowResultType.MENU  # saved, not blocked
+    await hass.async_block_till_done()
+    assert global_entry.options[CONF_NOTIFY_SERVICE] == "notify.mobile_app_phone"
+
+
+async def test_options_flow_general_settings_notify_dropdown(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """(d) The notify-service field is a dropdown of registered notify.* services
+    (mobile_app + groups), excludes the generic send_message entity-action, and
+    allows custom values (custom_value) for lazily-registered services."""
+    await setup_integration(hass, global_entry)
+    hass.services.async_register("notify", "mobile_app_phone", lambda call: None)
+    hass.services.async_register("notify", "all_devices_group", lambda call: None)
+    hass.services.async_register("notify", "send_message", lambda call: None)
+
+    result = await hass.config_entries.options.async_init(global_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "general_settings"},
+    )
+    schema_dict = result["data_schema"].schema
+    notify_field = next(
+        v for k, v in schema_dict.items()
+        if getattr(k, "schema", k) == CONF_NOTIFY_SERVICE
+    )
+    assert isinstance(notify_field, selector.SelectSelector)
+    options = notify_field.config["options"]
+    assert "notify.mobile_app_phone" in options    # mobile_app direct
+    assert "notify.all_devices_group" in options   # a notify group
+    assert "notify.send_message" not in options     # generic entity-action excluded
+    assert notify_field.config["custom_value"] is True
 
 
 async def test_options_flow_budget_settings(
