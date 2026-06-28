@@ -102,6 +102,7 @@ export interface CreateMockHassResult {
       data?: Record<string, unknown>, target?: Record<string, unknown>,
     ) => Promise<void>;
     services?: Record<string, Record<string, unknown>>;
+    states?: Record<string, unknown>;
   };
   sent: SentMessage[];
   serviceCalls: ServiceCall[];
@@ -114,6 +115,8 @@ export interface CreateMockHassOptions {
   handlers?: Record<string, WsHandler>;
   /** Optional `hass.services` registry (for ha-service-picker / schema-driven forms). */
   services?: Record<string, Record<string, unknown>>;
+  /** Optional `hass.states` (entity_id → state) — e.g. for notify-entity pickers. */
+  states?: Record<string, unknown>;
   /** Override `hass.language`. Defaults to "en". */
   language?: string;
 }
@@ -159,6 +162,7 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
       connection: { sendMessagePromise },
       callService,
       services: opts.services,
+      states: opts.states,
     },
     sent,
     serviceCalls,
