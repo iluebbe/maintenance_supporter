@@ -473,6 +473,48 @@ async def _get_user_notify_services(
     return services
 
 
+async def async_dispatch_notify(
+    hass: HomeAssistant,
+    target: str,
+    service_data: dict[str, Any],
+    *,
+    blocking: bool = False,
+) -> bool:
+    """Send ``service_data`` to a notify target, handling both notify models.
+
+    - A legacy notify *service* (``notify.mobile_app_<slug>``, a notify group, …)
+      is called directly and carries the full payload — action buttons, tag, url.
+    - A notify *entity* (the newer model — many single devices live only here)
+      has no callable per-name service; it's reached via ``notify.send_message``
+      with ``entity_id``, which carries only ``message`` + ``title`` (the entity
+      model can't take ``data``, so action buttons / tag / url are dropped).
+
+    Returns True if a target was dispatched, False if neither a service nor an
+    entity by that name exists. Exceptions are left for the caller to handle.
+    """
+    domain, _, name = target.partition(".")
+    if not name:
+        _LOGGER.warning("Invalid notify target: %s", target)
+        return False
+    if hass.services.has_service(domain, name):
+        await hass.services.async_call(domain, name, service_data, blocking=blocking)
+        return True
+    if hass.states.get(target) is not None:
+        await hass.services.async_call(
+            "notify",
+            "send_message",
+            {
+                "entity_id": target,
+                "title": service_data.get("title", ""),
+                "message": service_data.get("message", ""),
+            },
+            blocking=blocking,
+        )
+        return True
+    _LOGGER.warning("Notify target not found (no service or entity): %s", target)
+    return False
+
+
 # Per-status config mapping
 _STATUS_ENABLED_KEYS: dict[str, str] = {
     MaintenanceStatus.DUE_SOON: CONF_NOTIFY_DUE_SOON_ENABLED,
@@ -544,11 +586,19 @@ class NotificationManager:
         return raw
 
     def _configured_service_exists(self, service: str) -> bool:
-        """Return True if the ``notify.<name>`` service is registered right now."""
+        """Return True if the configured notify target exists right now.
+
+        Either a registered ``notify.<name>`` service (legacy: mobile_app,
+        notify groups) OR a notify *entity* (newer model, sent via
+        ``notify.send_message``). Otherwise the repair issue would false-fire on
+        a perfectly valid entity target.
+        """
         domain, _, name = service.partition(".")
         if not name:
             return False
-        return self.hass.services.has_service(domain, name)
+        if self.hass.services.has_service(domain, name):
+            return True
+        return self.hass.states.get(service) is not None
 
     @callback
     def async_verify_configured_service(self) -> None:
@@ -900,17 +950,7 @@ class NotificationManager:
         service_data["data"] = data
 
         try:
-            service_parts = service.split(".")
-            if len(service_parts) == 2:
-                await self.hass.services.async_call(
-                    service_parts[0],
-                    service_parts[1],
-                    service_data,
-                    blocking=False,
-                )
-                return True
-            _LOGGER.warning("Invalid notify service format: %s", service)
-            return False
+            return await async_dispatch_notify(self.hass, service, service_data)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send notification to %s", service)
             return False
@@ -975,14 +1015,7 @@ class NotificationManager:
         }
 
         try:
-            service_parts = self.notify_service.split(".")
-            if len(service_parts) == 2:
-                await self.hass.services.async_call(
-                    service_parts[0],
-                    service_parts[1],
-                    service_data,
-                    blocking=False,
-                )
+            if await async_dispatch_notify(self.hass, self.notify_service, service_data):
                 self._last_notified[bundle_key] = dt_util.now()
                 self._daily_count += 1
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
@@ -1037,14 +1070,7 @@ class NotificationManager:
         }
 
         try:
-            service_parts = self.notify_service.split(".")
-            if len(service_parts) == 2:
-                await self.hass.services.async_call(
-                    service_parts[0],
-                    service_parts[1],
-                    service_data,
-                    blocking=False,
-                )
+            if await async_dispatch_notify(self.hass, self.notify_service, service_data):
                 self._last_notified[budget_key] = dt_util.now()
                 self._daily_count += 1
                 _LOGGER.debug("Budget alert sent: %s - %s", title, message)
@@ -1075,20 +1101,24 @@ class NotificationManager:
             self._snoozed_until.pop(key, None)
 
     async def async_dismiss_task_notification(self, task_id: str) -> None:
-        """Dismiss a task notification on Companion App devices."""
+        """Dismiss a task notification on Companion App devices.
+
+        ``clear_notification`` is a legacy mobile_app service feature; the notify
+        *entity* model (notify.send_message) has no equivalent, so an entity-only
+        target can't be dismissed and is simply skipped.
+        """
         service = self.notify_service
-        if not service:
+        domain, _, name = service.partition(".")
+        if not (name and self.hass.services.has_service(domain, name)):
             return
         tag = f"maintenance_{task_id}"
         try:
-            parts = service.split(".")
-            if len(parts) == 2:
-                await self.hass.services.async_call(
-                    parts[0],
-                    parts[1],
-                    {"message": "clear_notification", "data": {"tag": tag}},
-                    blocking=False,
-                )
+            await self.hass.services.async_call(
+                domain,
+                name,
+                {"message": "clear_notification", "data": {"tag": tag}},
+                blocking=False,
+            )
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.debug("Failed to dismiss notification for tag %s", tag)
 

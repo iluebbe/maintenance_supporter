@@ -377,15 +377,22 @@ export class MaintenanceSettingsView extends LitElement {
 
   private _renderGeneral(L: string) {
     const g = this._settings!.general;
-    // Suggestible notify services for the picker below — read live from the
-    // frontend service registry (mobile_app devices, notify groups, …), minus
-    // the generic send_message entity-action. The <datalist> keeps this a
-    // free-text input (custom/lazily-registered values still work) while
-    // offering the real service names so users don't have to guess the slug.
-    const notifyServices = Object.keys(this.hass?.services?.notify ?? {})
-      .filter((n) => n !== "send_message")
-      .map((n) => `notify.${n}`)
-      .sort();
+    // Suggestible notify targets for the picker below — merge legacy notify
+    // *services* (mobile_app devices, notify groups) from the service registry
+    // with notify *entities* (the newer model) from the state machine, since
+    // many single devices appear only as an entity. send_message is the generic
+    // action, not a target → excluded. The <datalist> keeps this a free-text
+    // input (custom / not-yet-loaded values still work).
+    const notifyTargets = new Set<string>();
+    for (const s of Object.keys(this.hass?.services?.notify ?? {})) {
+      if (s !== "send_message") notifyTargets.add(`notify.${s}`);
+    }
+    for (const eid of Object.keys(this.hass?.states ?? {})) {
+      if (eid.startsWith("notify.") && eid !== "notify.send_message") {
+        notifyTargets.add(eid);
+      }
+    }
+    const notifyServices = [...notifyTargets].sort();
     const b = this._settings!.budget;
     return html`
       <div class="settings-section">

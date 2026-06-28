@@ -1323,3 +1323,60 @@ def test_test_notification_success_text_warns_about_group_members() -> None:
     assert "log" in en
     de = _TEST_NOTIFICATION_RESULTS["de"]["success"].lower()
     assert "gruppe" in de
+
+
+# ─── Dual send path: legacy service vs notify entity ───────────────────────
+
+
+async def test_send_to_legacy_service_uses_service_call(hass: HomeAssistant) -> None:
+    """A target with a legacy notify service is sent via that service, with the
+    full ``data`` payload (action buttons / tag / deep link preserved)."""
+    _create_global_entry(hass, notify_service="notify.legacy_device")
+    calls: list = []
+    hass.services.async_register("notify", "legacy_device", lambda c: calls.append(c))
+
+    mgr = NotificationManager(hass)
+    ok = await mgr._async_send_notification_to_service(
+        service="notify.legacy_device", title="T", message="M",
+        entry_id="e", task_id="t",
+    )
+    await hass.async_block_till_done()
+
+    assert ok is True
+    assert len(calls) == 1
+    assert calls[0].data.get("message") == "M"
+    assert "data" in calls[0].data  # legacy path keeps the rich payload
+
+
+async def test_send_to_notify_entity_uses_send_message(hass: HomeAssistant) -> None:
+    """An entity-only target (no legacy service) is sent via notify.send_message
+    with entity_id — message+title only, since the entity model can't carry data."""
+    _create_global_entry(hass, notify_service="notify.file")
+    hass.states.async_set("notify.file", "unknown")  # a notify ENTITY, not a service
+    send_calls: list = []
+    hass.services.async_register("notify", "send_message", lambda c: send_calls.append(c))
+
+    mgr = NotificationManager(hass)
+    ok = await mgr._async_send_notification_to_service(
+        service="notify.file", title="T", message="M",
+        entry_id="e", task_id="t",
+    )
+    await hass.async_block_till_done()
+
+    assert ok is True
+    assert len(send_calls) == 1
+    assert send_calls[0].data.get("entity_id") == "notify.file"
+    assert send_calls[0].data.get("message") == "M"
+    assert "data" not in send_calls[0].data  # entity model drops the rich payload
+
+
+async def test_verify_service_accepts_notify_entity(hass: HomeAssistant) -> None:
+    """A configured notify ENTITY (no legacy service) is a valid target — the
+    repair issue must not false-fire on it."""
+    _create_global_entry(hass, notify_service="notify.file")
+    hass.states.async_set("notify.file", "unknown")
+
+    mgr = NotificationManager(hass)
+    mgr.async_verify_configured_service()
+
+    assert _get_notify_issue(hass) is None

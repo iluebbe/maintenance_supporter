@@ -408,6 +408,9 @@ async def test_notification_on_status_transition(
         entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
         assert entry is not None
         coordinator = entry.runtime_data.coordinator
+        # Register the configured notify service so the dual-path send dispatches
+        # to it (it checks has_service first); async_call itself is mocked above.
+        hass.services.async_register("notify", "mobile_app", lambda call: None)
 
         # First refresh seeds _previous_statuses (status=OK, no notification)
         assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OK

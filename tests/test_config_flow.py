@@ -131,12 +131,13 @@ async def test_global_setup_creates_entry(hass: HomeAssistant) -> None:
 
 
 async def test_global_setup_notify_dropdown(hass: HomeAssistant) -> None:
-    """The setup wizard offers registered notify.* services as a dropdown
-    (mobile_app + groups), excludes the generic send_message action, and keeps
-    custom_value so a not-yet-registered service can still be typed."""
+    """The setup wizard offers a dropdown merging notify *services* (mobile_app +
+    groups) and notify *entities* (newer model), excludes the generic
+    send_message action, and keeps custom_value for not-yet-loaded targets."""
     hass.services.async_register("notify", "mobile_app_phone", lambda call: None)
     hass.services.async_register("notify", "all_devices_group", lambda call: None)
     hass.services.async_register("notify", "send_message", lambda call: None)
+    hass.states.async_set("notify.file_device", "unknown")  # entity-only device
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -149,9 +150,10 @@ async def test_global_setup_notify_dropdown(hass: HomeAssistant) -> None:
     )
     assert isinstance(notify_field, selector.SelectSelector)
     options = notify_field.config["options"]
-    assert "notify.mobile_app_phone" in options
-    assert "notify.all_devices_group" in options
-    assert "notify.send_message" not in options
+    assert "notify.mobile_app_phone" in options    # service
+    assert "notify.all_devices_group" in options   # service (group)
+    assert "notify.file_device" in options         # entity-only device — the fix
+    assert "notify.send_message" not in options     # generic action excluded
     assert notify_field.config["custom_value"] is True
 
 
