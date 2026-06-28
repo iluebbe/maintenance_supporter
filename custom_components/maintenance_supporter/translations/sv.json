@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Aviseringstjänsten `{service}` hittades inte",
+      "description": "Maintenance Supporter är konfigurerad att skicka aviseringar via `{service}`, men den tjänsten finns inte i Home Assistant just nu, så påminnelser misslyckas tyst.\n\nDet betyder oftast att tjänsten har bytt namn, eller att integrationen bakom den (en mobilapp, en aviseringsgrupp, …) har tagits bort. För att åtgärda: återställ tjänsten, eller öppna **Inställningar → Enheter och tjänster → Maintenance Supporter → Konfigurera → Allmänna inställningar** och välj en giltig `notify.*`-tjänst.\n\nObs: detta kontrollerar bara själva den konfigurerade tjänsten. Om aviseringar når vissa enheter men inte andra är troligen en medlem *inuti* din aviseringsgrupp felkonfigurerad — det syns inte här; kontrollera Home Assistants **systemlogg** (Inställningar → System → Loggar)."
     }
   },
   "exceptions": {

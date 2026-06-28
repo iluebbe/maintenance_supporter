@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Servizio di notifica `{service}` non trovato",
+      "description": "Maintenance Supporter è configurato per inviare notifiche tramite `{service}`, ma quel servizio attualmente non esiste in Home Assistant, quindi i promemoria falliscono silenziosamente.\n\nDi solito significa che il servizio è stato rinominato, o che l'integrazione che lo fornisce (un'app mobile, un gruppo di notifica, …) è stata rimossa. Per risolvere: ripristina quel servizio, oppure apri **Impostazioni → Dispositivi e servizi → Maintenance Supporter → Configura → Impostazioni generali** e scegli un servizio `notify.*` valido.\n\nNota: viene controllato solo il servizio configurato. Se le notifiche arrivano ad alcuni dispositivi ma non ad altri, probabilmente un membro *all'interno* del tuo gruppo di notifica è configurato male — non è visibile qui; controlla il **log di sistema** di Home Assistant (Impostazioni → Sistema → Log)."
     }
   },
   "exceptions": {

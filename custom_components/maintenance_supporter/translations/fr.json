@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Service de notification `{service}` introuvable",
+      "description": "Maintenance Supporter est configuré pour envoyer les notifications via `{service}`, mais ce service n'existe pas actuellement dans Home Assistant : les rappels échouent donc silencieusement.\n\nCela signifie généralement que le service a été renommé, ou que l'intégration associée (une application mobile, un groupe de notification, …) a été supprimée. Pour corriger : rétablissez ce service, ou ouvrez **Paramètres → Appareils et services → Maintenance Supporter → Configurer → Paramètres généraux** et choisissez un service `notify.*` valide.\n\nRemarque : seul le service configuré lui-même est vérifié. Si les notifications arrivent sur certains appareils mais pas d'autres, un membre *à l'intérieur* de votre groupe de notification est probablement mal configuré — ce n'est pas visible ici ; consultez le **journal système** de Home Assistant (Paramètres → Système → Journaux)."
     }
   },
   "exceptions": {

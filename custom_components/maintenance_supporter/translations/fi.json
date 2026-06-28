@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Ilmoituspalvelua `{service}` ei löytynyt",
+      "description": "Maintenance Supporter on määritetty lähettämään ilmoituksia palvelun `{service}` kautta, mutta kyseistä palvelua ei tällä hetkellä ole Home Assistantissa, joten muistutukset epäonnistuvat huomaamatta.\n\nYleensä tämä tarkoittaa, että palvelu on nimetty uudelleen tai sen taustalla oleva integraatio (mobiilisovellus, ilmoitusryhmä, …) on poistettu. Korjaaminen: palauta kyseinen palvelu tai avaa **Asetukset → Laitteet ja palvelut → Maintenance Supporter → Määritä → Yleiset asetukset** ja valitse kelvollinen `notify.*`-palvelu.\n\nHuomaa: tämä tarkistaa vain määritetyn palvelun itsensä. Jos ilmoitukset tavoittavat jotkin laitteet mutta eivät muita, jokin ilmoitusryhmäsi *sisällä* oleva jäsen on todennäköisesti väärin määritetty — se ei näy täällä; tarkista Home Assistantin **järjestelmäloki** (Asetukset → Järjestelmä → Lokit)."
     }
   },
   "exceptions": {

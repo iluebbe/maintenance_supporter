@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Notifikationstjenesten `{service}` blev ikke fundet",
+      "description": "Maintenance Supporter er konfigureret til at sende notifikationer via `{service}`, men den tjeneste findes ikke i Home Assistant lige nu, så påmindelser fejler lydløst.\n\nDet betyder normalt, at tjenesten er blevet omdøbt, eller at integrationen bag den (en mobilapp, en notifikationsgruppe, …) er blevet fjernet. For at løse det: gendan tjenesten, eller åbn **Indstillinger → Enheder og tjenester → Maintenance Supporter → Konfigurer → Generelle indstillinger** og vælg en gyldig `notify.*`-tjeneste.\n\nBemærk: dette tjekker kun selve den konfigurerede tjeneste. Hvis notifikationer når nogle enheder, men ikke andre, er et medlem *inde i* din notifikationsgruppe sandsynligvis forkert konfigureret — det er ikke synligt her; tjek Home Assistants **systemlog** (Indstillinger → System → Logfiler)."
     }
   },
   "exceptions": {

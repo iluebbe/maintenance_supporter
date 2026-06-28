@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Služba oznámení `{service}` nebyla nalezena",
+      "description": "Maintenance Supporter je nastaven tak, aby odesílal oznámení přes `{service}`, ale tato služba v Home Assistantu aktuálně neexistuje, takže připomenutí tiše selhávají.\n\nObvykle to znamená, že služba byla přejmenována nebo že integrace, která ji poskytuje (mobilní aplikace, skupina oznámení, …), byla odebrána. Náprava: obnovte tuto službu nebo otevřete **Nastavení → Zařízení a služby → Maintenance Supporter → Konfigurovat → Obecná nastavení** a vyberte platnou službu `notify.*`.\n\nPoznámka: kontroluje se pouze samotná nastavená služba. Pokud oznámení dorazí na některá zařízení, ale na jiná ne, je pravděpodobně špatně nastaven člen *uvnitř* vaší skupiny oznámení — to zde není vidět; zkontrolujte **systémový protokol** Home Assistantu (Nastavení → Systém → Protokoly)."
     }
   },
   "exceptions": {

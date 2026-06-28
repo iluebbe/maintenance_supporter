@@ -28,6 +28,7 @@ from homeassistant.helpers import (
     entity_registry as er,
 )
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -741,6 +742,11 @@ async def async_setup_entry(
         # dashboard stops showing the ghost of deleted users.
         await _check_task_responsible_user_orphans(hass)
 
+        # Surface a configured-but-missing notify service as a repair issue.
+        # Deferred to HA-started so lazily-registered notify services (mobile_app,
+        # notify groups) are present before we judge the service missing.
+        entry.async_on_unload(async_at_started(hass, _verify_notify_service))
+
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
         # Maintenance object entry: create Store + coordinator
@@ -819,6 +825,19 @@ async def _async_sync_obj_to_device(
             dev_reg.async_update_device(device.id, **kwargs)
 
 
+@callback
+def _verify_notify_service(hass: HomeAssistant) -> None:
+    """Sync the "configured notify service missing" repair issue with reality.
+
+    Runs once HA has started (lazily-registered services such as mobile_app are
+    available by then, avoiding a false alarm during boot) and again whenever the
+    global options change (the service may have just been (re)configured).
+    """
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if isinstance(nm, NotificationManager):
+        nm.async_verify_configured_service()
+
+
 async def _async_global_options_updated(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> None:
@@ -831,6 +850,8 @@ async def _async_global_options_updated(
     else:
         await async_unregister_panel(hass)
     await _check_admin_panel_user_orphans(hass, entry)
+    # The notify service may have just been (re)configured — re-check it.
+    _verify_notify_service(hass)
 
 
 _ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"
