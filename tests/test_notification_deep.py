@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -27,6 +28,7 @@ from custom_components.maintenance_supporter.const import (
     MaintenanceStatus,
 )
 from custom_components.maintenance_supporter.helpers.notification_manager import (
+    _NOTIFY_SERVICE_MISSING_ISSUE_ID,
     NotificationManager,
     _get_user_notify_services,
     _notif_t,
@@ -1172,3 +1174,152 @@ async def test_dismiss_task_notification_no_service(hass: HomeAssistant) -> None
 
         # No notify_service configured → should not call service
         mock_hass.services.async_call.assert_not_called()
+
+
+# ─── Configured notify-service health (repair issue) ───────────────────────
+
+
+def _get_notify_issue(hass: HomeAssistant) -> ir.IssueEntry | None:
+    """Return the 'configured notify service missing' repair issue, or None."""
+    return ir.async_get(hass).async_get_issue(
+        DOMAIN, _NOTIFY_SERVICE_MISSING_ISSUE_ID
+    )
+
+
+async def test_verify_service_creates_issue_when_missing(
+    hass: HomeAssistant,
+) -> None:
+    """A configured service that doesn't exist raises a repair issue."""
+    _create_global_entry(hass, notify_service="notify.ghost_service")
+    # notify.ghost_service is never registered.
+
+    mgr = NotificationManager(hass)
+    mgr.async_verify_configured_service()
+
+    issue = _get_notify_issue(hass)
+    assert issue is not None
+    assert issue.translation_placeholders == {"service": "notify.ghost_service"}
+
+
+async def test_verify_service_no_issue_when_service_exists(
+    hass: HomeAssistant,
+) -> None:
+    """A configured service that exists raises no issue."""
+    _create_global_entry(hass, notify_service="notify.test")
+    hass.services.async_register("notify", "test", AsyncMock())
+
+    mgr = NotificationManager(hass)
+    mgr.async_verify_configured_service()
+
+    assert _get_notify_issue(hass) is None
+
+
+async def test_verify_service_group_not_flagged(hass: HomeAssistant) -> None:
+    """A *working* notify group is never flagged.
+
+    We deliberately only check the top-level service. A broken member inside the
+    group is invisible here (HA dispatches to the working members and only logs
+    the bad one), so a registered group must not raise the issue — otherwise we'd
+    false-alarm on exactly the user's real-world setup.
+    """
+    _create_global_entry(hass, notify_service="notify.all_devices_ingmar")
+    hass.services.async_register("notify", "all_devices_ingmar", AsyncMock())
+
+    mgr = NotificationManager(hass)
+    mgr.async_verify_configured_service()
+
+    assert _get_notify_issue(hass) is None
+
+
+async def test_verify_service_no_issue_when_disabled(hass: HomeAssistant) -> None:
+    """Notifications disabled → no issue even when the service is missing."""
+    _create_global_entry(
+        hass, notifications_enabled=False, notify_service="notify.ghost_service"
+    )
+
+    mgr = NotificationManager(hass)
+    mgr.async_verify_configured_service()
+
+    assert _get_notify_issue(hass) is None
+
+
+async def test_verify_service_clears_issue_on_restore(hass: HomeAssistant) -> None:
+    """The issue clears once the missing service comes back."""
+    _create_global_entry(hass, notify_service="notify.test")
+
+    mgr = NotificationManager(hass)
+    # First check: service absent → issue raised.
+    mgr.async_verify_configured_service()
+    assert _get_notify_issue(hass) is not None
+
+    # Service registered → next check clears it.
+    hass.services.async_register("notify", "test", AsyncMock())
+    mgr.async_verify_configured_service()
+    assert _get_notify_issue(hass) is None
+
+
+async def test_verify_service_first_call_clears_stale_issue(
+    hass: HomeAssistant,
+) -> None:
+    """A stale issue persisted from a previous run is cleared on the first check.
+
+    The transition gate starts at None precisely so a healthy service reconciles
+    (deletes) a left-over issue instead of no-opping on it after a restart.
+    """
+    _create_global_entry(hass, notify_service="notify.test")
+    hass.services.async_register("notify", "test", AsyncMock())
+    # Simulate an issue left over in the registry from before the restore.
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        _NOTIFY_SERVICE_MISSING_ISSUE_ID,
+        is_fixable=False,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="notify_service_missing",
+        translation_placeholders={"service": "notify.test"},
+    )
+    assert _get_notify_issue(hass) is not None
+
+    # Fresh manager (transition flag = None) must reconcile the registry.
+    mgr = NotificationManager(hass)
+    mgr.async_verify_configured_service()
+
+    assert _get_notify_issue(hass) is None
+
+
+async def test_status_change_keeps_issue_in_sync(hass: HomeAssistant) -> None:
+    """The send path itself raises the repair issue (verify hook is wired)."""
+    _create_global_entry(hass, notify_service="notify.ghost_service")
+
+    mgr = NotificationManager(hass)
+    # Patch the actual dispatch so the test asserts only the verify hook, not
+    # HA's service-call internals.
+    with patch.object(
+        mgr, "_async_send_notification_to_service", AsyncMock(return_value=True)
+    ):
+        await mgr.async_task_status_changed(
+            entry_id="eid",
+            task_id="t1",
+            task_name="Filter",
+            object_name="Furnace",
+            new_status=MaintenanceStatus.OVERDUE,
+        )
+
+    assert _get_notify_issue(hass) is not None
+
+
+def test_test_notification_success_text_warns_about_group_members() -> None:
+    """(b) A green test must not imply *every* device works.
+
+    The success copy points users at the per-device / notify-group + HA log, so a
+    silently-broken group member isn't mistaken for an all-clear.
+    """
+    from custom_components.maintenance_supporter.config_flow_options_global import (
+        _TEST_NOTIFICATION_RESULTS,
+    )
+
+    en = _TEST_NOTIFICATION_RESULTS["en"]["success"].lower()
+    assert "group" in en
+    assert "log" in en
+    de = _TEST_NOTIFICATION_RESULTS["de"]["success"].lower()
+    assert "gruppe" in de

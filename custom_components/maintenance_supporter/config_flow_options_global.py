@@ -116,70 +116,70 @@ def validate_notify_service(
 
 _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
     "de": {
-        "success": "✅ Testbenachrichtigung erfolgreich gesendet! Prüfen Sie Ihr Gerät.",
+        "success": "✅ Testbenachrichtigung gesendet — Ihr Dienst funktioniert. Wenn ein bestimmtes Gerät nichts bekommt, prüfen Sie dieses Gerät in Ihrer Notify-Gruppe (und das HA-Protokoll).",
         "no_service": "⚠️ Kein Benachrichtigungsdienst konfiguriert. Bitte zuerst unter Allgemeine Einstellungen einen Dienst einrichten.",
         "invalid_service": "❌ Das Format des Benachrichtigungsdienstes ist ungültig. Verwenden Sie 'notify.dienstname'.",
         "failed": "❌ Testbenachrichtigung konnte nicht gesendet werden. Bitte prüfen Sie Ihre Konfiguration.",
         "push_message": "🔧 Testbenachrichtigung — Ihre Benachrichtigungseinrichtung funktioniert!",
     },
     "nl": {
-        "success": "✅ Testmelding succesvol verzonden! Controleer uw apparaat.",
+        "success": "✅ Testmelding verzonden — uw service werkt. Krijgt een specifiek apparaat niets, controleer dat apparaat in uw notify-groep (en het HA-logboek).",
         "no_service": "⚠️ Geen meldingsservice geconfigureerd. Stel eerst een service in onder Algemene instellingen.",
         "invalid_service": "❌ Het formaat van de meldingsservice is ongeldig. Gebruik 'notify.servicenaam'.",
         "failed": "❌ Testmelding kon niet worden verzonden. Controleer uw configuratie.",
         "push_message": "🔧 Testmelding — uw meldingsinstellingen werken!",
     },
     "fr": {
-        "success": "✅ Notification de test envoyée avec succès ! Vérifiez votre appareil.",
+        "success": "✅ Notification de test envoyée — votre service fonctionne. Si un appareil précis ne reçoit rien, vérifiez-le dans votre groupe notify (et les journaux HA).",
         "no_service": "⚠️ Aucun service de notification configuré. Veuillez d'abord configurer un service dans les paramètres généraux.",
         "invalid_service": "❌ Le format du service de notification est invalide. Utilisez 'notify.nom_du_service'.",
         "failed": "❌ Impossible d'envoyer la notification de test. Veuillez vérifier votre configuration.",
         "push_message": "🔧 Notification de test — votre configuration de notifications fonctionne !",
     },
     "it": {
-        "success": "✅ Notifica di test inviata con successo! Controlla il tuo dispositivo.",
+        "success": "✅ Notifica di test inviata — il servizio funziona. Se un dispositivo specifico non riceve nulla, controllalo nel tuo gruppo notify (e nei log di HA).",
         "no_service": "⚠️ Nessun servizio di notifica configurato. Configura prima un servizio nelle impostazioni generali.",
         "invalid_service": "❌ Il formato del servizio di notifica non è valido. Usa 'notify.nome_servizio'.",
         "failed": "❌ Impossibile inviare la notifica di test. Verifica la tua configurazione.",
         "push_message": "🔧 Notifica di test — la configurazione delle notifiche funziona!",
     },
     "es": {
-        "success": "✅ Notificación de prueba enviada con éxito. Revise su dispositivo.",
+        "success": "✅ Notificación de prueba enviada — tu servicio funciona. Si un dispositivo concreto no recibe nada, revísalo en tu grupo notify (y los registros de HA).",
         "no_service": "⚠️ No hay servicio de notificación configurado. Configure primero un servicio en la configuración general.",
         "invalid_service": "❌ El formato del servicio de notificación no es válido. Use 'notify.nombre_servicio'.",
         "failed": "❌ No se pudo enviar la notificación de prueba. Verifique su configuración.",
         "push_message": "🔧 Notificación de prueba — ¡su configuración de notificaciones funciona!",
     },
     "en": {
-        "success": "✅ Test notification sent successfully! Check your device.",
+        "success": "✅ Test notification sent — your service works. If a specific device gets nothing, check that device inside your notify group (and Home Assistant's logs).",
         "no_service": "⚠️ No notification service configured. Please configure a service in General Settings first.",
         "invalid_service": "❌ The notification service format is invalid. Use 'notify.service_name'.",
         "failed": "❌ Failed to send the test notification. Please verify your service configuration.",
         "push_message": "🔧 Test notification — your notification setup is working!",
     },
     "ru": {
-        "success": "✅ Тестовое уведомление успешно отправлено! Проверьте ваше устройство.",
+        "success": "✅ Тестовое уведомление отправлено — сервис работает. Если конкретное устройство ничего не получает, проверьте его в вашей notify-группе (и в журналах HA).",
         "no_service": "⚠️ Сервис уведомлений не настроен. Сначала настройте сервис в Основных настройках.",
         "invalid_service": "❌ Неверный формат сервиса уведомлений. Используйте 'notify.имя_сервиса'.",
         "failed": "❌ Не удалось отправить тестовое уведомление. Проверьте настройки сервиса.",
         "push_message": "🔧 Тестовое уведомление — ваша система уведомлений работает!",
     },
     "uk": {
-        "success": "✅ Тестове сповіщення успішно надіслано! Перевірте свій пристрій.",
+        "success": "✅ Тестове сповіщення надіслано — служба працює. Якщо певний пристрій нічого не отримує, перевірте його у вашій notify-групі (та в журналах HA).",
         "no_service": "⚠️ Службу сповіщень не налаштовано. Спочатку вкажіть службу в загальних налаштуваннях.",
         "invalid_service": "❌ Невірний формат служби сповіщень. Використовуйте 'notify.service_name'.",
         "failed": "❌ Не вдалося надіслати тестове сповіщення. Перевірте конфігурацію служби.",
         "push_message": "🔧 Тестове сповіщення — ваші сповіщення працюють!",
     },
     "pt": {
-        "success": "✅ Notificação de teste enviada com sucesso! Verifique o seu dispositivo.",
+        "success": "✅ Notificação de teste enviada — o seu serviço funciona. Se um dispositivo específico não receber nada, verifique-o no seu grupo notify (e nos registos do HA).",
         "no_service": "⚠️ Serviço de notificação não configurado. Configure primeiro nas Configurações Gerais.",
         "invalid_service": "❌ Formato inválido do serviço de notificação. Use 'notify.nome_do_servico'.",
         "failed": "❌ Falha ao enviar a notificação de teste. Verifique a configuração do serviço.",
         "push_message": "🔧 Notificação de teste — as suas notificações estão a funcionar!",
     },
     "zh": {
-        "success": "✅ 测试通知发送成功！请查看您的设备。",
+        "success": "✅ 测试通知已发送 — 您的服务正常。如果某个设备未收到，请在您的 notify 群组中检查该设备（以及 HA 日志）。",
         "no_service": "⚠️ 未配置通知服务。请先在“通用设置”中配置服务。",
         "invalid_service": "❌ 通知服务格式无效。请使用 'notify.服务名称' 格式。",
         "failed": "❌ 测试通知发送失败。请验证您的服务配置。",
@@ -425,7 +425,12 @@ class GlobalOptionsFlow(OptionsFlow):
 
         if user_input is not None:
             raw_service = user_input.get(CONF_NOTIFY_SERVICE, "")
-            normalized, error = validate_notify_service(raw_service, hass=self.hass)
+            # Format-only validation — NO existence check. A notify service can be
+            # lazily registered or momentarily absent (e.g. mobile_app_*), so we no
+            # longer hard-block saving it (that broke #77). A genuinely-missing
+            # service is surfaced afterwards by the runtime repair issue
+            # (notify_service_missing) instead.
+            normalized, error = validate_notify_service(raw_service)
             if error:
                 errors[CONF_NOTIFY_SERVICE] = error
             else:
@@ -446,6 +451,24 @@ class GlobalOptionsFlow(OptionsFlow):
             selector.SelectOptionDict(value=code, label=f"{code} ({symbol})")
             for code, symbol in BUDGET_CURRENCIES.items()
         ]
+
+        # Offer every registered notify.* SERVICE (mobile_app, notify groups, …)
+        # as a dropdown so users don't have to guess the slug. Deliberately legacy
+        # *services*, not notify *entities*: our send passes a rich ``data`` payload
+        # (Complete/Skip/Snooze actions, tag, deep-link url) and the entity model
+        # (notify.send_message) carries only message+title, so an entity target
+        # would silently drop every action button. mobile_app registers BOTH, so
+        # the full-featured service is always listed here. ``custom_value`` keeps
+        # free text working for lazily-registered/absent services; ``send_message``
+        # itself is the generic entity action, so it's excluded.
+        notify_services = sorted(
+            f"notify.{name}"
+            for name in self.hass.services.async_services().get("notify", {})
+            if name != "send_message"
+        )
+        current_service = current.get(CONF_NOTIFY_SERVICE, "")
+        if current_service and current_service not in notify_services:
+            notify_services.append(current_service)
 
         return self.async_show_form(
             step_id="general_settings",
@@ -475,8 +498,12 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_NOTIFY_SERVICE,
                         default=current.get(CONF_NOTIFY_SERVICE, ""),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=notify_services,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            custom_value=True,
+                        )
                     ),
                     vol.Optional(
                         CONF_PANEL_ENABLED,

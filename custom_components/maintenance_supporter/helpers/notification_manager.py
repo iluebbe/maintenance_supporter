@@ -7,8 +7,9 @@ from collections.abc import Mapping
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 
 from ..const import (
@@ -38,6 +39,13 @@ from ..const import (
 from .i18n import normalize_language
 
 _LOGGER = logging.getLogger(__name__)
+
+# Repair-issue id raised when the *configured* global notify service does not
+# exist (e.g. the mobile app or notify group it points at was removed), so
+# notifications would silently fail. Scope is the top-level service only — a
+# broken member *inside* a notify group is invisible here (HA dispatches to the
+# working members and only logs the bad one), so we never flag that case.
+_NOTIFY_SERVICE_MISSING_ISSUE_ID = "notify_service_missing"
 
 # Sentinel value: interval=0 means "notify once, never repeat".
 # A naive datetime.max is intentionally NOT comparable with the timezone-aware
@@ -489,6 +497,11 @@ class NotificationManager:
         self._snoozed_until: dict[str, datetime] = {}
         self._daily_count: int = 0
         self._daily_reset_date: date | None = None
+        # Tracks the last-known state of the "configured notify service missing"
+        # repair issue. None = not yet reconciled this process; the first
+        # ``async_verify_configured_service`` call forces a registry sync so a
+        # stale issue persisted from a previous run is cleared on restart.
+        self._notify_issue_active: bool | None = None
 
     @property
     def _global_options(self) -> Mapping[str, Any]:
@@ -529,6 +542,59 @@ class NotificationManager:
         if raw not in ("default", "object_name", "task_name"):
             return "default"
         return raw
+
+    def _configured_service_exists(self, service: str) -> bool:
+        """Return True if the ``notify.<name>`` service is registered right now."""
+        domain, _, name = service.partition(".")
+        if not name:
+            return False
+        return self.hass.services.has_service(domain, name)
+
+    @callback
+    def async_verify_configured_service(self) -> None:
+        """Raise/clear a repair issue when the configured notify service is gone.
+
+        Notifications are sent with ``blocking=False``, so a configured service
+        that no longer exists (renamed mobile app, removed notify group, …) fails
+        *silently*. This surfaces that as a Home Assistant repair issue instead.
+
+        Transition-gated and idempotent: cheap to call on every send attempt, on
+        global-options changes, and once HA has started. Scope is deliberately the
+        **top-level** configured service only — a broken member *inside* a notify
+        group is invisible from here (HA dispatches to the working members and only
+        logs the bad one in its own system log), so we never flag, nor false-alarm
+        on, that case.
+        """
+        service = self.notify_service
+        missing = (
+            bool(service)
+            and self.enabled
+            and not self._configured_service_exists(service)
+        )
+        # None (first call) never equals a bool, so the registry is reconciled
+        # once at startup — clearing any issue persisted from a previous run.
+        if missing == self._notify_issue_active:
+            return
+        self._notify_issue_active = missing
+        if missing:
+            _LOGGER.warning(
+                "Configured notify service '%s' is not available — notifications "
+                "will silently fail; raising a repair issue",
+                service,
+            )
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                _NOTIFY_SERVICE_MISSING_ISSUE_ID,
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="notify_service_missing",
+                translation_placeholders={"service": service},
+            )
+        else:
+            ir.async_delete_issue(
+                self.hass, DOMAIN, _NOTIFY_SERVICE_MISSING_ISSUE_ID
+            )
 
     def _is_status_enabled(self, status: str) -> bool:
         """Check if notifications for this specific status are enabled."""
@@ -623,6 +689,10 @@ class NotificationManager:
         responsible_user_id: str | None = None,
     ) -> None:
         """Handle status change / repeat check and send notification if appropriate."""
+        # Keep the "configured notify service missing" repair issue in sync with
+        # reality on every attempt (cheap; transition-gated internally).
+        self.async_verify_configured_service()
+
         if not self.enabled:
             return
 
@@ -852,6 +922,7 @@ class NotificationManager:
         tasks: list[dict[str, Any]],
     ) -> None:
         """Send a single bundled notification summarising multiple tasks."""
+        self.async_verify_configured_service()
         if not self.enabled or not self.notify_service:
             return
 

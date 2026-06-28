@@ -1554,6 +1554,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Notification service `{service}` not found",
+      "description": "Maintenance Supporter is configured to send notifications via `{service}`, but that service does not currently exist in Home Assistant, so reminders fail silently.\n\nThis usually means the service was renamed, or the integration behind it (a mobile app, a notify group, …) was removed. To fix it: restore that service, or open **Settings → Devices & Services → Maintenance Supporter → Configure → General settings** and pick a valid `notify.*` service.\n\nNote: this only checks the configured service itself. If notifications reach some devices but not others, a member *inside* your notify group is likely misconfigured — that is not visible here; check Home Assistant's **system log** (Settings → System → Logs)."
     }
   },
   "exceptions": {

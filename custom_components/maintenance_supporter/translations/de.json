@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Benachrichtigungsdienst `{service}` nicht gefunden",
+      "description": "Maintenance Supporter ist so konfiguriert, dass Benachrichtigungen über `{service}` gesendet werden, aber dieser Dienst existiert derzeit nicht in Home Assistant — Erinnerungen schlagen daher still fehl.\n\nMeist wurde der Dienst umbenannt oder die dahinterliegende Integration (eine Mobile-App, eine Notify-Gruppe, …) entfernt. Zum Beheben: den Dienst wiederherstellen, oder unter **Einstellungen → Geräte & Dienste → Maintenance Supporter → Konfigurieren → Allgemeine Einstellungen** einen gültigen `notify.*`-Dienst auswählen.\n\nHinweis: Geprüft wird nur der konfigurierte Dienst selbst. Wenn Benachrichtigungen einige Geräte erreichen, andere aber nicht, ist wahrscheinlich ein Mitglied *innerhalb* deiner Notify-Gruppe falsch konfiguriert — das ist hier nicht sichtbar; prüfe das Home-Assistant-**Systemprotokoll** (Einstellungen → System → Protokolle)."
     }
   },
   "exceptions": {

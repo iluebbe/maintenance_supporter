@@ -1566,6 +1566,10 @@
           }
         }
       }
+    },
+    "notify_service_missing": {
+      "title": "Nie znaleziono usługi powiadomień `{service}`",
+      "description": "Maintenance Supporter jest skonfigurowany do wysyłania powiadomień przez `{service}`, ale ta usługa obecnie nie istnieje w Home Assistant, więc przypomnienia zawodzą po cichu.\n\nZwykle oznacza to, że usługa została przemianowana lub że integracja stojąca za nią (aplikacja mobilna, grupa powiadomień, …) została usunięta. Aby to naprawić: przywróć tę usługę lub otwórz **Ustawienia → Urządzenia i usługi → Maintenance Supporter → Konfiguruj → Ustawienia ogólne** i wybierz prawidłową usługę `notify.*`.\n\nUwaga: sprawdzana jest tylko sama skonfigurowana usługa. Jeśli powiadomienia docierają do niektórych urządzeń, ale nie do innych, prawdopodobnie błędnie skonfigurowany jest członek *wewnątrz* Twojej grupy powiadomień — to nie jest tu widoczne; sprawdź **dziennik systemowy** Home Assistant (Ustawienia → System → Dzienniki)."
     }
   },
   "exceptions": {
