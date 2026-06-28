@@ -18,6 +18,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -127,6 +128,31 @@ async def test_global_setup_creates_entry(hass: HomeAssistant) -> None:
     assert result["data"][CONF_DEFAULT_WARNING_DAYS] == 10
     assert result["data"][CONF_NOTIFICATIONS_ENABLED] is True
     assert result["data"][CONF_NOTIFY_SERVICE] == "notify.mobile"
+
+
+async def test_global_setup_notify_dropdown(hass: HomeAssistant) -> None:
+    """The setup wizard offers registered notify.* services as a dropdown
+    (mobile_app + groups), excludes the generic send_message action, and keeps
+    custom_value so a not-yet-registered service can still be typed."""
+    hass.services.async_register("notify", "mobile_app_phone", lambda call: None)
+    hass.services.async_register("notify", "all_devices_group", lambda call: None)
+    hass.services.async_register("notify", "send_message", lambda call: None)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["step_id"] == "global_setup"
+    schema = result["data_schema"].schema
+    notify_field = next(
+        v for k, v in schema.items()
+        if getattr(k, "schema", k) == CONF_NOTIFY_SERVICE
+    )
+    assert isinstance(notify_field, selector.SelectSelector)
+    options = notify_field.config["options"]
+    assert "notify.mobile_app_phone" in options
+    assert "notify.all_devices_group" in options
+    assert "notify.send_message" not in options
+    assert notify_field.config["custom_value"] is True
 
 
 async def test_global_setup_default_values(hass: HomeAssistant) -> None:
