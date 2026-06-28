@@ -377,6 +377,15 @@ export class MaintenanceSettingsView extends LitElement {
 
   private _renderGeneral(L: string) {
     const g = this._settings!.general;
+    // Suggestible notify services for the picker below — read live from the
+    // frontend service registry (mobile_app devices, notify groups, …), minus
+    // the generic send_message entity-action. The <datalist> keeps this a
+    // free-text input (custom/lazily-registered values still work) while
+    // offering the real service names so users don't have to guess the slug.
+    const notifyServices = Object.keys(this.hass?.services?.notify ?? {})
+      .filter((n) => n !== "send_message")
+      .map((n) => `notify.${n}`)
+      .sort();
     const b = this._settings!.budget;
     return html`
       <div class="settings-section">
@@ -417,8 +426,11 @@ export class MaintenanceSettingsView extends LitElement {
         ${g.notifications_enabled ? html`
           <label class="setting-row">
             <span class="setting-label">${t("settings_notify_service", L)}</span>
-            <input type="text" .value=${g.notify_service}
+            <input type="text" list="ms-notify-services" .value=${g.notify_service}
               @change=${(e: Event) => this._updateSetting("notify_service", (e.target as HTMLInputElement).value.trim())} />
+            <datalist id="ms-notify-services">
+              ${notifyServices.map((s) => html`<option value=${s}></option>`)}
+            </datalist>
           </label>
           <div class="setting-row">
             <span class="setting-label">${t("test_notification", L)}</span>

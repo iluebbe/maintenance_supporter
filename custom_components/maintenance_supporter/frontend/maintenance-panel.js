@@ -4017,24 +4017,24 @@ ${p?`<div class="sub">${p}</div>`:""}
           </label>
         `)}
       </div>
-    `}_toggleColumn(e,t){let i=new Set(Ee(this._settings.objects_table_columns));t?i.add(e):i.delete(e);let a=he.filter(l=>l.required||i.has(l.key)).map(l=>l.key);this._updateSetting("objects_table_columns",a)}_renderGeneral(e){let t=this._settings.general,i=this._settings.budget;return n`
+    `}_toggleColumn(e,t){let i=new Set(Ee(this._settings.objects_table_columns));t?i.add(e):i.delete(e);let a=he.filter(l=>l.required||i.has(l.key)).map(l=>l.key);this._updateSetting("objects_table_columns",a)}_renderGeneral(e){let t=this._settings.general,i=Object.keys(this.hass?.services?.notify??{}).filter(l=>l!=="send_message").map(l=>`notify.${l}`).sort(),a=this._settings.budget;return n`
       <div class="settings-section">
         <h3>${s("settings_general",e)}</h3>
         <label class="setting-row">
           <span class="setting-label">${s("settings_default_warning",e)}</span>
           <input type="number" min="1" max="365" .value=${String(t.default_warning_days)}
-            @change=${a=>{let l=parseInt(a.target.value,10);l>=1&&l<=365&&this._updateSetting("default_warning_days",l)}} />
+            @change=${l=>{let c=parseInt(l.target.value,10);c>=1&&c<=365&&this._updateSetting("default_warning_days",c)}} />
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_currency",e)}</span>
-          <select @change=${a=>this._updateSetting("budget_currency",a.target.value)}>
-            ${ts.map(a=>n`<option value=${a} ?selected=${i.currency===a}>${a}</option>`)}
+          <select @change=${l=>this._updateSetting("budget_currency",l.target.value)}>
+            ${ts.map(l=>n`<option value=${l} ?selected=${a.currency===l}>${l}</option>`)}
           </select>
         </label>
         <label class="setting-row">
           <span class="setting-label">${s("settings_panel_enabled",e)}</span>
           <input type="checkbox" .checked=${t.panel_enabled}
-            @change=${a=>this._updateSetting("panel_enabled",a.target.checked)} />
+            @change=${l=>this._updateSetting("panel_enabled",l.target.checked)} />
         </label>
         ${t.panel_enabled?n`
           <label class="setting-row">
@@ -4042,19 +4042,22 @@ ${p?`<div class="sub">${p}</div>`:""}
             <input type="text" .value=${t.panel_title??""}
               placeholder="Maintenance"
               maxlength="50"
-              @change=${a=>this._updateSetting("panel_title",a.target.value.trim())} />
+              @change=${l=>this._updateSetting("panel_title",l.target.value.trim())} />
           </label>
         `:""}
         <label class="setting-row">
           <span class="setting-label">${s("settings_notifications",e)}</span>
           <input type="checkbox" .checked=${t.notifications_enabled}
-            @change=${a=>this._updateSetting("notifications_enabled",a.target.checked)} />
+            @change=${l=>this._updateSetting("notifications_enabled",l.target.checked)} />
         </label>
         ${t.notifications_enabled?n`
           <label class="setting-row">
             <span class="setting-label">${s("settings_notify_service",e)}</span>
-            <input type="text" .value=${t.notify_service}
-              @change=${a=>this._updateSetting("notify_service",a.target.value.trim())} />
+            <input type="text" list="ms-notify-services" .value=${t.notify_service}
+              @change=${l=>this._updateSetting("notify_service",l.target.value.trim())} />
+            <datalist id="ms-notify-services">
+              ${i.map(l=>n`<option value=${l}></option>`)}
+            </datalist>
           </label>
           <div class="setting-row">
             <span class="setting-label">${s("test_notification",e)}</span>
