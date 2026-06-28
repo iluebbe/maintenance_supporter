@@ -1315,6 +1315,9 @@ async def test_notification_with_action_buttons(
         },
     )
     await setup_integration(hass, global_entry)
+    # Register the configured notify service so the dual-path test-send dispatches
+    # to it (it checks has_service first); the call is captured by the patch below.
+    hass.services.async_register("notify", "mobile_app_phone", lambda call: None)
 
     calls: list[dict[str, Any]] = []
 

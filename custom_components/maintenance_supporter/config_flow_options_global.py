@@ -216,7 +216,8 @@ async def send_test_notification(
         return "invalid_service"
 
     try:
-        parts = normalized.split(".")
+        from .helpers.notification_manager import async_dispatch_notify
+
         push_msg = _get_test_result_text(hass, "push_message")
         service_data: dict[str, Any] = {
             "title": "Maintenance Supporter",
@@ -234,7 +235,9 @@ async def send_test_notification(
             if snooze_enabled:
                 test_actions.append({"action": "MS_TEST_SNOOZE", "title": "\U0001f4a4 Snooze"})
             service_data["data"] = {"actions": test_actions}
-        await hass.services.async_call(parts[0], parts[1], service_data, blocking=True)
+        # Dual-path: legacy notify service OR notify entity (send_message).
+        if not await async_dispatch_notify(hass, normalized, service_data, blocking=True):
+            return "failed"
         return "success"
     except Exception:  # noqa: BLE001 - any failure mode reports "failed" to the UI
         _LOGGER.debug("Test notification failed for %s", notify_service, exc_info=True)
@@ -452,23 +455,24 @@ class GlobalOptionsFlow(OptionsFlow):
             for code, symbol in BUDGET_CURRENCIES.items()
         ]
 
-        # Offer every registered notify.* SERVICE (mobile_app, notify groups, …)
-        # as a dropdown so users don't have to guess the slug. Deliberately legacy
-        # *services*, not notify *entities*: our send passes a rich ``data`` payload
-        # (Complete/Skip/Snooze actions, tag, deep-link url) and the entity model
-        # (notify.send_message) carries only message+title, so an entity target
-        # would silently drop every action button. mobile_app registers BOTH, so
-        # the full-featured service is always listed here. ``custom_value`` keeps
-        # free text working for lazily-registered/absent services; ``send_message``
-        # itself is the generic entity action, so it's excluded.
-        notify_services = sorted(
+        # Offer every notify target as a dropdown so users don't have to guess
+        # the slug: legacy notify *services* (mobile_app devices, notify groups)
+        # from the service registry, PLUS notify *entities* (the newer model)
+        # from the state machine — many single devices appear only as an entity.
+        # The send path prefers the legacy service when one exists (full action
+        # buttons) and falls back to notify.send_message for entity-only targets.
+        # ``send_message`` itself is the generic action, not a target → excluded;
+        # ``custom_value`` keeps free text working for not-yet-loaded targets.
+        notify_targets = {
             f"notify.{name}"
             for name in self.hass.services.async_services().get("notify", {})
             if name != "send_message"
-        )
+        }
+        notify_targets.update(self.hass.states.async_entity_ids("notify"))
         current_service = current.get(CONF_NOTIFY_SERVICE, "")
-        if current_service and current_service not in notify_services:
-            notify_services.append(current_service)
+        if current_service:
+            notify_targets.add(current_service)
+        notify_services = sorted(notify_targets)
 
         return self.async_show_form(
             step_id="general_settings",

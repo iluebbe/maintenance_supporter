@@ -2,6 +2,13 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.10.9] - 2026-06-28
+
+### 🐛 Notification picker + delivery now include notify *entities*, not just services
+
+- **Single devices reappear in the notification-service dropdown.** The picker added in v2.10.6–2.10.8 only listed legacy notify *services*, so devices exposed as notify **entities** (Home Assistant's newer model, where many mobile-app and other single devices now live) were missing — only notify groups showed up. The dropdown now merges notify services **and** entities everywhere it appears (integration options, the panel, and the setup wizard).
+- **And entity targets actually receive notifications.** Delivery now picks the right path per target: a legacy notify service (mobile-app device, notify group) gets the full payload — action buttons, tag, deep link — while an entity-only target is reached via `notify.send_message` (message + title; the entity model can't carry action buttons). The test-notification button, bundled notifications, and budget alerts all use the same dual path.
+
 ## [2.10.8] - 2026-06-28
 
 ### ✨ Notification-service dropdown in the setup wizard too

@@ -1,11 +1,12 @@
 /**
- * Lit component tests for the notify-service picker (datalist) in the general
+ * Lit component tests for the notify-target picker (datalist) in the general
  * section of <maintenance-settings-view>.
  *
- * The picker lists registered `notify.*` services from `hass.services` as a
- * <datalist> — suggestions while staying a free-text input (custom /
- * lazily-registered values keep working), excluding the generic
- * `send_message` entity-action. See settings-view.ts::_renderGeneral.
+ * The picker merges legacy notify *services* (`hass.services.notify` — groups,
+ * mobile_app legacy) with notify *entities* (`hass.states` notify.* — the newer
+ * model, where many single devices live) as <datalist> suggestions, excluding
+ * the generic `send_message` action, while staying a free-text input.
+ * See settings-view.ts::_renderGeneral.
  */
 
 import { expect, fixture, html } from "@open-wc/testing";
@@ -19,6 +20,7 @@ import {
 
 async function mount(
   services?: Record<string, Record<string, unknown>>,
+  states?: Record<string, unknown>,
 ): Promise<MaintenanceSettingsView> {
   const { hass } = createMockHass({
     settingsResponse: {
@@ -30,6 +32,7 @@ async function mount(
       },
     },
     services,
+    states,
   });
   const el = await fixture<MaintenanceSettingsView>(html`
     <maintenance-settings-view .hass=${hass} .features=${DEFAULT_FEATURES}></maintenance-settings-view>
@@ -40,35 +43,45 @@ async function mount(
   return el;
 }
 
-describe("settings-view notify-service picker", () => {
-  it("lists registered notify services as datalist options, excluding send_message", async () => {
-    const el = await mount({
-      notify: {
-        mobile_app_phone: {}, // mobile_app direct
-        all_devices_group: {}, // a notify group
-        send_message: {}, // generic entity action — must be excluded
+function options(el: MaintenanceSettingsView): string[] {
+  const list = el.shadowRoot?.querySelector<HTMLDataListElement>("#ms-notify-services");
+  return Array.from(list?.querySelectorAll("option") ?? []).map((o) => o.value);
+}
+
+describe("settings-view notify-target picker", () => {
+  it("merges notify services and entities, excluding send_message + other domains", async () => {
+    const el = await mount(
+      {
+        notify: {
+          mobile_app_phone: {}, // legacy service (also an entity below)
+          all_devices_group: {}, // a notify group (service)
+          send_message: {}, // generic action — must be excluded
+        },
       },
-    });
-
-    const list = el.shadowRoot?.querySelector<HTMLDataListElement>("#ms-notify-services");
-    expect(list, "datalist present").to.exist;
-    const values = Array.from(list!.querySelectorAll("option")).map((o) => o.value);
-    expect(values).to.include("notify.mobile_app_phone");
-    expect(values).to.include("notify.all_devices_group");
-    expect(values, "generic send_message action excluded").to.not.include("notify.send_message");
-
-    // The field stays a free-text input wired to the datalist (custom values
-    // still work for lazily-registered services).
-    const input = el.shadowRoot?.querySelector<HTMLInputElement>(
-      'input[list="ms-notify-services"]',
+      {
+        "notify.mobile_app_phone": { entity_id: "notify.mobile_app_phone" }, // dupe of service
+        "notify.file": { entity_id: "notify.file" }, // entity-only device
+        "light.kitchen": { entity_id: "light.kitchen" }, // unrelated domain
+      },
     );
-    expect(input, "notify input wired to datalist").to.exist;
-    expect(input!.value).to.equal("notify.mobile_app_phone");
+
+    const opts = options(el);
+    expect(opts).to.include("notify.mobile_app_phone"); // service
+    expect(opts).to.include("notify.all_devices_group"); // group service
+    expect(opts).to.include("notify.file"); // entity-only device — the fix
+    expect(opts, "generic action excluded").to.not.include("notify.send_message");
+    expect(opts, "other domains ignored").to.not.include("light.kitchen");
+    // Deduped: a target that is both a service and an entity appears once.
+    expect(opts.filter((o) => o === "notify.mobile_app_phone")).to.have.lengthOf(1);
   });
 
-  it("degrades to an empty datalist when no notify services are registered", async () => {
-    const el = await mount(undefined); // hass.services undefined
+  it("lists an entity-only device even when no notify service exists (the reported bug)", async () => {
+    const el = await mount(undefined, { "notify.file": { entity_id: "notify.file" } });
+    expect(options(el), "entity device suggested").to.include("notify.file");
+  });
 
+  it("degrades to an empty datalist when no notify targets exist", async () => {
+    const el = await mount(undefined, undefined);
     const list = el.shadowRoot?.querySelector<HTMLDataListElement>("#ms-notify-services");
     expect(list, "datalist still present").to.exist;
     expect(list!.querySelectorAll("option").length, "no options").to.equal(0);
@@ -76,6 +89,6 @@ describe("settings-view notify-service picker", () => {
     const input = el.shadowRoot?.querySelector<HTMLInputElement>(
       'input[list="ms-notify-services"]',
     );
-    expect(input, "notify input still present").to.exist;
+    expect(input, "free-text input still present").to.exist;
   });
 });

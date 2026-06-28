@@ -133,16 +133,19 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     },
                 )
 
-        # Offer registered notify.* services as a dropdown (mobile_app devices,
-        # notify groups, …), excluding the generic send_message entity-action.
-        # custom_value keeps it free-text so a not-yet-registered service still
-        # works — the format-only validation above never blocks on existence.
-        # Matches the picker in the options flow + panel.
-        notify_services = sorted(
+        # Offer notify targets as a dropdown: legacy notify *services* (mobile_app
+        # devices, notify groups) plus notify *entities* (newer model) — many
+        # single devices appear only as an entity. send_message is the generic
+        # action, not a target → excluded. custom_value keeps it free-text (the
+        # format-only validation above never blocks on existence). Matches the
+        # picker in the options flow + panel.
+        notify_targets = {
             f"notify.{name}"
             for name in self.hass.services.async_services().get("notify", {})
             if name != "send_message"
-        )
+        }
+        notify_targets.update(self.hass.states.async_entity_ids("notify"))
+        notify_services = sorted(notify_targets)
 
         return self.async_show_form(
             step_id="global_setup",
