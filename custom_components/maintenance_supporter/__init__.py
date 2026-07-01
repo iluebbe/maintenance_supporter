@@ -65,6 +65,7 @@ from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
 from .helpers.dates import INTERVAL_UNITS
+from .helpers.documents import DocumentStore
 from .helpers.notification_manager import NotificationManager
 from .helpers.schedule import normalize_task_storage
 from .panel import async_register_panel, async_unregister_panel
@@ -75,6 +76,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 NOTIFICATION_MANAGER_KEY = "_notification_manager"
+DOCUMENT_STORE_KEY = "_document_store"
 
 
 @dataclass
@@ -161,6 +163,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     # Create the notification manager (shared across all entries)
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = NotificationManager(hass)
+
+    # Create + load the global document store (per-object doc metadata + the
+    # content-addressed blob registry; binaries live on disk under /config).
+    doc_store = DocumentStore(hass)
+    await doc_store.async_load()
+    hass.data[DOMAIN][DOCUMENT_STORE_KEY] = doc_store
 
     async def _handle_complete(call: ServiceCall) -> None:
         """Handle the complete service call."""
