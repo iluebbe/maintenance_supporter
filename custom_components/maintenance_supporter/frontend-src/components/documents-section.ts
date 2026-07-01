@@ -53,6 +53,9 @@ export class MaintenanceDocumentsSection extends LitElement {
   @state() private _category = "manual";
   @state() private _thumbs: Record<string, string> = {};
   @state() private _lightboxUrl = "";
+  @state() private _editingId = "";
+  @state() private _editTitle = "";
+  @state() private _editCategory = "manual";
 
   private _loadedFor: string | null = null;
   private _localeReady = false;
@@ -192,6 +195,42 @@ export class MaintenanceDocumentsSection extends LitElement {
     }
   }
 
+  private _startEdit(doc: MaintenanceDocument): void {
+    this._editingId = doc.id;
+    this._editTitle = doc.title || "";
+    this._editCategory = this._category_of(doc);
+    this._addingLink = false;
+    this._error = "";
+  }
+
+  private _cancelEdit(): void {
+    this._editingId = "";
+  }
+
+  private async _saveEdit(doc: MaintenanceDocument): Promise<void> {
+    // Keep any free (non-category) tags; swap in the chosen category.
+    const freeTags = (doc.tags || []).filter(
+      (x) => !(CATEGORIES as readonly string[]).includes(x),
+    );
+    const tags = doc.kind === "file" ? [this._editCategory, ...freeTags] : (doc.tags ?? []);
+    this._busy = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/documents/update",
+        doc_id: doc.id,
+        title: this._editTitle.trim() || doc.filename || doc.url || "",
+        tags,
+      });
+      this._editingId = "";
+      await this._load();
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._busy = false;
+    }
+  }
+
   private async _delete(doc: MaintenanceDocument): Promise<void> {
     const name = doc.title || doc.filename || doc.url || "";
     if (!window.confirm(t("doc_delete_confirm", this._lang).replace("{name}", name))) return;
@@ -314,6 +353,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   private _renderDoc(doc: MaintenanceDocument, L: string) {
+    if (this._editingId === doc.id) return this._renderEdit(doc, L);
     const isFile = doc.kind === "file";
     const cat = this._category_of(doc);
     const meta = isFile
@@ -356,16 +396,48 @@ export class MaintenanceDocumentsSection extends LitElement {
                 title=${t("doc_open", L)}
               ><ha-icon icon="mdi:open-in-new"></ha-icon></a>`}
           ${this.canWrite
-            ? html`<button
-                class="icon-btn danger"
-                title=${t("delete", L)}
-                ?disabled=${this._busy}
-                @click=${() => this._delete(doc)}
-              >
-                <ha-icon icon="mdi:delete"></ha-icon>
-              </button>`
+            ? html`
+                <button class="icon-btn" title=${t("edit", L)} ?disabled=${this._busy} @click=${() => this._startEdit(doc)}>
+                  <ha-icon icon="mdi:pencil"></ha-icon>
+                </button>
+                <button class="icon-btn danger" title=${t("delete", L)} ?disabled=${this._busy} @click=${() => this._delete(doc)}>
+                  <ha-icon icon="mdi:delete"></ha-icon>
+                </button>`
             : nothing}
         </div>
+      </div>
+    `;
+  }
+
+  private _renderEdit(doc: MaintenanceDocument, L: string) {
+    const isFile = doc.kind === "file";
+    return html`
+      <div class="doc-row editing">
+        <input
+          class="edit-title"
+          type="text"
+          placeholder=${t("doc_link_title", L)}
+          .value=${this._editTitle}
+          ?disabled=${this._busy}
+          @input=${(e: Event) => (this._editTitle = (e.target as HTMLInputElement).value)}
+        />
+        ${isFile
+          ? html`<select
+              class="cat-select"
+              ?disabled=${this._busy}
+              @change=${(e: Event) => (this._editCategory = (e.target as HTMLSelectElement).value)}
+            >
+              ${CATEGORIES.map(
+                (c) => html`<option value=${c} ?selected=${c === this._editCategory}>${t(`doc_cat_${c}`, L)}</option>`,
+              )}
+            </select>`
+          : nothing}
+        <button class="icon-btn" title=${t("save", L)} ?disabled=${this._busy || !this._editTitle.trim()} @click=${() => this._saveEdit(doc)}>
+          <ha-icon icon="mdi:check"></ha-icon>
+        </button>
+        <button class="icon-btn" title=${t("cancel", L)} ?disabled=${this._busy} @click=${this._cancelEdit}>
+          <ha-icon icon="mdi:close"></ha-icon>
+        </button>
       </div>
     `;
   }
@@ -407,6 +479,12 @@ export class MaintenanceDocumentsSection extends LitElement {
       display: flex; align-items: center; gap: 12px; padding: 8px 10px;
       border: 1px solid var(--divider-color); border-radius: 8px;
       background: var(--card-background-color, transparent);
+    }
+    .doc-row.editing { gap: 8px; }
+    .edit-title {
+      flex: 1; min-width: 0; padding: 6px 10px; border-radius: 6px; font: inherit;
+      background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
+      color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
     .doc-icon { color: var(--primary-color); --mdc-icon-size: 24px; flex: none; }
     .doc-icon.clickable { cursor: pointer; }
