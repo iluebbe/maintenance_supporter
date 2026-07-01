@@ -9,7 +9,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "../styles";
+import { t, ensureLocale } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
 import { formatBytes } from "../helpers/format-bytes";
@@ -53,6 +53,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   @state() private _category = "manual";
 
   private _loadedFor: string | null = null;
+  private _localeReady = false;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -60,6 +61,12 @@ export class MaintenanceDocumentsSection extends LitElement {
 
   updated(changed: Map<string, unknown>): void {
     super.updated(changed);
+    if (this.hass && !this._localeReady) {
+      this._localeReady = true;
+      // Re-render once the runtime locale JSON arrives (t() falls back to English
+      // until then), so a first paint before the fetch lands still localizes.
+      void ensureLocale(this._lang).then(() => this.requestUpdate());
+    }
     if (this.hass && this.entryId && this._loadedFor !== this.entryId) {
       this._loadedFor = this.entryId;
       void this._load();
