@@ -382,6 +382,14 @@ export const panelStyles = css`
   }
   .objects-table tbody tr:last-child td { border-bottom: none; }
   .objects-table-name { font-weight: 500; color: var(--primary-text-color); }
+  .doc-badge {
+    display: inline-flex; align-items: center; gap: 2px; vertical-align: middle;
+    margin-left: 8px; padding: 1px 7px 1px 5px; border-radius: 10px;
+    font-size: 12px; font-weight: 600;
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
+    color: var(--secondary-text-color, #888);
+  }
+  .doc-badge ha-icon { --mdc-icon-size: 14px; }
   .objects-table .oc-notes {
     max-width: 220px;
     overflow: hidden;

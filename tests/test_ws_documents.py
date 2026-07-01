@@ -124,6 +124,25 @@ async def test_ws_list_returns_docs(
     assert documents[0]["kind"] == "file"
 
 
+async def test_object_response_includes_document_count(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """(P2) The object WS response carries document_count for the objects-table badge."""
+    from custom_components.maintenance_supporter.websocket.objects import ws_get_object
+
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    await store.async_add_file(OBJECT_ID_1, content=b"x", filename="a.pdf", mime="application/pdf")
+    await store.async_add_weblink(OBJECT_ID_1, url="https://x")
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_get_object, hass, conn,
+        {"id": 1, "type": "maintenance_supporter/object", "entry_id": object_entry.entry_id},
+    )
+    assert conn.send_result.call_args[0][1]["object"]["document_count"] == 2
+
+
 async def test_ws_list_unknown_entry(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
