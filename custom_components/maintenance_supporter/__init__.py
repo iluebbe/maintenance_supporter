@@ -1035,9 +1035,19 @@ async def async_remove_entry(
     # v1.5.4: also called from ws_delete_object — but if the user removes the
     # config entry from HA's "Configure" UI, that path doesn't run, leaving
     # phantom task_refs in groups. Belt-and-suspenders.
-    from .websocket import cleanup_group_refs
+    from .websocket import cleanup_group_refs, object_id_for_entry
 
     cleanup_group_refs(hass, entry_id=entry.entry_id)
+
+    # Remove this object's documents (refcount-aware — a blob shared with another
+    # object survives; only bytes freed for good are reclaimed). Archiving keeps
+    # docs; permanent deletion is the trigger, and this hook fires for the WS,
+    # the Configure-UI, and the service delete paths alike — the single place it
+    # belongs.
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if isinstance(doc_store, DocumentStore):
+        await doc_store.async_remove_object(object_id_for_entry(entry))
+
     _LOGGER.debug("Removed store for entry %s", entry.entry_id)
     # The global summary coordinator has no listener for entry removal, so tell
     # it to drop this object from its counts immediately (otherwise the summary
