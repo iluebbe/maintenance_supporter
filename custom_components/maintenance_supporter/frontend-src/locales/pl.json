@@ -564,5 +564,7 @@
   "doc_link_badge": "Link",
   "doc_storage_title": "Magazyn dokumentów",
   "doc_storage_saved": "Zaoszczędzone przez deduplikację",
-  "doc_storage_refresh": "Odśwież"
+  "doc_storage_refresh": "Odśwież",
+  "doc_download": "Pobierz",
+  "doc_close": "Zamknij"
 }

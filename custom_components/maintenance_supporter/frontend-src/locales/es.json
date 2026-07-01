@@ -564,5 +564,7 @@
   "doc_link_badge": "Enlace",
   "doc_storage_title": "Almacenamiento de documentos",
   "doc_storage_saved": "Ahorrado por deduplicación",
-  "doc_storage_refresh": "Actualizar"
+  "doc_storage_refresh": "Actualizar",
+  "doc_download": "Descargar",
+  "doc_close": "Cerrar"
 }

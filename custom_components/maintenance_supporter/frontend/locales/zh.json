@@ -564,5 +564,7 @@
   "doc_link_badge": "链接",
   "doc_storage_title": "文档存储",
   "doc_storage_saved": "通过去重节省",
-  "doc_storage_refresh": "刷新"
+  "doc_storage_refresh": "刷新",
+  "doc_download": "下载",
+  "doc_close": "关闭"
 }

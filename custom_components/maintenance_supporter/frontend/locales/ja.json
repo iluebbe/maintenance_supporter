@@ -564,5 +564,7 @@
   "doc_link_badge": "リンク",
   "doc_storage_title": "ドキュメントストレージ",
   "doc_storage_saved": "重複排除による節約",
-  "doc_storage_refresh": "更新"
+  "doc_storage_refresh": "更新",
+  "doc_download": "ダウンロード",
+  "doc_close": "閉じる"
 }
