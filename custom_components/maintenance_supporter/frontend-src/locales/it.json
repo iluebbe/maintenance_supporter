@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Ricambi",
   "doc_cat_photo": "Foto",
   "doc_cat_other": "Altro",
-  "doc_link_badge": "Link"
+  "doc_link_badge": "Link",
+  "doc_storage_title": "Archiviazione documenti",
+  "doc_storage_saved": "Risparmiato con deduplicazione",
+  "doc_storage_refresh": "Aggiorna"
 }

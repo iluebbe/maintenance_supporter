@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Onderdelen",
   "doc_cat_photo": "Foto",
   "doc_cat_other": "Overig",
-  "doc_link_badge": "Link"
+  "doc_link_badge": "Link",
+  "doc_storage_title": "Documentopslag",
+  "doc_storage_saved": "Bespaard door deduplicatie",
+  "doc_storage_refresh": "Vernieuwen"
 }

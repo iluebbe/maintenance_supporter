@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Запчастини",
   "doc_cat_photo": "Фото",
   "doc_cat_other": "Інше",
-  "doc_link_badge": "Посилання"
+  "doc_link_badge": "Посилання",
+  "doc_storage_title": "Сховище документів",
+  "doc_storage_saved": "Заощаджено дедуплікацією",
+  "doc_storage_refresh": "Оновити"
 }

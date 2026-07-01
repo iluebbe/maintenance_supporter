@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Części zamienne",
   "doc_cat_photo": "Zdjęcie",
   "doc_cat_other": "Inne",
-  "doc_link_badge": "Link"
+  "doc_link_badge": "Link",
+  "doc_storage_title": "Magazyn dokumentów",
+  "doc_storage_saved": "Zaoszczędzone przez deduplikację",
+  "doc_storage_refresh": "Odśwież"
 }

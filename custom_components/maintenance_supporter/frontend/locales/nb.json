@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Reservedeler",
   "doc_cat_photo": "Foto",
   "doc_cat_other": "Annet",
-  "doc_link_badge": "Lenke"
+  "doc_link_badge": "Lenke",
+  "doc_storage_title": "Dokumentlagring",
+  "doc_storage_saved": "Spart ved deduplisering",
+  "doc_storage_refresh": "Oppdater"
 }

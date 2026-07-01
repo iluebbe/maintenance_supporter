@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Varaosat",
   "doc_cat_photo": "Valokuva",
   "doc_cat_other": "Muu",
-  "doc_link_badge": "Linkki"
+  "doc_link_badge": "Linkki",
+  "doc_storage_title": "Asiakirjojen tallennustila",
+  "doc_storage_saved": "Säästetty deduplikoinnilla",
+  "doc_storage_refresh": "Päivitä"
 }

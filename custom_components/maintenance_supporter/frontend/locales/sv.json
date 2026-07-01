@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Reservdelar",
   "doc_cat_photo": "Foto",
   "doc_cat_other": "Övrigt",
-  "doc_link_badge": "Länk"
+  "doc_link_badge": "Länk",
+  "doc_storage_title": "Dokumentlagring",
+  "doc_storage_saved": "Sparat genom deduplicering",
+  "doc_storage_refresh": "Uppdatera"
 }

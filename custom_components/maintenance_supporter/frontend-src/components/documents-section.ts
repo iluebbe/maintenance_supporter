@@ -12,6 +12,7 @@ import { property, state } from "lit/decorators.js";
 import { t } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { downloadUrl } from "../helpers/download";
+import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
 
 interface MaintenanceDocument {
@@ -35,13 +36,6 @@ const CATEGORY_ICONS: Record<string, string> = {
   photo: "mdi:image-outline",
   other: "mdi:file-document-outline",
 };
-
-function fmtSize(bytes: number | undefined): string {
-  const b = bytes ?? 0;
-  if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 export class MaintenanceDocumentsSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -257,7 +251,7 @@ export class MaintenanceDocumentsSection extends LitElement {
     const isFile = doc.kind === "file";
     const cat = this._category_of(doc);
     const meta = isFile
-      ? `${t(`doc_cat_${cat}`, L)} · ${fmtSize(doc.size)}`
+      ? `${t(`doc_cat_${cat}`, L)} · ${formatBytes(doc.size)}`
       : t("doc_link_badge", L);
     return html`
       <div class="doc-row">
