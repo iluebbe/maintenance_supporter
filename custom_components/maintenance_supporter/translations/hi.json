@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "ठीक है"
       },
+      "document_storage": {
+        "name": "दस्तावेज़ संग्रहण"
+      },
       "summary_total_tasks": {
         "name": "कुल कार्य"
       }

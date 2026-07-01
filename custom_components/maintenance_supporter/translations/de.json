@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Dokumentenspeicher"
+      },
       "summary_total_tasks": {
         "name": "Aufgaben gesamt"
       }

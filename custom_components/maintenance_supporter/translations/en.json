@@ -1328,6 +1328,9 @@
       "summary_triggered": { "name": "Triggered" },
       "summary_needs_attention": { "name": "Needs attention" },
       "summary_ok": { "name": "OK" },
+      "document_storage": {
+        "name": "Document storage"
+      },
       "summary_total_tasks": { "name": "Total tasks" }
     },
     "calendar": {

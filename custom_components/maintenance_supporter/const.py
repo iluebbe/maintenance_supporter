@@ -460,6 +460,9 @@ class TriggerEntityState(StrEnum):
 SIGNAL_TASK_RESET = f"{DOMAIN}_task_reset_{{entry_id}}_{{task_id}}"
 SIGNAL_NEW_OBJECT_ENTRY = f"{DOMAIN}_new_object_entry"
 SIGNAL_OBJECT_ENTRY_REMOVED = f"{DOMAIN}_object_entry_removed"
+# Fired by the DocumentStore after any metadata/blob change so the storage
+# sensor (and any other listener) can refresh without polling.
+SIGNAL_DOCUMENTS_UPDATED = f"{DOMAIN}_documents_updated"
 
 # --- Trigger Completion Cooldown ---
 TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes

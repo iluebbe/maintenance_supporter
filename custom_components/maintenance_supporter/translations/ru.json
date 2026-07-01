@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "ОК"
       },
+      "document_storage": {
+        "name": "Хранилище документов"
+      },
       "summary_total_tasks": {
         "name": "Всего задач"
       }
