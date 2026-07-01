@@ -1491,6 +1491,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Document storage needs cleanup",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Reclaim document storage",
+            "description": "Maintenance Supporter found unreferenced files and/or dead records in document storage — usually the aftermath of a crash, an external file deletion, or a partial restore.\n\nClick **Submit** to reclaim the space: unreferenced and stale files are deleted and dead document records are removed. Files still referenced by a document are never touched.\n\n(To dismiss without cleaning up, use Home Assistant's **Ignore** button on the Repairs page.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Trigger sensor not found: {task_name}",
       "fix_flow": {

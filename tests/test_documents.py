@@ -221,3 +221,63 @@ async def test_delete_blob_oserror_is_swallowed(
     monkeypatch.setattr(Path, "unlink", _boom)
     # Last-ref removal deletes the blob; an unlink OSError must be swallowed.
     assert await s.async_remove(doc["id"]) == len(b"z")
+
+
+async def test_list_blob_files_ignores_foreign_names(hass: HomeAssistant) -> None:
+    """Only 64-char hex names count as our blobs — foreign files are ignored."""
+    s = await _store(hass)
+    s._blobs_dir.mkdir(parents=True, exist_ok=True)
+    (s._blobs_dir / "README.txt").write_bytes(b"not ours")
+    (s._blobs_dir / ("a" * 63)).write_bytes(b"too short")  # not 64 chars
+    issues = await s.async_find_issues()
+    assert issues["orphan_blobs"] == []  # neither foreign file is flagged
+
+
+async def test_reclaim_blob_missing_returns_zero(hass: HomeAssistant) -> None:
+    """Reclaiming a blob whose file already vanished frees 0 bytes, no error."""
+    s = await _store(hass)
+    assert s._reclaim_blob_sync("a" * 64) == 0
+
+
+async def test_cleanup_no_issues_is_noop(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    await s.async_add_file("o", content=b"x", filename="a.pdf", mime="application/pdf")
+    assert await s.async_cleanup_issues() == {
+        "orphans_deleted": 0,
+        "zero_refcount_cleared": 0,
+        "dangling_removed": 0,
+        "bytes_freed": 0,
+    }
+
+
+async def test_cleanup_reclaims_orphans_zero_and_dangling(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    keep = await s.async_add_file("o", content=b"keep", filename="k.pdf", mime="application/pdf")
+    dangling = await s.async_add_file("o", content=b"gone", filename="g.pdf", mime="application/pdf")
+    s.blob_path(dangling["hash"]).unlink()  # blob missing → doc is dangling
+
+    orphan = "b" * 64
+    s.blob_path(orphan).write_bytes(b"orphan-bytes")  # on disk, not in registry
+
+    zero = "c" * 64
+    s.blob_path(zero).write_bytes(b"zero")
+    s.blobs[zero] = {"size": 4, "mime": "x", "refcount": 0}  # crash between deref/delete
+
+    summary = await s.async_cleanup_issues()
+    assert summary == {
+        "orphans_deleted": 1,
+        "zero_refcount_cleared": 1,
+        "dangling_removed": 1,
+        "bytes_freed": len(b"orphan-bytes") + 4,  # dangling frees 0 real bytes
+    }
+
+    # Everything reconciled, and the live doc + blob are untouched.
+    assert await s.async_find_issues() == {
+        "orphan_blobs": [], "zero_refcount": [], "dangling_docs": [],
+    }
+    assert not s.blob_path(orphan).exists()
+    assert not s.blob_path(zero).exists()
+    assert dangling["hash"] not in s.blobs      # phantom registry entry gone
+    assert s.get(dangling["id"]) is None
+    assert s.get(keep["id"]) is not None
+    assert s.blob_path(keep["hash"]).exists()

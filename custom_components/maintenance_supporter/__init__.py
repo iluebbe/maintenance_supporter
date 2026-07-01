@@ -761,6 +761,13 @@ async def async_setup_entry(
         # notify groups) are present before we judge the service missing.
         entry.async_on_unload(async_at_started(hass, _verify_notify_service))
 
+        # Surface document-storage anomalies (orphan/dangling blobs after a
+        # crash or partial restore) as a fixable repair issue. Deferred to
+        # HA-started so the store has finished loading.
+        entry.async_on_unload(
+            async_at_started(hass, _check_document_storage_issues)
+        )
+
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
         # Maintenance object entry: create Store + coordinator
@@ -850,6 +857,37 @@ def _verify_notify_service(hass: HomeAssistant) -> None:
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if isinstance(nm, NotificationManager):
         nm.async_verify_configured_service()
+
+
+_DOC_STORAGE_ISSUE_ID = "document_storage_issues"
+
+
+async def _check_document_storage_issues(hass: HomeAssistant) -> None:
+    """Sync the document-storage repair issue with the current on-disk reality.
+
+    The store is consistent under normal operation; anomalies (orphaned blobs,
+    dangling records, stale registry entries) only arise from a crash, an
+    external file delete, or a partial restore — so a boot-time scan is the
+    right trigger. The fixable issue's flow reclaims the space; once a later
+    scan comes back clean the issue is removed.
+    """
+    from homeassistant.helpers import issue_registry as ir
+
+    store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if not isinstance(store, DocumentStore):
+        return
+    issues = await store.async_find_issues()
+    if any(issues.values()):
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            _DOC_STORAGE_ISSUE_ID,
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=_DOC_STORAGE_ISSUE_ID,
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, _DOC_STORAGE_ISSUE_ID)
 
 
 async def _async_global_options_updated(

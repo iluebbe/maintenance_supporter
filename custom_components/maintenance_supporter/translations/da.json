@@ -1503,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Dokumentlager kræver oprydning",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Frigør dokumentlager",
+            "description": "Maintenance Supporter fandt ureferancerede filer og/eller døde poster i dokumentlageret — som regel følgen af et nedbrud, en ekstern filsletning eller en delvis gendannelse.\n\nKlik på **Send** for at frigøre plads: ureferancerede og forældede filer slettes, og døde dokumentposter fjernes. Filer, der stadig refereres af et dokument, røres aldrig.\n\n(For at afvise uden oprydning, brug Home Assistants **Ignorer**-knap på Reparationer-siden.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Udløsersensor ikke fundet: {task_name}",
       "fix_flow": {

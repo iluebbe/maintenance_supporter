@@ -394,7 +394,62 @@ class DocumentStore:
         }
 
     def _list_blob_files(self) -> set[str]:
+        # Only our own blobs (a 64-char sha256 hex name) count — a foreign file
+        # dropped into the dir is none of our business and must never be
+        # reported as an orphan (the cleanup would otherwise try to delete it).
         d = self._blobs_dir
         if not d.is_dir():
             return set()
-        return {p.name for p in d.iterdir() if p.is_file() and not p.name.endswith(".tmp")}
+        return {
+            p.name
+            for p in d.iterdir()
+            if p.is_file()
+            and len(p.name) == 64
+            and all(c in "0123456789abcdef" for c in p.name)
+        }
+
+    # ------------------------------------------------------------------
+    # Cleanup (backs the repair-issue fix flow)
+    # ------------------------------------------------------------------
+
+    async def async_cleanup_issues(self) -> dict[str, int]:
+        """Reclaim the anomalies found by :meth:`async_find_issues`.
+
+        Deletes orphaned blob files and stale (zero-refcount) blobs to reclaim
+        disk/backup space, and prunes dangling document records whose blob is
+        already gone (nothing left to serve). Files still referenced by a live
+        document are never touched. Returns per-category counts + bytes freed.
+        """
+        issues = await self.async_find_issues()
+        freed = 0
+        for digest in issues["orphan_blobs"]:
+            freed += await self.hass.async_add_executor_job(
+                self._reclaim_blob_sync, digest
+            )
+        for digest in issues["zero_refcount"]:
+            blob = self.blobs.pop(digest, None)
+            freed += int(blob.get("size", 0)) if blob else 0
+            await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
+        for did in issues["dangling_docs"]:
+            doc = self.documents.pop(did, None)
+            if doc is not None:
+                # Reconcile the now over-counted blob refcount so no phantom
+                # registry entry lingers; the file is already gone (0 real bytes).
+                await self._deref_blob(doc)
+        if any(issues.values()):
+            await self._async_save()
+        return {
+            "orphans_deleted": len(issues["orphan_blobs"]),
+            "zero_refcount_cleared": len(issues["zero_refcount"]),
+            "dangling_removed": len(issues["dangling_docs"]),
+            "bytes_freed": freed,
+        }
+
+    def _reclaim_blob_sync(self, digest: str) -> int:
+        """Delete an orphan blob file, returning its size (0 if already gone)."""
+        try:
+            size = self.blob_path(digest).stat().st_size
+        except OSError:
+            size = 0
+        self._delete_blob_sync(digest)
+        return size
