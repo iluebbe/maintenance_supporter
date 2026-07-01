@@ -572,5 +572,7 @@
   "doc_task_none": "没有与此任务关联的文档。",
   "doc_link_existing": "关联文档…",
   "doc_attach": "关联",
-  "doc_unlink": "取消关联"
+  "doc_unlink": "取消关联",
+  "doc_search": "搜索文档…",
+  "doc_search_none": "没有匹配的文档"
 }

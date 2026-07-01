@@ -20,7 +20,14 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN, MAX_ID_LENGTH, MAX_NAME_LENGTH, MAX_URL_LENGTH
+from ..const import (
+    CONF_OBJECT,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+    MAX_ID_LENGTH,
+    MAX_NAME_LENGTH,
+    MAX_URL_LENGTH,
+)
 from ..helpers.permissions import require_write
 from . import _load_object_entry, object_id_for_entry
 from .tasks import _is_safe_url
@@ -175,3 +182,60 @@ async def ws_documents_delete(
         return
     freed = await store.async_remove(msg["doc_id"])
     connection.send_result(msg["id"], {"success": True, "bytes_freed": freed})
+
+
+_SEARCH_FIELDS = ("title", "filename", "url", "mime")
+_SEARCH_MAX_RESULTS = 50
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/documents/search",
+        vol.Required("query"): vol.All(str, vol.Length(max=MAX_NAME_LENGTH)),
+    }
+)
+@websocket_api.async_response
+async def ws_documents_search(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Find documents across all objects by title / filename / tag (read, open)."""
+    query = msg["query"].strip().lower()
+    if not query:
+        connection.send_result(msg["id"], {"results": []})
+        return
+
+    # object id -> (entry_id, name), so hits carry a human-readable location.
+    obj_map: dict[str, tuple[str, str]] = {}
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        obj = entry.data.get(CONF_OBJECT, {})
+        oid = obj.get("id")
+        if isinstance(oid, str) and oid:
+            obj_map[oid] = (entry.entry_id, obj.get("name", ""))
+
+    store = _get_store(hass)
+    results: list[dict[str, Any]] = []
+    for did, doc in store.documents.items():
+        haystack = " ".join(
+            [str(doc.get(f) or "") for f in _SEARCH_FIELDS] + list(doc.get("tags") or [])
+        ).lower()
+        if query not in haystack:
+            continue
+        entry_id, name = obj_map.get(doc.get("object_id", ""), ("", ""))
+        results.append({
+            "id": did,
+            "entry_id": entry_id,
+            "object_name": name,
+            "kind": doc.get("kind"),
+            "title": doc.get("title"),
+            "filename": doc.get("filename"),
+            "url": doc.get("url"),
+            "size": doc.get("size"),
+            "tags": doc.get("tags") or [],
+        })
+        if len(results) >= _SEARCH_MAX_RESULTS:
+            break
+    connection.send_result(msg["id"], {"results": results})

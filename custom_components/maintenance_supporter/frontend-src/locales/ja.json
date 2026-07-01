@@ -572,5 +572,7 @@
   "doc_task_none": "このタスクに紐付いたドキュメントはありません。",
   "doc_link_existing": "ドキュメントを紐付け…",
   "doc_attach": "紐付け",
-  "doc_unlink": "紐付け解除"
+  "doc_unlink": "紐付け解除",
+  "doc_search": "ドキュメントを検索…",
+  "doc_search_none": "一致するドキュメントはありません"
 }

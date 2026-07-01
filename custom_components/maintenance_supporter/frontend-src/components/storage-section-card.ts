@@ -27,6 +27,18 @@ interface PanelObject {
   object?: { id?: string; name?: string };
 }
 
+interface SearchResult {
+  id: string;
+  entry_id: string;
+  object_name: string;
+  kind: "file" | "weblink";
+  title: string;
+  filename?: string;
+  url?: string;
+  size?: number;
+  tags?: string[];
+}
+
 export class MaintenanceStorageSectionCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ attribute: false }) public objects: PanelObject[] = [];
@@ -35,8 +47,11 @@ export class MaintenanceStorageSectionCard extends LitElement {
   @state() private _loaded = false;
   @state() private _busy = false;
   @state() private _error = "";
+  @state() private _query = "";
+  @state() private _results: SearchResult[] = [];
 
   private _initiallyLoaded = false;
+  private _searchTimer = 0;
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -71,6 +86,62 @@ export class MaintenanceStorageSectionCard extends LitElement {
   private _nameFor(objectId: string): string {
     const o = this.objects.find((x) => x.object?.id === objectId);
     return o?.object?.name || objectId.slice(0, 8);
+  }
+
+  private _onSearch(e: Event): void {
+    this._query = (e.target as HTMLInputElement).value;
+    clearTimeout(this._searchTimer);
+    this._searchTimer = window.setTimeout(() => void this._doSearch(), 250);
+  }
+
+  private async _doSearch(): Promise<void> {
+    const q = this._query.trim();
+    if (!q) {
+      this._results = [];
+      return;
+    }
+    try {
+      const r = await this.hass.connection.sendMessagePromise<{ results: SearchResult[] }>({
+        type: "maintenance_supporter/documents/search",
+        query: q,
+      });
+      this._results = r.results || [];
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+      this._results = [];
+    }
+  }
+
+  private async _openResult(doc: SearchResult): Promise<void> {
+    if (doc.kind === "weblink") {
+      window.open(doc.url, "_blank", "noopener");
+      return;
+    }
+    const win = window.open("about:blank", "_blank");
+    try {
+      const s = await this.hass.connection.sendMessagePromise<{ path: string }>({
+        type: "auth/sign_path",
+        path: `/api/maintenance_supporter/document/${doc.id}`,
+        expires: 300,
+      });
+      if (win) win.location.href = s.path;
+    } catch (e) {
+      if (win) win.close();
+      this._error = describeWsError(e, this._lang);
+    }
+  }
+
+  private _renderResult(doc: SearchResult, L: string) {
+    return html`
+      <div class="obj-row result-row" title=${t("doc_open", L)} @click=${() => this._openResult(doc)}>
+        <ha-icon icon=${doc.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline"}></ha-icon>
+        <div class="result-info">
+          <div class="result-title">${doc.title || doc.filename || doc.url}</div>
+          <div class="result-obj">${doc.object_name}</div>
+        </div>
+        <ha-icon class="result-open" icon=${doc.kind === "weblink" ? "mdi:open-in-new" : "mdi:eye-outline"}></ha-icon>
+      </div>
+    `;
   }
 
   render() {
@@ -118,28 +189,42 @@ export class MaintenanceStorageSectionCard extends LitElement {
               : nothing}
           </div>
 
+          <div class="doc-search">
+            <ha-icon icon="mdi:magnify"></ha-icon>
+            <input
+              type="search"
+              placeholder=${t("doc_search", L)}
+              .value=${this._query}
+              @input=${this._onSearch}
+            />
+          </div>
+
           ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
 
-          ${rows.length
-            ? html`<div class="obj-list">
-                ${rows.map(
-                  (r) => html`
-                    <div class="obj-row">
-                      <span class="obj-name">${r.name}</span>
-                      <span class="obj-meta">
-                        ${r.files > 0
-                          ? html`<ha-icon icon="mdi:file-document-outline"></ha-icon>${r.files}`
-                          : nothing}
-                        ${r.links > 0
-                          ? html`<ha-icon icon="mdi:link-variant"></ha-icon>${r.links}`
-                          : nothing}
-                      </span>
-                      <span class="obj-size">${formatBytes(r.bytes)}</span>
-                    </div>
-                  `,
-                )}
-              </div>`
-            : nothing}
+          ${this._query.trim()
+            ? this._results.length
+              ? html`<div class="obj-list">${this._results.map((d) => this._renderResult(d, L))}</div>`
+              : html`<div class="search-empty">${t("doc_search_none", L)}</div>`
+            : rows.length
+              ? html`<div class="obj-list">
+                  ${rows.map(
+                    (r) => html`
+                      <div class="obj-row">
+                        <span class="obj-name">${r.name}</span>
+                        <span class="obj-meta">
+                          ${r.files > 0
+                            ? html`<ha-icon icon="mdi:file-document-outline"></ha-icon>${r.files}`
+                            : nothing}
+                          ${r.links > 0
+                            ? html`<ha-icon icon="mdi:link-variant"></ha-icon>${r.links}`
+                            : nothing}
+                        </span>
+                        <span class="obj-size">${formatBytes(r.bytes)}</span>
+                      </div>
+                    `,
+                  )}
+                </div>`
+              : nothing}
         </div>
       </ha-card>
     `;
@@ -148,6 +233,24 @@ export class MaintenanceStorageSectionCard extends LitElement {
   static styles = css`
     ha-card { margin-top: 16px; }
     .card-content { padding: 16px; }
+    .doc-search {
+      display: flex; align-items: center; gap: 6px; margin: 10px 0 4px;
+      padding: 2px 10px; border-radius: 8px;
+      background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
+      border: 1px solid var(--divider-color);
+    }
+    .doc-search ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color, #888); }
+    .doc-search input {
+      flex: 1; border: none; background: transparent; font: inherit; outline: none;
+      color: var(--primary-text-color); padding: 6px 0;
+    }
+    .result-row { cursor: pointer; }
+    .result-row > ha-icon { color: var(--primary-color); --mdc-icon-size: 20px; flex: none; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .result-obj { font-size: 12px; color: var(--secondary-text-color, #888); }
+    .result-open { color: var(--secondary-text-color, #888); --mdc-icon-size: 18px; flex: none; }
+    .search-empty { color: var(--secondary-text-color, #888); font-size: 13px; padding: 8px 2px; }
     .header { display: flex; align-items: center; justify-content: space-between; }
     .title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 500; }
     .emoji { font-size: 18px; }

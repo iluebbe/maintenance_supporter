@@ -572,5 +572,7 @@
   "doc_task_none": "Žádné dokumenty spojené s tímto úkolem.",
   "doc_link_existing": "Připojit dokument…",
   "doc_attach": "Připojit",
-  "doc_unlink": "Odpojit"
+  "doc_unlink": "Odpojit",
+  "doc_search": "Hledat dokumenty…",
+  "doc_search_none": "Žádné odpovídající dokumenty"
 }

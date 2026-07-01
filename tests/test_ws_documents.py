@@ -175,6 +175,35 @@ async def test_export_import_roundtrips_documents(
     assert store.blobs[file_hash]["refcount"] == 2
 
 
+async def test_ws_documents_search(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """(P7) Global search matches by filename/tag and carries the object name."""
+    from custom_components.maintenance_supporter.websocket.documents import (
+        ws_documents_search,
+    )
+
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    await store.async_add_file(OBJECT_ID_1, content=b"x", filename="Bedienungsanleitung.pdf", mime="application/pdf", tags=["manual"])
+    await store.async_add_weblink(OBJECT_ID_1, url="https://x/warranty", title="Garantie", tags=["warranty"])
+
+    conn = _conn()
+    await call_ws_handler(ws_documents_search, hass, conn, {"id": 1, "type": "x", "query": "anleitung"})
+    results = conn.send_result.call_args[0][1]["results"]
+    assert len(results) == 1
+    assert results[0]["filename"] == "Bedienungsanleitung.pdf"
+    assert results[0]["object_name"] == "Pool Pump"
+
+    conn = _conn()  # match by tag
+    await call_ws_handler(ws_documents_search, hass, conn, {"id": 1, "type": "x", "query": "warranty"})
+    assert conn.send_result.call_args[0][1]["results"][0]["kind"] == "weblink"
+
+    conn = _conn()  # blank query -> no results
+    await call_ws_handler(ws_documents_search, hass, conn, {"id": 1, "type": "x", "query": "   "})
+    assert conn.send_result.call_args[0][1]["results"] == []
+
+
 async def test_ws_list_unknown_entry(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

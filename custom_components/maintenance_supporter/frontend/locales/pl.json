@@ -572,5 +572,7 @@
   "doc_task_none": "Brak dokumentów powiązanych z tym zadaniem.",
   "doc_link_existing": "Powiąż dokument…",
   "doc_attach": "Powiąż",
-  "doc_unlink": "Odłącz"
+  "doc_unlink": "Odłącz",
+  "doc_search": "Szukaj dokumentów…",
+  "doc_search_none": "Brak pasujących dokumentów"
 }

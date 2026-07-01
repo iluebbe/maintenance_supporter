@@ -572,5 +572,7 @@
   "doc_task_none": "Keine Dokumente mit dieser Aufgabe verknüpft.",
   "doc_link_existing": "Dokument verknüpfen…",
   "doc_attach": "Verknüpfen",
-  "doc_unlink": "Verknüpfung lösen"
+  "doc_unlink": "Verknüpfung lösen",
+  "doc_search": "Dokumente durchsuchen…",
+  "doc_search_none": "Keine passenden Dokumente"
 }

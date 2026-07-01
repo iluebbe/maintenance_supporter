@@ -45,6 +45,35 @@ describe("storage-section-card", () => {
     expect(el.shadowRoot!.querySelector("ha-card"), "hidden when empty").to.not.exist;
   });
 
+  it("searches documents and renders results with the object name", async () => {
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/documents/storage": () => SUMMARY,
+        "maintenance_supporter/documents/search": () => ({
+          results: [
+            { id: "d1", entry_id: "e1", object_name: "Pool Pump", kind: "file", title: "Manual", filename: "m.pdf", size: 100, tags: ["manual"] },
+          ],
+        }),
+      },
+    });
+    const el = await fixture<MaintenanceStorageSectionCard>(html`
+      <maintenance-storage-section-card .hass=${hass} .objects=${OBJECTS}></maintenance-storage-section-card>
+    `);
+    await new Promise((r) => setTimeout(r, 30));
+    await el.updateComplete;
+
+    const input = el.shadowRoot!.querySelector<HTMLInputElement>(".doc-search input")!;
+    input.value = "manual";
+    input.dispatchEvent(new Event("input"));
+    await new Promise((r) => setTimeout(r, 320)); // debounce (250 ms)
+    await el.updateComplete;
+
+    const results = el.shadowRoot!.querySelectorAll(".result-row");
+    expect(results.length).to.equal(1);
+    expect(results[0].querySelector(".result-title")!.textContent).to.contain("Manual");
+    expect(results[0].querySelector(".result-obj")!.textContent).to.contain("Pool Pump");
+  });
+
   it("falls back to a short id when the object name is unknown", async () => {
     const el = await mount(
       {

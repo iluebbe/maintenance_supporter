@@ -572,5 +572,7 @@
   "doc_task_none": "Ingen dokumenter knyttet til denne opgave.",
   "doc_link_existing": "Knyt et dokument…",
   "doc_attach": "Knyt",
-  "doc_unlink": "Fjern kobling"
+  "doc_unlink": "Fjern kobling",
+  "doc_search": "Søg dokumenter…",
+  "doc_search_none": "Ingen matchende dokumenter"
 }
