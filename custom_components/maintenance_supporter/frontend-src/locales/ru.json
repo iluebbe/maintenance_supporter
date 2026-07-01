@@ -564,5 +564,7 @@
   "doc_link_badge": "Ссылка",
   "doc_storage_title": "Хранилище документов",
   "doc_storage_saved": "Сэкономлено дедупликацией",
-  "doc_storage_refresh": "Обновить"
+  "doc_storage_refresh": "Обновить",
+  "doc_download": "Скачать",
+  "doc_close": "Закрыть"
 }

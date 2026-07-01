@@ -564,5 +564,7 @@
   "doc_link_badge": "Linkki",
   "doc_storage_title": "Asiakirjojen tallennustila",
   "doc_storage_saved": "Säästetty deduplikoinnilla",
-  "doc_storage_refresh": "Päivitä"
+  "doc_storage_refresh": "Päivitä",
+  "doc_download": "Lataa",
+  "doc_close": "Sulje"
 }

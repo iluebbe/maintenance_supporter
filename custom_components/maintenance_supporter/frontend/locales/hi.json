@@ -564,5 +564,7 @@
   "doc_link_badge": "लिंक",
   "doc_storage_title": "दस्तावेज़ संग्रहण",
   "doc_storage_saved": "डीडुप्लिकेशन से बचत",
-  "doc_storage_refresh": "ताज़ा करें"
+  "doc_storage_refresh": "ताज़ा करें",
+  "doc_download": "डाउनलोड करें",
+  "doc_close": "बंद करें"
 }

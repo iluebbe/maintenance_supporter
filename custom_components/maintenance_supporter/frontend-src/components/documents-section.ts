@@ -51,9 +51,24 @@ export class MaintenanceDocumentsSection extends LitElement {
   @state() private _linkUrl = "";
   @state() private _linkTitle = "";
   @state() private _category = "manual";
+  @state() private _thumbs: Record<string, string> = {};
+  @state() private _lightboxUrl = "";
 
   private _loadedFor: string | null = null;
   private _localeReady = false;
+
+  private _isImage(doc: MaintenanceDocument): boolean {
+    return doc.kind === "file" && (doc.mime || "").startsWith("image/");
+  }
+
+  private async _sign(doc: MaintenanceDocument): Promise<string> {
+    const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
+      type: "auth/sign_path",
+      path: `/api/maintenance_supporter/document/${doc.id}`,
+      expires: 300,
+    });
+    return signed.path;
+  }
 
   private get _lang(): string {
     return this.hass?.language || "en";
@@ -82,10 +97,26 @@ export class MaintenanceDocumentsSection extends LitElement {
       this._docs = r.documents || [];
       this._loaded = true;
       this._error = "";
+      this._thumbs = {};
+      void this._loadThumbs();
     } catch (e) {
       this._error = describeWsError(e, this._lang);
       this._loaded = true;
     }
+  }
+
+  /** Pre-sign a serve URL for each image doc so it can render as a thumbnail. */
+  private async _loadThumbs(): Promise<void> {
+    await Promise.all(
+      this._docs.filter((d) => this._isImage(d)).map(async (d) => {
+        try {
+          const url = await this._sign(d);
+          this._thumbs = { ...this._thumbs, [d.id]: url };
+        } catch {
+          /* leave the fallback icon */
+        }
+      }),
+    );
   }
 
   private _category_of(doc: MaintenanceDocument): string {
@@ -138,6 +169,25 @@ export class MaintenanceDocumentsSection extends LitElement {
       });
       downloadUrl(signed.path, doc.filename || doc.title || "document");
     } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    }
+  }
+
+  /** Open a document for viewing: images in an in-app lightbox, everything else
+   *  inline in a new tab (the serve view sends Content-Disposition: inline). */
+  private async _preview(doc: MaintenanceDocument): Promise<void> {
+    if (this._isImage(doc)) {
+      this._lightboxUrl = this._thumbs[doc.id] || (await this._sign(doc));
+      return;
+    }
+    // Open the tab synchronously (in the click gesture) so it isn't popup-blocked,
+    // then point it at the freshly signed URL once it resolves.
+    const win = window.open("about:blank", "_blank");
+    try {
+      const url = await this._sign(doc);
+      if (win) win.location.href = url;
+    } catch (e) {
+      if (win) win.close();
       this._error = describeWsError(e, this._lang);
     }
   }
@@ -251,6 +301,15 @@ export class MaintenanceDocumentsSection extends LitElement {
                 ${this._docs.map((doc) => this._renderDoc(doc, L))}
               </div>
             `}
+
+      ${this._lightboxUrl
+        ? html`<div class="lightbox" @click=${() => (this._lightboxUrl = "")}>
+            <img class="lightbox-img" src=${this._lightboxUrl} @click=${(e: Event) => e.stopPropagation()} />
+            <button class="lightbox-close" title=${t("doc_close", L)} @click=${() => (this._lightboxUrl = "")}>
+              <ha-icon icon="mdi:close"></ha-icon>
+            </button>
+          </div>`
+        : nothing}
     `;
   }
 
@@ -260,18 +319,35 @@ export class MaintenanceDocumentsSection extends LitElement {
     const meta = isFile
       ? `${t(`doc_cat_${cat}`, L)} · ${formatBytes(doc.size)}`
       : t("doc_link_badge", L);
+    const thumb = this._thumbs[doc.id];
     return html`
       <div class="doc-row">
-        <ha-icon class="doc-icon" icon=${isFile ? CATEGORY_ICONS[cat] : "mdi:link-variant"}></ha-icon>
+        ${isFile && thumb
+          ? html`<img
+              class="doc-thumb"
+              src=${thumb}
+              alt=${doc.title || ""}
+              title=${t("doc_open", L)}
+              @click=${() => this._preview(doc)}
+            />`
+          : html`<ha-icon
+              class="doc-icon ${isFile ? "clickable" : ""}"
+              icon=${isFile ? CATEGORY_ICONS[cat] : "mdi:link-variant"}
+              @click=${() => isFile && this._preview(doc)}
+            ></ha-icon>`}
         <div class="doc-info">
           <div class="doc-title">${doc.title || doc.filename || doc.url}</div>
           <div class="doc-meta">${meta}</div>
         </div>
         <div class="doc-row-actions">
           ${isFile
-            ? html`<button class="icon-btn" title=${t("doc_open", L)} @click=${() => this._download(doc)}>
-                <ha-icon icon="mdi:download"></ha-icon>
-              </button>`
+            ? html`
+                <button class="icon-btn" title=${t("doc_open", L)} @click=${() => this._preview(doc)}>
+                  <ha-icon icon="mdi:eye-outline"></ha-icon>
+                </button>
+                <button class="icon-btn" title=${t("doc_download", L)} @click=${() => this._download(doc)}>
+                  <ha-icon icon="mdi:download"></ha-icon>
+                </button>`
             : html`<a
                 class="icon-btn"
                 href=${doc.url ?? "#"}
@@ -333,6 +409,28 @@ export class MaintenanceDocumentsSection extends LitElement {
       background: var(--card-background-color, transparent);
     }
     .doc-icon { color: var(--primary-color); --mdc-icon-size: 24px; flex: none; }
+    .doc-icon.clickable { cursor: pointer; }
+    .doc-thumb {
+      width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex: none;
+      cursor: pointer; border: 1px solid var(--divider-color);
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+    }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 9999; cursor: zoom-out;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.85);
+    }
+    .lightbox-img {
+      max-width: 92vw; max-height: 92vh; object-fit: contain; cursor: default;
+      border-radius: 8px; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    }
+    .lightbox-close {
+      position: fixed; top: 16px; right: 16px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%; border: none;
+      background: rgba(0, 0, 0, 0.5); color: #fff;
+    }
+    .lightbox-close ha-icon { --mdc-icon-size: 26px; }
     .doc-info { flex: 1; min-width: 0; }
     .doc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .doc-meta { font-size: 12px; color: var(--secondary-text-color, #888); }

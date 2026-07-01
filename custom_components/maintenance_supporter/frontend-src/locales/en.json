@@ -564,5 +564,7 @@
   "doc_link_badge": "Link",
   "doc_storage_title": "Document storage",
   "doc_storage_saved": "Saved via deduplication",
-  "doc_storage_refresh": "Refresh"
+  "doc_storage_refresh": "Refresh",
+  "doc_download": "Download",
+  "doc_close": "Close"
 }

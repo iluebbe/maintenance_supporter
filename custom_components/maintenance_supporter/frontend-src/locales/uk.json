@@ -564,5 +564,7 @@
   "doc_link_badge": "Посилання",
   "doc_storage_title": "Сховище документів",
   "doc_storage_saved": "Заощаджено дедуплікацією",
-  "doc_storage_refresh": "Оновити"
+  "doc_storage_refresh": "Оновити",
+  "doc_download": "Завантажити",
+  "doc_close": "Закрити"
 }

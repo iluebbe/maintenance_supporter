@@ -564,5 +564,7 @@
   "doc_link_badge": "Link",
   "doc_storage_title": "Dokumentlager",
   "doc_storage_saved": "Sparet ved deduplikering",
-  "doc_storage_refresh": "Opdater"
+  "doc_storage_refresh": "Opdater",
+  "doc_download": "Download",
+  "doc_close": "Luk"
 }
