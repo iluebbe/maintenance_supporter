@@ -568,5 +568,9 @@
   "doc_download": "Скачать",
   "doc_close": "Закрыть",
   "doc_camera": "Сделать фото",
-  "doc_drop_hint": "Перетащите файлы сюда"
+  "doc_drop_hint": "Перетащите файлы сюда",
+  "doc_task_none": "Нет документов, связанных с этой задачей.",
+  "doc_link_existing": "Связать документ…",
+  "doc_attach": "Связать",
+  "doc_unlink": "Отвязать"
 }

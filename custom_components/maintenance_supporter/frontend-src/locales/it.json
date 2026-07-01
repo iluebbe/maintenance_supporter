@@ -568,5 +568,9 @@
   "doc_download": "Scarica",
   "doc_close": "Chiudi",
   "doc_camera": "Scatta foto",
-  "doc_drop_hint": "Trascina qui i file"
+  "doc_drop_hint": "Trascina qui i file",
+  "doc_task_none": "Nessun documento collegato a questa attività.",
+  "doc_link_existing": "Collega un documento…",
+  "doc_attach": "Collega",
+  "doc_unlink": "Scollega"
 }

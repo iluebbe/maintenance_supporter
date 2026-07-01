@@ -568,5 +568,9 @@
   "doc_download": "Télécharger",
   "doc_close": "Fermer",
   "doc_camera": "Prendre une photo",
-  "doc_drop_hint": "Déposez les fichiers ici"
+  "doc_drop_hint": "Déposez les fichiers ici",
+  "doc_task_none": "Aucun document lié à cette tâche.",
+  "doc_link_existing": "Lier un document…",
+  "doc_attach": "Lier",
+  "doc_unlink": "Dissocier"
 }

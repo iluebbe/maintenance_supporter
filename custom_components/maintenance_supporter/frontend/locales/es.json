@@ -568,5 +568,9 @@
   "doc_download": "Descargar",
   "doc_close": "Cerrar",
   "doc_camera": "Tomar foto",
-  "doc_drop_hint": "Suelta los archivos aquí"
+  "doc_drop_hint": "Suelta los archivos aquí",
+  "doc_task_none": "Ningún documento vinculado a esta tarea.",
+  "doc_link_existing": "Vincular un documento…",
+  "doc_attach": "Vincular",
+  "doc_unlink": "Desvincular"
 }

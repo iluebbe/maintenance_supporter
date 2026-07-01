@@ -568,5 +568,9 @@
   "doc_download": "Downloaden",
   "doc_close": "Sluiten",
   "doc_camera": "Foto maken",
-  "doc_drop_hint": "Sleep bestanden hierheen"
+  "doc_drop_hint": "Sleep bestanden hierheen",
+  "doc_task_none": "Geen documenten aan deze taak gekoppeld.",
+  "doc_link_existing": "Document koppelen…",
+  "doc_attach": "Koppelen",
+  "doc_unlink": "Ontkoppelen"
 }

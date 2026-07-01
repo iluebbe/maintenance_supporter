@@ -568,5 +568,9 @@
   "doc_download": "Pobierz",
   "doc_close": "Zamknij",
   "doc_camera": "Zrób zdjęcie",
-  "doc_drop_hint": "Upuść pliki tutaj"
+  "doc_drop_hint": "Upuść pliki tutaj",
+  "doc_task_none": "Brak dokumentów powiązanych z tym zadaniem.",
+  "doc_link_existing": "Powiąż dokument…",
+  "doc_attach": "Powiąż",
+  "doc_unlink": "Odłącz"
 }

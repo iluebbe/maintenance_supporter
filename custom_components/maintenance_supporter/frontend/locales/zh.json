@@ -568,5 +568,9 @@
   "doc_download": "下载",
   "doc_close": "关闭",
   "doc_camera": "拍照",
-  "doc_drop_hint": "将文件拖放到此处"
+  "doc_drop_hint": "将文件拖放到此处",
+  "doc_task_none": "没有与此任务关联的文档。",
+  "doc_link_existing": "关联文档…",
+  "doc_attach": "关联",
+  "doc_unlink": "取消关联"
 }

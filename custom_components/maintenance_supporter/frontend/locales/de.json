@@ -568,5 +568,9 @@
   "doc_download": "Herunterladen",
   "doc_close": "Schließen",
   "doc_camera": "Foto aufnehmen",
-  "doc_drop_hint": "Dateien hier ablegen"
+  "doc_drop_hint": "Dateien hier ablegen",
+  "doc_task_none": "Keine Dokumente mit dieser Aufgabe verknüpft.",
+  "doc_link_existing": "Dokument verknüpfen…",
+  "doc_attach": "Verknüpfen",
+  "doc_unlink": "Verknüpfung lösen"
 }

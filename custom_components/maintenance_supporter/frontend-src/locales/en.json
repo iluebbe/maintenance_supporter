@@ -568,5 +568,9 @@
   "doc_download": "Download",
   "doc_close": "Close",
   "doc_camera": "Take photo",
-  "doc_drop_hint": "Drop files here"
+  "doc_drop_hint": "Drop files here",
+  "doc_task_none": "No documents linked to this task.",
+  "doc_link_existing": "Link a document…",
+  "doc_attach": "Link",
+  "doc_unlink": "Unlink"
 }
