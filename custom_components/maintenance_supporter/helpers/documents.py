@@ -1,0 +1,396 @@
+"""Document storage for maintenance objects — manuals/PDFs + web-links.
+
+Files are **content-addressed** (SHA-256) under
+``<config>/maintenance_supporter/docs/blobs/<hash>`` so identical uploads dedupe
+to a single reference-counted blob. All document metadata + the blob registry
+live in one global Store (``.storage/maintenance_supporter.documents``); the
+binaries live on disk under ``/config`` so they're included in Home Assistant
+backups (unlike ``/media``/``/share`` which are separate backup toggles).
+
+Design notes: see the project memory ``project_documents_feature_concept``.
+This is the v1 backend foundation — pure storage + dedup + lifecycle; WS,
+serving view, sensor and frontend build on top of it.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import logging
+import os
+from pathlib import Path
+from typing import Any
+from uuid import uuid4
+
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
+from homeassistant.util import dt as dt_util
+
+from ..const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
+
+DOC_STORE_VERSION = 1
+DOC_STORE_KEY = f"{DOMAIN}.documents"
+DOCS_SUBDIR = "docs"
+BLOBS_SUBDIR = "blobs"
+
+# Predefined document categories (localized in the frontend; stored as keys).
+DOC_CATEGORIES = ("manual", "warranty", "invoice", "spare_parts", "photo", "other")
+
+# Per-file cap — guards against runaway backup growth (docs live in /config and
+# are therefore duplicated into every retained backup).
+MAX_DOC_BYTES = 25 * 1024 * 1024  # 25 MB
+
+KIND_FILE = "file"
+KIND_WEBLINK = "weblink"
+
+
+class DocumentStore:
+    """Global store for maintenance-object documents (metadata + blob registry).
+
+    ``documents``: ``{doc_id: {object_id, kind, hash|url, title, filename, mime,
+    size, tags, task_ids, added_at}}``.
+    ``blobs``: ``{sha256: {size, mime, refcount}}`` — the content-addressed
+    registry backing ``kind == "file"`` documents (shared across objects).
+    """
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Initialize the document store."""
+        self.hass = hass
+        self._store: Store[dict[str, Any]] = Store(
+            hass, DOC_STORE_VERSION, DOC_STORE_KEY
+        )
+        self._data: dict[str, Any] = {"documents": {}, "blobs": {}}
+
+    # ------------------------------------------------------------------
+    # Paths
+    # ------------------------------------------------------------------
+
+    @property
+    def _blobs_dir(self) -> Path:
+        return Path(self.hass.config.path(DOMAIN, DOCS_SUBDIR, BLOBS_SUBDIR))
+
+    def blob_path(self, digest: str) -> Path:
+        """Absolute path to a blob file (validated hex digest — no traversal)."""
+        if not digest or not all(c in "0123456789abcdef" for c in digest):
+            raise ValueError(f"invalid blob digest: {digest!r}")
+        return self._blobs_dir / digest
+
+    # ------------------------------------------------------------------
+    # Load / save
+    # ------------------------------------------------------------------
+
+    async def async_load(self) -> None:
+        """Load persisted metadata + blob registry."""
+        raw = await self._store.async_load()
+        if raw is not None:
+            self._data = raw
+        self._data.setdefault("documents", {})
+        self._data.setdefault("blobs", {})
+
+    async def _async_save(self) -> None:
+        # Doc mutations are infrequent → immediate save keeps metadata and the
+        # on-disk blobs consistent (a crash between the two only ever leaves an
+        # orphan blob, which the hygiene scan reclaims).
+        await self._store.async_save(self._data)
+
+    # ------------------------------------------------------------------
+    # Accessors
+    # ------------------------------------------------------------------
+
+    @property
+    def documents(self) -> dict[str, dict[str, Any]]:
+        """The raw ``{doc_id: metadata}`` map."""
+        docs: dict[str, dict[str, Any]] = self._data["documents"]
+        return docs
+
+    @property
+    def blobs(self) -> dict[str, dict[str, Any]]:
+        """The raw ``{hash: {size, mime, refcount}}`` registry."""
+        blobs: dict[str, dict[str, Any]] = self._data["blobs"]
+        return blobs
+
+    def get(self, doc_id: str) -> dict[str, Any] | None:
+        """Return a document's metadata (with its ``id``), or None."""
+        doc = self.documents.get(doc_id)
+        return {"id": doc_id, **doc} if doc is not None else None
+
+    def for_object(self, object_id: str) -> list[dict[str, Any]]:
+        """All documents attached to an object, newest first."""
+        docs = [
+            {"id": did, **d}
+            for did, d in self.documents.items()
+            if d.get("object_id") == object_id
+        ]
+        docs.sort(key=lambda d: d.get("added_at", ""), reverse=True)
+        return docs
+
+    # ------------------------------------------------------------------
+    # Add
+    # ------------------------------------------------------------------
+
+    async def async_add_file(
+        self,
+        object_id: str,
+        *,
+        content: bytes,
+        filename: str,
+        mime: str,
+        title: str | None = None,
+        tags: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Store an uploaded file (content-addressed + deduped) for an object.
+
+        Returns the new document dict plus ``deduped`` (the blob already existed)
+        and ``duplicate_in_object`` (the id of an existing doc on the *same*
+        object with identical content, if any — the caller surfaces a hint).
+        """
+        if len(content) > MAX_DOC_BYTES:
+            raise ValueError("file_too_large")
+
+        digest, wrote_new = await self.hass.async_add_executor_job(
+            self._store_blob_sync, content
+        )
+
+        # Register / adopt the blob and bump its refcount.
+        blob = self.blobs.get(digest)
+        deduped = blob is not None
+        if blob is None:
+            blob = {"size": len(content), "mime": mime, "refcount": 0}
+            self.blobs[digest] = blob
+        blob["refcount"] += 1
+
+        duplicate_in_object = next(
+            (
+                did
+                for did, d in self.documents.items()
+                if d.get("object_id") == object_id and d.get("hash") == digest
+            ),
+            None,
+        )
+
+        doc_id = uuid4().hex
+        doc = {
+            "object_id": object_id,
+            "kind": KIND_FILE,
+            "hash": digest,
+            "title": title or filename,
+            "filename": filename,
+            "mime": mime,
+            "size": len(content),
+            "tags": list(tags or []),
+            "task_ids": [],
+            "added_at": dt_util.utcnow().isoformat(),
+        }
+        self.documents[doc_id] = doc
+        await self._async_save()
+        if not wrote_new and not deduped:
+            _LOGGER.debug("Adopted pre-existing blob %s into registry", digest[:12])
+        return {
+            "id": doc_id,
+            "deduped": deduped,
+            "duplicate_in_object": duplicate_in_object,
+            **doc,
+        }
+
+    def _store_blob_sync(self, content: bytes) -> tuple[str, bool]:
+        """Hash content and write the blob if absent. Returns (digest, wrote_new)."""
+        digest = hashlib.sha256(content).hexdigest()
+        path = self.blob_path(digest)
+        if path.exists():
+            return digest, False
+        self._blobs_dir.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_bytes(content)
+        os.replace(tmp, path)  # atomic
+        return digest, True
+
+    async def async_add_weblink(
+        self,
+        object_id: str,
+        *,
+        url: str,
+        title: str | None = None,
+        tags: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Attach an external web-link (0 storage, NOT in backups)."""
+        doc_id = uuid4().hex
+        doc = {
+            "object_id": object_id,
+            "kind": KIND_WEBLINK,
+            "url": url,
+            "title": title or url,
+            "tags": list(tags or []),
+            "task_ids": [],
+            "added_at": dt_util.utcnow().isoformat(),
+        }
+        self.documents[doc_id] = doc
+        await self._async_save()
+        return {"id": doc_id, **doc}
+
+    # ------------------------------------------------------------------
+    # Update
+    # ------------------------------------------------------------------
+
+    async def async_update(
+        self,
+        doc_id: str,
+        *,
+        title: str | None = None,
+        tags: list[str] | None = None,
+        task_ids: list[str] | None = None,
+    ) -> bool:
+        """Update editable metadata (title / tags / task associations)."""
+        doc = self.documents.get(doc_id)
+        if doc is None:
+            return False
+        if title is not None:
+            doc["title"] = title
+        if tags is not None:
+            doc["tags"] = list(tags)
+        if task_ids is not None:
+            doc["task_ids"] = list(task_ids)
+        await self._async_save()
+        return True
+
+    # ------------------------------------------------------------------
+    # Remove
+    # ------------------------------------------------------------------
+
+    async def async_remove(self, doc_id: str) -> int:
+        """Remove a document. Returns bytes freed (0 if shared or a web-link).
+
+        For a shared file (refcount > 1) the blob stays — only the last
+        reference frees the bytes.
+        """
+        doc = self.documents.pop(doc_id, None)
+        if doc is None:
+            return 0
+        freed = await self._deref_blob(doc)
+        await self._async_save()
+        return freed
+
+    async def async_remove_object(self, object_id: str) -> int:
+        """Remove every document of an object (on object delete). Bytes freed."""
+        doc_ids = [
+            did
+            for did, d in self.documents.items()
+            if d.get("object_id") == object_id
+        ]
+        if not doc_ids:
+            return 0
+        freed = 0
+        for did in doc_ids:
+            doc = self.documents.pop(did, None)
+            if doc is not None:
+                freed += await self._deref_blob(doc)
+        await self._async_save()
+        return freed
+
+    async def _deref_blob(self, doc: dict[str, Any]) -> int:
+        """Decrement a file doc's blob refcount; delete the blob at 0."""
+        if doc.get("kind") != KIND_FILE:
+            return 0
+        digest = doc.get("hash")
+        if not isinstance(digest, str):
+            return 0
+        blob = self.blobs.get(digest)
+        if blob is None:
+            return 0
+        blob["refcount"] = blob.get("refcount", 1) - 1
+        if blob["refcount"] <= 0:
+            size = int(blob.get("size", 0))
+            self.blobs.pop(digest, None)
+            await self.hass.async_add_executor_job(self._delete_blob_sync, digest)
+            return size
+        return 0
+
+    def _delete_blob_sync(self, digest: str) -> None:
+        try:
+            self.blob_path(digest).unlink(missing_ok=True)
+        except OSError:
+            _LOGGER.warning("Could not delete blob %s", digest[:12])
+
+    # ------------------------------------------------------------------
+    # Storage summary (backs the sensor + the panel overview)
+    # ------------------------------------------------------------------
+
+    def storage_summary(self) -> dict[str, Any]:
+        """Aggregate storage usage.
+
+        ``total_bytes`` is the **physical** footprint (unique blobs) — the real
+        backup cost. ``logical_bytes`` counts each file doc's size (shared blobs
+        multiple times); the difference is the dedup saving.
+        """
+        total_bytes = sum(int(b.get("size", 0)) for b in self.blobs.values())
+        logical_bytes = 0
+        file_count = 0
+        link_count = 0
+        by_object: dict[str, dict[str, int]] = {}
+        by_category: dict[str, int] = {}
+
+        for doc in self.documents.values():
+            obj = doc.get("object_id", "")
+            slot = by_object.setdefault(obj, {"bytes": 0, "files": 0, "links": 0})
+            if doc.get("kind") == KIND_FILE:
+                size = int(doc.get("size", 0))
+                logical_bytes += size
+                file_count += 1
+                slot["bytes"] += size
+                slot["files"] += 1
+                for tag in doc.get("tags") or ["other"]:
+                    by_category[tag] = by_category.get(tag, 0) + size
+            else:
+                link_count += 1
+                slot["links"] += 1
+
+        return {
+            "total_bytes": total_bytes,
+            "logical_bytes": logical_bytes,
+            "dedup_savings_bytes": max(0, logical_bytes - total_bytes),
+            "blob_count": len(self.blobs),
+            "file_count": file_count,
+            "link_count": link_count,
+            "document_count": len(self.documents),
+            "by_object": by_object,
+            "by_category": by_category,
+        }
+
+    # ------------------------------------------------------------------
+    # Hygiene (backs the repair-issue scan)
+    # ------------------------------------------------------------------
+
+    async def async_find_issues(self) -> dict[str, list[str]]:
+        """Detect storage anomalies for the repair-issue / cleanup flow.
+
+        - ``orphan_blobs``: blob files on disk not referenced by the registry.
+        - ``zero_refcount``: registry blobs whose refcount fell to 0 (a crash
+          between deref and delete).
+        - ``dangling_docs``: file documents whose blob is missing (external
+          delete / partial restore).
+        """
+        on_disk: set[str] = await self.hass.async_add_executor_job(
+            self._list_blob_files
+        )
+        registered = set(self.blobs)
+        orphan_blobs = sorted(on_disk - registered)
+        zero_refcount = sorted(
+            h for h, b in self.blobs.items() if int(b.get("refcount", 0)) <= 0
+        )
+        dangling_docs = sorted(
+            did
+            for did, d in self.documents.items()
+            if d.get("kind") == KIND_FILE
+            and (d.get("hash") not in self.blobs or d.get("hash") not in on_disk)
+        )
+        return {
+            "orphan_blobs": orphan_blobs,
+            "zero_refcount": zero_refcount,
+            "dangling_docs": dangling_docs,
+        }
+
+    def _list_blob_files(self) -> set[str]:
+        d = self._blobs_dir
+        if not d.is_dir():
+            return set()
+        return {p.name for p in d.iterdir() if p.is_file() and not p.name.endswith(".tmp")}
