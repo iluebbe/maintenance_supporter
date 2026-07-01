@@ -128,6 +128,14 @@ export class MaintenanceDocumentsSection extends LitElement {
     return tag || "other";
   }
 
+  /** Keyboard support for the file-picker <label>s (Enter/Space → open). */
+  private _labelKeydown(e: KeyboardEvent): void {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).querySelector("input")?.click();
+    }
+  }
+
   private _onFileInput(e: Event): void {
     const input = e.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
@@ -335,12 +343,24 @@ export class MaintenanceDocumentsSection extends LitElement {
                 >
                   ${CATEGORIES.map((c) => html`<option value=${c}>${t(`doc_cat_${c}`, L)}</option>`)}
                 </select>
-                <label class="btn primary ${this._busy ? "disabled" : ""}">
+                <label
+                  class="btn primary ${this._busy ? "disabled" : ""}"
+                  role="button"
+                  tabindex="0"
+                  @keydown=${this._labelKeydown}
+                >
                   <ha-icon icon="mdi:upload"></ha-icon>
                   ${this._busy ? t("doc_uploading", L) : t("doc_upload", L)}
                   <input type="file" multiple hidden ?disabled=${this._busy} @change=${this._onFileInput} />
                 </label>
-                <label class="btn camera-btn ${this._busy ? "disabled" : ""}" title=${t("doc_camera", L)}>
+                <label
+                  class="btn camera-btn ${this._busy ? "disabled" : ""}"
+                  role="button"
+                  tabindex="0"
+                  aria-label=${t("doc_camera", L)}
+                  title=${t("doc_camera", L)}
+                  @keydown=${this._labelKeydown}
+                >
                   <ha-icon icon="mdi:camera"></ha-icon>
                   <input type="file" accept="image/*" capture="environment" hidden ?disabled=${this._busy} @change=${this._onCameraInput} />
                 </label>
@@ -527,6 +547,9 @@ export class MaintenanceDocumentsSection extends LitElement {
       color: var(--primary-text-color); border: 1px solid var(--divider-color);
     }
     .btn.primary { background: var(--primary-color); color: var(--text-primary-color, #fff); border-color: var(--primary-color); }
+    .btn:focus-visible, .icon-btn:focus-visible {
+      outline: 2px solid var(--primary-color); outline-offset: 2px;
+    }
     .btn.disabled, .btn[disabled] { opacity: 0.5; pointer-events: none; }
     .btn ha-icon { --mdc-icon-size: 18px; }
     .link-form { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }

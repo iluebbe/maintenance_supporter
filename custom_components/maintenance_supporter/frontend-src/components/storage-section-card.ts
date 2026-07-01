@@ -193,6 +193,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
             <ha-icon icon="mdi:magnify"></ha-icon>
             <input
               type="search"
+              aria-label=${t("doc_search", L)}
               placeholder=${t("doc_search", L)}
               .value=${this._query}
               @input=${this._onSearch}

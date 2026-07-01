@@ -170,4 +170,20 @@ describe("documents-section", () => {
       window.fetch = origFetch;
     }
   });
+
+  it("opens the file picker via keyboard on the upload label (a11y)", async () => {
+    const { el } = await mount();
+    const label = [...el.shadowRoot!.querySelectorAll("label.btn")].find(
+      (l) => l.querySelector('input[type="file"][multiple]'),
+    ) as HTMLElement;
+    expect(label, "upload label is focusable").to.exist;
+    expect(label.getAttribute("tabindex")).to.equal("0");
+    expect(label.getAttribute("role")).to.equal("button");
+
+    const input = label.querySelector<HTMLInputElement>('input[type="file"]')!;
+    let clicked = false;
+    input.click = () => { clicked = true; };
+    label.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(clicked, "Enter triggers the hidden file input").to.be.true;
+  });
 });
