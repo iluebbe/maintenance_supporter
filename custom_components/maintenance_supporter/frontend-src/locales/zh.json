@@ -566,5 +566,7 @@
   "doc_storage_saved": "通过去重节省",
   "doc_storage_refresh": "刷新",
   "doc_download": "下载",
-  "doc_close": "关闭"
+  "doc_close": "关闭",
+  "doc_camera": "拍照",
+  "doc_drop_hint": "将文件拖放到此处"
 }

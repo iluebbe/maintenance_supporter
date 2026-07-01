@@ -566,5 +566,7 @@
   "doc_storage_saved": "Bespaard door deduplicatie",
   "doc_storage_refresh": "Vernieuwen",
   "doc_download": "Downloaden",
-  "doc_close": "Sluiten"
+  "doc_close": "Sluiten",
+  "doc_camera": "Foto maken",
+  "doc_drop_hint": "Sleep bestanden hierheen"
 }

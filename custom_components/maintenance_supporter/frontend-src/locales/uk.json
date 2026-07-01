@@ -566,5 +566,7 @@
   "doc_storage_saved": "Заощаджено дедуплікацією",
   "doc_storage_refresh": "Оновити",
   "doc_download": "Завантажити",
-  "doc_close": "Закрити"
+  "doc_close": "Закрити",
+  "doc_camera": "Зробити фото",
+  "doc_drop_hint": "Перетягніть файли сюди"
 }

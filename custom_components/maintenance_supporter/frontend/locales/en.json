@@ -566,5 +566,7 @@
   "doc_storage_saved": "Saved via deduplication",
   "doc_storage_refresh": "Refresh",
   "doc_download": "Download",
-  "doc_close": "Close"
+  "doc_close": "Close",
+  "doc_camera": "Take photo",
+  "doc_drop_hint": "Drop files here"
 }

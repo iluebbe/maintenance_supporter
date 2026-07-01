@@ -566,5 +566,7 @@
   "doc_storage_saved": "Ušetřeno deduplikací",
   "doc_storage_refresh": "Obnovit",
   "doc_download": "Stáhnout",
-  "doc_close": "Zavřít"
+  "doc_close": "Zavřít",
+  "doc_camera": "Vyfotit",
+  "doc_drop_hint": "Přetáhněte soubory sem"
 }

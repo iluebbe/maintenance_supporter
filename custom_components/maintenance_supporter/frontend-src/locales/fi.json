@@ -566,5 +566,7 @@
   "doc_storage_saved": "Säästetty deduplikoinnilla",
   "doc_storage_refresh": "Päivitä",
   "doc_download": "Lataa",
-  "doc_close": "Sulje"
+  "doc_close": "Sulje",
+  "doc_camera": "Ota kuva",
+  "doc_drop_hint": "Pudota tiedostot tähän"
 }

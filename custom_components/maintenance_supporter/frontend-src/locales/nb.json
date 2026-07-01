@@ -566,5 +566,7 @@
   "doc_storage_saved": "Spart ved deduplisering",
   "doc_storage_refresh": "Oppdater",
   "doc_download": "Last ned",
-  "doc_close": "Lukk"
+  "doc_close": "Lukk",
+  "doc_camera": "Ta bilde",
+  "doc_drop_hint": "Slipp filer her"
 }

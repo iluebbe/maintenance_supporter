@@ -566,5 +566,7 @@
   "doc_storage_saved": "Sparat genom deduplicering",
   "doc_storage_refresh": "Uppdatera",
   "doc_download": "Ladda ner",
-  "doc_close": "Stäng"
+  "doc_close": "Stäng",
+  "doc_camera": "Ta foto",
+  "doc_drop_hint": "Släpp filer här"
 }

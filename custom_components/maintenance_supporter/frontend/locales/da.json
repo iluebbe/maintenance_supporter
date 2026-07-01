@@ -566,5 +566,7 @@
   "doc_storage_saved": "Sparet ved deduplikering",
   "doc_storage_refresh": "Opdater",
   "doc_download": "Download",
-  "doc_close": "Luk"
+  "doc_close": "Luk",
+  "doc_camera": "Tag billede",
+  "doc_drop_hint": "Slip filer her"
 }
