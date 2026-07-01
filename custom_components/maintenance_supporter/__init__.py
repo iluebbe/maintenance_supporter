@@ -170,6 +170,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await doc_store.async_load()
     hass.data[DOMAIN][DOCUMENT_STORE_KEY] = doc_store
 
+    # Authenticated upload + serve endpoints for document blobs (the blobs live
+    # under /config, so they must never be exposed via an unauthenticated path).
+    from .views import async_register_document_views
+
+    async_register_document_views(hass)
+
     async def _handle_complete(call: ServiceCall) -> None:
         """Handle the complete service call."""
         entity_id = call.data[ATTR_ENTITY_ID]
