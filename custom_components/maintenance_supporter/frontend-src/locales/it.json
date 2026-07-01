@@ -572,5 +572,7 @@
   "doc_task_none": "Nessun documento collegato a questa attività.",
   "doc_link_existing": "Collega un documento…",
   "doc_attach": "Collega",
-  "doc_unlink": "Scollega"
+  "doc_unlink": "Scollega",
+  "doc_search": "Cerca documenti…",
+  "doc_search_none": "Nessun documento corrispondente"
 }

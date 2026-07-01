@@ -572,5 +572,7 @@
   "doc_task_none": "Nenhum documento associado a esta tarefa.",
   "doc_link_existing": "Associar um documento…",
   "doc_attach": "Associar",
-  "doc_unlink": "Desassociar"
+  "doc_unlink": "Desassociar",
+  "doc_search": "Pesquisar documentos…",
+  "doc_search_none": "Nenhum documento correspondente"
 }

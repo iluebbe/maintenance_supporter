@@ -572,5 +572,7 @@
   "doc_task_none": "Inga dokument kopplade till denna uppgift.",
   "doc_link_existing": "Koppla ett dokument…",
   "doc_attach": "Koppla",
-  "doc_unlink": "Koppla bort"
+  "doc_unlink": "Koppla bort",
+  "doc_search": "Sök dokument…",
+  "doc_search_none": "Inga matchande dokument"
 }

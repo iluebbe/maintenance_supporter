@@ -375,6 +375,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_documents_add_link,
         ws_documents_delete,
         ws_documents_list,
+        ws_documents_search,
         ws_documents_storage,
         ws_documents_update,
     )
@@ -480,3 +481,4 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_add_link)
     websocket_api.async_register_command(hass, ws_documents_update)
     websocket_api.async_register_command(hass, ws_documents_delete)
+    websocket_api.async_register_command(hass, ws_documents_search)
