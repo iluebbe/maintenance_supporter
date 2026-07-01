@@ -143,6 +143,38 @@ async def test_object_response_includes_document_count(
     assert conn.send_result.call_args[0][1]["object"]["document_count"] == 2
 
 
+async def test_export_import_roundtrips_documents(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """(P6) Export carries documents; import recreates them on the new object."""
+    import json as _json
+
+    from custom_components.maintenance_supporter.export import build_export_data
+    from custom_components.maintenance_supporter.websocket.io import ws_import_json
+
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    await store.async_add_weblink(OBJECT_ID_1, url="https://x/manual", title="Online", tags=["manual"])
+    await store.async_add_file(OBJECT_ID_1, content=b"pdf-data", filename="m.pdf", mime="application/pdf", tags=["warranty"])
+
+    data = build_export_data(hass)
+    obj_export = next(o for o in data["objects"] if o["entry_id"] == object_entry.entry_id)
+    assert sorted(d["kind"] for d in obj_export["documents"]) == ["file", "weblink"]
+    file_hash = next(d["hash"] for d in obj_export["documents"] if d["kind"] == "file")
+
+    conn = _conn()
+    await call_ws_handler(ws_import_json, hass, conn, {"id": 1, "type": "x", "json_content": _json.dumps(data)})
+    await hass.async_block_till_done()
+
+    # Two "Pool Pump" objects now (original + imported); both carry 2 documents,
+    # and the imported file doc shares the existing blob (same content).
+    data2 = build_export_data(hass)
+    pumps = [o for o in data2["objects"] if o["object"]["name"] == "Pool Pump"]
+    assert len(pumps) == 2
+    assert all(len(o["documents"]) == 2 for o in pumps)
+    assert store.blobs[file_hash]["refcount"] == 2
+
+
 async def test_ws_list_unknown_entry(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

@@ -232,6 +232,60 @@ class DocumentStore:
         await self._async_save()
         return {"id": doc_id, **doc}
 
+    async def async_import_documents(
+        self, object_id: str, docs: list[dict[str, Any]]
+    ) -> int:
+        """Recreate document metadata for an imported object (P6).
+
+        Web-links round-trip fully. File docs are restored as metadata + a blob
+        refcount; the binary itself is not in the JSON export (it rides the
+        /config backup), so unless a matching backup was restored the blob is
+        absent and the hygiene scan flags the doc as dangling. task_ids are
+        dropped (tasks get fresh ids on import). Returns the number created.
+        """
+        created = 0
+        for meta in docs:
+            if not isinstance(meta, dict):
+                continue
+            tags = [x for x in (meta.get("tags") or []) if isinstance(x, str)]
+            title = meta.get("title")
+            if meta.get("kind") == KIND_WEBLINK:
+                url = meta.get("url")
+                if not isinstance(url, str) or not url:
+                    continue
+                self.documents[uuid4().hex] = {
+                    "object_id": object_id, "kind": KIND_WEBLINK, "url": url,
+                    "title": title or url, "tags": tags, "task_ids": [],
+                    "added_at": dt_util.utcnow().isoformat(),
+                }
+                created += 1
+            elif meta.get("kind") == KIND_FILE:
+                digest = meta.get("hash")
+                if (
+                    not isinstance(digest, str)
+                    or len(digest) != 64
+                    or not all(c in "0123456789abcdef" for c in digest)
+                ):
+                    continue
+                size = int(meta.get("size") or 0)
+                mime = meta.get("mime") or "application/octet-stream"
+                blob = self.blobs.get(digest)
+                if blob is None:
+                    blob = {"size": size, "mime": mime, "refcount": 0}
+                    self.blobs[digest] = blob
+                blob["refcount"] += 1
+                self.documents[uuid4().hex] = {
+                    "object_id": object_id, "kind": KIND_FILE, "hash": digest,
+                    "title": title or meta.get("filename") or "document",
+                    "filename": meta.get("filename") or "document",
+                    "mime": mime, "size": size, "tags": tags, "task_ids": [],
+                    "added_at": dt_util.utcnow().isoformat(),
+                }
+                created += 1
+        if created:
+            await self._async_save()
+        return created
+
     # ------------------------------------------------------------------
     # Update
     # ------------------------------------------------------------------

@@ -233,6 +233,27 @@ async def test_list_blob_files_ignores_foreign_names(hass: HomeAssistant) -> Non
     assert issues["orphan_blobs"] == []  # neither foreign file is flagged
 
 
+async def test_import_documents_recreates_metadata(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    n = await s.async_import_documents("obj1", [
+        {"kind": "weblink", "url": "https://x/manual", "title": "Online", "tags": ["manual"]},
+        {"kind": "file", "hash": "a" * 64, "title": "Manual", "filename": "m.pdf",
+         "mime": "application/pdf", "size": 1234, "tags": ["warranty"]},
+        {"kind": "file", "hash": "NOThex"},  # invalid digest -> skipped
+        {"kind": "weblink"},                 # no url -> skipped
+        "not-a-dict",                        # -> skipped
+    ])
+    assert n == 2
+    docs = s.for_object("obj1")
+    assert {d["kind"] for d in docs} == {"weblink", "file"}
+    # file blob registered with refcount 1 (its binary is absent by design ->
+    # dangling until a backup restores it)
+    assert s.blobs["a" * 64]["refcount"] == 1
+    file_doc = next(d for d in docs if d["kind"] == "file")
+    assert file_doc["size"] == 1234
+    assert file_doc["task_ids"] == []  # task links are dropped on import
+
+
 async def test_reclaim_blob_missing_returns_zero(hass: HomeAssistant) -> None:
     """Reclaiming a blob whose file already vanished frees 0 bytes, no error."""
     s = await _store(hass)

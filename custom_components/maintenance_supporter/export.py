@@ -22,6 +22,37 @@ from .helpers.schedule import Schedule, read_legacy_fields
 _LOGGER = logging.getLogger(__name__)
 
 
+def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
+    """Export an object's document metadata + web-links (blobs ride the backup).
+
+    File binaries are NOT in the JSON export (they live under /config and travel
+    via the HA backup). An import without a matching backup therefore recreates
+    file metadata pointing at a missing blob — the storage-hygiene repair issue
+    catches those as dangling. Web-links round-trip fully. task_ids are dropped:
+    tasks get fresh ids on import, so the links wouldn't resolve.
+    """
+    out: list[dict[str, Any]] = []
+    for d in doc_store.for_object(object_id):
+        if d.get("kind") == "weblink":
+            out.append({
+                "kind": "weblink",
+                "url": d.get("url"),
+                "title": d.get("title"),
+                "tags": d.get("tags") or [],
+            })
+        else:
+            out.append({
+                "kind": "file",
+                "hash": d.get("hash"),
+                "title": d.get("title"),
+                "filename": d.get("filename"),
+                "mime": d.get("mime"),
+                "size": d.get("size"),
+                "tags": d.get("tags") or [],
+            })
+    return out
+
+
 def _build_export_object(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -82,6 +113,17 @@ def _build_export_object(
 
         tasks.append(task)
 
+    # (roadmap P6) attach document metadata + web-links.
+    from . import DOCUMENT_STORE_KEY
+
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    object_id = obj_data.get("id", "")
+    documents = (
+        _export_documents(doc_store, object_id)
+        if doc_store is not None and object_id
+        else []
+    )
+
     return {
         "entry_id": entry.entry_id,
         "object": {
@@ -98,6 +140,7 @@ def _build_export_object(
             "notes": obj_data.get("notes"),
         },
         "tasks": tasks,
+        "documents": documents,
     }
 
 
