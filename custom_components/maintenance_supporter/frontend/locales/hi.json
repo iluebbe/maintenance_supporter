@@ -568,5 +568,9 @@
   "doc_download": "डाउनलोड करें",
   "doc_close": "बंद करें",
   "doc_camera": "फ़ोटो लें",
-  "doc_drop_hint": "फ़ाइलें यहाँ छोड़ें"
+  "doc_drop_hint": "फ़ाइलें यहाँ छोड़ें",
+  "doc_task_none": "इस कार्य से कोई दस्तावेज़ संबद्ध नहीं है।",
+  "doc_link_existing": "दस्तावेज़ जोड़ें…",
+  "doc_attach": "जोड़ें",
+  "doc_unlink": "अलग करें"
 }

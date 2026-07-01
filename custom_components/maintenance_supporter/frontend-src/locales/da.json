@@ -568,5 +568,9 @@
   "doc_download": "Download",
   "doc_close": "Luk",
   "doc_camera": "Tag billede",
-  "doc_drop_hint": "Slip filer her"
+  "doc_drop_hint": "Slip filer her",
+  "doc_task_none": "Ingen dokumenter knyttet til denne opgave.",
+  "doc_link_existing": "Knyt et dokument…",
+  "doc_attach": "Knyt",
+  "doc_unlink": "Fjern kobling"
 }

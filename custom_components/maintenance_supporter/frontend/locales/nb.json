@@ -568,5 +568,9 @@
   "doc_download": "Last ned",
   "doc_close": "Lukk",
   "doc_camera": "Ta bilde",
-  "doc_drop_hint": "Slipp filer her"
+  "doc_drop_hint": "Slipp filer her",
+  "doc_task_none": "Ingen dokumenter knyttet til denne oppgaven.",
+  "doc_link_existing": "Knytt et dokument…",
+  "doc_attach": "Knytt",
+  "doc_unlink": "Fjern kobling"
 }

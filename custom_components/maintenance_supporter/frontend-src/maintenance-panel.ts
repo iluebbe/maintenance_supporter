@@ -26,6 +26,7 @@ import { UserService } from "./user-service";
 import "./components/object-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import "./components/documents-section";
+import "./components/task-documents";
 import "./components/task-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import "./components/complete-dialog";
@@ -2446,6 +2447,12 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${this._renderTaskHeader(task)}
         ${this._renderTabBar()}
         ${this._renderTabContent(task)}
+        <maintenance-task-documents
+          .hass=${this.hass}
+          .entryId=${this._selectedEntryId}
+          .taskId=${this._selectedTaskId}
+          .canWrite=${!this._isOperator}
+        ></maintenance-task-documents>
       </div>
     `;
   }

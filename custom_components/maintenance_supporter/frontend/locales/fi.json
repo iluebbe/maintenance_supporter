@@ -568,5 +568,9 @@
   "doc_download": "Lataa",
   "doc_close": "Sulje",
   "doc_camera": "Ota kuva",
-  "doc_drop_hint": "Pudota tiedostot tähän"
+  "doc_drop_hint": "Pudota tiedostot tähän",
+  "doc_task_none": "Tähän tehtävään ei ole liitetty asiakirjoja.",
+  "doc_link_existing": "Liitä asiakirja…",
+  "doc_attach": "Liitä",
+  "doc_unlink": "Poista liitos"
 }

@@ -568,5 +568,9 @@
   "doc_download": "ダウンロード",
   "doc_close": "閉じる",
   "doc_camera": "写真を撮る",
-  "doc_drop_hint": "ここにファイルをドロップ"
+  "doc_drop_hint": "ここにファイルをドロップ",
+  "doc_task_none": "このタスクに紐付いたドキュメントはありません。",
+  "doc_link_existing": "ドキュメントを紐付け…",
+  "doc_attach": "紐付け",
+  "doc_unlink": "紐付け解除"
 }

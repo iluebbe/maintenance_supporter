@@ -568,5 +568,9 @@
   "doc_download": "Ladda ner",
   "doc_close": "Stäng",
   "doc_camera": "Ta foto",
-  "doc_drop_hint": "Släpp filer här"
+  "doc_drop_hint": "Släpp filer här",
+  "doc_task_none": "Inga dokument kopplade till denna uppgift.",
+  "doc_link_existing": "Koppla ett dokument…",
+  "doc_attach": "Koppla",
+  "doc_unlink": "Koppla bort"
 }
