@@ -371,6 +371,9 @@ export interface HomeAssistant {
   locale?: { language: string; number_format?: string };
   localize(key: string, ...args: unknown[]): string;
   user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
+  /** Current access token — used for authenticated `fetch()` to our HTTP
+   *  document views (a WebSocket frame can't carry a multipart file upload). */
+  auth?: { data?: { access_token?: string } };
 }
 
 export interface HAUser {

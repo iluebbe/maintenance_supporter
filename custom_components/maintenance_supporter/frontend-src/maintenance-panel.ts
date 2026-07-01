@@ -25,6 +25,7 @@ import { StatisticsService } from "./statistics-service";
 import { UserService } from "./user-service";
 import "./components/object-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
+import "./components/documents-section";
 import "./components/task-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import "./components/complete-dialog";
@@ -1922,6 +1923,12 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="object-notes-body">${o.notes}</div>
             </div>`
           : nothing}
+
+        <maintenance-documents-section
+          .hass=${this.hass}
+          .entryId=${obj.entry_id}
+          .canWrite=${!isOperator}
+        ></maintenance-documents-section>
 
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button
