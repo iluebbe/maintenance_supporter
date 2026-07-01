@@ -149,3 +149,75 @@ async def test_blob_path_rejects_traversal(hass: HomeAssistant) -> None:
         s.blob_path("../etc/passwd")
     with pytest.raises(ValueError):
         s.blob_path("NOThex")
+
+
+async def test_load_restores_persisted_data(hass: HomeAssistant) -> None:
+    s1 = await _store(hass)
+    doc = await s1.async_add_file("obj1", content=b"persist", filename="a.pdf", mime="application/pdf")
+    # A fresh store over the same (mocked) storage must see the saved metadata.
+    s2 = await _store(hass)
+    assert s2.get(doc["id"]) is not None
+    assert s2.blobs[doc["hash"]]["refcount"] == 1
+
+
+async def test_add_file_adopts_orphan_blob_on_disk(hass: HomeAssistant) -> None:
+    import hashlib
+
+    s = await _store(hass)
+    content = b"orphan-on-disk"
+    digest = hashlib.sha256(content).hexdigest()
+    s._blobs_dir.mkdir(parents=True, exist_ok=True)
+    s.blob_path(digest).write_bytes(content)  # on disk but not in the registry
+    doc = await s.async_add_file("obj1", content=content, filename="a.pdf", mime="application/pdf")
+    assert doc["hash"] == digest
+    assert doc["deduped"] is False           # absent from registry → not a dedup
+    assert s.blobs[digest]["refcount"] == 1  # adopted into the registry
+
+
+async def test_remove_unknown_doc_returns_zero(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    assert await s.async_remove("nonexistent") == 0
+
+
+async def test_remove_object_without_docs_returns_zero(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    assert await s.async_remove_object("empty") == 0
+
+
+async def test_remove_file_doc_with_missing_hash(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    s.documents["d"] = {
+        "object_id": "o", "kind": "file", "title": "x",
+        "tags": [], "task_ids": [], "added_at": "2026-01-01T00:00:00",
+    }
+    assert await s.async_remove("d") == 0  # no "hash" → deref is a no-op
+
+
+async def test_remove_file_doc_blob_not_in_registry(hass: HomeAssistant) -> None:
+    s = await _store(hass)
+    s.documents["d"] = {
+        "object_id": "o", "kind": "file", "hash": "a" * 64, "title": "x",
+        "tags": [], "task_ids": [], "added_at": "2026-01-01T00:00:00",
+    }
+    assert await s.async_remove("d") == 0  # valid hex but unknown blob → no-op
+
+
+async def test_find_issues_without_blobs_dir(hass: HomeAssistant) -> None:
+    s = await _store(hass)  # no files added → the blobs dir never gets created
+    assert await s.async_find_issues() == {
+        "orphan_blobs": [], "zero_refcount": [], "dangling_docs": [],
+    }
+
+
+async def test_delete_blob_oserror_is_swallowed(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    s = await _store(hass)
+    doc = await s.async_add_file("obj1", content=b"z", filename="a.pdf", mime="application/pdf")
+
+    def _boom(self: Path, missing_ok: bool = False) -> None:
+        raise OSError("cannot unlink")
+
+    monkeypatch.setattr(Path, "unlink", _boom)
+    # Last-ref removal deletes the blob; an unlink OSError must be swallowed.
+    assert await s.async_remove(doc["id"]) == len(b"z")

@@ -275,6 +275,19 @@ def _load_object_entry(
     return entry
 
 
+def object_id_for_entry(entry: ConfigEntry) -> str:
+    """Return the stable document key for an object entry.
+
+    Documents are keyed by the object's own ``id`` (a uuid hex persisted in the
+    entry data) rather than the ``entry_id`` so the association survives
+    export/import — an imported object keeps its id but gets a fresh entry_id.
+    Falls back to ``entry_id`` only for legacy entries created before object ids
+    existed.
+    """
+    oid = entry.data.get(CONF_OBJECT, {}).get("id")
+    return oid if isinstance(oid, str) and oid else entry.entry_id
+
+
 def cleanup_group_refs(
     hass: HomeAssistant,
     *,
@@ -345,6 +358,13 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_subscribe,
         ws_test_notification,
         ws_update_global_settings,
+    )
+    from .documents import (
+        ws_documents_add_link,
+        ws_documents_delete,
+        ws_documents_list,
+        ws_documents_storage,
+        ws_documents_update,
     )
     from .groups import (
         ws_create_group,
@@ -443,3 +463,8 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_vacation_update)
     websocket_api.async_register_command(hass, ws_vacation_preview)
     websocket_api.async_register_command(hass, ws_vacation_end_now)
+    websocket_api.async_register_command(hass, ws_documents_list)
+    websocket_api.async_register_command(hass, ws_documents_storage)
+    websocket_api.async_register_command(hass, ws_documents_add_link)
+    websocket_api.async_register_command(hass, ws_documents_update)
+    websocket_api.async_register_command(hass, ws_documents_delete)
