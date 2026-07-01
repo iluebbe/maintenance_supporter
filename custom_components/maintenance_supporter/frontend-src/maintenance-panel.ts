@@ -44,6 +44,7 @@ import type {
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
 import "./components/settings-view";
+import "./components/storage-section-card";
 import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
 import "./components/group-dialog";
@@ -1199,6 +1200,12 @@ export class MaintenanceSupporterPanel extends LitElement {
           : this._renderGroupedTasks(rows, L)}
 
       ${this._features.groups && !isOperator ? this._renderGroupsSection() : nothing}
+      ${!isOperator
+        ? html`<maintenance-storage-section-card
+            .hass=${this.hass}
+            .objects=${this._objects}
+          ></maintenance-storage-section-card>`
+        : nothing}
     `;
   }
 

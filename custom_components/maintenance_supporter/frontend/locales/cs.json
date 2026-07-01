@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "Náhradní díly",
   "doc_cat_photo": "Fotografie",
   "doc_cat_other": "Ostatní",
-  "doc_link_badge": "Odkaz"
+  "doc_link_badge": "Odkaz",
+  "doc_storage_title": "Úložiště dokumentů",
+  "doc_storage_saved": "Ušetřeno deduplikací",
+  "doc_storage_refresh": "Obnovit"
 }

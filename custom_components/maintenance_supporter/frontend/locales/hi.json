@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "स्पेयर पार्ट्स",
   "doc_cat_photo": "फ़ोटो",
   "doc_cat_other": "अन्य",
-  "doc_link_badge": "लिंक"
+  "doc_link_badge": "लिंक",
+  "doc_storage_title": "दस्तावेज़ संग्रहण",
+  "doc_storage_saved": "डीडुप्लिकेशन से बचत",
+  "doc_storage_refresh": "ताज़ा करें"
 }

@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "备件",
   "doc_cat_photo": "照片",
   "doc_cat_other": "其他",
-  "doc_link_badge": "链接"
+  "doc_link_badge": "链接",
+  "doc_storage_title": "文档存储",
+  "doc_storage_saved": "通过去重节省",
+  "doc_storage_refresh": "刷新"
 }

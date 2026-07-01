@@ -561,5 +561,8 @@
   "doc_cat_spare_parts": "交換部品",
   "doc_cat_photo": "写真",
   "doc_cat_other": "その他",
-  "doc_link_badge": "リンク"
+  "doc_link_badge": "リンク",
+  "doc_storage_title": "ドキュメントストレージ",
+  "doc_storage_saved": "重複排除による節約",
+  "doc_storage_refresh": "更新"
 }
