@@ -395,21 +395,21 @@ async def test_degradation_attrs(
 async def test_sensor_setup_global_creates_summary_sensors(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
-    """The global entry exposes the aggregate summary sensors (no per-task ones)."""
+    """The global entry exposes the aggregate summary + storage sensors (no per-task ones)."""
     await setup_integration(hass, global_entry)
     entity_reg = er.async_get(hass)
     entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
     sensors = [e for e in entities if e.domain == "sensor"]
-    assert len(sensors) == 6
+    assert len(sensors) == 7  # 6 summary metrics + the document-storage sensor
     assert all(
-        e.unique_id.startswith("maintenance_supporter_global_summary_")
+        e.unique_id.startswith("maintenance_supporter_global_")
         for e in sensors
     )
     # Stable, documented entity IDs (see README "Summary sensors").
     assert {e.entity_id for e in sensors} == {
         f"sensor.maintenance_supporter_{k}"
         for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
-    }
+    } | {"sensor.maintenance_supporter_document_storage"}
 
 
 async def test_summary_sensor_ids_are_language_independent(
@@ -428,7 +428,7 @@ async def test_summary_sensor_ids_are_language_independent(
     assert sensors == {
         f"sensor.maintenance_supporter_{k}"
         for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
-    }
+    } | {"sensor.maintenance_supporter_document_storage"}
 
 
 # ─── Sensor Extra Attrs: Last Entry ───────────────────────────────────

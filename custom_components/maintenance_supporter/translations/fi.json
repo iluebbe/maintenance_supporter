@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Asiakirjojen tallennustila"
+      },
       "summary_total_tasks": {
         "name": "Tehtäviä yhteensä"
       }

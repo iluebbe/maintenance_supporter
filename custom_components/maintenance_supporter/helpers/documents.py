@@ -22,10 +22,11 @@ from typing import Any
 from uuid import uuid4
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from ..const import DOMAIN
+from ..const import DOMAIN, SIGNAL_DOCUMENTS_UPDATED
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,6 +94,9 @@ class DocumentStore:
         # on-disk blobs consistent (a crash between the two only ever leaves an
         # orphan blob, which the hygiene scan reclaims).
         await self._store.async_save(self._data)
+        # Nudge the storage sensor (and any other listener) to refresh. Sent
+        # after the save so listeners always read post-mutation state.
+        async_dispatcher_send(self.hass, SIGNAL_DOCUMENTS_UPDATED)
 
     # ------------------------------------------------------------------
     # Accessors

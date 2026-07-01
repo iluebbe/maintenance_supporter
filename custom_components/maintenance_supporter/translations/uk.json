@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "Норма"
       },
+      "document_storage": {
+        "name": "Сховище документів"
+      },
       "summary_total_tasks": {
         "name": "Усього завдань"
       }

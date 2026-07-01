@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Dokumentlagring"
+      },
       "summary_total_tasks": {
         "name": "Opgaver i alt"
       }
