@@ -1503,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "O armazenamento de documentos precisa de limpeza",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Recuperar armazenamento de documentos",
+            "description": "O Maintenance Supporter encontrou ficheiros sem referência e/ou registos mortos no armazenamento de documentos — normalmente resultado de uma falha, de uma eliminação externa de ficheiros ou de um restauro parcial.\n\nClique em **Enviar** para recuperar espaço: ficheiros sem referência e obsoletos são eliminados e registos de documentos mortos são removidos. Ficheiros ainda referenciados por um documento nunca são tocados.\n\n(Para dispensar sem limpar, use o botão **Ignorar** do Home Assistant na página Reparações.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Sensor de acionamento não encontrado: {task_name}",
       "fix_flow": {

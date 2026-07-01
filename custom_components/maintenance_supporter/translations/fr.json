@@ -1503,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Le stockage des documents doit être nettoyé",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Récupérer de l'espace de stockage",
+            "description": "Maintenance Supporter a trouvé des fichiers non référencés et/ou des enregistrements morts dans le stockage des documents — généralement à la suite d'un plantage, d'une suppression externe de fichier ou d'une restauration partielle.\n\nCliquez sur **Valider** pour récupérer l'espace : les fichiers non référencés et obsolètes sont supprimés et les enregistrements de documents morts sont retirés. Les fichiers encore référencés par un document ne sont jamais touchés.\n\n(Pour ignorer sans nettoyer, utilisez le bouton **Ignorer** de Home Assistant sur la page Réparations.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Capteur déclencheur introuvable : {task_name}",
       "fix_flow": {
