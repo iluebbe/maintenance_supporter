@@ -413,3 +413,65 @@ def test_content_disposition_unicode_stripped_and_encoded() -> None:
 
 def test_content_disposition_all_unicode_falls_back() -> None:
     assert 'filename="document"' in _content_disposition("Öä")
+
+
+# ─── Lifecycle: object delete / archive ───────────────────────────────────────
+
+
+async def test_object_delete_removes_documents(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Permanently deleting an object reclaims its (unshared) document storage."""
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    doc = await store.async_add_file(
+        OBJECT_ID_1, content=b"del-me", filename="a.pdf", mime="application/pdf",
+    )
+    assert store.for_object(OBJECT_ID_1)
+
+    await hass.config_entries.async_remove(object_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert store.for_object(OBJECT_ID_1) == []
+    assert doc["hash"] not in store.blobs          # unshared blob freed
+    assert not store.blob_path(doc["hash"]).exists()
+
+
+async def test_object_delete_keeps_shared_blob(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """A blob shared with another object survives the delete (refcount-aware)."""
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    await store.async_add_file(OBJECT_ID_1, content=b"shared", filename="a.pdf", mime="application/pdf")
+    other = await store.async_add_file("other_obj", content=b"shared", filename="b.pdf", mime="application/pdf")
+    assert store.blobs[other["hash"]]["refcount"] == 2
+
+    await hass.config_entries.async_remove(object_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert store.for_object(OBJECT_ID_1) == []
+    assert store.blobs[other["hash"]]["refcount"] == 1  # still held by other_obj
+    assert store.blob_path(other["hash"]).exists()
+
+
+async def test_object_archive_keeps_documents(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Archiving (unlike deleting) leaves the object's documents intact."""
+    from custom_components.maintenance_supporter.websocket.objects import (
+        ws_archive_object,
+    )
+
+    await setup_integration(hass, global_entry, object_entry)
+    store = _store(hass)
+    await store.async_add_file(OBJECT_ID_1, content=b"keep", filename="a.pdf", mime="application/pdf")
+
+    conn = _conn()
+    await call_ws_handler(
+        ws_archive_object, hass, conn,
+        {"id": 1, "type": "maintenance_supporter/object/archive", "entry_id": object_entry.entry_id},
+    )
+    await hass.async_block_till_done()
+
+    assert store.for_object(OBJECT_ID_1)  # documents survive the archive
