@@ -121,4 +121,30 @@ describe("documents-section", () => {
     await el.updateComplete;
     expect(el.shadowRoot!.querySelector(".lightbox"), "lightbox open").to.exist;
   });
+
+  it("edits a document's title/category via WS", async () => {
+    const { el, sent } = await mount();
+    const editBtn = [...el.shadowRoot!.querySelectorAll(".doc-row-actions .icon-btn")].find(
+      (b) => b.querySelector('ha-icon[icon="mdi:pencil"]'),
+    ) as HTMLButtonElement;
+    editBtn.click();
+    await el.updateComplete;
+
+    const title = el.shadowRoot!.querySelector<HTMLInputElement>(".edit-title");
+    expect(title, "edit form open").to.exist;
+    title!.value = "Renamed manual";
+    title!.dispatchEvent(new Event("input"));
+    await el.updateComplete;
+
+    const saveBtn = [...el.shadowRoot!.querySelectorAll(".doc-row.editing .icon-btn")].find(
+      (b) => b.querySelector('ha-icon[icon="mdi:check"]'),
+    ) as HTMLButtonElement;
+    saveBtn.click();
+    await el.updateComplete;
+
+    const msg = sent.find((m) => m.type === "maintenance_supporter/documents/update");
+    expect(msg, "update WS sent").to.exist;
+    expect(msg!.title).to.equal("Renamed manual");
+    expect(msg!.doc_id).to.equal("d1");
+  });
 });
