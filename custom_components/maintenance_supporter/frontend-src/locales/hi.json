@@ -566,5 +566,7 @@
   "doc_storage_saved": "डीडुप्लिकेशन से बचत",
   "doc_storage_refresh": "ताज़ा करें",
   "doc_download": "डाउनलोड करें",
-  "doc_close": "बंद करें"
+  "doc_close": "बंद करें",
+  "doc_camera": "फ़ोटो लें",
+  "doc_drop_hint": "फ़ाइलें यहाँ छोड़ें"
 }

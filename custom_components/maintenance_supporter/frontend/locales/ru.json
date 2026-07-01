@@ -566,5 +566,7 @@
   "doc_storage_saved": "Сэкономлено дедупликацией",
   "doc_storage_refresh": "Обновить",
   "doc_download": "Скачать",
-  "doc_close": "Закрыть"
+  "doc_close": "Закрыть",
+  "doc_camera": "Сделать фото",
+  "doc_drop_hint": "Перетащите файлы сюда"
 }

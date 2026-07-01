@@ -566,5 +566,7 @@
   "doc_storage_saved": "Poupado por deduplicação",
   "doc_storage_refresh": "Atualizar",
   "doc_download": "Transferir",
-  "doc_close": "Fechar"
+  "doc_close": "Fechar",
+  "doc_camera": "Tirar foto",
+  "doc_drop_hint": "Solte os ficheiros aqui"
 }

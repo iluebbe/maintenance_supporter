@@ -566,5 +566,7 @@
   "doc_storage_saved": "重複排除による節約",
   "doc_storage_refresh": "更新",
   "doc_download": "ダウンロード",
-  "doc_close": "閉じる"
+  "doc_close": "閉じる",
+  "doc_camera": "写真を撮る",
+  "doc_drop_hint": "ここにファイルをドロップ"
 }

@@ -147,4 +147,27 @@ describe("documents-section", () => {
     expect(msg!.title).to.equal("Renamed manual");
     expect(msg!.doc_id).to.equal("d1");
   });
+
+  it("uploads multiple files and honors the camera category override", async () => {
+    const { el } = await mount(true, [FILE_DOC]);
+    (el.hass as unknown as { auth: unknown }).auth = { data: { access_token: "tok" } };
+    const tags: string[] = [];
+    const origFetch = window.fetch;
+    window.fetch = (async (_url: string, opts: { body: FormData }) => {
+      tags.push(opts.body.get("tags") as string);
+      return new Response(JSON.stringify({ id: "n", deduped: false }), { status: 200 });
+    }) as unknown as typeof window.fetch;
+    const up = (el as unknown as { _uploadFiles: (f: File[], c?: string) => Promise<void> })._uploadFiles;
+    try {
+      const f1 = new File(["a"], "a.pdf", { type: "application/pdf" });
+      const f2 = new File(["b"], "b.pdf", { type: "application/pdf" });
+      await up.call(el, [f1, f2]); // one POST per file, default category
+      expect(tags).to.deep.equal(["manual", "manual"]);
+      tags.length = 0;
+      await up.call(el, [f1], "photo"); // camera override
+      expect(tags).to.deep.equal(["photo"]);
+    } finally {
+      window.fetch = origFetch;
+    }
+  });
 });

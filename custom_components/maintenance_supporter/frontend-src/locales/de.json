@@ -566,5 +566,7 @@
   "doc_storage_saved": "Durch Deduplizierung gespart",
   "doc_storage_refresh": "Aktualisieren",
   "doc_download": "Herunterladen",
-  "doc_close": "Schließen"
+  "doc_close": "Schließen",
+  "doc_camera": "Foto aufnehmen",
+  "doc_drop_hint": "Dateien hier ablegen"
 }

@@ -566,5 +566,7 @@
   "doc_storage_saved": "Zaoszczędzone przez deduplikację",
   "doc_storage_refresh": "Odśwież",
   "doc_download": "Pobierz",
-  "doc_close": "Zamknij"
+  "doc_close": "Zamknij",
+  "doc_camera": "Zrób zdjęcie",
+  "doc_drop_hint": "Upuść pliki tutaj"
 }

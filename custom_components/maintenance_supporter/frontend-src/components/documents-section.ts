@@ -56,6 +56,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   @state() private _editingId = "";
   @state() private _editTitle = "";
   @state() private _editCategory = "manual";
+  @state() private _dragOver = false;
 
   private _loadedFor: string | null = null;
   private _localeReady = false;
@@ -129,32 +130,67 @@ export class MaintenanceDocumentsSection extends LitElement {
 
   private _onFileInput(e: Event): void {
     const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) void this._upload(file);
+    const files = Array.from(input.files ?? []);
+    if (files.length) void this._uploadFiles(files);
     input.value = ""; // let the same file be re-picked
   }
 
-  private async _upload(file: File): Promise<void> {
+  private _onCameraInput(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (files.length) void this._uploadFiles(files, "photo");
+    input.value = "";
+  }
+
+  private _onDrop(e: DragEvent): void {
+    e.preventDefault();
+    this._dragOver = false;
+    if (!this.canWrite || this._busy) return;
+    const files = Array.from(e.dataTransfer?.files ?? []);
+    if (files.length) void this._uploadFiles(files);
+  }
+
+  private _onDragOver(e: DragEvent): void {
+    if (!this.canWrite) return;
+    e.preventDefault();
+    this._dragOver = true;
+  }
+
+  private _onDragLeave(e: DragEvent): void {
+    // Only clear when the pointer truly leaves the zone (not when moving over a
+    // child element), otherwise the overlay flickers.
+    const rt = e.relatedTarget as Node | null;
+    if (!rt || !(e.currentTarget as HTMLElement).contains(rt)) this._dragOver = false;
+  }
+
+  private async _uploadFiles(files: File[], category?: string): Promise<void> {
+    const cat = category ?? this._category;
     this._busy = true;
     this._error = "";
     this._hint = "";
+    let deduped = 0;
+    let dupInObject = 0;
     try {
-      const form = new FormData();
-      form.append("entry_id", this.entryId);
-      form.append("tags", this._category);
-      form.append("file", file, file.name);
-      const resp = await fetch("/api/maintenance_supporter/document/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
-        body: form,
-      });
-      if (!resp.ok) {
-        this._error = resp.status === 413 ? t("doc_too_large", this._lang) : t("doc_upload_failed", this._lang);
-        return;
+      for (const file of files) {
+        const form = new FormData();
+        form.append("entry_id", this.entryId);
+        form.append("tags", cat);
+        form.append("file", file, file.name);
+        const resp = await fetch("/api/maintenance_supporter/document/upload", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
+          body: form,
+        });
+        if (!resp.ok) {
+          this._error = resp.status === 413 ? t("doc_too_large", this._lang) : t("doc_upload_failed", this._lang);
+          continue;
+        }
+        const doc = (await resp.json()) as { deduped?: boolean; duplicate_in_object?: string | null };
+        if (doc.duplicate_in_object) dupInObject++;
+        else if (doc.deduped) deduped++;
       }
-      const doc = (await resp.json()) as { deduped?: boolean; duplicate_in_object?: string | null };
-      if (doc.duplicate_in_object) this._hint = t("doc_dup_in_object", this._lang);
-      else if (doc.deduped) this._hint = t("doc_deduped", this._lang);
+      if (dupInObject) this._hint = t("doc_dup_in_object", this._lang);
+      else if (deduped) this._hint = t("doc_deduped", this._lang);
       await this._load();
     } catch {
       this._error = t("doc_upload_failed", this._lang);
@@ -275,6 +311,17 @@ export class MaintenanceDocumentsSection extends LitElement {
   render() {
     const L = this._lang;
     return html`
+      <div
+        class="doc-zone ${this._dragOver ? "drag-over" : ""}"
+        @dragover=${this._onDragOver}
+        @dragleave=${this._onDragLeave}
+        @drop=${this._onDrop}
+      >
+        ${this._dragOver && this.canWrite
+          ? html`<div class="drop-overlay">
+              <ha-icon icon="mdi:tray-arrow-down"></ha-icon> ${t("doc_drop_hint", L)}
+            </div>`
+          : nothing}
       <div class="doc-header">
         <h3>${t("documents", L)} (${this._docs.length})</h3>
         ${this.canWrite
@@ -291,7 +338,11 @@ export class MaintenanceDocumentsSection extends LitElement {
                 <label class="btn primary ${this._busy ? "disabled" : ""}">
                   <ha-icon icon="mdi:upload"></ha-icon>
                   ${this._busy ? t("doc_uploading", L) : t("doc_upload", L)}
-                  <input type="file" hidden ?disabled=${this._busy} @change=${this._onFileInput} />
+                  <input type="file" multiple hidden ?disabled=${this._busy} @change=${this._onFileInput} />
+                </label>
+                <label class="btn camera-btn ${this._busy ? "disabled" : ""}" title=${t("doc_camera", L)}>
+                  <ha-icon icon="mdi:camera"></ha-icon>
+                  <input type="file" accept="image/*" capture="environment" hidden ?disabled=${this._busy} @change=${this._onCameraInput} />
                 </label>
                 <button class="btn" ?disabled=${this._busy} @click=${() => (this._addingLink = !this._addingLink)}>
                   <ha-icon icon="mdi:link-variant"></ha-icon> ${t("doc_add_link", L)}
@@ -349,6 +400,7 @@ export class MaintenanceDocumentsSection extends LitElement {
             </button>
           </div>`
         : nothing}
+      </div>
     `;
   }
 
@@ -444,6 +496,19 @@ export class MaintenanceDocumentsSection extends LitElement {
 
   static styles = css`
     :host { display: block; margin: 8px 0 4px; }
+    .doc-zone { position: relative; }
+    .doc-zone.drag-over {
+      outline: 2px dashed var(--primary-color); outline-offset: 4px; border-radius: 8px;
+    }
+    .drop-overlay {
+      position: absolute; inset: 0; z-index: 5; pointer-events: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 8px; font-size: 15px; font-weight: 600;
+      color: var(--primary-color); opacity: 0.95;
+      background: var(--card-background-color, rgba(255, 255, 255, 0.85));
+    }
+    .drop-overlay ha-icon { --mdc-icon-size: 24px; }
+    .camera-btn { padding: 6px 10px; }
     .doc-header {
       display: flex; align-items: center; justify-content: space-between;
       gap: 12px; flex-wrap: wrap;
