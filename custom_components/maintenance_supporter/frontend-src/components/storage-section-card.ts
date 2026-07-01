@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "../styles";
+import { t, ensureLocale } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
@@ -47,6 +47,9 @@ export class MaintenanceStorageSectionCard extends LitElement {
     if (changed.has("hass") && this.hass && !this._initiallyLoaded) {
       this._initiallyLoaded = true;
       void this._load();
+      // Re-render once the runtime locale JSON arrives (t() falls back to
+      // English until then; this card can paint before the panel's fetch lands).
+      void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
   }
 
