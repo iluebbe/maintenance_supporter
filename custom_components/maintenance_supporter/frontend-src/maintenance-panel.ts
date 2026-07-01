@@ -1316,6 +1316,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
           <div class="object-card-header">
             <span class="object-card-name">${obj.object.name}</span>
+            ${obj.object.document_count
+              ? html`<span class="doc-badge" title="${obj.object.document_count} ${t("documents", L)}">
+                  <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
+                </span>`
+              : nothing}
             <span class="object-card-count">${obj.tasks.length} ${t("tasks_lower", L)}</span>
           </div>
           ${obj.object.manufacturer || obj.object.model
@@ -1470,7 +1475,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     const o = obj.object;
     switch (key) {
       case "name":
-        return html`<td class="oc-name"><span class="objects-table-name">${o.name}</span></td>`;
+        return html`<td class="oc-name">
+          <span class="objects-table-name">${o.name}</span>
+          ${o.document_count
+            ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
+                <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
+              </span>`
+            : nothing}
+        </td>`;
       case "manufacturer":
         return html`<td class="oc-manufacturer">${o.manufacturer || "—"}</td>`;
       case "model":

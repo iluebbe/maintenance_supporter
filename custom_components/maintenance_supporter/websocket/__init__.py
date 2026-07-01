@@ -214,6 +214,15 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
         for tid, tdata in tasks_data.items()
     ]
 
+    # (roadmap P2) attached-document count for the objects-table paperclip badge.
+    from .. import DOCUMENT_STORE_KEY
+
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    object_id = obj_data.get("id", "")
+    document_count = (
+        len(doc_store.for_object(object_id)) if doc_store is not None and object_id else 0
+    )
+
     return {
         "entry_id": entry.entry_id,
         "object": {
@@ -237,6 +246,9 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             # "archived on …" in the Archived section.
             "archived": obj_data.get("archived_at") is not None,
             "archived_at": obj_data.get("archived_at"),
+            # (roadmap P2) count of attached documents (files + web-links) for
+            # the objects-table paperclip badge; computed, not persisted.
+            "document_count": document_count,
         },
         "tasks": tasks,
     }
