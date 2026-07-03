@@ -586,6 +586,27 @@ export const sharedStyles = css`
   .trigger-current.active { color: var(--maint-triggered-color); }
   .trigger-unit { font-size: 14px; color: var(--secondary-text-color); }
 
+  /* Counter progress ("8,507 / 15,000 km · 57 %" + bar) */
+  .counter-progress { margin: 6px 0 4px; }
+  .counter-progress-nums {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  }
+  .counter-progress-main { font-size: 26px; font-weight: 700; color: var(--primary-text-color); }
+  .counter-progress-target { font-size: 15px; font-weight: 500; color: var(--secondary-text-color); }
+  .counter-progress-pct { font-size: 15px; font-weight: 700; }
+  .counter-progress-pct.ok { color: var(--success-color, #4caf50); }
+  .counter-progress-pct.near { color: var(--warning-color, #ff9800); }
+  .counter-progress-pct.over { color: var(--error-color, #f44336); }
+  .counter-progress-bar {
+    height: 8px; border-radius: 4px; margin: 6px 0 4px; overflow: hidden;
+    background: var(--secondary-background-color, rgba(0, 0, 0, 0.08));
+  }
+  .counter-progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+  .counter-progress-fill.ok { background: var(--success-color, #4caf50); }
+  .counter-progress-fill.near { background: var(--warning-color, #ff9800); }
+  .counter-progress-fill.over { background: var(--error-color, #f44336); }
+  .counter-progress-caption { font-size: 12px; color: var(--secondary-text-color); }
+
   .trigger-limits {
     display: flex;
     gap: 16px;
@@ -717,30 +738,6 @@ export const sharedStyles = css`
     text-align: center;
     margin-top: 6px;
     color: var(--primary-text-color);
-  }
-
-  /* Sparkline tooltip */
-  .sparkline-tooltip {
-    position: absolute;
-    transform: translate(-50%, -100%);
-    background: var(--primary-text-color);
-    color: var(--card-background-color, #fff);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 10;
-    line-height: 1.4;
-  }
-  .sparkline-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 4px solid transparent;
-    border-top-color: var(--primary-text-color);
   }
 
   /* Mini-sparkline in overview rows */

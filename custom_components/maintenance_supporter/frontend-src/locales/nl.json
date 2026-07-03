@@ -574,6 +574,11 @@
   "doc_attach": "Koppelen",
   "doc_unlink": "Ontkoppelen",
   "doc_page": "Pagina",
+  "chart_range_7d": "7d",
+  "chart_range_30d": "30d",
+  "chart_range_90d": "90d",
+  "chart_range_1y": "1j",
+  "chart_since_service": "sinds laatste onderhoud",
   "doc_search": "Documenten zoeken…",
   "doc_search_none": "Geen overeenkomende documenten"
 }

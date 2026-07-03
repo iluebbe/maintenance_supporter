@@ -574,6 +574,11 @@
   "doc_attach": "Knytt",
   "doc_unlink": "Fjern kobling",
   "doc_page": "Side",
+  "chart_range_7d": "7d",
+  "chart_range_30d": "30d",
+  "chart_range_90d": "90d",
+  "chart_range_1y": "1å",
+  "chart_since_service": "siden siste vedlikehold",
   "doc_search": "Søk i dokumenter…",
   "doc_search_none": "Ingen samsvarende dokumenter"
 }

@@ -82,7 +82,14 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _filterStatus = "";
   @state() private _filterUser: string | null = null;
   @state() private _unsub: (() => void) | null = null;
-  @state() private _sparklineTooltip: { x: number; y: number; text: string } | null = null;
+  @state() private _chartRangeDays = (() => {
+    try {
+      const v = parseInt(localStorage.getItem("msp-chart-range") || "", 10);
+      return [7, 30, 90, 365].includes(v) ? v : 30;
+    } catch {
+      return 30;
+    }
+  })();
   @state() private _historyFilter: string | null = null;
   @state() private _budget: BudgetStatus | null = null;
   @state() private _groups: Record<string, MaintenanceGroup> = {};
@@ -368,10 +375,29 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _fetchDetailStats(entityId: string, isCounter: boolean): Promise<void> {
     if (!this._statsService) return;
-    const points = await this._statsService.getDetailStats(entityId, isCounter);
+    const points = await this._statsService.getDetailStats(entityId, isCounter, this._chartRangeDays);
     const updated = new Map(this._detailStatsData);
     updated.set(entityId, points);
     this._detailStatsData = updated;
+  }
+
+  /** Chart range chips (7/30/90/365 d): persist the choice and refetch the
+   *  open task's stats at the new window. */
+  private _setChartRange(days: number): void {
+    if (days === this._chartRangeDays) return;
+    this._chartRangeDays = days;
+    try { localStorage.setItem("msp-chart-range", String(days)); } catch { /* private mode */ }
+    const task = this._selectedEntryId && this._selectedTaskId
+      ? this._getTask(this._selectedEntryId, this._selectedTaskId)
+      : null;
+    const entityId = task?.trigger_config?.entity_id;
+    if (entityId) {
+      // Drop the stale-range series so the chart shows its loading state.
+      const updated = new Map(this._detailStatsData);
+      updated.delete(entityId);
+      this._detailStatsData = updated;
+      void this._fetchDetailStats(entityId, this._isCounterEntity(task!.trigger_config));
+    }
   }
 
   private async _fetchMiniStatsForOverview(): Promise<void> {
@@ -2135,8 +2161,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       detailStatsData: this._detailStatsData,
       hasStatsService: !!this._statsService,
       isCounterEntity: (tc) => this._isCounterEntity(tc),
-      tooltip: this._sparklineTooltip,
-      setTooltip: (t) => { this._sparklineTooltip = t; },
+      rangeDays: this._chartRangeDays,
+      setRangeDays: (days) => this._setChartRange(days),
     };
   }
 
