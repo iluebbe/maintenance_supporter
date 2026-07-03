@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+import voluptuous as vol
 from aiohttp import FormData
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -301,6 +302,61 @@ async def test_ws_update(
     assert result["title"] == "Renamed"
     assert result["tags"] == ["warranty"]
     assert result["task_ids"] == ["t1"]
+
+
+async def test_ws_update_task_pages(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Per-task jump-to page hints persist, clear on 0, and prune when unlinked."""
+    await setup_integration(hass, global_entry, object_entry)
+    doc = await _store(hass).async_add_file(
+        OBJECT_ID_1, content=b"y", filename="a.pdf", mime="application/pdf",
+    )
+    conn = _conn()
+    # Link to a task + set a page.
+    await call_ws_handler(
+        ws_documents_update, hass, conn,
+        {"id": 1, "type": _UPDATE, "doc_id": doc["id"], "task_ids": ["t1"], "task_pages": {"t1": 12}},
+    )
+    assert conn.send_result.call_args[0][1]["task_pages"] == {"t1": 12}
+
+    # Page 0 clears that task's page; the now-empty map is dropped.
+    await call_ws_handler(
+        ws_documents_update, hass, conn,
+        {"id": 2, "type": _UPDATE, "doc_id": doc["id"], "task_pages": {"t1": 0}},
+    )
+    assert "task_pages" not in conn.send_result.call_args[0][1]
+
+    # Re-set, then unlinking the task prunes its orphaned page hint.
+    await call_ws_handler(
+        ws_documents_update, hass, conn,
+        {"id": 3, "type": _UPDATE, "doc_id": doc["id"], "task_pages": {"t1": 5}},
+    )
+    assert conn.send_result.call_args[0][1]["task_pages"] == {"t1": 5}
+    await call_ws_handler(
+        ws_documents_update, hass, conn,
+        {"id": 4, "type": _UPDATE, "doc_id": doc["id"], "task_ids": []},
+    )
+    assert "task_pages" not in conn.send_result.call_args[0][1]
+
+
+def test_task_pages_schema_accepts_task_id_map() -> None:
+    """The WS schema must accept a real ``{task_id: page}`` dict.
+
+    Regression guard: a ``vol.All(str, ...)`` dict *key* is treated as an unknown
+    key by voluptuous ("extra keys not allowed"), silently breaking the feature —
+    the handler-level tests bypass the schema so only this catches it.
+    """
+    from custom_components.maintenance_supporter.websocket.documents import (
+        _TASK_PAGES_SCHEMA,
+    )
+
+    assert _TASK_PAGES_SCHEMA({"de4c9800869142eab17283dde701d0b9": 12}) == {
+        "de4c9800869142eab17283dde701d0b9": 12
+    }
+    assert _TASK_PAGES_SCHEMA({}) == {}
+    with pytest.raises(vol.Invalid):
+        _TASK_PAGES_SCHEMA({"t1": 10 ** 9})  # page out of range
 
 
 async def test_ws_update_missing(
