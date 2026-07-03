@@ -1328,6 +1328,9 @@
       "summary_triggered": { "name": "已触发" },
       "summary_needs_attention": { "name": "待处理" },
       "summary_ok": { "name": "正常" },
+      "document_storage": {
+        "name": "文档存储"
+      },
       "summary_total_tasks": { "name": "总任务数" }
     },
     "calendar": {
@@ -1488,6 +1491,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "文档存储需要清理",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "回收文档存储空间",
+            "description": "Maintenance Supporter 在文档存储中发现了未被引用的文件和/或失效的记录——通常是崩溃、外部删除文件或部分恢复后的残留。\n\n点击 **提交** 以回收空间：未被引用的和陈旧的文件将被删除，失效的文档记录将被清除。仍被文档引用的文件绝不会被触碰。\n\n（如需忽略而不清理，请使用 Home Assistant 修复页面上的 **忽略** 按钮。）"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "找不到触发传感器：{task_name}",
       "fix_flow": {

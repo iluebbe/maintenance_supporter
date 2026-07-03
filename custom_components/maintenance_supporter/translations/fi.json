@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Asiakirjojen tallennustila"
+      },
       "summary_total_tasks": {
         "name": "Tehtäviä yhteensä"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Asiakirjojen tallennustila kaipaa siivousta",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Vapauta asiakirjojen tallennustilaa",
+            "description": "Maintenance Supporter löysi viittaamattomia tiedostoja ja/tai kuolleita tietueita asiakirjojen tallennustilasta — yleensä kaatumisen, ulkoisen tiedostopoiston tai osittaisen palautuksen jäljiltä.\n\nNapsauta **Lähetä** vapauttaaksesi tilaa: viittaamattomat ja vanhentuneet tiedostot poistetaan ja kuolleet asiakirjatietueet siivotaan. Tiedostoihin, joihin jokin asiakirja yhä viittaa, ei koskaan kosketa.\n\n(Voit hylätä siivoamatta käyttämällä Home Assistantin **Ohita**-painiketta Korjaukset-sivulla.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Laukaisevaa anturia ei löytynyt: {task_name}",
       "fix_flow": {

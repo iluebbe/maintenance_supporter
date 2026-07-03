@@ -18,7 +18,7 @@ gated by ``global/update``) — write access cannot be self-granted.
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.websocket_api.connection import ActiveConnection
 from homeassistant.components.websocket_api.const import WebSocketCommandHandler
@@ -27,6 +27,9 @@ from homeassistant.exceptions import Unauthorized
 
 from ..const import CONF_ADMIN_PANEL_USER_IDS, CONF_OPERATOR_WRITE_ENABLED
 from .global_options import get_global_options
+
+if TYPE_CHECKING:
+    from homeassistant.auth.models import User
 
 
 def operator_user_ids(hass: HomeAssistant) -> list[str]:
@@ -46,6 +49,22 @@ def operator_write_enabled(hass: HomeAssistant) -> bool:
     return get_global_options(hass).get(CONF_OPERATOR_WRITE_ENABLED, False) is True
 
 
+def user_can_write(hass: HomeAssistant, user: User | None) -> bool:
+    """Whether a specific user may perform content writes.
+
+    True for HA admins. For non-admin users, true only when operator write
+    delegation is enabled AND their id is on the operator allowlist. False for
+    anonymous / missing users. This is the user-object variant used by the HTTP
+    document views (which resolve ``request["hass_user"]``); the WS layer calls
+    :func:`user_may_write`, which reads the user off the connection.
+    """
+    if user is None:
+        return False
+    if user.is_admin:
+        return True
+    return operator_write_enabled(hass) and user.id in operator_user_ids(hass)
+
+
 def user_may_write(hass: HomeAssistant, connection: ActiveConnection) -> bool:
     """Whether the connection's user may perform content writes.
 
@@ -53,12 +72,7 @@ def user_may_write(hass: HomeAssistant, connection: ActiveConnection) -> bool:
     delegation is enabled AND their id is on the operator allowlist. False for
     anonymous connections.
     """
-    user = connection.user
-    if user is None:
-        return False
-    if user.is_admin:
-        return True
-    return operator_write_enabled(hass) and user.id in operator_user_ids(hass)
+    return user_can_write(hass, connection.user)
 
 
 def require_write(func: WebSocketCommandHandler) -> WebSocketCommandHandler:

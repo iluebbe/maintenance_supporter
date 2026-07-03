@@ -17,6 +17,9 @@ export interface MaintenanceObject {
   /** v2.10.0 archive: archived (retire-but-retain) state; archived = archived_at != null. */
   archived?: boolean;
   archived_at?: string | null;
+  /** (roadmap P2) number of attached documents (files + web-links); drives the
+   *  objects-table paperclip badge. Computed server-side, not persisted. */
+  document_count?: number;
 }
 
 export interface TriggerConfig {
@@ -371,6 +374,9 @@ export interface HomeAssistant {
   locale?: { language: string; number_format?: string };
   localize(key: string, ...args: unknown[]): string;
   user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
+  /** Current access token — used for authenticated `fetch()` to our HTTP
+   *  document views (a WebSocket frame can't carry a multipart file upload). */
+  auth?: { data?: { access_token?: string } };
 }
 
 export interface HAUser {

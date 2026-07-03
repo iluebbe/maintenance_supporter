@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Dokumentlagring"
+      },
       "summary_total_tasks": {
         "name": "Totalt antal uppgifter"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Dokumentlagringen behöver rensas",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Återvinn dokumentlagring",
+            "description": "Maintenance Supporter hittade orefererade filer och/eller döda poster i dokumentlagringen — oftast följden av en krasch, en extern filradering eller en ofullständig återställning.\n\nKlicka på **Skicka** för att återvinna utrymme: orefererade och inaktuella filer tas bort och döda dokumentposter rensas. Filer som fortfarande refereras av ett dokument rörs aldrig.\n\n(För att avfärda utan att rensa, använd Home Assistants **Ignorera**-knapp på sidan Reparationer.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Utlösande sensor hittades inte: {task_name}",
       "fix_flow": {

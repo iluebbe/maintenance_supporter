@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Dokumentenspeicher"
+      },
       "summary_total_tasks": {
         "name": "Aufgaben gesamt"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Dokumentenspeicher benötigt Bereinigung",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Dokumentenspeicher freigeben",
+            "description": "Maintenance Supporter hat nicht referenzierte Dateien und/oder tote Einträge im Dokumentenspeicher gefunden — meist die Folge eines Absturzes, einer externen Dateilöschung oder einer unvollständigen Wiederherstellung.\n\nKlicke **Senden**, um den Speicher freizugeben: nicht referenzierte und verwaiste Dateien werden gelöscht und tote Dokumenteinträge entfernt. Dateien, die noch von einem Dokument referenziert werden, werden nie angetastet.\n\n(Soll das Issue offen bleiben: nutze stattdessen den **Ignorieren**-Button auf der Repairs-Seite von Home Assistant.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Trigger-Sensor nicht gefunden: {task_name}",
       "fix_flow": {

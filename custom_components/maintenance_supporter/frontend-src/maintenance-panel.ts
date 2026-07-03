@@ -25,6 +25,8 @@ import { StatisticsService } from "./statistics-service";
 import { UserService } from "./user-service";
 import "./components/object-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
+import "./components/documents-section";
+import "./components/task-documents";
 import "./components/task-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import "./components/complete-dialog";
@@ -43,6 +45,7 @@ import type {
 import "./components/confirm-dialog";
 import type { MaintenanceConfirmDialog } from "./components/confirm-dialog";
 import "./components/settings-view";
+import "./components/storage-section-card";
 import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
 import "./components/group-dialog";
@@ -1198,6 +1201,16 @@ export class MaintenanceSupporterPanel extends LitElement {
           : this._renderGroupedTasks(rows, L)}
 
       ${this._features.groups && !isOperator ? this._renderGroupsSection() : nothing}
+      ${!isOperator
+        ? html`<maintenance-storage-section-card
+            .hass=${this.hass}
+            .objects=${this._objects}
+            @open-object=${(e: CustomEvent<{ entry_id?: string }>) => {
+              const eid = e.detail?.entry_id;
+              if (eid) this._showObject(eid);
+            }}
+          ></maintenance-storage-section-card>`
+        : nothing}
     `;
   }
 
@@ -1308,6 +1321,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
           <div class="object-card-header">
             <span class="object-card-name">${obj.object.name}</span>
+            ${obj.object.document_count
+              ? html`<span class="doc-badge" title="${obj.object.document_count} ${t("documents", L)}">
+                  <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
+                </span>`
+              : nothing}
             <span class="object-card-count">${obj.tasks.length} ${t("tasks_lower", L)}</span>
           </div>
           ${obj.object.manufacturer || obj.object.model
@@ -1462,7 +1480,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     const o = obj.object;
     switch (key) {
       case "name":
-        return html`<td class="oc-name"><span class="objects-table-name">${o.name}</span></td>`;
+        return html`<td class="oc-name">
+          <span class="objects-table-name">${o.name}</span>
+          ${o.document_count
+            ? html`<span class="doc-badge" title="${o.document_count} ${t("documents", L)}">
+                <ha-icon icon="mdi:paperclip"></ha-icon>${o.document_count}
+              </span>`
+            : nothing}
+        </td>`;
       case "manufacturer":
         return html`<td class="oc-manufacturer">${o.manufacturer || "—"}</td>`;
       case "model":
@@ -1922,6 +1947,12 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="object-notes-body">${o.notes}</div>
             </div>`
           : nothing}
+
+        <maintenance-documents-section
+          .hass=${this.hass}
+          .entryId=${obj.entry_id}
+          .canWrite=${!isOperator}
+        ></maintenance-documents-section>
 
         <h3>${t("tasks", L)} (${visibleTasks.length})${archivedInObj > 0 ? html`
           <ha-button
@@ -2420,6 +2451,12 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${this._renderTaskHeader(task)}
         ${this._renderTabBar()}
         ${this._renderTabContent(task)}
+        <maintenance-task-documents
+          .hass=${this.hass}
+          .entryId=${this._selectedEntryId}
+          .taskId=${this._selectedTaskId}
+          .canWrite=${!this._isOperator}
+        ></maintenance-task-documents>
       </div>
     `;
   }
