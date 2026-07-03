@@ -122,6 +122,33 @@ describe("documents-section", () => {
     expect(el.shadowRoot!.querySelector(".lightbox"), "lightbox open").to.exist;
   });
 
+  it("opens a document by clicking its title row, not just the icons", async () => {
+    const IMG = {
+      id: "img1", kind: "file", title: "Typenschild", filename: "p.jpg",
+      mime: "image/jpeg", size: 100, tags: ["photo"], added_at: "2026-01-01T00:00:00",
+    };
+    const { hass } = createMockHass({
+      handlers: {
+        "maintenance_supporter/documents/list": () => ({ documents: [IMG] }),
+        "auth/sign_path": () => ({ path: "/api/maintenance_supporter/document/img1?authSig=x" }),
+      },
+    });
+    const el = await fixture<MaintenanceDocumentsSection>(html`
+      <maintenance-documents-section .hass=${hass} .entryId=${"e1"} .canWrite=${true}></maintenance-documents-section>
+    `);
+    await new Promise((r) => setTimeout(r, 40));
+    await el.updateComplete;
+
+    const info = el.shadowRoot!.querySelector<HTMLElement>(".doc-info");
+    expect(info, "title row present").to.exist;
+    expect(info!.getAttribute("role"), "title row is a button").to.equal("button");
+    info!.click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 10));
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector(".lightbox"), "clicking the title opens the preview").to.exist;
+  });
+
   it("edits a document's title/category via WS", async () => {
     const { el, sent } = await mount();
     const editBtn = [...el.shadowRoot!.querySelectorAll(".doc-row-actions .icon-btn")].find(

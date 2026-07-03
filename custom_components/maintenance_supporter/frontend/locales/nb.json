@@ -573,6 +573,7 @@
   "doc_link_existing": "Knytt et dokument…",
   "doc_attach": "Knytt",
   "doc_unlink": "Fjern kobling",
+  "doc_page": "Side",
   "doc_search": "Søk i dokumenter…",
   "doc_search_none": "Ingen samsvarende dokumenter"
 }

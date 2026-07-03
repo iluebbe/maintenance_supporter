@@ -49,6 +49,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
   @state() private _error = "";
   @state() private _query = "";
   @state() private _results: SearchResult[] = [];
+  @state() private _expanded = false;
 
   private _initiallyLoaded = false;
   private _searchTimer = 0;
@@ -88,6 +89,25 @@ export class MaintenanceStorageSectionCard extends LitElement {
     return o?.object?.name || objectId.slice(0, 8);
   }
 
+  private _entryFor(objectId: string): string | undefined {
+    return this.objects.find((x) => x.object?.id === objectId)?.entry_id;
+  }
+
+  private _toggle(): void {
+    this._expanded = !this._expanded;
+  }
+
+  /** Ask the panel (which owns navigation) to open an object's detail view. */
+  private _openObject(entryId: string): void {
+    this.dispatchEvent(
+      new CustomEvent("open-object", {
+        detail: { entry_id: entryId },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   private _onSearch(e: Event): void {
     this._query = (e.target as HTMLInputElement).value;
     clearTimeout(this._searchTimer);
@@ -124,7 +144,8 @@ export class MaintenanceStorageSectionCard extends LitElement {
         path: `/api/maintenance_supporter/document/${doc.id}`,
         expires: 300,
       });
-      if (win) win.location.href = s.path;
+      // Absolute URL so it navigates the blank popup reliably (about:blank base).
+      if (win) win.location.href = new URL(s.path, window.location.origin).href;
     } catch (e) {
       if (win) win.close();
       this._error = describeWsError(e, this._lang);
@@ -152,17 +173,27 @@ export class MaintenanceStorageSectionCard extends LitElement {
 
     const rows = Object.entries(s.by_object)
       .filter(([, v]) => v.files > 0 || v.links > 0)
-      .map(([id, v]) => ({ id, name: this._nameFor(id), ...v }))
+      .map(([id, v]) => ({ id, name: this._nameFor(id), entry: this._entryFor(id), ...v }))
       .sort((a, b) => b.bytes - a.bytes);
 
     return html`
       <ha-card>
         <div class="card-content">
           <div class="header">
-            <div class="title">
+            <button
+              class="toggle"
+              @click=${this._toggle}
+              aria-expanded=${this._expanded ? "true" : "false"}
+              aria-label=${t("doc_storage_title", L)}
+            >
+              <ha-icon class="chevron" icon=${this._expanded ? "mdi:chevron-down" : "mdi:chevron-right"}></ha-icon>
               <span class="emoji">🗄️</span>
-              <span>${t("doc_storage_title", L)}</span>
-            </div>
+              <span class="title-text">${t("doc_storage_title", L)}</span>
+              <span class="header-summary">
+                ${formatBytes(s.total_bytes)}
+                ${s.dedup_savings_bytes > 0 ? html`<span class="saved">−${formatBytes(s.dedup_savings_bytes)}</span>` : nothing}
+              </span>
+            </button>
             <button
               class="icon-btn"
               title=${t("doc_storage_refresh", L)}
@@ -173,61 +204,82 @@ export class MaintenanceStorageSectionCard extends LitElement {
             </button>
           </div>
 
-          <div class="totals">
-            <div class="stat">
-              <div class="stat-value">${formatBytes(s.total_bytes)}</div>
-              <div class="stat-label">
-                <ha-icon icon="mdi:file-document-outline"></ha-icon> ${s.file_count}
-                <ha-icon icon="mdi:link-variant"></ha-icon> ${s.link_count}
-              </div>
-            </div>
-            ${s.dedup_savings_bytes > 0
-              ? html`<div class="stat">
-                  <div class="stat-value saved">−${formatBytes(s.dedup_savings_bytes)}</div>
-                  <div class="stat-label">${t("doc_storage_saved", L)}</div>
-                </div>`
-              : nothing}
-          </div>
-
-          <div class="doc-search">
-            <ha-icon icon="mdi:magnify"></ha-icon>
-            <input
-              type="search"
-              aria-label=${t("doc_search", L)}
-              placeholder=${t("doc_search", L)}
-              .value=${this._query}
-              @input=${this._onSearch}
-            />
-          </div>
-
-          ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
-
-          ${this._query.trim()
-            ? this._results.length
-              ? html`<div class="obj-list">${this._results.map((d) => this._renderResult(d, L))}</div>`
-              : html`<div class="search-empty">${t("doc_search_none", L)}</div>`
-            : rows.length
-              ? html`<div class="obj-list">
-                  ${rows.map(
-                    (r) => html`
-                      <div class="obj-row">
-                        <span class="obj-name">${r.name}</span>
-                        <span class="obj-meta">
-                          ${r.files > 0
-                            ? html`<ha-icon icon="mdi:file-document-outline"></ha-icon>${r.files}`
-                            : nothing}
-                          ${r.links > 0
-                            ? html`<ha-icon icon="mdi:link-variant"></ha-icon>${r.links}`
-                            : nothing}
-                        </span>
-                        <span class="obj-size">${formatBytes(r.bytes)}</span>
+          ${this._expanded
+            ? html`
+                <div class="body">
+                  <div class="totals">
+                    <div class="stat">
+                      <div class="stat-value">${formatBytes(s.total_bytes)}</div>
+                      <div class="stat-label">
+                        <ha-icon icon="mdi:file-document-outline"></ha-icon> ${s.file_count}
+                        <ha-icon icon="mdi:link-variant"></ha-icon> ${s.link_count}
                       </div>
-                    `,
-                  )}
-                </div>`
-              : nothing}
+                    </div>
+                    ${s.dedup_savings_bytes > 0
+                      ? html`<div class="stat">
+                          <div class="stat-value saved">−${formatBytes(s.dedup_savings_bytes)}</div>
+                          <div class="stat-label">${t("doc_storage_saved", L)}</div>
+                        </div>`
+                      : nothing}
+                  </div>
+
+                  <div class="doc-search">
+                    <ha-icon icon="mdi:magnify"></ha-icon>
+                    <input
+                      type="search"
+                      aria-label=${t("doc_search", L)}
+                      placeholder=${t("doc_search", L)}
+                      .value=${this._query}
+                      @input=${this._onSearch}
+                    />
+                  </div>
+
+                  ${this._error ? html`<div class="error">${this._error}</div>` : nothing}
+
+                  ${this._query.trim()
+                    ? this._results.length
+                      ? html`<div class="obj-list">${this._results.map((d) => this._renderResult(d, L))}</div>`
+                      : html`<div class="search-empty">${t("doc_search_none", L)}</div>`
+                    : rows.length
+                      ? html`<div class="obj-list">${rows.map((r) => this._renderObjRow(r, L))}</div>`
+                      : nothing}
+                </div>
+              `
+            : nothing}
         </div>
       </ha-card>
+    `;
+  }
+
+  private _renderObjRow(
+    r: { id: string; name: string; entry?: string; bytes: number; files: number; links: number },
+    L: string,
+  ) {
+    const eid = r.entry;
+    return html`
+      <div
+        class="obj-row ${eid ? "clickable" : ""}"
+        role=${eid ? "button" : nothing}
+        tabindex=${eid ? "0" : nothing}
+        aria-label=${eid ? r.name : nothing}
+        @click=${eid ? () => this._openObject(eid) : undefined}
+        @keydown=${eid
+          ? (e: KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                this._openObject(eid);
+              }
+            }
+          : undefined}
+      >
+        <span class="obj-name">${r.name}</span>
+        <span class="obj-meta">
+          ${r.files > 0 ? html`<ha-icon icon="mdi:file-document-outline"></ha-icon>${r.files}` : nothing}
+          ${r.links > 0 ? html`<ha-icon icon="mdi:link-variant"></ha-icon>${r.links}` : nothing}
+        </span>
+        <span class="obj-size">${formatBytes(r.bytes)}</span>
+        ${eid ? html`<ha-icon class="obj-go" icon="mdi:chevron-right"></ha-icon>` : nothing}
+      </div>
     `;
   }
 
@@ -252,9 +304,22 @@ export class MaintenanceStorageSectionCard extends LitElement {
     .result-obj { font-size: 12px; color: var(--secondary-text-color, #888); }
     .result-open { color: var(--secondary-text-color, #888); --mdc-icon-size: 18px; flex: none; }
     .search-empty { color: var(--secondary-text-color, #888); font-size: 13px; padding: 8px 2px; }
-    .header { display: flex; align-items: center; justify-content: space-between; }
-    .title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 500; }
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .toggle {
+      display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
+      background: none; border: none; padding: 4px 0; margin: 0; cursor: pointer;
+      font: inherit; color: var(--primary-text-color); text-align: left;
+    }
+    .toggle:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; border-radius: 6px; }
+    .chevron { --mdc-icon-size: 22px; color: var(--secondary-text-color, #888); flex: none; }
+    .title-text { font-size: 16px; font-weight: 500; }
+    .header-summary {
+      margin-left: auto; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 600; white-space: nowrap;
+    }
+    .header-summary .saved { color: var(--success-color, #4caf50); font-weight: 500; }
     .emoji { font-size: 18px; }
+    .body { margin-top: 4px; }
     .totals { display: flex; gap: 24px; margin: 12px 0 8px; flex-wrap: wrap; }
     .stat-value { font-size: 22px; font-weight: 600; }
     .stat-value.saved { color: var(--success-color, #4caf50); }
@@ -269,6 +334,10 @@ export class MaintenanceStorageSectionCard extends LitElement {
       padding: 6px 8px; border-radius: 6px;
     }
     .obj-row:nth-child(odd) { background: var(--secondary-background-color, rgba(0,0,0,0.04)); }
+    .obj-row.clickable { cursor: pointer; }
+    .obj-row.clickable:hover { background: var(--secondary-background-color, rgba(0,0,0,0.10)); }
+    .obj-row.clickable:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+    .obj-go { --mdc-icon-size: 18px; color: var(--secondary-text-color, #888); flex: none; }
     .obj-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
     .obj-meta {
       display: flex; align-items: center; gap: 4px;

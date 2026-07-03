@@ -25,6 +25,7 @@ interface Doc {
   size?: number;
   tags?: string[];
   task_ids?: string[];
+  task_pages?: Record<string, number>;
 }
 
 const CATEGORIES = ["manual", "warranty", "invoice", "spare_parts", "photo", "other"] as const;
@@ -120,11 +121,24 @@ export class MaintenanceTaskDocuments extends LitElement {
     void this._setTaskIds(doc, (doc.task_ids || []).filter((x) => x !== this.taskId));
   }
 
+  private _isPdf(doc: Doc): boolean {
+    return doc.mime === "application/pdf" || (doc.filename || "").toLowerCase().endsWith(".pdf");
+  }
+
+  /** The page this doc should open at for the current task, if set (PDFs only). */
+  private _pageFor(doc: Doc): number | undefined {
+    return this._isPdf(doc) ? doc.task_pages?.[this.taskId] : undefined;
+  }
+
   private async _open(doc: Doc): Promise<void> {
     if (doc.kind === "weblink") {
       window.open(doc.url, "_blank", "noopener");
       return;
     }
+    // A per-task page hint jumps straight to the relevant page via the PDF
+    // viewer's #page=N fragment (client-side, so it never breaks the signature).
+    const page = this._pageFor(doc);
+    const frag = page ? `#page=${page}` : "";
     const win = window.open("about:blank", "_blank");
     try {
       const s = await this.hass.connection.sendMessagePromise<{ path: string }>({
@@ -132,10 +146,30 @@ export class MaintenanceTaskDocuments extends LitElement {
         path: `/api/maintenance_supporter/document/${doc.id}`,
         expires: 300,
       });
-      if (win) win.location.href = s.path;
+      // Absolute URL: a fragment on a *root-relative* path won't resolve against
+      // the blank popup's about:blank base, so it would silently stay blank.
+      if (win) win.location.href = new URL(s.path + frag, window.location.origin).href;
     } catch (e) {
       if (win) win.close();
       this._error = describeWsError(e, this._lang);
+    }
+  }
+
+  /** Set (page >= 1) or clear (0) the jump-to page for this doc's task link. */
+  private async _setPage(doc: Doc, page: number): Promise<void> {
+    this._busy = true;
+    this._error = "";
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/documents/update",
+        doc_id: doc.id,
+        task_pages: { [this.taskId]: page },
+      });
+      await this._load();
+    } catch (e) {
+      this._error = describeWsError(e, this._lang);
+    } finally {
+      this._busy = false;
     }
   }
 
@@ -188,14 +222,48 @@ export class MaintenanceTaskDocuments extends LitElement {
 
   private _renderRow(doc: Doc, L: string) {
     const isFile = doc.kind === "file";
+    const isPdf = this._isPdf(doc);
+    const page = doc.task_pages?.[this.taskId];
     const cat = (doc.tags || []).find((x) => (CATEGORIES as readonly string[]).includes(x)) || "other";
+    const meta = isFile ? formatBytes(doc.size) : t("doc_link_badge", L);
     return html`
       <div class="tdoc-row">
         <ha-icon class="tdoc-icon" icon=${isFile ? CATEGORY_ICONS[cat] : "mdi:link-variant"}></ha-icon>
-        <div class="tdoc-info">
+        <div
+          class="tdoc-info"
+          role="button"
+          tabindex="0"
+          title=${page ? `${t("doc_open", L)} · ${t("doc_page", L)} ${page}` : t("doc_open", L)}
+          @click=${() => this._open(doc)}
+          @keydown=${(e: KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              void this._open(doc);
+            }
+          }}
+        >
           <div class="tdoc-title">${doc.title || doc.filename || doc.url}</div>
-          <div class="tdoc-meta">${isFile ? formatBytes(doc.size) : t("doc_link_badge", L)}</div>
+          <div class="tdoc-meta">
+            ${meta}${page ? html` · <span class="tdoc-pagetag">${t("doc_page", L)} ${page}</span>` : nothing}
+          </div>
         </div>
+        ${this.canWrite && isPdf
+          ? html`<input
+              class="tdoc-page"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              aria-label=${t("doc_page", L)}
+              title=${t("doc_page", L)}
+              placeholder=${t("doc_page", L)}
+              .value=${page ? String(page) : ""}
+              ?disabled=${this._busy}
+              @change=${(e: Event) => {
+                const v = parseInt((e.target as HTMLInputElement).value, 10);
+                void this._setPage(doc, Number.isFinite(v) && v >= 1 ? v : 0);
+              }}
+            />`
+          : nothing}
         <button class="icon-btn" title=${t("doc_open", L)} @click=${() => this._open(doc)}>
           <ha-icon icon=${isFile ? "mdi:eye-outline" : "mdi:open-in-new"}></ha-icon>
         </button>
@@ -229,9 +297,18 @@ export class MaintenanceTaskDocuments extends LitElement {
       border: 1px solid var(--divider-color); border-radius: 8px;
     }
     .tdoc-icon { color: var(--primary-color); --mdc-icon-size: 22px; flex: none; }
-    .tdoc-info { flex: 1; min-width: 0; }
+    .tdoc-info { flex: 1; min-width: 0; cursor: pointer; border-radius: 6px; }
+    .tdoc-info:hover .tdoc-title { text-decoration: underline; }
+    .tdoc-info:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .tdoc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tdoc-meta { font-size: 12px; color: var(--secondary-text-color, #888); }
+    .tdoc-pagetag { color: var(--primary-color); font-weight: 500; }
+    .tdoc-page {
+      flex: none; width: 76px; padding: 5px 8px; border-radius: 6px; font: inherit; font-size: 13px;
+      background: var(--secondary-background-color, rgba(0, 0, 0, 0.06));
+      color: var(--primary-text-color); border: 1px solid var(--divider-color);
+    }
+    .tdoc-page:disabled { opacity: 0.5; }
     .icon-btn {
       display: inline-flex; align-items: center; justify-content: center;
       width: 34px; height: 34px; border-radius: 8px; cursor: pointer;

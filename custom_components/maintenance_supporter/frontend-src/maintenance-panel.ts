@@ -1205,6 +1205,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         ? html`<maintenance-storage-section-card
             .hass=${this.hass}
             .objects=${this._objects}
+            @open-object=${(e: CustomEvent<{ entry_id?: string }>) => {
+              const eid = e.detail?.entry_id;
+              if (eid) this._showObject(eid);
+            }}
           ></maintenance-storage-section-card>`
         : nothing}
     `;
