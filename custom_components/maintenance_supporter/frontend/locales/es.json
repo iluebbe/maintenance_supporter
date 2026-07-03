@@ -573,6 +573,7 @@
   "doc_link_existing": "Vincular un documento…",
   "doc_attach": "Vincular",
   "doc_unlink": "Desvincular",
+  "doc_page": "Página",
   "doc_search": "Buscar documentos…",
   "doc_search_none": "Ningún documento coincidente"
 }

@@ -573,6 +573,7 @@
   "doc_link_existing": "Link a document…",
   "doc_attach": "Link",
   "doc_unlink": "Unlink",
+  "doc_page": "Page",
   "doc_search": "Search documents…",
   "doc_search_none": "No matching documents"
 }

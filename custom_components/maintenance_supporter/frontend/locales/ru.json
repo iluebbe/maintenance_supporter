@@ -573,6 +573,7 @@
   "doc_link_existing": "Связать документ…",
   "doc_attach": "Связать",
   "doc_unlink": "Отвязать",
+  "doc_page": "Страница",
   "doc_search": "Поиск документов…",
   "doc_search_none": "Нет подходящих документов"
 }

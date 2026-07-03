@@ -573,6 +573,7 @@
   "doc_link_existing": "Associar um documento…",
   "doc_attach": "Associar",
   "doc_unlink": "Desassociar",
+  "doc_page": "Página",
   "doc_search": "Pesquisar documentos…",
   "doc_search_none": "Nenhum documento correspondente"
 }

@@ -232,11 +232,19 @@ export class MaintenanceDocumentsSection extends LitElement {
     const win = window.open("about:blank", "_blank");
     try {
       const url = await this._sign(doc);
-      if (win) win.location.href = url;
+      // Absolute URL so it always resolves against the blank popup (about:blank).
+      if (win) win.location.href = new URL(url, window.location.origin).href;
     } catch (e) {
       if (win) win.close();
       this._error = describeWsError(e, this._lang);
     }
+  }
+
+  /** Open a document from a title/row click (not just the small icons): preview
+   *  a file, open a web-link in a new tab. */
+  private _openDoc(doc: MaintenanceDocument): void {
+    if (doc.kind === "file") void this._preview(doc);
+    else if (doc.url) window.open(doc.url, "_blank", "noopener");
   }
 
   private _startEdit(doc: MaintenanceDocument): void {
@@ -447,7 +455,19 @@ export class MaintenanceDocumentsSection extends LitElement {
               icon=${isFile ? CATEGORY_ICONS[cat] : "mdi:link-variant"}
               @click=${() => isFile && this._preview(doc)}
             ></ha-icon>`}
-        <div class="doc-info">
+        <div
+          class="doc-info"
+          role="button"
+          tabindex="0"
+          title=${t("doc_open", L)}
+          @click=${() => this._openDoc(doc)}
+          @keydown=${(e: KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              this._openDoc(doc);
+            }
+          }}
+        >
           <div class="doc-title">${doc.title || doc.filename || doc.url}</div>
           <div class="doc-meta">${meta}</div>
         </div>
@@ -597,7 +617,9 @@ export class MaintenanceDocumentsSection extends LitElement {
       background: rgba(0, 0, 0, 0.5); color: #fff;
     }
     .lightbox-close ha-icon { --mdc-icon-size: 26px; }
-    .doc-info { flex: 1; min-width: 0; }
+    .doc-info { flex: 1; min-width: 0; cursor: pointer; border-radius: 6px; }
+    .doc-info:hover .doc-title { text-decoration: underline; }
+    .doc-info:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
     .doc-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .doc-meta { font-size: 12px; color: var(--secondary-text-color, #888); }
     .doc-row-actions { display: flex; gap: 4px; flex: none; }

@@ -573,6 +573,7 @@
   "doc_link_existing": "Collega un documento…",
   "doc_attach": "Collega",
   "doc_unlink": "Scollega",
+  "doc_page": "Pagina",
   "doc_search": "Cerca documenti…",
   "doc_search_none": "Nessun documento corrispondente"
 }

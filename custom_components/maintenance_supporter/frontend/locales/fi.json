@@ -573,6 +573,7 @@
   "doc_link_existing": "Liitä asiakirja…",
   "doc_attach": "Liitä",
   "doc_unlink": "Poista liitos",
+  "doc_page": "Sivu",
   "doc_search": "Hae asiakirjoja…",
   "doc_search_none": "Ei vastaavia asiakirjoja"
 }
