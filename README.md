@@ -159,10 +159,19 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Budget alerts at configurable thresholds
 
 ### Data Management
-- JSON, YAML, and CSV export and import (via WebSocket API and Settings panel) — JSON/CSV round-trip the full object asset record (incl. warranty, manual URL, notes); a dedicated one-row-per-object CSV export is available from the objects table (#67)
+- JSON, YAML, and CSV export and import (via WebSocket API and Settings panel) — JSON/CSV round-trip the full object asset record (incl. warranty, manual URL, notes, and attached-document metadata + web-links); a dedicated one-row-per-object CSV export is available from the objects table (#67)
 - QR code generation for mobile quick-actions (print, download SVG)
 - Complete maintenance history with cost, duration, and feedback tracking
 - Integration diagnostics with PII redaction
+
+### Documents & manuals (2.11.0+)
+- **Attach files to any object** — PDFs, manuals, photos, receipts, spare-part lists. Stored **backup-safe under `/config`** (so they ride along in every Home Assistant backup) and **content-addressed with reference counting**, so uploading the same file to several objects keeps a single shared copy — a hint tells you when an upload deduped and cost no extra space
+- **Categories + tags** — file each document as *Manual / Warranty / Invoice / Spare parts / Photo / Other* (localized) plus optional free tags, driving filtering and the storage-by-category breakdown
+- **Open in place** — click a document to open it: images pop into an in-app lightbox, PDFs and other files open inline in a new tab; image documents show a thumbnail in the list. Separate download button, and inline **edit** of title/category
+- **Fast capture** — multi-file upload, drag & drop onto the object, and **camera capture** on mobile; optional **web-links** (zero storage, not part of the backup) for manuals that live online
+- **Storage overview** — a collapsible **Document storage** card on the panel overview shows the real backup footprint, the space saved by dedup, and a per-object breakdown; click any object row to jump straight to it, or **search every document** across all objects from the card. Backed by a `sensor.<config>_document_storage` (`device_class: data_size`) with per-object and per-category attributes so you can automate on storage growth
+- **Documents at the task** — link an object's documents to a specific task so the right manual sits on the task-detail page where the work happens; for a PDF you can set a **jump-to page** so opening it lands on the relevant section (`#page=N`)
+- **Lifecycle & hygiene** — deleting a document frees its bytes only when the *last* reference goes; archiving an object keeps its documents (inert); a boot-time **storage-hygiene repair issue** flags orphaned or dangling blobs after a crash or partial restore and cleans them up in one click. Export/import carries document **metadata + web-links** (the binaries travel via the HA backup)
 
 ### Frontend
 - **Sidebar panel** with dashboard overview, object details, task history, analytics, and in-panel **settings editor**
@@ -181,7 +190,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Localized UI in **all 18 languages across all three surfaces** (since 1.4.2): English, German, Spanish, French, Italian, Dutch, Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 49 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, and quick-complete
+- 55 commands for full CRUD operations on objects, tasks, triggers, groups, vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -225,6 +234,7 @@ For a complete list of all configurable parameters, see [docs/CONFIGURATION.md](
 - **Binary Sensor** — one entity per maintenance task (`device_class: problem`). ON when overdue or triggered, ideal for HA automations
 - **Button** — one-press complete/skip/reset per task (`button.<object>_<task>_complete` / `_skip` / `_reset`)
 - **Calendar** — one global entity showing upcoming maintenance events for all tasks
+- **Document storage sensor** (2.11.0+) — one global entity `sensor.<config>_document_storage` (`device_class: data_size`) reporting the physical footprint of attached documents, with `dedup_savings_bytes`, `document_count`, and per-object / per-category breakdowns as attributes
 
 ### Sensor Attributes
 

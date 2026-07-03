@@ -422,6 +422,17 @@ async def ws_import_json(
             if nfc_warnings:
                 entry_info["warnings"] = nfc_warnings
             created.append(entry_info)
+
+            # (roadmap P6) recreate document metadata + web-links for the object
+            # (blobs travel via the /config backup; a JSON-only import leaves
+            # file docs dangling, which the storage-hygiene repair issue catches).
+            import_docs = obj_entry.get("documents")
+            if isinstance(import_docs, list) and import_docs:
+                from .. import DOCUMENT_STORE_KEY
+
+                doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+                if doc_store is not None:
+                    await doc_store.async_import_documents(obj_id, import_docs)
         else:
             errors.append({"name": obj_name, "reason": result.get("reason", "unknown")})
 

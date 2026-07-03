@@ -22,6 +22,7 @@ from .config_flow_trigger import TRIGGER_ENTITY_DOMAINS
 from .const import (
     CONF_ADMIN_PANEL_USER_IDS,
     CONF_TASKS,
+    DOMAIN,
     HistoryEntryType,
     ScheduleType,
 )
@@ -651,6 +652,30 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         self.hass.config_entries.async_update_entry(entry, data=new_data)
 
 
+class DocumentStorageRepairFlow(RepairsFlow):
+    """Confirm + reclaim orphaned / dangling document storage.
+
+    Single action: run :meth:`DocumentStore.async_cleanup_issues`, which deletes
+    unreferenced blob files and prunes dead document records. Completing the flow
+    resolves the issue; if a later boot-time scan still finds anomalies it simply
+    reappears. To leave things alone, use HA's built-in **Ignore** button.
+    """
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> data_entry_flow.FlowResult:
+        """Confirm, then reclaim orphaned/dangling storage on submit."""
+        if user_input is not None:
+            from . import DOCUMENT_STORE_KEY
+
+            store = self.hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+            if store is not None:
+                await store.async_cleanup_issues()
+            return self.async_create_entry(data={})
+
+        return self.async_show_form(step_id="init", data_schema=vol.Schema({}))
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -661,4 +686,6 @@ async def async_create_fix_flow(
         return OrphanAdminPanelUserRepairFlow()
     if issue_id.startswith("stale_action_entity_"):
         return StaleActionEntityRepairFlow()
+    if issue_id == "document_storage_issues":
+        return DocumentStorageRepairFlow()
     return MissingTriggerEntityRepairFlow()

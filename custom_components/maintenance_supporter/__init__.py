@@ -65,6 +65,7 @@ from .coordinator import MaintenanceCoordinator
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .frontend import async_register_card
 from .helpers.dates import INTERVAL_UNITS
+from .helpers.documents import DocumentStore
 from .helpers.notification_manager import NotificationManager
 from .helpers.schedule import normalize_task_storage
 from .panel import async_register_panel, async_unregister_panel
@@ -75,6 +76,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 NOTIFICATION_MANAGER_KEY = "_notification_manager"
+DOCUMENT_STORE_KEY = "_document_store"
 
 
 @dataclass
@@ -161,6 +163,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     # Create the notification manager (shared across all entries)
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = NotificationManager(hass)
+
+    # Create + load the global document store (per-object doc metadata + the
+    # content-addressed blob registry; binaries live on disk under /config).
+    doc_store = DocumentStore(hass)
+    await doc_store.async_load()
+    hass.data[DOMAIN][DOCUMENT_STORE_KEY] = doc_store
+
+    # Authenticated upload + serve endpoints for document blobs (the blobs live
+    # under /config, so they must never be exposed via an unauthenticated path).
+    from .views import async_register_document_views
+
+    async_register_document_views(hass)
 
     async def _handle_complete(call: ServiceCall) -> None:
         """Handle the complete service call."""
@@ -747,6 +761,13 @@ async def async_setup_entry(
         # notify groups) are present before we judge the service missing.
         entry.async_on_unload(async_at_started(hass, _verify_notify_service))
 
+        # Surface document-storage anomalies (orphan/dangling blobs after a
+        # crash or partial restore) as a fixable repair issue. Deferred to
+        # HA-started so the store has finished loading.
+        entry.async_on_unload(
+            async_at_started(hass, _check_document_storage_issues)
+        )
+
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
         # Maintenance object entry: create Store + coordinator
@@ -836,6 +857,37 @@ def _verify_notify_service(hass: HomeAssistant) -> None:
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if isinstance(nm, NotificationManager):
         nm.async_verify_configured_service()
+
+
+_DOC_STORAGE_ISSUE_ID = "document_storage_issues"
+
+
+async def _check_document_storage_issues(hass: HomeAssistant) -> None:
+    """Sync the document-storage repair issue with the current on-disk reality.
+
+    The store is consistent under normal operation; anomalies (orphaned blobs,
+    dangling records, stale registry entries) only arise from a crash, an
+    external file delete, or a partial restore — so a boot-time scan is the
+    right trigger. The fixable issue's flow reclaims the space; once a later
+    scan comes back clean the issue is removed.
+    """
+    from homeassistant.helpers import issue_registry as ir
+
+    store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if not isinstance(store, DocumentStore):
+        return
+    issues = await store.async_find_issues()
+    if any(issues.values()):
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            _DOC_STORAGE_ISSUE_ID,
+            is_fixable=True,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=_DOC_STORAGE_ISSUE_ID,
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, _DOC_STORAGE_ISSUE_ID)
 
 
 async def _async_global_options_updated(
@@ -983,9 +1035,19 @@ async def async_remove_entry(
     # v1.5.4: also called from ws_delete_object — but if the user removes the
     # config entry from HA's "Configure" UI, that path doesn't run, leaving
     # phantom task_refs in groups. Belt-and-suspenders.
-    from .websocket import cleanup_group_refs
+    from .websocket import cleanup_group_refs, object_id_for_entry
 
     cleanup_group_refs(hass, entry_id=entry.entry_id)
+
+    # Remove this object's documents (refcount-aware — a blob shared with another
+    # object survives; only bytes freed for good are reclaimed). Archiving keeps
+    # docs; permanent deletion is the trigger, and this hook fires for the WS,
+    # the Configure-UI, and the service delete paths alike — the single place it
+    # belongs.
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if isinstance(doc_store, DocumentStore):
+        await doc_store.async_remove_object(object_id_for_entry(entry))
+
     _LOGGER.debug("Removed store for entry %s", entry.entry_id)
     # The global summary coordinator has no listener for entry removal, so tell
     # it to drop this object from its counts immediately (otherwise the summary

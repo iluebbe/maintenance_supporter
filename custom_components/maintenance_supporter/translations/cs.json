@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Úložiště dokumentů"
+      },
       "summary_total_tasks": {
         "name": "Celkem úkolů"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Úložiště dokumentů vyžaduje vyčištění",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Uvolnit úložiště dokumentů",
+            "description": "Maintenance Supporter našel neodkazované soubory a/nebo mrtvé záznamy v úložišti dokumentů — obvykle následek pádu, externího smazání souboru nebo částečného obnovení.\n\nKliknutím na **Odeslat** uvolníte místo: neodkazované a zastaralé soubory se smažou a mrtvé záznamy dokumentů se odstraní. Soubory, na které stále odkazuje dokument, se nikdy nedotknou.\n\n(Chcete-li zavřít bez vyčištění, použijte tlačítko **Ignorovat** v Home Assistant na stránce Opravy.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Spouštěcí senzor nenalezen: {task_name}",
       "fix_flow": {

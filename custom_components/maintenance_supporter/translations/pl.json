@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Magazyn dokumentów"
+      },
       "summary_total_tasks": {
         "name": "Łącznie zadań"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Magazyn dokumentów wymaga oczyszczenia",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Odzyskaj miejsce w magazynie dokumentów",
+            "description": "Maintenance Supporter znalazł niereferencjonowane pliki i/lub martwe rekordy w magazynie dokumentów — zwykle skutek awarii, zewnętrznego usunięcia pliku lub częściowego przywrócenia.\n\nKliknij **Zatwierdź**, aby odzyskać miejsce: niereferencjonowane i nieaktualne pliki są usuwane, a martwe rekordy dokumentów kasowane. Pliki nadal używane przez dokument nigdy nie są ruszane.\n\n(Aby zignorować bez czyszczenia, użyj przycisku **Zignoruj** w Home Assistant na stronie Naprawy.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Nie znaleziono czujnika wyzwalającego: {task_name}",
       "fix_flow": {

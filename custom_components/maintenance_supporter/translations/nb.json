@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Dokumentlagring"
+      },
       "summary_total_tasks": {
         "name": "Totalt antall oppgaver"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Dokumentlagring trenger opprydding",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Frigjør dokumentlagring",
+            "description": "Maintenance Supporter fant urefererte filer og/eller døde oppføringer i dokumentlagringen — vanligvis etter en krasj, en ekstern filsletting eller en delvis gjenoppretting.\n\nKlikk **Send inn** for å frigjøre plass: urefererte og utdaterte filer slettes, og døde dokumentoppføringer fjernes. Filer som fortsatt refereres av et dokument, røres aldri.\n\n(For å avvise uten opprydding, bruk Home Assistants **Ignorer**-knapp på Reparasjoner-siden.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Utløsersensor ikke funnet: {task_name}",
       "fix_flow": {

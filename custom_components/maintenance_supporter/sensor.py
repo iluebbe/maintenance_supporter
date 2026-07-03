@@ -11,6 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
+from homeassistant.const import UnitOfInformation
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -25,6 +26,7 @@ from .const import (
     DEFAULT_ENTITY_LOGIC,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    SIGNAL_DOCUMENTS_UPDATED,
     SIGNAL_TASK_RESET,
     MaintenanceStatus,
     slugify_object_name,
@@ -48,6 +50,7 @@ SUMMARY_METRICS: list[tuple[str, str]] = [
 
 if TYPE_CHECKING:
     from . import MaintenanceSupporterConfigEntry
+    from .helpers.documents import DocumentStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,13 +65,20 @@ async def async_setup_entry(
     """Set up sensor entities for a maintenance object."""
     # Global entry: expose the aggregate summary sensors instead of per-task ones.
     if entry.unique_id == GLOBAL_UNIQUE_ID:
+        from . import DOCUMENT_STORE_KEY
+
         runtime_data = entry.runtime_data
         summary = runtime_data.summary_coordinator if runtime_data else None
+        entities: list[SensorEntity] = []
         if summary is not None:
-            async_add_entities(
+            entities.extend(
                 MaintenanceSummarySensor(summary, key, icon)
                 for key, icon in SUMMARY_METRICS
             )
+        # One global storage sensor (total blob bytes = real backup cost).
+        doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+        entities.append(DocumentStorageSensor(hass, doc_store))
+        async_add_entities(entities)
         return
 
     runtime_data = entry.runtime_data
@@ -475,3 +485,77 @@ class MaintenanceSummarySensor(
         """Return the current count for this metric."""
         data = self.coordinator.data or {}
         return int(data.get(self._key, 0))
+
+
+class DocumentStorageSensor(SensorEntity):
+    """Total on-disk size of stored document blobs — the real per-backup cost.
+
+    The state is the **physical** footprint (unique, deduped blobs); the dedup
+    saving and per-category/logical breakdown ride along as attributes. It lives
+    on the global "Maintenance Supporter" service device next to the summary
+    sensors and refreshes off the ``SIGNAL_DOCUMENTS_UPDATED`` dispatcher signal
+    (fired by the DocumentStore after every change) rather than polling.
+    """
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "document_storage"
+    _attr_device_class = SensorDeviceClass.DATA_SIZE
+    _attr_native_unit_of_measurement = UnitOfInformation.BYTES
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:file-cabinet"
+
+    def __init__(self, hass: HomeAssistant, store: DocumentStore) -> None:
+        """Initialize the global document-storage sensor."""
+        self.hass = hass
+        self._store = store
+        self._attr_unique_id = f"{GLOBAL_UNIQUE_ID}_document_storage"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, GLOBAL_UNIQUE_ID)},
+            name="Maintenance Supporter",
+            entry_type=DeviceEntryType.SERVICE,
+        )
+        # Stable, language-independent entity_id (has_entity_name would otherwise
+        # derive the slug from the translated friendly name).
+        self.entity_id = async_generate_entity_id(
+            ENTITY_ID_FORMAT,
+            "maintenance_supporter_document_storage",
+            hass=hass,
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to document-change notifications."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, SIGNAL_DOCUMENTS_UPDATED, self._handle_update
+            )
+        )
+
+    @callback
+    def _handle_update(self) -> None:
+        """Refresh state after a document mutation."""
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> int:
+        """Physical footprint of all stored blobs, in bytes."""
+        return int(self._store.storage_summary()["total_bytes"])
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Dedup saving + logical/per-category breakdown.
+
+        Per-object drill-down is intentionally left to the ``documents/storage``
+        WS command (id-keyed and potentially large — not recorder-friendly).
+        """
+        summ = self._store.storage_summary()
+        return {
+            "logical_bytes": summ["logical_bytes"],
+            "dedup_savings_bytes": summ["dedup_savings_bytes"],
+            "blob_count": summ["blob_count"],
+            "file_count": summ["file_count"],
+            "link_count": summ["link_count"],
+            "document_count": summ["document_count"],
+            "by_category": summ["by_category"],
+        }

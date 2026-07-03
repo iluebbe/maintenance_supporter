@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Archiviazione documenti"
+      },
       "summary_total_tasks": {
         "name": "Attività totali"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "L'archiviazione documenti richiede pulizia",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Recupera spazio di archiviazione",
+            "description": "Maintenance Supporter ha trovato file non referenziati e/o record morti nell'archiviazione documenti — di solito in seguito a un arresto anomalo, a un'eliminazione esterna di file o a un ripristino parziale.\n\nFai clic su **Invia** per recuperare spazio: i file non referenziati e obsoleti vengono eliminati e i record di documenti morti rimossi. I file ancora referenziati da un documento non vengono mai toccati.\n\n(Per ignorare senza pulire, usa il pulsante **Ignora** di Home Assistant nella pagina Riparazioni.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Sensore trigger non trovato: {task_name}",
       "fix_flow": {

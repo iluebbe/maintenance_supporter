@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Almacenamiento de documentos"
+      },
       "summary_total_tasks": {
         "name": "Total de tareas"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "El almacenamiento de documentos necesita limpieza",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Recuperar almacenamiento de documentos",
+            "description": "Maintenance Supporter encontró archivos sin referencia y/o registros muertos en el almacenamiento de documentos, normalmente tras un fallo, una eliminación externa de archivos o una restauración parcial.\n\nHaz clic en **Enviar** para recuperar el espacio: los archivos sin referencia y obsoletos se eliminan y se quitan los registros de documentos muertos. Los archivos que todavía referencia algún documento nunca se tocan.\n\n(Para descartar sin limpiar, usa el botón **Ignorar** de Home Assistant en la página de Reparaciones.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Sensor disparador no encontrado: {task_name}",
       "fix_flow": {

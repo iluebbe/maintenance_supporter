@@ -1338,6 +1338,9 @@
       "summary_ok": {
         "name": "OK"
       },
+      "document_storage": {
+        "name": "Documentopslag"
+      },
       "summary_total_tasks": {
         "name": "Totaal aantal taken"
       }
@@ -1500,6 +1503,17 @@
     }
   },
   "issues": {
+    "document_storage_issues": {
+      "title": "Documentopslag moet worden opgeschoond",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Documentopslag vrijmaken",
+            "description": "Maintenance Supporter heeft niet-gerefereerde bestanden en/of dode records in de documentopslag gevonden — meestal het gevolg van een crash, een externe bestandsverwijdering of een gedeeltelijke herstelbewerking.\n\nKlik op **Verzenden** om ruimte vrij te maken: niet-gerefereerde en verouderde bestanden worden verwijderd en dode documentrecords worden opgeruimd. Bestanden waar nog een document naar verwijst, worden nooit aangeraakt.\n\n(Om te negeren zonder op te schonen, gebruik de knop **Negeren** van Home Assistant op de pagina Reparaties.)"
+          }
+        }
+      }
+    },
     "missing_trigger_entity": {
       "title": "Triggersensor niet gevonden: {task_name}",
       "fix_flow": {

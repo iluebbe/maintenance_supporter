@@ -28,3 +28,23 @@ export function downloadTextFile(
   // asynchronously, and revoking the blob URL immediately cancels it.
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+
+/**
+ * Download a (same-origin) URL as a file — Companion-app safe.
+ *
+ * For binary blobs served by our authenticated view: fetch a signed path via
+ * `auth/sign_path` first, then hand the signed URL here. Same DOM-anchored,
+ * `target="_blank"` trick as {@link downloadTextFile} so the Companion WebView
+ * engages its download handler; no blob URL to revoke.
+ */
+export function downloadUrl(url: string, filename: string): void {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.dispatchEvent(new MouseEvent("click"));
+  document.body.removeChild(a);
+}
