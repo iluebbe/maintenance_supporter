@@ -48,6 +48,12 @@ _TASK_IDS_SCHEMA = vol.All(
     [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
     vol.Length(max=_MAX_TASK_IDS),
 )
+# {task_id: page} jump-to-page hints; page 0 clears, >=1 sets (PDFs, #page=N).
+# A plain ``str`` type-key matches any task id — a ``vol.All(str, ...)`` key is
+# treated as an unknown key by voluptuous and rejected as "extra keys".
+_TASK_PAGES_SCHEMA = vol.Schema(
+    {str: vol.All(int, vol.Range(min=0, max=99999))}
+)
 
 
 def _get_store(hass: HomeAssistant) -> DocumentStore:
@@ -138,6 +144,7 @@ async def ws_documents_add_link(
         vol.Optional("title"): vol.All(str, vol.Length(max=MAX_NAME_LENGTH)),
         vol.Optional("tags"): _TAGS_SCHEMA,
         vol.Optional("task_ids"): _TASK_IDS_SCHEMA,
+        vol.Optional("task_pages"): _TASK_PAGES_SCHEMA,
     }
 )
 @require_write
@@ -147,7 +154,7 @@ async def ws_documents_update(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Update editable document metadata (title / tags / task associations)."""
+    """Update editable document metadata (title / tags / task links / per-task page)."""
     store = _get_store(hass)
     title = msg.get("title")
     ok = await store.async_update(
@@ -155,6 +162,7 @@ async def ws_documents_update(
         title=(title.strip() or None) if isinstance(title, str) else None,
         tags=msg.get("tags"),
         task_ids=msg.get("task_ids"),
+        task_pages=msg.get("task_pages"),
     )
     if not ok:
         connection.send_error(msg["id"], "not_found", "Document not found")

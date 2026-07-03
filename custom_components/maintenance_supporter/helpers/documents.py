@@ -297,8 +297,15 @@ class DocumentStore:
         title: str | None = None,
         tags: list[str] | None = None,
         task_ids: list[str] | None = None,
+        task_pages: dict[str, int] | None = None,
     ) -> bool:
-        """Update editable metadata (title / tags / task associations)."""
+        """Update editable metadata (title / tags / task links / per-task page).
+
+        ``task_pages`` is a ``{task_id: page}`` map merged into the doc: a page
+        ``>= 1`` sets the jump-to page for that task's link, ``0`` clears it. Page
+        hints are always pruned to the currently linked tasks so an unlink also
+        forgets its page, and an empty map is dropped to keep the record clean.
+        """
         doc = self.documents.get(doc_id)
         if doc is None:
             return False
@@ -308,6 +315,22 @@ class DocumentStore:
             doc["tags"] = list(tags)
         if task_ids is not None:
             doc["task_ids"] = list(task_ids)
+        if task_pages is not None:
+            merged = dict(doc.get("task_pages") or {})
+            for tid, page in task_pages.items():
+                if isinstance(page, int) and page >= 1:
+                    merged[tid] = page
+                else:
+                    merged.pop(tid, None)
+            doc["task_pages"] = merged
+        pages = doc.get("task_pages")
+        if pages is not None:
+            linked = set(doc.get("task_ids") or [])
+            pruned = {t: p for t, p in pages.items() if t in linked}
+            if pruned:
+                doc["task_pages"] = pruned
+            else:
+                doc.pop("task_pages", None)
         await self._async_save()
         return True
 
