@@ -574,6 +574,11 @@
   "doc_attach": "जोड़ें",
   "doc_unlink": "अलग करें",
   "doc_page": "पृष्ठ",
+  "chart_range_7d": "7दिन",
+  "chart_range_30d": "30दिन",
+  "chart_range_90d": "90दिन",
+  "chart_range_1y": "1वर्ष",
+  "chart_since_service": "पिछले रखरखाव के बाद से",
   "doc_search": "दस्तावेज़ खोजें…",
   "doc_search_none": "कोई मेल खाता दस्तावेज़ नहीं"
 }

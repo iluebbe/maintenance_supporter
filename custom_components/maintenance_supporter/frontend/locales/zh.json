@@ -574,6 +574,11 @@
   "doc_attach": "关联",
   "doc_unlink": "取消关联",
   "doc_page": "页码",
+  "chart_range_7d": "7天",
+  "chart_range_30d": "30天",
+  "chart_range_90d": "90天",
+  "chart_range_1y": "1年",
+  "chart_since_service": "自上次维护以来",
   "doc_search": "搜索文档…",
   "doc_search_none": "没有匹配的文档"
 }

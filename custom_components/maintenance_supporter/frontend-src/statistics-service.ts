@@ -22,10 +22,15 @@ export class StatisticsService {
   }
 
   /**
-   * Get 30 days of hourly statistics for the detail sparkline (300x140 chart).
+   * Statistics for the detail chart. Hourly resolution for short ranges,
+   * daily beyond ~5 weeks (keeps a 1-year window at ~365 points).
    */
-  async getDetailStats(entityId: string, isCounter: boolean): Promise<StatisticsPoint[]> {
-    return this._getStats(entityId, "hour", DETAIL_DAYS, isCounter);
+  async getDetailStats(
+    entityId: string,
+    isCounter: boolean,
+    days: number = DETAIL_DAYS,
+  ): Promise<StatisticsPoint[]> {
+    return this._getStats(entityId, days <= 35 ? "hour" : "day", days, isCounter);
   }
 
   /**
@@ -45,9 +50,10 @@ export class StatisticsService {
     const result = new Map<string, StatisticsPoint[]>();
     const toFetch: Array<{ entityId: string; isCounter: boolean }> = [];
 
-    // Check cache first, collect cache misses
+    // Check cache first, collect cache misses (same key shape as _getStats
+    // so the single-entity mini path and the batch path share the cache).
     for (const e of entities) {
-      const cacheKey = `${e.entityId}:day`;
+      const cacheKey = `${e.entityId}:day:${MINI_DAYS}`;
       const cached = this._cache.get(cacheKey);
       if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
         result.set(e.entityId, cached.points);
@@ -91,7 +97,9 @@ export class StatisticsService {
     days: number,
     isCounter: boolean,
   ): Promise<StatisticsPoint[]> {
-    const cacheKey = `${entityId}:${period}`;
+    // days must be part of the key: the same entity/period at a different
+    // range (7d vs 30d) is a different dataset, not a cache hit.
+    const cacheKey = `${entityId}:${period}:${days}`;
 
     const cached = this._cache.get(cacheKey);
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
@@ -170,7 +178,7 @@ export class StatisticsService {
         const rows = response[entityId] || [];
         const points = this._normalizeRows(rows, isCounter);
         out.set(entityId, points);
-        this._cache.set(`${entityId}:${period}`, {
+        this._cache.set(`${entityId}:${period}:${MINI_DAYS}`, {
           entityId,
           fetchedAt: Date.now(),
           period,
