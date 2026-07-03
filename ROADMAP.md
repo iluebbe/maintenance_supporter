@@ -51,6 +51,13 @@ Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
 across objects, areas, and groups for filtering and reporting — orthogonal to
 the existing hierarchical grouping.
 
+### 💡 Warranty-expiry reminders
+Remind ahead of an object's warranty running out, linked to its stored warranty
+document. Reuses the notification manager (lead times, quiet hours, bundling)
+and the documents feature (attach the warranty PDF, surface it in the reminder).
+Distinct from a recurring task's due date — it's a one-off date on the
+object/document, not a schedule.
+
 ---
 
 ## Exploratory (longer-term ideas)

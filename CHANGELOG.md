@@ -2,6 +2,22 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.11.0] - 2026-07-03
+
+### ✨ Documents & manuals — attach files to your maintenance objects
+
+A complete document-management feature: keep the manual, warranty, invoice, spare-part list or a photo right on the object it belongs to.
+
+- **Attach any file** (PDF, image, …) to an object. Blobs are stored **backup-safe under `/config`** and **content-addressed with reference counting**, so uploading the same file to several objects keeps a single shared copy (you get a "deduped, no extra space" hint).
+- **Categories** (Manual / Warranty / Invoice / Spare parts / Photo / Other) + free tags, with inline **edit** of title/category.
+- **Open in place** — click a document to open it: images in an in-app lightbox, PDFs and other files inline in a new tab, with image thumbnails in the list and a separate download button.
+- **Fast capture** — multi-file upload, drag & drop, and **camera capture** on mobile; optional **web-links** (zero storage) for manuals that live online.
+- **Documents at the task** — link an object's documents to a specific task, and for a PDF set a **jump-to page** so opening it lands on the relevant section.
+- **Storage overview** — a collapsible **Document storage** card on the panel overview shows the real backup footprint, the space saved by dedup, and a per-object breakdown; click an object row to jump to it, or **search every document** from the card. A `sensor.<config>_document_storage` (`device_class: data_size`) exposes the totals for automations.
+- **Lifecycle & hygiene** — refcount-aware deletion (bytes freed only with the last reference), archiving keeps documents (inert), and a boot-time **repair issue** cleans up orphaned or dangling blobs after a crash or partial restore. Export/import carries document metadata + web-links (the binaries travel via the HA backup).
+
+Documents are keyed by the object's own id (so they survive export/import) and are served only through an **authenticated** endpoint — never a public static path.
+
 ## [2.10.9] - 2026-06-28
 
 ### 🐛 Notification picker + delivery now include notify *entities*, not just services
