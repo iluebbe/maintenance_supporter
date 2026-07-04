@@ -128,6 +128,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _objectsTableColumns: string[] = DEFAULT_OBJECTS_TABLE_COLUMNS;
   // v2.10.0: archived tasks/objects are hidden until this toggle is on.
   @state() private _showArchived = false;
+  // v2.15.0: bulk selection on the dashboard task list (multi-select +
+  // complete/archive). Keys are `${entry_id}:${task_id}`.
+  @state() private _bulkMode = false;
+  @state() private _bulkSelected = new Set<string>();
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -675,6 +679,85 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (this._toastTimer) clearTimeout(this._toastTimer);
     this._toastMessage = ""; this._toastUndo = null; this._toastTimer = null;
     undo?.();
+  }
+
+  // --- Bulk selection (dashboard task list) ---
+
+  private _bulkKey(row: TaskRow): string {
+    return `${row.entry_id}:${row.task_id}`;
+  }
+
+  private _toggleBulkMode(): void {
+    this._bulkMode = !this._bulkMode;
+    if (!this._bulkMode) this._bulkSelected = new Set();
+  }
+
+  private _toggleBulkRow(row: TaskRow): void {
+    const key = this._bulkKey(row);
+    const next = new Set(this._bulkSelected);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    this._bulkSelected = next;
+  }
+
+  private _bulkSelectAll(rows: TaskRow[]): void {
+    const keys = rows.map((r) => this._bulkKey(r));
+    const allSelected = keys.every((k) => this._bulkSelected.has(k));
+    this._bulkSelected = allSelected ? new Set() : new Set(keys);
+  }
+
+  /** Run one WS message per selected row (the endpoints are per-task); reports
+   *  how many succeeded and refreshes once at the end. */
+  private async _runBulk(
+    rows: TaskRow[],
+    build: (row: TaskRow) => Record<string, unknown>,
+    doneMsg: (n: number) => string,
+    undo?: () => void,
+  ): Promise<void> {
+    const selected = rows.filter((r) => this._bulkSelected.has(this._bulkKey(r)));
+    if (selected.length === 0) return;
+    this._actionLoading = true;
+    let ok = 0;
+    for (const row of selected) {
+      try {
+        await this.hass.connection.sendMessagePromise(build(row));
+        ok++;
+      } catch { /* keep going; report the successful count */ }
+    }
+    this._actionLoading = false;
+    this._bulkSelected = new Set();
+    this._bulkMode = false;
+    await this._loadData();
+    if (undo && ok > 0) this._showUndoToast(doneMsg(ok), undo);
+    else this._showToast(doneMsg(ok));
+  }
+
+  private _bulkComplete(rows: TaskRow[]): void {
+    void this._runBulk(
+      rows,
+      (row) => ({ type: "maintenance_supporter/task/complete", entry_id: row.entry_id, task_id: row.task_id }),
+      (n) => t("bulk_completed", this._lang).replace("{n}", String(n)),
+    );
+  }
+
+  private _bulkArchive(rows: TaskRow[]): void {
+    // Capture the selection so the undo can unarchive exactly those.
+    const keys = rows.filter((r) => this._bulkSelected.has(this._bulkKey(r)))
+      .map((r) => ({ entry_id: r.entry_id, task_id: r.task_id }));
+    void this._runBulk(
+      rows,
+      (row) => ({ type: "maintenance_supporter/task/archive", entry_id: row.entry_id, task_id: row.task_id }),
+      (n) => t("bulk_archived", this._lang).replace("{n}", String(n)),
+      async () => {
+        for (const k of keys) {
+          try {
+            await this.hass.connection.sendMessagePromise({
+              type: "maintenance_supporter/task/unarchive", entry_id: k.entry_id, task_id: k.task_id,
+            });
+          } catch { /* best effort */ }
+        }
+        await this._loadData();
+      },
+    );
   }
 
   // --- Actions ---
@@ -1269,6 +1352,15 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${this._showArchived ? t("hide_archived", L) : `${t("show_archived", L)} (${archivedCount})`}
           </ha-button>
         ` : nothing}
+        ${!isOperator && rows.length > 0 ? html`
+          <ha-button
+            class="bulk-toggle ${this._bulkMode ? "active" : ""}"
+            @click=${() => this._toggleBulkMode()}
+          >
+            <ha-icon icon="mdi:checkbox-multiple-marked-outline"></ha-icon>
+            ${this._bulkMode ? t("cancel", L) : t("bulk_select", L)}
+          </ha-button>
+        ` : nothing}
         ${!isOperator ? html`
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}
@@ -1290,13 +1382,16 @@ export class MaintenanceSupporterPanel extends LitElement {
               <p>${t("no_tasks", L)}</p>
             </div>
           `
-        : this._groupByMode === "none"
-          ? html`
-              <div class="task-table">
-                ${rows.map((row) => this._renderOverviewRow(row))}
-              </div>
-            `
-          : this._renderGroupedTasks(rows, L)}
+        : html`
+            ${this._bulkMode ? this._renderBulkBar(rows, L) : nothing}
+            ${this._groupByMode === "none"
+              ? html`
+                  <div class="task-table${this._bulkMode ? " bulk" : ""}">
+                    ${rows.map((row) => this._renderOverviewRow(row))}
+                  </div>
+                `
+              : this._renderGroupedTasks(rows, L)}
+          `}
 
       ${this._features.groups && !isOperator ? this._renderGroupsSection() : nothing}
       ${!isOperator
@@ -1309,6 +1404,30 @@ export class MaintenanceSupporterPanel extends LitElement {
             }}
           ></maintenance-storage-section-card>`
         : nothing}
+    `;
+  }
+
+  private _renderBulkBar(rows: TaskRow[], L: string) {
+    const n = this._bulkSelected.size;
+    const allSelected = rows.length > 0 && rows.every((r) => this._bulkSelected.has(this._bulkKey(r)));
+    return html`
+      <div class="bulk-bar">
+        <label class="bulk-selectall">
+          <input type="checkbox" .checked=${allSelected} @change=${() => this._bulkSelectAll(rows)} />
+          ${t("bulk_select_all", L)}
+        </label>
+        <span class="bulk-count">${t("bulk_n_selected", L).replace("{n}", String(n))}</span>
+        <span class="bulk-actions">
+          <ha-button appearance="filled" .disabled=${n === 0 || this._actionLoading}
+            @click=${() => this._bulkComplete(rows)}>
+            <ha-icon icon="mdi:check"></ha-icon> ${t("complete", L)}
+          </ha-button>
+          <ha-button appearance="plain" .disabled=${n === 0 || this._actionLoading}
+            @click=${() => this._bulkArchive(rows)}>
+            <ha-icon icon="mdi:archive-outline"></ha-icon> ${t("archive", L)}
+          </ha-button>
+        </span>
+      </div>
     `;
   }
 
@@ -1348,7 +1467,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span>${key}</span>
             <span class="group-section-count">(${taskRows.length})</span>
           </summary>
-          <div class="task-table">
+          <div class="task-table${this._bulkMode ? " bulk" : ""}">
             ${taskRows.map((row) => this._renderOverviewRow(row))}
           </div>
         </details>
@@ -1764,8 +1883,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     const userName = row.responsible_user_id ? this._userService?.getUserName(row.responsible_user_id) : null;
     const hasSub = row.group_names.length > 0 || areaName || userName;
 
+    const bulkSelected = this._bulkMode && this._bulkSelected.has(this._bulkKey(row));
     return html`
-      <div class="task-row${!row.enabled ? ' task-disabled' : ''}">
+      <div class="task-row${!row.enabled ? ' task-disabled' : ''}${bulkSelected ? ' bulk-selected' : ''}">
+        ${this._bulkMode ? html`
+          <label class="cell bulk-check" @click=${(e: Event) => e.stopPropagation()}>
+            <input type="checkbox" .checked=${bulkSelected} @change=${() => this._toggleBulkRow(row)} />
+          </label>
+        ` : nothing}
         <span class="cell-badges">
           <span class="status-badge ${row.archived ? 'archived' : (row.is_done ? 'done' : row.status)}">${row.archived ? t("archived", L) : (row.is_done ? t("completed", L) : t(row.status, L))}</span>
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}

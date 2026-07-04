@@ -105,6 +105,22 @@ export const panelStyles = css`
     transition: background 0.15s;
   }
 
+  /* Bulk selection: a leading checkbox column while selecting. */
+  .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto; }
+  .bulk-check { display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .bulk-check input, .bulk-selectall input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary-color); }
+  .task-row.bulk-selected { background: color-mix(in srgb, var(--primary-color) 12%, transparent); }
+  .bulk-bar {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 8px 12px; margin-bottom: 8px; border-radius: 8px;
+    background: var(--secondary-background-color); border: 1px solid var(--divider-color);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .bulk-selectall { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; }
+  .bulk-count { color: var(--secondary-text-color); font-size: 13px; }
+  .bulk-actions { margin-left: auto; display: inline-flex; gap: 8px; }
+  .bulk-toggle.active { --mdc-theme-primary: var(--primary-color); }
+
   .task-row:hover {
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
