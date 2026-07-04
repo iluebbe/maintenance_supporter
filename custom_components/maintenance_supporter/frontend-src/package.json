@@ -18,7 +18,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "playwright": "1.60"
+    "playwright": "1.61"
   },
   "overrides": {
     "esbuild": "$esbuild"
