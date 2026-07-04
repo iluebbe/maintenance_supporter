@@ -4,6 +4,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Undo instead of a confirmation for archiving
+
+- Archiving a task or an object now happens **immediately with an "Undo" toast**
+  instead of a blocking confirmation dialog — archiving is fully reversible, so
+  one tap gets it back. Deleting still asks for confirmation (it isn't
+  reversible).
+
 ### ✨ Hide outliers on trigger charts
 
 - A **filter toggle** on the sensor chart (the funnel icon next to the range
