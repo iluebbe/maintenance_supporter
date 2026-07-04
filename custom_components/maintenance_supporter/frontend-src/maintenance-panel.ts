@@ -57,6 +57,8 @@ import { renderRecommendationBars } from "./renderers/recommendation";
 import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./renderers/seasonal";
 import { renderCostDurationCard } from "./renderers/charts";
+import { renderTriggerProgress, renderMiniSparkline, renderDaysProgress } from "./renderers/progress";
+import { renderHistoryFilters, renderHistoryList, type HistoryContext } from "./renderers/history";
 
 type View = "overview" | "object" | "task" | "all_objects";
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
@@ -64,9 +66,6 @@ type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
 type GroupByMode = "none" | "area" | "group" | "user";
 
 // Chart dimension constants for mini sparklines (overview)
-const MINI_SPARKLINE_W = 60;
-const MINI_SPARKLINE_H = 20;
-const MAX_MINI_POINTS = 30;
 
 @customElement("maintenance-supporter-panel")
 export class MaintenanceSupporterPanel extends LitElement {
@@ -1722,11 +1721,11 @@ export class MaintenanceSupporterPanel extends LitElement {
             ? html`<div class="days-bar"><div class="days-bar-fill${daysOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div></div>`
             : nothing}
           ${row.trigger_config
-            ? this._renderTriggerProgress(row)
+            ? renderTriggerProgress(row)
             : !hasDaysBar && row.trigger_active
             ? html`<span style="color:var(--maint-triggered-color);font-weight:600">⚡</span>`
             : nothing}
-          ${this._renderMiniSparkline(row)}
+          ${renderMiniSparkline(row, this._miniStatsData, this._lang)}
         </span>
         <span class="row-actions">
           <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
@@ -1754,174 +1753,6 @@ export class MaintenanceSupporterPanel extends LitElement {
    * Render a compact trigger progress bar for overview rows.
    * Works for threshold (value vs limit), counter (value/delta vs target), state_change (count vs target).
    */
-  private _renderTriggerProgress(row: TaskRow | MaintenanceTask) {
-    const tc = row.trigger_config ?? null;
-    if (!tc) return nothing;
-
-    const triggerType = tc.type || "threshold";
-    const unit = row.trigger_entity_info?.unit_of_measurement ?? "";
-
-    let pct = 0;
-    let label = "";
-
-    if (triggerType === "threshold") {
-      const val = row.trigger_current_value ?? null;
-      if (val == null) return nothing;
-      const above = tc.trigger_above;
-      const below = tc.trigger_below;
-      if (above != null) {
-        // Progress toward upper limit
-        const low = below ?? 0;
-        const range = above - low || 1;
-        pct = Math.min(100, Math.max(0, ((val - low) / range) * 100));
-        label = `${val.toFixed(1)} / ${above} ${unit}`;
-      } else if (below != null) {
-        // Progress toward lower limit (inverted: lower is worse)
-        // Use entity max, or 2x the threshold as a stable "safe" reference.
-        // Using val*2 caused a dynamic ceiling that distorted the bar.
-        const entityMax = row.trigger_entity_info?.max;
-        const high = entityMax ?? ((below * 2) || 100);
-        const range = high - below || 1;
-        pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
-        label = `${val.toFixed(1)} / ${below} ${unit}`;
-      } else {
-        return nothing;
-      }
-    } else if (triggerType === "counter") {
-      const target = tc.trigger_target_value || 1;
-      // Use delta if available, otherwise current value
-      const delta = row.trigger_current_delta ?? null;
-      const val = delta ?? (row.trigger_current_value ?? null);
-      if (val == null) return nothing;
-      pct = Math.min(100, Math.max(0, (val / target) * 100));
-      label = `${val.toFixed(1)} / ${target} ${unit}`;
-    } else if (triggerType === "state_change") {
-      const target = tc.trigger_target_changes || 1;
-      const val = row.trigger_current_value ?? null;
-      if (val == null) return nothing;
-      pct = Math.min(100, Math.max(0, (val / target) * 100));
-      label = `${Math.round(val)} / ${target}`;
-    } else if (triggerType === "runtime") {
-      const target = tc.trigger_runtime_hours || 100;
-      const val = row.trigger_current_value ?? null;
-      if (val == null) return nothing;
-      pct = Math.min(100, Math.max(0, (val / target) * 100));
-      label = `${val.toFixed(1)}h / ${target}h`;
-    } else if (triggerType === "compound") {
-      const logic = tc.compound_logic || (tc as any).operator || "AND";
-      const condCount = tc.conditions?.length || 0;
-      label = `${logic} (${condCount})`;
-      pct = row.trigger_active ? 100 : 0;
-    } else {
-      return nothing;
-    }
-
-    const triggerOverflow = pct >= 100;
-    const barColor = pct > 90 ? "var(--error-color, #f44336)"
-                   : pct > 70 ? "var(--warning-color, #ff9800)"
-                   : "var(--primary-color)";
-
-    return html`
-      <div class="trigger-progress">
-        <div class="trigger-progress-bar">
-          <div class="trigger-progress-fill${triggerOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div>
-        </div>
-        <span class="trigger-progress-label">${label}</span>
-      </div>
-    `;
-  }
-
-  /**
-   * Render a mini sparkline for overview rows (tiny trend line).
-   */
-  private _renderMiniSparkline(row: TaskRow | MaintenanceTask) {
-    if (!row.trigger_config?.entity_id) return nothing;
-    const entityId = row.trigger_config.entity_id;
-
-    // PRIMARY: HA recorder statistics (daily, last 14 days)
-    const statsPoints = this._miniStatsData.get(entityId) || [];
-
-    let points: { ts: number; val: number }[] = [];
-
-    if (statsPoints.length >= 2) {
-      points = statsPoints.map((p) => ({ ts: p.ts, val: p.val }));
-    } else {
-      // FALLBACK: original behavior from task history
-      if (!row.history) return nothing;
-      for (const h of row.history) {
-        if (h.trigger_value != null) {
-          points.push({ ts: new Date(h.timestamp).getTime(), val: h.trigger_value });
-        }
-      }
-    }
-
-    if (row.trigger_current_value != null) {
-      points.push({ ts: Date.now(), val: row.trigger_current_value });
-    }
-    if (points.length < 2) return nothing;
-    points.sort((a, b) => a.ts - b.ts);
-
-    const W = MINI_SPARKLINE_W, H = MINI_SPARKLINE_H;
-    const vals = points.map((p) => p.val);
-    let minV = Math.min(...vals), maxV = Math.max(...vals);
-    const range = maxV - minV || 1;
-    minV -= range * 0.1; maxV += range * 0.1;
-    const tsMin = points[0].ts, tsMax = points[points.length - 1].ts;
-    const tsR = tsMax - tsMin || 1;
-
-    const toX = (ts: number) => ((ts - tsMin) / tsR) * W;
-    const toY = (v: number) => 2 + (1 - (v - minV) / (maxV - minV)) * (H - 4);
-
-    // Downsample for tiny SVG
-    let renderPoints = points;
-    if (renderPoints.length > MAX_MINI_POINTS) {
-      const step = Math.ceil(renderPoints.length / MAX_MINI_POINTS);
-      renderPoints = renderPoints.filter((_, i) => i % step === 0 || i === renderPoints.length - 1);
-    }
-
-    const pts = renderPoints.map((p) => `${toX(p.ts).toFixed(1)},${toY(p.val).toFixed(1)}`).join(" ");
-    // Match the detail chart's semantics: an actively-triggered sensor tints red.
-    const stroke = row.trigger_active
-      ? "var(--error-color, #f44336)"
-      : "var(--primary-color)";
-
-    return html`
-      <svg class="mini-sparkline" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${t("chart_mini_sparkline", this._lang)}">
-        <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round" />
-      </svg>
-    `;
-  }
-
-  /**
-   * Render a detailed days progress bar for the task detail view.
-   */
-  private _renderDaysProgress(task: MaintenanceTask) {
-    const L = this._lang;
-    if (task.days_until_due == null || !task.interval_days || task.interval_days <= 0) return nothing;
-
-    // Unit-aware (issue #59): a "1 year" task has span ≈365 d, not 1 d.
-    const { pct, overflow: daysOverflow } = daysProgress(
-      task.interval_days, task.days_until_due, task.interval_unit,
-    );
-
-    let barColor = "var(--success-color, #4caf50)";
-    if (task.status === "overdue") barColor = "var(--error-color, #f44336)";
-    else if (task.status === "due_soon") barColor = "var(--warning-color, #ff9800)";
-
-    return html`
-      <div class="days-progress">
-        <div class="days-progress-labels">
-          <span>${task.last_performed ? `${t("last_performed", L)}: ${formatDate(task.last_performed, L)}` : ""}</span>
-          <span>${task.next_due ? `${t("next_due", L)}: ${formatDate(task.next_due, L)}` : ""}</span>
-        </div>
-        <div class="days-progress-bar" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100" aria-label="${t("days_progress", L)}">
-          <div class="days-progress-fill${daysOverflow ? " overflow" : ""}" style="width:${pct}%;background:${barColor}"></div>
-        </div>
-        <div class="days-progress-text">${formatDueDays(task.days_until_due, L)}</div>
-      </div>
-    `;
-  }
-
   private _renderObjectDetail() {
     if (!this._selectedEntryId) return nothing;
     const obj = this._getObject(this._selectedEntryId);
@@ -2017,9 +1848,9 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
                   ${task.trigger_config
-                    ? this._renderTriggerProgress(task)
+                    ? renderTriggerProgress(task)
                     : nothing}
-                  ${this._renderMiniSparkline(task)}
+                  ${renderMiniSparkline(task, this._miniStatsData, this._lang)}
                 </span>
                 <span class="row-actions">
                   <mwc-icon-button class="btn-complete" title="${t("complete", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialog(obj.entry_id, task.id, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled); }}>
@@ -2190,7 +2021,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="tab-content overview-tab">
         ${this._renderKPIBar(task)}
         ${this._renderTaskMeta(task)}
-        ${this._renderDaysProgress(task)}
+        ${renderDaysProgress(task, this._lang)}
         ${renderTriggerSection(task, this._sparklineCtx)}
         ${renderPredictionSection(task, L, this._features)}
         <div class="two-column-layout ${hasLeftColumn ? '' : 'single-column'}">
@@ -2245,12 +2076,25 @@ export class MaintenanceSupporterPanel extends LitElement {
   /**
    * Render History Tab content.
    */
+  /** Build the context the history renderers need from panel state. */
+  private _historyCtx(): HistoryContext {
+    return {
+      lang: this._lang,
+      filter: this._historyFilter,
+      search: this._historySearch,
+      currencySymbol: this._budget?.currency_symbol || "€",
+      setFilter: (f) => { this._historyFilter = f; },
+      setSearch: (s) => { this._historySearch = s; },
+      openEdit: (entry) => this._openHistoryEdit(entry),
+    };
+  }
+
   private _renderHistoryTab(task: MaintenanceTask) {
-    const L = this._lang;
+    const ctx = this._historyCtx();
     return html`
       <div class="tab-content history-tab">
-        ${this._renderHistoryFilters(task)}
-        ${this._renderHistoryList(task)}
+        ${renderHistoryFilters(task, ctx)}
+        ${renderHistoryList(task, ctx)}
       </div>
     `;
   }
@@ -2423,53 +2267,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
-  private _renderHistoryFilters(task: MaintenanceTask) {
-    const L = this._lang;
-    return html`
-      <div class="history-filters-new">
-        <div class="filter-chips">
-          ${(["completed", "skipped", "reset", "triggered"] as const).map((type) => {
-            const count = task.history.filter((h) => h.type === type).length;
-            if (count === 0) return nothing;
-            return html`
-              <span class="filter-chip ${this._historyFilter === type ? "active" : ""}"
-                @click=${() => { this._historyFilter = this._historyFilter === type ? null : type; }}>
-                ${t(type, L)} (${count})
-              </span>
-            `;
-          })}
-          ${this._historyFilter ? html`<span class="filter-chip clear" @click=${() => { this._historyFilter = null; }}>${t("show_all", L)}</span>` : nothing}
-        </div>
-        <div class="filter-controls">
-          <input type="text" class="search-input" placeholder="${t("search_notes", L)}..." .value=${this._historySearch} @input=${(e: Event) => this._historySearch = (e.target as HTMLInputElement).value} />
-        </div>
-      </div>
-    `;
-  }
-
-  private _renderHistoryList(task: MaintenanceTask) {
-    const L = this._lang;
-    let filtered = this._historyFilter
-      ? task.history.filter((h) => h.type === this._historyFilter)
-      : task.history;
-
-    // Apply search filter
-    if (this._historySearch) {
-      const search = this._historySearch.toLowerCase();
-      filtered = filtered.filter(h => h.notes?.toLowerCase().includes(search));
-    }
-
-    if (filtered.length === 0) {
-      return html`<p class="empty">${t("no_history", L)}</p>`;
-    }
-
-    return html`
-      <div class="history-timeline">
-        ${[...filtered].reverse().map((entry: HistoryEntry) => this._renderHistoryEntry(entry))}
-      </div>
-    `;
-  }
-
   private _renderTaskDetail() {
     if (!this._selectedEntryId || !this._selectedTaskId) return nothing;
     const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
@@ -2487,40 +2284,6 @@ export class MaintenanceSupporterPanel extends LitElement {
           .taskId=${this._selectedTaskId}
           .canWrite=${!this._isOperator}
         ></maintenance-task-documents>
-      </div>
-    `;
-  }
-
-  private _renderHistoryEntry(entry: HistoryEntry) {
-    const L = this._lang;
-    // v2.2.0: only "lifecycle + cost-bearing" entries are user-editable.
-    // Triggers are auto-generated by sensors and shouldn't be retroactively
-    // rewritten. Allow edits for completed / reset / skipped entries.
-    const editable = ["completed", "reset", "skipped"].includes(entry.type);
-    return html`
-      <div class="history-entry">
-        <div class="history-icon ${entry.type}">
-          <ha-icon .icon=${STATUS_ICONS[entry.type] || "mdi:circle"}></ha-icon>
-        </div>
-        <div class="history-content">
-          <div class="history-row">
-            <strong>${t(entry.type, L)}</strong>
-            ${editable
-              ? html`<button class="history-edit-btn"
-                       title=${t("history_edit_button", L) || "Edit entry"}
-                       @click=${() => this._openHistoryEdit(entry)}>
-                  <ha-icon icon="mdi:pencil"></ha-icon>
-                </button>`
-              : nothing}
-          </div>
-          <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
-          ${entry.notes ? html`<div>${entry.notes}</div>` : nothing}
-          <div class="history-details">
-            ${entry.cost != null ? html`<span>${t("cost", L)}: ${entry.cost.toFixed(2)} ${this._budget?.currency_symbol || "€"}</span>` : nothing}
-            ${entry.duration != null ? html`<span>${t("duration", L)}: ${entry.duration} min</span>` : nothing}
-            ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}</span>` : nothing}
-          </div>
-        </div>
       </div>
     `;
   }

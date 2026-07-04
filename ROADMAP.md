@@ -116,8 +116,15 @@ changes, but they gate how cheap the features above are to build.
 - 🛠️ **Move `_trigger_state` out of `trigger_config`** into the runtime Store —
   dynamic state currently lives inside static config (entry.data), which has
   repeatedly caused confusion (baseline/current-value bugs).
-- 🛠️ **Modularize the panel** — split the 2.5k-line `maintenance-panel.ts` into
-  per-view components.
+- 🛠️ **Modularize the panel** — the 2.5k-line `maintenance-panel.ts` is being
+  thinned by extracting cohesive render clusters into `renderers/` free-function
+  modules (the pattern already used for sparkline/prediction/charts). Done so
+  far: the shared progress bars (`renderers/progress.ts`) and the history
+  sub-view (`renderers/history.ts`). Remaining: the task-detail cluster is a
+  larger, higher-risk step — it owns ~20 action handlers and drives dialogs in
+  the panel's shadow root, so a full `<task-detail-view>` web component needs
+  events/dialog-ownership rework rather than a mechanical move; do it
+  incrementally, not big-bang.
 - 🛠️ **Panel ↔ config-flow parity by construction** — both UIs must expose the
   same task/trigger fields (parity is the product goal). Instead of maintaining
   two hand-written forms, derive both from a single field-schema source so a new
