@@ -115,7 +115,12 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _dismissedSuggestions = new Set<string>();
 
   // Dashboard redesign state
-  @state() private _overviewTab: "dashboard" | "calendar" | "settings" = "dashboard";
+  @state() private _overviewTab: "today" | "dashboard" | "calendar" | "settings" = (() => {
+    try {
+      const v = localStorage.getItem("msp-overview-tab");
+      return v === "today" || v === "calendar" ? v : "dashboard";
+    } catch { return "dashboard"; }
+  })();
   @state() private _activeTab: "overview" | "history" = "overview";
   @state() private _costDurationToggle: "cost" | "duration" | "both" = "both";
   @state() private _historySearch = "";
@@ -1216,22 +1221,28 @@ export class MaintenanceSupporterPanel extends LitElement {
           `
         : nothing}
       <div class="tab-bar">
+        <div class="tab ${this._overviewTab === "today" ? "active" : ""}"
+          @click=${() => this._setOverviewTab("today")}>
+          ${t("tab_today", L)}
+        </div>
         <div class="tab ${this._overviewTab === "dashboard" ? "active" : ""}"
-          @click=${() => { this._overviewTab = "dashboard"; this._scrollContentToTop(); }}>
+          @click=${() => this._setOverviewTab("dashboard")}>
           ${t("dashboard", L)}
         </div>
         <div class="tab ${this._overviewTab === "calendar" ? "active" : ""}"
-          @click=${() => { this._overviewTab = "calendar"; this._scrollContentToTop(); }}>
+          @click=${() => this._setOverviewTab("calendar")}>
           ${t("tab_calendar", L)}
         </div>
         ${isAdmin ? html`
           <div class="tab ${this._overviewTab === "settings" ? "active" : ""}"
-            @click=${() => { this._overviewTab = "settings"; this._scrollContentToTop(); }}>
+            @click=${() => this._setOverviewTab("settings")}>
             ${t("settings", L)}
           </div>
         ` : nothing}
       </div>
-      ${this._overviewTab === "dashboard"
+      ${this._overviewTab === "today"
+        ? this._renderToday()
+        : this._overviewTab === "dashboard"
         ? this._renderDashboard()
         : this._overviewTab === "calendar"
         ? html`
@@ -1274,6 +1285,66 @@ export class MaintenanceSupporterPanel extends LitElement {
   // panel and stand-alone Lovelace use. Kept for reference: the old
   // implementation rendered ~120 lines of Lit template literals here,
   // duplicating what the card now does.
+
+  private _setOverviewTab(tab: "today" | "dashboard" | "calendar" | "settings"): void {
+    this._overviewTab = tab;
+    try { localStorage.setItem("msp-overview-tab", tab); } catch { /* private mode */ }
+    this._scrollContentToTop();
+  }
+
+  /** Mobile-first focus list: what needs attention now, grouped by urgency. */
+  private _renderToday() {
+    const L = this._lang;
+    const rows = this._taskRows; // already excludes archived + disabled
+    const key = (r: TaskRow) => `${r.entry_id}:${r.task_id}`;
+    const overdue = rows.filter((r) => r.status === "overdue" || r.trigger_active);
+    const claimed = new Set(overdue.map(key));
+    const dueToday = rows.filter((r) => !claimed.has(key(r)) && r.days_until_due === 0);
+    dueToday.forEach((r) => claimed.add(key(r)));
+    const thisWeek = rows.filter((r) => !claimed.has(key(r))
+      && r.days_until_due != null && r.days_until_due > 0 && r.days_until_due <= 7);
+
+    if (overdue.length + dueToday.length + thisWeek.length === 0) {
+      return html`
+        <div class="today-empty">
+          <ha-icon icon="mdi:check-circle-outline"></ha-icon>
+          <p>${t("today_all_caught_up", L)}</p>
+        </div>
+      `;
+    }
+    return html`
+      <div class="today-view">
+        ${this._renderTodaySection("today_overdue", overdue, "overdue")}
+        ${this._renderTodaySection("today_due_today", dueToday, "due_soon")}
+        ${this._renderTodaySection("today_this_week", thisWeek, "")}
+      </div>
+    `;
+  }
+
+  private _renderTodaySection(titleKey: string, rows: TaskRow[], cls: string) {
+    if (rows.length === 0) return nothing;
+    const L = this._lang;
+    return html`
+      <div class="today-section">
+        <div class="today-section-header ${cls}">
+          <span>${t(titleKey, L)}</span><span class="today-badge">${rows.length}</span>
+        </div>
+        ${rows.map((row) => html`
+          <div class="today-row" @click=${() => this._showTask(row.entry_id, row.task_id)}>
+            <span class="today-dot ${row.trigger_active ? "triggered" : row.status}"></span>
+            <div class="today-main">
+              <div class="today-task">${row.task_name}</div>
+              <div class="today-object">${row.object_name} · ${formatDueDays(row.days_until_due, L)}</div>
+            </div>
+            <mwc-icon-button class="btn-complete" title="${t("complete", L)}"
+              @click=${(e: Event) => { e.stopPropagation(); this._openCompleteDialogForRow(row); }}>
+              <ha-icon icon="mdi:check"></ha-icon>
+            </mwc-icon-button>
+          </div>
+        `)}
+      </div>
+    `;
+  }
 
   private _renderDashboard() {
     const s = this._stats;
