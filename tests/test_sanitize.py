@@ -150,3 +150,55 @@ def test_cap_quick_complete_valid_fields_kept() -> None:
     assert data["quick_complete_defaults"]["notes"] == "pre-filled note"
     assert data["quick_complete_defaults"]["cost"] == 12.5
     assert data["quick_complete_defaults"]["feedback"] == "needed"
+
+
+# === Parity tripwire: WS object schema ↔ sanitize field-cap map ===============
+
+
+def _length_max(validator: Any) -> int | None:
+    """Recursively find a voluptuous Length(max=...) inside a validator.
+
+    Handles the nested vol.Any(vol.All(str, vol.Length(max=N)), None) shape used
+    by the object string-field schema.
+    """
+    import voluptuous as vol
+
+    if isinstance(validator, vol.Length):
+        return validator.max
+    inner = getattr(validator, "validators", None)
+    if inner:
+        for v in inner:
+            found = _length_max(v)
+            if found is not None:
+                return found
+    return None
+
+
+def test_object_schema_string_caps_match_sanitize_map() -> None:
+    """The shared object string-field schema must stay in lockstep with the
+    sanitize cap map, so neither surface silently caps a field the other doesn't.
+
+    This is the tripwire for the parallel field enumerations flagged in the
+    config-flow/panel duplication audit: add an object string field to the WS
+    schema without adding it to _OBJECT_STR_LIMITS (or vice versa) and this fails.
+    """
+    from custom_components.maintenance_supporter.helpers.sanitize import (
+        _OBJECT_STR_LIMITS,
+    )
+    from custom_components.maintenance_supporter.websocket.objects import (
+        _OBJECT_STR_FIELD_SCHEMA,
+    )
+
+    schema_caps = {
+        marker.schema: _length_max(validator)
+        for marker, validator in _OBJECT_STR_FIELD_SCHEMA.items()
+    }
+    # Every field in the shared schema caps a string with a known max.
+    assert all(cap is not None for cap in schema_caps.values()), schema_caps
+
+    # `name` is defined per-schema (Required in create), so compare it separately
+    # and check the rest against the sanitize map exactly.
+    expected = {k: v for k, v in _OBJECT_STR_LIMITS.items() if k != "name"}
+    assert schema_caps == expected, (
+        f"object schema caps {schema_caps} diverged from sanitize map {expected}"
+    )
