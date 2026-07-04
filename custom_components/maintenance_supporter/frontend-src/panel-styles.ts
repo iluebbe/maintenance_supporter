@@ -137,6 +137,40 @@ export const panelStyles = css`
   .collapsible-body > .weibull-section > .weibull-title,
   .collapsible-body > .seasonal-chart > .seasonal-chart-title { display: none; }
 
+  /* "Today" focus view — mobile-first list grouped by urgency. */
+  .today-view { display: flex; flex-direction: column; gap: 16px; padding: 4px 0 12px; }
+  .today-section { border: 1px solid var(--divider-color); border-radius: 12px; overflow: hidden; }
+  .today-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; font-weight: 600; font-size: 14px;
+    background: var(--secondary-background-color);
+    border-left: 4px solid var(--divider-color);
+  }
+  .today-section-header.overdue { border-left-color: var(--error-color, #f44336); }
+  .today-section-header.due_soon { border-left-color: var(--warning-color, #ff9800); }
+  .today-badge {
+    min-width: 22px; text-align: center; padding: 1px 8px; border-radius: 11px;
+    background: var(--primary-color); color: var(--text-primary-color, #fff); font-size: 12.5px;
+  }
+  .today-row {
+    display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+    border-top: 1px solid var(--divider-color); cursor: pointer;
+  }
+  .today-row:hover { background: var(--table-row-alternative-background-color, rgba(0,0,0,.04)); }
+  .today-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--success-color, #4caf50); }
+  .today-dot.overdue { background: var(--error-color, #f44336); }
+  .today-dot.due_soon { background: var(--warning-color, #ff9800); }
+  .today-dot.triggered { background: #ff5722; }
+  .today-main { flex: 1; min-width: 0; }
+  .today-task { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .today-object { color: var(--secondary-text-color); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .today-row .btn-complete { color: var(--success-color, #4caf50); flex: none; }
+  .today-empty {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 48px 16px; color: var(--secondary-text-color); text-align: center;
+  }
+  .today-empty ha-icon { --mdc-icon-size: 56px; color: var(--success-color, #4caf50); }
+
   .task-row:hover {
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
