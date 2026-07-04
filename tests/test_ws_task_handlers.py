@@ -1385,7 +1385,9 @@ async def test_update_history_entry_no_store(
     fake_rd.coordinator = None
 
     with patch(
-        "custom_components.maintenance_supporter.websocket.tasks._get_runtime_data",
+        # ws_update_history_entry lives in the tasks_history submodule now; patch
+        # the helper where it's looked up (the split moved the lookup location).
+        "custom_components.maintenance_supporter.websocket.tasks_history._get_runtime_data",
         return_value=fake_rd,
     ):
         await call_ws_handler(ws_update_history_entry, hass, conn, {
