@@ -944,8 +944,9 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     # 3 baseline (notification + tag_scanned + action_listener) +
     # 1 v1.5.3 (EVENT_DEVICE_REGISTRY_UPDATED — reverse area sync, #48) +
     # 1 v1.5.4 (EVENT_ENTITY_REGISTRY_UPDATED — entity-rename rewrite) +
-    # 1 v2.10.0 (daily archive/auto-delete retention sweep timer).
-    assert len(event_unsubs) == 6
+    # 1 v2.10.0 (daily archive/auto-delete retention sweep timer) +
+    # 1 v2.15.0 (weekly-digest daily time-change timer).
+    assert len(event_unsubs) == 7
 
     # Spy on the unsub callbacks
     original_unsubs = list(event_unsubs)
@@ -968,10 +969,10 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     assert result is True
     # Domain data should be fully cleaned up
     assert DOMAIN not in hass.data
-    # All six event unsubs should have been called (notification + tag_scanned
+    # All seven event unsubs should have been called (notification + tag_scanned
     # + action_listener + device_registry [#48] + entity_registry [v1.5.4]
-    # + retention sweep timer [v2.10.0]).
-    assert sorted(call_tracker) == [0, 1, 2, 3, 4, 5]
+    # + retention sweep timer [v2.10.0] + weekly-digest timer [v2.15.0]).
+    assert sorted(call_tracker) == [0, 1, 2, 3, 4, 5, 6]
     # NM.async_unload should have been called
     nm_unload_spy.assert_awaited_once()
 

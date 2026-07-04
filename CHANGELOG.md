@@ -2,6 +2,41 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.15.0] - 2026-07-04
+
+A big usability release — most of the panel UX roadmap in one go.
+
+### ✨ New
+
+- **"Today" focus view** — a new first tab with a mobile-first list of what
+  needs attention now, grouped into Overdue / Due today / This week, each with a
+  one-tap complete and an "all caught up" empty state.
+- **Command palette (Ctrl/Cmd+K)** — global fuzzy search across every object and
+  task; ↑↓ / Enter / Esc, jumps straight to the detail.
+- **Template gallery + onboarding** — a "From template" button (and first-run
+  empty-state nudge) opens the 13 object templates grouped by category; one
+  click creates the object and its tasks.
+- **Bulk actions** — a Select mode on the dashboard with checkboxes and a bulk
+  bar to complete or archive many tasks at once (bulk archive is undoable).
+- **Printable / PDF report** — a per-object maintenance report (asset data, task
+  table, costs, notes) opens in a new tab to print or "Save as PDF". For
+  landlords / hotels needing maintenance evidence.
+- **Opt-in weekly digest** — one Monday-morning summary notification
+  ("N overdue, M due this week"), silent when nothing is due.
+- **Collapsible analysis sections** on the task detail (Weibull, seasonal),
+  remembered per section.
+
+### ♿ Accessibility
+
+- Status badges now carry a **shape icon** (not colour alone), and the trigger
+  chart's danger zone uses a **diagonal hatch** that reads on dark themes and
+  for colour-blind users.
+
+### ⚡ Performance
+
+- `content-visibility` skips off-screen paint on the Today list and history
+  timeline (in addition to the object cards).
+
 ## [2.14.0] - 2026-07-04
 
 ### ✨ Undo instead of a confirmation for archiving
