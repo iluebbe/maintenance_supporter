@@ -426,6 +426,73 @@ async def ws_duplicate_object(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/object/from_template",
+        vol.Required("template_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("name"): vol.Any(vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)), None),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_create_from_template(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Create an object (with its tasks) from a predefined template.
+
+    Surfaces the config-flow template gallery in the panel: builds the object +
+    its tasks from the template and routes them through the same websocket flow
+    step used elsewhere (cap + normalize + create).
+    """
+    from uuid import uuid4
+
+    from ..templates import get_template_by_id
+
+    template = get_template_by_id(msg["template_id"])
+    if template is None:
+        connection.send_error(msg["id"], "not_found", "Template not found")
+        return
+
+    name = (msg.get("name") or template.name).strip() or template.name
+    object_id = uuid4().hex
+    new_obj: dict[str, Any] = {
+        "id": object_id,
+        CONF_OBJECT_NAME: name[:MAX_NAME_LENGTH],
+        "task_ids": [],
+    }
+    new_tasks: dict[str, Any] = {}
+    for tt in template.tasks:
+        task_id = uuid4().hex
+        task: dict[str, Any] = {
+            "id": task_id,
+            "object_id": object_id,
+            "name": tt.name,
+            "type": tt.type,
+            "enabled": True,
+            "schedule_type": tt.schedule_type,
+            "warning_days": tt.warning_days,
+        }
+        if tt.interval_days is not None:
+            task["interval_days"] = tt.interval_days
+        if tt.notes:
+            task["notes"] = tt.notes
+        new_tasks[task_id] = task
+        new_obj["task_ids"].append(task_id)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "websocket"},
+        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
+    )
+    if result["type"] != "create_entry":
+        connection.send_error(
+            msg["id"], "create_failed", result.get("reason", "unknown")
+        )
+        return
+    connection.send_result(msg["id"], {"entry_id": result["result"].entry_id})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/object/archive",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }

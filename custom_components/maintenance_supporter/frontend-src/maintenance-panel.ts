@@ -147,6 +147,11 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _paletteOpen = false;
   @state() private _paletteQuery = "";
   @state() private _paletteActive = 0;
+  // v2.15.0: template gallery (surfaces the config-flow object templates).
+  @state() private _templateGalleryOpen = false;
+  @state() private _templates: Array<{ id: string; name: string; category: string; tasks: unknown[] }> = [];
+  @state() private _templateCategories: Record<string, { icon?: string; [k: string]: unknown }> = {};
+  @state() private _templateBusy = false;
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -787,6 +792,90 @@ export class MaintenanceSupporterPanel extends LitElement {
     `;
   }
 
+  // --- Template gallery ---
+
+  private async _openTemplateGallery(): Promise<void> {
+    this._templateGalleryOpen = true;
+    if (this._templates.length > 0) return;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{
+        categories: Record<string, { icon?: string }>;
+        templates: Array<{ id: string; name: string; category: string; tasks: unknown[] }>;
+      }>({ type: "maintenance_supporter/templates" });
+      this._templateCategories = res.categories || {};
+      this._templates = res.templates || [];
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    }
+  }
+
+  private async _createFromTemplate(templateId: string): Promise<void> {
+    this._templateBusy = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
+        type: "maintenance_supporter/object/from_template",
+        template_id: templateId,
+      });
+      this._templateGalleryOpen = false;
+      await this._loadData();
+      this._showToast(t("template_created", this._lang));
+      if (res?.entry_id) this._showObject(res.entry_id);
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._templateBusy = false;
+    }
+  }
+
+  private _categoryName(catId: string): string {
+    const cat = this._templateCategories[catId] as Record<string, string> | undefined;
+    if (!cat) return catId;
+    return cat[`name_${this._lang}`] || cat["name_en"] || catId;
+  }
+
+  private _renderTemplateGallery() {
+    if (!this._templateGalleryOpen) return nothing;
+    const L = this._lang;
+    // Group templates by category, preserving category declaration order.
+    const byCat = new Map<string, typeof this._templates>();
+    for (const tpl of this._templates) {
+      if (!byCat.has(tpl.category)) byCat.set(tpl.category, []);
+      byCat.get(tpl.category)!.push(tpl);
+    }
+    return html`
+      <div class="palette-backdrop" @click=${() => { this._templateGalleryOpen = false; }}>
+        <div class="template-gallery" @click=${(e: Event) => e.stopPropagation()}>
+          <div class="template-gallery-head">
+            <span>${t("templates_title", L)}</span>
+            <ha-icon-button .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
+              @click=${() => { this._templateGalleryOpen = false; }}></ha-icon-button>
+          </div>
+          <div class="template-gallery-body">
+            ${this._templates.length === 0
+              ? html`<div class="palette-empty">${t("loading", L)}…</div>`
+              : [...byCat.entries()].map(([catId, tpls]) => html`
+                  <div class="template-cat">
+                    <div class="template-cat-head">
+                      <ha-icon icon="${(this._templateCategories[catId]?.icon as string) || "mdi:folder-outline"}"></ha-icon>
+                      ${this._categoryName(catId)}
+                    </div>
+                    <div class="template-grid">
+                      ${tpls.map((tpl) => html`
+                        <button class="template-card" .disabled=${this._templateBusy}
+                          @click=${() => this._createFromTemplate(tpl.id)}>
+                          <span class="template-card-name">${tpl.name}</span>
+                          <span class="template-card-count">${t("templates_task_count", L).replace("{n}", String(tpl.tasks.length))}</span>
+                        </button>
+                      `)}
+                    </div>
+                  </div>
+                `)}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // --- Bulk selection (dashboard task list) ---
 
   private _bulkKey(row: TaskRow): string {
@@ -1221,6 +1310,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${t("undo", this._lang)}</button>` : nothing}
       </div>` : nothing}
       ${this._renderPalette()}
+      ${this._renderTemplateGallery()}
     `;
   }
 
@@ -1540,6 +1630,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           >
             ${t("new_object", L)}
           </ha-button>
+          <ha-button @click=${() => this._openTemplateGallery()}>
+            <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
+          </ha-button>
           <ha-button
             @click=${() => this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openCreate("", this._objects)}
           >
@@ -1553,6 +1646,17 @@ export class MaintenanceSupporterPanel extends LitElement {
             <div class="empty-state">
               <ha-svg-icon path="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></ha-svg-icon>
               <p>${t("no_tasks", L)}</p>
+              ${!isOperator && this._objects.length === 0 ? html`
+                <p class="empty-onboard-hint">${t("onboard_hint", L)}</p>
+                <div class="empty-onboard-actions">
+                  <ha-button appearance="filled" @click=${() => this._openTemplateGallery()}>
+                    <ha-icon icon="mdi:view-grid-plus-outline"></ha-icon> ${t("templates_from", L)}
+                  </ha-button>
+                  <ha-button appearance="plain" @click=${() => this.shadowRoot!.querySelector<MaintenanceObjectDialog>("maintenance-object-dialog")?.openCreate()}>
+                    ${t("new_object", L)}
+                  </ha-button>
+                </div>
+              ` : nothing}
             </div>
           `
         : html`

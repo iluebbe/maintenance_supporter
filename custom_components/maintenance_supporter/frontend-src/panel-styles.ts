@@ -198,6 +198,37 @@ export const panelStyles = css`
   .palette-empty { padding: 20px 16px; color: var(--secondary-text-color); text-align: center; }
   .palette-hint { padding: 8px 16px; font-size: 12px; color: var(--secondary-text-color); border-top: 1px solid var(--divider-color); }
 
+  /* Template gallery. */
+  .template-gallery {
+    width: min(720px, 94vw); max-height: 80vh; display: flex; flex-direction: column;
+    background: var(--card-background-color, #fff); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0,0,0,.4);
+  }
+  .template-gallery-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 8px 12px 18px; font-weight: 600; font-size: 16px;
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .template-gallery-body { overflow-y: auto; padding: 8px 16px 16px; }
+  .template-cat { margin-top: 12px; }
+  .template-cat-head {
+    display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px;
+    color: var(--secondary-text-color); margin-bottom: 8px;
+  }
+  .template-cat-head ha-icon { --mdc-icon-size: 20px; }
+  .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .template-card {
+    display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer;
+    padding: 12px 14px; border: 1px solid var(--divider-color); border-radius: 10px;
+    background: var(--card-background-color); font: inherit; color: var(--primary-text-color);
+  }
+  .template-card:hover { border-color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 6%, transparent); }
+  .template-card[disabled] { opacity: .5; pointer-events: none; }
+  .template-card-name { font-weight: 600; font-size: 14px; }
+  .template-card-count { font-size: 12px; color: var(--secondary-text-color); }
+  .empty-onboard-hint { color: var(--secondary-text-color); font-size: 13px; margin: 4px 0 12px; }
+  .empty-onboard-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
   .task-row:hover {
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
