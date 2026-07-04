@@ -2,6 +2,14 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.12.1] - 2026-07-04
+
+### 🐛 Run counts and runtime hours are now visible before the target fires
+
+- **State-change tasks show their count.** A task counting on/off cycles via a binary sensor (e.g. "washer ran X times") kept its count internal — the UI showed nothing until the target was reached. The persisted count now surfaces on every refresh, so the new progress header reads "6 / 30 · 20 %" the whole way there. Reported in the [community thread](https://community.home-assistant.io/t/995556) (post #16) — thanks Mike!
+- **Runtime tasks show their accumulated hours** the same way (including live on-time while the device is currently running), instead of staying blank until the target hours fired.
+- Tip for cycle counting: set **To state: `on`** on the trigger so one washer run counts once — with no from/to filter, every transition counts (on *and* off = 2 per run).
+
 ## [2.12.0] - 2026-07-04
 
 ### ✨ Sensor charts, redesigned

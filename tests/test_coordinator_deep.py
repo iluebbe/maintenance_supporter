@@ -982,3 +982,83 @@ async def test_auto_complete_skips_archived_task(
     state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
     completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
     assert len(completed) == 0
+
+
+# ─── Trigger-value visibility for state_change / runtime (forum #16) ────
+
+
+async def test_state_change_count_visible_in_refresh(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """The persisted change count surfaces as trigger_current_value."""
+    hass.states.async_set("input_boolean.washer", "off")
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "state_change",
+            "entity_id": "input_boolean.washer",
+            "entity_ids": ["input_boolean.washer"],
+            "trigger_target_changes": 20,
+            "_trigger_state": {"input_boolean.washer": {"change_count": 5}},
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Washer",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Washer"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_washer_count",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+
+    coordinator = obj_entry.runtime_data.coordinator
+    await coordinator.async_refresh()
+    result = coordinator.data[CONF_TASKS][TASK_ID_1]
+    assert result["_trigger_current_value"] == 5.0
+    assert result["_trigger_active"] is False
+
+
+async def test_runtime_hours_visible_in_refresh(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """Accumulated runtime hours surface (and flip active at the target)."""
+    hass.states.async_set("input_boolean.compressor", "off")
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "runtime",
+            "entity_id": "input_boolean.compressor",
+            "entity_ids": ["input_boolean.compressor"],
+            "trigger_runtime_hours": 500,
+            "_trigger_state": {
+                "input_boolean.compressor": {
+                    "accumulated_seconds": 400 * 3600,
+                    "on_since": None,
+                }
+            },
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Compressor",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Compressor"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_compressor_hours",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+
+    coordinator = obj_entry.runtime_data.coordinator
+    await coordinator.async_refresh()
+    result = coordinator.data[CONF_TASKS][TASK_ID_1]
+    assert result["_trigger_current_value"] == 400.0
+    assert result["_trigger_active"] is False
