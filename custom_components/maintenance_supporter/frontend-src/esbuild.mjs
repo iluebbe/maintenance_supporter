@@ -1,5 +1,11 @@
 import { build } from "esbuild";
-import { cpSync, mkdirSync } from "fs";
+import { cpSync, mkdirSync, rmSync } from "fs";
+
+// Content-hashed chunk names change every time their inputs change; esbuild
+// writes the new files but never removes the old ones. Clear the chunks dir up
+// front so stale, unreferenced chunks don't accumulate in git (they did before
+// this — every frontend change left orphans behind).
+rmSync("../frontend/strategy/chunks", { recursive: true, force: true });
 
 const common = {
   bundle: true,
