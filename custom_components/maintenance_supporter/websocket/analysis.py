@@ -52,7 +52,7 @@ async def ws_analyze_interval(
     from homeassistant.util import dt as dt_util
 
     adaptive_config["hemisphere"] = (
-        "south" if hass.config.latitude < 0 else "north"
+        "south" if (hass.config.latitude or 0) < 0 else "north"
     )
     adaptive_config["_current_month"] = dt_util.now().month
 
@@ -103,6 +103,12 @@ async def ws_apply_suggestion(
     rd = _get_runtime_data(hass, msg["entry_id"])
     if rd is None or rd.coordinator is None:
         connection.send_error(msg["id"], "not_found", "Coordinator not found")
+        return
+
+    # Reject an unknown task_id instead of silently no-opping and returning
+    # success (the apply call is a no-op for a missing task).
+    if msg["task_id"] not in rd.coordinator.entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
         return
 
     await rd.coordinator.async_apply_suggested_interval(

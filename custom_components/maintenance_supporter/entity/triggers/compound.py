@@ -41,7 +41,15 @@ class CompoundSubEntity:
         self._parent = parent
         self._condition_idx = condition_idx
         self._condition_config = condition_config
-        self._per_entity_states: dict[str, bool] = {}
+        # Pre-seed a MULTI-entity condition with every entity at False, so
+        # `entity_logic == "all"` quantifies over EVERY entity, not just the ones
+        # that have already transitioned (an entity that never toggles must keep
+        # the AND from firing). Single-entity conditions stay empty and use the
+        # is_triggered fallback in async_update_trigger_state. (H1)
+        _eids = condition_config.get("entity_ids") or []
+        self._per_entity_states: dict[str, bool] = (
+            {eid: False for eid in _eids} if len(_eids) > 1 else {}
+        )
         self._per_entity_values: dict[str, float | None] = {}
         self._entity_logic = condition_config.get("entity_logic", "any")
         # Mirror attributes the real entity exposes for trigger access
@@ -140,11 +148,13 @@ class CompoundTrigger(BaseTrigger):
         config_with_id.setdefault("entity_id", "")
         super().__init__(hass, entity, config_with_id)
 
-        self._compound_logic: str = trigger_config.get(
-            CONF_COMPOUND_LOGIC, "AND"
+        # `or "AND"` (not just the .get default) so a present-but-null value in
+        # hand-edited config doesn't crash on .upper().
+        self._compound_logic: str = (
+            trigger_config.get(CONF_COMPOUND_LOGIC) or "AND"
         ).upper()
-        self._conditions: list[dict[str, Any]] = trigger_config.get(
-            CONF_COMPOUND_CONDITIONS, []
+        self._conditions: list[dict[str, Any]] = (
+            trigger_config.get(CONF_COMPOUND_CONDITIONS) or []
         )
         self._condition_states: list[bool] = [False] * len(self._conditions)
         self._sub_triggers: list[list[BaseTrigger]] = []
