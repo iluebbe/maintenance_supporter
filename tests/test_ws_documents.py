@@ -50,8 +50,15 @@ _DELETE = "maintenance_supporter/documents/delete"
 
 
 @pytest.fixture(autouse=True)
-def _isolate_docs_dir(hass: HomeAssistant) -> Iterator[None]:
-    """Blobs live on the shared test config dir — give each test a clean one."""
+def _isolate_docs_dir(
+    hass: HomeAssistant, _isolate_document_blobs: None
+) -> Iterator[None]:
+    """Blobs live on the shared test config dir — give each test a clean one.
+
+    Depends on _isolate_document_blobs (conftest) so the per-test tmp redirect is
+    already active: the rmtree below then only touches this test's own dir, never
+    another xdist worker's.
+    """
     docs = Path(hass.config.path("maintenance_supporter", "docs"))
     shutil.rmtree(docs, ignore_errors=True)
     yield
