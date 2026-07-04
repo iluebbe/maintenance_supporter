@@ -1004,8 +1004,9 @@ async def test_partial_unload_preserves_domain_data_and_listeners(
     nm_after = hass.data[DOMAIN].get("_notification_manager")
     assert nm_after is nm_before  # same instance, not recreated
     # notification + tag_scanned + action_listener + device_registry (#48)
-    # + entity_registry (v1.5.4) + retention sweep timer (v2.10.0).
-    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 6
+    # + entity_registry (v1.5.4) + retention sweep timer (v2.10.0)
+    # + weekly-digest timer (v2.15.0).
+    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 7
 
 
 # ─── __init__.py _get_coordinator_for_entity ────────────────────────────
