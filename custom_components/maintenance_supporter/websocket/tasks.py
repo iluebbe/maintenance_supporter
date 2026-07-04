@@ -700,7 +700,13 @@ async def ws_update_task(
         connection.send_error(msg["id"], "invalid_url", "Only http/https URLs are allowed")
         return
 
-    # Update provided fields
+    # Update provided fields. Wire key -> storage key. Almost all are identity;
+    # the one rename is deliberate and load-bearing: the WS message envelope
+    # reserves "type" for command routing ({"type": "maintenance_supporter/
+    # task/update"}), so a task's own type must travel as "task_type" on the
+    # wire and is stored as "type". Do NOT "simplify" this to "type": "type"
+    # — it would collide with the routing key. The panel↔config-flow parity
+    # test (test_parity_task_fields) encodes the same task_type->type alias.
     field_map = {
         "name": "name",
         "task_type": "type",
