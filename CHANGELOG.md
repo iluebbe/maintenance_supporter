@@ -2,6 +2,31 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.13.0] - 2026-07-04
+
+### ✨ Compound triggers in the task dialog
+
+- **Build AND/OR sensor triggers right in the panel.** The task dialog now
+  offers a **Compound** trigger type: pick AND (all conditions must fire) or OR
+  (any condition fires), then add a list of conditions — each with its own
+  entity, sub-type (threshold / counter / state-change / runtime) and settings.
+  Previously compound triggers could only be created through Home Assistant's
+  options flow; the panel — the primary UI — is now at parity.
+
+### 🔧 Under the hood (no behaviour change)
+
+- **Trigger runtime state now lives entirely in the Store.** Removed the dead
+  ConfigEntry fallback that could write dynamic trigger state (run counts,
+  runtime hours, baselines) into static config; a tripwire test locks the
+  invariant in. Verified live: a run count persists across a Home Assistant
+  restart via `.storage` and is never written to the config entry.
+- **Faster CI.** The backend test suite runs in parallel (pytest-xdist), ~3×
+  quicker, with coverage still gated at 98%.
+- **Cleaner internals.** The refresh-time trigger evaluation and two panel
+  render clusters (progress bars, history timeline) were extracted into focused,
+  individually-tested modules; a new test guards that the panel dialog and the
+  options flow stay at field parity.
+
 ## [2.12.1] - 2026-07-04
 
 ### 🐛 Run counts and runtime hours are now visible before the target fires
