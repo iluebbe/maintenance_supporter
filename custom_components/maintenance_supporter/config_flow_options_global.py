@@ -62,6 +62,7 @@ from .const import (
     MAX_PANEL_TITLE_LENGTH,
 )
 from .helpers.i18n import normalize_language
+from .helpers.notify_targets import build_notify_targets
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -456,23 +457,13 @@ class GlobalOptionsFlow(OptionsFlow):
         ]
 
         # Offer every notify target as a dropdown so users don't have to guess
-        # the slug: legacy notify *services* (mobile_app devices, notify groups)
-        # from the service registry, PLUS notify *entities* (the newer model)
-        # from the state machine — many single devices appear only as an entity.
-        # The send path prefers the legacy service when one exists (full action
-        # buttons) and falls back to notify.send_message for entity-only targets.
-        # ``send_message`` itself is the generic action, not a target → excluded;
+        # the slug. The merge (legacy notify services + notify entities, minus
+        # the generic send_message, plus the current saved value) is shared with
+        # the panel via build_notify_targets so the two surfaces can't drift.
         # ``custom_value`` keeps free text working for not-yet-loaded targets.
-        notify_targets = {
-            f"notify.{name}"
-            for name in self.hass.services.async_services().get("notify", {})
-            if name != "send_message"
-        }
-        notify_targets.update(self.hass.states.async_entity_ids("notify"))
-        current_service = current.get(CONF_NOTIFY_SERVICE, "")
-        if current_service:
-            notify_targets.add(current_service)
-        notify_services = sorted(notify_targets)
+        notify_services = build_notify_targets(
+            self.hass, current=current.get(CONF_NOTIFY_SERVICE, "")
+        )
 
         return self.async_show_form(
             step_id="general_settings",

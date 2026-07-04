@@ -4,6 +4,17 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ♻️ Internal
+
+- **Unified the notify-service picker** across the two config surfaces. The
+  "merge legacy notify services + notify entities minus `send_message`" list is
+  now computed once server-side (`helpers/notify_targets.build_notify_targets`)
+  and consumed by both the options-flow dropdown and the panel Settings picker
+  (via `general.notify_targets`) instead of each recomputing it. Fixes two
+  pre-existing divergences: the panel now injects the currently-saved target
+  (so a configured-but-unavailable service still shows) and both surfaces now
+  exclude the `notify.send_message` entity consistently.
+
 ### 📚 Docs / tooling
 
 - **LLM setup-assistant skill** — a portable skill/playbook under
