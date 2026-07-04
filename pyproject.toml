@@ -50,6 +50,11 @@ known-first-party = ["custom_components.maintenance_supporter"]
 quote-style = "double"
 
 [tool.coverage.run]
+# Combine coverage data across pytest-xdist workers (each worker is a separate
+# process) so parallel `-n auto` runs measure the same total as a serial run.
+parallel = true
+concurrency = ["multiprocessing", "thread"]
+sigterm = true
 # qrcodegen.py is a vendored MIT library (Project Nayuki), not our code, so it
 # is excluded from the coverage metric (it is also ruff-excluded above).
 omit = [
