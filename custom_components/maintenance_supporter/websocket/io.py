@@ -295,7 +295,16 @@ async def ws_import_json(
     created = []
     errors: list[dict[str, str]] = []
     for idx, obj_entry in enumerate(objects):
+        # Guard against malformed-but-schema-valid input (the schema only checks
+        # json_content is a str): a non-dict entry / non-dict object would raise
+        # AttributeError and escape the per-object try/except below.
+        if not isinstance(obj_entry, dict):
+            errors.append({"name": f"object {idx + 1}", "reason": "not an object"})
+            continue
         obj_data = obj_entry.get("object", {})
+        if not isinstance(obj_data, dict):
+            errors.append({"name": f"object {idx + 1}", "reason": "invalid object data"})
+            continue
         obj_name = (obj_data.get("name") or "").strip()
         if not obj_name:
             errors.append({"name": f"object {idx + 1}", "reason": "missing name"})
@@ -319,7 +328,12 @@ async def ws_import_json(
         }
 
         import_tasks: dict[str, dict[str, Any]] = {}
-        for task_entry in obj_entry.get("tasks", []):
+        tasks_list = obj_entry.get("tasks", [])
+        if not isinstance(tasks_list, list):
+            tasks_list = []
+        for task_entry in tasks_list:
+            if not isinstance(task_entry, dict):
+                continue
             task_name = (task_entry.get("name") or "").strip()
             if not task_name:
                 continue

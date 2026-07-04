@@ -187,6 +187,12 @@ def evaluate_runtime(
         if on_since:
             on_dt = dt_util.parse_datetime(on_since)
             if on_dt is not None:
+                # Older payloads may be naive — assume UTC (live writes are
+                # TZ-aware) so the subtraction below can't raise. Mirrors
+                # threshold.py's exceeded_since handling.
+                if on_dt.tzinfo is None:
+                    from datetime import UTC
+                    on_dt = on_dt.replace(tzinfo=UTC)
                 total += max(0.0, (dt_util.utcnow() - on_dt).total_seconds())
         hours = total / 3600.0
         best_hours = hours if best_hours is None else max(best_hours, hours)

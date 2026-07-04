@@ -37,6 +37,9 @@ class CounterTrigger(BaseTrigger):
         self._baseline_value: float | None = trigger_config.get(
             "trigger_baseline_value"
         )
+        # Set when reset_baseline is called while the source is unavailable, so
+        # the re-baseline is applied against the next real value (M4).
+        self._reset_pending: bool = False
 
     async def async_setup(self) -> None:
         """Set up counter trigger with baseline initialization."""
@@ -68,8 +71,17 @@ class CounterTrigger(BaseTrigger):
             )
 
     def _evaluate_and_update(self, value: float) -> None:
-        """Initialize baseline if needed before evaluation, then persist."""
-        if self._delta_mode and self._baseline_value is None:
+        """Initialize/re-baseline before evaluation, then persist."""
+        if self._delta_mode and self._reset_pending:
+            # Apply the deferred post-completion re-baseline now that a real
+            # value is available (the source was unavailable at completion). (M4)
+            self._baseline_value = value
+            self._reset_pending = False
+            self.hass.async_create_task(
+                self._persist_baseline(),
+                eager_start=False,
+            )
+        elif self._delta_mode and self._baseline_value is None:
             self._baseline_value = value
             self.hass.async_create_task(
                 self._persist_baseline(),
@@ -88,6 +100,17 @@ class CounterTrigger(BaseTrigger):
             if self._baseline_value is None:
                 # Fallback — should be caught by _evaluate_and_update
                 self._baseline_value = value
+                return False
+            if value < self._baseline_value:
+                # Source counter reset / rolled over (device reboot, meter
+                # rollover) — re-baseline to the new lower value so we don't
+                # miss the next interval waiting for it to climb back past the
+                # old baseline. (M3)
+                self._baseline_value = value
+                self.hass.async_create_task(
+                    self._persist_baseline(),
+                    eager_start=False,
+                )
                 return False
             delta = value - self._baseline_value
             return delta >= self._target_value
@@ -108,11 +131,21 @@ class CounterTrigger(BaseTrigger):
         """Reset the baseline to current value (after maintenance)."""
         if self._current_value is not None:
             self._baseline_value = self._current_value
+            self._reset_pending = False
             self.hass.async_create_task(self._persist_baseline())
             _LOGGER.debug(
                 "Counter baseline reset: %s = %s",
                 self.entity_id,
                 self._baseline_value,
+            )
+        else:
+            # Source unavailable at completion — defer the re-baseline to the
+            # next real value so a stale baseline can't immediately re-trigger
+            # the just-completed task when the entity returns. (M4)
+            self._reset_pending = True
+            _LOGGER.debug(
+                "Counter baseline reset deferred (source unavailable): %s",
+                self.entity_id,
             )
 
     async def _persist_baseline(self) -> None:

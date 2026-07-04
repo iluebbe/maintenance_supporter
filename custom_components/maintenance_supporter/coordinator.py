@@ -257,32 +257,43 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 and task.adaptive_config.get("enabled")
                 and task.interval_unit in (None, "days")
             ):
-                from .helpers.interval_analyzer import IntervalAnalyzer
+                # Guarded like the sensor-prediction block below: a malformed
+                # history / analysis error must not abort the whole refresh and
+                # stall every task in this object.
+                try:
+                    from .helpers.interval_analyzer import IntervalAnalyzer
 
-                analyzer = IntervalAnalyzer()
-                # Inject hemisphere and current month for seasonal awareness
-                analysis_config = dict(task.adaptive_config)
-                analysis_config["hemisphere"] = (
-                    "south" if self.hass.config.latitude < 0 else "north"
-                )
-                analysis_config["_current_month"] = dt_util.now().month
-                analysis = analyzer.analyze(task_result, analysis_config)
-                task_result["_suggested_interval"] = analysis.recommended_interval
-                task_result["_interval_confidence"] = analysis.confidence
-                task_result["_interval_analysis"] = {
-                    "average_actual": analysis.average_actual_interval,
-                    "ewa_prediction": analysis.ewa_prediction,
-                    "weibull_beta": analysis.weibull_beta,
-                    "weibull_eta": analysis.weibull_eta,
-                    "weibull_r_squared": analysis.weibull_r_squared,
-                    "confidence_interval_low": analysis.confidence_interval_low,
-                    "confidence_interval_high": analysis.confidence_interval_high,
-                    "data_points": analysis.data_points,
-                    "reason": analysis.recommendation_reason,
-                    "seasonal_factor": analysis.seasonal_factor,
-                    "seasonal_factors": analysis.seasonal_factors,
-                    "seasonal_reason": analysis.seasonal_adjustment_reason,
-                }
+                    analyzer = IntervalAnalyzer()
+                    # Inject hemisphere and current month for seasonal awareness.
+                    # latitude is None on an un-onboarded HA → default to north.
+                    analysis_config = dict(task.adaptive_config)
+                    analysis_config["hemisphere"] = (
+                        "south" if (self.hass.config.latitude or 0) < 0 else "north"
+                    )
+                    analysis_config["_current_month"] = dt_util.now().month
+                    analysis = analyzer.analyze(task_result, analysis_config)
+                    task_result["_suggested_interval"] = analysis.recommended_interval
+                    task_result["_interval_confidence"] = analysis.confidence
+                    task_result["_interval_analysis"] = {
+                        "average_actual": analysis.average_actual_interval,
+                        "ewa_prediction": analysis.ewa_prediction,
+                        "weibull_beta": analysis.weibull_beta,
+                        "weibull_eta": analysis.weibull_eta,
+                        "weibull_r_squared": analysis.weibull_r_squared,
+                        "confidence_interval_low": analysis.confidence_interval_low,
+                        "confidence_interval_high": analysis.confidence_interval_high,
+                        "data_points": analysis.data_points,
+                        "reason": analysis.recommendation_reason,
+                        "seasonal_factor": analysis.seasonal_factor,
+                        "seasonal_factors": analysis.seasonal_factors,
+                        "seasonal_reason": analysis.seasonal_adjustment_reason,
+                    }
+                except Exception:  # noqa: BLE001 — never let analysis break refresh
+                    _LOGGER.debug(
+                        "Adaptive interval analysis failed for task %s",
+                        task_id,
+                        exc_info=True,
+                    )
 
             # Sensor-driven predictions (Phase 3)
             # Only for sensor_based tasks with threshold/counter triggers
@@ -939,7 +950,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                 # Inject hemisphere, current month/date for seasonal awareness
                 task.adaptive_config["hemisphere"] = (
-                    "south" if self.hass.config.latitude < 0 else "north"
+                    "south" if (self.hass.config.latitude or 0) < 0 else "north"
                 )
                 now = dt_util.now()
                 task.adaptive_config["_current_month"] = now.month

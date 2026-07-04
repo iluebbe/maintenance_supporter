@@ -422,6 +422,54 @@ class TestCounterTrigger:
         trigger.reset_baseline()
         assert trigger._baseline_value == 600
 
+    async def test_delta_rebaselines_on_source_counter_reset(
+        self, hass: HomeAssistant
+    ) -> None:
+        """M3: a source-counter reset/rollover (value < baseline) re-baselines to
+        the new lower value instead of waiting for it to climb past the old one."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.counter",
+            "attribute": None,
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 100,
+            "trigger_delta_mode": True,
+            "trigger_baseline_value": 500,
+        }
+        trigger = CounterTrigger(hass, entity, config)
+        # Counter dropped below baseline (device reboot / rollover).
+        assert trigger.evaluate(300) is False
+        assert trigger._baseline_value == 300  # re-baselined
+        # Now counts from the new baseline and fires at +100.
+        assert trigger.evaluate(399) is False
+        assert trigger.evaluate(400) is True
+
+    async def test_reset_baseline_deferred_when_source_unavailable(
+        self, hass: HomeAssistant
+    ) -> None:
+        """M4: completing while the source is unavailable defers the re-baseline
+        to the next real value, so a stale baseline can't immediately re-trigger."""
+        entity = _make_mock_entity(hass)
+        config = {
+            "entity_id": "sensor.counter",
+            "attribute": None,
+            "type": TriggerType.COUNTER,
+            "trigger_target_value": 100,
+            "trigger_delta_mode": True,
+            "trigger_baseline_value": 500,
+        }
+        trigger = CounterTrigger(hass, entity, config)
+        trigger._current_value = None  # source unavailable at completion
+
+        trigger.reset_baseline()
+        assert trigger._reset_pending is True
+        assert trigger._baseline_value == 500  # unchanged for now
+
+        # First real value after the entity returns re-baselines to it → delta 0.
+        trigger._evaluate_and_update(900)
+        assert trigger._baseline_value == 900
+        assert trigger._reset_pending is False
+
     async def test_counter_setup_persists_baseline(
         self, hass: HomeAssistant
     ) -> None:
