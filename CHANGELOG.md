@@ -18,6 +18,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   web-links are scheme-validated on the way in.
 - CSV export wraps `nfc_tag_id` / `responsible_user_id` through the formula-
   injection guard like the other free-text fields.
+- The privileged-domain denylist is also enforced at **completion-action
+  dispatch** (not just on write), so an action stored before the guard existed
+  can never run. JSON/YAML **import** now validates an imported `trigger_config`
+  the same way the create path does (YAML is parsed with `safe_load`, and the
+  import field-whitelist never carried `on_complete_action` — so import was not
+  an escalation hole).
 
 ### 🐛 Fixes (from a repo review pass)
 

@@ -1117,7 +1117,42 @@ async def test_import_json_with_trigger_config(
     assert entry is not None
     tasks = entry.data.get(CONF_TASKS, {})
     task = list(tasks.values())[0]
-    assert task["trigger_config"] == trigger_config
+    # Import now normalizes trigger_config through _validate_trigger_config (the
+    # same as the WS create path), so the core fields are preserved (extra
+    # normalized keys like entity_id/entity_logic may be added).
+    tc_out = task["trigger_config"]
+    assert tc_out["type"] == "threshold"
+    assert tc_out["entity_ids"] == ["sensor.temperature"]
+    assert tc_out["trigger_above"] == 30.0
+
+
+async def test_import_json_drops_invalid_trigger_config(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """An imported trigger_config that fails validation (no entity) is dropped,
+    so import isn't a hole around _validate_trigger_config."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    json_data = json.dumps({
+        "objects": [{
+            "object": {"name": "Bad Trigger Obj"},
+            "tasks": [{
+                "name": "Bad Trigger Task",
+                "schedule_type": "sensor_based",
+                # threshold with neither entity_id nor entity_ids → invalid.
+                "trigger_config": {"type": "threshold", "trigger_above": 5},
+            }],
+        }],
+    })
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json_data,
+    })
+
+    entry_id = conn.send_result.call_args[0][1]["imported"][0]["entry_id"]
+    task = list(hass.config_entries.async_get_entry(entry_id).data[CONF_TASKS].values())[0]
+    assert "trigger_config" not in task
 
 
 # ─── ws_generate_qr ──────────────────────────────────────────────────────
