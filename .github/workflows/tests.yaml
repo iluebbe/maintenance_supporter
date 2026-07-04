@@ -74,11 +74,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: pip install pytest pytest-cov pytest-homeassistant-custom-component mypy babel
+        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component mypy babel
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
+      # Parallelize across the runner's cores (-n auto). --dist loadfile keeps a
+      # test file on one worker (some suites share module fixtures); coverage is
+      # combined via [tool.coverage.run] parallel=true in pyproject.toml so the
+      # gate reads the same total as a serial run.
       - name: Run tests
-        run: pytest tests/ -v --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=98
+        run: pytest tests/ -n auto --dist loadfile --cov=custom_components/maintenance_supporter --cov-report=term-missing --cov-fail-under=98
 
   docker-smoke:
     name: Docker smoke (HA starts with integration)

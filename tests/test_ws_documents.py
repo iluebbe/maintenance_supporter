@@ -506,8 +506,12 @@ async def test_serve_dangling_blob_is_404(
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     store = _store(hass)
+    # Unique content -> unique content-addressed blob path, so unlinking it
+    # can't race another test that stored the same bytes (blobs are dedup'd by
+    # content hash; a shared digest would collide across parallel xdist workers).
     doc = await store.async_add_file(
-        OBJECT_ID_1, content=b"data", filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1, content=b"dangling-blob-unique-content",
+        filename="a.pdf", mime="application/pdf",
     )
     store.blob_path(doc["hash"]).unlink()  # delete the blob behind the doc's back
     client = await hass_client()
