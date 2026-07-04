@@ -193,7 +193,9 @@ changes, but they gate how cheap the features above are to build.
   households, off by default.
 - **Approval workflow** — manager sign-off on completions for operator /
   commercial setups (dovetails with operator mode).
-- **Photo attachments** — before/after photos or a receipt on a completion.
+- ✅ **Photo attachments** — **Shipped.** Attach a photo when completing a task;
+  stored via the DocumentStore (deduped, backup-safe) and shown as a thumbnail
+  in the history timeline.
 
 ---
 
