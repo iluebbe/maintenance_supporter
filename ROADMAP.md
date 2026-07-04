@@ -26,6 +26,15 @@ through the config flow object-by-object. The skill would:
    pressure/flow, battery/consumable levels). Group by area/device and propose a
    ranked list of objects + suggested tasks with sensible default intervals and
    trigger types (threshold / counter-delta / runtime) inferred from the sensor.
+   - **Also propose *non-smart* devices** — common household items that never
+     appear in the registry but still need maintenance (range hood filter,
+     dishwasher/washing-machine cleaning, smoke-detector batteries, HVAC filter,
+     descaling the kettle/coffee machine, gutter cleaning, …). Offer these from a
+     curated catalog as time-based tasks. Where a smart signal *can* stand in for
+     usage, suggest a **derived usage sensor**: infer run-cycles or on-time from
+     a smart-plug's **power draw** (threshold/state-change on wattage) or from a
+     **presence/occupancy** signal, so an otherwise "dumb" appliance still gets
+     usage-based (counter/runtime) triggers instead of a pure calendar interval.
 3. **Match manuals & intervals (opt-in)** — when the user wants it, look up the
    manufacturer/model (from the device registry) to suggest a documentation URL
    or manufacturer-recommended service intervals, and attach them via the
