@@ -143,6 +143,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     try { return new Set(JSON.parse(localStorage.getItem("msp-collapsed-sections") || "[]")); }
     catch { return new Set(); }
   })();
+  // v2.15.0: command palette (Ctrl/Cmd+K) — global search over objects + tasks.
+  @state() private _paletteOpen = false;
+  @state() private _paletteQuery = "";
+  @state() private _paletteActive = 0;
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -183,6 +187,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     window.addEventListener("popstate", this._popstateHandler);
+    window.addEventListener("keydown", this._paletteKeydown);
     const saved = localStorage.getItem("maintenance_supporter_sort");
     if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
       this._sortMode = saved as SortMode;
@@ -204,6 +209,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     window.removeEventListener("popstate", this._popstateHandler);
+    window.removeEventListener("keydown", this._paletteKeydown);
     if (this._unsub) {
       this._unsub();
       this._unsub = null;
@@ -692,6 +698,95 @@ export class MaintenanceSupporterPanel extends LitElement {
     undo?.();
   }
 
+  // --- Command palette (Ctrl/Cmd+K) ---
+
+  private _paletteKeydown = (e: KeyboardEvent): void => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      this._paletteOpen ? this._closePalette() : this._openPalette();
+      return;
+    }
+    if (!this._paletteOpen) return;
+    const results = this._paletteResults;
+    if (e.key === "Escape") { e.preventDefault(); this._closePalette(); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); this._paletteActive = Math.min(this._paletteActive + 1, results.length - 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); this._paletteActive = Math.max(this._paletteActive - 1, 0); }
+    else if (e.key === "Enter") { e.preventDefault(); const r = results[this._paletteActive]; if (r) this._selectPaletteResult(r); }
+  };
+
+  private _openPalette(): void {
+    this._paletteQuery = "";
+    this._paletteActive = 0;
+    this._paletteOpen = true;
+    this.updateComplete.then(() => {
+      this.shadowRoot?.querySelector<HTMLInputElement>(".palette-input")?.focus();
+    });
+  }
+
+  private _closePalette(): void {
+    this._paletteOpen = false;
+    this._paletteQuery = "";
+  }
+
+  private get _paletteResults(): Array<{ kind: "object" | "task"; entryId: string; taskId?: string; label: string; sub: string }> {
+    const q = this._paletteQuery.trim().toLowerCase();
+    const out: Array<{ kind: "object" | "task"; entryId: string; taskId?: string; label: string; sub: string }> = [];
+    for (const obj of this._objects) {
+      const oname = obj.object.name || "";
+      if (!q || oname.toLowerCase().includes(q)) {
+        out.push({ kind: "object", entryId: obj.entry_id, label: oname, sub: t("object", this._lang) });
+      }
+      for (const task of obj.tasks) {
+        if (task.archived) continue;
+        const tname = task.name || "";
+        if (!q || tname.toLowerCase().includes(q) || oname.toLowerCase().includes(q)) {
+          out.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: tname, sub: oname });
+        }
+      }
+      if (out.length > 60) break; // cap the working set; sliced below
+    }
+    return out.slice(0, 40);
+  }
+
+  private _selectPaletteResult(r: { kind: "object" | "task"; entryId: string; taskId?: string }): void {
+    this._closePalette();
+    if (r.kind === "task" && r.taskId) this._showTask(r.entryId, r.taskId);
+    else this._showObject(r.entryId);
+  }
+
+  private _renderPalette() {
+    if (!this._paletteOpen) return nothing;
+    const L = this._lang;
+    const results = this._paletteResults;
+    return html`
+      <div class="palette-backdrop" @click=${() => this._closePalette()}>
+        <div class="palette" @click=${(e: Event) => e.stopPropagation()}>
+          <input
+            class="palette-input"
+            type="text"
+            placeholder="${t("palette_placeholder", L)}"
+            .value=${this._paletteQuery}
+            @input=${(e: Event) => { this._paletteQuery = (e.target as HTMLInputElement).value; this._paletteActive = 0; }}
+          />
+          <div class="palette-results">
+            ${results.length === 0
+              ? html`<div class="palette-empty">${t("palette_no_results", L)}</div>`
+              : results.map((r, i) => html`
+                  <div class="palette-item ${i === this._paletteActive ? "active" : ""}"
+                    @mouseenter=${() => { this._paletteActive = i; }}
+                    @click=${() => this._selectPaletteResult(r)}>
+                    <ha-icon icon="${r.kind === "task" ? "mdi:clipboard-check-outline" : "mdi:package-variant-closed"}"></ha-icon>
+                    <span class="palette-label">${r.label}</span>
+                    <span class="palette-sub">${r.sub}</span>
+                  </div>
+                `)}
+          </div>
+          <div class="palette-hint">${t("palette_hint", L)}</div>
+        </div>
+      </div>
+    `;
+  }
+
   // --- Bulk selection (dashboard task list) ---
 
   private _bulkKey(row: TaskRow): string {
@@ -1125,6 +1220,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         <span>${this._toastMessage}</span>
         ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${t("undo", this._lang)}</button>` : nothing}
       </div>` : nothing}
+      ${this._renderPalette()}
     `;
   }
 

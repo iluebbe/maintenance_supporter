@@ -171,6 +171,33 @@ export const panelStyles = css`
   }
   .today-empty ha-icon { --mdc-icon-size: 56px; color: var(--success-color, #4caf50); }
 
+  /* Command palette (Ctrl/Cmd+K). */
+  .palette-backdrop {
+    position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,.4);
+    display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh;
+    animation: toast-in .15s ease;
+  }
+  .palette {
+    width: min(620px, 92vw); max-height: 66vh; display: flex; flex-direction: column;
+    background: var(--card-background-color, #fff); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0,0,0,.4);
+  }
+  .palette-input {
+    font: inherit; font-size: 16px; padding: 16px 18px; border: none; outline: none;
+    background: transparent; color: var(--primary-text-color);
+    border-bottom: 1px solid var(--divider-color);
+  }
+  .palette-results { overflow-y: auto; }
+  .palette-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer;
+  }
+  .palette-item.active { background: color-mix(in srgb, var(--primary-color) 14%, transparent); }
+  .palette-item ha-icon { --mdc-icon-size: 20px; color: var(--secondary-text-color); flex: none; }
+  .palette-label { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .palette-sub { margin-left: auto; color: var(--secondary-text-color); font-size: 12.5px; flex: none; padding-left: 10px; }
+  .palette-empty { padding: 20px 16px; color: var(--secondary-text-color); text-align: center; }
+  .palette-hint { padding: 8px 16px; font-size: 12px; color: var(--secondary-text-color); border-top: 1px solid var(--divider-color); }
+
   .task-row:hover {
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
