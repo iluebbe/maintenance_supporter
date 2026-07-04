@@ -409,6 +409,8 @@
   "settings_action_complete": "Mostra pulsante 'Completato'",
   "settings_action_skip": "Mostra pulsante 'Salta'",
   "settings_action_snooze": "Mostra pulsante 'Posticipa'",
+  "settings_weekly_digest": "Riepilogo settimanale",
+  "settings_weekly_digest_hint": "Una notifica di riepilogo il lunedì mattina quando ci sono attività.",
   "settings_snooze_hours": "Durata posticipo (ore)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",

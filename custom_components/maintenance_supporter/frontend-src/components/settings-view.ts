@@ -41,6 +41,7 @@ interface SettingsResponse {
     skip_enabled: boolean;
     snooze_enabled: boolean;
     snooze_duration_hours: number;
+    weekly_digest_enabled: boolean;
   };
   budget: {
     monthly: number;
@@ -566,6 +567,12 @@ export class MaintenanceSettingsView extends LitElement {
               @change=${(e: Event) => this._updateSetting("snooze_duration_hours", parseInt((e.target as HTMLInputElement).value, 10) || 4)} />
           </label>
         ` : nothing}
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_weekly_digest", L)}</span>
+          <input type="checkbox" .checked=${a.weekly_digest_enabled}
+            @change=${(e: Event) => this._updateSetting("weekly_digest_enabled", (e.target as HTMLInputElement).checked)} />
+        </label>
+        <div class="setting-hint">${t("settings_weekly_digest_hint", L)}</div>
       </div>
     `;
   }

@@ -410,6 +410,8 @@
   "settings_action_complete": "Näytä Valmis-painike",
   "settings_action_skip": "Näytä Ohita-painike",
   "settings_action_snooze": "Näytä Torkku-painike",
+  "settings_weekly_digest": "Viikkokooste",
+  "settings_weekly_digest_hint": "Yksi kooste-ilmoitus maanantaiaamuna, kun tehtäviä on.",
   "settings_snooze_hours": "Torkun kesto (tuntia)",
   "settings_budget": "Budjetti",
   "settings_currency": "Valuutta",

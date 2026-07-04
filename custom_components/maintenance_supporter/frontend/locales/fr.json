@@ -409,6 +409,8 @@
   "settings_action_complete": "Afficher le bouton 'Terminé'",
   "settings_action_skip": "Afficher le bouton 'Passer'",
   "settings_action_snooze": "Afficher le bouton 'Reporter'",
+  "settings_weekly_digest": "Récapitulatif hebdomadaire",
+  "settings_weekly_digest_hint": "Une notification récapitulative le lundi matin quand des tâches sont dues.",
   "settings_snooze_hours": "Durée de report (heures)",
   "settings_budget": "Budget",
   "settings_currency": "Devise",

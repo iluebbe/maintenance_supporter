@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntry
@@ -638,6 +638,50 @@ async def test_bundled_rate_limited(
         # Second bundle within 1h is rate limited
         await nm.async_send_bundled(entry_id="e1", object_name="Obj", tasks=tasks)
         assert mock_hass.services.async_call.call_count == 1
+
+
+# ─── Weekly Digest Tests ──────────────────────────────────────────────
+
+
+async def test_weekly_digest_sends_summary(
+    hass: HomeAssistant,
+    global_with_notifications: ConfigEntry,
+) -> None:
+    """The opt-in weekly digest sends one summary with the counts."""
+    await setup_integration(hass, global_with_notifications)
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_send_weekly_digest(overdue=3, due_soon=2)
+
+        mock_hass.services.async_call.assert_called_once()
+        data = mock_hass.services.async_call.call_args[0][2]
+        assert "3" in data["message"] and "2" in data["message"]
+        assert data["data"]["tag"] == "maintenance_weekly_digest"
+
+
+async def test_weekly_digest_silent_when_no_service(
+    hass: HomeAssistant,
+    global_with_notifications: ConfigEntry,
+) -> None:
+    """No digest send when there's no notify service configured."""
+    await setup_integration(hass, global_with_notifications)
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass, \
+         patch.object(type(nm), "notify_service", new_callable=PropertyMock, return_value=""):
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_send_weekly_digest(overdue=5, due_soon=1)
+        mock_hass.services.async_call.assert_not_called()
 
 
 # ─── Budget Alert Tests ───────────────────────────────────────────────

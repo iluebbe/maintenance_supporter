@@ -410,6 +410,8 @@
   "settings_action_complete": "「完了」ボタンを表示",
   "settings_action_skip": "「スキップ」ボタンを表示",
   "settings_action_snooze": "「スヌーズ」ボタンを表示",
+  "settings_weekly_digest": "週間まとめ",
+  "settings_weekly_digest_hint": "タスクがある月曜の朝に1件のまとめ通知。",
   "settings_snooze_hours": "スヌーズ時間（時間）",
   "settings_budget": "予算",
   "settings_currency": "通貨",

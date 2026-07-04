@@ -409,6 +409,8 @@
   "settings_action_complete": "Zobrazit tlačítko 'Dokončit'",
   "settings_action_skip": "Zobrazit tlačítko 'Přeskočit'",
   "settings_action_snooze": "Zobrazit tlačítko 'Odložit'",
+  "settings_weekly_digest": "Týdenní přehled",
+  "settings_weekly_digest_hint": "Jedno souhrnné oznámení v pondělí ráno, když jsou úkoly.",
   "settings_snooze_hours": "Doba odložení (hodiny)",
   "settings_budget": "Rozpočet",
   "settings_currency": "Měna",

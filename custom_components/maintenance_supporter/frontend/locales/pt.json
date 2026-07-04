@@ -409,6 +409,8 @@
   "settings_action_complete": "Mostrar botão 'Concluída'",
   "settings_action_skip": "Mostrar botão 'Saltar'",
   "settings_action_snooze": "Mostrar botão 'Adiar'",
+  "settings_weekly_digest": "Resumo semanal",
+  "settings_weekly_digest_hint": "Uma notificação de resumo na segunda de manhã quando há tarefas.",
   "settings_snooze_hours": "Duração do adiamento (horas)",
   "settings_budget": "Orçamento",
   "settings_currency": "Moeda",

@@ -409,6 +409,8 @@
   "settings_action_complete": "Visa 'Slutför'-knapp",
   "settings_action_skip": "Visa 'Hoppa över'-knapp",
   "settings_action_snooze": "Visa 'Snooza'-knapp",
+  "settings_weekly_digest": "Veckosammanfattning",
+  "settings_weekly_digest_hint": "En sammanfattningsavisering måndag morgon när uppgifter förfaller.",
   "settings_snooze_hours": "Snooza-tid (timmar)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",

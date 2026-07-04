@@ -410,6 +410,8 @@
   "settings_action_complete": "Show 'Complete' button",
   "settings_action_skip": "Show 'Skip' button",
   "settings_action_snooze": "Show 'Snooze' button",
+  "settings_weekly_digest": "Weekly digest",
+  "settings_weekly_digest_hint": "A single summary notification on Monday morning when tasks are due.",
   "settings_snooze_hours": "Snooze duration (hours)",
   "settings_budget": "Budget",
   "settings_currency": "Currency",

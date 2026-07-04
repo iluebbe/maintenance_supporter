@@ -9,7 +9,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.const import ATTR_ENTITY_ID, EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import (
     Event,
     HomeAssistant,
@@ -27,7 +27,10 @@ from homeassistant.helpers import (
 from homeassistant.helpers import (
     entity_registry as er,
 )
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import (
+    async_track_time_change,
+    async_track_time_interval,
+)
 from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
 
@@ -47,6 +50,7 @@ from .const import (
     CONF_OBJECT,
     CONF_PANEL_ENABLED,
     CONF_TASKS,
+    CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_PANEL_ENABLED,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
@@ -581,10 +585,45 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         hass, _retention_tick, timedelta(hours=24), cancel_on_shutdown=True
     )
 
+    # v2.15.0: opt-in weekly digest — one summary notification on Monday morning.
+    # Fires daily at 08:00 local; only acts on Mondays, only when the global
+    # `weekly_digest_enabled` setting is on and there's actually something due.
+    async def _weekly_digest_tick(now: Any) -> None:
+        if now.weekday() != 0:  # Monday only
+            return
+        global_entry = next(
+            (e for e in hass.config_entries.async_entries(DOMAIN)
+             if e.unique_id == GLOBAL_UNIQUE_ID),
+            None,
+        )
+        if global_entry is None:
+            return
+        options = global_entry.options or global_entry.data
+        if not options.get(CONF_WEEKLY_DIGEST_ENABLED, False):
+            return
+        from .helpers.aggregate import compute_status_counts
+
+        counts = compute_status_counts(hass)
+        overdue = int(counts.get("overdue", 0))
+        due_soon = int(counts.get("due_soon", 0)) + int(counts.get("triggered", 0))
+        if overdue == 0 and due_soon == 0:
+            return  # nothing to report — stay silent
+        nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+        if nm is not None:
+            await nm.async_send_weekly_digest(overdue, due_soon)
+
+    unsub_digest = async_track_time_change(
+        hass, _weekly_digest_tick, hour=8, minute=0, second=0
+    )
+    # async_track_time_change has no cancel_on_shutdown, so cancel it explicitly
+    # on HA stop too — otherwise the daily timer lingers past shutdown when the
+    # entries aren't formally unloaded (e.g. test teardown).
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _e: unsub_digest())
+
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
     hass.data[DOMAIN]["_event_unsubs"] = [
         unsub_notification, unsub_tag, unsub_action,
-        unsub_device, unsub_entity, unsub_retention,
+        unsub_device, unsub_entity, unsub_retention, unsub_digest,
     ]
 
     return True

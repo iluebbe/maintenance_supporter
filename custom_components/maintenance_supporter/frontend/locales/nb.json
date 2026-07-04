@@ -410,6 +410,8 @@
   "settings_action_complete": "Vis «Fullfør»-knapp",
   "settings_action_skip": "Vis «Hopp over»-knapp",
   "settings_action_snooze": "Vis «Slumre»-knapp",
+  "settings_weekly_digest": "Ukentlig oversikt",
+  "settings_weekly_digest_hint": "Ett sammendragsvarsel mandag morgen når oppgaver forfaller.",
   "settings_snooze_hours": "Slumrevarighet (timer)",
   "settings_budget": "Budsjett",
   "settings_currency": "Valuta",
