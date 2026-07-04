@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Callable, Generator
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -34,6 +35,37 @@ def auto_enable_custom_integrations(
 ) -> Generator[None]:
     """Enable custom integrations for all tests."""
     yield
+
+
+@pytest.fixture(autouse=True)
+def _isolate_document_blobs(
+    request: pytest.FixtureRequest,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Give each test (and each pytest-xdist worker) its own document-blob root.
+
+    DocumentStore blobs live on real disk under ``hass.config.path(DOMAIN, ...)``,
+    which pytest-homeassistant-custom-component maps to a SHARED test config dir.
+    Under ``-n auto`` that lets parallel workers see each other's blob files
+    (orphan/cleanup false positives — the reason CI ran serially). Redirect just
+    the DOMAIN subtree to a per-test tmp dir so the suite is xdist-safe. Guarded
+    on ``hass`` being requested so pure-unit tests aren't forced to build hass.
+    """
+    if "hass" not in request.fixturenames:
+        return
+    from custom_components.maintenance_supporter.const import DOMAIN
+
+    hass = request.getfixturevalue("hass")
+    orig_path = hass.config.path
+    unique_root = tmp_path / "ms_config"
+
+    def _patched(*parts: str) -> str:
+        if parts and parts[0] == DOMAIN:
+            return str(unique_root.joinpath(*parts))
+        return orig_path(*parts)
+
+    monkeypatch.setattr(hass.config, "path", _patched)
 
 
 @pytest.fixture(autouse=True)
