@@ -40,7 +40,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
   const currentVal = task.trigger_current_value;
   const triggerType = tc.type || "threshold";
   const isMultiEntity = entityIds.length > 1;
-  const isCounterTask = triggerType === "counter" && tc.trigger_target_value != null;
+  const spec = progressSpec(task, unit, ctx);
 
   return html`
     <h3>${t("trigger", L)}</h3>
@@ -61,8 +61,8 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         </span>
       </div>
 
-      ${isCounterTask
-        ? renderCounterProgress(task, unit, ctx)
+      ${spec
+        ? renderProgress(spec, L)
         : currentVal !== null && currentVal !== undefined
           ? html`
               <div class="trigger-value-row">
@@ -105,6 +105,45 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
   `;
 }
 
+/** Progress toward a trigger target — the "8,507 / 15,000 km · 57 %" story.
+ *
+ *  All three accumulating trigger types map onto it: counters measure the
+ *  raw meter against a baseline; state_change counts and runtime hours
+ *  already accumulate from zero since the last reset.
+ */
+interface ProgressSpec {
+  progress: number;
+  target: number;
+  unit: string;
+  /** Raw meter reading, when it differs from the progress (counters). */
+  meter: number | null;
+}
+
+function progressSpec(task: MaintenanceTask, unit: string, ctx: SparklineContext): ProgressSpec | null {
+  const tc = task.trigger_config;
+  const cur = task.trigger_current_value;
+  if (!tc || cur == null) return null;
+  switch (tc.type || "threshold") {
+    case "counter": {
+      const target = tc.trigger_target_value;
+      if (target == null || target <= 0) return null;
+      const base = counterBaseline(task, rawStatsPoints(task, ctx));
+      return { progress: Math.max(0, cur - (base?.value ?? cur)), target, unit, meter: cur };
+    }
+    case "state_change": {
+      const target = tc.trigger_target_changes;
+      if (target == null || target <= 0) return null;
+      return { progress: Math.max(0, cur), target, unit: "", meter: null };
+    }
+    case "runtime": {
+      const target = tc.trigger_runtime_hours;
+      if (target == null || target <= 0) return null;
+      return { progress: Math.max(0, cur), target, unit: "h", meter: null };
+    }
+  }
+  return null;
+}
+
 /** Absolute baseline a counter's progress is measured from: the stored
  *  delta baseline if present, else the reading nearest the last service. */
 function counterBaseline(task: MaintenanceTask, rawPoints: ChartPoint[]): { value: number; ts: number | null } | null {
@@ -130,30 +169,22 @@ function lastServiceTs(task: MaintenanceTask): number | null {
   return e ? new Date(e.timestamp).getTime() : null;
 }
 
-/** "8,507 / 15,000 km · 57 %" header + progress bar for counter tasks. */
-function renderCounterProgress(task: MaintenanceTask, unit: string, ctx: SparklineContext) {
-  const tc = task.trigger_config!;
-  const target = tc.trigger_target_value!;
-  const cur = task.trigger_current_value;
-  if (cur == null || target <= 0) return nothing;
-
-  const base = counterBaseline(task, rawStatsPoints(task, ctx));
-  const progress = Math.max(0, cur - (base?.value ?? cur));
-  const pct = Math.min(999, Math.round((progress / target) * 100));
+/** "8,507 / 15,000 km · 57 %" header + progress bar (counter / state_change / runtime). */
+function renderProgress(spec: ProgressSpec, L: string) {
+  const pct = Math.min(999, Math.round((spec.progress / spec.target) * 100));
   const level = pct >= 100 ? "over" : pct >= 75 ? "near" : "ok";
-  const L = ctx.lang;
 
   return html`
     <div class="counter-progress">
       <div class="counter-progress-nums">
-        <span class="counter-progress-main">${fmtVal(progress, "", L)}<span class="counter-progress-target"> / ${fmtVal(target, unit, L)}</span></span>
+        <span class="counter-progress-main">${fmtVal(spec.progress, "", L)}<span class="counter-progress-target"> / ${fmtVal(spec.target, spec.unit, L)}</span></span>
         <span class="counter-progress-pct ${level}">${pct} %</span>
       </div>
       <div class="counter-progress-bar" role="progressbar" aria-valuenow=${pct} aria-valuemin="0" aria-valuemax="100">
         <div class="counter-progress-fill ${level}" style="width:${Math.min(100, pct)}%"></div>
       </div>
       <div class="counter-progress-caption">
-        ${t("chart_since_service", L)} · ${t("current", L)}: ${fmtVal(cur, unit, L)}
+        ${t("chart_since_service", L)}${spec.meter != null ? html` · ${t("current", L)}: ${fmtVal(spec.meter, spec.unit, L)}` : nothing}
       </div>
     </div>
   `;
@@ -197,13 +228,18 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   if (!tc) return nothing;
   const triggerType = tc.type || "threshold";
   const entityId = tc.entity_id || "";
-  const isCounterTask = triggerType === "counter" && tc.trigger_target_value != null;
 
   let points = rawStatsPoints(task, ctx);
 
   // Still waiting for the first stats fetch → placeholder with the range chips.
   const loading = points.length < 2 && !!entityId && ctx.hasStatsService && !ctx.detailStatsData.has(entityId);
   if (points.length < 2 && !loading) return nothing;
+
+  // Entities without long-term statistics (input_booleans, sensors without a
+  // state_class) silently fall back to the sparse maintenance-event values —
+  // say so instead of letting the thin chart look broken.
+  const statsFetchedEmpty =
+    !!entityId && ctx.detailStatsData.has(entityId) && (ctx.detailStatsData.get(entityId)?.length ?? 0) < 2;
 
   // The history fallback can span years; honor the selected window when enough
   // points remain (never crop below a drawable series).
@@ -213,7 +249,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
 
   let targetValue: number | null = null;
   let forceZero = false;
-  if (isCounterTask && points.length) {
+  if (triggerType === "counter" && tc.trigger_target_value != null && points.length) {
     // Progress domain: cumulative since the last service, never negative.
     const base = counterBaseline(task, points);
     if (base) {
@@ -223,14 +259,21 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       }
       points = points.map((p) => ({ ...p, val: Math.max(0, p.val - base.value) }));
     }
-    targetValue = tc.trigger_target_value!;
+    targetValue = tc.trigger_target_value;
+    forceZero = true;
+  } else if (triggerType === "state_change" && tc.trigger_target_changes) {
+    // Change counts / runtime hours already accumulate from zero.
+    targetValue = tc.trigger_target_changes;
+    forceZero = true;
+  } else if (triggerType === "runtime" && tc.trigger_runtime_hours) {
+    targetValue = tc.trigger_runtime_hours;
     forceZero = true;
   }
 
   // Dashed degradation projection (30 days ahead of the last reading).
   let projection: ChartPoint[] | null = null;
   if (
-    !isCounterTask &&
+    targetValue == null &&
     task.degradation_rate != null &&
     task.degradation_trend !== "stable" &&
     task.degradation_trend !== "insufficient_data" &&
@@ -259,5 +302,11 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       .busy=${loading}
       @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
     ></maintenance-trigger-chart>
+    ${statsFetchedEmpty && !loading
+      ? html`<div class="chart-note">
+          <ha-icon icon="mdi:information-outline"></ha-icon>
+          ${t("chart_no_stats", ctx.lang)}
+        </div>`
+      : nothing}
   `;
 }

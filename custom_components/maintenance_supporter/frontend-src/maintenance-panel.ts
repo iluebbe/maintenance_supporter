@@ -1880,10 +1880,14 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
 
     const pts = renderPoints.map((p) => `${toX(p.ts).toFixed(1)},${toY(p.val).toFixed(1)}`).join(" ");
+    // Match the detail chart's semantics: an actively-triggered sensor tints red.
+    const stroke = row.trigger_active
+      ? "var(--error-color, #f44336)"
+      : "var(--primary-color)";
 
     return html`
       <svg class="mini-sparkline" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${t("chart_mini_sparkline", this._lang)}">
-        <polyline points="${pts}" fill="none" stroke="var(--primary-color)" stroke-width="1.5" stroke-linejoin="round" />
+        <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round" />
       </svg>
     `;
   }

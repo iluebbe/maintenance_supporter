@@ -579,6 +579,7 @@
   "chart_range_90d": "90j",
   "chart_range_1y": "1a",
   "chart_since_service": "depuis le dernier entretien",
+  "chart_no_stats": "Pas de statistiques à long terme pour cette entité — seules les valeurs des entretiens sont affichées",
   "doc_search": "Rechercher des documents…",
   "doc_search_none": "Aucun document correspondant"
 }

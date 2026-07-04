@@ -299,6 +299,10 @@ export const sharedStyles = css`
     cursor: pointer;
     border: 1px solid var(--divider-color);
     transition: transform 0.15s, box-shadow 0.15s;
+    /* Large installs (100+ objects): skip rendering off-screen cards. The
+       intrinsic size keeps the scrollbar stable while they're skipped. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 120px;
   }
   .object-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   .object-card-header { display: flex; justify-content: space-between; align-items: center; }
@@ -606,6 +610,13 @@ export const sharedStyles = css`
   .counter-progress-fill.near { background: var(--warning-color, #ff9800); }
   .counter-progress-fill.over { background: var(--error-color, #f44336); }
   .counter-progress-caption { font-size: 12px; color: var(--secondary-text-color); }
+
+  /* Note under a chart that fell back to sparse maintenance-event values */
+  .chart-note {
+    display: flex; align-items: center; gap: 6px; margin-top: 2px;
+    font-size: 12px; color: var(--secondary-text-color);
+  }
+  .chart-note ha-icon { --mdc-icon-size: 15px; flex: none; }
 
   .trigger-limits {
     display: flex;
