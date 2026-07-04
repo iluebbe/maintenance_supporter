@@ -229,11 +229,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             break
                 if baseline is None:
                     baseline = tc.get("trigger_baseline_value")
-                if baseline is not None and task._trigger_current_value is not None:
-                    task_result["_trigger_current_delta"] = (
-                        task._trigger_current_value - baseline
-                    )
+                if baseline is not None:
+                    # Expose the baseline independently of the live value. After a
+                    # completion the trigger is in its post-reset cooldown, so
+                    # _trigger_current_value is None — but the baseline HAS moved
+                    # to the current reading (reset_baseline persisted it). The
+                    # chart measures "progress since service" as reading − baseline,
+                    # so it needs the fresh baseline to return to 0; gating it on
+                    # current_value left the graph stuck at the old delta (#runtime-graph).
                     task_result["_trigger_baseline_value"] = baseline
+                    if task._trigger_current_value is not None:
+                        task_result["_trigger_current_delta"] = (
+                            task._trigger_current_value - baseline
+                        )
             task_result["_times_performed"] = task.times_performed
             task_result["_total_cost"] = task.total_cost
             task_result["_average_duration"] = task.average_duration

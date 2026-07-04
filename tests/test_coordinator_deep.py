@@ -1117,3 +1117,68 @@ async def test_trigger_runtime_never_persists_into_entry_data(
     merged = coord._get_merged_tasks_data()
     merged_state = merged[TASK_ID_1]["trigger_config"].get("_trigger_state", {})
     assert merged_state.get("input_boolean.tripwire", {}).get("change_count") == 7
+
+
+async def test_counter_delta_baseline_after_completion(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """Repro (#runtime-graph): after completing a delta-counter task, the chart
+    baseline must move to the current reading so 'progress since service' is 0,
+    not stuck at the old delta.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    hass.states.async_set("sensor.delta_meter", "1000")
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        last_performed=(dt_util.now().date() - timedelta(days=5)).isoformat(),
+        interval_days=365,
+        trigger_config={
+            "type": "counter",
+            "entity_id": "sensor.delta_meter",
+            "entity_ids": ["sensor.delta_meter"],
+            "trigger_target_value": 500,
+            "trigger_delta_mode": True,
+            "_trigger_state": {"sensor.delta_meter": {"baseline_value": 1000.0}},
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Delta Meter",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Delta Meter"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user", unique_id="maintenance_supporter_delta_meter_repro",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+    coord = obj_entry.runtime_data.coordinator
+
+    # Meter advances 300 past the baseline.
+    hass.states.async_set("sensor.delta_meter", "1300")
+    await hass.async_block_till_done()
+    await coord.async_refresh()
+    await hass.async_block_till_done()
+    r = coord.data[CONF_TASKS][TASK_ID_1]
+    print("BEFORE:", r.get("_trigger_current_value"), r.get("_trigger_current_delta"), r.get("_trigger_baseline_value"))
+    assert r["_trigger_current_value"] == 1300.0
+    assert r.get("_trigger_baseline_value") == 1000.0
+    assert r.get("_trigger_current_delta") == 300.0
+
+    # Complete the task, then refresh (as the panel would re-fetch).
+    await coord.complete_maintenance(TASK_ID_1)
+    await hass.async_block_till_done()
+    await coord.async_refresh()
+    await hass.async_block_till_done()
+    r = coord.data[CONF_TASKS][TASK_ID_1]
+    # The chart reads _trigger_baseline_value to draw "progress since service"
+    # (reading − baseline). After completion the baseline must equal the current
+    # reading so the graph returns to 0 — and it must be exposed even though the
+    # post-completion cooldown leaves _trigger_current_value None. Before the fix
+    # the baseline was gated on current_value, so it vanished and the chart fell
+    # back to a stale baseline, leaving the graph stuck at the old 300 delta.
+    assert r.get("_trigger_baseline_value") == 1300.0, "baseline did not reset / was hidden"
+    # If a live value is present it must be a 0 delta, never the stale 300.
+    if r.get("_trigger_current_delta") is not None:
+        assert r["_trigger_current_delta"] == 0.0

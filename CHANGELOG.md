@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Delta-counter chart now returns to 0 after completion
+
+- Completing a **delta counter** task (e.g. a runtime-hours meter measured
+  against a service interval) left its "progress since service" chart stuck at
+  the old delta instead of dropping to 0. The baseline *was* reset correctly,
+  but the panel stopped receiving it during the brief post-completion cooldown
+  (it was only sent alongside a live value), so the chart fell back to a stale
+  baseline. The baseline is now always published, so the graph returns to 0
+  immediately after you mark the task done.
+
 ### ✨ Duplicate a task
 
 - **Clone a task within its object** from the task menu (⋮ → Duplicate). The copy
