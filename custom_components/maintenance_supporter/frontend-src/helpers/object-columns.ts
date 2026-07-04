@@ -3,6 +3,7 @@
  * Shared by the panel's table view and the Settings column-config UI. Keep
  * KNOWN/DEFAULT in lockstep with const.py (KNOWN_OBJECT_TABLE_COLUMNS /
  * DEFAULT_OBJECTS_TABLE_COLUMNS) — the backend sanitises to the same set.
+ * Parity is enforced by tests/test_frontend_const_parity.py (drift fails CI).
  */
 
 export interface ObjectColumnDef {
