@@ -146,8 +146,12 @@ Smaller, high-frequency wins first; each ships independently.
 - 💡 **Task-detail information architecture** — the page has grown (trigger,
   prediction, seasonal, cost, documents, history): collapsible sections with
   remembered state.
-- 💡 **Panel performance as a feature** — list virtualization and code-splitting
-  for large installs (`content-visibility` shipped in 2.12.0 as the first step).
+- 🟡 **Panel performance as a feature** — code-splitting (strategy chunks) shipped;
+  `content-visibility: auto` now skips off-screen paint on the object cards, the
+  history timeline and the Today list. Remaining: the dashboard task table uses
+  CSS **subgrid** for cross-row column alignment, which is incompatible with
+  `content-visibility`/`size` containment — genuinely virtualizing it (windowing)
+  without losing column alignment is the larger follow-up for 500+ task installs.
 
 ## Maintainability (internal, scheduled before the feature wave)
 

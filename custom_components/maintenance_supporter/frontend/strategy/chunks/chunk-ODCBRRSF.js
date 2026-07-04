@@ -192,6 +192,10 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     gap: 12px;
     padding: 8px 0;
     border-bottom: 1px solid var(--divider-color);
+    /* Long histories: skip painting off-screen entries (flex, not subgrid, so
+       safe — subgrid task rows can't use this without breaking alignment). */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 48px;
   }
   .history-entry:last-child { border-bottom: none; }
 

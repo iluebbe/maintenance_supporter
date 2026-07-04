@@ -155,6 +155,7 @@ export const panelStyles = css`
   .today-row {
     display: flex; align-items: center; gap: 12px; padding: 11px 14px;
     border-top: 1px solid var(--divider-color); cursor: pointer;
+    content-visibility: auto; contain-intrinsic-size: auto 46px;
   }
   .today-row:hover { background: var(--table-row-alternative-background-color, rgba(0,0,0,.04)); }
   .today-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--success-color, #4caf50); }
