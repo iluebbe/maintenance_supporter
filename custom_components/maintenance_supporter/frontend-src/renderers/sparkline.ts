@@ -270,12 +270,15 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
     forceZero = true;
   }
 
-  // Dashed degradation projection (30 days ahead of the last reading).
+  // Dashed degradation projection (30 days ahead of the last reading). Also
+  // shown for a "stable"-classified slope when a real threshold prediction
+  // exists — a slow 0.25 %/day decline classifies stable yet still crosses
+  // the threshold in a foreseeable number of days.
   let projection: ChartPoint[] | null = null;
   if (
     targetValue == null &&
     task.degradation_rate != null &&
-    task.degradation_trend !== "stable" &&
+    (task.degradation_trend !== "stable" || task.days_until_threshold != null) &&
     task.degradation_trend !== "insufficient_data" &&
     points.length >= 2
   ) {
