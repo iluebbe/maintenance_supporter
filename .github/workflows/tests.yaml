@@ -39,6 +39,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: npm ci
+      # The tsc baseline was cleaned to 0 errors (2026-07): keep it that way.
+      - name: Typecheck frontend
+        working-directory: custom_components/maintenance_supporter/frontend-src
+        run: npx tsc --noEmit
       - name: Build frontend
         working-directory: custom_components/maintenance_supporter/frontend-src
         run: node esbuild.mjs

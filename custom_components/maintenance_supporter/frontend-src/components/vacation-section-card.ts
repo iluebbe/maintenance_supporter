@@ -318,7 +318,7 @@ if (!customElements.get("maintenance-vacation-section-card")) {
 
 (window as { customCards?: unknown[] }).customCards =
   (window as { customCards?: unknown[] }).customCards || [];
-((window as { customCards: unknown[] }).customCards).push({
+((window as { customCards?: unknown[] }).customCards!).push({
   type: "maintenance-vacation-section-card",
   name: "Maintenance Supporter — Vacation",
   description: "Inline vacation mode toggle + dates",

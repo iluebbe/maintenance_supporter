@@ -262,7 +262,7 @@ if (!customElements.get("maintenance-budget-section-card")) {
 
 (window as { customCards?: unknown[] }).customCards =
   (window as { customCards?: unknown[] }).customCards || [];
-((window as { customCards: unknown[] }).customCards).push({
+((window as { customCards?: unknown[] }).customCards!).push({
   type: "maintenance-budget-section-card",
   name: "Maintenance Supporter — Budget",
   description: "Inline monthly + yearly budget editor",

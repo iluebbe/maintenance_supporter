@@ -119,9 +119,11 @@ function _parse(message: string): ParsedError {
 
 /**
  * Convert a thrown WS-promise rejection into a localized one-line string.
- * Pass the lang code (e.g. `this._lang`) and a fallback for non-WS errors.
+ * Pass the lang code (e.g. `this._lang`) and optionally a fallback for
+ * non-WS errors (defaults to the localized generic "action failed").
  */
-export function describeWsError(e: unknown, lang: string, fallback: string): string {
+export function describeWsError(e: unknown, lang: string, fallback?: string): string {
+  fallback = fallback ?? t("action_error", lang);
   if (typeof e === "string") return e;
   if (typeof e !== "object" || e === null) return fallback;
 
