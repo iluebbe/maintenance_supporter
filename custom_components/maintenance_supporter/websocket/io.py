@@ -32,7 +32,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg,
     generate_qr_svg_data_uri,
 )
-from ..websocket.tasks import _check_nfc_tag_duplicate
+from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -401,6 +401,17 @@ async def ws_import_json(
                     r"^([01]\d|2[0-3]):[0-5]\d$", st
                 ):
                     task_data.pop("schedule_time", None)
+
+            # Validate an imported trigger_config the same way the WS create/update
+            # path does — strip unknown keys, normalize entity_ids, and drop it
+            # entirely if invalid — so import isn't a hole around trigger validation.
+            tc = task_data.get("trigger_config")
+            if isinstance(tc, dict):
+                errors, _warnings = _validate_trigger_config(hass, tc)
+                if errors:
+                    task_data.pop("trigger_config", None)
+            elif tc is not None:
+                task_data.pop("trigger_config", None)
 
             import_tasks[task_id] = task_data
             import_obj["task_ids"].append(task_id)

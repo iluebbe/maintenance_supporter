@@ -29,6 +29,7 @@ from ..const import (
     EVENT_TASK_COMPLETED,
     GLOBAL_UNIQUE_ID,
 )
+from .sanitize import _FORBIDDEN_ACTION_DOMAINS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,6 +71,14 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> None:
         )
         return
     domain, name = parts
+    # Defense-in-depth: refuse privileged domains at dispatch too, so an action
+    # stored before the write-time denylist existed (or via any path that skips
+    # cap_action_field) can never run shell/scripts/host control on completion.
+    if domain in _FORBIDDEN_ACTION_DOMAINS:
+        _LOGGER.warning(
+            "on_complete_action refused: %s is a privileged service domain", domain
+        )
+        return
     data = action.get("data") if isinstance(action.get("data"), dict) else None
     target = action.get("target") if isinstance(action.get("target"), dict) else None
     try:

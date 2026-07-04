@@ -463,6 +463,33 @@ async def test_action_listener_fires_service(hass: HomeAssistant) -> None:
         assert mock_call.call_count >= 1
 
 
+async def test_action_listener_refuses_privileged_domain_at_dispatch(
+    hass: HomeAssistant,
+) -> None:
+    """Defense-in-depth: a privileged-domain action stored directly on a task
+    (e.g. legacy data written before the write-time denylist) is refused at
+    dispatch and never reaches hass.services.async_call."""
+    from custom_components.maintenance_supporter.const import EVENT_TASK_COMPLETED
+
+    global_entry = _make_global(hass)
+    task = build_task_data()
+    # Injected directly into stored data, bypassing cap_action_field.
+    task["on_complete_action"] = {"service": "shell_command.rm_rf"}
+    obj_entry = _make_object(hass, tasks={TASK_ID_1: task}, uid="action_priv")
+    await setup_integration(hass, global_entry, obj_entry)
+
+    with patch(
+        "homeassistant.core.ServiceRegistry.async_call",
+        new_callable=AsyncMock,
+    ) as mock_call:
+        hass.bus.async_fire(
+            EVENT_TASK_COMPLETED,
+            {"entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
+        )
+        await hass.async_block_till_done()
+        mock_call.assert_not_called()
+
+
 async def test_action_listener_malformed_service(hass: HomeAssistant) -> None:
     """action_listener.py line 56, 67-71: malformed service logs warning and returns."""
     from custom_components.maintenance_supporter.const import EVENT_TASK_COMPLETED
