@@ -208,6 +208,7 @@ export interface StatisticsResponse {
   due_soon: number;
   triggered: number;
   total_cost: number;
+  budget?: { currency_symbol?: string } | null;
 }
 
 export interface CardConfig {
@@ -338,7 +339,10 @@ export interface HassEntity {
 
 export interface HomeAssistant {
   connection: {
-    sendMessagePromise(msg: Record<string, unknown>): Promise<unknown>;
+    // Result defaults to `any` (home-assistant-js-websocket ergonomics):
+    // call sites annotate `<T>` where the shape matters.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendMessagePromise<Result = any>(msg: Record<string, unknown>): Promise<Result>;
     subscribeMessage(
       callback: (msg: unknown) => void,
       subscribeMsg: Record<string, unknown>,

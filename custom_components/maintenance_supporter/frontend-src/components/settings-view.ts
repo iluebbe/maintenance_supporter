@@ -1049,9 +1049,13 @@ export class MaintenanceSettingsView extends LitElement {
       if (this._qrSelectedEntries.size > 0) {
         msg.entry_ids = [...this._qrSelectedEntries];
       }
-      const result = await this.hass.connection.sendMessagePromise(msg) as {
-        qrs: typeof this._qrBatchResults;
-      };
+      const result = await this.hass.connection.sendMessagePromise<{
+        qrs: Array<{
+          entry_id: string; task_id: string;
+          object_name: string; task_name: string;
+          action: string; svg: string;
+        }>;
+      }>(msg);
       this._qrBatchResults = result.qrs || [];
       if (this._qrBatchResults.length === 0) {
         this._showToast(t("qr_print_empty", this._lang));

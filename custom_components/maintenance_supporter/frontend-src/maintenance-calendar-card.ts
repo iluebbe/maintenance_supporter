@@ -404,16 +404,16 @@ class MaintenanceCalendarCardEditor extends LitElement {
     const newConfig = { ...this._config, [key]: value } as CalendarCardConfig;
     // Drop default-equivalent values so saved YAML stays minimal
     if (key === "show_window_chips" && value === true) {
-      delete (newConfig as Record<string, unknown>).show_window_chips;
+      delete (newConfig as unknown as Record<string, unknown>).show_window_chips;
     }
     if (key === "show_user_filter" && value === true) {
-      delete (newConfig as Record<string, unknown>).show_user_filter;
+      delete (newConfig as unknown as Record<string, unknown>).show_user_filter;
     }
     if (key === "title" && (!value || (typeof value === "string" && value.trim() === ""))) {
-      delete (newConfig as Record<string, unknown>).title;
+      delete (newConfig as unknown as Record<string, unknown>).title;
     }
     if (key === "user_filter" && value === "") {
-      delete (newConfig as Record<string, unknown>).user_filter;
+      delete (newConfig as unknown as Record<string, unknown>).user_filter;
     }
     this._config = newConfig;
     this.dispatchEvent(

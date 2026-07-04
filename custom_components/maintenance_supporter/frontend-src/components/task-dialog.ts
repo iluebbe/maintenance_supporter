@@ -2,7 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
+import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, TriggerConfig, HAUser } from "../types";
 import { t, weekdayName } from "../styles";
 import { UserService } from "../user-service";
 
@@ -191,9 +191,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._qcDuration = qcd?.duration != null ? String(qcd.duration) : "";
     this._qcFeedback = (qcd?.feedback as "needed" | "not_needed" | undefined) || "";
 
-    const ac = task.adaptive_config || {};
-    this._environmentalEntity = (ac.environmental_entity as string) || "";
-    this._environmentalAttribute = (ac.environmental_attribute as string) || "";
+    const ac: Partial<AdaptiveConfig> = task.adaptive_config || {};
+    this._environmentalEntity = ac.environmental_entity || "";
+    this._environmentalAttribute = ac.environmental_attribute || "";
     this._environmentalInitial = this._environmentalEntity;
     this._environmentalAttributeInitial = this._environmentalAttribute;
 

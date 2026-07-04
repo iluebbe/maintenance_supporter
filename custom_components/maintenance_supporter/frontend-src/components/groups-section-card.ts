@@ -331,7 +331,7 @@ if (!customElements.get("maintenance-groups-section-card")) {
 
 (window as { customCards?: unknown[] }).customCards =
   (window as { customCards?: unknown[] }).customCards || [];
-((window as { customCards: unknown[] }).customCards).push({
+((window as { customCards?: unknown[] }).customCards!).push({
   type: "maintenance-groups-section-card",
   name: "Maintenance Supporter — Groups",
   description: "Inline group CRUD",
