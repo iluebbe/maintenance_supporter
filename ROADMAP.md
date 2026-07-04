@@ -115,40 +115,33 @@ Smaller, high-frequency wins first; each ships independently.
   pick one as the object's thumbnail in cards and the objects table. **On hold**
   (2026-07): unsure it reads/looks well at avatar size — revisit with a design
   mockup before building.
-- 💡 **Duplicate task / object** — clone an existing task (or a whole object with
-  its tasks) as a starting point. Covers multi-stage filter units and fleets of
-  identical hotel rooms without repetitive data entry.
-- 💡 **Undo toast instead of confirm dialogs** — low-risk actions (complete, skip,
-  archive) execute immediately with a few seconds of "Undo"; destructive deletes
-  keep their confirmation.
+- ✅ **Duplicate task / object** (v2.14.0) — clone an existing task or a whole
+  object with its tasks as a starting point.
+- ✅ **Undo toast instead of confirm dialogs** (v2.14.0) — low-risk actions
+  (complete, skip, archive) execute immediately with a few seconds of "Undo".
 - 💡 **Snooze in the panel** — snoozing currently exists only as a notification
-  action; surface it on task rows and the task detail.
-- 💡 **Bulk actions** — multi-select in the tasks and objects tables: complete,
-  archive, assign a user in one go.
+  action; surface it on task rows and the task detail. **Deferred.**
+- ✅ **Bulk actions** (v2.15.0) — Select mode with checkboxes + bulk bar to
+  complete/archive many tasks at once.
 
 ### Bigger building blocks
-- 💡 **First-run onboarding + template gallery** — a guided "create your first
-  object" flow in the panel, and the 13 object templates (currently config-flow
-  only) browsable as a visual gallery.
-- 💡 **"Today / this week" view** — a mobile-first focus list of what's due, with
-  one-tap complete and an estimated total effort; candidate default landing view
-  on phones.
-- 💡 **Command palette (Ctrl+K)** — global search across objects, tasks, and
-  documents plus quick actions, generalizing the document search shipped in
-  2.11.0.
-- 💡 **Weekly digest notification** (opt-in) — a Monday-morning summary ("3 tasks
-  due this week") through the existing notification manager.
-- 💡 **Printable maintenance report (PDF)** — per object or whole install: asset
-  data, task history, costs. Aimed at landlords/hotels (operator mode) that need
-  maintenance evidence.
+- ✅ **First-run onboarding + template gallery** (v2.15.0) — a "From template"
+  button + first-run empty-state nudge opens the 13 templates by category.
+- ✅ **"Today / this week" view** (v2.15.0) — mobile-first focus list (Overdue /
+  Due today / This week) with one-tap complete.
+- ✅ **Command palette (Ctrl+K)** (v2.15.0) — global fuzzy search across objects
+  and tasks with keyboard nav.
+- ✅ **Weekly digest notification** (v2.15.0, opt-in) — Monday-morning summary
+  through the notification manager.
+- ✅ **Printable maintenance report (PDF)** (v2.15.0) — per-object asset data,
+  task table, costs; opens in a new tab to print / "Save as PDF".
 
 ### Design system
-- 💡 **Dark-mode & color-blind audit** — status colors lean hard on red/green and
-  the chart danger zone uses low-opacity fills; add a second encoding
-  (icons/patterns), verify contrast in dark themes, consolidate design tokens.
-- 💡 **Task-detail information architecture** — the page has grown (trigger,
-  prediction, seasonal, cost, documents, history): collapsible sections with
-  remembered state.
+- 🟡 **Dark-mode & color-blind audit** — status badges now carry a shape icon and
+  the chart danger zone uses a diagonal hatch (v2.15.0). Remaining: full contrast
+  verification in dark themes + design-token consolidation.
+- ✅ **Task-detail information architecture** (v2.15.0) — Weibull/seasonal
+  analysis cards are collapsible with per-section remembered state.
 - 🟡 **Panel performance as a feature** — code-splitting (strategy chunks) shipped;
   `content-visibility: auto` now skips off-screen paint on the object cards, the
   history timeline and the Today list. Remaining: the dashboard task table uses
@@ -161,12 +154,13 @@ Smaller, high-frequency wins first; each ships independently.
 Refactorings that keep the codebase healthy as it grows — no user-visible
 changes, but they gate how cheap the features above are to build.
 
-- 🛠️ **Extract per-type trigger evaluators** from the coordinator's refresh
-  fallback (five near-identical per-entity loops today) into pure, individually
-  tested functions.
-- 🛠️ **Move `_trigger_state` out of `trigger_config`** into the runtime Store —
-  dynamic state currently lives inside static config (entry.data), which has
-  repeatedly caused confusion (baseline/current-value bugs).
+- ✅ **Extract per-type trigger evaluators** — done: the coordinator's
+  `_evaluate_trigger_fallback` dispatches to pure `evaluate_threshold/counter/
+  state_change/runtime` functions in `helpers/trigger_fallback.py`, each unit-
+  tested in `test_trigger_fallback.py`.
+- ✅ **Move `_trigger_state` out of `trigger_config`** (v2.13.0) — dynamic trigger
+  runtime now lives in the per-entry Store, reconstructed into `trigger_config`
+  only at read.
 - 🛠️ **Modularize the panel** — the 2.5k-line `maintenance-panel.ts` is being
   thinned by extracting cohesive render clusters into `renderers/` free-function
   modules (the pattern already used for sparkline/prediction/charts). Done so
@@ -176,12 +170,12 @@ changes, but they gate how cheap the features above are to build.
   the panel's shadow root, so a full `<task-detail-view>` web component needs
   events/dialog-ownership rework rather than a mechanical move; do it
   incrementally, not big-bang.
-- 🛠️ **Panel ↔ config-flow parity by construction** — both UIs must expose the
-  same task/trigger fields (parity is the product goal). Instead of maintaining
-  two hand-written forms, derive both from a single field-schema source so a new
-  field lands in panel *and* options flow automatically — and can't silently
-  drop sibling keys (the 2.12.0 recovery-flag preserve-hack is the symptom to
-  eliminate).
+- 🟡 **Panel ↔ config-flow parity by construction** — the *global settings*
+  surface is now derived from one `helpers/settings_registry` source (allow-list
+  + ranges + options-flow selectors) and the notify-target list is unified.
+  Remaining: the *task/trigger field* forms are still two hand-written UIs; derive
+  both from a single field-schema source so a new field lands in panel *and*
+  options flow automatically.
 - 🛠️ **Parallelize the test suite** (pytest-xdist) — the backend suite is at
   ~9 minutes and growing.
 
