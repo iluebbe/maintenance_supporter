@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "../styles";
+import { t, ensureLocale } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { HomeAssistant } from "../types";
@@ -59,6 +59,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
     if (changedProps.has("hass") && this.hass && !this._hasInitiallyLoaded) {
       this._hasInitiallyLoaded = true;
       void this._load();
+      void ensureLocale(this._lang).then(() => this.requestUpdate());
     }
   }
 

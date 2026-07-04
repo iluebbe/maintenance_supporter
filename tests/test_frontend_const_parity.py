@@ -132,3 +132,40 @@ def test_supported_langs_match_locale_files() -> None:
     assert ts_langs == locale_files, (
         f"SUPPORTED_LANGS {ts_langs} != shipped locales {locale_files}"
     )
+
+
+# === Every localized top-level surface must load its locale =================
+
+
+def test_every_top_level_surface_loads_locale() -> None:
+    """Every top-level UI surface that renders localized text (imports ``t`` from
+    styles) must also call ``ensureLocale`` — otherwise it paints in English
+    until some *other* surface happens to fetch the locale. This is the class of
+    bug where a dashboard-strategy-opened dialog / section card showed English
+    while the rest of HA was translated.
+
+    Top-level surfaces = the esbuild entry points, the dialog mounter (which
+    loads the locale for every strategy-opened dialog), and the strategy-mounted
+    section cards. Child components inherit the loaded locale from their parent
+    and are intentionally excluded.
+    """
+    surfaces = [
+        _FRONTEND / "maintenance-panel.ts",
+        _FRONTEND / "maintenance-card.ts",
+        _FRONTEND / "maintenance-calendar-card.ts",
+        _FRONTEND / "dialog-mount.ts",
+        *sorted((_FRONTEND / "components").glob("*-section-card.ts")),
+    ]
+    imports_t = re.compile(r'import\s*\{[^}]*\bt\b[^}]*\}\s*from\s*"\.{1,2}/styles"')
+    offenders = []
+    for f in surfaces:
+        assert f.exists(), f"surface missing: {f}"
+        src = f.read_text(encoding="utf-8")
+        renders_localized = bool(imports_t.search(src))
+        loads_locale = "ensureLocale" in src
+        if renders_localized and not loads_locale:
+            offenders.append(f.name)
+    assert not offenders, (
+        "top-level surfaces render localized text (import t) but never call "
+        f"ensureLocale — they'll show English: {offenders}"
+    )
