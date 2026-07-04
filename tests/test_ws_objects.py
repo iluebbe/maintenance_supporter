@@ -350,6 +350,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "nfc_tag_id": "nfc-abc-123",
         "priority": "high",
         "checklist": ["Step 1", "Step 2"],
+        "labels": ["safety", "seasonal"],
         # v1.3.0 — missing until issue #50
         "on_complete_action": {
             "service": "input_boolean.toggle",
@@ -406,7 +407,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "last_performed", "schedule_time",
         "notes", "documentation_url",
         "entity_slug", "custom_icon", "nfc_tag_id", "priority",
-        "checklist",
+        "checklist", "labels",
         "on_complete_action", "quick_complete_defaults",
     ]
     missing: list[str] = [
@@ -914,6 +915,64 @@ async def test_ws_create_task_persists_priority(
     tasks = conn2.send_result.call_args[0][1]["tasks"]
     created = next(t for t in tasks if t["id"] == task_id)
     assert created["priority"] == "high"
+
+
+async def test_ws_create_task_persists_labels(
+    hass: HomeAssistant, global_config_entry, object_config_entry
+) -> None:
+    """task/create accepts labels; they sanitize (trim/dedup) and round-trip."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": object_config_entry.entry_id,
+        "name": "Labelled Task",
+        "labels": ["  safety ", "seasonal", "safety", ""],
+    })
+    task_id = conn.send_result.call_args[0][1]["task_id"]
+
+    conn2 = _mock_connection()
+    await call_ws_handler(ws_get_object, hass, conn2, {
+        "id": 2, "type": "maintenance_supporter/object",
+        "entry_id": object_config_entry.entry_id,
+    })
+    tasks = conn2.send_result.call_args[0][1]["tasks"]
+    created = next(t for t in tasks if t["id"] == task_id)
+    # trimmed, deduped, empty dropped, order preserved
+    assert created["labels"] == ["safety", "seasonal"]
+
+
+async def test_ws_update_task_clears_labels(
+    hass: HomeAssistant, global_config_entry, object_config_entry
+) -> None:
+    """task/update with an empty labels list removes them from storage."""
+    from custom_components.maintenance_supporter.const import CONF_TASKS
+    from custom_components.maintenance_supporter.websocket.tasks import (
+        ws_create_task,
+        ws_update_task,
+    )
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": object_config_entry.entry_id,
+        "name": "Labelled Task", "labels": ["safety"],
+    })
+    task_id = conn.send_result.call_args[0][1]["task_id"]
+
+    conn2 = _mock_connection()
+    await call_ws_handler(ws_update_task, hass, conn2, {
+        "id": 2, "type": "maintenance_supporter/task/update",
+        "entry_id": object_config_entry.entry_id,
+        "task_id": task_id, "labels": [],
+    })
+    conn2.send_result.assert_called_once()
+    entry = hass.config_entries.async_get_entry(object_config_entry.entry_id)
+    assert entry is not None
+    assert not entry.data[CONF_TASKS][task_id].get("labels")
 
 
 def test_build_task_summary_compound_trigger_entity_enrichment(hass: HomeAssistant) -> None:

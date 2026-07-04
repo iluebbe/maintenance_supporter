@@ -21,6 +21,7 @@ from .const import (
     CONF_TASK_INTERVAL_ANCHOR,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_INTERVAL_UNIT,
+    CONF_TASK_LABELS_TEXT,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
     CONF_TASK_PRIORITY,
@@ -73,6 +74,8 @@ class AddTaskMixin:
                 self._current_task[CONF_TASK_ICON] = user_input[CONF_TASK_ICON]
             if user_input.get(CONF_TASK_PRIORITY):
                 self._current_task[CONF_TASK_PRIORITY] = user_input[CONF_TASK_PRIORITY]
+            if user_input.get(CONF_TASK_LABELS_TEXT):
+                self._current_task[CONF_TASK_LABELS_TEXT] = user_input[CONF_TASK_LABELS_TEXT]
 
             self._trigger_on_complete = self._save_new_task
             self._on_cancel = self._show_init_menu
@@ -132,6 +135,9 @@ class AddTaskMixin:
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="task_priority",
                         )
+                    ),
+                    vol.Optional(CONF_TASK_LABELS_TEXT): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(
                         "go_back", default=False

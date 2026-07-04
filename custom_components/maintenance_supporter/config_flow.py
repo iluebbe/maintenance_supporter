@@ -43,6 +43,7 @@ from .const import (
     CONF_TASK_ICON,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_INTERVAL_UNIT,
+    CONF_TASK_LABELS_TEXT,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
     CONF_TASK_PRIORITY,
@@ -637,6 +638,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 self._current_task[CONF_TASK_ICON] = user_input[CONF_TASK_ICON]
             if user_input.get(CONF_TASK_PRIORITY):
                 self._current_task[CONF_TASK_PRIORITY] = user_input[CONF_TASK_PRIORITY]
+            if user_input.get(CONF_TASK_LABELS_TEXT):
+                self._current_task[CONF_TASK_LABELS_TEXT] = user_input[CONF_TASK_LABELS_TEXT]
 
             schedule = user_input[CONF_TASK_SCHEDULE_TYPE]
             if schedule == ScheduleType.TIME_BASED:
@@ -692,6 +695,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             options=["low", "normal", "high"],
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="task_priority",
+                        )
+                    ),
+                    vol.Optional(CONF_TASK_LABELS_TEXT): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
                         )
                     ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
@@ -1102,7 +1110,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         """Save the current task and return to task menu."""
         from homeassistant.util import dt as dt_util
 
-        from .helpers.sanitize import cap_task_fields
+        from .helpers.sanitize import cap_task_fields, parse_labels_text
 
         task_id = self._current_task.get("id", uuid4().hex)
         task_data = {
@@ -1145,6 +1153,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
         if CONF_TASK_PRIORITY in self._current_task:
             task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
+        if self._current_task.get(CONF_TASK_LABELS_TEXT):
+            task_data["labels"] = parse_labels_text(
+                self._current_task[CONF_TASK_LABELS_TEXT]
+            )
 
         cap_task_fields(task_data)
         self._tasks[task_id] = task_data

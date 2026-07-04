@@ -27,6 +27,7 @@ from .const import (
     CONF_TASK_INTERVAL_ANCHOR,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_INTERVAL_UNIT,
+    CONF_TASK_LABELS_TEXT,
     CONF_TASK_LAST_PERFORMED,
     CONF_TASK_NAME,
     CONF_TASK_NFC_TAG,
@@ -197,6 +198,12 @@ class TaskCrudMixin:
                     updated_task.pop(CONF_RESPONSIBLE_USER_ID, None)
                 icon_val = user_input.get(CONF_TASK_ICON, "")
                 updated_task[CONF_TASK_PRIORITY] = user_input.get(CONF_TASK_PRIORITY, "normal")
+                labels_text = user_input.get(CONF_TASK_LABELS_TEXT, "")
+                if labels_text.strip():
+                    from .helpers.sanitize import parse_labels_text
+                    updated_task["labels"] = parse_labels_text(labels_text)
+                else:
+                    updated_task.pop("labels", None)
                 if icon_val:
                     updated_task[CONF_TASK_ICON] = icon_val
                 else:
@@ -378,6 +385,12 @@ class TaskCrudMixin:
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="task_priority",
                         )
+                    ),
+                    vol.Optional(
+                        CONF_TASK_LABELS_TEXT,
+                        default=", ".join(task.get("labels", [])),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     nfc_tag_key: selector.TextSelector(
                         selector.TextSelectorConfig(

@@ -29,6 +29,8 @@ from ..const import (
     MAX_ICON_LENGTH,
     MAX_ID_LENGTH,
     MAX_INTERVAL_DAYS,
+    MAX_LABEL_LENGTH,
+    MAX_LABELS,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
     MAX_TEXT_LENGTH,
@@ -81,6 +83,7 @@ from .tasks_validation import (
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("priority"): vol.In(["low", "normal", "high"]),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
+        vol.Optional("labels"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None),
         # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
         vol.Optional("schedule_time"): vol.Any(
             vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
@@ -208,6 +211,9 @@ async def ws_create_task(
                 tc_warnings.append(nfc_warn)
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
+    if msg.get("labels"):
+        from ..helpers.sanitize import sanitize_labels
+        task_data["labels"] = sanitize_labels(msg["labels"])
     if msg.get("schedule_time"):
         task_data["schedule_time"] = msg["schedule_time"]
     # v1.3.0: optional completion-action + quick-defaults. Strict shape
@@ -269,6 +275,7 @@ async def ws_create_task(
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("priority"): vol.In(["low", "normal", "high"]),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
+        vol.Optional("labels"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None),
         vol.Optional("schedule_time"): vol.Any(
             vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
             None,
@@ -376,6 +383,7 @@ async def ws_update_task(
         "nfc_tag_id": "nfc_tag_id",
         "priority": "priority",
         "checklist": "checklist",
+        "labels": "labels",
         "schedule_time": "schedule_time",
         # v1.3.0
         "on_complete_action": "on_complete_action",
@@ -408,9 +416,15 @@ async def ws_update_task(
     # Validate/cap newly-applied v1.3.0 fields. cap_task_fields runs the
     # full task sanitize (caches, lengths, action shape) so update-path
     # behaves identically to create-path.
-    from ..helpers.sanitize import cap_action_field, cap_quick_complete_defaults_field
+    from ..helpers.sanitize import (
+        cap_action_field,
+        cap_quick_complete_defaults_field,
+        sanitize_labels,
+    )
     cap_action_field(task)
     cap_quick_complete_defaults_field(task)
+    if "labels" in task:
+        task["labels"] = sanitize_labels(task["labels"])
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:

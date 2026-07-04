@@ -258,6 +258,9 @@ CONF_TASK_NFC_TAG = "nfc_tag_id"
 CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
 CONF_TASK_SCHEDULE_TIME = "schedule_time"
 CONF_TASK_PRIORITY = "priority"
+# Config-flow-only field: comma-separated labels text, parsed into the
+# persisted ``labels`` list by the task-base handler.
+CONF_TASK_LABELS_TEXT = "labels_text"
 
 # --- Config Keys: User Assignment ---
 CONF_RESPONSIBLE_USER_ID = "responsible_user_id"
@@ -512,6 +515,8 @@ MAX_PANEL_TITLE_LENGTH = 50     # sidebar panel title override
 MAX_TYPE_LENGTH = 50            # task_type, schedule_type
 MAX_CHECKLIST_ITEMS = 100
 MAX_CHECKLIST_ITEM_LENGTH = 500
+MAX_LABELS = 25                 # cross-cutting tags per task
+MAX_LABEL_LENGTH = 40           # single label/tag
 MAX_GROUP_TASK_REFS = 200
 MAX_ID_LENGTH = 64              # entry_id, task_id, group_id (uuid hex = 32)
 MAX_DATE_LENGTH = 20            # ISO 8601 date strings (e.g. 2026-04-21)

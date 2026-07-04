@@ -121,6 +121,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
   @state() private _priority = "normal";
+  @state() private _labels = "";
   @state() private _enabled = true;
 
   // Trigger fields
@@ -238,6 +239,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
     this._priority = task.priority || "normal";
+    this._labels = (task.labels || []).join(", ");
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
@@ -326,6 +328,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._documentationUrl = "";
     this._customIcon = "";
     this._priority = "normal";
+    this._labels = "";
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
@@ -685,6 +688,10 @@ export class MaintenanceTaskDialog extends LitElement {
       data.documentation_url = this._documentationUrl || null;
       data.custom_icon = this._customIcon || null;
       data.priority = this._priority;
+      data.labels = this._labels
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
       data.enabled = this._enabled;
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
@@ -1257,6 +1264,16 @@ export class MaintenanceTaskDialog extends LitElement {
                 (key) => html`<option value=${key} ?selected=${key === this._priority}>${t("priority_" + key, L)}</option>`
               )}
             </select>
+          </div>
+          <div class="field">
+            <label>${t("labels", L)}</label>
+            <input
+              type="text"
+              .value=${this._labels}
+              placeholder="${t("labels_placeholder", L)}"
+              @input=${(e: Event) => (this._labels = (e.target as HTMLInputElement).value)}
+            />
+            <div class="field-help">${t("labels_help", L)}</div>
           </div>
           <div class="select-row">
             <label>${t("schedule_type", L)}</label>

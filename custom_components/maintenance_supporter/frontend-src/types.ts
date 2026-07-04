@@ -134,6 +134,7 @@ export interface MaintenanceTask {
   notes?: string | null;
   documentation_url?: string | null;
   checklist?: string[];
+  labels?: string[];
   // v1.3.0: completion-action + quick-complete (gated by completion_actions feature)
   on_complete_action?: {
     service: string;                          // "domain.service"
@@ -327,6 +328,7 @@ export interface TaskRow {
   enabled: boolean;
   nfc_tag_id: string | null;
   priority: string;
+  labels: string[];
   area_id: string | null;
   responsible_user_id: string | null;
   group_names: string[];

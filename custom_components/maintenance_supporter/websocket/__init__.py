@@ -156,6 +156,7 @@ def _build_task_summary(
         "trigger_entity_info": trigger_entity_info,
         "trigger_entity_infos": trigger_entity_infos,
         "checklist": task_data.get("checklist", []),
+        "labels": task_data.get("labels", []),
         "history": task_data.get("history", []),
         # v1.3.0 — both fields are persisted by ws_create_task / ws_update_task
         # and consumed by helpers/action_listener.py on EVENT_TASK_COMPLETED, but

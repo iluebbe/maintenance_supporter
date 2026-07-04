@@ -22,6 +22,7 @@ from .const import (
     CONF_TASK_INTERVAL_ANCHOR,
     CONF_TASK_INTERVAL_DAYS,
     CONF_TASK_INTERVAL_UNIT,
+    CONF_TASK_LABELS_TEXT,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
     CONF_TASK_PRIORITY,
@@ -74,7 +75,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         """Save the current task and return to init."""
         from homeassistant.util import dt as dt_util
 
-        from .helpers.sanitize import cap_task_fields
+        from .helpers.sanitize import cap_task_fields, parse_labels_text
 
         task_id = uuid4().hex
         task_data: dict[str, Any] = {
@@ -115,6 +116,10 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
         if CONF_TASK_PRIORITY in self._current_task:
             task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
+        if self._current_task.get(CONF_TASK_LABELS_TEXT):
+            task_data["labels"] = parse_labels_text(
+                self._current_task[CONF_TASK_LABELS_TEXT]
+            )
 
         cap_task_fields(task_data)
         new_data = dict(self.config_entry.data)
