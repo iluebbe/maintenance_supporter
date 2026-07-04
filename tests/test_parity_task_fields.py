@@ -23,7 +23,9 @@ from custom_components.maintenance_supporter import const
 ROOT = Path(__file__).resolve().parent.parent / "custom_components" / "maintenance_supporter"
 DIALOG_TS = ROOT / "frontend-src" / "components" / "task-dialog.ts"
 CONFIG_FLOW_SOURCES = [
-    ROOT / "config_flow_options_task.py",
+    # config_flow_options_task.py was split into sibling mixin modules; scan them
+    # all (the glob keeps this correct if the split grows further).
+    *sorted(ROOT.glob("config_flow_options_task*.py")),
     ROOT / "config_flow.py",
     ROOT / "config_flow_trigger.py",
 ]

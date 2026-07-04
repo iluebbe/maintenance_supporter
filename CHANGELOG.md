@@ -6,6 +6,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ♻️ Internal
 
+- **Split the 1703-line `config_flow_options_task.py`** (one giant
+  `MaintenanceOptionsFlow` class) into focused mixin modules (`_base` / `_crud`
+  / `_add` / `_trigger` / `_adaptive` / `_object`), assembled in the original
+  file which stays as the import surface. HA's name-based step routing and the
+  8 compound-step aliases are preserved; `MaintenanceOptionsFlow` imports
+  unchanged. No behaviour change — largest module is now 504 lines, not 1703.
 - **Split the 1433-line `websocket/tasks.py`** into focused sibling modules
   (`tasks_validation` / `tasks_persist` / `tasks_crud` / `tasks_lifecycle` /
   `tasks_actions` / `tasks_history`), with `tasks.py` kept as a thin re-export
