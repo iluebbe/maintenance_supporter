@@ -6,6 +6,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ♻️ Internal
 
+- **De-duplicated the config-flow ↔ panel ↔ WS settings surfaces** (a wave of
+  drift-proofing refactors, no behaviour change):
+  - A single settings registry (`helpers/settings_registry.py`) is now the
+    source of truth for global-setting validation; the WS write handler's
+    allow-list + range/cap tables and the options-flow NumberSelector bounds
+    are derived from it (previously three independent copies of every range).
+  - The quiet-hours `HH:MM[:SS]` regex is shared via `const.TIME_HHMMSS_PATTERN`
+    instead of being re-declared in two files.
+  - The `object/create` and `object/update` WS schemas share one string-field
+    block, and `object/update` now runs the same `cap_object_fields` sanitiser
+    as the create/task write paths.
+  - New tripwire tests enforce parity: WS schema ↔ sanitize caps, and the
+    frontend column/currency mirrors ↔ `const.py`.
 - **Unified the notify-service picker** across the two config surfaces. The
   "merge legacy notify services + notify entities minus `send_message`" list is
   now computed once server-side (`helpers/notify_targets.build_notify_targets`)
