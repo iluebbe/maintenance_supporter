@@ -10,6 +10,8 @@
   "all": "All",
   "new_object": "+ New Object",
   "edit": "Edit",
+  "duplicate": "Duplicate",
+  "task_duplicated": "Task duplicated",
   "delete": "Delete",
   "add_task": "+ Add Task",
   "complete": "Complete",

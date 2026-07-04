@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from copy import deepcopy
 from datetime import date
 from typing import Any
 from uuid import uuid4
@@ -883,6 +884,55 @@ async def async_delete_task(
             )
 
     return True
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/duplicate",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_duplicate_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Clone a task within the same object as a fresh, un-started copy.
+
+    Copies the source task's *configuration* (schedule, trigger, checklist,
+    completion actions, …) — which lives in ConfigEntry.data — into a new task
+    with a new id and a "… (copy)" name. Dynamic state (history, last_performed,
+    trigger runtime) is not copied: the copy starts clean. Fields that must be
+    unique per task (entity_slug, nfc_tag_id) are dropped so the copy gets its
+    own auto-generated slug and no colliding tag.
+    """
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    source = entry.data.get(CONF_TASKS, {}).get(msg["task_id"])
+    if source is None:
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
+    new_task = deepcopy(dict(source))
+    new_task["id"] = uuid4().hex
+    base_name = str(source.get("name", "")).strip() or "Task"
+    new_task["name"] = f"{base_name} (copy)"[:MAX_NAME_LENGTH]
+    new_task["created_at"] = dt_util.now().date().isoformat()
+    # Never carry over per-task-unique keys or any stray dynamic state.
+    for key in ("entity_slug", "nfc_tag_id", "history", "last_performed",
+                "last_planned_due", "adaptive_config"):
+        new_task.pop(key, None)
+    if isinstance(new_task.get("trigger_config"), dict):
+        new_task["trigger_config"].pop("_trigger_state", None)
+
+    await async_persist_task(hass, entry, new_task)
+
+    connection.send_result(msg["id"], {"task_id": new_task["id"]})
 
 
 def _is_recurring_schedule(task: dict[str, Any]) -> bool:

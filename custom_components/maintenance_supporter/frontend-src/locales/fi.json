@@ -10,6 +10,8 @@
   "all": "Kaikki",
   "new_object": "+ Uusi kohde",
   "edit": "Muokkaa",
+  "duplicate": "Monista",
+  "task_duplicated": "Tehtävä monistettu",
   "delete": "Poista",
   "add_task": "+ Lisää tehtävä",
   "complete": "Valmis",

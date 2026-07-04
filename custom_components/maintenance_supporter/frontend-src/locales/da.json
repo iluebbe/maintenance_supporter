@@ -10,6 +10,8 @@
   "all": "Alle",
   "new_object": "+ Nyt objekt",
   "edit": "Rediger",
+  "duplicate": "Dupliker",
+  "task_duplicated": "Opgave duplikeret",
   "delete": "Slet",
   "add_task": "+ Tilføj opgave",
   "complete": "Fuldfør",

@@ -10,6 +10,8 @@
   "all": "すべて",
   "new_object": "+ 新規対象",
   "edit": "編集",
+  "duplicate": "複製",
+  "task_duplicated": "タスクを複製しました",
   "delete": "削除",
   "add_task": "+ タスク追加",
   "complete": "完了",

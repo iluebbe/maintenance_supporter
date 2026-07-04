@@ -10,6 +10,8 @@
   "all": "全部",
   "new_object": "+ 新建维护项",
   "edit": "编辑",
+  "duplicate": "复制",
+  "task_duplicated": "任务已复制",
   "delete": "删除",
   "add_task": "+ 添加任务",
   "complete": "完成",

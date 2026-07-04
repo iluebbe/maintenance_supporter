@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Duplicate a task
+
+- **Clone a task within its object** from the task menu (⋮ → Duplicate). The copy
+  keeps the full configuration — schedule, trigger, checklist, completion
+  actions — and starts clean (no history, not yet performed). Great for
+  multi-stage setups: build "Stage 1 filter", duplicate it, rename to "Stage 2".
+  Per-task-unique fields (entity slug, NFC tag) are intentionally not copied.
+
 ## [2.13.0] - 2026-07-04
 
 ### ✨ Compound triggers in the task dialog
