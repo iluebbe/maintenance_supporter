@@ -456,3 +456,55 @@ def test_maintenance_object_from_dict_all_fields() -> None:
     assert obj.documentation_url == "https://example.com/manual.pdf"
     assert obj.notes == "Some notes"
     assert obj.slug == "test_object"
+
+
+# ─── F6: dict-twin parity — helpers.status.compute_status_from_task_dict ─────
+
+
+def _coord_dict(task: MaintenanceTask) -> dict:
+    """Build the coordinator-style data dict the dict-twin reads, from a task."""
+    return {
+        **task.to_dict(),
+        "archived_at": task.archived_at,
+        "_trigger_active": task._trigger_active,
+        "_days_until_due": task.days_until_due,
+        "warning_days": task.warning_days,
+    }
+
+
+def test_status_dict_twin_agrees_with_model_on_shared_ladder() -> None:
+    """helpers.status.compute_status_from_task_dict must agree with the model's
+    MaintenanceTask.status on the shared archived/triggered/overdue/due_soon/ok
+    ladder. Uses interval 30 / warning 7 (span >= warning) and no schedule_time,
+    so the model-only refinements (#58 span clamp, past-schedule_time) don't
+    apply — this pins the SHARED precedence so a new tier can't drift.
+    """
+    from custom_components.maintenance_supporter.helpers.status import (
+        compute_status_from_task_dict,
+    )
+
+    def mk(days_ago: int) -> MaintenanceTask:
+        last = (dt_util.now().date() - timedelta(days=days_ago)).isoformat()
+        return MaintenanceTask.from_dict(
+            build_task_data(interval_days=30, warning_days=7, last_performed=last)
+        )
+
+    ok = mk(10)          # ~20 days out → OK
+    due_soon = mk(25)    # ~5 days out → DUE_SOON
+    overdue = mk(60)     # past → OVERDUE
+    triggered = mk(10)
+    triggered._trigger_active = True
+    archived = mk(10)
+    archived.archived_at = dt_util.now().isoformat()
+
+    for task, expected in (
+        (ok, MaintenanceStatus.OK),
+        (due_soon, MaintenanceStatus.DUE_SOON),
+        (overdue, MaintenanceStatus.OVERDUE),
+        (triggered, MaintenanceStatus.TRIGGERED),
+        (archived, MaintenanceStatus.ARCHIVED),
+    ):
+        assert task.status == expected  # sanity: model computes the tier
+        assert compute_status_from_task_dict(_coord_dict(task)) == expected, (
+            f"dict-twin diverged from model for {expected}"
+        )
