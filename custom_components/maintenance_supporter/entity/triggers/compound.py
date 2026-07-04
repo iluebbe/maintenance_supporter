@@ -103,55 +103,21 @@ class _CompoundCoordinatorProxy:
         *,
         immediate: bool = False,
     ) -> None:
-        """Persist under trigger_runtime.conditions[idx]."""
-        store = getattr(self._real, "_store", None)
-        if store is not None:
-            # Store-based: build a compound key for condition index
-            compound_key = f"_compound_{self._condition_idx}"
-            if entity_id is not None:
-                compound_key = f"_compound_{self._condition_idx}_{entity_id}"
-            store.set_trigger_runtime(task_id, compound_key, runtime_data)
-            if immediate:
-                await store.async_save()
-            else:
-                store.async_delay_save()
+        """Persist under trigger_runtime as a per-condition compound key.
+
+        The real coordinator always has a Store; merge_task_data reshapes these
+        ``_compound_<idx>[_<entity_id>]`` keys back into
+        ``_trigger_state["conditions"][idx]`` on read.
+        """
+        store = self._real._store
+        compound_key = f"_compound_{self._condition_idx}"
+        if entity_id is not None:
+            compound_key = f"_compound_{self._condition_idx}_{entity_id}"
+        store.set_trigger_runtime(task_id, compound_key, runtime_data)
+        if immediate:
+            await store.async_save()
         else:
-            # Legacy: write to ConfigEntry.data under _trigger_state
-            from ...const import CONF_TASKS
-
-            tasks_data = dict(self._real.entry.data.get(CONF_TASKS, {}))
-            if task_id not in tasks_data:
-                return
-
-            task_dict = dict(tasks_data[task_id])
-            trigger_config = dict(task_dict.get("trigger_config", {}))
-            trigger_state = dict(trigger_config.get("_trigger_state", {}))
-
-            conditions_state = list(trigger_state.get("conditions", []))
-            while len(conditions_state) <= self._condition_idx:
-                conditions_state.append({})
-            cond_state = dict(conditions_state[self._condition_idx])
-
-            if entity_id is not None:
-                entity_state = dict(cond_state.get(entity_id, {}))
-                for key, value in runtime_data.items():
-                    entity_state[key] = value
-                cond_state[entity_id] = entity_state
-            else:
-                for key, value in runtime_data.items():
-                    cond_state[key] = value
-
-            conditions_state[self._condition_idx] = cond_state
-            trigger_state["conditions"] = conditions_state
-            trigger_config["_trigger_state"] = trigger_state
-            task_dict["trigger_config"] = trigger_config
-            tasks_data[task_id] = task_dict
-
-            new_data = dict(self._real.entry.data)
-            new_data[CONF_TASKS] = tasks_data
-            self._real.hass.config_entries.async_update_entry(
-                self._real.entry, data=new_data
-            )
+            store.async_delay_save()
 
 
 class CompoundTrigger(BaseTrigger):

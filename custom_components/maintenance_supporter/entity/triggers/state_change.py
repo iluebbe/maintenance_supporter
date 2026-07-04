@@ -192,7 +192,7 @@ class StateChangeTrigger(BaseTrigger):
         _LOGGER.debug("State change counter reset: %s", self.entity_id)
 
     async def _persist_change_count(self) -> None:
-        """Persist change count to config entry for survival across restarts."""
+        """Persist change count to the Store for survival across restarts."""
         await self._coordinator.async_persist_trigger_runtime(
             self._task_id,
             {"change_count": self._change_count},

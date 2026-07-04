@@ -1062,3 +1062,58 @@ async def test_runtime_hours_visible_in_refresh(
     result = coordinator.data[CONF_TASKS][TASK_ID_1]
     assert result["_trigger_current_value"] == 400.0
     assert result["_trigger_active"] is False
+
+
+async def test_trigger_runtime_never_persists_into_entry_data(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """Tripwire: dynamic trigger state lives in the Store, never in entry.data.
+
+    After the ConfigEntry->Store migration (the legacy entry.data write path
+    was removed), persisting trigger runtime must leave the static config
+    entry untouched — `_trigger_state` is only a transient read-model produced
+    by merge_task_data, not persisted config.
+    """
+    hass.states.async_set("input_boolean.tripwire", "off")
+    task = build_task_data(
+        task_id=TASK_ID_1,
+        schedule_type=ScheduleType.SENSOR_BASED,
+        trigger_config={
+            "type": "state_change",
+            "entity_id": "input_boolean.tripwire",
+            "entity_ids": ["input_boolean.tripwire"],
+            "trigger_target_changes": 20,
+        },
+    )
+    obj_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Tripwire",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Tripwire"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id="maintenance_supporter_tripwire_entrydata",
+    )
+    obj_entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+    entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
+    assert entry is not None
+    coord = entry.runtime_data.coordinator
+
+    # Persist some runtime state the way a trigger would.
+    await coord.async_persist_trigger_runtime(
+        TASK_ID_1, {"change_count": 7}, entity_id="input_boolean.tripwire",
+        immediate=True,
+    )
+
+    # The static config entry must NOT carry dynamic state.
+    stored_tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
+    assert "_trigger_state" not in stored_tc, (
+        "dynamic trigger state leaked into ConfigEntry.data — it must live in "
+        "the Store only"
+    )
+    # But it IS visible via the merge-on-read model (Store -> _trigger_state).
+    merged = coord._get_merged_tasks_data()
+    merged_state = merged[TASK_ID_1]["trigger_config"].get("_trigger_state", {})
+    assert merged_state.get("input_boolean.tripwire", {}).get("change_count") == 7

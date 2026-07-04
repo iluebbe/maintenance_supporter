@@ -116,7 +116,7 @@ class CounterTrigger(BaseTrigger):
             )
 
     async def _persist_baseline(self) -> None:
-        """Persist baseline value to config entry for survival across restarts."""
+        """Persist baseline value to the Store for survival across restarts."""
         if self._baseline_value is not None:
             await self._coordinator.async_persist_trigger_runtime(
                 self._task_id,

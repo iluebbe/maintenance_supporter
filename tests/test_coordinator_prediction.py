@@ -997,22 +997,6 @@ async def test_notification_no_manager(
     })
 
 
-async def test_persist_no_store(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
-) -> None:
-    """Line 787: _persist_dynamic_state returns when store is None."""
-    await setup_integration(hass, global_entry, object_entry)
-    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
-    assert entry is not None
-    coord = entry.runtime_data.coordinator
-    original_store = coord._store
-    coord._store = None
-    task_obj = list(coord.tasks.values())[0]
-    # Should just return without crash
-    coord._persist_dynamic_state(TASK_ID_1, task_obj)
-    coord._store = original_store
-
-
 async def test_budget_history_no_store(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:
