@@ -475,11 +475,15 @@ class DocumentStore:
         # dropped into the dir is none of our business and must never be
         # reported as an orphan (the cleanup would otherwise try to delete it).
         d = self._blobs_dir
-        if not d.is_dir():
+        try:
+            entries = list(d.iterdir())
+        except FileNotFoundError:
+            # Dir absent, or removed between the check and the scan (a
+            # concurrent delete / shared test config dir) — nothing to list.
             return set()
         return {
             p.name
-            for p in d.iterdir()
+            for p in entries
             if p.is_file()
             and len(p.name) == 64
             and all(c in "0123456789abcdef" for c in p.name)
