@@ -34,6 +34,7 @@ from ..const import (
     MAX_URL_LENGTH,
 )
 from ..helpers.permissions import require_write
+from ..helpers.sanitize import cap_object_fields
 from . import (
     _build_object_response,
     _get_object_entries,
@@ -45,6 +46,23 @@ from .tasks import (  # v1.4.0 (#43): reuse the existing URL safety check
     _is_recurring_schedule,
     _is_safe_url,
 )
+
+# The optional object string fields are identical between object/create and
+# object/update — define them once so the two schemas can't drift. The caps
+# mirror helpers.sanitize._OBJECT_STR_LIMITS (a tripwire test enforces parity),
+# which is also applied on persist via cap_object_fields as a safety net.
+_OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
+    vol.Optional("area_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+    vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+    vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+    vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+    vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+    vol.Optional("warranty_expiry"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),  # (#67)
+    # v1.4.0 (#43): per-object link to PDF manual / vendor page
+    vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
+    # v1.4.10 (#46): free-form notes (part numbers, procedures, etc.)
+    vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+}
 
 
 @websocket_api.websocket_command(
@@ -143,16 +161,7 @@ async def async_create_object(
     {
         vol.Required("type"): "maintenance_supporter/object/create",
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("area_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
-        vol.Optional("warranty_expiry"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),  # (#67)
-        # v1.4.0 (#43): per-object link to PDF manual / vendor page
-        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
-        # v1.4.10 (#46): free-form notes (part numbers, procedures, etc.)
-        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        **_OBJECT_STR_FIELD_SCHEMA,
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -234,16 +243,7 @@ async def ws_create_object(
         vol.Required("type"): "maintenance_supporter/object/update",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-        vol.Optional("area_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("manufacturer"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("model"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("serial_number"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("installation_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
-        vol.Optional("warranty_expiry"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),  # (#67)
-        # v1.4.0 (#43): per-object link to PDF manual / vendor page
-        vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
-        # v1.4.10 (#46): free-form notes
-        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        **_OBJECT_STR_FIELD_SCHEMA,
     }
 )
 @require_write
@@ -330,6 +330,9 @@ async def ws_update_object(
     if "notes" in msg:
         obj[CONF_OBJECT_NOTES] = msg["notes"]
 
+    # Safety net: cap user strings on persist so this write path matches the
+    # create path (which caps via the config flow) and tasks (cap_task_fields).
+    cap_object_fields(obj)
     new_data[CONF_OBJECT] = obj
     title = obj.get(CONF_OBJECT_NAME, entry.title)
     hass.config_entries.async_update_entry(entry, data=new_data, title=title)
