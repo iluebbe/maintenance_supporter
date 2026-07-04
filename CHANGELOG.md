@@ -4,6 +4,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+## [2.16.0] - 2026-07-05
+
+A hardening & maintainability release: two full code-review passes (security +
+correctness), internal de-duplication and module splits, and an LLM setup-
+assistant skill. No breaking changes.
+
 ### 🔒 Security (from a second review pass)
 
 - A task **completion action** (`on_complete_action`) can no longer call
