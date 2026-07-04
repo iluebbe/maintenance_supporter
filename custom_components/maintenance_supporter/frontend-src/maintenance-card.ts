@@ -117,13 +117,19 @@ export class MaintenanceSupporterCard extends LitElement {
 
   private async _subscribe(): Promise<void> {
     try {
-      this._unsub = await this.hass.connection.subscribeMessage(
+      const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
           const data = msg as { objects: MaintenanceObjectResponse[] };
           this._objects = data.objects;
         },
         { type: "maintenance_supporter/subscribe" }
       );
+      // Detached mid-subscribe → drop the orphaned subscription.
+      if (!this.isConnected) {
+        unsub();
+        return;
+      }
+      this._unsub = unsub;
     } catch {
       // Subscription failed
     }

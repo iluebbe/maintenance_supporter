@@ -131,6 +131,16 @@ _MAX_SERVICE_NAME_LENGTH = 100
 _MAX_ACTION_DATA_BYTES = 1024
 _MAX_TARGET_FIELD_LENGTH = 200
 
+# Privileged service domains an on-complete action may NOT call. A completion
+# action is meant to nudge devices/notify — not run shell/scripts, reboot the
+# host, purge the recorder, or stop HA. Blocking these closes an operator->admin
+# escalation (an allowlisted operator setting an action that runs with system
+# rights when the task is completed). Domain-specific services stay available
+# (e.g. light.turn_on instead of the generic homeassistant.turn_on).
+_FORBIDDEN_ACTION_DOMAINS = frozenset(
+    {"shell_command", "python_script", "hassio", "homeassistant", "recorder", "backup"}
+)
+
 
 def cap_action_field(task_data: dict[str, Any]) -> None:
     """Validate + truncate task_data['on_complete_action'] in-place.
@@ -153,6 +163,11 @@ def cap_action_field(task_data: dict[str, Any]) -> None:
         or len(service) > _MAX_SERVICE_NAME_LENGTH
         or not re.fullmatch(r"[a-z][a-z0-9_]*\.[a-z0-9_]+", service)
     ):
+        task_data.pop("on_complete_action", None)
+        return
+
+    # Reject privileged service domains (arbitrary code / host control).
+    if service.split(".", 1)[0] in _FORBIDDEN_ACTION_DOMAINS:
         task_data.pop("on_complete_action", None)
         return
 

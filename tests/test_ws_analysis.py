@@ -166,6 +166,26 @@ async def test_apply_suggestion_basic(
     assert result["success"] is True
 
 
+async def test_apply_suggestion_unknown_task_id(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """L6: a valid coordinator but an unknown task_id must return not_found, not
+    a no-op success."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_apply_suggestion, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/apply_suggestion",
+        "entry_id": object_entry.entry_id,
+        "task_id": "does_not_exist",
+        "interval": 45,
+    })
+
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+    conn.send_result.assert_not_called()
+
+
 async def test_apply_suggestion_not_found(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

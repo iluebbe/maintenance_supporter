@@ -244,7 +244,9 @@ export class MaintenanceDocumentsSection extends LitElement {
    *  a file, open a web-link in a new tab. */
   private _openDoc(doc: MaintenanceDocument): void {
     if (doc.kind === "file") void this._preview(doc);
-    else if (doc.url) window.open(doc.url, "_blank", "noopener");
+    // Only open http(s) links — never a javascript:/data: URL (the same scheme
+    // guard the rest of the panel applies before opening user-supplied URLs).
+    else if (doc.url && /^https?:\/\//i.test(doc.url)) window.open(doc.url, "_blank", "noopener");
   }
 
   private _startEdit(doc: MaintenanceDocument): void {
@@ -482,7 +484,7 @@ export class MaintenanceDocumentsSection extends LitElement {
                 </button>`
             : html`<a
                 class="icon-btn"
-                href=${doc.url ?? "#"}
+                href=${doc.url && /^https?:\/\//i.test(doc.url) ? doc.url : "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 title=${t("doc_open", L)}

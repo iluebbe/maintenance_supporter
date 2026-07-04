@@ -34,19 +34,28 @@ UPLOAD_URL = "/api/maintenance_supporter/document/upload"
 SERVE_URL = "/api/maintenance_supporter/document/{doc_id}"
 
 
-def _content_disposition(filename: str) -> str:
+# MIME types safe to render inline on the HA origin. Anything else (notably
+# text/html and image/svg+xml, which can carry active content) is served as an
+# opaque attachment so a write-capable user's upload can't become stored XSS.
+_INLINE_SAFE_MIMES = frozenset(
+    {"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"}
+)
+
+
+def _content_disposition(filename: str, *, inline: bool = True) -> str:
     """Build a safe ``Content-Disposition`` header value for ``filename``.
 
-    Serves ``inline`` so PDFs/images preview in the browser; the frontend's
-    download helper can still force a save. A plain ASCII fallback plus the
-    RFC 5987 ``filename*`` form together handle non-ASCII names without letting
-    quotes or control chars break the header.
+    ``inline`` (PDFs/known-safe images) previews in the browser; otherwise
+    ``attachment`` forces a download. A plain ASCII fallback plus the RFC 5987
+    ``filename*`` form together handle non-ASCII names without letting quotes or
+    control chars break the header.
     """
     ascii_name = (
         "".join(c for c in filename if c.isascii() and c not in '"\\\r\n').strip()
         or "document"
     )
-    return f"inline; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
+    kind = "inline" if inline else "attachment"
+    return f"{kind}; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
 
 
 def _get_store(hass: HomeAssistant) -> docmod.DocumentStore:
@@ -142,13 +151,19 @@ class DocumentServeView(HomeAssistantView):
             return web.Response(status=HTTPStatus.NOT_FOUND)
 
         content = await self.hass.async_add_executor_job(path.read_bytes)
+        # Only preview known-safe types inline; serve anything else (text/html,
+        # image/svg+xml, unknown) as an opaque attachment so a malicious upload
+        # can't execute as script on the HA origin. nosniff blocks sniffing on
+        # top of the declared type.
+        raw_mime = doc.get("mime") or "application/octet-stream"
+        inline_safe = raw_mime in _INLINE_SAFE_MIMES
         return web.Response(
             body=content,
-            content_type=doc.get("mime") or "application/octet-stream",
+            content_type=raw_mime if inline_safe else "application/octet-stream",
             headers={
-                hdrs.CONTENT_DISPOSITION: _content_disposition(doc.get("filename") or "document"),
-                # Don't let the browser MIME-sniff an uploaded blob as HTML/JS on
-                # the HA origin regardless of the stored content_type (L9).
+                hdrs.CONTENT_DISPOSITION: _content_disposition(
+                    doc.get("filename") or "document", inline=inline_safe
+                ),
                 "X-Content-Type-Options": "nosniff",
             },
         )

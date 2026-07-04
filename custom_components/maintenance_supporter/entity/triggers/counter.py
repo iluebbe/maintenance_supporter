@@ -138,10 +138,11 @@ class CounterTrigger(BaseTrigger):
                 self.entity_id,
                 self._baseline_value,
             )
-        else:
+        elif self._delta_mode:
             # Source unavailable at completion — defer the re-baseline to the
             # next real value so a stale baseline can't immediately re-trigger
-            # the just-completed task when the entity returns. (M4)
+            # the just-completed task when the entity returns. (M4; delta-only,
+            # absolute mode has no baseline to defer.)
             self._reset_pending = True
             _LOGGER.debug(
                 "Counter baseline reset deferred (source unavailable): %s",

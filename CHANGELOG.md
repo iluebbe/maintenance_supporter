@@ -4,6 +4,21 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🔒 Security (from a second review pass)
+
+- A task **completion action** (`on_complete_action`) can no longer call
+  privileged service domains (`shell_command`, `python_script`, `hassio`,
+  `homeassistant`, `recorder`, `backup`) — closes an operator→admin escalation
+  when operator-write is enabled. Ordinary device/notify/script services still work.
+- Served **document blobs** are now sent as an opaque `attachment` unless their
+  type is a known-safe inline type (PDF / PNG/JPEG/GIF/WebP), so an uploaded
+  `text/html`/SVG can't execute as script on the HA origin (`nosniff` added too).
+- The panel's document **web-link** open/href now enforces the same `http(s)`
+  scheme guard used everywhere else (no `javascript:`/`data:` links); imported
+  web-links are scheme-validated on the way in.
+- CSV export wraps `nfc_tag_id` / `responsible_user_id` through the formula-
+  injection guard like the other free-text fields.
+
 ### 🐛 Fixes (from a repo review pass)
 
 - Compound trigger `entity_logic: "all"` now requires **every** entity in a

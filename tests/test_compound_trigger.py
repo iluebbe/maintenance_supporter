@@ -233,6 +233,32 @@ def test_compound_sub_entity_aggregation_all() -> None:
     mock_parent._on_condition_changed.assert_called_with(0, False)
 
 
+def test_compound_sub_entity_all_requires_every_entity_even_if_never_reported() -> None:
+    """H1: a MULTI-entity 'all' condition must not fire when only one entity has
+    reported True and the other has NEVER reported (pre-seeded False). It flips
+    True only once every entity reports True."""
+    mock_parent = MagicMock()
+    mock_parent.entity.entity_id = "sensor.test"
+    mock_parent.entity._task_id = TASK_ID_1
+    mock_parent.entity.coordinator = MagicMock()
+
+    sub = CompoundSubEntity(
+        mock_parent,
+        0,
+        {"entity_logic": "all", "entity_ids": ["sensor.a", "sensor.b"]},
+    )
+    # Both entities pre-seeded False.
+    assert sub._per_entity_states == {"sensor.a": False, "sensor.b": False}
+
+    # Only sensor.a crosses; sensor.b never reports → AND must stay False.
+    sub.async_update_trigger_state(True, 1.0, "sensor.a")
+    mock_parent._on_condition_changed.assert_called_with(0, False)
+
+    # Now sensor.b also crosses → all True → fires.
+    sub.async_update_trigger_state(True, 1.0, "sensor.b")
+    mock_parent._on_condition_changed.assert_called_with(0, True)
+
+
 def test_compound_sub_entity_write_ha_state_noop() -> None:
     """Test CompoundSubEntity.async_write_ha_state is a no-op."""
     mock_parent = MagicMock()

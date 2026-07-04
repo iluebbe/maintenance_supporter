@@ -62,6 +62,7 @@ export class MaintenanceObjectDialog extends LitElement {
   }
 
   private async _save(): Promise<void> {
+    if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
     this._loading = true;
     this._error = "";
