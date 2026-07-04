@@ -89,6 +89,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       return 30;
     }
   })();
+  @state() private _hideOutliers = (() => {
+    try { return localStorage.getItem("msp-chart-hide-outliers") === "1"; } catch { return false; }
+  })();
   @state() private _historyFilter: string | null = null;
   @state() private _budget: BudgetStatus | null = null;
   @state() private _groups: Record<string, MaintenanceGroup> = {};
@@ -397,6 +400,14 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._detailStatsData = updated;
       void this._fetchDetailStats(entityId, this._isCounterEntity(task!.trigger_config));
     }
+  }
+
+  private _setHideOutliers(hide: boolean): void {
+    if (hide === this._hideOutliers) return;
+    // Outlier filtering is client-side on the already-fetched series, so just
+    // flip the flag and let renderChart re-filter — no re-fetch needed.
+    this._hideOutliers = hide;
+    try { localStorage.setItem("msp-chart-hide-outliers", hide ? "1" : "0"); } catch { /* private mode */ }
   }
 
   private async _fetchMiniStatsForOverview(): Promise<void> {
@@ -2019,6 +2030,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       isCounterEntity: (tc) => this._isCounterEntity(tc),
       rangeDays: this._chartRangeDays,
       setRangeDays: (days) => this._setChartRange(days),
+      hideOutliers: this._hideOutliers,
+      setHideOutliers: (hide) => this._setHideOutliers(hide),
     };
   }
 

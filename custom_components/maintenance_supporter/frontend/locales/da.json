@@ -200,6 +200,7 @@
   "description_optional": "Beskrivelse (valgfrit)",
   "selected": "Valgte",
   "loading_chart": "Indlæser diagramdata...",
+  "hide_outliers": "Skjul outliers (sensorfejl)",
   "was_maintenance_needed": "Var denne vedligeholdelse nødvendig?",
   "feedback_needed": "Nødvendig",
   "feedback_not_needed": "Ikke nødvendig",

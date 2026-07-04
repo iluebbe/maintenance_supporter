@@ -200,6 +200,7 @@
   "description_optional": "描述 (可选)",
   "selected": "已选择",
   "loading_chart": "正在加载图表数据...",
+  "hide_outliers": "隐藏离群值（传感器故障）",
   "was_maintenance_needed": "此次维护是否确实需要？",
   "feedback_needed": "需要",
   "feedback_not_needed": "不需要",

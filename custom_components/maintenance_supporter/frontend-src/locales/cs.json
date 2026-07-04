@@ -199,6 +199,7 @@
   "description_optional": "Popis (volitelný)",
   "selected": "Vybráno",
   "loading_chart": "Načítání dat grafu...",
+  "hide_outliers": "Skrýt odlehlé hodnoty (chyby čidla)",
   "was_maintenance_needed": "Byla tato údržba potřeba?",
   "feedback_needed": "Potřebná",
   "feedback_not_needed": "Nepotřebná",

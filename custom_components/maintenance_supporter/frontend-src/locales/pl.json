@@ -199,6 +199,7 @@
   "description_optional": "Opis (opcjonalny)",
   "selected": "Wybrane",
   "loading_chart": "Ładowanie danych wykresu...",
+  "hide_outliers": "Ukryj wartości odstające (błędy czujnika)",
   "was_maintenance_needed": "Czy ta konserwacja była potrzebna?",
   "feedback_needed": "Potrzebna",
   "feedback_not_needed": "Niepotrzebna",

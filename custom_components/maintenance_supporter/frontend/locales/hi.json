@@ -200,6 +200,7 @@
   "description_optional": "विवरण (वैकल्पिक)",
   "selected": "चयनित",
   "loading_chart": "चार्ट डेटा लोड हो रहा है...",
+  "hide_outliers": "आउटलायर छिपाएँ (सेंसर गड़बड़)",
   "was_maintenance_needed": "क्या यह रखरखाव आवश्यक था?",
   "feedback_needed": "आवश्यक था",
   "feedback_not_needed": "आवश्यक नहीं",

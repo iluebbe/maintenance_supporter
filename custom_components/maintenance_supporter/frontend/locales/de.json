@@ -200,6 +200,7 @@
   "description_optional": "Beschreibung (optional)",
   "selected": "Ausgewählt",
   "loading_chart": "Daten werden geladen...",
+  "hide_outliers": "Ausreißer ausblenden (Messfehler)",
   "was_maintenance_needed": "War diese Wartung nötig?",
   "feedback_needed": "Nötig",
   "feedback_not_needed": "Nicht nötig",

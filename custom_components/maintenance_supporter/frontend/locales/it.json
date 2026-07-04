@@ -199,6 +199,7 @@
   "description_optional": "Descrizione (opzionale)",
   "selected": "Selezionato",
   "loading_chart": "Caricamento dati...",
+  "hide_outliers": "Nascondi valori anomali (errori sensore)",
   "was_maintenance_needed": "Questa manutenzione era necessaria?",
   "feedback_needed": "Necessaria",
   "feedback_not_needed": "Non necessaria",
