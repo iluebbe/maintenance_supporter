@@ -287,7 +287,7 @@ class RuntimeTrigger(BaseTrigger):
         )
 
     async def _persist_runtime(self) -> None:
-        """Persist accumulated runtime and on_since to config entry."""
+        """Persist accumulated runtime and on_since to the Store."""
         data: dict[str, Any] = {
             "accumulated_seconds": self._accumulated_seconds,
             "on_since": self._on_since,
