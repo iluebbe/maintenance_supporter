@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import math
-import re
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -65,6 +64,7 @@ from ..const import (
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
     SIGNAL_NEW_OBJECT_ENTRY,
+    TIME_HHMMSS_PATTERN,
 )
 from ..helpers.aggregate import compute_status_counts
 from ..helpers.notify_targets import build_notify_targets
@@ -542,11 +542,10 @@ async def ws_update_global_settings(
     # even when the user is here to change something else and quiet_hours is
     # disabled. By dropping invalid values here, the form falls back to the
     # 22:00 / 08:00 defaults next render.
-    _TIME_PATTERN = re.compile(r"^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$")
     for time_key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END):
         if time_key in filtered:
             v = filtered[time_key]
-            if not isinstance(v, str) or not _TIME_PATTERN.match(v):
+            if not isinstance(v, str) or not TIME_HHMMSS_PATTERN.match(v):
                 del filtered[time_key]
 
     # Sanitise admin_panel_user_ids: drop non-string entries + whitespace-only
