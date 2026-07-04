@@ -410,6 +410,8 @@
   "settings_action_complete": "Vis 'Fuldfør'-knap",
   "settings_action_skip": "Vis 'Spring over'-knap",
   "settings_action_snooze": "Vis 'Udsæt'-knap",
+  "settings_weekly_digest": "Ugentlig oversigt",
+  "settings_weekly_digest_hint": "Én samlet notifikation mandag morgen, når opgaver forfalder.",
   "settings_snooze_hours": "Udsættelsesvarighed (timer)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",

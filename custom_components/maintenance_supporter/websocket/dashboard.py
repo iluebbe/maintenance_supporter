@@ -56,6 +56,7 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
@@ -125,6 +126,8 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
     CONF_ACTION_SKIP_ENABLED: bool,
     CONF_ACTION_SNOOZE_ENABLED: bool,
     CONF_SNOOZE_DURATION_HOURS: int,
+    # v2.15.0: opt-in weekly digest notification
+    CONF_WEEKLY_DIGEST_ENABLED: bool,
     # Budget
     CONF_BUDGET_MONTHLY: float,
     CONF_BUDGET_YEARLY: float,
@@ -199,6 +202,7 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "skip_enabled": options.get(CONF_ACTION_SKIP_ENABLED, False),
             "snooze_enabled": options.get(CONF_ACTION_SNOOZE_ENABLED, False),
             "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, 4),
+            "weekly_digest_enabled": options.get(CONF_WEEKLY_DIGEST_ENABLED, False),
         },
         "budget": {
             "monthly": options.get(CONF_BUDGET_MONTHLY, 0.0),

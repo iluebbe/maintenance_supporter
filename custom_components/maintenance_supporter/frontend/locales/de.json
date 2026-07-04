@@ -410,6 +410,8 @@
   "settings_action_complete": "\"Erledigt\"-Button anzeigen",
   "settings_action_skip": "\"Überspringen\"-Button anzeigen",
   "settings_action_snooze": "\"Schlummern\"-Button anzeigen",
+  "settings_weekly_digest": "Wöchentliche Zusammenfassung",
+  "settings_weekly_digest_hint": "Eine Zusammenfassungs-Benachrichtigung am Montagmorgen, wenn Aufgaben anstehen.",
   "settings_snooze_hours": "Schlummerdauer (Stunden)",
   "settings_budget": "Budget",
   "settings_currency": "Währung",

@@ -409,6 +409,8 @@
   "settings_action_complete": "Mostrar botón 'Completada'",
   "settings_action_skip": "Mostrar botón 'Omitir'",
   "settings_action_snooze": "Mostrar botón 'Posponer'",
+  "settings_weekly_digest": "Resumen semanal",
+  "settings_weekly_digest_hint": "Una notificación de resumen el lunes por la mañana cuando hay tareas.",
   "settings_snooze_hours": "Duración de posposición (horas)",
   "settings_budget": "Presupuesto",
   "settings_currency": "Moneda",

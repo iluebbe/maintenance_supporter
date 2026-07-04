@@ -185,6 +185,9 @@ CONF_ACTION_SKIP_ENABLED = "action_skip_enabled"
 CONF_ACTION_SNOOZE_ENABLED = "action_snooze_enabled"
 CONF_SNOOZE_DURATION_HOURS = "snooze_duration_hours"
 
+# v2.15.0: opt-in weekly digest — a single Monday-morning summary notification.
+CONF_WEEKLY_DIGEST_ENABLED = "weekly_digest_enabled"
+
 # --- Panel ---
 PANEL_NAME = "maintenance-supporter"
 PANEL_TITLE = "Maintenance"

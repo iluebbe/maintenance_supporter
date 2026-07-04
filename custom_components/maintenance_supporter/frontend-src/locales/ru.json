@@ -409,6 +409,8 @@
   "settings_action_complete": "Показывать кнопку «Выполнить»",
   "settings_action_skip": "Показывать кнопку «Пропустить»",
   "settings_action_snooze": "Показывать кнопку «Отложить»",
+  "settings_weekly_digest": "Еженедельная сводка",
+  "settings_weekly_digest_hint": "Одно сводное уведомление в понедельник утром, когда есть задачи.",
   "settings_snooze_hours": "Длительность откладывания (часы)",
   "settings_budget": "Бюджет",
   "settings_currency": "Валюта",

@@ -70,6 +70,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Später",
         "bundled_title": "Wartung: {count} Aufgaben",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Wöchentliche Wartungsübersicht",
+        "digest_message": "{overdue} überfällig, {due_soon} diese Woche fällig.",
         "bundled_overdue": "{task} (überfällig)",
         "bundled_due_soon": "{task} (bald fällig)",
         "bundled_triggered": "{task} (ausgelöst)",
@@ -89,6 +91,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Later",
         "bundled_title": "Onderhoud: {count} taken",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Wekelijks onderhoudsoverzicht",
+        "digest_message": "{overdue} achterstallig, {due_soon} deze week.",
         "bundled_overdue": "{task} (achterstallig)",
         "bundled_due_soon": "{task} (binnenkort)",
         "bundled_triggered": "{task} (geactiveerd)",
@@ -108,6 +112,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Reporter",
         "bundled_title": "Maintenance : {count} tâches",
         "bundled_message": "{object} : {task_list}",
+        "digest_title": "Récapitulatif hebdomadaire d'entretien",
+        "digest_message": "{overdue} en retard, {due_soon} cette semaine.",
         "bundled_overdue": "{task} (en retard)",
         "bundled_due_soon": "{task} (bientôt dû)",
         "bundled_triggered": "{task} (déclenché)",
@@ -127,6 +133,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Posticipa",
         "bundled_title": "Manutenzione: {count} attività",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Riepilogo settimanale manutenzione",
+        "digest_message": "{overdue} scadute, {due_soon} questa settimana.",
         "bundled_overdue": "{task} (scaduta)",
         "bundled_due_soon": "{task} (in scadenza)",
         "bundled_triggered": "{task} (attivata)",
@@ -146,6 +154,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Posponer",
         "bundled_title": "Mantenimiento: {count} tareas",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Resumen semanal de mantenimiento",
+        "digest_message": "{overdue} vencidas, {due_soon} esta semana.",
         "bundled_overdue": "{task} (vencido)",
         "bundled_due_soon": "{task} (próximo)",
         "bundled_triggered": "{task} (activado)",
@@ -165,6 +175,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Snooze",
         "bundled_title": "Maintenance: {count} tasks",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Weekly maintenance digest",
+        "digest_message": "{overdue} overdue, {due_soon} due this week.",
         "bundled_overdue": "{task} (overdue)",
         "bundled_due_soon": "{task} (due soon)",
         "bundled_triggered": "{task} (triggered)",
@@ -184,6 +196,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Senere",
         "bundled_title": "Vedligeholdelse: {count} opgaver",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Ugentlig vedligeholdelsesoversigt",
+        "digest_message": "{overdue} forfaldne, {due_soon} denne uge.",
         "bundled_overdue": "{task} (forfalden)",
         "bundled_due_soon": "{task} (snart forfalden)",
         "bundled_triggered": "{task} (udløst)",
@@ -203,6 +217,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Myöhemmin",
         "bundled_title": "Huolto: {count} tehtävää",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Viikoittainen huoltokooste",
+        "digest_message": "{overdue} myöhässä, {due_soon} tällä viikolla.",
         "bundled_overdue": "{task} (myöhässä)",
         "bundled_due_soon": "{task} (pian)",
         "bundled_triggered": "{task} (käynnistetty)",
@@ -222,6 +238,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Senere",
         "bundled_title": "Vedlikehold: {count} oppgaver",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Ukentlig vedlikeholdsoversikt",
+        "digest_message": "{overdue} forfalt, {due_soon} denne uken.",
         "bundled_overdue": "{task} (forfalt)",
         "bundled_due_soon": "{task} (snart)",
         "bundled_triggered": "{task} (utløst)",
@@ -241,6 +259,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "後で",
         "bundled_title": "メンテナンス: {count} 件のタスク",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "週間メンテナンスまとめ",
+        "digest_message": "期限切れ {overdue} 件、今週 {due_soon} 件。",
         "bundled_overdue": "{task}（超過）",
         "bundled_due_soon": "{task}（間近）",
         "bundled_triggered": "{task}（起動）",
@@ -260,6 +280,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "बाद में",
         "bundled_title": "रखरखाव: {count} कार्य",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "साप्ताहिक रखरखाव सारांश",
+        "digest_message": "{overdue} अतिदेय, {due_soon} इस सप्ताह।",
         "bundled_overdue": "{task} (अतिदेय)",
         "bundled_due_soon": "{task} (जल्द देय)",
         "bundled_triggered": "{task} (ट्रिगर)",
@@ -279,6 +301,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "稍后提醒",
         "bundled_title": "维护：共有 {count} 项任务",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "每周维护摘要",
+        "digest_message": "逾期 {overdue} 项，本周 {due_soon} 项。",
         "bundled_overdue": "{task}（超期）",
         "bundled_due_soon": "{task}（即将到期）",
         "bundled_triggered": "{task}（已触发）",
@@ -298,6 +322,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Отложить",
         "bundled_title": "Обслуживание: {count} задач",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Еженедельная сводка обслуживания",
+        "digest_message": "{overdue} просрочено, {due_soon} на этой неделе.",
         "bundled_overdue": "{task} (просрочено)",
         "bundled_due_soon": "{task} (скоро)",
         "bundled_triggered": "{task} (сработало)",
@@ -317,6 +343,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Відкласти",
         "bundled_title": "Обслуговування: {count} завдань",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Щотижневий огляд обслуговування",
+        "digest_message": "{overdue} прострочено, {due_soon} цього тижня.",
         "bundled_overdue": "{task} (прострочено)",
         "bundled_due_soon": "{task} (незабаром)",
         "bundled_triggered": "{task} (спрацювало)",
@@ -336,6 +364,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Adiar",
         "bundled_title": "Manutenção: {count} tarefas",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Resumo semanal de manutenção",
+        "digest_message": "{overdue} atrasadas, {due_soon} esta semana.",
         "bundled_overdue": "{task} (atrasado)",
         "bundled_due_soon": "{task} (em breve)",
         "bundled_triggered": "{task} (acionado)",
@@ -357,6 +387,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Drzemka",
         "bundled_title": "Konserwacja: {count} zadań",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Cotygodniowe podsumowanie konserwacji",
+        "digest_message": "{overdue} zaległych, {due_soon} w tym tygodniu.",
         "bundled_overdue": "{task} (przeterminowane)",
         "bundled_due_soon": "{task} (wkrótce)",
         "bundled_triggered": "{task} (wyzwolone)",
@@ -378,6 +410,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Odložit",
         "bundled_title": "Údržba: {count} úkolů",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Týdenní přehled údržby",
+        "digest_message": "{overdue} po termínu, {due_soon} tento týden.",
         "bundled_overdue": "{task} (po termínu)",
         "bundled_due_soon": "{task} (brzy)",
         "bundled_triggered": "{task} (spuštěno)",
@@ -398,6 +432,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "action_snooze": "Snooza",
         "bundled_title": "Underhåll: {count} uppgifter",
         "bundled_message": "{object}: {task_list}",
+        "digest_title": "Veckovis underhållssammanfattning",
+        "digest_message": "{overdue} försenade, {due_soon} denna vecka.",
         "bundled_overdue": "{task} (försenat)",
         "bundled_due_soon": "{task} (snart)",
         "bundled_triggered": "{task} (utlöst)",
@@ -1021,6 +1057,37 @@ class NotificationManager:
                 _LOGGER.debug("Bundled notification sent: %s - %s", title, message)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send bundled notification")
+
+    async def async_send_weekly_digest(self, overdue: int, due_soon: int) -> None:
+        """Send the opt-in weekly summary notification.
+
+        One message with the cross-object counts. Unlike the reactive per-task
+        notifications this is a scheduled once-a-week send, so it deliberately
+        skips the rate-limit / quiet-hours gating (it fires at a fixed morning
+        hour the user chose by enabling the digest).
+        """
+        self.async_verify_configured_service()
+        if not self.enabled or not self.notify_service:
+            return
+        lang = self._lang
+        service_data: dict[str, Any] = {
+            "title": _notif_t("digest_title", lang),
+            "message": _notif_t(
+                "digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)
+            ),
+            "data": {
+                "tag": "maintenance_weekly_digest",
+                "url": "/maintenance-supporter",
+                "clickAction": "/maintenance-supporter",
+            },
+        }
+        try:
+            await async_dispatch_notify(self.hass, self.notify_service, service_data)
+            _LOGGER.debug(
+                "Weekly digest sent: %s overdue, %s due soon", overdue, due_soon
+            )
+        except (HomeAssistantError, ValueError, TypeError):
+            _LOGGER.exception("Failed to send weekly digest")
 
     async def async_budget_alert(
         self,

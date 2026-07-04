@@ -409,6 +409,8 @@
   "settings_action_complete": "Pokaż przycisk 'Wykonaj'",
   "settings_action_skip": "Pokaż przycisk 'Pomiń'",
   "settings_action_snooze": "Pokaż przycisk 'Drzemka'",
+  "settings_weekly_digest": "Cotygodniowe podsumowanie",
+  "settings_weekly_digest_hint": "Jedno powiadomienie podsumowujące w poniedziałek rano, gdy są zadania.",
   "settings_snooze_hours": "Czas drzemki (godziny)",
   "settings_budget": "Budżet",
   "settings_currency": "Waluta",

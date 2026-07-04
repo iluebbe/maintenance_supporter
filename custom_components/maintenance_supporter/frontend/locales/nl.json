@@ -409,6 +409,8 @@
   "settings_action_complete": "Knop 'Voltooid' tonen",
   "settings_action_skip": "Knop 'Overslaan' tonen",
   "settings_action_snooze": "Knop 'Snooze' tonen",
+  "settings_weekly_digest": "Wekelijks overzicht",
+  "settings_weekly_digest_hint": "Eén samenvattingsmelding op maandagochtend als er taken zijn.",
   "settings_snooze_hours": "Snoozeduur (uren)",
   "settings_budget": "Budget",
   "settings_currency": "Valuta",

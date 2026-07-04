@@ -409,6 +409,8 @@
   "settings_action_complete": "Показувати кнопку «Виконати»",
   "settings_action_skip": "Показувати кнопку «Пропустити»",
   "settings_action_snooze": "Показувати кнопку «Відкласти»",
+  "settings_weekly_digest": "Щотижневий огляд",
+  "settings_weekly_digest_hint": "Одне зведене сповіщення в понеділок вранці, коли є завдання.",
   "settings_snooze_hours": "Тривалість відкладення (години)",
   "settings_budget": "Бюджет",
   "settings_currency": "Валюта",

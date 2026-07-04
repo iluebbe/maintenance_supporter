@@ -410,6 +410,8 @@
   "settings_action_complete": "显示“完成”按钮",
   "settings_action_skip": "显示“跳过”按钮",
   "settings_action_snooze": "显示“稍后”按钮",
+  "settings_weekly_digest": "每周摘要",
+  "settings_weekly_digest_hint": "当有待办任务时，周一早上发送一条汇总通知。",
   "settings_snooze_hours": "稍后提醒间隔 (小时)",
   "settings_budget": "预算",
   "settings_currency": "货币单位",
