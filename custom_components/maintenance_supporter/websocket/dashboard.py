@@ -68,6 +68,12 @@ from ..const import (
 )
 from ..helpers.aggregate import compute_status_counts
 from ..helpers.notify_targets import build_notify_targets
+from ..helpers.settings_registry import (
+    ALLOWED_SETTING_KEYS,
+    FLOAT_RANGES,
+    INT_RANGES,
+    STR_MAX_LENGTHS,
+)
 from . import (
     _build_object_response,
     _get_global_entry,
@@ -77,65 +83,10 @@ from . import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Keys accepted by global/update — maps config key to voluptuous type
-_ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
-    CONF_DEFAULT_WARNING_DAYS: int,
-    CONF_NOTIFICATIONS_ENABLED: bool,
-    CONF_NOTIFY_SERVICE: str,
-    CONF_PANEL_ENABLED: bool,
-    CONF_PANEL_TITLE: str,
-    # Advanced features
-    CONF_ADVANCED_ADAPTIVE: bool,
-    CONF_ADVANCED_PREDICTIONS: bool,
-    CONF_ADVANCED_SEASONAL: bool,
-    CONF_ADVANCED_ENVIRONMENTAL: bool,
-    CONF_ADVANCED_BUDGET: bool,
-    CONF_ADVANCED_GROUPS: bool,
-    CONF_ADVANCED_CHECKLISTS: bool,
-    CONF_ADVANCED_SCHEDULE_TIME: bool,
-    CONF_ADVANCED_COMPLETION_ACTIONS: bool,
-    # Type-validated as a list here; element + length caps applied below in
-    # ws_update_global_settings (HA installs rarely exceed ~10 entries).
-    CONF_ADMIN_PANEL_USER_IDS: list,
-    # v2.8.4: master switch — when True, allowlisted non-admins gain write.
-    CONF_OPERATOR_WRITE_ENABLED: bool,
-    # (#67): objects-table column list (sanitised to known keys below).
-    CONF_OBJECTS_TABLE_COLUMNS: list,
-    # v2.10.0: archive automation (0 = disabled / never). Panel-managed.
-    CONF_ARCHIVE_ONEOFF_DAYS: int,
-    CONF_DELETE_ARCHIVED_ONEOFF_DAYS: int,
-    # Notification per-status
-    CONF_NOTIFY_DUE_SOON_ENABLED: bool,
-    CONF_NOTIFY_DUE_SOON_INTERVAL: int,
-    CONF_NOTIFY_OVERDUE_ENABLED: bool,
-    CONF_NOTIFY_OVERDUE_INTERVAL: int,
-    CONF_NOTIFY_TRIGGERED_ENABLED: bool,
-    CONF_NOTIFY_TRIGGERED_INTERVAL: int,
-    # Quiet hours
-    CONF_QUIET_HOURS_ENABLED: bool,
-    CONF_QUIET_HOURS_START: str,
-    CONF_QUIET_HOURS_END: str,
-    # Limits
-    CONF_MAX_NOTIFICATIONS_PER_DAY: int,
-    # Bundling
-    CONF_NOTIFICATION_BUNDLING_ENABLED: bool,
-    CONF_NOTIFICATION_BUNDLE_THRESHOLD: int,
-    # v1.4.0 (#44): how to format the notification title
-    CONF_NOTIFICATION_TITLE_STYLE: str,
-    # Actions
-    CONF_ACTION_COMPLETE_ENABLED: bool,
-    CONF_ACTION_SKIP_ENABLED: bool,
-    CONF_ACTION_SNOOZE_ENABLED: bool,
-    CONF_SNOOZE_DURATION_HOURS: int,
-    # v2.15.0: opt-in weekly digest notification
-    CONF_WEEKLY_DIGEST_ENABLED: bool,
-    # Budget
-    CONF_BUDGET_MONTHLY: float,
-    CONF_BUDGET_YEARLY: float,
-    CONF_BUDGET_ALERTS_ENABLED: bool,
-    CONF_BUDGET_ALERT_THRESHOLD: int,
-    CONF_BUDGET_CURRENCY: str,
-}
+# Keys accepted by global/update + their range/cap tables are derived from the
+# single settings registry (helpers/settings_registry) so they can't drift from
+# each other or from the options-flow selectors that share the same specs.
+_ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
 
 
 def _build_full_settings(
@@ -480,39 +431,16 @@ async def ws_update_global_settings(
             if isinstance(val, expected_type):
                 filtered[key] = val
 
-    # Range-validate numeric and string settings
-    _INT_RANGES: dict[str, tuple[int, int]] = {
-        CONF_DEFAULT_WARNING_DAYS: (1, 365),
-        CONF_MAX_NOTIFICATIONS_PER_DAY: (0, 1000),
-        CONF_NOTIFY_DUE_SOON_INTERVAL: (0, 720),
-        CONF_NOTIFY_OVERDUE_INTERVAL: (0, 720),
-        CONF_NOTIFY_TRIGGERED_INTERVAL: (0, 720),
-        CONF_NOTIFICATION_BUNDLE_THRESHOLD: (2, 20),
-        CONF_SNOOZE_DURATION_HOURS: (1, 168),
-        CONF_BUDGET_ALERT_THRESHOLD: (10, 100),
-        # v2.10.0 archive automation: 0 = disabled / never; cap ~10 years.
-        CONF_ARCHIVE_ONEOFF_DAYS: (0, 3650),
-        CONF_DELETE_ARCHIVED_ONEOFF_DAYS: (0, 3650),
-    }
-    _FLOAT_RANGES: dict[str, tuple[float, float]] = {
-        CONF_BUDGET_MONTHLY: (0.0, 10_000_000.0),
-        CONF_BUDGET_YEARLY: (0.0, 100_000_000.0),
-    }
-    _STR_MAX_LENGTHS: dict[str, int] = {
-        CONF_NOTIFY_SERVICE: 200,
-        CONF_QUIET_HOURS_START: 5,
-        CONF_QUIET_HOURS_END: 5,
-        CONF_BUDGET_CURRENCY: 5,
-    }
-    for key, (lo, hi) in _INT_RANGES.items():
+    # Range-validate numeric and string settings against the shared registry.
+    for key, (lo, hi) in INT_RANGES.items():
         if key in filtered and not (lo <= filtered[key] <= hi):
             del filtered[key]
-    for key, (lo, hi) in _FLOAT_RANGES.items():
+    for key, (flo, fhi) in FLOAT_RANGES.items():
         if key in filtered:
             v = filtered[key]
-            if not math.isfinite(v) or not (lo <= v <= hi):
+            if not math.isfinite(v) or not (flo <= v <= fhi):
                 del filtered[key]
-    for key, max_len in _STR_MAX_LENGTHS.items():
+    for key, max_len in STR_MAX_LENGTHS.items():
         if key in filtered and len(filtered[key]) > max_len:
             del filtered[key]
 

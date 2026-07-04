@@ -64,8 +64,20 @@ from .const import (
 )
 from .helpers.i18n import normalize_language
 from .helpers.notify_targets import build_notify_targets
+from .helpers.settings_registry import float_range, int_range
 
 _LOGGER = logging.getLogger(__name__)
+
+# NumberSelector bounds are pulled from the shared settings registry so the
+# options-flow forms can't drift from the WS write-handler's range validation.
+_WARN_MIN, _WARN_MAX = int_range(CONF_DEFAULT_WARNING_DAYS)
+_NOTIFY_INTERVAL_MIN, _NOTIFY_INTERVAL_MAX = int_range(CONF_NOTIFY_DUE_SOON_INTERVAL)
+_MAX_PER_DAY_MIN, _MAX_PER_DAY_MAX = int_range(CONF_MAX_NOTIFICATIONS_PER_DAY)
+_BUNDLE_MIN, _BUNDLE_MAX = int_range(CONF_NOTIFICATION_BUNDLE_THRESHOLD)
+_SNOOZE_MIN, _SNOOZE_MAX = int_range(CONF_SNOOZE_DURATION_HOURS)
+_ALERT_MIN, _ALERT_MAX = int_range(CONF_BUDGET_ALERT_THRESHOLD)
+_BUDGET_MONTHLY_MIN, _BUDGET_MONTHLY_MAX = float_range(CONF_BUDGET_MONTHLY)
+_BUDGET_YEARLY_MIN, _BUDGET_YEARLY_MAX = float_range(CONF_BUDGET_YEARLY)
 
 _VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
 # v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds. Shared with the
@@ -476,7 +488,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=1, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_WARN_MIN, max=_WARN_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     vol.Optional(
@@ -549,7 +561,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFY_DUE_SOON_INTERVAL, 24),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=720, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_NOTIFY_INTERVAL_MIN, max=_NOTIFY_INTERVAL_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Overdue ---
@@ -562,7 +574,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFY_OVERDUE_INTERVAL, 12),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=720, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_NOTIFY_INTERVAL_MIN, max=_NOTIFY_INTERVAL_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Triggered ---
@@ -575,7 +587,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFY_TRIGGERED_INTERVAL, 0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=720, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_NOTIFY_INTERVAL_MIN, max=_NOTIFY_INTERVAL_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Quiet Hours ---
@@ -606,7 +618,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         ),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=1000, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_MAX_PER_DAY_MIN, max=_MAX_PER_DAY_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # --- Bundling ---
@@ -619,7 +631,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=2, max=20, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_BUNDLE_MIN, max=_BUNDLE_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     # v1.4.0 (#44): notification title style
@@ -671,7 +683,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         ),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=1, max=168, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=_SNOOZE_MIN, max=_SNOOZE_MAX, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                 }
@@ -724,7 +736,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_MONTHLY, 0.0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=10000000, step=0.01,
+                            min=_BUDGET_MONTHLY_MIN, max=_BUDGET_MONTHLY_MAX, step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
                             unit_of_measurement=currency_symbol,
                         )
@@ -734,7 +746,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_YEARLY, 0.0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=100000000, step=0.01,
+                            min=_BUDGET_YEARLY_MIN, max=_BUDGET_YEARLY_MAX, step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
                             unit_of_measurement=currency_symbol,
                         )
@@ -748,7 +760,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=10, max=100, step=5,
+                            min=_ALERT_MIN, max=_ALERT_MAX, step=5,
                             mode=selector.NumberSelectorMode.SLIDER,
                             unit_of_measurement="%",
                         )
