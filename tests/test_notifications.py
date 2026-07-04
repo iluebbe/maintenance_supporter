@@ -684,6 +684,50 @@ async def test_weekly_digest_silent_when_no_service(
         mock_hass.services.async_call.assert_not_called()
 
 
+# ─── Warranty Reminder Tests ──────────────────────────────────────────
+
+
+async def test_warranty_reminder_sends_summary(
+    hass: HomeAssistant,
+    global_with_notifications: ConfigEntry,
+) -> None:
+    """The opt-in warranty reminder sends one notification naming the objects."""
+    await setup_integration(hass, global_with_notifications)
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_send_warranty_reminder(["Boiler", "Pool Pump"], days=30)
+
+        mock_hass.services.async_call.assert_called_once()
+        data = mock_hass.services.async_call.call_args[0][2]
+        assert "Boiler" in data["message"] and "Pool Pump" in data["message"]
+        assert "30" in data["message"]
+        assert data["data"]["tag"] == "maintenance_warranty_reminder"
+
+
+async def test_warranty_reminder_silent_when_no_names(
+    hass: HomeAssistant,
+    global_with_notifications: ConfigEntry,
+) -> None:
+    """No send when there are no objects nearing warranty expiry."""
+    await setup_integration(hass, global_with_notifications)
+    nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
+    assert nm is not None
+
+    with patch.object(nm, "hass") as mock_hass:
+        mock_hass.services = MagicMock()
+        mock_hass.services.async_call = AsyncMock()
+        mock_hass.config_entries = hass.config_entries
+
+        await nm.async_send_warranty_reminder([], days=30)
+        mock_hass.services.async_call.assert_not_called()
+
+
 # ─── Budget Alert Tests ───────────────────────────────────────────────
 
 

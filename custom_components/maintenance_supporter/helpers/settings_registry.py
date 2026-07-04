@@ -61,6 +61,8 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_WARRANTY_REMINDER_DAYS,
+    CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
 )
 
@@ -127,6 +129,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ACTION_SNOOZE_ENABLED, bool),
     SettingSpec(CONF_SNOOZE_DURATION_HOURS, int, int_range=(1, 168)),
     SettingSpec(CONF_WEEKLY_DIGEST_ENABLED, bool),
+    SettingSpec(CONF_WARRANTY_REMINDER_ENABLED, bool),
+    SettingSpec(CONF_WARRANTY_REMINDER_DAYS, int, int_range=(1, 365)),
     # Budget
     SettingSpec(CONF_BUDGET_MONTHLY, float, float_range=(0.0, 10_000_000.0)),
     SettingSpec(CONF_BUDGET_YEARLY, float, float_range=(0.0, 100_000_000.0)),

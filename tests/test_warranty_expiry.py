@@ -11,14 +11,21 @@ Covers every surface the field travels through:
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from datetime import timedelta
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.maintenance_supporter import (
+    async_maybe_send_warranty_reminders,
+)
 from custom_components.maintenance_supporter.const import (
     CONF_OBJECT,
+    CONF_WARRANTY_REMINDER_DAYS,
+    CONF_WARRANTY_REMINDER_ENABLED,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_DATE_LENGTH,
@@ -246,3 +253,86 @@ async def test_csv_roundtrips_warranty(
     assert target
     assert target[0]["object"]["warranty_expiry"] == "2034-04-04"
     assert target[0]["object"]["installation_date"] == "2020-01-01"
+
+
+# ─── Warranty-expiry reminder gating (async_maybe_send_warranty_reminders) ──
+
+
+def _warranty_global(hass: HomeAssistant, *, enabled: bool, days: int = 30) -> MockConfigEntry:
+    data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
+    data[CONF_WARRANTY_REMINDER_ENABLED] = enabled
+    data[CONF_WARRANTY_REMINDER_DAYS] = days
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Maintenance Supporter", data=data,
+        source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+def _iso_in_days(delta: int) -> str:
+    return (dt_util.now().date() + timedelta(days=delta)).isoformat()
+
+
+async def test_warranty_reminder_fires_at_exact_window(hass: HomeAssistant) -> None:
+    """An object whose warranty is exactly N days out is reminded (once)."""
+    _warranty_global(hass, enabled=True, days=30)
+    _object_entry(hass, "Boiler", "warr_hit", warranty_expiry=_iso_in_days(30))
+    _object_entry(hass, "Far Off", "warr_far", warranty_expiry=_iso_in_days(100))
+    _object_entry(hass, "No Warranty", "warr_none")
+
+    nm = MagicMock()
+    nm.async_send_warranty_reminder = AsyncMock()
+    hass.data.setdefault(DOMAIN, {})["_notification_manager"] = nm
+
+    await async_maybe_send_warranty_reminders(hass)
+
+    nm.async_send_warranty_reminder.assert_awaited_once()
+    names, days = nm.async_send_warranty_reminder.await_args[0]
+    assert names == ["Boiler"]
+    assert days == 30
+
+
+async def test_warranty_reminder_force_covers_whole_window(hass: HomeAssistant) -> None:
+    """force=True reminds for every object within the 0..N window, not just day N."""
+    _warranty_global(hass, enabled=True, days=30)
+    _object_entry(hass, "Soon", "warr_soon", warranty_expiry=_iso_in_days(5))
+    _object_entry(hass, "Edge", "warr_edge", warranty_expiry=_iso_in_days(30))
+    _object_entry(hass, "Expired", "warr_exp", warranty_expiry=_iso_in_days(-1))
+    _object_entry(hass, "Far", "warr_far2", warranty_expiry=_iso_in_days(60))
+
+    nm = MagicMock()
+    nm.async_send_warranty_reminder = AsyncMock()
+    hass.data.setdefault(DOMAIN, {})["_notification_manager"] = nm
+
+    await async_maybe_send_warranty_reminders(hass, force=True)
+
+    names = nm.async_send_warranty_reminder.await_args[0][0]
+    assert set(names) == {"Soon", "Edge"}
+
+
+async def test_warranty_reminder_silent_when_disabled(hass: HomeAssistant) -> None:
+    """No send at all when the opt-in toggle is off."""
+    _warranty_global(hass, enabled=False, days=30)
+    _object_entry(hass, "Boiler", "warr_off", warranty_expiry=_iso_in_days(30))
+
+    nm = MagicMock()
+    nm.async_send_warranty_reminder = AsyncMock()
+    hass.data.setdefault(DOMAIN, {})["_notification_manager"] = nm
+
+    await async_maybe_send_warranty_reminders(hass)
+    nm.async_send_warranty_reminder.assert_not_awaited()
+
+
+async def test_warranty_reminder_ignores_malformed_dates(hass: HomeAssistant) -> None:
+    """A garbage warranty_expiry is skipped, not raised on."""
+    _warranty_global(hass, enabled=True, days=30)
+    _object_entry(hass, "Bad", "warr_bad", warranty_expiry="not-a-date")
+
+    nm = MagicMock()
+    nm.async_send_warranty_reminder = AsyncMock()
+    hass.data.setdefault(DOMAIN, {})["_notification_manager"] = nm
+
+    await async_maybe_send_warranty_reminders(hass)
+    nm.async_send_warranty_reminder.assert_not_awaited()

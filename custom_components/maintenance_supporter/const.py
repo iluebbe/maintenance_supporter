@@ -191,6 +191,9 @@ CONF_SNOOZE_DURATION_HOURS = "snooze_duration_hours"
 
 # v2.15.0: opt-in weekly digest — a single Monday-morning summary notification.
 CONF_WEEKLY_DIGEST_ENABLED = "weekly_digest_enabled"
+CONF_WARRANTY_REMINDER_ENABLED = "warranty_reminder_enabled"
+CONF_WARRANTY_REMINDER_DAYS = "warranty_reminder_days"
+DEFAULT_WARRANTY_REMINDER_DAYS = 30
 
 # --- Panel ---
 PANEL_NAME = "maintenance-supporter"

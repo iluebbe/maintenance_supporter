@@ -197,6 +197,58 @@ async def async_maybe_send_weekly_digest(
         await nm.async_send_weekly_digest(overdue, due_soon)
 
 
+async def async_maybe_send_warranty_reminders(
+    hass: HomeAssistant, *, force: bool = False
+) -> None:
+    """Remind about maintenance-object warranties nearing expiry.
+
+    Opt-in (``warranty_reminder_enabled``). Fires the day an object's warranty is
+    exactly ``warranty_reminder_days`` days out — once, no per-object persistence
+    needed. ``force`` widens it to the whole 0..N window (for the test hook).
+    """
+    from datetime import date
+
+    from homeassistant.util import dt as dt_util
+
+    from .const import (
+        CONF_WARRANTY_REMINDER_DAYS,
+        CONF_WARRANTY_REMINDER_ENABLED,
+        DEFAULT_WARRANTY_REMINDER_DAYS,
+    )
+
+    global_entry = next(
+        (e for e in hass.config_entries.async_entries(DOMAIN)
+         if e.unique_id == GLOBAL_UNIQUE_ID),
+        None,
+    )
+    if global_entry is None:
+        return
+    options = global_entry.options or global_entry.data
+    if not options.get(CONF_WARRANTY_REMINDER_ENABLED, False):
+        return
+    days = int(options.get(CONF_WARRANTY_REMINDER_DAYS, DEFAULT_WARRANTY_REMINDER_DAYS))
+    today = dt_util.now().date()
+    names: list[str] = []
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        obj = entry.data.get(CONF_OBJECT) or {}
+        expiry = obj.get("warranty_expiry")
+        if not expiry:
+            continue
+        try:
+            delta = (date.fromisoformat(expiry) - today).days
+        except (ValueError, TypeError):
+            continue
+        if delta == days or (force and 0 <= delta <= days):
+            names.append(obj.get("name") or entry.title)
+    if not names:
+        return
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if nm is not None:
+        await nm.async_send_warranty_reminder(names, days)
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Maintenance Supporter integration."""
     hass.data.setdefault(DOMAIN, {})
@@ -625,6 +677,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Fires daily at 08:00 local; the gating lives in async_maybe_send_weekly_digest.
     async def _weekly_digest_tick(now: Any) -> None:
         await async_maybe_send_weekly_digest(hass)
+        await async_maybe_send_warranty_reminders(hass)
 
     unsub_digest = async_track_time_change(
         hass, _weekly_digest_tick, hour=8, minute=0, second=0

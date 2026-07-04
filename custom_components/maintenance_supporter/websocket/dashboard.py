@@ -55,7 +55,10 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_WARRANTY_REMINDER_DAYS,
+    CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
+    DEFAULT_WARRANTY_REMINDER_DAYS,
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
@@ -169,6 +172,12 @@ def _build_full_settings(
             "snooze_enabled": options.get(CONF_ACTION_SNOOZE_ENABLED, False),
             "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS),
             "weekly_digest_enabled": options.get(CONF_WEEKLY_DIGEST_ENABLED, False),
+            "warranty_reminder_enabled": options.get(
+                CONF_WARRANTY_REMINDER_ENABLED, False
+            ),
+            "warranty_reminder_days": options.get(
+                CONF_WARRANTY_REMINDER_DAYS, DEFAULT_WARRANTY_REMINDER_DAYS
+            ),
         },
         "budget": {
             "monthly": options.get(CONF_BUDGET_MONTHLY, 0.0),
