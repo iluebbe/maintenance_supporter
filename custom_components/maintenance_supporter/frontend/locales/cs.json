@@ -580,6 +580,8 @@
   "chart_range_1y": "1r",
   "chart_since_service": "od poslední údržby",
   "chart_no_stats": "Pro tuto entitu nejsou dlouhodobé statistiky — zobrazují se pouze hodnoty z údržbových záznamů",
+  "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru",
+  "auto_complete_on_recovery_help": "Zaznamená dokončení (nastaví poslední provedení), jakmile se spouštěč sám vyřeší — např. doplněná sůl, vyměněný filtr.",
   "doc_search": "Hledat dokumenty…",
   "doc_search_none": "Žádné odpovídající dokumenty"
 }

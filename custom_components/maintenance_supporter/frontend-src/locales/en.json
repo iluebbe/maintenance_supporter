@@ -580,6 +580,8 @@
   "chart_range_1y": "1y",
   "chart_since_service": "since last service",
   "chart_no_stats": "No long-term statistics for this entity — showing maintenance-event values only",
+  "auto_complete_on_recovery": "Auto-complete when the sensor recovers",
+  "auto_complete_on_recovery_help": "Records a completion (sets last performed) when the trigger clears itself — e.g. salt refilled, filter replaced.",
   "doc_search": "Search documents…",
   "doc_search_none": "No matching documents"
 }

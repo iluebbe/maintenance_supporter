@@ -580,6 +580,8 @@
   "chart_range_1y": "1年",
   "chart_since_service": "前回のメンテナンス以降",
   "chart_no_stats": "このエンティティには長期統計がありません — メンテナンス記録の値のみ表示しています",
+  "auto_complete_on_recovery": "センサー回復時に自動完了",
+  "auto_complete_on_recovery_help": "トリガーが自然に解消されたとき（塩の補充、フィルター交換など）に完了を記録し、最終実施日を更新します。",
   "doc_search": "ドキュメントを検索…",
   "doc_search_none": "一致するドキュメントはありません"
 }

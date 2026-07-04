@@ -580,6 +580,8 @@
   "chart_range_1y": "1a",
   "chart_since_service": "desde el último mantenimiento",
   "chart_no_stats": "No hay estadísticas a largo plazo para esta entidad — solo se muestran valores de eventos de mantenimiento",
+  "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere",
+  "auto_complete_on_recovery_help": "Registra una finalización (fija la última realización) cuando el disparador se resuelve solo — p. ej., sal rellenada, filtro cambiado.",
   "doc_search": "Buscar documentos…",
   "doc_search_none": "Ningún documento coincidente"
 }

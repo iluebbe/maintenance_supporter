@@ -121,6 +121,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - **Runtime**: trigger after accumulated operating hours (e.g., 500h of compressor runtime)
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime)
 - Multi-entity support for all trigger types (any/all entity logic)
+- **Auto-complete on sensor recovery** (2.12.0+, opt-in per task, #53) — when the trigger clears itself (salt refilled, filter swapped, pressure topped up), the task records a completion automatically: `last performed` and the time-between-services statistics stay real without opening the app. Manual completes are unaffected, and a just-completed task never double-records
 - **Entity attribute introspection** — trigger setup shows domain-specific attribute suggestions (e.g., `current_temperature` for climate entities)
 - Automatic entity availability tracking with grace periods
 - Repair issues for missing or unavailable trigger entities (replace / remove / dismiss)

@@ -580,6 +580,8 @@
   "chart_range_1y": "1a",
   "chart_since_service": "desde a última manutenção",
   "chart_no_stats": "Sem estatísticas de longo prazo para esta entidade — mostrando apenas valores de eventos de manutenção",
+  "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar",
+  "auto_complete_on_recovery_help": "Regista uma conclusão (define a última realização) quando o gatilho se resolve sozinho — p. ex., sal reabastecido, filtro substituído.",
   "doc_search": "Pesquisar documentos…",
   "doc_search_none": "Nenhum documento correspondente"
 }
