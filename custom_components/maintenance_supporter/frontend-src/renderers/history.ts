@@ -8,10 +8,13 @@
 
 import { html, nothing } from "lit";
 import { t, formatDateTime, STATUS_ICONS } from "../styles";
-import type { MaintenanceTask, HistoryEntry } from "../types";
+import type { MaintenanceTask, HistoryEntry, HomeAssistant } from "../types";
+import "../components/history-photo";
 
 export interface HistoryContext {
   lang: string;
+  /** Home Assistant object — used to sign completion-photo URLs. */
+  hass: HomeAssistant;
   /** Active type filter, or null for "all". */
   filter: string | null;
   /** Free-text search over entry notes. */
@@ -96,6 +99,9 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
         </div>
         <div class="history-date">${formatDateTime(entry.timestamp, L)}</div>
         ${entry.notes ? html`<div>${entry.notes}</div>` : nothing}
+        ${entry.photo_doc_id
+          ? html`<maintenance-history-photo .hass=${ctx.hass} .docId=${entry.photo_doc_id}></maintenance-history-photo>`
+          : nothing}
         <div class="history-details">
           ${entry.cost != null ? html`<span>${t("cost", L)}: ${entry.cost.toFixed(2)} ${ctx.currencySymbol}</span>` : nothing}
           ${entry.duration != null ? html`<span>${t("duration", L)}: ${entry.duration} min</span>` : nothing}

@@ -265,6 +265,7 @@ class MaintenanceTask:
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
+        photo_doc_id: str | None = None,
     ) -> None:
         """Mark this task as completed."""
         # Save current next_due as anchor for planned mode before resetting
@@ -284,6 +285,7 @@ class MaintenanceTask:
             checklist_state=checklist_state,
             feedback=feedback,
             completed_by=completed_by,
+            photo_doc_id=photo_doc_id,
         )
 
     def reset(self, reset_date: date | None = None) -> None:
@@ -324,6 +326,7 @@ class MaintenanceTask:
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
+        photo_doc_id: str | None = None,
     ) -> None:
         """Add an entry to the maintenance history."""
         entry: dict[str, Any] = {
@@ -344,6 +347,8 @@ class MaintenanceTask:
             entry["feedback"] = feedback
         if completed_by is not None:
             entry["completed_by"] = completed_by
+        if photo_doc_id is not None:
+            entry["photo_doc_id"] = photo_doc_id
 
         self.history.append(entry)
 

@@ -44,6 +44,9 @@ from . import (
             None,
         ),
         vol.Optional("feedback"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        # Optional completion photo: the doc_id of an already-uploaded image
+        # (via the document upload endpoint, tagged "photo").
+        vol.Optional("photo_doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
     }
 )
 @websocket_api.async_response
@@ -70,6 +73,7 @@ async def ws_complete_task(
         duration=msg.get("duration"),
         checklist_state=msg.get("checklist_state"),
         feedback=msg.get("feedback"),
+        photo_doc_id=msg.get("photo_doc_id"),
     )
     connection.send_result(msg["id"], {"success": True})
 

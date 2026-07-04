@@ -63,6 +63,7 @@ export interface HistoryEntry {
   checklist_state?: Record<string, boolean> | null;
   feedback?: string | null;
   completed_by?: string | null;
+  photo_doc_id?: string | null;
 }
 
 export interface AdaptiveConfig {

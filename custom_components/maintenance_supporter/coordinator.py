@@ -904,6 +904,28 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._persist_dynamic_state(task_id, task)
 
+    async def _link_completion_photo(self, photo_doc_id: str, task_id: str) -> None:
+        """Link an uploaded completion photo to its task (best-effort).
+
+        The photo is already stored object-scoped by the upload view; this just
+        appends the task to the doc's ``task_ids`` so it also surfaces under the
+        task's documents and is deref'd on cleanup. Any failure (unknown id,
+        store not loaded) is swallowed — it must never fail the completion.
+        """
+        try:
+            from . import DOCUMENT_STORE_KEY
+
+            store = self.hass.data[DOMAIN][DOCUMENT_STORE_KEY]
+            doc = store.get(photo_doc_id)
+            if doc is None:
+                return
+            linked = list(doc.get("task_ids") or [])
+            if task_id not in linked:
+                linked.append(task_id)
+                await store.async_update(photo_doc_id, task_ids=linked)
+        except (KeyError, AttributeError, OSError, ValueError):
+            _LOGGER.debug("Could not link completion photo %s", photo_doc_id)
+
     async def complete_maintenance(
         self,
         task_id: str,
@@ -913,6 +935,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
+        photo_doc_id: str | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
         merged = self._get_merged_tasks_data()
@@ -934,8 +957,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         task.complete(
             notes=notes, cost=cost, duration=duration,
             checklist_state=checklist_state, feedback=feedback,
-            completed_by=completed_by,
+            completed_by=completed_by, photo_doc_id=photo_doc_id,
         )
+
+        # Link the completion photo to this task so it also surfaces under the
+        # object's documents and is deref'd correctly on cleanup. Best-effort:
+        # a bad/removed doc_id must never block the completion itself.
+        if photo_doc_id:
+            await self._link_completion_photo(photo_doc_id, task_id)
 
         # Update adaptive scheduling if enabled
         if task.adaptive_config and task.adaptive_config.get("enabled"):

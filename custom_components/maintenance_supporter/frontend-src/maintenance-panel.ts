@@ -2660,6 +2660,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _historyCtx(): HistoryContext {
     return {
       lang: this._lang,
+      hass: this.hass,
       filter: this._historyFilter,
       search: this._historySearch,
       currencySymbol: this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
