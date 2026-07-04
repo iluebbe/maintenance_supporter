@@ -31,6 +31,7 @@ _EXPECTED_INT_RANGES = {
     "budget_alert_threshold": (10, 100),
     "archive_oneoff_days": (0, 3650),
     "delete_archived_oneoff_days": (0, 3650),
+    "warranty_reminder_days": (1, 365),
 }
 _EXPECTED_FLOAT_RANGES = {
     "budget_monthly": (0.0, 10_000_000.0),
@@ -58,11 +59,11 @@ def test_str_max_lengths_frozen() -> None:
 
 def test_allowed_keys_count_and_types() -> None:
     # 42 writable settings, each mapped to a concrete Python type.
-    assert len(ALLOWED_SETTING_KEYS) == 42
+    assert len(ALLOWED_SETTING_KEYS) == 44
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 42
+    assert len(keys) == len(set(keys)) == 44
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

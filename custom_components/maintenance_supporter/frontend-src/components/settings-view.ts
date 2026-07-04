@@ -46,6 +46,8 @@ interface SettingsResponse {
     snooze_enabled: boolean;
     snooze_duration_hours: number;
     weekly_digest_enabled: boolean;
+    warranty_reminder_enabled: boolean;
+    warranty_reminder_days: number;
   };
   budget: {
     monthly: number;
@@ -570,6 +572,19 @@ export class MaintenanceSettingsView extends LitElement {
             @change=${(e: Event) => this._updateSetting("weekly_digest_enabled", (e.target as HTMLInputElement).checked)} />
         </label>
         <div class="setting-hint">${t("settings_weekly_digest_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_warranty_reminder", L)}</span>
+          <input type="checkbox" .checked=${a.warranty_reminder_enabled}
+            @change=${(e: Event) => this._updateSetting("warranty_reminder_enabled", (e.target as HTMLInputElement).checked)} />
+        </label>
+        ${a.warranty_reminder_enabled ? html`
+          <label class="setting-row sub-row">
+            <span class="setting-desc">${t("settings_warranty_reminder_days", L)}</span>
+            <input type="number" min="1" max="365" .value=${String(a.warranty_reminder_days)}
+              @change=${(e: Event) => this._updateSetting("warranty_reminder_days", parseInt((e.target as HTMLInputElement).value, 10) || 30)} />
+          </label>
+        ` : nothing}
+        <div class="setting-hint">${t("settings_warranty_reminder_hint", L)}</div>
       </div>
     `;
   }
