@@ -22,13 +22,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   baseline. The baseline is now always published, so the graph returns to 0
   immediately after you mark the task done.
 
-### ✨ Duplicate a task
+### ✨ Duplicate tasks and objects
 
 - **Clone a task within its object** from the task menu (⋮ → Duplicate). The copy
   keeps the full configuration — schedule, trigger, checklist, completion
   actions — and starts clean (no history, not yet performed). Great for
   multi-stage setups: build "Stage 1 filter", duplicate it, rename to "Stage 2".
-  Per-task-unique fields (entity slug, NFC tag) are intentionally not copied.
+- **Clone a whole object** (with all its tasks) from the object detail →
+  Duplicate. Ideal for fleets of near-identical assets — hotel rooms, identical
+  pumps. The copy is named "… (copy)"; the serial number is dropped and every
+  task starts fresh. Per-task-unique fields (entity slug, NFC tag) are not
+  copied in either case.
 
 ## [2.13.0] - 2026-07-04
 

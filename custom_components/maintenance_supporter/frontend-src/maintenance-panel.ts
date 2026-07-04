@@ -679,6 +679,23 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  private async _duplicateObject(entryId: string): Promise<void> {
+    this._actionLoading = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
+        type: "maintenance_supporter/object/duplicate",
+        entry_id: entryId,
+      });
+      await this._loadData();
+      this._showToast(t("object_duplicated", this._lang));
+      if (res?.entry_id) this._showObject(res.entry_id);
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
   private async _deleteTask(entryId: string, taskId: string): Promise<void> {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
     const ok = await dlg?.confirm({
@@ -1813,6 +1830,9 @@ export class MaintenanceSupporterPanel extends LitElement {
                 const dlg = this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog");
                 dlg?.openCreate(obj.entry_id);
               }}>${t("add_task", L)}</ha-button>
+              <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._duplicateObject(obj.entry_id)}>
+                <ha-icon icon="mdi:content-copy"></ha-icon> ${t("duplicate", L)}
+              </ha-button>
               <ha-button appearance="plain" @click=${() => this._toggleArchiveObject(obj.entry_id, !!o.archived)}>
                 <ha-icon icon="${o.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
                 ${o.archived ? t("unarchive_object", L) : t("archive_object", L)}

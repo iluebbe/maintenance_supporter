@@ -399,6 +399,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_archive_object,
         ws_create_object,
         ws_delete_object,
+        ws_duplicate_object,
         ws_entity_attributes,
         ws_get_object,
         ws_get_objects,
@@ -435,6 +436,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_object)
     websocket_api.async_register_command(hass, ws_update_object)
     websocket_api.async_register_command(hass, ws_delete_object)
+    websocket_api.async_register_command(hass, ws_duplicate_object)
     websocket_api.async_register_command(hass, ws_archive_object)
     websocket_api.async_register_command(hass, ws_unarchive_object)
     websocket_api.async_register_command(hass, ws_create_task)
