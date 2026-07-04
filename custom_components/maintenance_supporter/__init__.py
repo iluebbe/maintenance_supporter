@@ -161,6 +161,42 @@ SERVICE_ADD_TASK_SCHEMA = vol.Schema(
 )
 
 
+async def async_maybe_send_weekly_digest(
+    hass: HomeAssistant, *, force: bool = False
+) -> None:
+    """Send the opt-in weekly digest when it's due.
+
+    Gated on: it being Monday (skipped when ``force``), the global
+    ``weekly_digest_enabled`` setting, and there being something to report.
+    Extracted from the daily 08:00 time-change tick so it's unit-testable and
+    can be triggered directly.
+    """
+    from homeassistant.util import dt as dt_util
+
+    if not force and dt_util.now().weekday() != 0:  # Monday only
+        return
+    global_entry = next(
+        (e for e in hass.config_entries.async_entries(DOMAIN)
+         if e.unique_id == GLOBAL_UNIQUE_ID),
+        None,
+    )
+    if global_entry is None:
+        return
+    options = global_entry.options or global_entry.data
+    if not options.get(CONF_WEEKLY_DIGEST_ENABLED, False):
+        return
+    from .helpers.aggregate import compute_status_counts
+
+    counts = compute_status_counts(hass)
+    overdue = int(counts.get("overdue", 0))
+    due_soon = int(counts.get("due_soon", 0)) + int(counts.get("triggered", 0))
+    if overdue == 0 and due_soon == 0:
+        return  # nothing to report — stay silent
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if nm is not None:
+        await nm.async_send_weekly_digest(overdue, due_soon)
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Maintenance Supporter integration."""
     hass.data.setdefault(DOMAIN, {})
@@ -586,31 +622,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     )
 
     # v2.15.0: opt-in weekly digest — one summary notification on Monday morning.
-    # Fires daily at 08:00 local; only acts on Mondays, only when the global
-    # `weekly_digest_enabled` setting is on and there's actually something due.
+    # Fires daily at 08:00 local; the gating lives in async_maybe_send_weekly_digest.
     async def _weekly_digest_tick(now: Any) -> None:
-        if now.weekday() != 0:  # Monday only
-            return
-        global_entry = next(
-            (e for e in hass.config_entries.async_entries(DOMAIN)
-             if e.unique_id == GLOBAL_UNIQUE_ID),
-            None,
-        )
-        if global_entry is None:
-            return
-        options = global_entry.options or global_entry.data
-        if not options.get(CONF_WEEKLY_DIGEST_ENABLED, False):
-            return
-        from .helpers.aggregate import compute_status_counts
-
-        counts = compute_status_counts(hass)
-        overdue = int(counts.get("overdue", 0))
-        due_soon = int(counts.get("due_soon", 0)) + int(counts.get("triggered", 0))
-        if overdue == 0 and due_soon == 0:
-            return  # nothing to report — stay silent
-        nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-        if nm is not None:
-            await nm.async_send_weekly_digest(overdue, due_soon)
+        await async_maybe_send_weekly_digest(hass)
 
     unsub_digest = async_track_time_change(
         hass, _weekly_digest_tick, hour=8, minute=0, second=0
