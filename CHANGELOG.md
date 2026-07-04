@@ -6,6 +6,11 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ♻️ Internal
 
+- **Split the 1433-line `websocket/tasks.py`** into focused sibling modules
+  (`tasks_validation` / `tasks_persist` / `tasks_crud` / `tasks_lifecycle` /
+  `tasks_actions` / `tasks_history`), with `tasks.py` kept as a thin re-export
+  shim so every `…websocket.tasks import X` path stays stable. No behaviour
+  change — the largest module is now 579 lines instead of 1433.
 - **De-duplicated the config-flow ↔ panel ↔ WS settings surfaces** (a wave of
   drift-proofing refactors, no behaviour change):
   - A single settings registry (`helpers/settings_registry.py`) is now the
