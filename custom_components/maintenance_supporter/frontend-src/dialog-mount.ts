@@ -35,6 +35,7 @@ import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceTaskQuickActionsDialog } from "./components/task-quick-actions-dialog";
 import type { MaintenanceObjectQuickActionsDialog } from "./components/object-quick-actions-dialog";
 import type { HomeAssistant, MaintenanceObject } from "./types";
+import { ensureLocale, isLocaleLoaded } from "./styles";
 
 const OBJECT_DIALOG_TAG = "maintenance-object-dialog";
 const TASK_DIALOG_TAG = "maintenance-task-dialog";
@@ -66,6 +67,17 @@ function syncHass(el: HTMLElement & { hass?: HomeAssistant }): boolean {
   const hass = getHass();
   if (!hass) return false;
   el.hass = hass;
+  // Dialogs opened from the dashboard strategy live in a lazily-loaded chunk
+  // that never ran the panel's ensureLocale — so without this the popup renders
+  // in English even when the rest of HA is localized. Fetch the user's locale
+  // (idempotent + cached) and force a re-render once it's in, so the first paint
+  // (which may be English) is corrected to the user's language.
+  const lang = hass.language || "en";
+  if (!isLocaleLoaded(lang)) {
+    void ensureLocale(lang).then(() => {
+      (el as unknown as { requestUpdate?: () => void }).requestUpdate?.();
+    });
+  }
   return true;
 }
 

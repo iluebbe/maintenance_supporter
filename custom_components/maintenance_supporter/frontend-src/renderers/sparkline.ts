@@ -216,8 +216,14 @@ function renderProgress(spec: ProgressSpec, L: string) {
 function rawStatsPoints(task: MaintenanceTask, ctx: SparklineContext): ChartPoint[] {
   const tc = task.trigger_config;
   if (!tc) return [];
+  const triggerType = tc.type || "threshold";
   const entityId = tc.entity_id || "";
-  const statsPoints = ctx.detailStatsData.get(entityId) || [];
+  // Runtime accumulates hours DERIVED from the entity's on/off time — the
+  // entity's own long-term statistics (an on/off ratio, or an unrelated raw
+  // sensor value) are NOT that accumulation. Plot only the recorded per-cycle
+  // trigger_value snapshots + the live current value instead.
+  const statsPoints =
+    triggerType === "runtime" ? [] : (ctx.detailStatsData.get(entityId) || []);
   const isCounter = ctx.isCounterEntity(tc);
   const points: ChartPoint[] = [];
 
@@ -252,6 +258,20 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   const entityId = tc.entity_id || "";
 
   let points = rawStatsPoints(task, ctx);
+  // Runtime accumulates hours with no stored intermediate snapshots: synthesize
+  // the current cycle (0 at the last service → live value now) so the chart
+  // resets each completion and always has a drawable 2-point line.
+  if (
+    triggerType === "runtime" &&
+    tc.trigger_runtime_hours &&
+    task.trigger_current_value != null
+  ) {
+    const cycleStart = lastServiceTs(task) ?? points[0]?.ts ?? (Date.now() - 86400000);
+    points = [
+      { ts: cycleStart, val: 0 },
+      { ts: Date.now(), val: Math.max(0, task.trigger_current_value) },
+    ];
+  }
   if (ctx.hideOutliers) points = filterOutliers(points);
 
   // Still waiting for the first stats fetch → placeholder with the range chips.
@@ -289,6 +309,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
     targetValue = tc.trigger_target_changes;
     forceZero = true;
   } else if (triggerType === "runtime" && tc.trigger_runtime_hours) {
+    // Points are the synthesized current-cycle line (built above).
     targetValue = tc.trigger_runtime_hours;
     forceZero = true;
   }
