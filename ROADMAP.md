@@ -11,6 +11,40 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Near-term (planned)
 
+### 💡 LLM setup assistant — a skill that configures the integration for you
+A guided skill (Claude Code / Assist / an MCP-style agent) that stands the
+integration up correctly from a conversation, instead of the user clicking
+through the config flow object-by-object. The skill would:
+
+1. **Authenticate to Home Assistant** — obtain (or be given) a long-lived
+   access token and the base URL; verify it can reach the WS/REST API. Never
+   store the token in plain text where it can leak; treat it like a password.
+2. **Discover maintenance candidates** — scan the HA device & entity registries
+   for things that plausibly need upkeep: pumps, filters, HVAC, printers,
+   vehicles (odometer/`device_class: distance`), water softeners, appliances,
+   anything exposing a wear-signal sensor (runtime hours, cycle counters,
+   pressure/flow, battery/consumable levels). Group by area/device and propose a
+   ranked list of objects + suggested tasks with sensible default intervals and
+   trigger types (threshold / counter-delta / runtime) inferred from the sensor.
+3. **Match manuals & intervals (opt-in)** — when the user wants it, look up the
+   manufacturer/model (from the device registry) to suggest a documentation URL
+   or manufacturer-recommended service intervals, and attach them via the
+   Documents feature. Strictly opt-in and source-cited; the user confirms before
+   anything is fetched or attached.
+4. **Create it via the public WS API** — drive `object/create`, `task/create`
+   (+ `trigger_config`), and the global settings through the same WS commands
+   the panel uses, so everything is validated server-side. Dry-run/preview each
+   batch and get a single confirmation before writing.
+5. **Verify & hand off** — after setup, sanity-check that entities were created
+   and triggers resolve, then summarise what was configured and what needs a
+   human decision (intervals it couldn't infer, sensors it wasn't sure about).
+
+Ships as a documented skill/playbook (prompt + the WS command contract +
+discovery heuristics) rather than integration code — the backend already
+exposes everything it needs (56+ WS commands, entity introspection, documents).
+Guardrails: confirm before every write, never invent intervals silently, keep
+the token handling safe, and prefer proposing over auto-applying.
+
 ### 💡 Shared maintenance — multiple assignees + rotation
 Assign a task to several household members and rotate responsibility
 automatically on each completion (round-robin, least-completed, or random).
