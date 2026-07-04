@@ -22,6 +22,7 @@ from custom_components.maintenance_supporter.websocket.groups import (
     ws_create_group,
 )
 from custom_components.maintenance_supporter.websocket.objects import (
+    ws_create_from_template,
     ws_create_object,
     ws_delete_object,
     ws_duplicate_object,
@@ -80,6 +81,54 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     )
     entry.add_to_hass(hass)
     return entry
+
+
+async def test_ws_create_from_template(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Creating from a template builds the object + all its template tasks."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_OBJECT,
+        CONF_OBJECT_NAME,
+        CONF_TASKS,
+    )
+    from custom_components.maintenance_supporter.templates import get_template_by_id
+
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+
+    tpl = get_template_by_id("home_hvac")
+    assert tpl is not None and len(tpl.tasks) > 0
+
+    await call_ws_handler(ws_create_from_template, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/from_template",
+        "template_id": "home_hvac", "name": "Living-room HVAC",
+    })
+    conn.send_error.assert_not_called()
+    entry_id = conn.send_result.call_args[0][1]["entry_id"]
+
+    entry = hass.config_entries.async_get_entry(entry_id)
+    assert entry is not None
+    assert entry.data[CONF_OBJECT][CONF_OBJECT_NAME] == "Living-room HVAC"
+    assert len(entry.data[CONF_TASKS]) == len(tpl.tasks)
+    task_names = {t["name"] for t in entry.data[CONF_TASKS].values()}
+    assert task_names == {tt.name for tt in tpl.tasks}
+
+    await hass.config_entries.async_remove(entry_id)
+
+
+async def test_ws_create_from_template_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Unknown template id returns not_found."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_from_template, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/from_template",
+        "template_id": "does_not_exist",
+    })
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_ws_duplicate_object_clones_object_and_tasks(
