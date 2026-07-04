@@ -198,6 +198,10 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **qu
 - Statistics, budget status, and interval analysis
 - See [Architecture](docs/ARCHITECTURE.md) for the complete command reference
 
+## Setup assistant (for LLM agents)
+
+Prefer setting things up by talking to an assistant? [`skills/maintenance-setup-assistant/`](skills/maintenance-setup-assistant/) is a portable skill/playbook that lets an LLM agent (Claude Code, Assist, or any MCP-style agent) connect to your Home Assistant, discover devices that need upkeep, and create maintenance objects + tasks through the public WebSocket API — always previewing and asking before it writes anything.
+
 ## Roadmap
 
 Planned and proposed features (multi-assignee rotation, a native to-do entity, multiple per-task reminders, priority levels, and more) live in [ROADMAP.md](ROADMAP.md). Ideas and votes welcome via issues or the [Ideas discussions](https://github.com/iluebbe/maintenance_supporter/discussions).
