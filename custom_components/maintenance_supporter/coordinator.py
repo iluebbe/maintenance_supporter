@@ -534,15 +534,69 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     task._trigger_active = any(per_entity_triggered)
 
         elif trigger_type == "state_change":
-            # State change triggers are purely event-driven (count transitions)
-            # The fallback cannot evaluate them, so we leave _trigger_active as-is
-            pass
+            # Counting stays event-driven, but the COUNT must be visible: the
+            # trigger persists it on every counted transition, so surface it
+            # here — otherwise the run count (and the progress header) only
+            # ever appears once the target is reached (forum #16).
+            trigger_state = task.trigger_config.get("_trigger_state", {})
+            target_changes = task.trigger_config.get("trigger_target_changes")
+            entity_logic = task.trigger_config.get("entity_logic", "any")
+            per_entity_triggered = []
+            best_count: float | None = None
+            for eid in entity_ids:
+                cc = trigger_state.get(eid, {}).get("change_count")
+                if cc is None:
+                    # Legacy flat storage
+                    cc = task.trigger_config.get("trigger_change_count")
+                if cc is None:
+                    continue
+                count = float(cc)
+                best_count = count if best_count is None else max(best_count, count)
+                if target_changes:
+                    per_entity_triggered.append(count >= target_changes)
+            if best_count is not None:
+                task._trigger_current_value = best_count
+            if per_entity_triggered:
+                task._trigger_active = (
+                    all(per_entity_triggered)
+                    if entity_logic == "all"
+                    else any(per_entity_triggered)
+                )
 
         elif trigger_type == "runtime":
-            # Runtime triggers are event-driven with a self-timer for periodic
-            # persistence.  The fallback cannot meaningfully evaluate them
-            # (no numeric entity value), so we leave _trigger_active as-is.
-            pass
+            # Reconstruct the accumulated hours from the persisted counter,
+            # adding the live on-time when the entity is currently running —
+            # the hours were previously invisible until the target fired.
+            trigger_state = task.trigger_config.get("_trigger_state", {})
+            target_hours = task.trigger_config.get("trigger_runtime_hours")
+            entity_logic = task.trigger_config.get("entity_logic", "any")
+            per_entity_triggered = []
+            best_hours: float | None = None
+            for eid in entity_ids:
+                es = trigger_state.get(eid, {})
+                seconds = es.get("accumulated_seconds")
+                if seconds is None:
+                    continue
+                total = float(seconds)
+                on_since = es.get("on_since")
+                if on_since:
+                    on_dt = dt_util.parse_datetime(on_since)
+                    if on_dt is not None:
+                        total += max(
+                            0.0, (dt_util.utcnow() - on_dt).total_seconds()
+                        )
+                hours = total / 3600.0
+                best_hours = hours if best_hours is None else max(best_hours, hours)
+                if target_hours:
+                    per_entity_triggered.append(hours >= target_hours)
+            if best_hours is not None:
+                task._trigger_current_value = round(best_hours, 2)
+            if per_entity_triggered:
+                task._trigger_active = (
+                    all(per_entity_triggered)
+                    if entity_logic == "all"
+                    else any(per_entity_triggered)
+                )
 
     async def _async_check_for_issues(
         self, tasks: dict[str, MaintenanceTask]

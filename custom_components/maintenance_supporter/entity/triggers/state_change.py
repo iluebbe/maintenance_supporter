@@ -40,6 +40,7 @@ class StateChangeTrigger(BaseTrigger):
         self._target_changes: int = trigger_config.get("trigger_target_changes", 1)
         # Restore persisted change count from config, default to 0
         self._change_count: int = trigger_config.get("trigger_change_count", 0)
+        self._current_value = float(self._change_count)
         self._last_state: str | None = None
 
     async def async_setup(self) -> None:
@@ -148,6 +149,7 @@ class StateChangeTrigger(BaseTrigger):
 
         if matches and effective_old != new_val:
             self._change_count += 1
+            self._current_value = float(self._change_count)
             # Persist change count to survive restarts
             if self.hass.is_running:
                 self.hass.async_create_task(self._persist_change_count())
@@ -184,6 +186,7 @@ class StateChangeTrigger(BaseTrigger):
     def reset_count(self) -> None:
         """Reset the change counter (after maintenance)."""
         self._change_count = 0
+        self._current_value = 0.0
         if self.hass.is_running:
             self.hass.async_create_task(self._persist_change_count())
         _LOGGER.debug("State change counter reset: %s", self.entity_id)
