@@ -1,0 +1,241 @@
+"""Unit tests for the pure per-type trigger fallback evaluators.
+
+These are the refresh-time rules the coordinator applies; each case that used
+to hide inside a 170-line if/elif is pinned here directly.
+"""
+
+from __future__ import annotations
+
+from datetime import timedelta
+from types import SimpleNamespace
+
+from homeassistant.util import dt as dt_util
+
+from custom_components.maintenance_supporter.helpers.trigger_fallback import (
+    evaluate_counter,
+    evaluate_runtime,
+    evaluate_state_change,
+    evaluate_threshold,
+)
+
+
+def _states(mapping: dict[str, str | float | dict]):
+    """Build a hass.states.get stand-in from {entity_id: state or {state, attrs}}."""
+
+    def get(entity_id: str):
+        if entity_id not in mapping:
+            return None
+        spec = mapping[entity_id]
+        if isinstance(spec, dict):
+            return SimpleNamespace(
+                state=str(spec.get("state")), attributes=spec.get("attributes", {})
+            )
+        return SimpleNamespace(state=str(spec), attributes={})
+
+    return get
+
+
+# ─── threshold ───────────────────────────────────────────────────────────
+
+
+def test_threshold_below_activates() -> None:
+    r = evaluate_threshold(
+        _states({"sensor.salt": 15}),
+        {"trigger_below": 20.0},
+        ["sensor.salt"],
+    )
+    assert r.current_value == 15.0
+    assert r.active is True
+
+
+def test_threshold_for_minutes_never_activates_from_fallback() -> None:
+    r = evaluate_threshold(
+        _states({"sensor.temp": 90}),
+        {"trigger_above": 50.0, "trigger_for_minutes": 5},
+        ["sensor.temp"],
+    )
+    # Exceeding with a pending duration: the event-driven timer decides.
+    assert r.active is None
+    # But a recovered value may deactivate even with for_minutes.
+    r2 = evaluate_threshold(
+        _states({"sensor.temp": 30}),
+        {"trigger_above": 50.0, "trigger_for_minutes": 5},
+        ["sensor.temp"],
+    )
+    assert r2.active is False
+
+
+def test_threshold_missing_attribute_and_nonnumeric_read_as_none() -> None:
+    # attribute requested but absent -> None; non-numeric state -> None
+    missing_attr = evaluate_threshold(
+        _states({"sensor.a": {"state": "on", "attributes": {}}}),
+        {"trigger_above": 1.0, "attribute": "battery"},
+        ["sensor.a"],
+    )
+    assert missing_attr.current_value is None
+    nonnumeric = evaluate_threshold(
+        _states({"sensor.a": "not-a-number"}),
+        {"trigger_above": 1.0},
+        ["sensor.a"],
+    )
+    assert nonnumeric.current_value is None
+
+
+def test_runtime_ignores_unparseable_on_since() -> None:
+    r = evaluate_runtime(
+        {
+            "trigger_runtime_hours": 5,
+            "_trigger_state": {
+                "input_boolean.comp": {
+                    "accumulated_seconds": 3600,
+                    "on_since": "not-a-timestamp",
+                }
+            },
+        },
+        ["input_boolean.comp"],
+    )
+    # Unparseable on_since is ignored; only the persisted hour counts.
+    assert r.current_value == 1.0
+    assert r.active is False
+
+
+def test_threshold_multi_entity_logic() -> None:
+    cfg_any = {"trigger_above": 50.0, "entity_logic": "any"}
+    cfg_all = {"trigger_above": 50.0, "entity_logic": "all"}
+    states = _states({"sensor.a": 60, "sensor.b": 40})
+    assert evaluate_threshold(states, cfg_any, ["sensor.a", "sensor.b"]).active is True
+    assert evaluate_threshold(states, cfg_all, ["sensor.a", "sensor.b"]).active is False
+
+
+def test_threshold_unavailable_entities_read_as_not_triggered() -> None:
+    r = evaluate_threshold(
+        _states({"sensor.a": "unavailable"}),
+        {"trigger_above": 50.0},
+        ["sensor.a", "sensor.missing"],
+    )
+    assert r.current_value is None
+    assert r.active is False
+
+
+# ─── counter ─────────────────────────────────────────────────────────────
+
+
+def test_counter_absolute_target() -> None:
+    r = evaluate_counter(
+        _states({"input_number.odo": 55000}),
+        {"trigger_target_value": 50000},
+        ["input_number.odo"],
+    )
+    assert r.current_value == 55000.0
+    assert r.active is True
+
+
+def test_counter_delta_mode_uses_per_entity_baseline() -> None:
+    cfg = {
+        "trigger_target_value": 15000,
+        "trigger_delta_mode": True,
+        "_trigger_state": {"input_number.odo": {"baseline_value": 45000.0}},
+    }
+    below = evaluate_counter(_states({"input_number.odo": 55000}), cfg, ["input_number.odo"])
+    assert below.active is False  # +10k of 15k
+    reached = evaluate_counter(_states({"input_number.odo": 60001}), cfg, ["input_number.odo"])
+    assert reached.active is True
+
+
+def test_counter_unavailable_entity_counts_as_not_reached() -> None:
+    r = evaluate_counter(
+        _states({"input_number.odo": "unknown"}),
+        {"trigger_target_value": 10},
+        ["input_number.odo"],
+    )
+    assert r.current_value is None
+    assert r.active is False
+
+
+def test_counter_delta_without_baseline_is_inactive() -> None:
+    r = evaluate_counter(
+        _states({"input_number.odo": 99999}),
+        {"trigger_target_value": 100, "trigger_delta_mode": True},
+        ["input_number.odo"],
+    )
+    assert r.active is False
+
+
+# ─── state_change ────────────────────────────────────────────────────────
+
+
+def test_state_change_surfaces_persisted_count() -> None:
+    r = evaluate_state_change(
+        {
+            "trigger_target_changes": 20,
+            "_trigger_state": {"input_boolean.washer": {"change_count": 6}},
+        },
+        ["input_boolean.washer"],
+    )
+    assert r.current_value == 6.0
+    assert r.active is False
+
+
+def test_state_change_legacy_flat_count_and_activation() -> None:
+    r = evaluate_state_change(
+        {"trigger_target_changes": 5, "trigger_change_count": 7},
+        ["input_boolean.washer"],
+    )
+    assert r.current_value == 7.0
+    assert r.active is True
+
+
+def test_state_change_without_any_count_reports_nothing() -> None:
+    r = evaluate_state_change({"trigger_target_changes": 5}, ["input_boolean.x"])
+    assert r.current_value is None
+    assert r.active is None
+
+
+# ─── runtime ─────────────────────────────────────────────────────────────
+
+
+def test_runtime_accumulated_hours() -> None:
+    r = evaluate_runtime(
+        {
+            "trigger_runtime_hours": 500,
+            "_trigger_state": {
+                "input_boolean.comp": {"accumulated_seconds": 400 * 3600, "on_since": None}
+            },
+        },
+        ["input_boolean.comp"],
+    )
+    assert r.current_value == 400.0
+    assert r.active is False
+
+
+def test_runtime_skips_entities_without_persisted_seconds() -> None:
+    r = evaluate_runtime(
+        {
+            "trigger_runtime_hours": 5,
+            "_trigger_state": {
+                "input_boolean.a": {},  # no accumulated_seconds yet
+                "input_boolean.b": {"accumulated_seconds": 2 * 3600},
+            },
+        },
+        ["input_boolean.a", "input_boolean.b"],
+    )
+    assert r.current_value == 2.0
+
+
+def test_runtime_includes_live_on_time() -> None:
+    on_since = (dt_util.utcnow() - timedelta(hours=2)).isoformat()
+    r = evaluate_runtime(
+        {
+            "trigger_runtime_hours": 10,
+            "_trigger_state": {
+                "input_boolean.comp": {
+                    "accumulated_seconds": 9 * 3600,
+                    "on_since": on_since,
+                }
+            },
+        },
+        ["input_boolean.comp"],
+    )
+    # 9h persisted + ~2h live = ~11h ≥ 10h target
+    assert r.current_value is not None and r.current_value >= 10.9
+    assert r.active is True

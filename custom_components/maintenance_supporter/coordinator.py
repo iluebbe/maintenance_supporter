@@ -425,178 +425,34 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entity_ids = normalize_entity_ids(task.trigger_config)
         if not entity_ids:
             return
-        attribute = task.trigger_config.get("attribute")
+        from .helpers.trigger_fallback import (
+            evaluate_counter,
+            evaluate_runtime,
+            evaluate_state_change,
+            evaluate_threshold,
+        )
 
+        # Dispatch to the pure per-type evaluators (helpers/trigger_fallback);
+        # this method only applies what they learned.
         if trigger_type == "threshold":
-            entity_logic = task.trigger_config.get("entity_logic", "any")
-            for_minutes = task.trigger_config.get("trigger_for_minutes", 0)
-            above = task.trigger_config.get("trigger_above")
-            below = task.trigger_config.get("trigger_below")
-
-            per_entity_triggered: list[bool] = []
-            last_value = None
-
-            for eid in entity_ids:
-                state = self.hass.states.get(eid)
-                if state is None or state.state in ("unavailable", "unknown"):
-                    per_entity_triggered.append(False)
-                    continue
-
-                try:
-                    if attribute:
-                        raw_value = state.attributes.get(attribute)
-                    else:
-                        raw_value = state.state
-                    if raw_value is None:
-                        per_entity_triggered.append(False)
-                        continue
-                    value = float(raw_value)
-                    last_value = value
-                except (ValueError, TypeError):
-                    per_entity_triggered.append(False)
-                    continue
-
-                exceeds = False
-                if above is not None and value > above:
-                    exceeds = True
-                if below is not None and value < below:
-                    exceeds = True
-                per_entity_triggered.append(exceeds)
-
-            if last_value is not None:
-                task._trigger_current_value = last_value
-
-            # Aggregated trigger state
-            if per_entity_triggered:
-                if entity_logic == "all":
-                    aggregated = all(per_entity_triggered)
-                else:
-                    aggregated = any(per_entity_triggered)
-            else:
-                aggregated = False
-
-            if for_minutes == 0:
-                task._trigger_active = aggregated
-            elif not aggregated and last_value is not None:
-                # Value back in normal range — safe to deactivate even with for_minutes
-                task._trigger_active = False
-            # else: for_minutes > 0 and still exceeds — leave to event-driven trigger
-
+            result = evaluate_threshold(
+                self.hass.states.get, task.trigger_config, entity_ids
+            )
         elif trigger_type == "counter":
-            entity_logic = task.trigger_config.get("entity_logic", "any")
-            target = task.trigger_config.get("trigger_target_value", 0)
-            delta_mode = task.trigger_config.get("trigger_delta_mode", False)
-            trigger_state = task.trigger_config.get("_trigger_state", {})
-
-            per_entity_triggered = []
-            last_value = None
-
-            for eid in entity_ids:
-                state = self.hass.states.get(eid)
-                if state is None or state.state in ("unavailable", "unknown"):
-                    per_entity_triggered.append(False)
-                    continue
-                try:
-                    if attribute:
-                        raw_value = state.attributes.get(attribute)
-                    else:
-                        raw_value = state.state
-                    if raw_value is None:
-                        per_entity_triggered.append(False)
-                        continue
-                    value = float(raw_value)
-                    last_value = value
-                except (ValueError, TypeError):
-                    per_entity_triggered.append(False)
-                    continue
-
-                if delta_mode:
-                    # Per-entity baseline from _trigger_state, fall back to flat
-                    es = trigger_state.get(eid, {})
-                    baseline = es.get("baseline_value")
-                    if baseline is None:
-                        baseline = task.trigger_config.get("trigger_baseline_value")
-                    if baseline is not None:
-                        delta = value - baseline
-                        per_entity_triggered.append(delta >= target)
-                    else:
-                        per_entity_triggered.append(False)
-                else:
-                    per_entity_triggered.append(value >= target)
-
-            if last_value is not None:
-                task._trigger_current_value = last_value
-
-            if per_entity_triggered:
-                if entity_logic == "all":
-                    task._trigger_active = all(per_entity_triggered)
-                else:
-                    task._trigger_active = any(per_entity_triggered)
-
+            result = evaluate_counter(
+                self.hass.states.get, task.trigger_config, entity_ids
+            )
         elif trigger_type == "state_change":
-            # Counting stays event-driven, but the COUNT must be visible: the
-            # trigger persists it on every counted transition, so surface it
-            # here — otherwise the run count (and the progress header) only
-            # ever appears once the target is reached (forum #16).
-            trigger_state = task.trigger_config.get("_trigger_state", {})
-            target_changes = task.trigger_config.get("trigger_target_changes")
-            entity_logic = task.trigger_config.get("entity_logic", "any")
-            per_entity_triggered = []
-            best_count: float | None = None
-            for eid in entity_ids:
-                cc = trigger_state.get(eid, {}).get("change_count")
-                if cc is None:
-                    # Legacy flat storage
-                    cc = task.trigger_config.get("trigger_change_count")
-                if cc is None:
-                    continue
-                count = float(cc)
-                best_count = count if best_count is None else max(best_count, count)
-                if target_changes:
-                    per_entity_triggered.append(count >= target_changes)
-            if best_count is not None:
-                task._trigger_current_value = best_count
-            if per_entity_triggered:
-                task._trigger_active = (
-                    all(per_entity_triggered)
-                    if entity_logic == "all"
-                    else any(per_entity_triggered)
-                )
-
+            result = evaluate_state_change(task.trigger_config, entity_ids)
         elif trigger_type == "runtime":
-            # Reconstruct the accumulated hours from the persisted counter,
-            # adding the live on-time when the entity is currently running —
-            # the hours were previously invisible until the target fired.
-            trigger_state = task.trigger_config.get("_trigger_state", {})
-            target_hours = task.trigger_config.get("trigger_runtime_hours")
-            entity_logic = task.trigger_config.get("entity_logic", "any")
-            per_entity_triggered = []
-            best_hours: float | None = None
-            for eid in entity_ids:
-                es = trigger_state.get(eid, {})
-                seconds = es.get("accumulated_seconds")
-                if seconds is None:
-                    continue
-                total = float(seconds)
-                on_since = es.get("on_since")
-                if on_since:
-                    on_dt = dt_util.parse_datetime(on_since)
-                    if on_dt is not None:
-                        total += max(
-                            0.0, (dt_util.utcnow() - on_dt).total_seconds()
-                        )
-                hours = total / 3600.0
-                best_hours = hours if best_hours is None else max(best_hours, hours)
-                if target_hours:
-                    per_entity_triggered.append(hours >= target_hours)
-            if best_hours is not None:
-                task._trigger_current_value = round(best_hours, 2)
-            if per_entity_triggered:
-                task._trigger_active = (
-                    all(per_entity_triggered)
-                    if entity_logic == "all"
-                    else any(per_entity_triggered)
-                )
+            result = evaluate_runtime(task.trigger_config, entity_ids)
+        else:
+            return
+
+        if result.current_value is not None:
+            task._trigger_current_value = result.current_value
+        if result.active is not None:
+            task._trigger_active = result.active
 
     async def _async_check_for_issues(
         self, tasks: dict[str, MaintenanceTask]
