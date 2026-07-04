@@ -213,6 +213,12 @@ export class MaintenanceTriggerChart extends LitElement {
             ${zones.length
               ? svg`<clipPath id="danger">${zones.map((z) => svg`<rect x="${PAD_L}" y="${z.y.toFixed(1)}" width="${plotW}" height="${z.h.toFixed(1)}" />`)}</clipPath>`
               : nothing}
+            <!-- Diagonal hatch so the danger zone reads without relying on the
+                 red tint alone (dark-theme contrast + colour-blind support). -->
+            <pattern id="dangerHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+              <rect width="7" height="7" fill="var(--error-color, #f44336)" opacity="0.10" />
+              <line x1="0" y1="0" x2="0" y2="7" stroke="var(--error-color, #f44336)" stroke-width="1.4" opacity="0.5" />
+            </pattern>
           </defs>
 
           ${ticks.map((v) => {
@@ -226,7 +232,7 @@ export class MaintenanceTriggerChart extends LitElement {
 
           ${zones.map(
             (z) => svg`<rect x="${PAD_L}" y="${z.y.toFixed(1)}" width="${plotW}" height="${z.h.toFixed(1)}"
-              fill="var(--error-color, #f44336)" opacity="0.07" />`,
+              fill="url(#dangerHatch)" />`,
           )}
 
           ${bandPath ? svg`<path d="${bandPath}" fill="var(--primary-color)" opacity="0.08" clip-path="url(#plot)" />` : nothing}

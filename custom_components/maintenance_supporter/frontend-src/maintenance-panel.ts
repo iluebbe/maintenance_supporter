@@ -1515,6 +1515,16 @@ export class MaintenanceSupporterPanel extends LitElement {
   // implementation rendered ~120 lines of Lit template literals here,
   // duplicating what the card now does.
 
+  /** Status badge with a shape icon so status isn't conveyed by colour alone
+   *  (colour-blind accessibility) — icon + text + colour together. */
+  private _statusBadge(archived: boolean, isDone: boolean, status: string) {
+    const L = this._lang;
+    const cls = archived ? "archived" : (isDone ? "done" : status);
+    const iconKey = archived ? "archived" : (isDone ? "completed" : status);
+    const label = archived ? t("archived", L) : (isDone ? t("completed", L) : t(status, L));
+    return html`<span class="status-badge ${cls}"><ha-icon icon="${STATUS_ICONS[iconKey] || "mdi:circle-medium"}"></ha-icon>${label}</span>`;
+  }
+
   private _setOverviewTab(tab: "today" | "dashboard" | "calendar" | "settings"): void {
     this._overviewTab = tab;
     try { localStorage.setItem("msp-overview-tab", tab); } catch { /* private mode */ }
@@ -2212,7 +2222,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           </label>
         ` : nothing}
         <span class="cell-badges">
-          <span class="status-badge ${row.archived ? 'archived' : (row.is_done ? 'done' : row.status)}">${row.archived ? t("archived", L) : (row.is_done ? t("completed", L) : t(row.status, L))}</span>
+          ${this._statusBadge(!!row.archived, row.is_done, row.status)}
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
           ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
         </span>
@@ -2360,7 +2370,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             }).map((task) => html`
               <div class="task-row${!task.enabled ? ' task-disabled' : ''}">
                 <span class="cell-badges">
-                  <span class="status-badge ${task.archived ? 'archived' : (task.is_done ? 'done' : task.status)}">${task.archived ? t("archived", L) : (task.is_done ? t("completed", L) : t(task.status, L))}</span>
+                  ${this._statusBadge(!!task.archived, !!task.is_done, task.status)}
                   ${!task.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                 </span>

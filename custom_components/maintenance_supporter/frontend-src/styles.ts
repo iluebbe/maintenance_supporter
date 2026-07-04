@@ -241,6 +241,8 @@ export const sharedStyles = css`
     min-width: 70px;
     box-sizing: border-box;
   }
+  /* Shape icon so status is not conveyed by colour alone (accessibility). */
+  .status-badge ha-icon { --mdc-icon-size: 14px; margin-left: -1px; }
 
   .status-badge.ok { background-color: var(--maint-ok-color); }
   .status-badge.due_soon { background-color: var(--maint-due-soon-color); }
