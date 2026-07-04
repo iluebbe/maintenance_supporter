@@ -20,8 +20,9 @@ All notable changes to Maintenance Supporter are documented in this file.
   runtime hours, baselines) into static config; a tripwire test locks the
   invariant in. Verified live: a run count persists across a Home Assistant
   restart via `.storage` and is never written to the config entry.
-- **Faster CI.** The backend test suite runs in parallel (pytest-xdist), ~3×
-  quicker, with coverage still gated at 98%.
+- **Faster local test runs.** `pytest-xdist` parallelizes the backend suite
+  ~3× (`-n auto --dist loadfile`) for local development; CI stays serial for
+  determinism. Coverage is still gated at 98%.
 - **Cleaner internals.** The refresh-time trigger evaluation and two panel
   render clusters (progress bars, history timeline) were extracted into focused,
   individually-tested modules; a new test guards that the panel dialog and the
