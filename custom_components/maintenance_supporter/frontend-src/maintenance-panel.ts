@@ -110,6 +110,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _actionLoading = false;
   @state() private _moreMenuOpen = false;
   @state() private _toastMessage = "";
+  @state() private _toastUndo: (() => void) | null = null;
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -652,8 +653,28 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _showToast(msg: string): void {
     if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastUndo = null;
     this._toastMessage = msg;
     this._toastTimer = setTimeout(() => { this._toastMessage = ""; this._toastTimer = null; }, 4000);
+  }
+
+  /** A toast with an Undo action — used for reversible actions (archive) that
+   *  run immediately instead of behind a confirm dialog. Longer-lived so the
+   *  user has time to react; the undo callback dismisses it. */
+  private _showUndoToast(msg: string, undo: () => void): void {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastMessage = msg;
+    this._toastUndo = undo;
+    this._toastTimer = setTimeout(() => {
+      this._toastMessage = ""; this._toastUndo = null; this._toastTimer = null;
+    }, 7000);
+  }
+
+  private _runToastUndo(): void {
+    const undo = this._toastUndo;
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastMessage = ""; this._toastUndo = null; this._toastTimer = null;
+    undo?.();
   }
 
   // --- Actions ---
@@ -750,6 +771,11 @@ export class MaintenanceSupporterPanel extends LitElement {
         task_id: taskId,
       });
       await this._loadData();
+      // Just archived → offer a one-tap undo (unarchive) instead of a confirm.
+      if (!archived) {
+        this._showUndoToast(t("task_archived", this._lang),
+          () => this._toggleArchiveTask(entryId, taskId, true));
+      }
     } catch {
       this._showToast(t("action_error", this._lang));
     } finally {
@@ -757,18 +783,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
-  // v2.10.0: archive / unarchive an object (archiving cascades to its tasks, so
-  // confirm first; unarchiving is reversible and needs none).
+  // v2.10.0: archive / unarchive an object. Archiving cascades to its tasks but
+  // is fully reversible, so instead of a blocking confirm we run it immediately
+  // and offer an Undo toast (v2.14.0).
   private async _toggleArchiveObject(entryId: string, archived: boolean): Promise<void> {
-    if (!archived) {
-      const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
-      const ok = await dlg?.confirm({
-        title: t("archive_object", this._lang),
-        message: t("confirm_archive_object", this._lang),
-        confirmText: t("archive_object", this._lang),
-      });
-      if (!ok) return;
-    }
     try {
       await this.hass.connection.sendMessagePromise({
         type: archived
@@ -777,6 +795,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         entry_id: entryId,
       });
       await this._loadData();
+      if (!archived) {
+        this._showUndoToast(t("object_archived", this._lang),
+          () => this._toggleArchiveObject(entryId, true));
+      }
     } catch {
       this._showToast(t("action_error", this._lang));
     }
@@ -1005,7 +1027,10 @@ export class MaintenanceSupporterPanel extends LitElement {
         .objects=${this._objects}
         @group-saved=${this._onDialogEvent}
       ></maintenance-group-dialog>
-      ${this._toastMessage ? html`<div class="toast">${this._toastMessage}</div>` : nothing}
+      ${this._toastMessage ? html`<div class="toast">
+        <span>${this._toastMessage}</span>
+        ${this._toastUndo ? html`<button class="toast-undo" @click=${() => this._runToastUndo()}>${t("undo", this._lang)}</button>` : nothing}
+      </div>` : nothing}
     `;
   }
 

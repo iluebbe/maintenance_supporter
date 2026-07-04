@@ -1198,7 +1198,16 @@ export const panelStyles = css`
     z-index: 1000;
     box-shadow: 0 2px 8px rgba(0,0,0,.3);
     animation: toast-in .3s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
+  .toast-undo {
+    font: inherit; font-weight: 600; color: #fff; cursor: pointer;
+    background: transparent; border: 1px solid rgba(255,255,255,.6);
+    border-radius: 6px; padding: 4px 12px; text-transform: uppercase; font-size: 12.5px;
+  }
+  .toast-undo:hover { background: rgba(255,255,255,.15); }
   @keyframes toast-in {
     from { opacity: 0; transform: translateX(-50%) translateY(16px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
