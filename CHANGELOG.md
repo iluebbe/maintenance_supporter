@@ -4,6 +4,23 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixes (from a repo review pass)
+
+- Compound trigger `entity_logic: "all"` now requires **every** entity in a
+  multi-entity condition to be met, not just the ones that have already changed
+  (a never-toggling entity no longer lets the AND fire early).
+- Counter (delta): re-baseline on a source-counter reset/rollover so the next
+  interval isn't skipped; and defer the post-completion re-baseline when the
+  source is unavailable so a stale baseline can't immediately re-trigger.
+- Adaptive interval analysis is exception-guarded so a malformed history can't
+  stall the whole coordinator refresh; latitude reads tolerate an un-onboarded
+  HA (no crash).
+- JSON import tolerates malformed (non-dict) object/task entries; apply-suggestion
+  rejects an unknown task id; runtime fallback tolerates a naive timestamp;
+  compound config tolerates a null logic/conditions value.
+- A document's title can now be cleared (an empty title no longer read as "no
+  change"); served document blobs send `X-Content-Type-Options: nosniff`.
+
 ### ♻️ Internal
 
 - **Split the 1703-line `config_flow_options_task.py`** (one giant
