@@ -540,6 +540,9 @@ async def test_get_settings_returns_all_sections(
     assert result["general"]["default_warning_days"] == 7
     assert result["general"]["notifications_enabled"] is False
     assert result["general"]["panel_enabled"] is True  # on by default since v2.10.4 (#69 follow-up)
+    # notify_targets is the shared pickable-target list (build_notify_targets);
+    # always present as a list so the panel picker mirrors the options flow.
+    assert isinstance(result["general"]["notify_targets"], list)
     # Check notification defaults
     assert result["notifications"]["due_soon_enabled"] is True
     assert result["notifications"]["quiet_hours_enabled"] is True
@@ -547,6 +550,43 @@ async def test_get_settings_returns_all_sections(
     assert result["actions"]["complete_enabled"] is False
     # Check budget defaults
     assert result["budget"]["monthly"] == 0.0
+
+
+async def test_get_settings_notify_targets_merges_services_entities_and_current(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """general.notify_targets merges notify services + entities + saved value.
+
+    This is the shared source of truth the panel picker now consumes instead of
+    recomputing client-side. It must exclude the generic send_message (service
+    AND entity), include an entity-only device, and inject the currently-saved
+    notify_service even when that target is not currently available.
+    """
+    # A saved notify_service that no longer resolves to a live service/entity.
+    global_entry.add_to_hass(hass)
+    hass.config_entries.async_update_entry(
+        global_entry,
+        options={**global_entry.options, "notify_service": "notify.gone_away"},
+    )
+    await setup_integration(hass, global_entry)
+
+    # Register a legacy notify service + the generic action + notify entities.
+    hass.services.async_register("notify", "mobile_app_phone", lambda call: None)
+    hass.services.async_register("notify", "send_message", lambda call: None)
+    hass.states.async_set("notify.file", "unknown")
+    hass.states.async_set("notify.send_message", "unknown")
+
+    conn = _mock_connection()
+    await call_ws_handler(ws_get_settings, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/settings",
+    })
+
+    targets = conn.send_result.call_args[0][1]["general"]["notify_targets"]
+    assert "notify.mobile_app_phone" in targets  # legacy service
+    assert "notify.file" in targets  # entity-only device
+    assert "notify.gone_away" in targets  # saved value injected though unavailable
+    assert "notify.send_message" not in targets  # generic action (service + entity) excluded
+    assert targets == sorted(targets)  # deterministic order
 
 
 # ─── ws_update_global_settings ────────────────────────────────────────────
