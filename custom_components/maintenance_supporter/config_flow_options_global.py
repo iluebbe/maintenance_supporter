@@ -60,6 +60,7 @@ from .const import (
     DEFAULT_SNOOZE_DURATION_HOURS,
     DEFAULT_WARNING_DAYS,
     MAX_PANEL_TITLE_LENGTH,
+    TIME_HHMMSS_PATTERN,
 )
 from .helpers.i18n import normalize_language
 from .helpers.notify_targets import build_notify_targets
@@ -67,8 +68,9 @@ from .helpers.notify_targets import build_notify_targets
 _LOGGER = logging.getLogger(__name__)
 
 _VALID_SERVICE_PART = re.compile(r"^[a-z0-9_]+$")
-# v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds.
-_VALID_TIME_PATTERN = re.compile(r"^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$")
+# v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds. Shared with the
+# WS handler via const.TIME_HHMMSS_PATTERN so the two can't diverge.
+_VALID_TIME_PATTERN = TIME_HHMMSS_PATTERN
 
 
 def _safe_time(value: Any, fallback: str) -> str:

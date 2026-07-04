@@ -164,6 +164,10 @@ CONF_QUIET_HOURS_ENABLED = "quiet_hours_enabled"
 CONF_QUIET_HOURS_START = "quiet_hours_start"
 CONF_QUIET_HOURS_END = "quiet_hours_end"
 
+# Shared HH:MM or HH:MM:SS time pattern (0–23 h, 0–59 m/s) — the single source
+# for validating quiet-hours times in BOTH the options flow and the WS handler.
+TIME_HHMMSS_PATTERN = re.compile(r"^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$")
+
 # --- Config Keys: Notification Limits ---
 CONF_MAX_NOTIFICATIONS_PER_DAY = "max_notifications_per_day"
 
