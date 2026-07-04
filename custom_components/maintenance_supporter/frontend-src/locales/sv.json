@@ -579,6 +579,7 @@
   "chart_range_90d": "90d",
   "chart_range_1y": "1å",
   "chart_since_service": "sedan senaste underhåll",
+  "chart_no_stats": "Ingen långtidsstatistik för denna entitet — visar endast värden från underhållsposter",
   "doc_search": "Sök dokument…",
   "doc_search_none": "Inga matchande dokument"
 }

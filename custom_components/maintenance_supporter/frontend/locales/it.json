@@ -579,6 +579,7 @@
   "chart_range_90d": "90g",
   "chart_range_1y": "1a",
   "chart_since_service": "dall'ultima manutenzione",
+  "chart_no_stats": "Nessuna statistica a lungo termine per questa entità — vengono mostrati solo i valori degli interventi",
   "doc_search": "Cerca documenti…",
   "doc_search_none": "Nessun documento corrispondente"
 }

@@ -579,6 +579,7 @@
   "chart_range_90d": "90d",
   "chart_range_1y": "1r",
   "chart_since_service": "od poslední údržby",
+  "chart_no_stats": "Pro tuto entitu nejsou dlouhodobé statistiky — zobrazují se pouze hodnoty z údržbových záznamů",
   "doc_search": "Hledat dokumenty…",
   "doc_search_none": "Žádné odpovídající dokumenty"
 }
