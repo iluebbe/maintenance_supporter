@@ -22,6 +22,9 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _error = "";
   @state() private _checklistState: Record<string, boolean> = {};
   @state() private _feedback: string = "needed";
+  @state() private _photoDocId = "";
+  @state() private _photoPreview = "";
+  @state() private _photoUploading = false;
 
   public open(): void {
     if (this._open) return;
@@ -32,6 +35,9 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._error = "";
     this._checklistState = {};
     this._feedback = "needed";
+    this._photoDocId = "";
+    this._photoPreview = "";
+    this._photoUploading = false;
   }
 
   private _toggleCheck(idx: number): void {
@@ -44,6 +50,47 @@ export class MaintenanceCompleteDialog extends LitElement {
 
   private _setFeedback(value: string): void {
     this._feedback = value;
+  }
+
+  private async _onPhotoInput(e: Event): Promise<void> {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ""; // allow re-picking the same file
+    if (!file) return;
+    this._photoUploading = true;
+    this._error = "";
+    try {
+      const form = new FormData();
+      form.append("entry_id", this.entryId);
+      form.append("tags", "photo");
+      form.append("file", file, file.name);
+      const resp = await fetch("/api/maintenance_supporter/document/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${this.hass.auth?.data?.access_token ?? ""}` },
+        body: form,
+      });
+      if (!resp.ok) {
+        this._error = resp.status === 413
+          ? t("doc_too_large", this.lang)
+          : t("doc_upload_failed", this.lang);
+        return;
+      }
+      const doc = (await resp.json()) as { id?: string };
+      if (doc.id) {
+        this._photoDocId = doc.id;
+        this._photoPreview = URL.createObjectURL(file);
+      }
+    } catch {
+      this._error = t("doc_upload_failed", this.lang);
+    } finally {
+      this._photoUploading = false;
+    }
+  }
+
+  private _removePhoto(): void {
+    if (this._photoPreview) URL.revokeObjectURL(this._photoPreview);
+    this._photoDocId = "";
+    this._photoPreview = "";
   }
 
   private async _complete(): Promise<void> {
@@ -69,6 +116,9 @@ export class MaintenanceCompleteDialog extends LitElement {
       }
       if (this.adaptiveEnabled) {
         data.feedback = this._feedback;
+      }
+      if (this._photoDocId) {
+        data.photo_doc_id = this._photoDocId;
       }
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
@@ -127,6 +177,24 @@ export class MaintenanceCompleteDialog extends LitElement {
               .value=${this._duration}
               @input=${(e: Event) => (this._duration = (e.target as HTMLInputElement).value)} />
           </label>
+          <div class="field">
+            <span class="field-label">${t("completion_photo_optional", L)}</span>
+            ${this._photoPreview
+              ? html`
+                <div class="photo-preview">
+                  <img src=${this._photoPreview} alt="" />
+                  <button type="button" class="photo-remove" @click=${this._removePhoto}
+                    title="${t("remove", L)}">✕</button>
+                </div>`
+              : html`
+                <label class="photo-pick">
+                  <ha-icon icon="mdi:camera"></ha-icon>
+                  <span>${this._photoUploading ? t("uploading", L) : t("add_photo", L)}</span>
+                  <input type="file" accept="image/*" capture="environment"
+                    ?disabled=${this._photoUploading}
+                    @change=${this._onPhotoInput} />
+                </label>`}
+          </div>
           ${this.adaptiveEnabled ? html`
             <div class="feedback-section">
               <label class="feedback-label">${t("was_maintenance_needed", L)}</label>
@@ -200,6 +268,44 @@ export class MaintenanceCompleteDialog extends LitElement {
     .field-input:focus {
       outline: none;
       border-color: var(--primary-color);
+    }
+    .photo-pick {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px dashed var(--divider-color);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--secondary-text-color);
+      width: fit-content;
+    }
+    .photo-pick:hover { border-color: var(--primary-color); }
+    .photo-pick input[type="file"] { display: none; }
+    .photo-preview {
+      position: relative;
+      width: fit-content;
+    }
+    .photo-preview img {
+      max-width: 160px;
+      max-height: 160px;
+      border-radius: 8px;
+      display: block;
+    }
+    .photo-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: none;
+      background: var(--error-color, #db4437);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
     }
     .checklist-section {
       display: flex;
