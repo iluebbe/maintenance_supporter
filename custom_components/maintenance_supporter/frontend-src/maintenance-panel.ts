@@ -691,6 +691,26 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   // v2.10.0: archive / unarchive a single task (reversible — no confirm).
+  private async _duplicateTask(entryId: string, taskId: string): Promise<void> {
+    this._moreMenuOpen = false;
+    this._actionLoading = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ task_id?: string }>({
+        type: "maintenance_supporter/task/duplicate",
+        entry_id: entryId,
+        task_id: taskId,
+      });
+      await this._loadData();
+      this._showToast(t("task_duplicated", this._lang));
+      // Jump straight to the copy so the user can rename/adjust it.
+      if (res?.task_id) this._showTask(entryId, res.task_id);
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
   private async _toggleArchiveTask(entryId: string, taskId: string, archived: boolean): Promise<void> {
     this._actionLoading = true;
     try {
@@ -1912,6 +1932,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               ${this._moreMenuOpen ? html`
                 <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
+                  <div class="popup-menu-item" @click=${() => this._duplicateTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("duplicate", L)}</div>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
                   <div class="popup-menu-divider"></div>
                   <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>

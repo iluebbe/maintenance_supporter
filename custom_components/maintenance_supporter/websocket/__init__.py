@@ -411,6 +411,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_complete_task,
         ws_create_task,
         ws_delete_task,
+        ws_duplicate_task,
         ws_list_tasks,
         ws_quick_complete_task,
         ws_reset_task,
@@ -439,6 +440,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_task)
     websocket_api.async_register_command(hass, ws_update_task)
     websocket_api.async_register_command(hass, ws_delete_task)
+    websocket_api.async_register_command(hass, ws_duplicate_task)
     websocket_api.async_register_command(hass, ws_archive_task)
     websocket_api.async_register_command(hass, ws_unarchive_task)
     websocket_api.async_register_command(hass, ws_list_tasks)

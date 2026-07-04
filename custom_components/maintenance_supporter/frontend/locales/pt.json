@@ -9,6 +9,8 @@
   "all": "Todos",
   "new_object": "+ Novo objeto",
   "edit": "Editar",
+  "duplicate": "Duplicar",
+  "task_duplicated": "Tarefa duplicada",
   "delete": "Eliminar",
   "add_task": "+ Tarefa",
   "complete": "Concluída",

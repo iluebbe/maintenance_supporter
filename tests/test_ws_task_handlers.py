@@ -11,6 +11,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.maintenance_supporter.const import (
+    CONF_OBJECT,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -27,6 +28,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
     ws_complete_task,
     ws_create_task,
     ws_delete_task,
+    ws_duplicate_task,
     ws_list_tasks,
     ws_quick_complete_task,
     ws_reset_task,
@@ -310,6 +312,79 @@ async def test_ws_create_task_rejects_oversize_strings(
         except vol_mod.Invalid:
             continue
         raise AssertionError(f"schema accepted oversize payload: {extra}")
+
+
+async def test_ws_duplicate_task_copies_config_resets_state(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Duplicate clones config, starts clean, and drops per-task-unique keys."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+
+    # A rich source task: config + a unique slug + a checklist.
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": object_entry.entry_id,
+        "name": "Stage 1 filter",
+        "task_type": "replacement",
+        "interval_days": 90,
+        "checklist": ["remove", "rinse", "reinstall"],
+        "entity_slug": "stage_1_filter",
+        "nfc_tag_id": "abc-123",
+        "last_performed": "2024-01-01",
+    })
+    src_id = conn.send_result.call_args[0][1]["task_id"]
+
+    conn.send_result.reset_mock()
+    await call_ws_handler(ws_duplicate_task, hass, conn, {
+        "id": 2, "type": "maintenance_supporter/task/duplicate",
+        "entry_id": object_entry.entry_id, "task_id": src_id,
+    })
+    conn.send_error.assert_not_called()
+    new_id = conn.send_result.call_args[0][1]["task_id"]
+    assert new_id != src_id
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    source = entry.data[CONF_TASKS][src_id]
+    copy = entry.data[CONF_TASKS][new_id]
+    # Config carried over
+    assert copy["name"] == "Stage 1 filter (copy)"
+    assert copy["type"] == "replacement"
+    assert copy["checklist"] == ["remove", "rinse", "reinstall"]
+    # Recurrence preserved (compare in whatever shape normalize produced)
+    assert copy.get("schedule") == source.get("schedule")
+    assert copy.get("interval_days") == source.get("interval_days")
+    # Per-task-unique keys dropped (would collide)
+    assert "entity_slug" not in copy
+    assert "nfc_tag_id" not in copy
+    # Dynamic state NOT copied — the copy is un-started
+    assert "history" not in copy
+    assert "last_performed" not in copy
+    store_state = get_task_store_state(hass, entry.entry_id, new_id)
+    assert store_state.get("last_performed") is None
+    assert store_state.get("history", []) == []
+    # The object now lists both tasks
+    assert new_id in entry.data[CONF_OBJECT]["task_ids"]
+
+
+async def test_ws_duplicate_task_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Duplicating a missing task returns not_found, no new task."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    before = len(object_entry.data.get(CONF_TASKS, {}))
+
+    await call_ws_handler(ws_duplicate_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/duplicate",
+        "entry_id": object_entry.entry_id, "task_id": "nonexistent00000000000000000000",
+    })
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert entry is not None
+    assert len(entry.data.get(CONF_TASKS, {})) == before
 
 
 async def test_ws_create_task_dry_run(

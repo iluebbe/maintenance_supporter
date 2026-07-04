@@ -9,6 +9,8 @@
   "all": "Vše",
   "new_object": "+ Nový objekt",
   "edit": "Upravit",
+  "duplicate": "Duplikovat",
+  "task_duplicated": "Úkol duplikován",
   "delete": "Smazat",
   "add_task": "+ Přidat úkol",
   "complete": "Dokončit",

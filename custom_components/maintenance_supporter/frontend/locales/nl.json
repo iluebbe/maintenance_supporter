@@ -9,6 +9,8 @@
   "all": "Alle",
   "new_object": "+ Nieuw object",
   "edit": "Bewerken",
+  "duplicate": "Dupliceren",
+  "task_duplicated": "Taak gedupliceerd",
   "delete": "Verwijderen",
   "add_task": "+ Taak",
   "complete": "Voltooid",
