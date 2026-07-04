@@ -10,6 +10,7 @@ import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
 
 const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
+const PRIORITY_KEYS = ["low", "normal", "high"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "sensor_based", "one_time", "manual"];
 const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
@@ -119,6 +120,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
+  @state() private _priority = "normal";
   @state() private _enabled = true;
 
   // Trigger fields
@@ -235,6 +237,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
+    this._priority = task.priority || "normal";
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
@@ -322,6 +325,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._notes = "";
     this._documentationUrl = "";
     this._customIcon = "";
+    this._priority = "normal";
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
@@ -680,6 +684,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.notes = this._notes || null;
       data.documentation_url = this._documentationUrl || null;
       data.custom_icon = this._customIcon || null;
+      data.priority = this._priority;
       data.enabled = this._enabled;
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
@@ -1239,6 +1244,17 @@ export class MaintenanceTaskDialog extends LitElement {
             >
               ${MAINTENANCE_TYPE_KEYS.map(
                 (key) => html`<option value=${key} ?selected=${key === this._type}>${t(key, L)}</option>`
+              )}
+            </select>
+          </div>
+          <div class="select-row">
+            <label>${t("priority", L)}</label>
+            <select
+              .value=${this._priority}
+              @change=${(e: Event) => (this._priority = (e.target as HTMLSelectElement).value)}
+            >
+              ${PRIORITY_KEYS.map(
+                (key) => html`<option value=${key} ?selected=${key === this._priority}>${t("priority_" + key, L)}</option>`
               )}
             </select>
           </div>

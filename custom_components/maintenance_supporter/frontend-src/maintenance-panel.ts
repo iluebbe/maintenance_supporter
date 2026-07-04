@@ -527,6 +527,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           history: task.history || [],
           enabled: task.enabled,
           nfc_tag_id: task.nfc_tag_id ?? null,
+          priority: task.priority ?? "normal",
           area_id: obj.object.area_id ?? null,
           responsible_user_id: task.responsible_user_id ?? null,
           group_names: groupNames,
@@ -2232,6 +2233,8 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${this._statusBadge(!!row.archived, row.is_done, row.status)}
           ${!row.enabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
           ${row.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+          ${row.priority === "high" ? html`<span class="priority-badge priority-high" title="${t("priority_high", L)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
+          ${row.priority === "low" ? html`<span class="priority-badge priority-low" title="${t("priority_low", L)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>` : nothing}
         </span>
         <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
         <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${row.task_name}</span>

@@ -348,6 +348,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "entity_slug": "audit_task",
         "custom_icon": "mdi:wrench",
         "nfc_tag_id": "nfc-abc-123",
+        "priority": "high",
         "checklist": ["Step 1", "Step 2"],
         # v1.3.0 — missing until issue #50
         "on_complete_action": {
@@ -404,7 +405,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "schedule",
         "last_performed", "schedule_time",
         "notes", "documentation_url",
-        "entity_slug", "custom_icon", "nfc_tag_id",
+        "entity_slug", "custom_icon", "nfc_tag_id", "priority",
         "checklist",
         "on_complete_action", "quick_complete_defaults",
     ]
@@ -878,6 +879,41 @@ def test_build_task_summary_custom_icon_nfc_default_none(hass: HomeAssistant) ->
     result = _build_task_summary(hass, "tid", task_data, None)
     assert result["custom_icon"] is None
     assert result["nfc_tag_id"] is None
+
+
+def test_build_task_summary_priority(hass: HomeAssistant) -> None:
+    """priority is surfaced; a task without it defaults to 'normal'."""
+    high = _build_task_summary(
+        hass, "tid", {"name": "T", "type": "custom", "priority": "high"}, None
+    )
+    assert high["priority"] == "high"
+    default = _build_task_summary(hass, "tid", {"name": "T", "type": "custom"}, None)
+    assert default["priority"] == "normal"
+
+
+async def test_ws_create_task_persists_priority(
+    hass: HomeAssistant, global_config_entry, object_config_entry
+) -> None:
+    """task/create accepts priority and it round-trips through the object read."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": object_config_entry.entry_id,
+        "name": "Priority Task", "priority": "high",
+    })
+    task_id = conn.send_result.call_args[0][1]["task_id"]
+
+    conn2 = _mock_connection()
+    await call_ws_handler(ws_get_object, hass, conn2, {
+        "id": 2, "type": "maintenance_supporter/object",
+        "entry_id": object_config_entry.entry_id,
+    })
+    tasks = conn2.send_result.call_args[0][1]["tasks"]
+    created = next(t for t in tasks if t["id"] == task_id)
+    assert created["priority"] == "high"
 
 
 def test_build_task_summary_compound_trigger_entity_enrichment(hass: HomeAssistant) -> None:

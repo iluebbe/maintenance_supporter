@@ -42,6 +42,7 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "entity_slug": MAX_ENTITY_SLUG_LENGTH,
     "created_at": MAX_DATE_LENGTH,
     "schedule_time": MAX_SCHEDULE_TIME_LENGTH,
+    "priority": MAX_TYPE_LENGTH,
 }
 
 _OBJECT_STR_LIMITS: dict[str, int] = {
