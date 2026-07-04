@@ -569,6 +569,14 @@ export const panelStyles = css`
   .priority-low {
     color: var(--secondary-text-color, #888);
   }
+  .label-chip {
+    background: var(--primary-color, #03a9f4);
+    color: var(--text-primary-color, #fff);
+    opacity: 0.85;
+  }
+  .label-chip ha-icon {
+    --mdc-icon-size: 13px;
+  }
   .nfc-badge ha-icon {
     --mdc-icon-size: 14px;
   }

@@ -60,6 +60,7 @@ class MaintenanceTask:
     custom_icon: str | None = None
     nfc_tag_id: str | None = None
     priority: str = "normal"
+    labels: list[str] = field(default_factory=list)
 
     # --- Archive (v2.10.0) ---
     # archived_at is an ISO timestamp; None means active. When set, the task
@@ -388,6 +389,8 @@ class MaintenanceTask:
         # Only persist a non-default priority to keep stored dicts lean.
         if self.priority and self.priority != "normal":
             data["priority"] = self.priority
+        if self.labels:
+            data["labels"] = self.labels
         if self.archived_at is not None:
             data["archived_at"] = self.archived_at
         if self.archived_reason is not None:
@@ -433,6 +436,7 @@ class MaintenanceTask:
             custom_icon=data.get("custom_icon"),
             nfc_tag_id=data.get("nfc_tag_id"),
             priority=data.get("priority", "normal"),
+            labels=data.get("labels", []),
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),
             responsible_user_id=data.get("responsible_user_id"),

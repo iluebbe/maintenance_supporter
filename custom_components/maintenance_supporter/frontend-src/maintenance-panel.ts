@@ -528,6 +528,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           enabled: task.enabled,
           nfc_tag_id: task.nfc_tag_id ?? null,
           priority: task.priority ?? "normal",
+          labels: task.labels ?? [],
           area_id: obj.object.area_id ?? null,
           responsible_user_id: task.responsible_user_id ?? null,
           group_names: groupNames,
@@ -753,8 +754,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       for (const task of obj.tasks) {
         if (task.archived) continue;
         const tname = task.name || "";
-        if (!q || tname.toLowerCase().includes(q) || oname.toLowerCase().includes(q)) {
-          out.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: tname, sub: oname });
+        const labelHit = (task.labels || []).some((lb) => lb.toLowerCase().includes(q));
+        if (!q || tname.toLowerCase().includes(q) || oname.toLowerCase().includes(q) || labelHit) {
+          const labelSub = (task.labels || []).length ? `  #${(task.labels || []).join(" #")}` : "";
+          out.push({ kind: "task", entryId: obj.entry_id, taskId: task.id, label: tname, sub: oname + labelSub });
         }
       }
       if (out.length > 60) break; // cap the working set; sliced below
@@ -2251,6 +2254,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="sub-chip" title="${t("responsible_user", L)}">
               <ha-icon icon="mdi:account-outline"></ha-icon>${userName}
             </span>` : nothing}
+          ${(row.labels || []).map((label) => html`
+            <span class="sub-chip label-chip" title="${t("labels", L)}">
+              <ha-icon icon="mdi:tag-outline"></ha-icon>${label}
+            </span>`)}
         </span>
         <span class="cell type">${t(row.type, L)}</span>
         <span class="due-cell" @click=${() => this._showTask(row.entry_id, row.task_id)}>

@@ -110,6 +110,10 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
             cleaned = [c for c in cleaned if c]
             task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 
+    lb = task_data.get("labels")
+    if lb is not None:
+        task_data["labels"] = sanitize_labels(lb)
+
     # v1.3.0: per-task on_complete_action — embedded HA service-call config.
     # Strict shape: {service: "domain.name", target?: dict, data?: dict}.
     # Drops the field entirely on any structural problem; the action layer
@@ -122,6 +126,34 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     cap_quick_complete_defaults_field(task_data)
 
     return task_data
+
+
+def parse_labels_text(raw: str) -> list[str]:
+    """Split a comma/newline-separated labels string into a trimmed list.
+
+    The config flow enters labels as free text; the panel sends a real list.
+    This only splits + trims — dedup and per-label capping happen in
+    :func:`sanitize_labels` (via :func:`cap_task_fields`).
+    """
+    parts = str(raw).replace("\n", ",").split(",")
+    return [p.strip() for p in parts if p.strip()]
+
+
+def sanitize_labels(value: object) -> list[str]:
+    """Clean a labels list: str items, trimmed, capped, deduped, ≤ MAX_LABELS."""
+    if not isinstance(value, list):
+        return []
+    from ..const import MAX_LABEL_LENGTH, MAX_LABELS
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            continue
+        v = item.strip()[:MAX_LABEL_LENGTH]
+        if v and v not in seen:
+            seen.add(v)
+            out.append(v)
+    return out[:MAX_LABELS]
 
 
 # ─── v1.3.0: completion-action helpers ──────────────────────────────────
