@@ -199,6 +199,7 @@
   "description_optional": "Beskrivning (valfritt)",
   "selected": "Valda",
   "loading_chart": "Laddar diagramdata...",
+  "hide_outliers": "Dölj avvikare (sensorfel)",
   "was_maintenance_needed": "Behövdes detta underhåll?",
   "feedback_needed": "Behövdes",
   "feedback_not_needed": "Behövdes inte",

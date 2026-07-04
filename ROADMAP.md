@@ -65,9 +65,10 @@ object/document, not a schedule.
 Smaller, high-frequency wins first; each ships independently.
 
 ### Quick wins
-- 💡 **Object photos as avatars** — the documents feature already stores images;
-  pick one as the object's thumbnail in cards and the objects table, so large
-  installs scan visually instead of reading names.
+- ⏸️ **Object photos as avatars** — the documents feature already stores images;
+  pick one as the object's thumbnail in cards and the objects table. **On hold**
+  (2026-07): unsure it reads/looks well at avatar size — revisit with a design
+  mockup before building.
 - 💡 **Duplicate task / object** — clone an existing task (or a whole object with
   its tasks) as a starting point. Covers multi-stage filter units and fleets of
   identical hotel rooms without repetitive data entry.

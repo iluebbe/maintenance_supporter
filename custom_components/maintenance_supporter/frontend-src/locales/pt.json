@@ -199,6 +199,7 @@
   "description_optional": "Descrição (opcional)",
   "selected": "Selecionado",
   "loading_chart": "A carregar dados...",
+  "hide_outliers": "Ocultar valores atípicos (erros do sensor)",
   "was_maintenance_needed": "Esta manutenção era necessária?",
   "feedback_needed": "Necessária",
   "feedback_not_needed": "Não necessária",

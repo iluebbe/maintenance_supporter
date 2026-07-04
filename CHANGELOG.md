@@ -4,6 +4,14 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ Hide outliers on trigger charts
+
+- A **filter toggle** on the sensor chart (the funnel icon next to the range
+  chips) drops statistical outliers — the glitch readings that flatten a chart,
+  e.g. a pressure sensor that normally sits at 1.5–3 bar spiking to 100. Uses a
+  robust IQR fence and never trims the series below a drawable shape; the choice
+  is remembered per browser. Purely client-side on the already-fetched data.
+
 ### 🐛 Delta-counter chart now returns to 0 after completion
 
 - Completing a **delta counter** task (e.g. a runtime-hours meter measured

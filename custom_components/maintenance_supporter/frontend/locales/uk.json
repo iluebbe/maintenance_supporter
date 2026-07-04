@@ -199,6 +199,7 @@
   "description_optional": "Опис (необов'язково)",
   "selected": "Обрано",
   "loading_chart": "Завантаження даних графіка...",
+  "hide_outliers": "Приховати викиди (збої датчика)",
   "was_maintenance_needed": "Чи було потрібне це обслуговування?",
   "feedback_needed": "Потрібне",
   "feedback_not_needed": "Не потрібне",

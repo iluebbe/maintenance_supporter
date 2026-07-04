@@ -200,6 +200,7 @@
   "description_optional": "Kuvaus (valinnainen)",
   "selected": "Valittu",
   "loading_chart": "Ladataan kaaviotietoja...",
+  "hide_outliers": "Piilota poikkeamat (anturivirheet)",
   "was_maintenance_needed": "Oliko tämä huolto tarpeen?",
   "feedback_needed": "Tarpeen",
   "feedback_not_needed": "Ei tarpeen",

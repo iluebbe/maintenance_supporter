@@ -200,6 +200,7 @@
   "description_optional": "Beskrivelse (valgfritt)",
   "selected": "Valgt",
   "loading_chart": "Laster diagramdata...",
+  "hide_outliers": "Skjul avvik (sensorfeil)",
   "was_maintenance_needed": "Var dette vedlikeholdet nødvendig?",
   "feedback_needed": "Nødvendig",
   "feedback_not_needed": "Ikke nødvendig",

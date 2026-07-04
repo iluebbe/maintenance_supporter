@@ -25,6 +25,28 @@ export interface SparklineContext {
   isCounterEntity: (tc: TriggerConfig) => boolean;
   rangeDays: number;
   setRangeDays: (days: number) => void;
+  /** When true, drop statistical outliers (sensor glitches) from the chart. */
+  hideOutliers: boolean;
+  setHideOutliers: (hide: boolean) => void;
+}
+
+/** Drop outliers via the IQR fence (Tukey): keep points within
+ *  [Q1 − 1.5·IQR, Q3 + 1.5·IQR]. Robust to a few wild glitch readings (a
+ *  pressure sensor spiking to 100 while it normally sits at 1.5–3). No-ops on
+ *  short series (< 4 points) where quartiles aren't meaningful. */
+export function filterOutliers(points: ChartPoint[]): ChartPoint[] {
+  if (points.length < 4) return points;
+  const vals = points.map((p) => p.val).sort((a, b) => a - b);
+  const q = (frac: number) => {
+    const idx = (vals.length - 1) * frac;
+    const lo = Math.floor(idx), hi = Math.ceil(idx);
+    return vals[lo] + (vals[hi] - vals[lo]) * (idx - lo);
+  };
+  const q1 = q(0.25), q3 = q(0.75), iqr = q3 - q1;
+  if (iqr === 0) return points; // flat/degenerate — nothing to trim
+  const lower = q1 - 1.5 * iqr, upper = q3 + 1.5 * iqr;
+  const kept = points.filter((p) => p.val >= lower && p.val <= upper);
+  return kept.length >= 2 ? kept : points; // never strip below a drawable series
 }
 
 export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContext) {
@@ -230,6 +252,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   const entityId = tc.entity_id || "";
 
   let points = rawStatsPoints(task, ctx);
+  if (ctx.hideOutliers) points = filterOutliers(points);
 
   // Still waiting for the first stats fetch → placeholder with the range chips.
   const loading = points.length < 2 && !!entityId && ctx.hasStatsService && !ctx.detailStatsData.has(entityId);
@@ -302,8 +325,10 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       .forceZero=${forceZero}
       .projection=${projection}
       .rangeDays=${ctx.rangeDays}
+      .hideOutliers=${ctx.hideOutliers}
       .busy=${loading}
       @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
+      @outlier-toggle=${(e: CustomEvent<{ hide: boolean }>) => ctx.setHideOutliers(e.detail.hide)}
     ></maintenance-trigger-chart>
     ${statsFetchedEmpty && !loading
       ? html`<div class="chart-note">

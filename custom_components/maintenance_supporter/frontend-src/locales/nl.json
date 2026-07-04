@@ -199,6 +199,7 @@
   "description_optional": "Beschrijving (optioneel)",
   "selected": "Geselecteerd",
   "loading_chart": "Grafiekgegevens laden...",
+  "hide_outliers": "Uitschieters verbergen (sensorfouten)",
   "was_maintenance_needed": "Was dit onderhoud nodig?",
   "feedback_needed": "Nodig",
   "feedback_not_needed": "Niet nodig",

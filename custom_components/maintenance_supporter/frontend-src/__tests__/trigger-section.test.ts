@@ -13,6 +13,8 @@ function ctx(overrides: Partial<SparklineContext> = {}): SparklineContext {
     isCounterEntity: () => false,
     rangeDays: 30,
     setRangeDays: () => undefined,
+    hideOutliers: false,
+    setHideOutliers: () => undefined,
     ...overrides,
   };
 }

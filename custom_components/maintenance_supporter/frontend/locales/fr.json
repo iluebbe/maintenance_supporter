@@ -199,6 +199,7 @@
   "description_optional": "Description (optionnel)",
   "selected": "Sélectionné",
   "loading_chart": "Chargement des données...",
+  "hide_outliers": "Masquer les valeurs aberrantes (erreurs capteur)",
   "was_maintenance_needed": "Cette maintenance était-elle nécessaire ?",
   "feedback_needed": "Nécessaire",
   "feedback_not_needed": "Pas nécessaire",

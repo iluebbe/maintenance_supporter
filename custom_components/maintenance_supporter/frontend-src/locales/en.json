@@ -200,6 +200,7 @@
   "description_optional": "Description (optional)",
   "selected": "Selected",
   "loading_chart": "Loading chart data...",
+  "hide_outliers": "Hide outliers (sensor glitches)",
   "was_maintenance_needed": "Was this maintenance needed?",
   "feedback_needed": "Needed",
   "feedback_not_needed": "Not needed",

@@ -58,6 +58,10 @@ export class MaintenanceTriggerChart extends LitElement {
   @property({ attribute: false }) public rangeDays = 30;
   @property({ type: Boolean }) public showRange = true;
   @property({ type: Boolean }) public busy = false;
+  /** Reflects the parent's "hide outliers" state (filtering happens upstream). */
+  @property({ type: Boolean }) public hideOutliers = false;
+  /** Show the outlier toggle chip (only where a raw oscillating series exists). */
+  @property({ type: Boolean }) public showOutlierToggle = true;
 
   @state() private _width = 0;
   @state() private _hover: { x: number; y: number; p: ChartPoint } | null = null;
@@ -84,6 +88,12 @@ export class MaintenanceTriggerChart extends LitElement {
     this.dispatchEvent(new CustomEvent("range-change", { detail: { days }, bubbles: true, composed: true }));
   }
 
+  private _toggleOutliers(): void {
+    this.dispatchEvent(new CustomEvent("outlier-toggle", {
+      detail: { hide: !this.hideOutliers }, bubbles: true, composed: true,
+    }));
+  }
+
   render() {
     const W = this._width || 320;
     const pts = [...this.points].sort((a, b) => a.ts - b.ts);
@@ -93,6 +103,14 @@ export class MaintenanceTriggerChart extends LitElement {
       <div class="chart-wrap">
         ${this.showRange
           ? html`<div class="range-chips" role="group">
+              ${this.showOutlierToggle
+                ? html`<button
+                    class="range-chip outlier-chip ${this.hideOutliers ? "active" : ""}"
+                    ?disabled=${this.busy}
+                    title=${t("hide_outliers", L)}
+                    @click=${() => this._toggleOutliers()}
+                  ><ha-icon icon="mdi:filter-variant"></ha-icon></button>`
+                : nothing}
               ${RANGES.map(
                 (r) => html`<button
                   class="range-chip ${this.rangeDays === r.days ? "active" : ""}"
@@ -324,6 +342,9 @@ export class MaintenanceTriggerChart extends LitElement {
       border: 1px solid var(--divider-color); background: transparent;
       color: var(--secondary-text-color);
     }
+    /* Outlier toggle sits left of the range chips as an icon button. */
+    .outlier-chip { margin-right: auto; padding: 2px 7px; display: inline-flex; align-items: center; }
+    .outlier-chip ha-icon { --mdc-icon-size: 15px; }
     .range-chip.active {
       background: var(--primary-color); border-color: var(--primary-color);
       color: var(--text-primary-color, #fff);

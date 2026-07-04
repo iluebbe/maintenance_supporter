@@ -66,10 +66,20 @@ describe("trigger-chart", () => {
     const el = await mount({ rangeDays: 30 });
     let got = 0;
     el.addEventListener("range-change", (e) => { got = (e as CustomEvent).detail.days; });
-    const chips = [...el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".range-chip")];
+    const chips = [...el.shadowRoot!.querySelectorAll<HTMLButtonElement>(".range-chip:not(.outlier-chip)")];
     expect(chips.length).to.equal(4);
     chips.find((c) => c.textContent!.trim() === "90d")!.click();
     expect(got).to.equal(90);
+  });
+
+  it("emits outlier-toggle from the filter chip", async () => {
+    const el = await mount({ rangeDays: 30 });
+    let hide: boolean | null = null;
+    el.addEventListener("outlier-toggle", (e) => { hide = (e as CustomEvent).detail.hide; });
+    const chip = el.shadowRoot!.querySelector<HTMLButtonElement>(".outlier-chip");
+    expect(chip, "outlier chip present").to.exist;
+    chip!.click();
+    expect(hide).to.equal(true);
   });
 
   it("shows a crosshair value chip on pointer move", async () => {
