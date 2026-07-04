@@ -67,6 +67,7 @@ from ..const import (
     SIGNAL_NEW_OBJECT_ENTRY,
 )
 from ..helpers.aggregate import compute_status_counts
+from ..helpers.notify_targets import build_notify_targets
 from . import (
     _build_object_response,
     _get_global_entry,
@@ -137,8 +138,16 @@ _ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
 }
 
 
-def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
-    """Build a full settings dict from global entry options."""
+def _build_full_settings(
+    options: Mapping[str, Any], *, notify_targets: list[str] | None = None
+) -> dict[str, Any]:
+    """Build a full settings dict from global entry options.
+
+    ``notify_targets`` is the shared pickable-notify-target list (see
+    ``helpers/notify_targets.build_notify_targets``) surfaced under
+    ``general.notify_targets`` so the panel picker uses the exact same set as
+    the options flow instead of recomputing it client-side.
+    """
     return {
         "features": {
             "adaptive": options.get(CONF_ADVANCED_ADAPTIVE, False),
@@ -178,6 +187,9 @@ def _build_full_settings(options: Mapping[str, Any]) -> dict[str, Any]:
             "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
+            # Shared pickable-target list so the panel picker can't drift from
+            # the options-flow dropdown (both go through build_notify_targets).
+            "notify_targets": notify_targets or [],
             "panel_enabled": options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED),
             "panel_title": options.get(CONF_PANEL_TITLE, ""),
         },
@@ -244,11 +256,22 @@ async def ws_get_settings(
     """Return all global settings."""
     global_entry = _get_global_entry(hass)
     if global_entry is None:
-        connection.send_result(msg["id"], _build_full_settings({}))
+        connection.send_result(
+            msg["id"],
+            _build_full_settings({}, notify_targets=build_notify_targets(hass)),
+        )
         return
 
     options = global_entry.options or global_entry.data
-    connection.send_result(msg["id"], _build_full_settings(options))
+    connection.send_result(
+        msg["id"],
+        _build_full_settings(
+            options,
+            notify_targets=build_notify_targets(
+                hass, current=options.get(CONF_NOTIFY_SERVICE, "")
+            ),
+        ),
+    )
 
 
 @websocket_api.websocket_command(
@@ -586,7 +609,15 @@ async def ws_update_global_settings(
 
     _LOGGER.debug("Global settings updated via WS: %s", list(filtered.keys()))
 
-    connection.send_result(msg["id"], _build_full_settings(merged))
+    connection.send_result(
+        msg["id"],
+        _build_full_settings(
+            merged,
+            notify_targets=build_notify_targets(
+                hass, current=merged.get(CONF_NOTIFY_SERVICE, "")
+            ),
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------

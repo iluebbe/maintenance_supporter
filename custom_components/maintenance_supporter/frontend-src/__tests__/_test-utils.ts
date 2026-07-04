@@ -66,6 +66,7 @@ export const DEFAULT_SETTINGS_RESPONSE = {
     default_warning_days: 7,
     notifications_enabled: false,
     notify_service: "",
+    notify_targets: [] as string[],
     panel_enabled: false,
   },
   notifications: {

@@ -19,6 +19,10 @@ interface SettingsResponse {
     default_warning_days: number;
     notifications_enabled: boolean;
     notify_service: string;
+    // Shared pickable-target list computed server-side (build_notify_targets),
+    // so the picker matches the options-flow dropdown exactly. Optional for
+    // backward-compat with an older backend that didn't send it.
+    notify_targets?: string[];
     panel_enabled: boolean;
     panel_title: string;
   };
@@ -378,22 +382,13 @@ export class MaintenanceSettingsView extends LitElement {
 
   private _renderGeneral(L: string) {
     const g = this._settings!.general;
-    // Suggestible notify targets for the picker below — merge legacy notify
-    // *services* (mobile_app devices, notify groups) from the service registry
-    // with notify *entities* (the newer model) from the state machine, since
-    // many single devices appear only as an entity. send_message is the generic
-    // action, not a target → excluded. The <datalist> keeps this a free-text
-    // input (custom / not-yet-loaded values still work).
-    const notifyTargets = new Set<string>();
-    for (const s of Object.keys(this.hass?.services?.notify ?? {})) {
-      if (s !== "send_message") notifyTargets.add(`notify.${s}`);
-    }
-    for (const eid of Object.keys(this.hass?.states ?? {})) {
-      if (eid.startsWith("notify.") && eid !== "notify.send_message") {
-        notifyTargets.add(eid);
-      }
-    }
-    const notifyServices = [...notifyTargets].sort();
+    // Suggestible notify targets for the picker below come from the backend
+    // (build_notify_targets → general.notify_targets): legacy notify services +
+    // notify entities minus the generic send_message, plus the current saved
+    // value. Sharing the server list keeps this picker in lockstep with the
+    // options-flow dropdown. The <datalist> keeps the input free-text so
+    // custom / not-yet-loaded values still work.
+    const notifyServices = g.notify_targets ?? [];
     const b = this._settings!.budget;
     return html`
       <div class="settings-section">
