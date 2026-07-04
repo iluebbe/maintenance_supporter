@@ -45,7 +45,13 @@ Three layers, run independently or together:
 docker exec ha-maint sh -c 'cd /config && python -m pytest tests/'
 ```
 
-~2,205 unit + integration tests, ~90s. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
+~2,300 unit + integration tests. Includes 45 WebSocket roundtrip tests in `tests/test_ws_roundtrip.py` that exercise the WS contract end-to-end.
+
+**Faster local runs:** `pytest-xdist` parallelizes the suite ~3× —
+`python -m pytest tests/ -n auto --dist loadfile`. This is a local accelerator
+only; CI runs serially for determinism (the documents feature's blob dir lives
+under pht-cc's shared `testing_config`, so document-writing tests in different
+files can race across workers).
 
 ### 2. Component (Lit, web-test-runner)
 

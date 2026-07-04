@@ -302,3 +302,25 @@ async def test_cleanup_reclaims_orphans_zero_and_dangling(hass: HomeAssistant) -
     assert s.get(dangling["id"]) is None
     assert s.get(keep["id"]) is not None
     assert s.blob_path(keep["hash"]).exists()
+
+
+async def test_list_blob_files_tolerates_dir_vanishing_mid_scan(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """_list_blob_files must not raise if the blobs dir vanishes mid-scan.
+
+    Under pytest-xdist the pht-cc testing_config dir is shared across workers,
+    so a concurrent delete can remove the blobs dir between the existence check
+    and the scan (a TOCTOU race that failed CI at entry-unload teardown). We
+    simulate that by making iterdir raise FileNotFoundError — without touching
+    the real (shared) dir, which would break sibling tests on the same worker.
+    """
+    s = await _store(hass)
+    await s.async_add_file("obj1", content=b"blob", filename="a.pdf", mime="application/pdf")
+    assert len(s._list_blob_files()) == 1
+
+    def _boom(_self: Path) -> Iterator[Path]:
+        raise FileNotFoundError
+
+    monkeypatch.setattr(Path, "iterdir", _boom)
+    assert s._list_blob_files() == set()  # tolerated, no FileNotFoundError
