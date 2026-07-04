@@ -40,4 +40,9 @@ describe("formatRecurrence", () => {
   it("empty weekdays → em dash", () => {
     expect(formatRecurrence({ schedule: { kind: "weekdays", weekdays: [] } }, "en")).to.equal("—");
   });
+  it("sensor_based (no schedule) → 'Sensor-based', not em dash", () => {
+    expect(
+      formatRecurrence({ schedule_type: "sensor_based", interval_days: null }, "en"),
+    ).to.equal("Sensor-based");
+  });
 });

@@ -970,7 +970,16 @@ if (!customElements.get(GROUPS_TAG)) customElements.define(GROUPS_TAG, Maintenan
 type DialogMountModule = typeof import("./dialog-mount");
 let _dialogMountPromise: Promise<DialogMountModule> | null = null;
 function getDialogMount(): Promise<DialogMountModule> {
-  if (!_dialogMountPromise) _dialogMountPromise = import("./dialog-mount");
+  if (!_dialogMountPromise) {
+    // Don't cache a REJECTED import: after a version bump the browser may hold a
+    // stale strategy bundle whose hashed dialog-mount chunk 404s once; caching
+    // that rejection would dead-end every dialog action until a full reload.
+    // Clear the cache on failure so a later attempt (or fixed chunk) can retry.
+    _dialogMountPromise = import("./dialog-mount").catch((err) => {
+      _dialogMountPromise = null;
+      throw err;
+    });
+  }
   return _dialogMountPromise;
 }
 
@@ -1017,7 +1026,15 @@ function registerLlCustomHandler(): void {
 
     // Everything else needs the heavy dialog-mount module — load it lazily.
     void (async () => {
-      const dm = await getDialogMount();
+      let dm: DialogMountModule;
+      try {
+        dm = await getDialogMount();
+      } catch {
+        // dialog-mount chunk unavailable (e.g. stale bundle after an update) —
+        // degrade to opening the panel instead of a silent, unhandled failure.
+        deepLink("/maintenance-supporter");
+        return;
+      }
 
       if (action === "add-object") {
         if (dm.openCreateObjectDialog()) return;

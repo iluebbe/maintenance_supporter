@@ -457,13 +457,20 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private async _subscribe(): Promise<void> {
     try {
-      this._unsub = await this.hass.connection.subscribeMessage(
+      const unsub = await this.hass.connection.subscribeMessage(
         (msg: unknown) => {
           const data = msg as { objects: MaintenanceObjectResponse[] };
           this._objects = data.objects;
         },
         { type: "maintenance_supporter/subscribe" }
       );
+      // If the element was detached while the subscribe was in flight, drop the
+      // now-orphaned subscription instead of storing it on a dead component.
+      if (!this.isConnected) {
+        unsub();
+        return;
+      }
+      this._unsub = unsub;
     } catch {
       // Subscription failed; fall back to polling
     }

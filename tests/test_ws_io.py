@@ -316,6 +316,30 @@ async def test_json_export_import_roundtrips_doc_url_and_notes(
     assert imported["warranty_expiry"] == "2032-02-02"
 
 
+async def test_json_import_tolerates_malformed_entries(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """M2: schema-valid-but-malformed entries (non-dict entry, non-dict object,
+    non-list tasks) must not raise an unhandled AttributeError; valid entries
+    still import."""
+    await setup_integration(hass, global_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_import_json, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/json/import",
+        "json_content": json.dumps({"objects": [
+            "notadict",                                    # non-dict entry
+            {"object": 5},                                 # non-dict object data
+            {"object": {"name": "MalformedTasks"}, "tasks": "notalist"},  # tasks not a list
+            {"object": {"name": "Valid Imported X"}},      # good
+        ]}),
+    })
+    # Handler responded (no exception escaped) and the valid object imported.
+    conn.send_result.assert_called_once()
+    titles = {e.title for e in hass.config_entries.async_entries(DOMAIN)}
+    assert "Valid Imported X" in titles
+    assert "MalformedTasks" in titles  # object valid, its bad tasks just skipped
+
+
 async def test_export_handles_null_checklist(
     hass: HomeAssistant, global_entry: MockConfigEntry,
 ) -> None:

@@ -202,3 +202,33 @@ def test_object_schema_string_caps_match_sanitize_map() -> None:
     assert schema_caps == expected, (
         f"object schema caps {schema_caps} diverged from sanitize map {expected}"
     )
+
+
+# === Security: on_complete_action privileged-domain denylist ================
+
+
+def test_cap_action_field_rejects_privileged_domains() -> None:
+    """A completion action must not be able to call shell/script/host services."""
+    from custom_components.maintenance_supporter.helpers.sanitize import cap_action_field
+
+    for svc in (
+        "shell_command.rm",
+        "python_script.evil",
+        "hassio.host_reboot",
+        "homeassistant.stop",
+        "recorder.purge",
+        "backup.create",
+    ):
+        data: dict[str, Any] = {"on_complete_action": {"service": svc}}
+        cap_action_field(data)
+        assert "on_complete_action" not in data, f"{svc} should be rejected"
+
+
+def test_cap_action_field_allows_safe_domains() -> None:
+    """Ordinary device/notify services survive the denylist."""
+    from custom_components.maintenance_supporter.helpers.sanitize import cap_action_field
+
+    for svc in ("notify.mobile_app_phone", "light.turn_on", "script.after_service"):
+        data: dict[str, Any] = {"on_complete_action": {"service": svc}}
+        cap_action_field(data)
+        assert data.get("on_complete_action", {}).get("service") == svc

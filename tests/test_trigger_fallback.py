@@ -239,3 +239,25 @@ def test_runtime_includes_live_on_time() -> None:
     # 9h persisted + ~2h live = ~11h ≥ 10h target
     assert r.current_value is not None and r.current_value >= 10.9
     assert r.active is True
+
+
+def test_runtime_naive_on_since_does_not_raise() -> None:
+    """L2: a legacy/imported NAIVE on_since (no tzinfo) must be treated as UTC,
+    not raise a TypeError on the utcnow()-minus subtraction."""
+    on_since = (dt_util.utcnow() - timedelta(hours=3)).replace(tzinfo=None).isoformat()
+    assert "+" not in on_since and "Z" not in on_since  # naive
+    r = evaluate_runtime(
+        {
+            "trigger_runtime_hours": 10,
+            "_trigger_state": {
+                "input_boolean.comp": {
+                    "accumulated_seconds": 8 * 3600,
+                    "on_since": on_since,
+                }
+            },
+        },
+        ["input_boolean.comp"],
+    )
+    # 8h persisted + ~3h live ≈ 11h ≥ 10h — and crucially, no exception.
+    assert r.current_value is not None and r.current_value >= 10.9
+    assert r.active is True

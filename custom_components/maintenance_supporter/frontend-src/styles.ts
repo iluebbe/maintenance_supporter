@@ -207,6 +207,9 @@ export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
   // legacy / no nested schedule
   if (task.schedule_type === "one_time") return task.due_date ? formatDate(task.due_date, lang) : t("one_time", lang);
   if (task.schedule_type === "manual") return t("manual", lang);
+  // Sensor-driven tasks have a trigger, not a calendar/interval — label them as
+  // such instead of "—" (regression when the report moved to formatRecurrence).
+  if (task.schedule_type === "sensor_based") return t("sensor_based", lang);
   return task.interval_days != null ? formatInterval(task.interval_days, task.interval_unit, lang) : "—";
 }
 

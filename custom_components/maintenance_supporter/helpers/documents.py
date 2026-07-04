@@ -251,7 +251,13 @@ class DocumentStore:
             title = meta.get("title")
             if meta.get("kind") == KIND_WEBLINK:
                 url = meta.get("url")
-                if not isinstance(url, str) or not url:
+                # Only http(s) links — the add-link WS path enforces the same, so
+                # a crafted export can't smuggle a javascript:/data: URL that the
+                # frontend would later window.open (matches ws_documents_add_link).
+                if (
+                    not isinstance(url, str)
+                    or not url.lower().startswith(("http://", "https://"))
+                ):
                     continue
                 self.documents[uuid4().hex] = {
                     "object_id": object_id, "kind": KIND_WEBLINK, "url": url,

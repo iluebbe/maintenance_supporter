@@ -142,6 +142,21 @@ def _coerce_buffer(value: Any) -> int:
     return i
 
 
+def _task_warning_days(task: Mapping[str, Any]) -> int:
+    """warning_days for a stored task, defaulting when missing/blank/invalid.
+
+    Missing (or blank/non-numeric from legacy/imported storage) → the default;
+    a real value (including 0) is kept. Never raises on a non-int value.
+    """
+    value = task.get("warning_days")
+    if value is None or value == "":
+        return DEFAULT_WARNING_DAYS
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_WARNING_DAYS
+
+
 def _global_options(hass: HomeAssistant) -> Mapping[str, Any]:
     """Return options dict from the global config entry."""
     for entry in hass.config_entries.async_entries(DOMAIN):
@@ -255,7 +270,7 @@ def compute_preview(
                 last_performed=_coerce_date(t.get("last_performed")),
                 created_at=_coerce_date(t.get("created_at")),
                 interval_days=t.get("interval_days"),
-                warning_days=(int(t["warning_days"]) if t.get("warning_days") is not None else DEFAULT_WARNING_DAYS),
+                warning_days=_task_warning_days(t),
                 today=today,
                 window_start=window_start,
                 window_end=window_end,
@@ -286,7 +301,7 @@ def compute_preview(
                 else None
             )
             events = (
-                _events_from_next_due(nd, (int(t["warning_days"]) if t.get("warning_days") is not None else DEFAULT_WARNING_DAYS), today, window_start, window_end)
+                _events_from_next_due(nd, _task_warning_days(t), today, window_start, window_end)
                 if nd
                 else []
             )
