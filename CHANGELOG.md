@@ -2,6 +2,30 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.12.0] - 2026-07-04
+
+### ✨ Sensor charts, redesigned
+
+The task detail's sensor graphics were rebuilt from scratch:
+
+- **Full-width, responsive chart** with round axis ticks and gridlines, crisp labels, and year-aware date ticks (a "Jun … Feb" range can no longer read backwards).
+- **Danger zone**: the area beyond a threshold is shaded and the line segments inside it turn red — a crossing is visible at a glance instead of hiding in a thin dashed line.
+- **Counters tell a progress story**: "8,507 / 15,000 km · 57 %" with a colored progress bar, plotting the cumulative value since the last service against the target line — no more negative odometer axes. The same progress header now also covers **state-change counts** and **runtime hours** vs. their targets.
+- **Crosshair** that follows your finger/cursor (value + date), **7d/30d/90d/1y range switching**, completion markers in a calm bottom lane, and a dashed degradation projection — now also shown when a slow "stable" slope still carries a real days-until-threshold prediction.
+- Charts for entities **without long-term statistics** (input booleans, sensors without a `state_class`) now say so in a small note instead of silently showing a sparse line.
+- The cost/duration chart got a true time axis, per-axis round ticks, and point tooltips.
+
+### ✨ Auto-complete when the sensor recovers (opt-in, #53)
+
+For sensor-triggered tasks, refilling the salt or swapping the filter IS the maintenance — a new per-task option records the completion automatically when the trigger clears itself: `last performed` and the time-between-services statistics stay real without opening the app. Off by default; manual completes are unaffected, a just-completed task never double-records, and archived/disabled tasks are ignored. Thanks @byoung79 for the request (#53).
+
+### 🛠️ Under the hood
+
+- The frontend TypeScript baseline was cleaned to **0 errors** and `tsc --noEmit` is now a blocking CI step.
+- Object cards skip rendering while off-screen (`content-visibility`), keeping large installs (100+ objects) snappy.
+- Mini-sparklines tint red while their trigger is active.
+- Architecture docs synced (55 WS commands incl. the documents API); the dev-environment seeder no longer races a running HA.
+
 ## [2.11.0] - 2026-07-03
 
 ### ✨ Documents & manuals — attach files to your maintenance objects
