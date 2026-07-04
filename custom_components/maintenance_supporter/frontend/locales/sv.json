@@ -580,6 +580,8 @@
   "chart_range_1y": "1å",
   "chart_since_service": "sedan senaste underhåll",
   "chart_no_stats": "Ingen långtidsstatistik för denna entitet — visar endast värden från underhållsposter",
+  "auto_complete_on_recovery": "Slutför automatiskt när sensorn återhämtar sig",
+  "auto_complete_on_recovery_help": "Registrerar ett slutförande (sätter senast utförd) när utlösaren löser sig själv — t.ex. salt påfyllt, filter bytt.",
   "doc_search": "Sök dokument…",
   "doc_search_none": "Inga matchande dokument"
 }

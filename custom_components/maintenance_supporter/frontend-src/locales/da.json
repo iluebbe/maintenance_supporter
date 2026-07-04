@@ -580,6 +580,8 @@
   "chart_range_1y": "1å",
   "chart_since_service": "siden sidste vedligeholdelse",
   "chart_no_stats": "Ingen langtidsstatistik for denne enhed — viser kun værdier fra vedligeholdelsesposter",
+  "auto_complete_on_recovery": "Fuldfør automatisk når sensoren retter sig",
+  "auto_complete_on_recovery_help": "Registrerer en fuldførelse (sætter senest udført), når udløseren løser sig selv — f.eks. salt påfyldt, filter udskiftet.",
   "doc_search": "Søg dokumenter…",
   "doc_search_none": "Ingen matchende dokumenter"
 }

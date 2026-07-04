@@ -141,6 +141,8 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     "trigger_from_state", "trigger_to_state", "trigger_target_changes",
     # compound
     "compound_logic", "conditions",
+    # record a completion when the trigger clears itself (#53)
+    "auto_complete_on_recovery",
 }
 
 
@@ -232,6 +234,14 @@ def _validate_trigger_config(
     unknown = set(trigger_config) - _TRIGGER_ALLOWED_KEYS
     for key in unknown:
         del trigger_config[key]
+
+    # Coerce the recovery flag to a real bool (drop it when falsy so stored
+    # configs stay minimal — absence means off).
+    if "auto_complete_on_recovery" in trigger_config:
+        if trigger_config["auto_complete_on_recovery"]:
+            trigger_config["auto_complete_on_recovery"] = True
+        else:
+            del trigger_config["auto_complete_on_recovery"]
 
     # Normalise state_change from/to: HA's state machine stores values lowercase
     # ("on"/"off"/"home"/...). Users typing "ON"/"OFF" expect a match — same

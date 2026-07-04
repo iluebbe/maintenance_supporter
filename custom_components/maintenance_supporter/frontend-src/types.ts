@@ -40,6 +40,8 @@ export interface TriggerConfig {
   trigger_runtime_hours?: number;
   compound_logic?: "AND" | "OR";
   conditions?: Array<TriggerConfig>;
+  /** Record a completion when the trigger clears itself (#53). */
+  auto_complete_on_recovery?: boolean;
 }
 
 export interface TriggerEntityInfo {

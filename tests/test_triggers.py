@@ -3350,3 +3350,100 @@ async def test_create_triggers_multi_entity(hass: HomeAssistant) -> None:
     coord = obj_entry.runtime_data.coordinator
     task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
     assert task_result.get("_trigger_active") is False  # Neither above 30
+
+
+# ─── Auto-complete on sensor recovery (#53) ─────────────────────────────
+
+
+class TestAutoCompleteOnRecovery:
+    """The opt-in recovery hook fires only on the evaluate path (#53)."""
+
+    async def test_recovery_auto_completes_when_opted_in(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Active → recovered via a sensor change records a completion."""
+        entity = _make_mock_entity(hass)
+        trigger = ThresholdTrigger(hass, entity, {
+            "entity_id": "sensor.salt",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 20.0,
+            "auto_complete_on_recovery": True,
+        })
+
+        trigger._evaluate_and_update(15.0)  # activates
+        assert trigger._triggered is True
+        trigger._evaluate_and_update(80.0)  # salt refilled → recovers
+        await hass.async_block_till_done()
+
+        entity.coordinator.async_auto_complete_on_recovery.assert_awaited_once_with(
+            TASK_ID_1, 80.0
+        )
+
+    async def test_recovery_ignored_without_opt_in(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Default (flag absent): recovery never records a completion."""
+        entity = _make_mock_entity(hass)
+        trigger = ThresholdTrigger(hass, entity, {
+            "entity_id": "sensor.salt",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 20.0,
+        })
+
+        trigger._evaluate_and_update(15.0)
+        trigger._evaluate_and_update(80.0)
+        await hass.async_block_till_done()
+
+        entity.coordinator.async_auto_complete_on_recovery.assert_not_awaited()
+
+    async def test_manual_reset_never_auto_completes(
+        self, hass: HomeAssistant
+    ) -> None:
+        """reset() (the manual complete path) bypasses the recovery hook."""
+        entity = _make_mock_entity(hass)
+        trigger = ThresholdTrigger(hass, entity, {
+            "entity_id": "sensor.salt",
+            "attribute": None,
+            "type": TriggerType.THRESHOLD,
+            "trigger_below": 20.0,
+            "auto_complete_on_recovery": True,
+        })
+
+        trigger._evaluate_and_update(15.0)  # activates
+        trigger.reset()                     # manual complete resets the trigger
+        await hass.async_block_till_done()
+
+        assert trigger._triggered is False
+        entity.coordinator.async_auto_complete_on_recovery.assert_not_awaited()
+
+    async def test_validator_keeps_and_coerces_the_flag(
+        self, hass: HomeAssistant
+    ) -> None:
+        """The WS validator whitelists the flag and coerces it to a bool."""
+        from custom_components.maintenance_supporter.websocket.tasks import (
+            _validate_trigger_config,
+        )
+
+        set_sensor_state(hass, "sensor.salt", "50.0")
+        tc: dict = {
+            "type": "threshold",
+            "entity_id": "sensor.salt",
+            "trigger_below": 20.0,
+            "auto_complete_on_recovery": 1,
+        }
+        errors, _warnings = _validate_trigger_config(hass, tc)
+        assert not errors
+        assert tc["auto_complete_on_recovery"] is True
+
+        tc_off: dict = {
+            "type": "threshold",
+            "entity_id": "sensor.salt",
+            "trigger_below": 20.0,
+            "auto_complete_on_recovery": False,
+        }
+        errors, _warnings = _validate_trigger_config(hass, tc_off)
+        assert not errors
+        # Falsy is dropped — absence means off, stored configs stay minimal.
+        assert "auto_complete_on_recovery" not in tc_off

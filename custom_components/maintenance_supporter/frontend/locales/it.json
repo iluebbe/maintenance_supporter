@@ -580,6 +580,8 @@
   "chart_range_1y": "1a",
   "chart_since_service": "dall'ultima manutenzione",
   "chart_no_stats": "Nessuna statistica a lungo termine per questa entità — vengono mostrati solo i valori degli interventi",
+  "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina",
+  "auto_complete_on_recovery_help": "Registra un completamento (imposta l'ultima esecuzione) quando il trigger si risolve da solo — ad es. sale ricaricato, filtro sostituito.",
   "doc_search": "Cerca documenti…",
   "doc_search_none": "Nessun documento corrispondente"
 }

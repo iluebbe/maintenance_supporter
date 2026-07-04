@@ -580,6 +580,8 @@
   "chart_range_1y": "1r",
   "chart_since_service": "od ostatniej konserwacji",
   "chart_no_stats": "Brak statystyk długoterminowych dla tej encji — wyświetlane są tylko wartości z wpisów konserwacji",
+  "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy",
+  "auto_complete_on_recovery_help": "Rejestruje wykonanie (ustawia ostatnie wykonanie), gdy wyzwalacz sam się rozwiąże — np. uzupełniono sól, wymieniono filtr.",
   "doc_search": "Szukaj dokumentów…",
   "doc_search_none": "Brak pasujących dokumentów"
 }

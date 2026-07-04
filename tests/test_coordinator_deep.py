@@ -906,3 +906,79 @@ async def test_coordinator_persist_dynamic_state_clears_planned_due(hass: HomeAs
     # Verify the store no longer has last_planned_due
     updated_state = store.get_task_state(TASK_ID_1)
     assert "last_planned_due" not in updated_state
+
+
+# ─── Auto-complete on sensor recovery (#53) — coordinator side ──────────
+
+
+def _recovery_entry(hass: HomeAssistant, task: dict, uid: str) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN,
+        title="Recovery Test",
+        data=build_object_entry_data(
+            object_data=build_object_data(name="Recovery Test"),
+            tasks={TASK_ID_1: task},
+        ),
+        source="user",
+        unique_id=uid,
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def test_auto_complete_on_recovery_records_completion(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """The recovery hook runs the canonical complete path."""
+    last = (dt_util.now().date() - timedelta(days=40)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    obj_entry = _recovery_entry(hass, task, "maintenance_supporter_recovery_ok")
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+
+    coordinator = obj_entry.runtime_data.coordinator
+    await coordinator.async_auto_complete_on_recovery(TASK_ID_1, 82.5)
+
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
+    assert len(completed) >= 1
+    assert "Auto-completed" in (completed[-1].get("notes") or "")
+    assert "82.5" in (completed[-1].get("notes") or "")
+    assert state.get("last_performed") == dt_util.now().date().isoformat()
+
+
+async def test_auto_complete_skips_recent_completion(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """A completion recorded moments ago suppresses the auto-complete."""
+    last = (dt_util.now().date() - timedelta(days=40)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    obj_entry = _recovery_entry(hass, task, "maintenance_supporter_recovery_recent")
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+
+    coordinator = obj_entry.runtime_data.coordinator
+    await coordinator.complete_maintenance(task_id=TASK_ID_1, notes="manual")
+    await coordinator.async_auto_complete_on_recovery(TASK_ID_1, 82.5)
+
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
+    # Only the manual completion — the race guard swallowed the auto one.
+    assert len(completed) == 1
+    assert completed[-1].get("notes") == "manual"
+
+
+async def test_auto_complete_skips_archived_task(
+    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+) -> None:
+    """Archived (inert) tasks never auto-complete."""
+    last = (dt_util.now().date() - timedelta(days=40)).isoformat()
+    task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
+    task["archived_at"] = dt_util.now().isoformat()
+    obj_entry = _recovery_entry(hass, task, "maintenance_supporter_recovery_archived")
+    await setup_integration(hass, global_entry_notifications, obj_entry)
+
+    coordinator = obj_entry.runtime_data.coordinator
+    await coordinator.async_auto_complete_on_recovery(TASK_ID_1, 82.5)
+
+    state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
+    completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
+    assert len(completed) == 0

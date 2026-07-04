@@ -580,6 +580,8 @@
   "chart_range_1y": "1v",
   "chart_since_service": "edellisen huollon jälkeen",
   "chart_no_stats": "Tälle entiteetille ei ole pitkän aikavälin tilastoja — näytetään vain huoltotapahtumien arvot",
+  "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu",
+  "auto_complete_on_recovery_help": "Kirjaa suorituksen (asettaa viimeksi tehdyn), kun laukaisin poistuu itsestään — esim. suola lisätty, suodatin vaihdettu.",
   "doc_search": "Hae asiakirjoja…",
   "doc_search_none": "Ei vastaavia asiakirjoja"
 }

@@ -580,6 +580,8 @@
   "chart_range_1y": "1J",
   "chart_since_service": "seit letzter Wartung",
   "chart_no_stats": "Keine Langzeit-Statistik für diese Entity — es werden nur Werte aus Wartungseinträgen angezeigt",
+  "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen",
+  "auto_complete_on_recovery_help": "Verbucht eine Wartung (setzt „zuletzt durchgeführt“), sobald sich der Auslöser von selbst auflöst — z. B. Salz nachgefüllt, Filter getauscht.",
   "doc_search": "Dokumente durchsuchen…",
   "doc_search_none": "Keine passenden Dokumente"
 }

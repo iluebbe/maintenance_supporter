@@ -64,6 +64,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerForMinutes = "0";
   @state() private _triggerTargetValue = "";
   @state() private _triggerDeltaMode = false;
+  @state() private _autoCompleteOnRecovery = false;
   @state() private _triggerFromState = "";
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
@@ -209,6 +210,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerForMinutes = tc.trigger_for_minutes?.toString() || "0";
       this._triggerTargetValue = tc.trigger_target_value?.toString() || "";
       this._triggerDeltaMode = tc.trigger_delta_mode || false;
+      this._autoCompleteOnRecovery = tc.auto_complete_on_recovery || false;
       this._triggerFromState = tc.trigger_from_state || "";
       this._triggerToState = tc.trigger_to_state || "";
       this._triggerTargetChanges = tc.trigger_target_changes?.toString() || "";
@@ -280,6 +282,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerForMinutes = "0";
     this._triggerTargetValue = "";
     this._triggerDeltaMode = false;
+    this._autoCompleteOnRecovery = false;
     this._triggerFromState = "";
     this._triggerToState = "";
     this._triggerTargetChanges = "";
@@ -611,6 +614,7 @@ export class MaintenanceTaskDialog extends LitElement {
           type: this._triggerType,
         };
         if (this._triggerAttribute) triggerConfig.attribute = this._triggerAttribute;
+        if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
 
         // Multi-entity: store entity_logic for all trigger types
         if (entityIds.length > 1) {
@@ -789,6 +793,15 @@ export class MaintenanceTaskDialog extends LitElement {
         </select>
       </div>
       ${this._renderTriggerTypeFields()}
+      <label>
+        <input
+          type="checkbox"
+          .checked=${this._autoCompleteOnRecovery}
+          @change=${(e: Event) => (this._autoCompleteOnRecovery = (e.target as HTMLInputElement).checked)}
+        />
+        ${t("auto_complete_on_recovery", L)}
+      </label>
+      <div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>
       <ms-textfield
         label="${t("safety_interval", L)}"
         type="number"

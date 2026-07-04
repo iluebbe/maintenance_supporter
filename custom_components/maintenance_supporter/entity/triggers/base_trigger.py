@@ -289,6 +289,19 @@ class BaseTrigger(ABC):
             },
         )
 
+        # Opt-in (#53): the sensor recovering IS the maintenance being done
+        # (salt refilled, filter swapped) — record the completion so
+        # last_performed and the time-between-services statistics stay real.
+        # This hook only fires on the evaluate path: a manual complete/skip
+        # resets the trigger via reset(), which never lands here, so the
+        # manual flow cannot double-record.
+        if self.config.get("auto_complete_on_recovery"):
+            self.hass.async_create_task(
+                self._coordinator.async_auto_complete_on_recovery(
+                    self._task_id, value
+                )
+            )
+
     def _get_numeric_value(self, state: State) -> float | None:
         """Extract numeric value from state or attribute."""
         try:

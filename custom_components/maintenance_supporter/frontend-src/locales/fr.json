@@ -580,6 +580,8 @@
   "chart_range_1y": "1a",
   "chart_since_service": "depuis le dernier entretien",
   "chart_no_stats": "Pas de statistiques à long terme pour cette entité — seules les valeurs des entretiens sont affichées",
+  "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit",
+  "auto_complete_on_recovery_help": "Enregistre une exécution (met à jour la dernière réalisation) lorsque le déclencheur se résout de lui-même — p. ex. sel rechargé, filtre remplacé.",
   "doc_search": "Rechercher des documents…",
   "doc_search_none": "Aucun document correspondant"
 }

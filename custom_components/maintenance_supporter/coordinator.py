@@ -1058,6 +1058,53 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ),
         )
 
+    async def async_auto_complete_on_recovery(
+        self, task_id: str, trigger_value: float
+    ) -> None:
+        """Record a completion because the task's trigger cleared itself (#53).
+
+        Called from ``BaseTrigger._on_trigger_deactivated`` when the task opted
+        in via ``trigger_config.auto_complete_on_recovery``: the sensor
+        recovering (salt refilled, filter swapped) IS the maintenance being
+        done, so ``last_performed`` and the time-between-services statistics
+        should reflect it. Runs through the canonical complete path (history,
+        adaptive learning, events, on_complete_action).
+        """
+        merged = self._get_merged_tasks_data()
+        task_data = merged.get(task_id)
+        if task_data is None:
+            return
+        # Inert tasks never auto-complete.
+        if task_data.get("archived_at") is not None or task_data.get("enabled") is False:
+            return
+        # Race guard: if a completion was recorded moments ago (e.g. a manual
+        # complete whose trigger reset crossed paths with a queued state
+        # change), don't record a second one.
+        history = task_data.get("history") or []
+        for entry in reversed(history):
+            if entry.get("type") != "completed":
+                continue
+            try:
+                last_ts = dt_util.parse_datetime(entry.get("timestamp", ""))
+            except (ValueError, TypeError):
+                last_ts = None
+            if last_ts is not None and (dt_util.now() - last_ts).total_seconds() < 120:
+                _LOGGER.debug(
+                    "Skipping auto-complete for %s: completed %.0fs ago",
+                    task_id, (dt_util.now() - last_ts).total_seconds(),
+                )
+                return
+            break
+
+        _LOGGER.info(
+            "Auto-completing task %s on %s: trigger recovered (value: %s)",
+            task_id, self.maintenance_object.name, trigger_value,
+        )
+        await self.complete_maintenance(
+            task_id,
+            notes=f"Auto-completed: sensor recovered ({trigger_value:g})",
+        )
+
     async def reset_maintenance(
         self,
         task_id: str,
