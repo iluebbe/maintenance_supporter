@@ -157,9 +157,12 @@ async def ws_documents_update(
     """Update editable document metadata (title / tags / task links / per-task page)."""
     store = _get_store(hass)
     title = msg.get("title")
+    # A present title (even empty) sets/clears it; absent or null → no change.
+    # Don't collapse "" to None here — that would make an intentional clear read
+    # as "leave unchanged" and the old title would survive (L5).
     ok = await store.async_update(
         msg["doc_id"],
-        title=(title.strip() or None) if isinstance(title, str) else None,
+        title=title.strip() if isinstance(title, str) else None,
         tags=msg.get("tags"),
         task_ids=msg.get("task_ids"),
         task_pages=msg.get("task_pages"),

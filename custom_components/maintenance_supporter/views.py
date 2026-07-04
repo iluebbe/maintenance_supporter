@@ -145,7 +145,12 @@ class DocumentServeView(HomeAssistantView):
         return web.Response(
             body=content,
             content_type=doc.get("mime") or "application/octet-stream",
-            headers={hdrs.CONTENT_DISPOSITION: _content_disposition(doc.get("filename") or "document")},
+            headers={
+                hdrs.CONTENT_DISPOSITION: _content_disposition(doc.get("filename") or "document"),
+                # Don't let the browser MIME-sniff an uploaded blob as HTML/JS on
+                # the HA origin regardless of the stored content_type (L9).
+                "X-Content-Type-Options": "nosniff",
+            },
         )
 
 
