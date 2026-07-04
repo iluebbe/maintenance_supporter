@@ -2,7 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, ensureLocale, isLocaleLoaded, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -1005,7 +1005,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       colCost: t("cost", L),
       colTimes: t("report_times_done", L),
       totalCost: t("report_total_cost", L),
-      everyDays: t("report_every", L),
+      scheduleLabel: (task) => formatRecurrence(task, L),
       none: "—",
       statusLabel: (s: string) => t(s, L),
       typeLabel: (ty: string) => t(ty, L),
@@ -1013,7 +1013,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const html = buildObjectReportHtml(
       resp.object, resp.tasks, labels,
       (iso) => (iso ? formatDate(iso, L) : ""),
-      this._budget?.currency_symbol || "€",
+      this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
       new Date().toISOString(),
     );
     const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
@@ -2167,7 +2167,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const b = this._budget;
     if (!b) return nothing;
     const L = this._lang;
-    const cs = b.currency_symbol || "€";
+    const cs = b.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
     const bars: { label: string; spent: number; budget: number }[] = [];
     if (b.monthly_budget > 0) bars.push({ label: t("budget_monthly", L), spent: b.monthly_spent, budget: b.monthly_budget });
     if (b.yearly_budget > 0) bars.push({ label: t("budget_yearly", L), spent: b.yearly_spent, budget: b.yearly_budget });
@@ -2645,7 +2645,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       lang: this._lang,
       filter: this._historyFilter,
       search: this._historySearch,
-      currencySymbol: this._budget?.currency_symbol || "€",
+      currencySymbol: this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
       setFilter: (f) => { this._historyFilter = f; },
       setSearch: (s) => { this._historySearch = s; },
       openEdit: (entry) => this._openHistoryEdit(entry),
@@ -2742,7 +2742,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("avg_cost", L)}</div>
-          <div class="kpi-value">${avgCost.toFixed(0)} ${this._budget?.currency_symbol || "€"}</div>
+          <div class="kpi-value">${avgCost.toFixed(0)} ${this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL}</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">${t("avg_duration", L)}</div>
@@ -2819,7 +2819,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             <span class="activity-icon">${getIcon(entry.type)}</span>
             <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
             <span class="activity-note">${entry.notes || "—"}</span>
-            ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}${this._budget?.currency_symbol || "€"}</span>` : nothing}
+            ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}${this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL}</span>` : nothing}
             ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
           </div>
         `)}

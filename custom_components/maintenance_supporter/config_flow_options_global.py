@@ -55,6 +55,7 @@ from .const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    DEFAULT_BUDGET_CURRENCY,
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_PANEL_ENABLED,
     DEFAULT_SNOOZE_DURATION_HOURS,
@@ -71,7 +72,15 @@ _LOGGER = logging.getLogger(__name__)
 # NumberSelector bounds are pulled from the shared settings registry so the
 # options-flow forms can't drift from the WS write-handler's range validation.
 _WARN_MIN, _WARN_MAX = int_range(CONF_DEFAULT_WARNING_DAYS)
+# The three per-status notify-interval selectors share one bound. That's only
+# valid while the registry keeps their ranges identical — assert it so a future
+# divergence fails loudly at load instead of silently using the due-soon bound.
 _NOTIFY_INTERVAL_MIN, _NOTIFY_INTERVAL_MAX = int_range(CONF_NOTIFY_DUE_SOON_INTERVAL)
+assert (
+    int_range(CONF_NOTIFY_OVERDUE_INTERVAL)
+    == int_range(CONF_NOTIFY_TRIGGERED_INTERVAL)
+    == (_NOTIFY_INTERVAL_MIN, _NOTIFY_INTERVAL_MAX)
+), "notify-interval ranges diverged — give each selector its own registry bound"
 _MAX_PER_DAY_MIN, _MAX_PER_DAY_MAX = int_range(CONF_MAX_NOTIFICATIONS_PER_DAY)
 _BUNDLE_MIN, _BUNDLE_MAX = int_range(CONF_NOTIFICATION_BUNDLE_THRESHOLD)
 _SNOOZE_MIN, _SNOOZE_MAX = int_range(CONF_SNOOZE_DURATION_HOURS)
@@ -464,7 +473,7 @@ class GlobalOptionsFlow(OptionsFlow):
                 return self._save_and_return(user_input)
 
         current = self._current
-        currency_code = current.get(CONF_BUDGET_CURRENCY, "EUR")
+        currency_code = current.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY)
         currency_options = [
             selector.SelectOptionDict(value=code, label=f"{code} ({symbol})")
             for code, symbol in BUDGET_CURRENCIES.items()
@@ -724,7 +733,7 @@ class GlobalOptionsFlow(OptionsFlow):
             return self._save_and_return(user_input)
 
         current = self._current
-        currency_code = current.get(CONF_BUDGET_CURRENCY, "EUR")
+        currency_code = current.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY)
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
 
         return self.async_show_form(

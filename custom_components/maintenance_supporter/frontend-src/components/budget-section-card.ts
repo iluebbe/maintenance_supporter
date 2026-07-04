@@ -8,7 +8,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "../styles";
+import { t, DEFAULT_CURRENCY_SYMBOL } from "../styles";
 import { describeWsError } from "../ws-errors";
 import { sectionCardSharedStyles } from "./section-card-shared-styles";
 import type { HomeAssistant } from "../types";
@@ -107,7 +107,7 @@ export class MaintenanceBudgetSectionCard extends LitElement {
     if (!s) {
       return html`<ha-card><div class="loading">${t("loading", L) || "Loading…"}</div></ha-card>`;
     }
-    const sym = s.currency_symbol || "€";
+    const sym = s.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
     const mPct = s.monthly_budget ? Math.min(100, ((s.monthly_spent || 0) / s.monthly_budget) * 100) : 0;
     const yPct = s.yearly_budget ? Math.min(100, ((s.yearly_spent || 0) / s.yearly_budget) * 100) : 0;
     const mWarn = mPct >= 100 ? "danger" : mPct >= 80 ? "warning" : "ok";

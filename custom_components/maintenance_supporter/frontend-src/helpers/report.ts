@@ -27,7 +27,9 @@ export interface ReportLabels {
   colCost: string;
   colTimes: string;
   totalCost: string;
-  everyDays: string; // "every {n} {unit}"
+  /** Human schedule label for a task — pass formatRecurrence so calendar
+   *  kinds (weekdays/nth_weekday/…) render properly, not just intervals. */
+  scheduleLabel: (t: MaintenanceTask) => string;
   statusLabel: (s: string) => string;
   typeLabel: (t: string) => string;
   none: string;
@@ -55,9 +57,7 @@ export function buildObjectReportHtml(
   ] as Array<[string, string | null | undefined]>).filter(([, v]) => !!v);
 
   const rows = tasks.map((t) => {
-    const schedule = t.interval_days
-      ? labels.everyDays.replace("{n}", String(t.interval_days)).replace("{unit}", t.interval_unit || "days")
-      : (t.schedule_type === "sensor_based" ? "sensor" : (t.schedule_type === "one_time" ? "once" : (t.schedule_type || "")));
+    const schedule = labels.scheduleLabel(t);
     return `<tr>
       <td>${esc(t.name)}</td>
       <td>${esc(labels.typeLabel(t.type))}</td>

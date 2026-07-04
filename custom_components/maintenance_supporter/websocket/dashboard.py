@@ -57,9 +57,12 @@ from ..const import (
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WEEKLY_DIGEST_ENABLED,
     DEFAULT_ARCHIVE_ONEOFF_DAYS,
+    DEFAULT_BUDGET_CURRENCY,
     DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DEFAULT_PANEL_ENABLED,
+    DEFAULT_SNOOZE_DURATION_HOURS,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
@@ -135,7 +138,7 @@ def _build_full_settings(
             ),
         },
         "general": {
-            "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, 7),
+            "default_warning_days": options.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
             "notifications_enabled": options.get(CONF_NOTIFICATIONS_ENABLED, False),
             "notify_service": options.get(CONF_NOTIFY_SERVICE, ""),
             # Shared pickable-target list so the panel picker can't drift from
@@ -164,7 +167,7 @@ def _build_full_settings(
             "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),
             "skip_enabled": options.get(CONF_ACTION_SKIP_ENABLED, False),
             "snooze_enabled": options.get(CONF_ACTION_SNOOZE_ENABLED, False),
-            "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, 4),
+            "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS),
             "weekly_digest_enabled": options.get(CONF_WEEKLY_DIGEST_ENABLED, False),
         },
         "budget": {
@@ -172,9 +175,10 @@ def _build_full_settings(
             "yearly": options.get(CONF_BUDGET_YEARLY, 0.0),
             "alerts_enabled": options.get(CONF_BUDGET_ALERTS_ENABLED, False),
             "alert_threshold_pct": options.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
-            "currency": options.get(CONF_BUDGET_CURRENCY, "EUR"),
+            "currency": options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY),
             "currency_symbol": BUDGET_CURRENCIES.get(
-                options.get(CONF_BUDGET_CURRENCY, "EUR"), "€"
+                options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY),
+                BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY],
             ),
         },
         # Vacation mode (v1.2.0). Mirror the active flag so the panel can
@@ -374,7 +378,7 @@ async def ws_get_budget_status(
                     if entry_dt.month == now.month:
                         monthly_spent += cost
 
-    currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, "EUR"))
+    currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
     currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
 
     connection.send_result(

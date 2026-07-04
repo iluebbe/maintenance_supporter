@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ..const import MaintenanceTypeEnum
+from ..const import DEFAULT_INTERVAL_DAYS, MaintenanceTypeEnum
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class MaintenanceType:
             name=data["name"],
             icon=data["icon"],
             typical_duration=data.get("typical_duration", 30),
-            default_interval_days=data.get("default_interval_days", 30),
+            default_interval_days=data.get("default_interval_days", DEFAULT_INTERVAL_DAYS),
         )
 
 

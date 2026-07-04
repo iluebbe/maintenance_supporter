@@ -21,6 +21,7 @@ from ..const import (
     CONF_TASKS,
     DEFAULT_WARNING_DAYS,
     DOMAIN,
+    FLAT_SCHEDULE_TYPES,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_DATE_LENGTH,
@@ -69,7 +70,7 @@ from .tasks_validation import (
         # Nested recurrence (calendar kinds: weekdays / nth_weekday / day_of_month).
         # Validated/canonicalized in the handler via Schedule.from_dict.
         vol.Optional("schedule"): vol.Any(dict, None),
-        vol.Optional("warning_days", default=7): vol.All(int, vol.Range(min=0, max=365)),
+        vol.Optional("warning_days", default=DEFAULT_WARNING_DAYS): vol.All(int, vol.Range(min=0, max=365)),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
@@ -387,7 +388,7 @@ async def ws_update_task(
     # and must not collapse the calendar schedule to manual (the #58/#42 class).
     _flat_recurrence_edit = any(
         k in msg for k in ("interval_days", "interval_unit", "interval_anchor", "due_date")
-    ) or msg.get("schedule_type") in ("time_based", "one_time", "manual")
+    ) or msg.get("schedule_type") in FLAT_SCHEDULE_TYPES
     if msg.get("schedule"):
         for key in FLAT_RECURRENCE_KEYS:
             task.pop(key, None)

@@ -1,11 +1,13 @@
 /**
- * Unit-aware interval math (issue #59). Mirrors the backend
- * `helpers/dates.add_interval` day-span so the frontend's progress bars and
- * calendar projection behave correctly for weeks/months/years schedules,
- * not just days. Pure functions — no i18n, unit-tested in interval.test.ts.
+ * Unit-aware interval math (issue #59) for the frontend's progress bars and
+ * calendar projection stepping. Uses an AVERAGE day-span per unit (below), an
+ * intentional approximation — the backend `helpers/dates.add_interval` is
+ * calendar-exact (Jan+1mo = 31 days), so display-side spans can differ by a day
+ * or two. Cosmetic only. Pure functions — unit-tested in interval.test.ts.
  */
 
-/** Approximate days per interval unit (mean Gregorian month / Julian year). */
+/** Approximate (average) days per interval unit — mean Gregorian month / Julian
+ *  year. NOT calendar-exact; see the module note above. */
 export const UNIT_DAYS: Record<string, number> = {
   days: 1,
   weeks: 7,
