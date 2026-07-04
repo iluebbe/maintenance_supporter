@@ -82,9 +82,11 @@ so rate-limiting, quiet hours, and bundling apply automatically.
 
 ## Next (under consideration)
 
-### 💡 Priority levels
-An explicit priority per task (e.g. P1–P4) to sharpen triage when many tasks
-are due at once — feeds the existing sort/group-by, and notification emphasis.
+### ✅ Priority levels
+**Shipped.** An explicit priority per task (low / normal / high) to sharpen
+triage when many tasks are due at once — a priority badge in the panel, carried
+through create/update on every surface (WS, 3 config-flow forms, task dialog),
+and persisted only when non-default.
 
 ### 💡 "Missed" status + completion window
 Distinguish a task that was due and never done (**Missed**) from a manual
@@ -97,12 +99,12 @@ Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
 across objects, areas, and groups for filtering and reporting — orthogonal to
 the existing hierarchical grouping.
 
-### 💡 Warranty-expiry reminders
-Remind ahead of an object's warranty running out, linked to its stored warranty
-document. Reuses the notification manager (lead times, quiet hours, bundling)
-and the documents feature (attach the warranty PDF, surface it in the reminder).
-Distinct from a recurring task's due date — it's a one-off date on the
-object/document, not a schedule.
+### ✅ Warranty-expiry reminders
+**Shipped** (opt-in). A daily check reminds once when an object's stored
+`warranty_expiry` is exactly N days out (default 30, configurable 1–365 in the
+panel settings). Routes through the notification manager (quiet hours, bundling,
+dual service/entity send). Distinct from a recurring task's due date — it's a
+one-off date on the object, not a schedule.
 
 ---
 
@@ -176,8 +178,10 @@ changes, but they gate how cheap the features above are to build.
   Remaining: the *task/trigger field* forms are still two hand-written UIs; derive
   both from a single field-schema source so a new field lands in panel *and*
   options flow automatically.
-- 🛠️ **Parallelize the test suite** (pytest-xdist) — the backend suite is at
-  ~9 minutes and growing.
+- ✅ **Parallelize the test suite** (pytest-xdist) — CI runs
+  `pytest -n auto --dist loadfile`; per-test blob isolation
+  (`_isolate_document_blobs` conftest fixture) keeps the parallel run
+  deterministic.
 
 ---
 
