@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixes
+
+- **Runtime-trigger chart** now shows the current cycle correctly — a straight
+  line from 0 at the last service up to the live accumulated hours, resetting to
+  zero each completion — instead of plotting the entity's unrelated raw
+  statistics and staying pinned near the target line.
+- **Dialogs opened from the dashboard strategy** (a lazily-loaded chunk) now load
+  the user's locale, so the popup is localized instead of falling back to English
+  while the rest of the integration is translated.
+
 ### ✨ New
 
 - **Task priority** — each task can be Low / Normal / High. Editable in the task
