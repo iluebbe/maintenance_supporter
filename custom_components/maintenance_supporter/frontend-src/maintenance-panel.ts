@@ -4,6 +4,7 @@ import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { sharedStyles, STATUS_COLORS, STATUS_ICONS, t, ensureLocale, isLocaleLoaded, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { daysProgress } from "./helpers/interval";
+import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { downloadTextFile } from "./helpers/download";
@@ -976,6 +977,48 @@ export class MaintenanceSupporterPanel extends LitElement {
     } catch {
       this._showToast(t("action_error", this._lang));
     }
+  }
+
+  /** Open a printable maintenance report for the object in a new tab (the user
+   *  prints / saves as PDF from there). Self-contained HTML, no dependency. */
+  private _printObjectReport(entryId: string): void {
+    const resp = this._getObject(entryId);
+    if (!resp) return;
+    const L = this._lang;
+    const labels: ReportLabels = {
+      title: t("report_title", L),
+      generated: t("report_generated", L),
+      manufacturer: t("manufacturer", L),
+      model: t("model", L),
+      serial: t("serial_number_label", L),
+      installed: t("installed", L),
+      warranty: t("warranty", L),
+      area: t("area", L),
+      notes: t("report_notes", L),
+      tasksHeading: t("tasks", L),
+      colTask: t("task_name", L),
+      colType: t("report_col_type", L),
+      colStatus: t("report_col_status", L),
+      colSchedule: t("report_col_schedule", L),
+      colLastDone: t("last_performed", L),
+      colNextDue: t("next_due", L),
+      colCost: t("cost", L),
+      colTimes: t("report_times_done", L),
+      totalCost: t("report_total_cost", L),
+      everyDays: t("report_every", L),
+      none: "—",
+      statusLabel: (s: string) => t(s, L),
+      typeLabel: (ty: string) => t(ty, L),
+    };
+    const html = buildObjectReportHtml(
+      resp.object, resp.tasks, labels,
+      (iso) => (iso ? formatDate(iso, L) : ""),
+      this._budget?.currency_symbol || "€",
+      new Date().toISOString(),
+    );
+    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
   private async _duplicateObject(entryId: string): Promise<void> {
@@ -2267,6 +2310,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
             ` : nothing}
             <ha-button appearance="plain" @click=${() => this._openQrForObject(obj.entry_id, o.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
+            <ha-button appearance="plain" @click=${() => this._printObjectReport(obj.entry_id)}><ha-icon icon="mdi:file-document-outline"></ha-icon> ${t("report_button", L)}</ha-button>
           </div>
         </div>
         ${o.manufacturer || o.model
