@@ -11,10 +11,13 @@ Legend: 💡 proposed · 🛠️ in progress · ✅ shipped
 
 ## Near-term (planned)
 
-### 💡 LLM setup assistant — a skill that configures the integration for you
-A guided skill (Claude Code / Assist / an MCP-style agent) that stands the
-integration up correctly from a conversation, instead of the user clicking
-through the config flow object-by-object. The skill would:
+### ✅ LLM setup assistant — a skill that configures the integration for you
+**Shipped** as a portable skill/playbook in
+[`skills/maintenance-setup-assistant/`](skills/maintenance-setup-assistant/)
+(SKILL.md + WS-API contract + discovery heuristics + non-smart catalog with
+derived-usage-sensor recipes). A guided skill (Claude Code / Assist / an
+MCP-style agent) that stands the integration up correctly from a conversation,
+instead of the user clicking through the config flow object-by-object. The skill:
 
 1. **Authenticate to Home Assistant** — obtain (or be given) a long-lived
    access token and the base URL; verify it can reach the WS/REST API. Never

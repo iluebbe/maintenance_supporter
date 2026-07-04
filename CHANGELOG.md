@@ -2,6 +2,19 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 📚 Docs / tooling
+
+- **LLM setup-assistant skill** — a portable skill/playbook under
+  `skills/maintenance-setup-assistant/` that lets an LLM agent stand the
+  integration up from a conversation: connect to HA, discover maintenance
+  candidates from the device/entity registries, propose objects + tasks with
+  sensor triggers or intervals (plus a curated non-smart catalog and
+  derived-usage-sensor recipes), and create everything via the public WS API
+  with dry-run previews and confirm-before-write guardrails. No integration
+  code change — it encodes the existing WS command contract.
+
 ## [2.15.0] - 2026-07-04
 
 A big usability release — most of the panel UX roadmap in one go.
