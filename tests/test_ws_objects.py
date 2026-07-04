@@ -24,6 +24,7 @@ from custom_components.maintenance_supporter.websocket.groups import (
 from custom_components.maintenance_supporter.websocket.objects import (
     ws_create_object,
     ws_delete_object,
+    ws_duplicate_object,
     ws_entity_attributes,
     ws_get_object,
     ws_get_objects,
@@ -79,6 +80,69 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     )
     entry.add_to_hass(hass)
     return entry
+
+
+async def test_ws_duplicate_object_clones_object_and_tasks(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """Duplicate clones the object + its tasks into a fresh, un-started entry."""
+    from custom_components.maintenance_supporter.const import (
+        CONF_OBJECT,
+        CONF_OBJECT_NAME,
+        CONF_OBJECT_SERIAL_NUMBER,
+        CONF_TASKS,
+    )
+
+    # Give the source a serial number + a task with a unique slug.
+    src = hass.config_entries.async_get_entry(object_entry.entry_id)
+    assert src is not None
+    data = dict(src.data)
+    obj = dict(data[CONF_OBJECT])
+    obj[CONF_OBJECT_SERIAL_NUMBER] = "SN-12345"
+    data[CONF_OBJECT] = obj
+    tasks = dict(data[CONF_TASKS])
+    t = dict(tasks[TASK_ID_1])
+    t["entity_slug"] = "pool_pump_task"
+    t["interval_days"] = 45
+    tasks[TASK_ID_1] = t
+    data[CONF_TASKS] = tasks
+    hass.config_entries.async_update_entry(src, data=data)
+
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+
+    await call_ws_handler(ws_duplicate_object, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/object/duplicate",
+        "entry_id": object_entry.entry_id,
+    })
+    conn.send_error.assert_not_called()
+    new_entry_id = conn.send_result.call_args[0][1]["entry_id"]
+    assert new_entry_id != object_entry.entry_id
+
+    new_entry = hass.config_entries.async_get_entry(new_entry_id)
+    assert new_entry is not None
+    new_obj = new_entry.data[CONF_OBJECT]
+    assert new_obj[CONF_OBJECT_NAME] == "Pool Pump (copy)"
+    assert new_obj["manufacturer"] == "Pentair"          # config carried over
+    assert new_obj[CONF_OBJECT_SERIAL_NUMBER] is None     # serial dropped
+    assert new_obj["id"] != obj["id"]                     # fresh object id
+
+    new_tasks = new_entry.data[CONF_TASKS]
+    assert len(new_tasks) == 1
+    (copied_id, copied) = next(iter(new_tasks.items()))
+    assert copied_id != TASK_ID_1
+    assert copied["object_id"] == new_obj["id"]
+    # Recurrence preserved (normalize_task_storage may nest it under `schedule`).
+    from custom_components.maintenance_supporter.helpers.schedule import (
+        read_legacy_fields,
+    )
+    assert read_legacy_fields(copied)["interval_days"] == 45   # task config kept
+    assert "entity_slug" not in copied                   # unique key dropped
+    assert "history" not in copied and "last_performed" not in copied
+    assert new_obj["task_ids"] == [copied_id]
+
+    # cleanup the created entry
+    await hass.config_entries.async_remove(new_entry_id)
 
 
 # ─── Get Objects ──────────────────────────────────────────────────────────

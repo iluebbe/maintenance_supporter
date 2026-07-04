@@ -12,6 +12,7 @@
   "edit": "Edit",
   "duplicate": "Duplicate",
   "task_duplicated": "Task duplicated",
+  "object_duplicated": "Object duplicated",
   "delete": "Delete",
   "add_task": "+ Add Task",
   "complete": "Complete",

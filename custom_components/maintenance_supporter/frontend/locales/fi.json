@@ -12,6 +12,7 @@
   "edit": "Muokkaa",
   "duplicate": "Monista",
   "task_duplicated": "Tehtävä monistettu",
+  "object_duplicated": "Kohde monistettu",
   "delete": "Poista",
   "add_task": "+ Lisää tehtävä",
   "complete": "Valmis",

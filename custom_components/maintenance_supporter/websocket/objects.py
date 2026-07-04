@@ -362,6 +362,70 @@ async def ws_delete_object(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/object/duplicate",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_duplicate_object(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Clone an object and all its tasks as a fresh, un-started copy.
+
+    A new config entry named "… (copy)" carries over the object's details and
+    every task's configuration, but nothing device- or history-specific: the
+    serial number is dropped, and each task starts clean (no history /
+    last_performed, its own new id, and no unique entity_slug / NFC tag). Ideal
+    for fleets of near-identical assets (hotel rooms, identical pumps).
+    """
+    from copy import deepcopy
+
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    src_obj = entry.data.get(CONF_OBJECT, {})
+    new_obj = deepcopy(dict(src_obj))
+    new_obj["id"] = uuid4().hex
+    base_name = str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
+    new_obj[CONF_OBJECT_NAME] = f"{base_name} (copy)"[:MAX_NAME_LENGTH]
+    # Serial number identifies one physical unit — never duplicate it.
+    new_obj[CONF_OBJECT_SERIAL_NUMBER] = None
+    new_obj["task_ids"] = []
+    new_obj.pop("archived_at", None)
+
+    new_tasks: dict[str, Any] = {}
+    for src_task in entry.data.get(CONF_TASKS, {}).values():
+        task = deepcopy(dict(src_task))
+        task_id = uuid4().hex
+        task["id"] = task_id
+        task["object_id"] = new_obj["id"]
+        for key in ("entity_slug", "nfc_tag_id", "history", "last_performed",
+                    "last_planned_due", "adaptive_config", "archived_at",
+                    "archived_reason"):
+            task.pop(key, None)
+        if isinstance(task.get("trigger_config"), dict):
+            task["trigger_config"].pop("_trigger_state", None)
+        new_tasks[task_id] = task
+        new_obj["task_ids"].append(task_id)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "websocket"},
+        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
+    )
+    if result["type"] != "create_entry":
+        connection.send_error(
+            msg["id"], "duplicate_failed", result.get("reason", "unknown")
+        )
+        return
+    connection.send_result(msg["id"], {"entry_id": result["result"].entry_id})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/object/archive",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
     }
