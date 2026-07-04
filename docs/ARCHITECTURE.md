@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (49 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (55 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -508,7 +508,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-49 commands organized by function:
+55 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -525,12 +525,13 @@ Multi-channel notification with:
 | **QR** | `qr/generate`, `qr/batch_generate` |
 | **Entity Introspection** | `entity/attributes` |
 | **NFC Tags** | `tags/list` |
+| **Documents** (2.11.0) | `documents/list`, `documents/storage`, `documents/add_link`, `documents/update`, `documents/delete`, `documents/search` — file binaries travel through two authenticated HTTP views (`POST /api/maintenance_supporter/document/upload`, `GET /api/maintenance_supporter/document/{doc_id}`), not WS |
 
 All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 49 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 55 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|

@@ -161,34 +161,20 @@ echo "Creating demo objects..."
 $PYTHON scripts/setup_demo.py
 
 # ---------------------------------------------------------------------------
-# 7. Restart HA so storage files are flushed, then seed history
+# 7. Stop HA, then seed history + recorder against the quiesced files
+#
+# A clean stop flushes any pending Store writes from setup_demo. Both seeders
+# MUST run while HA is down: seed_history rewrites the maintenance Store files
+# (a running HA would overwrite them with its in-memory state on the next save
+# or at shutdown), and seed_recorder writes the recorder SQLite directly.
 # ---------------------------------------------------------------------------
 echo ""
-echo "Restarting HA to flush storage..."
-docker compose -f "$DOCKER_DIR/compose.yaml" restart homeassistant-dev
-
-echo "Waiting for HA to become ready after restart..."
-ELAPSED=0
-while [ $ELAPSED -lt $MAX_WAIT ]; do
-    if docker exec ha-maint wget -q -O /dev/null http://localhost:8123/manifest.json 2>/dev/null; then
-        echo "  HA is ready (${ELAPSED}s)."
-        break
-    fi
-    sleep 5
-    ELAPSED=$((ELAPSED + 5))
-done
-sleep 5
+echo "Stopping HA to seed storage + recorder database..."
+docker compose -f "$DOCKER_DIR/compose.yaml" stop homeassistant-dev
+sleep 3
 
 echo "Seeding maintenance history..."
 $PYTHON scripts/seed_history.py
-
-# ---------------------------------------------------------------------------
-# 8. Stop HA to safely write recorder DB, then seed recorder history
-# ---------------------------------------------------------------------------
-echo ""
-echo "Stopping HA to seed recorder database..."
-docker compose -f "$DOCKER_DIR/compose.yaml" stop homeassistant-dev
-sleep 3
 
 echo "Seeding recorder history (1 year of granular data)..."
 $PYTHON scripts/seed_recorder.py
