@@ -254,6 +254,7 @@ CONF_TASK_ICON = "custom_icon"
 CONF_TASK_NFC_TAG = "nfc_tag_id"
 CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
 CONF_TASK_SCHEDULE_TIME = "schedule_time"
+CONF_TASK_PRIORITY = "priority"
 
 # --- Config Keys: User Assignment ---
 CONF_RESPONSIBLE_USER_ID = "responsible_user_id"
@@ -445,6 +446,18 @@ class TriggerType(StrEnum):
     STATE_CHANGE = "state_change"
     RUNTIME = "runtime"
     COMPOUND = "compound"
+
+
+class TaskPriority(StrEnum):
+    """Priority level of a maintenance task."""
+
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+
+
+# The default when a task doesn't specify a priority.
+DEFAULT_TASK_PRIORITY = TaskPriority.NORMAL
 
 
 class HistoryEntryType(StrEnum):

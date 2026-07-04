@@ -24,6 +24,7 @@ from .const import (
     CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
+    CONF_TASK_PRIORITY,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -112,6 +113,8 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             task_data["notes"] = self._current_task[CONF_TASK_NOTES]
         if CONF_TASK_ICON in self._current_task:
             task_data["custom_icon"] = self._current_task[CONF_TASK_ICON]
+        if CONF_TASK_PRIORITY in self._current_task:
+            task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
 
         cap_task_fields(task_data)
         new_data = dict(self.config_entry.data)

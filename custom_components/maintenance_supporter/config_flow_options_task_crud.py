@@ -31,6 +31,7 @@ from .const import (
     CONF_TASK_NAME,
     CONF_TASK_NFC_TAG,
     CONF_TASK_NOTES,
+    CONF_TASK_PRIORITY,
     CONF_TASK_SCHEDULE_TIME,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -195,6 +196,7 @@ class TaskCrudMixin:
                 else:
                     updated_task.pop(CONF_RESPONSIBLE_USER_ID, None)
                 icon_val = user_input.get(CONF_TASK_ICON, "")
+                updated_task[CONF_TASK_PRIORITY] = user_input.get(CONF_TASK_PRIORITY, "normal")
                 if icon_val:
                     updated_task[CONF_TASK_ICON] = icon_val
                 else:
@@ -370,6 +372,13 @@ class TaskCrudMixin:
                         )
                     ),
                     icon_key: selector.IconSelector(),
+                    vol.Optional(CONF_TASK_PRIORITY, default=task.get(CONF_TASK_PRIORITY, "normal")): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["low", "normal", "high"],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="task_priority",
+                        )
+                    ),
                     nfc_tag_key: selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT

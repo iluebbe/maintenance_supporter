@@ -21,6 +21,7 @@ from custom_components.maintenance_supporter.const import (
     KNOWN_OBJECT_TABLE_COLUMNS,
     MaintenanceTypeEnum,
     ScheduleType,
+    TaskPriority,
     TriggerType,
 )
 
@@ -98,6 +99,15 @@ def test_ts_trigger_type_keys_match_enum() -> None:
     )
     assert [*flat, "compound"] == all_types, (
         "TRIGGER_TYPE_KEYS + compound must equal the full TriggerType enum"
+    )
+
+
+def test_ts_priority_keys_match_enum() -> None:
+    """task-dialog PRIORITY_KEYS must equal the Python TaskPriority enum."""
+    src = _TASK_DIALOG_TS.read_text(encoding="utf-8")
+    keys = _quoted_strings(_block(src, "const PRIORITY_KEYS"))
+    assert keys == [e.value for e in TaskPriority], (
+        "task-dialog.ts PRIORITY_KEYS drifted from TaskPriority"
     )
 
 

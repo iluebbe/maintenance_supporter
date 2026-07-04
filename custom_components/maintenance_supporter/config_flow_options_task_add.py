@@ -23,6 +23,7 @@ from .const import (
     CONF_TASK_INTERVAL_UNIT,
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
+    CONF_TASK_PRIORITY,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -70,6 +71,8 @@ class AddTaskMixin:
             }
             if user_input.get(CONF_TASK_ICON):
                 self._current_task[CONF_TASK_ICON] = user_input[CONF_TASK_ICON]
+            if user_input.get(CONF_TASK_PRIORITY):
+                self._current_task[CONF_TASK_PRIORITY] = user_input[CONF_TASK_PRIORITY]
 
             self._trigger_on_complete = self._save_new_task
             self._on_cancel = self._show_init_menu
@@ -123,6 +126,13 @@ class AddTaskMixin:
                         )
                     ),
                     vol.Optional(CONF_TASK_ICON): selector.IconSelector(),
+                    vol.Optional(CONF_TASK_PRIORITY, default="normal"): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=["low", "normal", "high"],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            translation_key="task_priority",
+                        )
+                    ),
                     vol.Optional(
                         "go_back", default=False
                     ): selector.BooleanSelector(),

@@ -4,6 +4,12 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ New
+
+- **Task priority** — each task can be Low / Normal / High. Editable in the task
+  dialog and both config-flow surfaces, shown as a compact badge on the task row
+  (▲ high / ▼ low), and exposed via the WS API. Localized in all 18 languages.
+
 ## [2.16.0] - 2026-07-05
 
 A hardening & maintainability release: two full code-review passes (security +

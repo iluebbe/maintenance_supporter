@@ -79,6 +79,7 @@ from .tasks_validation import (
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        vol.Optional("priority"): vol.In(["low", "normal", "high"]),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
         # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
         vol.Optional("schedule_time"): vol.Any(
@@ -196,6 +197,8 @@ async def ws_create_task(
         task_data["entity_slug"] = slug
     if msg.get("custom_icon") is not None:
         task_data["custom_icon"] = msg["custom_icon"]
+    if msg.get("priority") is not None:
+        task_data["priority"] = msg["priority"]
     if msg.get("nfc_tag_id") is not None:
         nfc_val = (msg["nfc_tag_id"] or "").strip() or None  # normalise ""/ whitespace → None
         task_data["nfc_tag_id"] = nfc_val
@@ -264,6 +267,7 @@ async def ws_create_task(
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        vol.Optional("priority"): vol.In(["low", "normal", "high"]),
         vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
         vol.Optional("schedule_time"): vol.Any(
             vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
@@ -370,6 +374,7 @@ async def ws_update_task(
         "entity_slug": "entity_slug",
         "custom_icon": "custom_icon",
         "nfc_tag_id": "nfc_tag_id",
+        "priority": "priority",
         "checklist": "checklist",
         "schedule_time": "schedule_time",
         # v1.3.0

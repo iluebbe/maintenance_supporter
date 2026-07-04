@@ -127,6 +127,7 @@ def _build_task_summary(
         "documentation_url": task_data.get("documentation_url"),
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
+        "priority": task_data.get("priority", "normal"),
         # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
         # `archived` is the convenience bool the frontend filters on; reason is
         # manual | auto | object. All read from the persisted (static) task dict.

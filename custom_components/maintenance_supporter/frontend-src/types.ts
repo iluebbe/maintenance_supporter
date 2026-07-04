@@ -191,6 +191,7 @@ export interface MaintenanceTask {
   responsible_user_id?: string | null;
   custom_icon?: string | null;
   nfc_tag_id?: string | null;
+  priority?: string | null;
   entity_slug?: string | null;
   // Auto-derived sensor + binary_sensor entity_ids (since 1.0.45)
   sensor_entity_id?: string | null;
@@ -325,6 +326,7 @@ export interface TaskRow {
   history: HistoryEntry[];
   enabled: boolean;
   nfc_tag_id: string | null;
+  priority: string;
   area_id: string | null;
   responsible_user_id: string | null;
   group_names: string[];
