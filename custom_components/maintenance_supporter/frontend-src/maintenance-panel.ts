@@ -132,6 +132,12 @@ export class MaintenanceSupporterPanel extends LitElement {
   // complete/archive). Keys are `${entry_id}:${task_id}`.
   @state() private _bulkMode = false;
   @state() private _bulkSelected = new Set<string>();
+  // v2.15.0: collapsed analysis sections on the task-detail overview tab,
+  // remembered per section across visits.
+  @state() private _collapsedSections: Set<string> = (() => {
+    try { return new Set(JSON.parse(localStorage.getItem("msp-collapsed-sections") || "[]")); }
+    catch { return new Set(); }
+  })();
   // v1.5.0: Calendar tab state
   // v2.0.0: window-days + user-filter state moved into the
   // <maintenance-supporter-calendar-card> custom element — the panel just
@@ -2205,6 +2211,30 @@ export class MaintenanceSupporterPanel extends LitElement {
     };
   }
 
+  private _toggleSection(key: string): void {
+    const next = new Set(this._collapsedSections);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    this._collapsedSections = next;
+    try { localStorage.setItem("msp-collapsed-sections", JSON.stringify([...next])); } catch { /* private mode */ }
+  }
+
+  /** Wrap a task-detail analysis card in a collapsible section. The section
+   *  header owns the title (the wrapped card's own title is hidden via CSS —
+   *  `.collapsible-body` — so it isn't shown twice). Remembered per key. */
+  private _collapsible(key: string, titleKey: string, body: unknown) {
+    const collapsed = this._collapsedSections.has(key);
+    return html`
+      <div class="collapsible ${collapsed ? "collapsed" : ""}">
+        <button class="collapsible-head" @click=${() => this._toggleSection(key)}
+          aria-expanded=${collapsed ? "false" : "true"}>
+          <ha-icon icon="${collapsed ? "mdi:chevron-right" : "mdi:chevron-down"}"></ha-icon>
+          <span>${t(titleKey, this._lang)}</span>
+        </button>
+        ${collapsed ? nothing : html`<div class="collapsible-body">${body}</div>`}
+      </div>
+    `;
+  }
+
   private _renderOverviewTab(task: MaintenanceTask) {
     const L = this._lang;
 
@@ -2239,15 +2269,19 @@ export class MaintenanceSupporterPanel extends LitElement {
             ${renderCostDurationCard(task, L, this._costDurationToggle, (v) => { this._costDurationToggle = v; })}
           </div>
         </div>
-        ${hasWeibullData ? renderWeibullSection(task, L) : nothing}
-        ${hasSeasonalData ? html`
-          ${renderSeasonalCardExpanded(task, L)}
-          <div class="seasonal-actions">
-            <ha-button appearance="plain" @click=${() => this._openSeasonalOverrides(task)}>
-              ${t("edit_seasonal_overrides", L)}
-            </ha-button>
-          </div>
-        ` : nothing}
+        ${hasWeibullData
+          ? this._collapsible("weibull", "weibull_reliability_curve", renderWeibullSection(task, L))
+          : nothing}
+        ${hasSeasonalData
+          ? this._collapsible("seasonal", "seasonal_chart_title", html`
+              ${renderSeasonalCardExpanded(task, L)}
+              <div class="seasonal-actions">
+                <ha-button appearance="plain" @click=${() => this._openSeasonalOverrides(task)}>
+                  ${t("edit_seasonal_overrides", L)}
+                </ha-button>
+              </div>
+            `)
+          : nothing}
         ${this._renderChecklistCard(task)}
         ${this._renderRecentActivities(task)}
       </div>

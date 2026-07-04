@@ -121,6 +121,22 @@ export const panelStyles = css`
   .bulk-actions { margin-left: auto; display: inline-flex; gap: 8px; }
   .bulk-toggle.active { --mdc-theme-primary: var(--primary-color); }
 
+  /* Collapsible analysis sections on the task-detail overview tab. The header
+     owns the title, so the wrapped card's own title row is hidden to avoid
+     showing it twice. */
+  .collapsible { margin: 8px 0; border: 1px solid var(--divider-color); border-radius: 10px; overflow: hidden; }
+  .collapsible-head {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    font: inherit; font-weight: 600; font-size: 14px; text-align: left;
+    padding: 10px 12px; cursor: pointer; background: var(--secondary-background-color);
+    border: none; color: var(--primary-text-color);
+  }
+  .collapsible-head:hover { background: var(--table-row-alternative-background-color, rgba(0,0,0,.04)); }
+  .collapsible-head ha-icon { --mdc-icon-size: 20px; color: var(--secondary-text-color); }
+  .collapsible-body { padding: 4px 12px 12px; }
+  .collapsible-body > .weibull-section > .weibull-title,
+  .collapsible-body > .seasonal-chart > .seasonal-chart-title { display: none; }
+
   .task-row:hover {
     background: var(--table-row-alternative-background-color, rgba(0, 0, 0, 0.04));
   }
