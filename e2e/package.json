@@ -1,0 +1,12 @@
+{
+  "name": "maintenance-supporter-e2e",
+  "private": true,
+  "description": "End-to-end user-story tests: drive a real Home Assistant + the integration in a real browser.",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.57.0"
+  }
+}
