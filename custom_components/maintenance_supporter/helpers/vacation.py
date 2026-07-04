@@ -26,6 +26,7 @@ from ..const import (
     CONF_VACATION_EXEMPT_TASK_IDS,
     CONF_VACATION_START,
     DEFAULT_VACATION_BUFFER_DAYS,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
@@ -254,7 +255,7 @@ def compute_preview(
                 last_performed=_coerce_date(t.get("last_performed")),
                 created_at=_coerce_date(t.get("created_at")),
                 interval_days=t.get("interval_days"),
-                warning_days=int(t.get("warning_days") or 0),
+                warning_days=(int(t["warning_days"]) if t.get("warning_days") is not None else DEFAULT_WARNING_DAYS),
                 today=today,
                 window_start=window_start,
                 window_end=window_end,
@@ -285,7 +286,7 @@ def compute_preview(
                 else None
             )
             events = (
-                _events_from_next_due(nd, int(t.get("warning_days") or 0), today, window_start, window_end)
+                _events_from_next_due(nd, (int(t["warning_days"]) if t.get("warning_days") is not None else DEFAULT_WARNING_DAYS), today, window_start, window_end)
                 if nd
                 else []
             )

@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 from ..const import (
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_WARNING_DAYS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
 )
@@ -86,7 +87,7 @@ async def async_create_task_simple(
     interval_days: int | None = None,
     interval_unit: str = "days",
     due_date: str | None = None,
-    warning_days: int = 7,
+    warning_days: int = DEFAULT_WARNING_DAYS,
     enabled: bool = True,
     notes: str | None = None,
     schedule: dict[str, Any] | None = None,

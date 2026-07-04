@@ -30,7 +30,7 @@ import {
   type CalendarEvent,
 } from "./helpers/calendar-bucket";
 import { calendarStyles } from "./calendar-styles";
-import { sharedStyles, t, ensureLocale, isLocaleLoaded } from "./styles";
+import { sharedStyles, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded } from "./styles";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -258,7 +258,7 @@ export class MaintenanceCalendarCard extends LitElement {
             ${t("cal_predicted", L)} · ${t(`cal_confidence_${ev.prediction_confidence}`, L)}
           </span>`
         : nothing;
-      const currencySymbol = this._stats?.budget?.currency_symbol || "€";
+      const currencySymbol = this._stats?.budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL;
       // Past mode: ev.history_type is the actual event ('completed', 'skipped',
       // 'reset', 'triggered', 'trigger_replaced'). Showing the derived status
       // ('OK' for a completion) was confusing — discussion #49 user-feedback:

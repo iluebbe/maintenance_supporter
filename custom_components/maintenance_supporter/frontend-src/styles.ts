@@ -3,6 +3,10 @@
 import { css } from "lit";
 import EN from "./locales/en.json";
 
+// Display fallback when the backend hasn't sent a currency symbol. The backend
+// derives the real symbol from const.BUDGET_CURRENCIES[DEFAULT_BUDGET_CURRENCY].
+export const DEFAULT_CURRENCY_SYMBOL = "€";
+
 export const STATUS_COLORS: Record<string, string> = {
   ok: "var(--success-color, #4caf50)",
   due_soon: "var(--warning-color, #ff9800)",

@@ -93,7 +93,10 @@ function addDaysIso(iso: string, days: number): string {
   return isoDateLocal(date);
 }
 
-/** Average cost from history rows (mirrors the panel's avg-cost calc). */
+/** Average recorded cost across history rows that HAVE a cost (mean of
+ *  non-null `cost` values). Note this differs from the panel KPI, which divides
+ *  total_cost by times_performed — completions without a recorded cost are
+ *  counted differently. This mean is used only for the calendar tooltip. */
 function computeAvgCost(history: Array<{ cost?: number | null }> | undefined): number | null {
   if (!history || history.length === 0) return null;
   const costs = history.map((h) => h.cost).filter((c): c is number => typeof c === "number");
@@ -278,6 +281,7 @@ const HISTORY_TYPE_TO_STATUS: Record<string, string> = {
   skipped: "due_soon",
   triggered: "triggered",
   trigger_replaced: "triggered",
+  trigger_removed: "ok", // config change, not a due/triggered event
 };
 
 interface HistoryEntryShape {

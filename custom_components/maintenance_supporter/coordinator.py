@@ -28,6 +28,7 @@ from .const import (
     CONF_BUDGET_YEARLY,
     CONF_OBJECT,
     CONF_TASKS,
+    DEFAULT_BUDGET_CURRENCY,
     DEFAULT_INTERVAL_DAYS,
     DEFAULT_UPDATE_INTERVAL_MINUTES,
     DOMAIN,
@@ -820,7 +821,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if monthly_budget <= 0 and yearly_budget <= 0:
             return
 
-        currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, "EUR"))
+        currency_code = str(global_options.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY))
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
 
         # Use cached budget totals (recalculate if stale or missing)

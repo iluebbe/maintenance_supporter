@@ -14,6 +14,7 @@ from ..const import (
     CONF_OBJECT,
     CONF_OBJECT_NAME,
     CONF_TASKS,
+    TriggerType,
 )
 from . import (
     _get_object_entries,
@@ -85,7 +86,8 @@ def _check_nfc_tag_duplicate(
 # Trigger config validation
 # ---------------------------------------------------------------------------
 
-_VALID_TRIGGER_TYPES = {"threshold", "counter", "state_change", "runtime", "compound"}
+# Derived from the enum so the server validator can't drift from the type set.
+_VALID_TRIGGER_TYPES = frozenset(t.value for t in TriggerType)
 
 _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
     "threshold": [],  # at least one of trigger_above/trigger_below checked below

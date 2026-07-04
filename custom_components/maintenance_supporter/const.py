@@ -337,6 +337,10 @@ BUDGET_CURRENCIES: dict[str, str] = {
     "UAH": "₴",
 }
 
+# Default currency when the user hasn't chosen one. Its symbol is derived from
+# BUDGET_CURRENCIES so the two never disagree.
+DEFAULT_BUDGET_CURRENCY = "EUR"
+
 # --- Archive & Retention (v2.10.0) ---
 # Global int settings (panel-managed via WS, like objects_table_columns):
 #   archive_oneoff_days          — auto-archive a completed one-off this many days
@@ -423,6 +427,14 @@ class ScheduleType(StrEnum):
     SENSOR_BASED = "sensor_based"
     MANUAL = "manual"
     ONE_TIME = "one_time"
+
+
+# Schedule kinds expressed by the FLAT recurrence fields (interval/due_date),
+# as opposed to the nested calendar kinds (weekdays/nth_weekday/day_of_month)
+# or a sensor trigger. Used to decide flat-vs-calendar handling on task edit.
+FLAT_SCHEDULE_TYPES = frozenset(
+    {ScheduleType.TIME_BASED, ScheduleType.ONE_TIME, ScheduleType.MANUAL}
+)
 
 
 class TriggerType(StrEnum):
