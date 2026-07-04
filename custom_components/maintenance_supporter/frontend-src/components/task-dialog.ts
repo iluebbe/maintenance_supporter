@@ -13,6 +13,74 @@ const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibra
 const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "sensor_based", "one_time", "manual"];
 const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];
 const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime"];
+// The type selector additionally offers "compound" (a group of conditions
+// joined by AND/OR); its per-condition sub-type is limited to the flat kinds.
+const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
+
+/** One condition of a compound trigger — a flat trigger the user edits inline.
+ *  String-typed like the top-level fields (form inputs); coerced on save. */
+interface CompoundConditionDraft {
+  entityIds: string; // comma-separated raw input
+  type: string; // threshold | counter | state_change | runtime
+  above: string;
+  below: string;
+  forMinutes: string;
+  targetValue: string;
+  deltaMode: boolean;
+  fromState: string;
+  toState: string;
+  targetChanges: string;
+  runtimeHours: string;
+}
+
+function emptyCondition(): CompoundConditionDraft {
+  return {
+    entityIds: "", type: "threshold", above: "", below: "", forMinutes: "0",
+    targetValue: "", deltaMode: false, fromState: "", toState: "",
+    targetChanges: "", runtimeHours: "",
+  };
+}
+
+/** Map a persisted compound condition (storage shape) to an editable draft. */
+function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
+  const ids = c.entity_ids || (c.entity_id ? [c.entity_id] : []);
+  return {
+    entityIds: ids.join(", "),
+    type: c.type || "threshold",
+    above: c.trigger_above?.toString() ?? "",
+    below: c.trigger_below?.toString() ?? "",
+    forMinutes: c.trigger_for_minutes?.toString() ?? "0",
+    targetValue: c.trigger_target_value?.toString() ?? "",
+    deltaMode: c.trigger_delta_mode || false,
+    fromState: c.trigger_from_state || "",
+    toState: c.trigger_to_state || "",
+    targetChanges: c.trigger_target_changes?.toString() ?? "",
+    runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
+  };
+}
+
+/** Build the persisted condition (storage shape) from an editable draft.
+ *  Returns null when the condition has no entity (skip it). */
+function draftToCondition(d: CompoundConditionDraft): TriggerConfig | null {
+  const ids = d.entityIds.split(",").map((s) => s.trim()).filter(Boolean);
+  if (ids.length === 0) return null;
+  const c: TriggerConfig = { entity_id: ids[0], entity_ids: ids, type: d.type };
+  if (d.type === "threshold") {
+    const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
+    const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
+    const f = parseInt(d.forMinutes, 10); if (!isNaN(f)) c.trigger_for_minutes = f;
+  } else if (d.type === "counter") {
+    const v = parseFloat(d.targetValue); if (!isNaN(v)) c.trigger_target_value = v;
+    c.trigger_delta_mode = d.deltaMode;
+  } else if (d.type === "state_change") {
+    if (d.fromState) c.trigger_from_state = d.fromState;
+    if (d.toState) c.trigger_to_state = d.toState;
+    const n = parseInt(d.targetChanges, 10); if (!isNaN(n)) c.trigger_target_changes = n;
+  } else if (d.type === "runtime") {
+    const h = parseFloat(d.runtimeHours); if (!isNaN(h)) c.trigger_runtime_hours = h;
+  }
+  return c;
+}
 
 /** Short localized weekday names (0=Mon … 6=Sun) — uses the shared weekdayName (DRY). */
 function weekdayNames(lang?: string): string[] {
@@ -69,6 +137,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerToState = "";
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
+  // Compound trigger (type === "compound"): a list of conditions + AND/OR logic
+  @state() private _compoundLogic: "AND" | "OR" = "AND";
+  @state() private _compoundConditions: CompoundConditionDraft[] = [];
 
   // Entity attribute introspection
   @state() private _suggestedAttributes: string[] = [];
@@ -215,6 +286,13 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerToState = tc.trigger_to_state || "";
       this._triggerTargetChanges = tc.trigger_target_changes?.toString() || "";
       this._triggerRuntimeHours = tc.trigger_runtime_hours?.toString() || "";
+      if (tc.type === "compound") {
+        this._compoundLogic = tc.compound_logic === "OR" ? "OR" : "AND";
+        this._compoundConditions = (tc.conditions || []).map(conditionToDraft);
+      } else {
+        this._compoundLogic = "AND";
+        this._compoundConditions = [];
+      }
     } else {
       this._resetTriggerFields();
     }
@@ -287,6 +365,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerToState = "";
     this._triggerTargetChanges = "";
     this._triggerRuntimeHours = "";
+    this._compoundLogic = "AND";
+    this._compoundConditions = [];
   }
 
   private async _loadUsers(): Promise<void> {
@@ -604,7 +684,25 @@ export class MaintenanceTaskDialog extends LitElement {
       data.nfc_tag_id = this._nfcTagId || null;
       data.responsible_user_id = this._responsibleUserId;
 
-      if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
+      if (this._scheduleType === "sensor_based" && this._triggerType === "compound") {
+        // Compound: a group of conditions joined by AND/OR. Each condition
+        // carries its own entity + type + params; the top-level entity picker
+        // does not apply here.
+        const conditions = this._compoundConditions
+          .map(draftToCondition)
+          .filter((c): c is TriggerConfig => c !== null);
+        if (conditions.length > 0) {
+          const triggerConfig: TriggerConfig = {
+            type: "compound",
+            compound_logic: this._compoundLogic,
+            conditions,
+          };
+          if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
+          data.trigger_config = triggerConfig;
+        } else if (this._taskId) {
+          data.trigger_config = null;
+        }
+      } else if (this._scheduleType === "sensor_based" && this._triggerEntityId) {
         const entityIds = this._triggerEntityIds.length > 0
           ? this._triggerEntityIds
           : [this._triggerEntityId];
@@ -728,71 +826,74 @@ export class MaintenanceTaskDialog extends LitElement {
     if (this._scheduleType !== "sensor_based") return nothing;
     const L = this._lang;
 
+    const isCompound = this._triggerType === "compound";
     return html`
       <h3>${t("trigger_configuration", L)}</h3>
-      <ms-textfield
-        label="${t("entity_id", L)} (${t("comma_separated", L)})"
-        .value=${this._triggerEntityIds.length > 0 ? this._triggerEntityIds.join(", ") : this._triggerEntityId}
-        @input=${(e: Event) => {
-          const raw = (e.target as HTMLInputElement).value;
-          const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
-          this._triggerEntityId = ids[0] || "";
-          this._triggerEntityIds = ids;
-          if (ids[0]) this._fetchEntityAttributes(ids[0]);
-        }}
-      ></ms-textfield>
-      ${this._triggerEntityIds.length > 1 ? html`
-        <div class="select-row">
-          <label>${t("entity_logic", L)}</label>
-          <select
-            .value=${this._triggerEntityLogic}
-            @change=${(e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all")}
-          >
-            <option value="any" ?selected=${this._triggerEntityLogic === "any"}>${t("entity_logic_any", L)}</option>
-            <option value="all" ?selected=${this._triggerEntityLogic === "all"}>${t("entity_logic_all", L)}</option>
-          </select>
-        </div>
-      ` : nothing}
-      ${this._availableAttributes.length > 0
-        ? html`
-          <div class="select-row">
-            <label>${t("attribute_optional", L)}</label>
-            <select
-              .value=${this._triggerAttribute}
-              @change=${(e: Event) => (this._triggerAttribute = (e.target as HTMLSelectElement).value)}
-            >
-              <option value="" ?selected=${!this._triggerAttribute}>${t("use_entity_state", L)}</option>
-              ${this._suggestedAttributes.map(
-                (attr) => html`<option value=${attr} ?selected=${attr === this._triggerAttribute}>${attr} ★</option>`
-              )}
-              ${this._availableAttributes
-                .filter((a) => !this._suggestedAttributes.includes(a.name))
-                .map(
-                  (a) => html`<option value=${a.name} ?selected=${a.name === this._triggerAttribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
-                )}
-            </select>
-          </div>
-        `
-        : html`
-          <ms-textfield
-            label="${t("attribute_optional", L)}"
-            .value=${this._triggerAttribute}
-            @input=${(e: Event) => (this._triggerAttribute = (e.target as HTMLInputElement).value)}
-          ></ms-textfield>
-        `
-      }
       <div class="select-row">
         <label>${t("trigger_type", L)}</label>
         <select
           .value=${this._triggerType}
           @change=${(e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value)}
         >
-          ${TRIGGER_TYPE_KEYS.map(
+          ${TRIGGER_TYPE_KEYS_WITH_COMPOUND.map(
             (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${t(key, L)}</option>`
           )}
         </select>
       </div>
-      ${this._renderTriggerTypeFields()}
+      ${isCompound ? this._renderCompoundEditor() : html`
+        <ms-textfield
+          label="${t("entity_id", L)} (${t("comma_separated", L)})"
+          .value=${this._triggerEntityIds.length > 0 ? this._triggerEntityIds.join(", ") : this._triggerEntityId}
+          @input=${(e: Event) => {
+            const raw = (e.target as HTMLInputElement).value;
+            const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+            this._triggerEntityId = ids[0] || "";
+            this._triggerEntityIds = ids;
+            if (ids[0]) this._fetchEntityAttributes(ids[0]);
+          }}
+        ></ms-textfield>
+        ${this._triggerEntityIds.length > 1 ? html`
+          <div class="select-row">
+            <label>${t("entity_logic", L)}</label>
+            <select
+              .value=${this._triggerEntityLogic}
+              @change=${(e: Event) => (this._triggerEntityLogic = (e.target as HTMLSelectElement).value as "any" | "all")}
+            >
+              <option value="any" ?selected=${this._triggerEntityLogic === "any"}>${t("entity_logic_any", L)}</option>
+              <option value="all" ?selected=${this._triggerEntityLogic === "all"}>${t("entity_logic_all", L)}</option>
+            </select>
+          </div>
+        ` : nothing}
+        ${this._availableAttributes.length > 0
+          ? html`
+            <div class="select-row">
+              <label>${t("attribute_optional", L)}</label>
+              <select
+                .value=${this._triggerAttribute}
+                @change=${(e: Event) => (this._triggerAttribute = (e.target as HTMLSelectElement).value)}
+              >
+                <option value="" ?selected=${!this._triggerAttribute}>${t("use_entity_state", L)}</option>
+                ${this._suggestedAttributes.map(
+                  (attr) => html`<option value=${attr} ?selected=${attr === this._triggerAttribute}>${attr} ★</option>`
+                )}
+                ${this._availableAttributes
+                  .filter((a) => !this._suggestedAttributes.includes(a.name))
+                  .map(
+                    (a) => html`<option value=${a.name} ?selected=${a.name === this._triggerAttribute}>${a.name}${a.numeric ? "" : " (non-numeric)"}</option>`
+                  )}
+              </select>
+            </div>
+          `
+          : html`
+            <ms-textfield
+              label="${t("attribute_optional", L)}"
+              .value=${this._triggerAttribute}
+              @input=${(e: Event) => (this._triggerAttribute = (e.target as HTMLInputElement).value)}
+            ></ms-textfield>
+          `
+        }
+        ${this._renderTriggerTypeFields()}
+      `}
       <label>
         <input
           type="checkbox"
@@ -810,6 +911,125 @@ export class MaintenanceTaskDialog extends LitElement {
       ></ms-textfield>
       ${this._intervalDays ? this._renderUnitSelect() : nothing}
     `;
+  }
+
+  /** Immutably patch one compound condition and trigger a re-render. */
+  private _patchCondition(index: number, patch: Partial<CompoundConditionDraft>): void {
+    this._compoundConditions = this._compoundConditions.map((c, i) =>
+      i === index ? { ...c, ...patch } : c
+    );
+  }
+
+  private _addCondition(): void {
+    this._compoundConditions = [...this._compoundConditions, emptyCondition()];
+  }
+
+  private _removeCondition(index: number): void {
+    this._compoundConditions = this._compoundConditions.filter((_, i) => i !== index);
+  }
+
+  /** Compound trigger editor: AND/OR logic + a list of inline conditions. */
+  private _renderCompoundEditor() {
+    const L = this._lang;
+    return html`
+      <div class="select-row">
+        <label>${t("compound_logic", L)}</label>
+        <select
+          .value=${this._compoundLogic}
+          @change=${(e: Event) => (this._compoundLogic = (e.target as HTMLSelectElement).value as "AND" | "OR")}
+        >
+          <option value="AND" ?selected=${this._compoundLogic === "AND"}>${t("compound_logic_and", L)}</option>
+          <option value="OR" ?selected=${this._compoundLogic === "OR"}>${t("compound_logic_or", L)}</option>
+        </select>
+      </div>
+      <div class="field-help">${t("compound_help", L)}</div>
+      ${this._compoundConditions.length === 0
+        ? html`<div class="field-help">${t("compound_no_conditions", L)}</div>`
+        : this._compoundConditions.map((c, i) => this._renderCondition(c, i))}
+      <button type="button" class="secondary-btn" @click=${() => this._addCondition()}>
+        + ${t("compound_add_condition", L)}
+      </button>
+    `;
+  }
+
+  /** One compound condition row: entity + sub-type + type-specific params. */
+  private _renderCondition(c: CompoundConditionDraft, i: number) {
+    const L = this._lang;
+    const num = i + 1;
+    return html`
+      <div class="compound-condition">
+        <div class="compound-condition-head">
+          <span class="compound-condition-title">${t("compound_condition", L)} ${num}</span>
+          <button
+            type="button"
+            class="icon-btn"
+            title="${t("compound_remove_condition", L)}"
+            @click=${() => this._removeCondition(i)}
+          >✕</button>
+        </div>
+        <ms-textfield
+          label="${t("entity_id", L)} (${t("comma_separated", L)})"
+          .value=${c.entityIds}
+          @input=${(e: Event) => this._patchCondition(i, { entityIds: (e.target as HTMLInputElement).value })}
+        ></ms-textfield>
+        <div class="select-row">
+          <label>${t("trigger_type", L)}</label>
+          <select
+            .value=${c.type}
+            @change=${(e: Event) => this._patchCondition(i, { type: (e.target as HTMLSelectElement).value })}
+          >
+            ${TRIGGER_TYPE_KEYS.map(
+              (key) => html`<option value=${key} ?selected=${key === c.type}>${t(key, L)}</option>`
+            )}
+          </select>
+        </div>
+        ${this._renderConditionTypeFields(c, i)}
+      </div>
+    `;
+  }
+
+  /** Type-specific inputs for a single compound condition (mirrors the flat
+   *  per-type fields, bound to the condition draft). */
+  private _renderConditionTypeFields(c: CompoundConditionDraft, i: number) {
+    const L = this._lang;
+    if (c.type === "threshold") {
+      return html`
+        <ms-textfield label="${t("trigger_above", L)}" type="number" .value=${c.above}
+          @input=${(e: Event) => this._patchCondition(i, { above: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("trigger_below", L)}" type="number" .value=${c.below}
+          @input=${(e: Event) => this._patchCondition(i, { below: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("for_minutes", L)}" type="number" .value=${c.forMinutes}
+          @input=${(e: Event) => this._patchCondition(i, { forMinutes: (e.target as HTMLInputElement).value })}></ms-textfield>
+      `;
+    }
+    if (c.type === "counter") {
+      return html`
+        <ms-textfield label="${t("target_value", L)}" type="number" .value=${c.targetValue}
+          @input=${(e: Event) => this._patchCondition(i, { targetValue: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <label>
+          <input type="checkbox" .checked=${c.deltaMode}
+            @change=${(e: Event) => this._patchCondition(i, { deltaMode: (e.target as HTMLInputElement).checked })} />
+          ${t("delta_mode", L)}
+        </label>
+      `;
+    }
+    if (c.type === "state_change") {
+      return html`
+        <ms-textfield label="${t("from_state_optional", L)}" .value=${c.fromState}
+          @input=${(e: Event) => this._patchCondition(i, { fromState: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("to_state_optional", L)}" .value=${c.toState}
+          @input=${(e: Event) => this._patchCondition(i, { toState: (e.target as HTMLInputElement).value })}></ms-textfield>
+        <ms-textfield label="${t("target_changes", L)}" type="number" .value=${c.targetChanges}
+          @input=${(e: Event) => this._patchCondition(i, { targetChanges: (e.target as HTMLInputElement).value })}></ms-textfield>
+      `;
+    }
+    if (c.type === "runtime") {
+      return html`
+        <ms-textfield label="${t("runtime_hours", L)}" type="number" .value=${c.runtimeHours}
+          @input=${(e: Event) => this._patchCondition(i, { runtimeHours: (e.target as HTMLInputElement).value })}></ms-textfield>
+      `;
+    }
+    return nothing;
   }
 
   /** Shared interval-unit dropdown (DRY: time-based interval + sensor safety
