@@ -199,11 +199,14 @@ changes, but they gate how cheap the features above are to build.
   panel-side by design, so the module renders into the panel's shadow root and
   never touches a dialog itself. The panel shrank ~2.9k → ~2.5k lines.
 - 🟡 **Panel ↔ config-flow parity by construction** — the *global settings*
-  surface is now derived from one `helpers/settings_registry` source (allow-list
-  + ranges + options-flow selectors) and the notify-target list is unified.
-  Remaining: the *task/trigger field* forms are still two hand-written UIs; derive
-  both from a single field-schema source so a new field lands in panel *and*
-  options flow automatically.
+  surface derives from one `helpers/settings_registry` source, and the
+  task-field **values** now derive from one `helpers/task_fields` source
+  (priority/anchor/rotation enums + warning/earliest/interval ranges consumed
+  by both WS schemas, the sanitizer, and every config-flow selector; tripwires
+  pin the TS dialog and fail the build on re-hardcoded literals). Field
+  *existence* in both UIs is enforced by `test_parity_task_fields`. Remaining:
+  the two task/trigger *forms* are still hand-written — full form generation
+  from field specs is the long-term step.
 - ✅ **Parallelize the test suite** (pytest-xdist) — CI runs
   `pytest -n auto --dist loadfile`; per-test blob isolation
   (`_isolate_document_blobs` conftest fixture) keeps the parallel run
