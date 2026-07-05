@@ -32,6 +32,10 @@ CONFIG_FLOW_SOURCES = [
 
 # Keys that appear in the dialog payload but are WS transport, not task fields.
 _TRANSPORT_KEYS = {"type", "entry_id", "task_id"}
+# Config-flow-side form-transport keys held on ``_current_task`` but parsed into
+# a real storage key before persisting (the config-flow twin of _PANEL_KEY_ALIASES).
+# ``labels_text`` is the free-text field parsed into the ``labels`` list.
+_CONFIG_FLOW_TRANSPORT_KEYS = {"labels_text"}
 # Server-managed, non-user-editable keys a surface may assign internally
 # (e.g. the config-flow initializes an empty history on task creation). Not a
 # parity concern — neither UI "edits" them.
@@ -109,7 +113,7 @@ def _config_flow_fields() -> set[str]:
             resolved = _resolve_conf(conf_name)
             if resolved:
                 fields.add(resolved)
-    return fields - _INTERNAL_KEYS
+    return fields - _INTERNAL_KEYS - _CONFIG_FLOW_TRANSPORT_KEYS
 
 
 def test_panel_and_config_flow_task_fields_are_at_parity() -> None:
