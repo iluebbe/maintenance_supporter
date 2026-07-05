@@ -89,11 +89,12 @@ triage when many tasks are due at once — a priority badge in the panel, carrie
 through create/update on every surface (WS, 3 config-flow forms, task dialog),
 and persisted only when non-default.
 
-### 💡 "Missed" status + completion window
-Distinguish a task that was due and never done (**Missed**) from a manual
-reset, for clearer history, better adaptive learning, and compliance views.
-Optionally restrict premature completion (don't let the annual inspection be
-signed off three weeks early).
+### ✅ "Missed" status + completion window
+**Shipped.** Skipping an overdue task records it as **Missed** (a distinct
+history type) rather than a deliberate skip — clearer history + compliance
+views. A per-task `earliest_completion_days` optionally restricts premature
+completion (the annual inspection can't be signed off three weeks early); the
+complete/quick-complete WS paths + the To-do list honour it.
 
 ### 💡 Cross-cutting labels / tags
 Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
