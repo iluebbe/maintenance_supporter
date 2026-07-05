@@ -801,6 +801,18 @@ async def test_ws_complete_task_with_fields(
     })
 
     conn.send_result.assert_called_once()
+    # Audit (c)#1: don't stop at the success flag — the optional fields must
+    # actually be persisted on the COMPLETED history entry. (The broader
+    # roundtrip coverage lives in test_ws_roundtrip.py; this pins the same
+    # guarantee at the handler test that people naturally extend.)
+    state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
+    completed = [h for h in state.get("history", []) if h.get("type") == "completed"]
+    assert completed, "completion must append a history entry"
+    entry = completed[-1]
+    assert entry["notes"] == "All good"
+    assert entry["cost"] == 25.50
+    assert entry["duration"] == 30
+    assert entry["feedback"] == "needed"
 
 
 async def test_ws_complete_task_not_found(
