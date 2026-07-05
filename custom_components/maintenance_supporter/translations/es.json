@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "No se encontró tarea de mantenimiento para la entidad {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Una tarea de mantenimiento venció",
+      "description": "Se activa cuando el estado de una tarea de mantenimiento cambia a vencida.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Una tarea de mantenimiento vence pronto",
+      "description": "Se activa cuando una tarea de mantenimiento entra en su ventana de aviso.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Un disparador de sensor se activó",
+      "description": "Se activa cuando una tarea de mantenimiento basada en sensores se activa.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Una tarea de mantenimiento volvió a OK",
+      "description": "Se activa cuando una tarea de mantenimiento ya no necesita atención.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Una tarea de mantenimiento está vencida",
+      "description": "Comprueba si una tarea de mantenimiento está vencida.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Una tarea de mantenimiento vence pronto",
+      "description": "Comprueba si una tarea de mantenimiento está en su ventana de aviso.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Un disparador de sensor está activo",
+      "description": "Comprueba si una tarea de mantenimiento basada en sensores está activada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Una tarea de mantenimiento necesita atención",
+      "description": "Comprueba si una tarea de mantenimiento está vencida o activada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamiento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    }
   }
 }

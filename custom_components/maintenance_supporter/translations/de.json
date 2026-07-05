@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Keine Wartungsaufgabe für Entität {entity_id} gefunden."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Eine Wartungsaufgabe wurde überfällig",
+      "description": "Löst aus, wenn der Status einer Wartungsaufgabe auf überfällig wechselt.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Eine Wartungsaufgabe wird bald fällig",
+      "description": "Löst aus, wenn eine Wartungsaufgabe in ihr Warnfenster eintritt.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Ein Sensor-Trigger hat ausgelöst",
+      "description": "Löst aus, wenn eine sensorbasierte Wartungsaufgabe aktiviert wird.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Eine Wartungsaufgabe ist wieder OK",
+      "description": "Löst aus, wenn eine Wartungsaufgabe keine Aufmerksamkeit mehr benötigt.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Eine Wartungsaufgabe ist überfällig",
+      "description": "Prüft, ob eine Wartungsaufgabe überfällig ist.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Eine Wartungsaufgabe ist bald fällig",
+      "description": "Prüft, ob eine Wartungsaufgabe in ihrem Warnfenster ist.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Ein Sensor-Trigger ist aktiv",
+      "description": "Prüft, ob eine sensorbasierte Wartungsaufgabe ausgelöst ist.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Eine Wartungsaufgabe benötigt Aufmerksamkeit",
+      "description": "Prüft, ob eine Wartungsaufgabe überfällig oder ausgelöst ist.",
+      "fields": {
+        "behavior": {
+          "name": "Verhalten"
+        },
+        "for": {
+          "name": "Dauer"
+        }
+      }
+    }
   }
 }

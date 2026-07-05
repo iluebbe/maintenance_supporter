@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Entiteetille {entity_id} ei löytynyt huoltotehtävää."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Huoltotehtävä myöhästyi",
+      "description": "Laukeaa, kun huoltotehtävän tila muuttuu myöhästyneeksi.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Huoltotehtävä erääntyy pian",
+      "description": "Laukeaa, kun huoltotehtävä siirtyy varoitusikkunaansa.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Anturiliipaisin aktivoitui",
+      "description": "Laukeaa, kun anturipohjainen huoltotehtävä aktivoituu.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Huoltotehtävä palasi kunnossa-tilaan",
+      "description": "Laukeaa, kun huoltotehtävä ei enää vaadi huomiota.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Huoltotehtävä on myöhässä",
+      "description": "Testaa, onko huoltotehtävä myöhässä.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Huoltotehtävä erääntyy pian",
+      "description": "Testaa, onko huoltotehtävä varoitusikkunassaan.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Anturiliipaisin on aktiivinen",
+      "description": "Testaa, onko anturipohjainen huoltotehtävä lauennut.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Huoltotehtävä vaatii huomiota",
+      "description": "Testaa, onko huoltotehtävä myöhässä tai lauennut.",
+      "fields": {
+        "behavior": {
+          "name": "Käyttäytyminen"
+        },
+        "for": {
+          "name": "Kesto"
+        }
+      }
+    }
   }
 }

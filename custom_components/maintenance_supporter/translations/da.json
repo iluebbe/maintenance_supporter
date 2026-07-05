@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Ingen vedligeholdelsesopgave fundet for enheden {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "En vedligeholdelsesopgave blev forsinket",
+      "description": "Udløses, når en vedligeholdelsesopgaves status ændres til forsinket.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "En vedligeholdelsesopgave forfalder snart",
+      "description": "Udløses, når en vedligeholdelsesopgave går ind i sit varslingsvindue.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "En sensorudløser blev aktiveret",
+      "description": "Udløses, når en sensorbaseret vedligeholdelsesopgave aktiveres.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "En vedligeholdelsesopgave er OK igen",
+      "description": "Udløses, når en vedligeholdelsesopgave ikke længere kræver opmærksomhed.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "En vedligeholdelsesopgave er forsinket",
+      "description": "Tester, om en vedligeholdelsesopgave er forsinket.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "En vedligeholdelsesopgave forfalder snart",
+      "description": "Tester, om en vedligeholdelsesopgave er i sit varslingsvindue.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "En sensorudløser er aktiv",
+      "description": "Tester, om en sensorbaseret vedligeholdelsesopgave er udløst.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "En vedligeholdelsesopgave kræver opmærksomhed",
+      "description": "Tester, om en vedligeholdelsesopgave er forsinket eller udløst.",
+      "fields": {
+        "behavior": {
+          "name": "Adfærd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    }
   }
 }

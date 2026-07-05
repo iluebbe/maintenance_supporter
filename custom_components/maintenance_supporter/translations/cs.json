@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Nenalezen úkol údržby pro entitu {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Úkol údržby se stal zpožděným",
+      "description": "Spustí se, když se stav úkolu údržby změní na zpožděný.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Úkol údržby bude brzy splatný",
+      "description": "Spustí se, když úkol údržby vstoupí do svého varovného okna.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Senzorový spouštěč se aktivoval",
+      "description": "Spustí se, když se aktivuje úkol údržby založený na senzorech.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Úkol údržby je opět v pořádku",
+      "description": "Spustí se, když úkol údržby již nevyžaduje pozornost.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Úkol údržby je zpožděný",
+      "description": "Testuje, zda je úkol údržby zpožděný.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Úkol údržby je brzy splatný",
+      "description": "Testuje, zda je úkol údržby ve svém varovném okně.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Senzorový spouštěč je aktivní",
+      "description": "Testuje, zda je úkol údržby založený na senzorech aktivován.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Úkol údržby vyžaduje pozornost",
+      "description": "Testuje, zda je úkol údržby zpožděný nebo aktivovaný.",
+      "fields": {
+        "behavior": {
+          "name": "Chování"
+        },
+        "for": {
+          "name": "Po dobu"
+        }
+      }
+    }
   }
 }

@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Ingen underhållsuppgift hittades för entiteten {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "En underhållsuppgift blev försenad",
+      "description": "Utlöses när en underhållsuppgifts status ändras till försenad.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "En underhållsuppgift förfaller snart",
+      "description": "Utlöses när en underhållsuppgift går in i sitt varningsfönster.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "En sensorutlösare aktiverades",
+      "description": "Utlöses när en sensorbaserad underhållsuppgift aktiveras.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "En underhållsuppgift är OK igen",
+      "description": "Utlöses när en underhållsuppgift inte längre behöver uppmärksamhet.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "En underhållsuppgift är försenad",
+      "description": "Testar om en underhållsuppgift är försenad.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "En underhållsuppgift förfaller snart",
+      "description": "Testar om en underhållsuppgift är i sitt varningsfönster.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "En sensorutlösare är aktiv",
+      "description": "Testar om en sensorbaserad underhållsuppgift är utlöst.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "En underhållsuppgift behöver uppmärksamhet",
+      "description": "Testar om en underhållsuppgift är försenad eller utlöst.",
+      "fields": {
+        "behavior": {
+          "name": "Beteende"
+        },
+        "for": {
+          "name": "Under"
+        }
+      }
+    }
   }
 }

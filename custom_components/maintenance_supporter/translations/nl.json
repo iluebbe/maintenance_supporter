@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Geen onderhoudstaak gevonden voor entiteit {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Een onderhoudstaak is achterstallig geworden",
+      "description": "Wordt geactiveerd wanneer de status van een onderhoudstaak verandert naar achterstallig.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Een onderhoudstaak is binnenkort verschuldigd",
+      "description": "Wordt geactiveerd wanneer een onderhoudstaak zijn waarschuwingsvenster binnengaat.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Een sensortrigger is geactiveerd",
+      "description": "Wordt geactiveerd wanneer een sensorgebaseerde onderhoudstaak activeert.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Een onderhoudstaak is weer OK",
+      "description": "Wordt geactiveerd wanneer een onderhoudstaak geen aandacht meer nodig heeft.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Een onderhoudstaak is achterstallig",
+      "description": "Controleert of een onderhoudstaak achterstallig is.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Een onderhoudstaak is binnenkort verschuldigd",
+      "description": "Controleert of een onderhoudstaak in zijn waarschuwingsvenster zit.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Een sensortrigger is actief",
+      "description": "Controleert of een sensorgebaseerde onderhoudstaak geactiveerd is.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Een onderhoudstaak heeft aandacht nodig",
+      "description": "Controleert of een onderhoudstaak achterstallig of geactiveerd is.",
+      "fields": {
+        "behavior": {
+          "name": "Gedrag"
+        },
+        "for": {
+          "name": "Gedurende"
+        }
+      }
+    }
   }
 }

@@ -116,6 +116,11 @@ open work. Lifecycle **events** (`…_task_completed`, `…_trigger_activated`, 
 fire on every path, and four **services** (`complete`, `skip`, `reset`,
 `export_data`) cover scripting.
 
+On HA 2026.7+ the new automation editor additionally offers ready-made
+building blocks — *"A maintenance task became overdue"* as a pickable
+trigger, *"…needs attention"* as a condition — so automations need neither
+entity names nor YAML.
+
 Entity IDs follow `sensor.<object>_<task>` (no shared prefix) — filter with
 `integration_entities('maintenance_supporter')` in templates. Full reference
 with copy-paste automations: [EXAMPLES.md](docs/EXAMPLES.md).

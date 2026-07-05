@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "No maintenance task found for entity {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "A maintenance task became overdue",
+      "description": "Triggers when a maintenance task's status changes to overdue.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "A maintenance task became due soon",
+      "description": "Triggers when a maintenance task enters its warning window.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "A sensor trigger activated",
+      "description": "Triggers when a sensor-based maintenance task activates.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "A maintenance task returned to OK",
+      "description": "Triggers when a maintenance task no longer needs attention.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "A maintenance task is overdue",
+      "description": "Tests if a maintenance task is overdue.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "A maintenance task is due soon",
+      "description": "Tests if a maintenance task is in its warning window.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "A sensor trigger is active",
+      "description": "Tests if a sensor-based maintenance task is triggered.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "A maintenance task needs attention",
+      "description": "Tests if a maintenance task is overdue or triggered.",
+      "fields": {
+        "behavior": {
+          "name": "Behavior"
+        },
+        "for": {
+          "name": "For"
+        }
+      }
+    }
   }
 }

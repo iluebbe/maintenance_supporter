@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Nenhuma tarefa de manutenção encontrada para a entidade {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Uma tarefa de manutenção ficou atrasada",
+      "description": "Dispara quando o estado de uma tarefa de manutenção muda para atrasada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Uma tarefa de manutenção vence em breve",
+      "description": "Dispara quando uma tarefa de manutenção entra na janela de aviso.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Um gatilho de sensor foi ativado",
+      "description": "Dispara quando uma tarefa de manutenção baseada em sensores é ativada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Uma tarefa de manutenção voltou a OK",
+      "description": "Dispara quando uma tarefa de manutenção deixa de precisar de atenção.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Uma tarefa de manutenção está atrasada",
+      "description": "Verifica se uma tarefa de manutenção está atrasada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Uma tarefa de manutenção vence em breve",
+      "description": "Verifica se uma tarefa de manutenção está na janela de aviso.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Um gatilho de sensor está ativo",
+      "description": "Verifica se uma tarefa de manutenção baseada em sensores está ativada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Uma tarefa de manutenção precisa de atenção",
+      "description": "Verifica se uma tarefa de manutenção está atrasada ou ativada.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Durante"
+        }
+      }
+    }
   }
 }
