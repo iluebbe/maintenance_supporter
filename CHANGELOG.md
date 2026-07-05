@@ -2,6 +2,61 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.18.0] - 2026-07-05
+
+Discussion #83 ships in full, plus an important localization fix for every
+non-English install. No breaking changes.
+
+### ✨ New
+
+- **"Reading" task type** (#83) — a seventh task type for recording values:
+  utility-meter readings, level checks, control readings. Behaves like every
+  other type (schedules, reminders, QR, history) and pairs naturally with
+  completion photos (snap the meter display) and checklists (one line per
+  meter). Localized in all 18 languages.
+- **End-of-month scheduling** (#83) — the *day of month* calendar schedule
+  gains *last day of the month*, *business days only* (roll back over the
+  weekend), and a **±N-day offset** available on every calendar pattern
+  (weekdays, nth weekday, day of month). "Two days before the last working
+  day of the month" is now three clicks: last day ✓, business days ✓,
+  offset −2. Offsets are applied per occurrence, so month-boundary crossings
+  land correctly.
+- **Workday-aware business days** (#83 follow-up) — when Home Assistant's
+  **Workday** integration is configured, *business day* automatically follows
+  it instead of the plain Mon–Fri rule: country/region public holidays,
+  custom working weekdays (e.g. Mon–Sat), and add/remove-holiday overrides
+  are all respected. Without a Workday entry nothing changes. Workday config
+  edits apply on the next reload/restart.
+
+### 🐛 Fixed
+
+- **English dialogs on localized systems** — since the v2.17.0 runtime-locale
+  split, the task/complete/QR dialogs could render in English while the rest
+  of the panel was correctly localized (German panel, English "Edit Task").
+  Cause: the card bundle (loaded globally) defines the dialog elements
+  first-wins, and each bundle carried its own locale store. The store is now
+  shared across all bundles, and a failed locale fetch is retried instead of
+  sticking for the whole page session. Hard-refresh (Ctrl+Shift+F5) once
+  after updating.
+
+### 📚 Docs
+
+- **README rewritten user-story-first** — what the integration does for you,
+  in six scenarios, before any technical detail; reference material split into
+  `docs/FEATURES.md`, `docs/EXAMPLES.md`, and `docs/TROUBLESHOOTING.md`.
+- **Every screenshot recreated** — 22 dark-mode English screenshots from a
+  scripted, seeded demo instance (sparklines, user assignment + rotation,
+  triggered states, documents/PDF manual, reading + end-of-month dialog,
+  multi-entity/compound triggers, To-do entity, and more), embedded across
+  README, FEATURES, CONFIGURATION, and EXAMPLES.
+
+### 🧪 Internals
+
+- The perma-red CI E2E job was root-caused (headless-shell Chromium never
+  renders the HA panel on the runner) and fixed: it now runs headed under
+  xvfb, green for the first time. Still non-blocking until it proves stable.
+- Suites: 2447 backend + 212 frontend tests.
+
 ## [2.17.0] - 2026-07-05
 
 A feature wave: eight roadmap items ship at once, plus two long-planned panel
