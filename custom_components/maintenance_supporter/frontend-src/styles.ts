@@ -11,7 +11,8 @@ export const STATUS_COLORS: Record<string, string> = {
   ok: "var(--success-color, #4caf50)",
   due_soon: "var(--warning-color, #ff9800)",
   overdue: "var(--error-color, #f44336)",
-  triggered: "#ff5722",
+  // Theme-token first so it adapts to dark/custom themes (was a bare #ff5722).
+  triggered: "var(--deep-orange-color, #ff5722)",
   // v2.10.0: archived is a neutral, greyed-out state (retired but retained).
   archived: "var(--disabled-color, #9e9e9e)",
 };

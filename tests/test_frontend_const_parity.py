@@ -134,6 +134,23 @@ def test_supported_langs_match_locale_files() -> None:
     )
 
 
+def test_status_colors_are_theme_token_based() -> None:
+    """Dark-mode tripwire: every STATUS_COLORS value must resolve through an HA
+    theme variable (``var(--…)``), never a bare hex/rgb literal. A bare colour
+    ignores the active theme and can render low-contrast in dark mode."""
+    src = _STYLES_TS.read_text(encoding="utf-8")
+    start = src.index("STATUS_COLORS")
+    block = src[start : src.index("};", start)]
+    # Collect the right-hand side of each `key: "value",` entry.
+    values = re.findall(r':\s*"([^"]+)"', block)
+    assert values, "could not parse STATUS_COLORS values"
+    offenders = [v for v in values if "var(--" not in v]
+    assert not offenders, (
+        f"STATUS_COLORS entries must use a theme token (var(--…)); bare "
+        f"colours break dark mode: {offenders}"
+    )
+
+
 # === Every localized top-level surface must load its locale =================
 
 
