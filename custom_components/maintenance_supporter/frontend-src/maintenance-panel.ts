@@ -56,6 +56,7 @@ import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helper
 import { renderTriggerProgress, renderMiniSparkline } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
 import { renderTaskDetail, renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
+import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 
 type View = "overview" | "object" | "task" | "all_objects";
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
@@ -134,6 +135,15 @@ export class MaintenanceSupporterPanel extends LitElement {
   // complete/archive). Keys are `${entry_id}:${task_id}`.
   @state() private _bulkMode = false;
   @state() private _bulkSelected = new Set<string>();
+  // Virtualized dashboard task table (large installs): only rows in the
+  // scroll window are in the DOM; spacers keep the scrollbar honest. The
+  // window is recomputed from `.content` scroll/resize (rAF-throttled).
+  @state() private _virtStart = 0;
+  @state() private _virtEnd = 0; // 0 = uninitialized → initial slice
+  private _virtRowHeight = 53;
+  private _virtTotalRows = 0;
+  private _virtScrollAttached = false;
+  private _virtRaf = 0;
   // v2.15.0: collapsed analysis sections on the task-detail overview tab,
   // remembered per section across visits.
   @state() private _collapsedSections: Set<string> = (() => {
@@ -190,6 +200,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     super.connectedCallback();
     window.addEventListener("popstate", this._popstateHandler);
     window.addEventListener("keydown", this._paletteKeydown);
+    window.addEventListener("resize", this._onVirtualScroll, { passive: true });
     const saved = localStorage.getItem("maintenance_supporter_sort");
     if (saved && ["due_date", "object", "type", "task_name", "area", "assigned_user", "group"].includes(saved)) {
       this._sortMode = saved as SortMode;
@@ -212,6 +223,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     super.disconnectedCallback();
     window.removeEventListener("popstate", this._popstateHandler);
     window.removeEventListener("keydown", this._paletteKeydown);
+    window.removeEventListener("resize", this._onVirtualScroll);
+    this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll", this._onVirtualScroll);
+    this._virtScrollAttached = false;
+    if (this._virtRaf) cancelAnimationFrame(this._virtRaf);
     if (this._unsub) {
       this._unsub();
       this._unsub = null;
@@ -263,6 +278,51 @@ export class MaintenanceSupporterPanel extends LitElement {
       } else {
         this._userService.updateHass(this.hass);
       }
+    }
+
+    // Virtualized task table: attach the scroll listener once `.content`
+    // exists (lit keeps the node stable across renders), then reconcile the
+    // window with the just-rendered DOM (row-height probe + clamps). Only
+    // sets state when the window actually moved, so this can't loop.
+    const content = this.shadowRoot?.querySelector(".content");
+    if (content && !this._virtScrollAttached) {
+      content.addEventListener("scroll", this._onVirtualScroll, { passive: true });
+      this._virtScrollAttached = true;
+    }
+    this._updateVirtualWindow();
+  }
+
+  /** rAF-throttled scroll/resize handler for the virtualized task table. */
+  private _onVirtualScroll = (): void => {
+    if (this._virtRaf) return;
+    this._virtRaf = requestAnimationFrame(() => {
+      this._virtRaf = 0;
+      this._updateVirtualWindow();
+    });
+  };
+
+  /** Recompute the rendered window of the virtualized task table from the
+   *  live scroll position. No-op unless the virtual table is in the DOM. */
+  private _updateVirtualWindow(): void {
+    const content = this.shadowRoot?.querySelector<HTMLElement>(".content");
+    const table = this.shadowRoot?.querySelector<HTMLElement>(".task-table.virtual");
+    if (!content || !table) return;
+    // Probe the real row height from a rendered row (uniform rows; the
+    // hidden sizer row is height 0 and excluded).
+    const probe = table.querySelector<HTMLElement>(".task-row:not(.virt-sizer)");
+    if (probe && probe.offsetHeight > 20) this._virtRowHeight = probe.offsetHeight;
+    const listTop =
+      table.getBoundingClientRect().top - content.getBoundingClientRect().top + content.scrollTop;
+    const w = computeWindow({
+      scrollTop: content.scrollTop,
+      viewportHeight: content.clientHeight,
+      listTop,
+      rowHeight: this._virtRowHeight,
+      total: this._virtTotalRows,
+    });
+    if (w.start !== this._virtStart || w.end !== this._virtEnd) {
+      this._virtStart = w.start;
+      this._virtEnd = w.end;
     }
   }
 
@@ -1738,11 +1798,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         : html`
             ${this._bulkMode ? this._renderBulkBar(rows, L) : nothing}
             ${this._groupByMode === "none"
-              ? html`
-                  <div class="task-table${this._bulkMode ? " bulk" : ""}">
-                    ${rows.map((row) => this._renderOverviewRow(row))}
-                  </div>
-                `
+              ? this._renderTaskTable(rows)
               : this._renderGroupedTasks(rows, L)}
           `}
 
@@ -1757,6 +1813,70 @@ export class MaintenanceSupporterPanel extends LitElement {
             }}
           ></maintenance-storage-section-card>`
         : nothing}
+    `;
+  }
+
+  /** The flat dashboard task table. Below VIRTUAL_MIN_ROWS (or on narrow
+   *  layouts, where rows aren't uniform-height) every row renders directly.
+   *  Above it, only the scroll window is in the DOM: two grid-spanning
+   *  spacers keep the scrollbar honest, and a hidden "sizer" row pins the
+   *  content-sized badge column to the widest badge set across ALL rows so
+   *  the shared subgrid tracks can't jitter as rows enter/leave the window. */
+  private _renderTaskTable(rows: TaskRow[]) {
+    const bulkCls = this._bulkMode ? " bulk" : "";
+    this._virtTotalRows = rows.length;
+    if (this.narrow || rows.length < VIRTUAL_MIN_ROWS) {
+      return html`
+        <div class="task-table${bulkCls}">
+          ${rows.map((row) => this._renderOverviewRow(row))}
+        </div>
+      `;
+    }
+    const total = rows.length;
+    const rh = this._virtRowHeight;
+    let start = Math.max(0, Math.min(this._virtStart, total));
+    let end = this._virtEnd > 0 ? Math.min(this._virtEnd, total) : Math.min(total, 40);
+    if (end < start) { start = 0; end = Math.min(total, 40); }
+    const padTop = start * rh;
+    const padBottom = (total - end) * rh;
+    return html`
+      <div class="task-table${bulkCls} virtual">
+        ${this._renderVirtSizerRow(rows)}
+        ${padTop > 0 ? html`<div class="virt-spacer" style="height:${padTop}px"></div>` : nothing}
+        ${rows.slice(start, end).map((row) => this._renderOverviewRow(row))}
+        ${padBottom > 0 ? html`<div class="virt-spacer" style="height:${padBottom}px"></div>` : nothing}
+      </div>
+    `;
+  }
+
+  /** Invisible zero-height row whose badge cell carries the union of the
+   *  widest badges across ALL rows. Because the subgrid's `auto` badge track
+   *  sizes to the max over rendered rows, including this row makes the track
+   *  width independent of which data rows happen to be in the window. */
+  private _renderVirtSizerRow(rows: TaskRow[]) {
+    const L = this._lang;
+    let widest = "";
+    let anyDisabled = false;
+    let anyNfc = false;
+    let anyPriority = false;
+    for (const r of rows) {
+      const label = r.archived ? t("archived", L) : (r.is_done ? t("completed", L) : t(r.status, L));
+      if (label.length > widest.length) widest = label;
+      if (!r.enabled) anyDisabled = true;
+      if (r.nfc_tag_id) anyNfc = true;
+      if (r.priority === "high" || r.priority === "low") anyPriority = true;
+    }
+    return html`
+      <div class="task-row virt-sizer" aria-hidden="true">
+        ${this._bulkMode ? html`<span></span>` : nothing}
+        <span class="cell-badges">
+          <span class="status-badge"><ha-icon icon="mdi:circle-medium"></ha-icon>${widest}</span>
+          ${anyDisabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
+          ${anyNfc ? html`<span class="nfc-badge"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
+          ${anyPriority ? html`<span class="priority-badge"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
+        </span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
     `;
   }
 

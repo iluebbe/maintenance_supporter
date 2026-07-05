@@ -105,6 +105,24 @@ export const panelStyles = css`
     transition: background 0.15s;
   }
 
+  /* Virtualized task table (large installs): only the scroll window of rows
+     is in the DOM. The spacers span all columns and carry the off-window
+     height so the scrollbar stays honest. The sizer row is invisible and
+     zero-height but its badge cell still participates in subgrid track
+     sizing — pinning the content-sized badge column to the widest badge set
+     across ALL rows, so columns can't jitter while scrolling. */
+  .virt-spacer { grid-column: 1 / -1; }
+  .task-row.virt-sizer {
+    height: 0;
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   /* Bulk selection: a leading checkbox column while selecting. */
   .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto; }
   .bulk-check { display: flex; align-items: center; justify-content: center; cursor: pointer; }

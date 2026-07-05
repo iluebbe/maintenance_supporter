@@ -1,8 +1,8 @@
-var Di=Object.defineProperty;var Hi=Object.getOwnPropertyDescriptor;var p=(n,a,e,t)=>{for(var i=t>1?void 0:t?Hi(a,e):a,r=n.length-1,l;r>=0;r--)(l=n[r])&&(i=(t?l(a,e,i):l(i))||i);return t&&i&&Di(a,e,i),i};var We=globalThis,Ke=We.ShadowRoot&&(We.ShadyCSS===void 0||We.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,bt=Symbol(),qt=new WeakMap,Ie=class{constructor(a,e,t){if(this._$cssResult$=!0,t!==bt)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=a,this.t=e}get styleSheet(){let a=this.o,e=this.t;if(Ke&&a===void 0){let t=e!==void 0&&e.length===1;t&&(a=qt.get(e)),a===void 0&&((this.o=a=new CSSStyleSheet).replaceSync(this.cssText),t&&qt.set(e,a))}return a}toString(){return this.cssText}},Ft=n=>new Ie(typeof n=="string"?n:n+"",void 0,bt),A=(n,...a)=>{let e=n.length===1?n[0]:a.reduce((t,i,r)=>t+(l=>{if(l._$cssResult$===!0)return l.cssText;if(typeof l=="number")return l;throw Error("Value passed to 'css' function must be a 'css' function result: "+l+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+n[r+1],n[0]);return new Ie(e,n,bt)},Nt=(n,a)=>{if(Ke)n.adoptedStyleSheets=a.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(let e of a){let t=document.createElement("style"),i=We.litNonce;i!==void 0&&t.setAttribute("nonce",i),t.textContent=e.cssText,n.appendChild(t)}},ft=Ke?n=>n:n=>n instanceof CSSStyleSheet?(a=>{let e="";for(let t of a.cssRules)e+=t.cssText;return Ft(e)})(n):n;var{is:Oi,defineProperty:qi,getOwnPropertyDescriptor:Fi,getOwnPropertyNames:Ni,getOwnPropertySymbols:Ui,getPrototypeOf:Bi}=Object,Ye=globalThis,Ut=Ye.trustedTypes,Vi=Ut?Ut.emptyScript:"",Wi=Ye.reactiveElementPolyfillSupport,Re=(n,a)=>n,Le={toAttribute(n,a){switch(a){case Boolean:n=n?Vi:null;break;case Object:case Array:n=n==null?n:JSON.stringify(n)}return n},fromAttribute(n,a){let e=n;switch(a){case Boolean:e=n!==null;break;case Number:e=n===null?null:Number(n);break;case Object:case Array:try{e=JSON.parse(n)}catch{e=null}}return e}},Ge=(n,a)=>!Oi(n,a),Bt={attribute:!0,type:String,converter:Le,reflect:!1,useDefault:!1,hasChanged:Ge};Symbol.metadata??=Symbol("metadata"),Ye.litPropertyMetadata??=new WeakMap;var oe=class extends HTMLElement{static addInitializer(a){this._$Ei(),(this.l??=[]).push(a)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(a,e=Bt){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(a)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(a,e),!e.noAccessor){let t=Symbol(),i=this.getPropertyDescriptor(a,t,e);i!==void 0&&qi(this.prototype,a,i)}}static getPropertyDescriptor(a,e,t){let{get:i,set:r}=Fi(this.prototype,a)??{get(){return this[e]},set(l){this[e]=l}};return{get:i,set(l){let c=i?.call(this);r?.call(this,l),this.requestUpdate(a,c,t)},configurable:!0,enumerable:!0}}static getPropertyOptions(a){return this.elementProperties.get(a)??Bt}static _$Ei(){if(this.hasOwnProperty(Re("elementProperties")))return;let a=Bi(this);a.finalize(),a.l!==void 0&&(this.l=[...a.l]),this.elementProperties=new Map(a.elementProperties)}static finalize(){if(this.hasOwnProperty(Re("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(Re("properties"))){let e=this.properties,t=[...Ni(e),...Ui(e)];for(let i of t)this.createProperty(i,e[i])}let a=this[Symbol.metadata];if(a!==null){let e=litPropertyMetadata.get(a);if(e!==void 0)for(let[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(let[e,t]of this.elementProperties){let i=this._$Eu(e,t);i!==void 0&&this._$Eh.set(i,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(a){let e=[];if(Array.isArray(a)){let t=new Set(a.flat(1/0).reverse());for(let i of t)e.unshift(ft(i))}else a!==void 0&&e.push(ft(a));return e}static _$Eu(a,e){let t=e.attribute;return t===!1?void 0:typeof t=="string"?t:typeof a=="string"?a.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(a=>this.enableUpdating=a),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(a=>a(this))}addController(a){(this._$EO??=new Set).add(a),this.renderRoot!==void 0&&this.isConnected&&a.hostConnected?.()}removeController(a){this._$EO?.delete(a)}_$E_(){let a=new Map,e=this.constructor.elementProperties;for(let t of e.keys())this.hasOwnProperty(t)&&(a.set(t,this[t]),delete this[t]);a.size>0&&(this._$Ep=a)}createRenderRoot(){let a=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return Nt(a,this.constructor.elementStyles),a}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(a=>a.hostConnected?.())}enableUpdating(a){}disconnectedCallback(){this._$EO?.forEach(a=>a.hostDisconnected?.())}attributeChangedCallback(a,e,t){this._$AK(a,t)}_$ET(a,e){let t=this.constructor.elementProperties.get(a),i=this.constructor._$Eu(a,t);if(i!==void 0&&t.reflect===!0){let r=(t.converter?.toAttribute!==void 0?t.converter:Le).toAttribute(e,t.type);this._$Em=a,r==null?this.removeAttribute(i):this.setAttribute(i,r),this._$Em=null}}_$AK(a,e){let t=this.constructor,i=t._$Eh.get(a);if(i!==void 0&&this._$Em!==i){let r=t.getPropertyOptions(i),l=typeof r.converter=="function"?{fromAttribute:r.converter}:r.converter?.fromAttribute!==void 0?r.converter:Le;this._$Em=i;let c=l.fromAttribute(e,r.type);this[i]=c??this._$Ej?.get(i)??c,this._$Em=null}}requestUpdate(a,e,t,i=!1,r){if(a!==void 0){let l=this.constructor;if(i===!1&&(r=this[a]),t??=l.getPropertyOptions(a),!((t.hasChanged??Ge)(r,e)||t.useDefault&&t.reflect&&r===this._$Ej?.get(a)&&!this.hasAttribute(l._$Eu(a,t))))return;this.C(a,e,t)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(a,e,{useDefault:t,reflect:i,wrapped:r},l){t&&!(this._$Ej??=new Map).has(a)&&(this._$Ej.set(a,l??e??this[a]),r!==!0||l!==void 0)||(this._$AL.has(a)||(this.hasUpdated||t||(e=void 0),this._$AL.set(a,e)),i===!0&&this._$Em!==a&&(this._$Eq??=new Set).add(a))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(e){Promise.reject(e)}let a=this.scheduleUpdate();return a!=null&&await a,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[i,r]of this._$Ep)this[i]=r;this._$Ep=void 0}let t=this.constructor.elementProperties;if(t.size>0)for(let[i,r]of t){let{wrapped:l}=r,c=this[i];l!==!0||this._$AL.has(i)||c===void 0||this.C(i,void 0,r,c)}}let a=!1,e=this._$AL;try{a=this.shouldUpdate(e),a?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(t){throw a=!1,this._$EM(),t}a&&this._$AE(e)}willUpdate(a){}_$AE(a){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(a)),this.updated(a)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(a){return!0}update(a){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(a){}firstUpdated(a){}};oe.elementStyles=[],oe.shadowRootOptions={mode:"open"},oe[Re("elementProperties")]=new Map,oe[Re("finalized")]=new Map,Wi?.({ReactiveElement:oe}),(Ye.reactiveElementVersions??=[]).push("2.1.2");var Tt=globalThis,Vt=n=>n,Qe=Tt.trustedTypes,Wt=Qe?Qe.createPolicy("lit-html",{createHTML:n=>n}):void 0,Zt="$lit$",he=`lit$${Math.random().toFixed(9).slice(2)}$`,Xt="?"+he,Ki=`<${Xt}>`,fe=document,ze=()=>fe.createComment(""),De=n=>n===null||typeof n!="object"&&typeof n!="function",St=Array.isArray,Yi=n=>St(n)||typeof n?.[Symbol.iterator]=="function",yt=`[ 	
-\f\r]`,Pe=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,Kt=/-->/g,Yt=/>/g,ve=RegExp(`>|${yt}(?:([^\\s"'>=/]+)(${yt}*=${yt}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`,"g"),Gt=/'/g,Qt=/"/g,ei=/^(?:script|style|textarea|title)$/i,At=n=>(a,...e)=>({_$litType$:n,strings:a,values:e}),o=At(1),P=At(2),ca=At(3),le=Symbol.for("lit-noChange"),u=Symbol.for("lit-nothing"),Jt=new WeakMap,be=fe.createTreeWalker(fe,129);function ti(n,a){if(!St(n)||!n.hasOwnProperty("raw"))throw Error("invalid template strings array");return Wt!==void 0?Wt.createHTML(a):a}var Gi=(n,a)=>{let e=n.length-1,t=[],i,r=a===2?"<svg>":a===3?"<math>":"",l=Pe;for(let c=0;c<e;c++){let d=n[c],h,g,m=-1,v=0;for(;v<d.length&&(l.lastIndex=v,g=l.exec(d),g!==null);)v=l.lastIndex,l===Pe?g[1]==="!--"?l=Kt:g[1]!==void 0?l=Yt:g[2]!==void 0?(ei.test(g[2])&&(i=RegExp("</"+g[2],"g")),l=ve):g[3]!==void 0&&(l=ve):l===ve?g[0]===">"?(l=i??Pe,m=-1):g[1]===void 0?m=-2:(m=l.lastIndex-g[2].length,h=g[1],l=g[3]===void 0?ve:g[3]==='"'?Qt:Gt):l===Qt||l===Gt?l=ve:l===Kt||l===Yt?l=Pe:(l=ve,i=void 0);let f=l===ve&&n[c+1].startsWith("/>")?" ":"";r+=l===Pe?d+Ki:m>=0?(t.push(h),d.slice(0,m)+Zt+d.slice(m)+he+f):d+he+(m===-2?c:f)}return[ti(n,r+(n[e]||"<?>")+(a===2?"</svg>":a===3?"</math>":"")),t]},He=class n{constructor({strings:a,_$litType$:e},t){let i;this.parts=[];let r=0,l=0,c=a.length-1,d=this.parts,[h,g]=Gi(a,e);if(this.el=n.createElement(h,t),be.currentNode=this.el.content,e===2||e===3){let m=this.el.content.firstChild;m.replaceWith(...m.childNodes)}for(;(i=be.nextNode())!==null&&d.length<c;){if(i.nodeType===1){if(i.hasAttributes())for(let m of i.getAttributeNames())if(m.endsWith(Zt)){let v=g[l++],f=i.getAttribute(m).split(he),w=/([.?@])?(.*)/.exec(v);d.push({type:1,index:r,name:w[2],strings:f,ctor:w[1]==="."?$t:w[1]==="?"?wt:w[1]==="@"?kt:Ee}),i.removeAttribute(m)}else m.startsWith(he)&&(d.push({type:6,index:r}),i.removeAttribute(m));if(ei.test(i.tagName)){let m=i.textContent.split(he),v=m.length-1;if(v>0){i.textContent=Qe?Qe.emptyScript:"";for(let f=0;f<v;f++)i.append(m[f],ze()),be.nextNode(),d.push({type:2,index:++r});i.append(m[v],ze())}}}else if(i.nodeType===8)if(i.data===Xt)d.push({type:2,index:r});else{let m=-1;for(;(m=i.data.indexOf(he,m+1))!==-1;)d.push({type:7,index:r}),m+=he.length-1}r++}}static createElement(a,e){let t=fe.createElement("template");return t.innerHTML=a,t}};function ke(n,a,e=n,t){if(a===le)return a;let i=t!==void 0?e._$Co?.[t]:e._$Cl,r=De(a)?void 0:a._$litDirective$;return i?.constructor!==r&&(i?._$AO?.(!1),r===void 0?i=void 0:(i=new r(n),i._$AT(n,e,t)),t!==void 0?(e._$Co??=[])[t]=i:e._$Cl=i),i!==void 0&&(a=ke(n,i._$AS(n,a.values),i,t)),a}var xt=class{constructor(a,e){this._$AV=[],this._$AN=void 0,this._$AD=a,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(a){let{el:{content:e},parts:t}=this._$AD,i=(a?.creationScope??fe).importNode(e,!0);be.currentNode=i;let r=be.nextNode(),l=0,c=0,d=t[0];for(;d!==void 0;){if(l===d.index){let h;d.type===2?h=new Oe(r,r.nextSibling,this,a):d.type===1?h=new d.ctor(r,d.name,d.strings,this,a):d.type===6&&(h=new Et(r,this,a)),this._$AV.push(h),d=t[++c]}l!==d?.index&&(r=be.nextNode(),l++)}return be.currentNode=fe,i}p(a){let e=0;for(let t of this._$AV)t!==void 0&&(t.strings!==void 0?(t._$AI(a,t,e),e+=t.strings.length-2):t._$AI(a[e])),e++}},Oe=class n{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(a,e,t,i){this.type=2,this._$AH=u,this._$AN=void 0,this._$AA=a,this._$AB=e,this._$AM=t,this.options=i,this._$Cv=i?.isConnected??!0}get parentNode(){let a=this._$AA.parentNode,e=this._$AM;return e!==void 0&&a?.nodeType===11&&(a=e.parentNode),a}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(a,e=this){a=ke(this,a,e),De(a)?a===u||a==null||a===""?(this._$AH!==u&&this._$AR(),this._$AH=u):a!==this._$AH&&a!==le&&this._(a):a._$litType$!==void 0?this.$(a):a.nodeType!==void 0?this.T(a):Yi(a)?this.k(a):this._(a)}O(a){return this._$AA.parentNode.insertBefore(a,this._$AB)}T(a){this._$AH!==a&&(this._$AR(),this._$AH=this.O(a))}_(a){this._$AH!==u&&De(this._$AH)?this._$AA.nextSibling.data=a:this.T(fe.createTextNode(a)),this._$AH=a}$(a){let{values:e,_$litType$:t}=a,i=typeof t=="number"?this._$AC(a):(t.el===void 0&&(t.el=He.createElement(ti(t.h,t.h[0]),this.options)),t);if(this._$AH?._$AD===i)this._$AH.p(e);else{let r=new xt(i,this),l=r.u(this.options);r.p(e),this.T(l),this._$AH=r}}_$AC(a){let e=Jt.get(a.strings);return e===void 0&&Jt.set(a.strings,e=new He(a)),e}k(a){St(this._$AH)||(this._$AH=[],this._$AR());let e=this._$AH,t,i=0;for(let r of a)i===e.length?e.push(t=new n(this.O(ze()),this.O(ze()),this,this.options)):t=e[i],t._$AI(r),i++;i<e.length&&(this._$AR(t&&t._$AB.nextSibling,i),e.length=i)}_$AR(a=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);a!==this._$AB;){let t=Vt(a).nextSibling;Vt(a).remove(),a=t}}setConnected(a){this._$AM===void 0&&(this._$Cv=a,this._$AP?.(a))}},Ee=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(a,e,t,i,r){this.type=1,this._$AH=u,this._$AN=void 0,this.element=a,this.name=e,this._$AM=i,this.options=r,t.length>2||t[0]!==""||t[1]!==""?(this._$AH=Array(t.length-1).fill(new String),this.strings=t):this._$AH=u}_$AI(a,e=this,t,i){let r=this.strings,l=!1;if(r===void 0)a=ke(this,a,e,0),l=!De(a)||a!==this._$AH&&a!==le,l&&(this._$AH=a);else{let c=a,d,h;for(a=r[0],d=0;d<r.length-1;d++)h=ke(this,c[t+d],e,d),h===le&&(h=this._$AH[d]),l||=!De(h)||h!==this._$AH[d],h===u?a=u:a!==u&&(a+=(h??"")+r[d+1]),this._$AH[d]=h}l&&!i&&this.j(a)}j(a){a===u?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,a??"")}},$t=class extends Ee{constructor(){super(...arguments),this.type=3}j(a){this.element[this.name]=a===u?void 0:a}},wt=class extends Ee{constructor(){super(...arguments),this.type=4}j(a){this.element.toggleAttribute(this.name,!!a&&a!==u)}},kt=class extends Ee{constructor(a,e,t,i,r){super(a,e,t,i,r),this.type=5}_$AI(a,e=this){if((a=ke(this,a,e,0)??u)===le)return;let t=this._$AH,i=a===u&&t!==u||a.capture!==t.capture||a.once!==t.once||a.passive!==t.passive,r=a!==u&&(t===u||i);i&&this.element.removeEventListener(this.name,this,t),r&&this.element.addEventListener(this.name,this,a),this._$AH=a}handleEvent(a){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,a):this._$AH.handleEvent(a)}},Et=class{constructor(a,e,t){this.element=a,this.type=6,this._$AN=void 0,this._$AM=e,this.options=t}get _$AU(){return this._$AM._$AU}_$AI(a){ke(this,a)}};var Qi=Tt.litHtmlPolyfillSupport;Qi?.(He,Oe),(Tt.litHtmlVersions??=[]).push("3.3.2");var ii=(n,a,e)=>{let t=e?.renderBefore??a,i=t._$litPart$;if(i===void 0){let r=e?.renderBefore??null;t._$litPart$=i=new Oe(a.insertBefore(ze(),r),r,void 0,e??{})}return i._$AI(n),i};var Ct=globalThis,S=class extends oe{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let a=super.createRenderRoot();return this.renderOptions.renderBefore??=a.firstChild,a}update(a){let e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(a),this._$Do=ii(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return le}};S._$litElement$=!0,S.finalized=!0,Ct.litElementHydrateSupport?.({LitElement:S});var Ji=Ct.litElementPolyfillSupport;Ji?.({LitElement:S});(Ct.litElementVersions??=[]).push("4.2.2");var si=n=>(a,e)=>{e!==void 0?e.addInitializer(()=>{customElements.define(n,a)}):customElements.define(n,a)};var Zi={attribute:!0,type:String,converter:Le,reflect:!1,hasChanged:Ge},Xi=(n=Zi,a,e)=>{let{kind:t,metadata:i}=e,r=globalThis.litPropertyMetadata.get(i);if(r===void 0&&globalThis.litPropertyMetadata.set(i,r=new Map),t==="setter"&&((n=Object.create(n)).wrapped=!0),r.set(e.name,n),t==="accessor"){let{name:l}=e;return{set(c){let d=a.get.call(this);a.set.call(this,c),this.requestUpdate(l,d,n,!0,c)},init(c){return c!==void 0&&this.C(l,void 0,n,c),c}}}if(t==="setter"){let{name:l}=e;return function(c){let d=this[l];a.call(this,c),this.requestUpdate(l,d,n,!0,c)}}throw Error("Unsupported decorator location: "+t)};function y(n){return(a,e)=>typeof e=="object"?Xi(n,a,e):((t,i,r)=>{let l=i.hasOwnProperty(r);return i.constructor.createProperty(r,t),l?Object.getOwnPropertyDescriptor(i,r):void 0})(n,a,e)}function _(n){return y({...n,state:!0,attribute:!1})}var ai={maintenance:"Maintenance",objects:"Objects",tasks:"Tasks",overdue:"Overdue",due_soon:"Due Soon",triggered:"Triggered",trigger_replaced:"Trigger replaced",ok:"OK",all:"All",new_object:"+ New Object",templates_from:"From template",templates_title:"Start from a template",templates_task_count:"{n} tasks",template_created:"Created from template",onboard_hint:"Add your first object to start tracking maintenance.",edit:"Edit",duplicate:"Duplicate",task_duplicated:"Task duplicated",object_duplicated:"Object duplicated",delete:"Delete",add_task:"+ Add Task",complete:"Complete",completed:"Completed",skip:"Skip",skipped:"Skipped",missed:"Missed",reset:"Reset",snooze:"Snooze",snoozed:"Snoozed",cancel:"Cancel",bulk_select:"Select",bulk_select_all:"Select all",bulk_n_selected:"{n} selected",bulk_completed:"{n} tasks completed",bulk_archived:"{n} tasks archived",completing:"Completing\u2026",interval:"Interval",warning:"Warning",last_performed:"Last performed",next_due:"Next due",days_until_due:"Days until due",avg_duration:"Avg duration",trigger:"Trigger",trigger_type:"Trigger type",threshold_above:"Upper limit",threshold_below:"Lower limit",threshold:"Threshold",counter:"Counter",state_change:"State change",runtime:"Runtime",runtime_hours:"Target runtime (hours)",target_value:"Target value",baseline:"Baseline",target_changes:"Target changes",for_minutes:"For (minutes)",time_based:"Time-based",sensor_based:"Sensor-based",manual:"Manual",one_time:"One-time",weekdays:"Weekdays",nth_weekday:"Nth weekday of month",day_of_month:"Day of month",recurrence_on_days:"Repeat on",recurrence_occurrence:"Occurrence",recurrence_weekday:"Weekday",recurrence_day:"Day of month (1\u201331)",ord_1:"1st",ord_2:"2nd",ord_3:"3rd",ord_4:"4th",ord_5:"5th",ord_last:"Last",day_word:"Day",interval_value:"Interval",interval_unit:"Unit",unit_days:"Days",unit_weeks:"Weeks",unit_months:"Months",unit_years:"Years",due_date:"Due date",cleaning:"Cleaning",inspection:"Inspection",replacement:"Replacement",calibration:"Calibration",service:"Service",custom:"Custom",history:"History",cost:"Cost",report_button:"Report",report_title:"Maintenance report",report_generated:"Generated",report_times_done:"Done",report_total_cost:"Total cost",report_every:"every {n} {unit}",report_notes:"Notes",report_col_type:"Type",report_col_status:"Status",report_col_schedule:"Schedule",duration:"Duration",both:"Both",trigger_val:"Trigger value",complete_title:"Complete: ",checklist:"Checklist",checklist_steps_optional:"Checklist steps (optional)",checklist_placeholder:`Clean filter
+var Di=Object.defineProperty;var Oi=Object.getOwnPropertyDescriptor;var h=(n,r,t,e)=>{for(var i=e>1?void 0:e?Oi(r,t):r,a=n.length-1,l;a>=0;a--)(l=n[a])&&(i=(e?l(r,t,i):l(i))||i);return e&&i&&Di(r,t,i),i};var Wt=globalThis,Kt=Wt.ShadowRoot&&(Wt.ShadyCSS===void 0||Wt.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,be=Symbol(),qe=new WeakMap,Rt=class{constructor(r,t,e){if(this._$cssResult$=!0,e!==be)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=r,this.t=t}get styleSheet(){let r=this.o,t=this.t;if(Kt&&r===void 0){let e=t!==void 0&&t.length===1;e&&(r=qe.get(t)),r===void 0&&((this.o=r=new CSSStyleSheet).replaceSync(this.cssText),e&&qe.set(t,r))}return r}toString(){return this.cssText}},Fe=n=>new Rt(typeof n=="string"?n:n+"",void 0,be),A=(n,...r)=>{let t=n.length===1?n[0]:r.reduce((e,i,a)=>e+(l=>{if(l._$cssResult$===!0)return l.cssText;if(typeof l=="number")return l;throw Error("Value passed to 'css' function must be a 'css' function result: "+l+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+n[a+1],n[0]);return new Rt(t,n,be)},Ne=(n,r)=>{if(Kt)n.adoptedStyleSheets=r.map(t=>t instanceof CSSStyleSheet?t:t.styleSheet);else for(let t of r){let e=document.createElement("style"),i=Wt.litNonce;i!==void 0&&e.setAttribute("nonce",i),e.textContent=t.cssText,n.appendChild(e)}},fe=Kt?n=>n:n=>n instanceof CSSStyleSheet?(r=>{let t="";for(let e of r.cssRules)t+=e.cssText;return Fe(t)})(n):n;var{is:qi,defineProperty:Fi,getOwnPropertyDescriptor:Ni,getOwnPropertyNames:Ui,getOwnPropertySymbols:Bi,getPrototypeOf:Vi}=Object,Yt=globalThis,Ue=Yt.trustedTypes,Wi=Ue?Ue.emptyScript:"",Ki=Yt.reactiveElementPolyfillSupport,It=(n,r)=>n,Lt={toAttribute(n,r){switch(r){case Boolean:n=n?Wi:null;break;case Object:case Array:n=n==null?n:JSON.stringify(n)}return n},fromAttribute(n,r){let t=n;switch(r){case Boolean:t=n!==null;break;case Number:t=n===null?null:Number(n);break;case Object:case Array:try{t=JSON.parse(n)}catch{t=null}}return t}},Gt=(n,r)=>!qi(n,r),Be={attribute:!0,type:String,converter:Lt,reflect:!1,useDefault:!1,hasChanged:Gt};Symbol.metadata??=Symbol("metadata"),Yt.litPropertyMetadata??=new WeakMap;var ot=class extends HTMLElement{static addInitializer(r){this._$Ei(),(this.l??=[]).push(r)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(r,t=Be){if(t.state&&(t.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(r)&&((t=Object.create(t)).wrapped=!0),this.elementProperties.set(r,t),!t.noAccessor){let e=Symbol(),i=this.getPropertyDescriptor(r,e,t);i!==void 0&&Fi(this.prototype,r,i)}}static getPropertyDescriptor(r,t,e){let{get:i,set:a}=Ni(this.prototype,r)??{get(){return this[t]},set(l){this[t]=l}};return{get:i,set(l){let c=i?.call(this);a?.call(this,l),this.requestUpdate(r,c,e)},configurable:!0,enumerable:!0}}static getPropertyOptions(r){return this.elementProperties.get(r)??Be}static _$Ei(){if(this.hasOwnProperty(It("elementProperties")))return;let r=Vi(this);r.finalize(),r.l!==void 0&&(this.l=[...r.l]),this.elementProperties=new Map(r.elementProperties)}static finalize(){if(this.hasOwnProperty(It("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(It("properties"))){let t=this.properties,e=[...Ui(t),...Bi(t)];for(let i of e)this.createProperty(i,t[i])}let r=this[Symbol.metadata];if(r!==null){let t=litPropertyMetadata.get(r);if(t!==void 0)for(let[e,i]of t)this.elementProperties.set(e,i)}this._$Eh=new Map;for(let[t,e]of this.elementProperties){let i=this._$Eu(t,e);i!==void 0&&this._$Eh.set(i,t)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(r){let t=[];if(Array.isArray(r)){let e=new Set(r.flat(1/0).reverse());for(let i of e)t.unshift(fe(i))}else r!==void 0&&t.push(fe(r));return t}static _$Eu(r,t){let e=t.attribute;return e===!1?void 0:typeof e=="string"?e:typeof r=="string"?r.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(r=>this.enableUpdating=r),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(r=>r(this))}addController(r){(this._$EO??=new Set).add(r),this.renderRoot!==void 0&&this.isConnected&&r.hostConnected?.()}removeController(r){this._$EO?.delete(r)}_$E_(){let r=new Map,t=this.constructor.elementProperties;for(let e of t.keys())this.hasOwnProperty(e)&&(r.set(e,this[e]),delete this[e]);r.size>0&&(this._$Ep=r)}createRenderRoot(){let r=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return Ne(r,this.constructor.elementStyles),r}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(r=>r.hostConnected?.())}enableUpdating(r){}disconnectedCallback(){this._$EO?.forEach(r=>r.hostDisconnected?.())}attributeChangedCallback(r,t,e){this._$AK(r,e)}_$ET(r,t){let e=this.constructor.elementProperties.get(r),i=this.constructor._$Eu(r,e);if(i!==void 0&&e.reflect===!0){let a=(e.converter?.toAttribute!==void 0?e.converter:Lt).toAttribute(t,e.type);this._$Em=r,a==null?this.removeAttribute(i):this.setAttribute(i,a),this._$Em=null}}_$AK(r,t){let e=this.constructor,i=e._$Eh.get(r);if(i!==void 0&&this._$Em!==i){let a=e.getPropertyOptions(i),l=typeof a.converter=="function"?{fromAttribute:a.converter}:a.converter?.fromAttribute!==void 0?a.converter:Lt;this._$Em=i;let c=l.fromAttribute(t,a.type);this[i]=c??this._$Ej?.get(i)??c,this._$Em=null}}requestUpdate(r,t,e,i=!1,a){if(r!==void 0){let l=this.constructor;if(i===!1&&(a=this[r]),e??=l.getPropertyOptions(r),!((e.hasChanged??Gt)(a,t)||e.useDefault&&e.reflect&&a===this._$Ej?.get(r)&&!this.hasAttribute(l._$Eu(r,e))))return;this.C(r,t,e)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(r,t,{useDefault:e,reflect:i,wrapped:a},l){e&&!(this._$Ej??=new Map).has(r)&&(this._$Ej.set(r,l??t??this[r]),a!==!0||l!==void 0)||(this._$AL.has(r)||(this.hasUpdated||e||(t=void 0),this._$AL.set(r,t)),i===!0&&this._$Em!==r&&(this._$Eq??=new Set).add(r))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(t){Promise.reject(t)}let r=this.scheduleUpdate();return r!=null&&await r,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[i,a]of this._$Ep)this[i]=a;this._$Ep=void 0}let e=this.constructor.elementProperties;if(e.size>0)for(let[i,a]of e){let{wrapped:l}=a,c=this[i];l!==!0||this._$AL.has(i)||c===void 0||this.C(i,void 0,a,c)}}let r=!1,t=this._$AL;try{r=this.shouldUpdate(t),r?(this.willUpdate(t),this._$EO?.forEach(e=>e.hostUpdate?.()),this.update(t)):this._$EM()}catch(e){throw r=!1,this._$EM(),e}r&&this._$AE(t)}willUpdate(r){}_$AE(r){this._$EO?.forEach(t=>t.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(r)),this.updated(r)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(r){return!0}update(r){this._$Eq&&=this._$Eq.forEach(t=>this._$ET(t,this[t])),this._$EM()}updated(r){}firstUpdated(r){}};ot.elementStyles=[],ot.shadowRootOptions={mode:"open"},ot[It("elementProperties")]=new Map,ot[It("finalized")]=new Map,Ki?.({ReactiveElement:ot}),(Yt.reactiveElementVersions??=[]).push("2.1.2");var Ee=globalThis,Ve=n=>n,Qt=Ee.trustedTypes,We=Qt?Qt.createPolicy("lit-html",{createHTML:n=>n}):void 0,Ze="$lit$",ut=`lit$${Math.random().toFixed(9).slice(2)}$`,Xe="?"+ut,Yi=`<${Xe}>`,ft=document,Pt=()=>ft.createComment(""),Ht=n=>n===null||typeof n!="object"&&typeof n!="function",Se=Array.isArray,Gi=n=>Se(n)||typeof n?.[Symbol.iterator]=="function",ye=`[ 	
+\f\r]`,zt=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,Ke=/-->/g,Ye=/>/g,vt=RegExp(`>|${ye}(?:([^\\s"'>=/]+)(${ye}*=${ye}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`,"g"),Ge=/'/g,Qe=/"/g,ti=/^(?:script|style|textarea|title)$/i,Ae=n=>(r,...t)=>({_$litType$:n,strings:r,values:t}),o=Ae(1),z=Ae(2),pa=Ae(3),lt=Symbol.for("lit-noChange"),p=Symbol.for("lit-nothing"),Je=new WeakMap,bt=ft.createTreeWalker(ft,129);function ei(n,r){if(!Se(n)||!n.hasOwnProperty("raw"))throw Error("invalid template strings array");return We!==void 0?We.createHTML(r):r}var Qi=(n,r)=>{let t=n.length-1,e=[],i,a=r===2?"<svg>":r===3?"<math>":"",l=zt;for(let c=0;c<t;c++){let d=n[c],u,g,m=-1,v=0;for(;v<d.length&&(l.lastIndex=v,g=l.exec(d),g!==null);)v=l.lastIndex,l===zt?g[1]==="!--"?l=Ke:g[1]!==void 0?l=Ye:g[2]!==void 0?(ti.test(g[2])&&(i=RegExp("</"+g[2],"g")),l=vt):g[3]!==void 0&&(l=vt):l===vt?g[0]===">"?(l=i??zt,m=-1):g[1]===void 0?m=-2:(m=l.lastIndex-g[2].length,u=g[1],l=g[3]===void 0?vt:g[3]==='"'?Qe:Ge):l===Qe||l===Ge?l=vt:l===Ke||l===Ye?l=zt:(l=vt,i=void 0);let f=l===vt&&n[c+1].startsWith("/>")?" ":"";a+=l===zt?d+Yi:m>=0?(e.push(u),d.slice(0,m)+Ze+d.slice(m)+ut+f):d+ut+(m===-2?c:f)}return[ei(n,a+(n[t]||"<?>")+(r===2?"</svg>":r===3?"</math>":"")),e]},Dt=class n{constructor({strings:r,_$litType$:t},e){let i;this.parts=[];let a=0,l=0,c=r.length-1,d=this.parts,[u,g]=Qi(r,t);if(this.el=n.createElement(u,e),bt.currentNode=this.el.content,t===2||t===3){let m=this.el.content.firstChild;m.replaceWith(...m.childNodes)}for(;(i=bt.nextNode())!==null&&d.length<c;){if(i.nodeType===1){if(i.hasAttributes())for(let m of i.getAttributeNames())if(m.endsWith(Ze)){let v=g[l++],f=i.getAttribute(m).split(ut),w=/([.?@])?(.*)/.exec(v);d.push({type:1,index:a,name:w[2],strings:f,ctor:w[1]==="."?$e:w[1]==="?"?we:w[1]==="@"?ke:Tt}),i.removeAttribute(m)}else m.startsWith(ut)&&(d.push({type:6,index:a}),i.removeAttribute(m));if(ti.test(i.tagName)){let m=i.textContent.split(ut),v=m.length-1;if(v>0){i.textContent=Qt?Qt.emptyScript:"";for(let f=0;f<v;f++)i.append(m[f],Pt()),bt.nextNode(),d.push({type:2,index:++a});i.append(m[v],Pt())}}}else if(i.nodeType===8)if(i.data===Xe)d.push({type:2,index:a});else{let m=-1;for(;(m=i.data.indexOf(ut,m+1))!==-1;)d.push({type:7,index:a}),m+=ut.length-1}a++}}static createElement(r,t){let e=ft.createElement("template");return e.innerHTML=r,e}};function kt(n,r,t=n,e){if(r===lt)return r;let i=e!==void 0?t._$Co?.[e]:t._$Cl,a=Ht(r)?void 0:r._$litDirective$;return i?.constructor!==a&&(i?._$AO?.(!1),a===void 0?i=void 0:(i=new a(n),i._$AT(n,t,e)),e!==void 0?(t._$Co??=[])[e]=i:t._$Cl=i),i!==void 0&&(r=kt(n,i._$AS(n,r.values),i,e)),r}var xe=class{constructor(r,t){this._$AV=[],this._$AN=void 0,this._$AD=r,this._$AM=t}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(r){let{el:{content:t},parts:e}=this._$AD,i=(r?.creationScope??ft).importNode(t,!0);bt.currentNode=i;let a=bt.nextNode(),l=0,c=0,d=e[0];for(;d!==void 0;){if(l===d.index){let u;d.type===2?u=new Ot(a,a.nextSibling,this,r):d.type===1?u=new d.ctor(a,d.name,d.strings,this,r):d.type===6&&(u=new Te(a,this,r)),this._$AV.push(u),d=e[++c]}l!==d?.index&&(a=bt.nextNode(),l++)}return bt.currentNode=ft,i}p(r){let t=0;for(let e of this._$AV)e!==void 0&&(e.strings!==void 0?(e._$AI(r,e,t),t+=e.strings.length-2):e._$AI(r[t])),t++}},Ot=class n{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(r,t,e,i){this.type=2,this._$AH=p,this._$AN=void 0,this._$AA=r,this._$AB=t,this._$AM=e,this.options=i,this._$Cv=i?.isConnected??!0}get parentNode(){let r=this._$AA.parentNode,t=this._$AM;return t!==void 0&&r?.nodeType===11&&(r=t.parentNode),r}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(r,t=this){r=kt(this,r,t),Ht(r)?r===p||r==null||r===""?(this._$AH!==p&&this._$AR(),this._$AH=p):r!==this._$AH&&r!==lt&&this._(r):r._$litType$!==void 0?this.$(r):r.nodeType!==void 0?this.T(r):Gi(r)?this.k(r):this._(r)}O(r){return this._$AA.parentNode.insertBefore(r,this._$AB)}T(r){this._$AH!==r&&(this._$AR(),this._$AH=this.O(r))}_(r){this._$AH!==p&&Ht(this._$AH)?this._$AA.nextSibling.data=r:this.T(ft.createTextNode(r)),this._$AH=r}$(r){let{values:t,_$litType$:e}=r,i=typeof e=="number"?this._$AC(r):(e.el===void 0&&(e.el=Dt.createElement(ei(e.h,e.h[0]),this.options)),e);if(this._$AH?._$AD===i)this._$AH.p(t);else{let a=new xe(i,this),l=a.u(this.options);a.p(t),this.T(l),this._$AH=a}}_$AC(r){let t=Je.get(r.strings);return t===void 0&&Je.set(r.strings,t=new Dt(r)),t}k(r){Se(this._$AH)||(this._$AH=[],this._$AR());let t=this._$AH,e,i=0;for(let a of r)i===t.length?t.push(e=new n(this.O(Pt()),this.O(Pt()),this,this.options)):e=t[i],e._$AI(a),i++;i<t.length&&(this._$AR(e&&e._$AB.nextSibling,i),t.length=i)}_$AR(r=this._$AA.nextSibling,t){for(this._$AP?.(!1,!0,t);r!==this._$AB;){let e=Ve(r).nextSibling;Ve(r).remove(),r=e}}setConnected(r){this._$AM===void 0&&(this._$Cv=r,this._$AP?.(r))}},Tt=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(r,t,e,i,a){this.type=1,this._$AH=p,this._$AN=void 0,this.element=r,this.name=t,this._$AM=i,this.options=a,e.length>2||e[0]!==""||e[1]!==""?(this._$AH=Array(e.length-1).fill(new String),this.strings=e):this._$AH=p}_$AI(r,t=this,e,i){let a=this.strings,l=!1;if(a===void 0)r=kt(this,r,t,0),l=!Ht(r)||r!==this._$AH&&r!==lt,l&&(this._$AH=r);else{let c=r,d,u;for(r=a[0],d=0;d<a.length-1;d++)u=kt(this,c[e+d],t,d),u===lt&&(u=this._$AH[d]),l||=!Ht(u)||u!==this._$AH[d],u===p?r=p:r!==p&&(r+=(u??"")+a[d+1]),this._$AH[d]=u}l&&!i&&this.j(r)}j(r){r===p?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,r??"")}},$e=class extends Tt{constructor(){super(...arguments),this.type=3}j(r){this.element[this.name]=r===p?void 0:r}},we=class extends Tt{constructor(){super(...arguments),this.type=4}j(r){this.element.toggleAttribute(this.name,!!r&&r!==p)}},ke=class extends Tt{constructor(r,t,e,i,a){super(r,t,e,i,a),this.type=5}_$AI(r,t=this){if((r=kt(this,r,t,0)??p)===lt)return;let e=this._$AH,i=r===p&&e!==p||r.capture!==e.capture||r.once!==e.once||r.passive!==e.passive,a=r!==p&&(e===p||i);i&&this.element.removeEventListener(this.name,this,e),a&&this.element.addEventListener(this.name,this,r),this._$AH=r}handleEvent(r){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,r):this._$AH.handleEvent(r)}},Te=class{constructor(r,t,e){this.element=r,this.type=6,this._$AN=void 0,this._$AM=t,this.options=e}get _$AU(){return this._$AM._$AU}_$AI(r){kt(this,r)}};var Ji=Ee.litHtmlPolyfillSupport;Ji?.(Dt,Ot),(Ee.litHtmlVersions??=[]).push("3.3.2");var ii=(n,r,t)=>{let e=t?.renderBefore??r,i=e._$litPart$;if(i===void 0){let a=t?.renderBefore??null;e._$litPart$=i=new Ot(r.insertBefore(Pt(),a),a,void 0,t??{})}return i._$AI(n),i};var Ce=globalThis,S=class extends ot{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let r=super.createRenderRoot();return this.renderOptions.renderBefore??=r.firstChild,r}update(r){let t=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(r),this._$Do=ii(t,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return lt}};S._$litElement$=!0,S.finalized=!0,Ce.litElementHydrateSupport?.({LitElement:S});var Zi=Ce.litElementPolyfillSupport;Zi?.({LitElement:S});(Ce.litElementVersions??=[]).push("4.2.2");var si=n=>(r,t)=>{t!==void 0?t.addInitializer(()=>{customElements.define(n,r)}):customElements.define(n,r)};var Xi={attribute:!0,type:String,converter:Lt,reflect:!1,hasChanged:Gt},ts=(n=Xi,r,t)=>{let{kind:e,metadata:i}=t,a=globalThis.litPropertyMetadata.get(i);if(a===void 0&&globalThis.litPropertyMetadata.set(i,a=new Map),e==="setter"&&((n=Object.create(n)).wrapped=!0),a.set(t.name,n),e==="accessor"){let{name:l}=t;return{set(c){let d=r.get.call(this);r.set.call(this,c),this.requestUpdate(l,d,n,!0,c)},init(c){return c!==void 0&&this.C(l,void 0,n,c),c}}}if(e==="setter"){let{name:l}=t;return function(c){let d=this[l];r.call(this,c),this.requestUpdate(l,d,n,!0,c)}}throw Error("Unsupported decorator location: "+e)};function y(n){return(r,t)=>typeof t=="object"?ts(n,r,t):((e,i,a)=>{let l=i.hasOwnProperty(a);return i.constructor.createProperty(a,e),l?Object.getOwnPropertyDescriptor(i,a):void 0})(n,r,t)}function _(n){return y({...n,state:!0,attribute:!1})}var ai={maintenance:"Maintenance",objects:"Objects",tasks:"Tasks",overdue:"Overdue",due_soon:"Due Soon",triggered:"Triggered",trigger_replaced:"Trigger replaced",ok:"OK",all:"All",new_object:"+ New Object",templates_from:"From template",templates_title:"Start from a template",templates_task_count:"{n} tasks",template_created:"Created from template",onboard_hint:"Add your first object to start tracking maintenance.",edit:"Edit",duplicate:"Duplicate",task_duplicated:"Task duplicated",object_duplicated:"Object duplicated",delete:"Delete",add_task:"+ Add Task",complete:"Complete",completed:"Completed",skip:"Skip",skipped:"Skipped",missed:"Missed",reset:"Reset",snooze:"Snooze",snoozed:"Snoozed",cancel:"Cancel",bulk_select:"Select",bulk_select_all:"Select all",bulk_n_selected:"{n} selected",bulk_completed:"{n} tasks completed",bulk_archived:"{n} tasks archived",completing:"Completing\u2026",interval:"Interval",warning:"Warning",last_performed:"Last performed",next_due:"Next due",days_until_due:"Days until due",avg_duration:"Avg duration",trigger:"Trigger",trigger_type:"Trigger type",threshold_above:"Upper limit",threshold_below:"Lower limit",threshold:"Threshold",counter:"Counter",state_change:"State change",runtime:"Runtime",runtime_hours:"Target runtime (hours)",target_value:"Target value",baseline:"Baseline",target_changes:"Target changes",for_minutes:"For (minutes)",time_based:"Time-based",sensor_based:"Sensor-based",manual:"Manual",one_time:"One-time",weekdays:"Weekdays",nth_weekday:"Nth weekday of month",day_of_month:"Day of month",recurrence_on_days:"Repeat on",recurrence_occurrence:"Occurrence",recurrence_weekday:"Weekday",recurrence_day:"Day of month (1\u201331)",ord_1:"1st",ord_2:"2nd",ord_3:"3rd",ord_4:"4th",ord_5:"5th",ord_last:"Last",day_word:"Day",interval_value:"Interval",interval_unit:"Unit",unit_days:"Days",unit_weeks:"Weeks",unit_months:"Months",unit_years:"Years",due_date:"Due date",cleaning:"Cleaning",inspection:"Inspection",replacement:"Replacement",calibration:"Calibration",service:"Service",custom:"Custom",history:"History",cost:"Cost",report_button:"Report",report_title:"Maintenance report",report_generated:"Generated",report_times_done:"Done",report_total_cost:"Total cost",report_every:"every {n} {unit}",report_notes:"Notes",report_col_type:"Type",report_col_status:"Status",report_col_schedule:"Schedule",duration:"Duration",both:"Both",trigger_val:"Trigger value",complete_title:"Complete: ",checklist:"Checklist",checklist_steps_optional:"Checklist steps (optional)",checklist_placeholder:`Clean filter
 Replace seal
-Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"{field}: too long (max {n} characters)",err_too_short:"{field}: too short (min {n} characters)",err_value_too_high:"{field}: too large (max {n})",err_value_too_low:"{field}: too small (min {n})",err_required:"{field}: required",err_wrong_type:"{field}: wrong type (expected: {type})",err_invalid_choice:"{field}: not an allowed value",err_invalid_value:"{field}: invalid value",feat_schedule_time:"Time-of-day scheduling",feat_schedule_time_desc:"Tasks become overdue at a specific time of day instead of midnight.",schedule_time_optional:"Due at time (optional, HH:MM)",schedule_time_help:"Empty = midnight (default). HA timezone.",at_time:"at",notes_optional:"Notes (optional)",cost_optional:"Cost (optional)",duration_minutes:"Duration in minutes (optional)",days:"days",day:"day",today:"Today",d_overdue:"d overdue",no_tasks:"No maintenance tasks yet. Create an object to get started.",no_tasks_short:"No tasks",no_history:"No history entries yet.",show_all:"Show all",cost_duration_chart:"Cost & Duration",installed:"Installed",confirm_delete_object:"Delete this object and all its tasks?",confirm_delete_task:"Delete this task?",min:"Min",max:"Max",save:"Save",saving:"Saving\u2026",edit_task:"Edit Task",new_task:"New Maintenance Task",task_name:"Task name",maintenance_type:"Maintenance type",priority:"Priority",labels:"Labels",labels_placeholder:"e.g. safety, seasonal, tenant-visible",labels_help:"Comma-separated tags for filtering and reporting.",priority_low:"Low",priority_normal:"Normal",priority_high:"High",schedule_type:"Schedule type",interval_days:"Interval (days)",warning_days:"Warning days",earliest_completion_days:"Earliest completion (days before due)",earliest_completion_days_help:"Leave empty to allow completing any time. 0 = only on/after the due date.",last_performed_optional:"Last performed (optional)",interval_anchor:"Interval anchor",anchor_completion:"From completion date",anchor_planned:"From planned date (no drift)",edit_object:"Edit Object",name:"Name",manufacturer_optional:"Manufacturer (optional)",model_optional:"Model (optional)",serial_number_optional:"Serial number (optional)",serial_number_label:"S/N",documentation_url_label:"Manual",object_notes_label:"Notes",sort_due_date:"Due date",sort_object:"Object name",sort_type:"Type",sort_task_name:"Task name",all_objects:"All objects",tasks_lower:"tasks",no_tasks_yet:"No tasks yet",add_first_task:"Add first task",trigger_configuration:"Trigger Configuration",entity_id:"Entity ID",comma_separated:"comma-separated",entity_logic:"Entity logic",entity_logic_any:"Any entity triggers",entity_logic_all:"All entities must trigger",entities:"entities",attribute_optional:"Attribute (optional, blank = state)",use_entity_state:"Use entity state (no attribute)",trigger_above:"Trigger above",trigger_below:"Trigger below",for_at_least_minutes:"For at least (minutes)",safety_interval_days:"Safety interval (days, optional)",safety_interval:"Safety interval (optional)",delta_mode:"Delta mode",from_state_optional:"From state (optional)",to_state_optional:"To state (optional)",documentation_url_optional:"Documentation URL (optional)",object_notes_optional:"Notes (optional)",nfc_tag_id_optional:"NFC Tag ID (optional)",nfc_tags_empty_help:"No NFC tags registered in Home Assistant yet.",nfc_tags_open_settings:"Open Tags settings",nfc_tags_refresh:"Refresh",environmental_entity_optional:"Environmental sensor (optional)",environmental_entity_helper:"e.g. sensor.outdoor_temperature \u2014 adjusts the interval based on environmental conditions",environmental_attribute_optional:"Environmental attribute (optional)",nfc_tag_id:"NFC Tag ID",nfc_linked:"NFC tag linked",nfc_link_hint:"Click to link NFC tag",responsible_user:"Responsible User",shared_with:"Shared with (rotation)",shared_with_help:"Pick multiple people to share this task; the responsible person rotates on each completion.",rotation_strategy:"Rotation",rotation_none:"No rotation",rotation_round_robin:"Round-robin",rotation_least_completed:"Least completed",rotation_random:"Random",no_user_assigned:"(No user assigned)",all_users:"All Users",my_tasks:"My Tasks",tab_calendar:"Calendar",cal_no_events:"No maintenance",cal_window_7:"7 days",cal_window_14:"14 days",cal_window_30:"30 days",cal_window_365:"1 year",cal_every_n_days:"every {n} days",cal_source_time:"Time-based",cal_source_time_adaptive:"Time-based (adaptive)",cal_source_sensor:"Sensor-based",cal_predicted:"predicted",cal_confidence_high:"high confidence",cal_confidence_medium:"medium confidence",cal_confidence_low:"low confidence",budget_monthly:"Monthly budget",budget_yearly:"Yearly budget",groups:"Groups",new_group:"New group",edit_group:"Edit group",no_groups:"No groups yet",delete_group:"Delete group",delete_group_confirm:"Delete group '{name}'?",group_select_tasks:"Select tasks",group_name_required:"Name is required",description_optional:"Description (optional)",selected:"Selected",loading_chart:"Loading chart data...",hide_outliers:"Hide outliers (sensor glitches)",was_maintenance_needed:"Was this maintenance needed?",feedback_needed:"Needed",feedback_not_needed:"Not needed",feedback_not_sure:"Not sure",suggested_interval:"Suggested interval",apply_suggestion:"Apply",reanalyze:"Re-analyze",reanalyze_result:"New analysis",reanalyze_insufficient_data:"Not enough data to produce a recommendation",data_points:"data points",dismiss_suggestion:"Dismiss",confidence_low:"Low",confidence_medium:"Medium",confidence_high:"High",recommended:"recommended",seasonal_awareness:"Seasonal Awareness",edit_seasonal_overrides:"Edit seasonal factors",seasonal_overrides_title:"Seasonal factors (override)",seasonal_overrides_hint:"Factor per month (0.1\u20135.0). Empty = learned automatically.",seasonal_override_invalid:"Invalid value",seasonal_override_range:"Factor must be between 0.1 and 5.0",clear_all:"Clear all",seasonal_chart_title:"Seasonal Factors",seasonal_learned:"Learned",seasonal_manual:"Manual",month_jan:"Jan",month_feb:"Feb",month_mar:"Mar",month_apr:"Apr",month_may:"May",month_jun:"Jun",month_jul:"Jul",month_aug:"Aug",month_sep:"Sep",month_oct:"Oct",month_nov:"Nov",month_dec:"Dec",sensor_prediction:"Sensor Prediction",degradation_trend:"Trend",trend_rising:"Rising",trend_falling:"Falling",trend_stable:"Stable",trend_insufficient_data:"Insufficient data",days_until_threshold:"Days until threshold",threshold_exceeded:"Threshold exceeded",environmental_adjustment:"Environmental factor",sensor_prediction_urgency:"Sensor predicts threshold in ~{days} days",day_short:"day",weibull_reliability_curve:"Reliability Curve",weibull_failure_probability:"Failure Probability",weibull_r_squared:"Fit R\xB2",beta_early_failures:"Early Failures",beta_random_failures:"Random Failures",beta_wear_out:"Wear-out",beta_highly_predictable:"Highly Predictable",confidence_interval:"Confidence Interval",confidence_conservative:"Conservative",confidence_aggressive:"Optimistic",current_interval_marker:"Current interval",recommended_marker:"Recommended",characteristic_life:"Characteristic life",chart_mini_sparkline:"Trend sparkline",chart_history:"Cost and duration history",chart_seasonal:"Seasonal factors, 12 months",chart_weibull:"Weibull reliability curve",chart_sparkline:"Sensor trigger value chart",days_progress:"Days progress",qr_code:"QR Code",qr_generating:"Generating QR code\u2026",qr_error:"Failed to generate QR code.",qr_error_no_url:"No HA URL configured. Please set an external or internal URL in Settings \u2192 System \u2192 Network.",save_error:"Failed to save. Please try again.",qr_print:"Print",qr_download:"Download SVG",qr_action:"Action on scan",qr_action_view:"View maintenance info",qr_action_complete:"Mark maintenance as complete",qr_url_mode:"Link type",qr_mode_companion:"Companion App",qr_mode_local:"Local (mDNS)",qr_mode_server:"Server URL",overview:"Overview",analysis:"Analysis",recent_activities:"Recent Activities",search_notes:"Search notes",avg_cost:"Avg Cost",no_advanced_features:"No advanced features enabled",no_advanced_features_hint:"Enable \u201CAdaptive Intervals\u201D or \u201CSeasonal Patterns\u201D in the integration settings to see analysis data here.",analysis_not_enough_data:"Not enough data for analysis yet.",analysis_not_enough_data_hint:"Weibull analysis requires at least 5 completed maintenances; seasonal patterns become visible after 6+ data points per month.",analysis_manual_task_hint:"Manual tasks without an interval do not generate analysis data.",completions:"completions",current:"Current",shorter:"Shorter",longer:"Longer",normal:"Normal",disabled:"Disabled",compound_logic:"Compound logic",compound:"Compound (multiple conditions)",compound_logic_and:"AND \u2014 all conditions must trigger",compound_logic_or:"OR \u2014 any condition triggers",compound_help:"Combine several sensor conditions into one trigger.",compound_no_conditions:"No conditions yet \u2014 add at least one.",compound_add_condition:"Add condition",compound_condition:"Condition",compound_remove_condition:"Remove condition",card_title:"Title",card_show_header:"Show header with statistics",card_show_actions:"Show action buttons",card_compact:"Compact mode",card_max_items:"Max items (0 = all)",card_filter_status:"Filter by status",card_filter_status_help:"Empty = show all statuses.",card_filter_objects:"Filter by objects",card_filter_objects_help:"Empty = show all objects.",card_filter_entities:"Filter by entities (entity_ids)",card_filter_entities_help:"Pick sensor / binary_sensor entities from this integration. Empty = all.",card_loading_objects:"Loading objects\u2026",card_load_error:"Could not load objects \u2014 check the WebSocket connection.",card_no_tasks_title:"No maintenance tasks yet",card_no_tasks_cta:"\u2192 Create one in the Maintenance panel",no_objects:"No objects yet.",action_error:"Action failed. Please try again.",area_id_optional:"Area (optional)",installation_date_optional:"Installation date (optional)",warranty_expiry_optional:"Warranty expiry (optional)",warranty:"Warranty",warranty_valid_until:"valid until {date}",warranty_expires_in:"expires in {days} days",warranty_expired:"expired",cal_past_windows:"Past windows",cal_forward_windows:"Forward windows",history_edit_title:"Edit history entry",history_edit_timestamp:"Timestamp",manufacturer:"Manufacturer",model:"Model",area:"Area",actions:"Actions",view_mode_label:"View",view_cards:"Card view",view_table:"Table view",objects_table_columns_label:"Objects table columns",objects_table_columns_hint:"Choose which columns appear in the objects table view.",custom_icon_optional:"Icon (optional, e.g. mdi:wrench)",task_enabled:"Task enabled",skip_reason_prompt:"Skip this task?",reason_optional:"Reason (optional)",reset_date_prompt:"Mark task as performed?",reset_date_optional:"Last performed date (optional, defaults to today)",notes_label:"Notes",documentation_label:"Documentation",no_nfc_tag:"\u2014 No tag \u2014",dashboard:"Dashboard",tab_today:"Today",palette_placeholder:"Search objects and tasks\u2026",palette_no_results:"No matches",palette_hint:"\u2191\u2193 to navigate \xB7 Enter to open \xB7 Esc to close",today_all_caught_up:"All caught up! Nothing due this week.",today_overdue:"Overdue",today_due_today:"Due today",today_this_week:"This week",settings:"Settings",settings_features:"Advanced Features",settings_features_desc:"Enable or disable advanced features. Disabling hides them from the UI but does not delete data.",feat_adaptive:"Adaptive Scheduling",feat_adaptive_desc:"Learn optimal intervals from maintenance history",feat_predictions:"Sensor Predictions",feat_predictions_desc:"Predict trigger dates from sensor degradation",feat_seasonal:"Seasonal Adjustments",feat_seasonal_desc:"Adjust intervals based on seasonal patterns",feat_environmental:"Environmental Correlation",feat_environmental_desc:"Correlate intervals with temperature/humidity",feat_budget:"Budget Tracking",feat_budget_desc:"Track monthly and yearly maintenance spending",feat_groups:"Task Groups",feat_groups_desc:"Organize tasks into logical groups",feat_checklists:"Checklists",feat_checklists_desc:"Multi-step procedures for task completion",settings_general:"General",settings_default_warning:"Default warning days",settings_panel_enabled:"Sidebar panel",settings_panel_title:"Sidebar panel title",settings_notifications:"Notifications",settings_notify_service:"Notification service",test_notification:"Test notification",send_test:"Send test",testing:"Sending\u2026",test_notification_success:"Test notification sent",test_notification_failed:"Test notification failed",settings_notify_due_soon:"Notify when due soon",settings_notify_overdue:"Notify when overdue",settings_notify_triggered:"Notify when triggered",settings_interval_hours:"Repeat interval (hours, 0 = once)",settings_quiet_hours:"Quiet hours",settings_quiet_start:"Start",settings_quiet_end:"End",settings_max_per_day:"Max notifications per day (0 = unlimited)",settings_bundling:"Bundle notifications",settings_bundle_threshold:"Bundle threshold",settings_actions:"Mobile Action Buttons",settings_action_complete:"Show 'Complete' button",settings_action_skip:"Show 'Skip' button",settings_action_snooze:"Show 'Snooze' button",settings_weekly_digest:"Weekly digest",settings_weekly_digest_hint:"A single summary notification on Monday morning when tasks are due.",settings_warranty_reminder:"Warranty expiry reminder",settings_warranty_reminder_days:"Days before expiry",settings_warranty_reminder_hint:"Notify once when an object's warranty is this many days from expiring.",settings_snooze_hours:"Snooze duration (hours)",settings_budget:"Budget",settings_currency:"Currency",settings_budget_monthly:"Monthly budget",settings_budget_yearly:"Yearly budget",settings_budget_alerts:"Budget alerts",settings_budget_threshold:"Alert threshold (%)",settings_import_export:"Import / Export",settings_export_json:"Export JSON",settings_export_yaml:"Export YAML",settings_export_csv:"Export CSV",settings_import_csv:"Import CSV",settings_import_placeholder:"Paste JSON or CSV content here\u2026",settings_import_btn:"Import",settings_import_success:"{count} objects imported successfully.",settings_export_success:"Export downloaded.",settings_saved:"Setting saved.",settings_include_history:"Include history",sort_alphabetical:"Alphabetical",sort_due_soonest:"Due soonest",sort_task_count:"Task count",sort_area:"Area",sort_assigned_user:"Assigned user",sort_group:"Group",groupby_none:"No grouping",groupby_area:"By area",groupby_group:"By group",groupby_user:"By user",filter_label:"Filter",user_label:"User",sort_label:"Sort",group_by_label:"Group by",state_value_help:'Use the HA state value (usually lowercase, e.g. "on"/"off"). Case is normalised on save.',target_changes_help:"Number of matching transitions before the trigger fires (default: 1).",qr_print_title:"Print QR codes",qr_print_desc:"Generate a printable page of QR codes to cut out and stick on your equipment.",qr_print_load:"Load objects",qr_print_filter:"Filter",qr_print_objects:"Objects",qr_print_actions:"Actions",qr_print_url_mode:"Link type",qr_print_estimate:"Estimated QR codes",qr_print_over_limit:"cap is 200, narrow the filter",qr_print_generate:"Generate QR codes",qr_print_generating:"Generating\u2026",qr_print_ready:"QR codes ready",qr_print_print_button:"Print",qr_print_empty:"Nothing to generate",qr_action_skip:"Skip",vacation_title:"Vacation mode",vacation_active:"active",vacation_ended:"ended",vacation_desc:"Plan a vacation: notifications are paused during the period plus a buffer of days. You can opt specific tasks back in.",vacation_enable:"Enable vacation mode",vacation_start:"Start",vacation_end:"End",vacation_buffer:"Buffer (days)",vacation_exempt_title:"Notify anyway during vacation",vacation_exempt_desc:"Pick tasks that should still notify during vacation (e.g. critical pool chemistry).",vacation_load_tasks:"Load tasks",vacation_preview_btn:"Show preview",vacation_preview_affected:"tasks affected",vacation_event_due_soon:"becomes due soon",vacation_event_overdue:"becomes overdue",vacation_event_triggered_est:"sensor trigger possible",vacation_sensor_based:"(sensor-based)",vacation_action_notify:"Notify anyway",vacation_action_unsilence:"Silence again",vacation_marked_complete:"Marked complete",vacation_marked_skip:"Skipped",vacation_end_now:"End vacation now",add:"Add",show_stats:"Show stats + graphs",hide_stats:"Hide stats",adaptive_no_data:"Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",suggestion_applied:"Suggested interval applied",vacation_mode:"Vacation mode",vacation_status_active:"Active now",vacation_status_scheduled:"Scheduled",vacation_status_inactive:"Inactive",vacation_end_now_confirm:"End vacation immediately?",vacation_exempt_count:"exempt",vacation_advanced:"Advanced\u2026",vacation_open_panel:"Open in panel",enable:"Enable",saved:"Saved",budget_monthly_set:"Set monthly",budget_yearly_set:"Set yearly",budget_advanced:"Currency, alerts\u2026",budget_open_panel:"Open in panel",groups_empty:"No groups yet.",group_new_placeholder:"Add group\u2026",group_delete_confirm:'Delete group "{name}"?',groups_manage_tasks:"Manage task assignments\u2026",groups_open_panel:"Open in panel",unassigned:"Unassigned",no_area:"No area",has_overdue:"Has overdue tasks",object:"Object",settings_panel_access:"Panel access",settings_panel_access_desc:"Admins always have full access. To delegate create, edit and delete to specific non-admins, switch this on and pick them below \u2014 everyone else sees only Complete and Skip.",settings_operator_write:"Allow selected users to create, edit & delete",settings_operator_write_desc:"Off: only admins can change content. On: the selected users below get full access too.",no_non_admin_users:"No non-admin users found. Add some in Settings \u2192 People.",owner_label:"Owner",feat_completion_actions:"Completion actions",feat_completion_actions_desc:"Per-task HA action on complete + quick-complete QR with pre-set values.",on_complete_action_title:"On complete: trigger HA action (optional)",on_complete_action_desc:"Calls an HA service when the task is completed \u2014 e.g. reset a counter on the device.",on_complete_action_service:"Service",on_complete_action_target:"Target entity",on_complete_action_target_hint:"Note: the entity domain must match the service \u2014 e.g. 'button.press' only works on button.*, 'counter.increment' only on counter.*, 'input_button.press' only on input_button.* etc. On a mismatch the action will silently fail (HA logs 'Referenced entities ... missing or not currently available').",on_complete_action_data:"Data (JSON, optional)",on_complete_action_test:"Validate configuration",on_complete_action_test_success:"\u2713 Configuration valid (action will fire only on task completion)",on_complete_action_test_failed:"Failed",quick_complete_defaults_title:"Quick-complete defaults (for QR scans, optional)",quick_complete_defaults_desc:"Pre-set values for quick-complete QR scans. Without these, the QR opens the complete dialog.",quick_complete_defaults_notes:"Notes",quick_complete_defaults_cost:"Cost",quick_complete_defaults_duration:"Duration (minutes)",quick_complete_defaults_feedback_none:"No feedback",quick_complete_defaults_feedback_needed:"Was needed",quick_complete_defaults_feedback_not_needed:"Not needed",quick_complete_success:"Quickly marked complete",show_all_objects:"Show all objects",show_all_tasks:"Clear filter \u2014 show all tasks",filter_to_overdue:"Filter task list to overdue only",filter_to_due_soon:"Filter task list to due-soon only",filter_to_triggered:"Filter task list to triggered only",open_task:"Open task",show_details:"Show history + stats",hide_details:"Hide details",history_empty:"No history yet.",history_edit_button:"Edit entry",total_cost:"Total cost",times_performed:"Performed",older_entries:"older",open_in_panel:"Open in Maintenance panel",skip_reason:"Skip reason (optional)",reset_to_date:"Reset last_performed to",delete_task_confirm:"Delete this task and its history?",delete_object_confirm:"Delete this object and all its tasks?",loading:"Loading\u2026",archive:"Archive",undo:"Undo",task_archived:"Task archived",object_archived:"Object archived",unarchive:"Unarchive",archived:"Archived",show_archived:"Show archived",hide_archived:"Hide archived",confirm_archive_object:"Archive this object and its tasks? They keep their history and can be unarchived later.",settings_archive:"Archive & Retention",settings_archive_desc:"Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",settings_archive_oneoff_days:"Auto-archive completed one-off tasks after (days, 0 = off)",settings_delete_archived_oneoff_days:"Auto-delete archived one-off tasks after (days, 0 = never)",archive_object:"Archive object",unarchive_object:"Unarchive object",documents:"Documents",documents_empty:"No documents yet.",doc_upload:"Upload file",doc_uploading:"Uploading\u2026",doc_add_link:"Add link",doc_link_url:"URL (https://\u2026)",doc_link_title:"Title (optional)",doc_open:"Open",doc_delete_confirm:'Delete "{name}"?',doc_too_large:"File is too large (max 25 MB).",doc_upload_failed:"Upload failed.",completion_photo_optional:"Completion photo (optional)",add_photo:"Add photo",uploading:"Uploading\u2026",remove:"Remove",doc_deduped:"Already stored elsewhere \u2014 shared, no extra space used.",doc_dup_in_object:"This file is already attached to this object.",doc_link_invalid:"Only http/https links are allowed.",doc_cat_manual:"Manual",doc_cat_warranty:"Warranty",doc_cat_invoice:"Invoice",doc_cat_spare_parts:"Spare parts",doc_cat_photo:"Photo",doc_cat_other:"Other",doc_link_badge:"Link",doc_storage_title:"Document storage",doc_storage_saved:"Saved via deduplication",doc_storage_refresh:"Refresh",doc_download:"Download",doc_close:"Close",doc_camera:"Take photo",doc_drop_hint:"Drop files here",doc_task_none:"No documents linked to this task.",doc_link_existing:"Link a document\u2026",doc_attach:"Link",doc_unlink:"Unlink",doc_page:"Page",chart_range_7d:"7d",chart_range_30d:"30d",chart_range_90d:"90d",chart_range_1y:"1y",chart_since_service:"since last service",chart_no_stats:"No long-term statistics for this entity \u2014 showing maintenance-event values only",auto_complete_on_recovery:"Auto-complete when the sensor recovers",auto_complete_on_recovery_help:"Records a completion (sets last performed) when the trigger clears itself \u2014 e.g. salt refilled, filter replaced.",doc_search:"Search documents\u2026",doc_search_none:"No matching documents"};var ye="\u20AC",Xe={ok:"var(--success-color, #4caf50)",due_soon:"var(--warning-color, #ff9800)",overdue:"var(--error-color, #f44336)",triggered:"var(--deep-orange-color, #ff5722)",archived:"var(--disabled-color, #9e9e9e)"},et={ok:"mdi:check-circle",due_soon:"mdi:alert-circle",overdue:"mdi:alert-octagon",triggered:"mdi:bell-alert",archived:"mdi:archive-outline",completed:"mdi:check-circle",skipped:"mdi:skip-next",missed:"mdi:calendar-remove",reset:"mdi:refresh"},Mt="en",qe={en:ai},ts=new Set(["de","nl","fr","it","es","pt","ru","uk","pl","cs","sv","zh","da","fi","nb","ja","hi"]),is="/maintenance_supporter_locales",jt={};function It(n){return(n||Mt).substring(0,2).toLowerCase()}function s(n,a){let e=It(a);return qe[e]?.[n]??qe.en[n]??n}function tt(n){let a=It(n);return a===Mt||a in qe}function ae(n){let a=It(n);return a===Mt||a in qe||!ts.has(a)?Promise.resolve():(a in jt||(jt[a]=fetch(`${is}/${a}.json`).then(e=>e.ok?e.json():null).then(e=>{e&&(qe[a]=e)}).catch(()=>{})),jt[a])}function ni(n){let a=(n||"en").substring(0,2).toLowerCase();return{de:"de-DE",en:"en-US",nl:"nl-NL",fr:"fr-FR",it:"it-IT",es:"es-ES",pt:"pt-PT",ru:"ru-RU",uk:"uk-UA",zh:"zh-CN",da:"da-DK",fi:"fi-FI",nb:"nb-NO",ja:"ja-JP",hi:"hi-IN"}[a]??"en-US"}function V(n,a){if(!n)return"\u2014";try{let e=n.includes("T")?n:n+"T00:00:00";return new Date(e).toLocaleDateString(ni(a),{day:"2-digit",month:"2-digit",year:"numeric"})}catch{return n}}function it(n,a){if(!n)return"\u2014";try{let e=ni(a),t=new Date(n);return t.toLocaleDateString(e,{day:"2-digit",month:"2-digit",year:"numeric"})+" "+t.toLocaleTimeString(e,{hour:"2-digit",minute:"2-digit"})}catch{return n}}function Te(n,a){if(n==null)return"\u2014";let e=a||"en";return n<0?`${Math.abs(n)} ${s("d_overdue",e)}`:n===0?s("today",e):`${n} ${s(n===1?"day":"days",e)}`}function ri(n,a,e){return n==null?"\u2014":`${n} ${s("unit_"+(a||"days"),e)}`}function Ze(n,a,e="long"){let t=(a||"en").substring(0,2);return new Date(Date.UTC(2024,0,1+n)).toLocaleDateString(t,{weekday:e,timeZone:"UTC"})}function st(n,a){let e=n.schedule;switch(e?.kind){case"weekdays":return(e.weekdays||[]).map(t=>Ze(t,a,"short")).join(" & ")||"\u2014";case"nth_weekday":return e.weekday==null||e.nth==null?"\u2014":`${e.nth===-1?s("ord_last",a):s("ord_"+e.nth,a)} ${Ze(e.weekday,a,"long")}`;case"day_of_month":return e.day!=null?`${s("day_word",a)} ${e.day}`:"\u2014";case"one_time":return n.due_date?V(n.due_date,a):s("one_time",a);case"manual":return s("manual",a);case"interval":return ri(e.every,e.unit,a)}return n.schedule_type==="one_time"?n.due_date?V(n.due_date,a):s("one_time",a):n.schedule_type==="manual"?s("manual",a):n.schedule_type==="sensor_based"?s("sensor_based",a):n.interval_days!=null?ri(n.interval_days,n.interval_unit,a):"\u2014"}function xe(n,a){n.currentTarget.dispatchEvent(new CustomEvent("hass-more-info",{detail:{entityId:a},bubbles:!0,composed:!0}))}var at=A`
+Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"{field}: too long (max {n} characters)",err_too_short:"{field}: too short (min {n} characters)",err_value_too_high:"{field}: too large (max {n})",err_value_too_low:"{field}: too small (min {n})",err_required:"{field}: required",err_wrong_type:"{field}: wrong type (expected: {type})",err_invalid_choice:"{field}: not an allowed value",err_invalid_value:"{field}: invalid value",feat_schedule_time:"Time-of-day scheduling",feat_schedule_time_desc:"Tasks become overdue at a specific time of day instead of midnight.",schedule_time_optional:"Due at time (optional, HH:MM)",schedule_time_help:"Empty = midnight (default). HA timezone.",at_time:"at",notes_optional:"Notes (optional)",cost_optional:"Cost (optional)",duration_minutes:"Duration in minutes (optional)",days:"days",day:"day",today:"Today",d_overdue:"d overdue",no_tasks:"No maintenance tasks yet. Create an object to get started.",no_tasks_short:"No tasks",no_history:"No history entries yet.",show_all:"Show all",cost_duration_chart:"Cost & Duration",installed:"Installed",confirm_delete_object:"Delete this object and all its tasks?",confirm_delete_task:"Delete this task?",min:"Min",max:"Max",save:"Save",saving:"Saving\u2026",edit_task:"Edit Task",new_task:"New Maintenance Task",task_name:"Task name",maintenance_type:"Maintenance type",priority:"Priority",labels:"Labels",labels_placeholder:"e.g. safety, seasonal, tenant-visible",labels_help:"Comma-separated tags for filtering and reporting.",priority_low:"Low",priority_normal:"Normal",priority_high:"High",schedule_type:"Schedule type",interval_days:"Interval (days)",warning_days:"Warning days",earliest_completion_days:"Earliest completion (days before due)",earliest_completion_days_help:"Leave empty to allow completing any time. 0 = only on/after the due date.",last_performed_optional:"Last performed (optional)",interval_anchor:"Interval anchor",anchor_completion:"From completion date",anchor_planned:"From planned date (no drift)",edit_object:"Edit Object",name:"Name",manufacturer_optional:"Manufacturer (optional)",model_optional:"Model (optional)",serial_number_optional:"Serial number (optional)",serial_number_label:"S/N",documentation_url_label:"Manual",object_notes_label:"Notes",sort_due_date:"Due date",sort_object:"Object name",sort_type:"Type",sort_task_name:"Task name",all_objects:"All objects",tasks_lower:"tasks",no_tasks_yet:"No tasks yet",add_first_task:"Add first task",trigger_configuration:"Trigger Configuration",entity_id:"Entity ID",comma_separated:"comma-separated",entity_logic:"Entity logic",entity_logic_any:"Any entity triggers",entity_logic_all:"All entities must trigger",entities:"entities",attribute_optional:"Attribute (optional, blank = state)",use_entity_state:"Use entity state (no attribute)",trigger_above:"Trigger above",trigger_below:"Trigger below",for_at_least_minutes:"For at least (minutes)",safety_interval_days:"Safety interval (days, optional)",safety_interval:"Safety interval (optional)",delta_mode:"Delta mode",from_state_optional:"From state (optional)",to_state_optional:"To state (optional)",documentation_url_optional:"Documentation URL (optional)",object_notes_optional:"Notes (optional)",nfc_tag_id_optional:"NFC Tag ID (optional)",nfc_tags_empty_help:"No NFC tags registered in Home Assistant yet.",nfc_tags_open_settings:"Open Tags settings",nfc_tags_refresh:"Refresh",environmental_entity_optional:"Environmental sensor (optional)",environmental_entity_helper:"e.g. sensor.outdoor_temperature \u2014 adjusts the interval based on environmental conditions",environmental_attribute_optional:"Environmental attribute (optional)",nfc_tag_id:"NFC Tag ID",nfc_linked:"NFC tag linked",nfc_link_hint:"Click to link NFC tag",responsible_user:"Responsible User",shared_with:"Shared with (rotation)",shared_with_help:"Pick multiple people to share this task; the responsible person rotates on each completion.",rotation_strategy:"Rotation",rotation_none:"No rotation",rotation_round_robin:"Round-robin",rotation_least_completed:"Least completed",rotation_random:"Random",no_user_assigned:"(No user assigned)",all_users:"All Users",my_tasks:"My Tasks",tab_calendar:"Calendar",cal_no_events:"No maintenance",cal_window_7:"7 days",cal_window_14:"14 days",cal_window_30:"30 days",cal_window_365:"1 year",cal_every_n_days:"every {n} days",cal_source_time:"Time-based",cal_source_time_adaptive:"Time-based (adaptive)",cal_source_sensor:"Sensor-based",cal_predicted:"predicted",cal_confidence_high:"high confidence",cal_confidence_medium:"medium confidence",cal_confidence_low:"low confidence",budget_monthly:"Monthly budget",budget_yearly:"Yearly budget",groups:"Groups",new_group:"New group",edit_group:"Edit group",no_groups:"No groups yet",delete_group:"Delete group",delete_group_confirm:"Delete group '{name}'?",group_select_tasks:"Select tasks",group_name_required:"Name is required",description_optional:"Description (optional)",selected:"Selected",loading_chart:"Loading chart data...",hide_outliers:"Hide outliers (sensor glitches)",was_maintenance_needed:"Was this maintenance needed?",feedback_needed:"Needed",feedback_not_needed:"Not needed",feedback_not_sure:"Not sure",suggested_interval:"Suggested interval",apply_suggestion:"Apply",reanalyze:"Re-analyze",reanalyze_result:"New analysis",reanalyze_insufficient_data:"Not enough data to produce a recommendation",data_points:"data points",dismiss_suggestion:"Dismiss",confidence_low:"Low",confidence_medium:"Medium",confidence_high:"High",recommended:"recommended",seasonal_awareness:"Seasonal Awareness",edit_seasonal_overrides:"Edit seasonal factors",seasonal_overrides_title:"Seasonal factors (override)",seasonal_overrides_hint:"Factor per month (0.1\u20135.0). Empty = learned automatically.",seasonal_override_invalid:"Invalid value",seasonal_override_range:"Factor must be between 0.1 and 5.0",clear_all:"Clear all",seasonal_chart_title:"Seasonal Factors",seasonal_learned:"Learned",seasonal_manual:"Manual",month_jan:"Jan",month_feb:"Feb",month_mar:"Mar",month_apr:"Apr",month_may:"May",month_jun:"Jun",month_jul:"Jul",month_aug:"Aug",month_sep:"Sep",month_oct:"Oct",month_nov:"Nov",month_dec:"Dec",sensor_prediction:"Sensor Prediction",degradation_trend:"Trend",trend_rising:"Rising",trend_falling:"Falling",trend_stable:"Stable",trend_insufficient_data:"Insufficient data",days_until_threshold:"Days until threshold",threshold_exceeded:"Threshold exceeded",environmental_adjustment:"Environmental factor",sensor_prediction_urgency:"Sensor predicts threshold in ~{days} days",day_short:"day",weibull_reliability_curve:"Reliability Curve",weibull_failure_probability:"Failure Probability",weibull_r_squared:"Fit R\xB2",beta_early_failures:"Early Failures",beta_random_failures:"Random Failures",beta_wear_out:"Wear-out",beta_highly_predictable:"Highly Predictable",confidence_interval:"Confidence Interval",confidence_conservative:"Conservative",confidence_aggressive:"Optimistic",current_interval_marker:"Current interval",recommended_marker:"Recommended",characteristic_life:"Characteristic life",chart_mini_sparkline:"Trend sparkline",chart_history:"Cost and duration history",chart_seasonal:"Seasonal factors, 12 months",chart_weibull:"Weibull reliability curve",chart_sparkline:"Sensor trigger value chart",days_progress:"Days progress",qr_code:"QR Code",qr_generating:"Generating QR code\u2026",qr_error:"Failed to generate QR code.",qr_error_no_url:"No HA URL configured. Please set an external or internal URL in Settings \u2192 System \u2192 Network.",save_error:"Failed to save. Please try again.",qr_print:"Print",qr_download:"Download SVG",qr_action:"Action on scan",qr_action_view:"View maintenance info",qr_action_complete:"Mark maintenance as complete",qr_url_mode:"Link type",qr_mode_companion:"Companion App",qr_mode_local:"Local (mDNS)",qr_mode_server:"Server URL",overview:"Overview",analysis:"Analysis",recent_activities:"Recent Activities",search_notes:"Search notes",avg_cost:"Avg Cost",no_advanced_features:"No advanced features enabled",no_advanced_features_hint:"Enable \u201CAdaptive Intervals\u201D or \u201CSeasonal Patterns\u201D in the integration settings to see analysis data here.",analysis_not_enough_data:"Not enough data for analysis yet.",analysis_not_enough_data_hint:"Weibull analysis requires at least 5 completed maintenances; seasonal patterns become visible after 6+ data points per month.",analysis_manual_task_hint:"Manual tasks without an interval do not generate analysis data.",completions:"completions",current:"Current",shorter:"Shorter",longer:"Longer",normal:"Normal",disabled:"Disabled",compound_logic:"Compound logic",compound:"Compound (multiple conditions)",compound_logic_and:"AND \u2014 all conditions must trigger",compound_logic_or:"OR \u2014 any condition triggers",compound_help:"Combine several sensor conditions into one trigger.",compound_no_conditions:"No conditions yet \u2014 add at least one.",compound_add_condition:"Add condition",compound_condition:"Condition",compound_remove_condition:"Remove condition",card_title:"Title",card_show_header:"Show header with statistics",card_show_actions:"Show action buttons",card_compact:"Compact mode",card_max_items:"Max items (0 = all)",card_filter_status:"Filter by status",card_filter_status_help:"Empty = show all statuses.",card_filter_objects:"Filter by objects",card_filter_objects_help:"Empty = show all objects.",card_filter_entities:"Filter by entities (entity_ids)",card_filter_entities_help:"Pick sensor / binary_sensor entities from this integration. Empty = all.",card_loading_objects:"Loading objects\u2026",card_load_error:"Could not load objects \u2014 check the WebSocket connection.",card_no_tasks_title:"No maintenance tasks yet",card_no_tasks_cta:"\u2192 Create one in the Maintenance panel",no_objects:"No objects yet.",action_error:"Action failed. Please try again.",area_id_optional:"Area (optional)",installation_date_optional:"Installation date (optional)",warranty_expiry_optional:"Warranty expiry (optional)",warranty:"Warranty",warranty_valid_until:"valid until {date}",warranty_expires_in:"expires in {days} days",warranty_expired:"expired",cal_past_windows:"Past windows",cal_forward_windows:"Forward windows",history_edit_title:"Edit history entry",history_edit_timestamp:"Timestamp",manufacturer:"Manufacturer",model:"Model",area:"Area",actions:"Actions",view_mode_label:"View",view_cards:"Card view",view_table:"Table view",objects_table_columns_label:"Objects table columns",objects_table_columns_hint:"Choose which columns appear in the objects table view.",custom_icon_optional:"Icon (optional, e.g. mdi:wrench)",task_enabled:"Task enabled",skip_reason_prompt:"Skip this task?",reason_optional:"Reason (optional)",reset_date_prompt:"Mark task as performed?",reset_date_optional:"Last performed date (optional, defaults to today)",notes_label:"Notes",documentation_label:"Documentation",no_nfc_tag:"\u2014 No tag \u2014",dashboard:"Dashboard",tab_today:"Today",palette_placeholder:"Search objects and tasks\u2026",palette_no_results:"No matches",palette_hint:"\u2191\u2193 to navigate \xB7 Enter to open \xB7 Esc to close",today_all_caught_up:"All caught up! Nothing due this week.",today_overdue:"Overdue",today_due_today:"Due today",today_this_week:"This week",settings:"Settings",settings_features:"Advanced Features",settings_features_desc:"Enable or disable advanced features. Disabling hides them from the UI but does not delete data.",feat_adaptive:"Adaptive Scheduling",feat_adaptive_desc:"Learn optimal intervals from maintenance history",feat_predictions:"Sensor Predictions",feat_predictions_desc:"Predict trigger dates from sensor degradation",feat_seasonal:"Seasonal Adjustments",feat_seasonal_desc:"Adjust intervals based on seasonal patterns",feat_environmental:"Environmental Correlation",feat_environmental_desc:"Correlate intervals with temperature/humidity",feat_budget:"Budget Tracking",feat_budget_desc:"Track monthly and yearly maintenance spending",feat_groups:"Task Groups",feat_groups_desc:"Organize tasks into logical groups",feat_checklists:"Checklists",feat_checklists_desc:"Multi-step procedures for task completion",settings_general:"General",settings_default_warning:"Default warning days",settings_panel_enabled:"Sidebar panel",settings_panel_title:"Sidebar panel title",settings_notifications:"Notifications",settings_notify_service:"Notification service",test_notification:"Test notification",send_test:"Send test",testing:"Sending\u2026",test_notification_success:"Test notification sent",test_notification_failed:"Test notification failed",settings_notify_due_soon:"Notify when due soon",settings_notify_overdue:"Notify when overdue",settings_notify_triggered:"Notify when triggered",settings_interval_hours:"Repeat interval (hours, 0 = once)",settings_quiet_hours:"Quiet hours",settings_quiet_start:"Start",settings_quiet_end:"End",settings_max_per_day:"Max notifications per day (0 = unlimited)",settings_bundling:"Bundle notifications",settings_bundle_threshold:"Bundle threshold",settings_actions:"Mobile Action Buttons",settings_action_complete:"Show 'Complete' button",settings_action_skip:"Show 'Skip' button",settings_action_snooze:"Show 'Snooze' button",settings_weekly_digest:"Weekly digest",settings_weekly_digest_hint:"A single summary notification on Monday morning when tasks are due.",settings_warranty_reminder:"Warranty expiry reminder",settings_warranty_reminder_days:"Days before expiry",settings_warranty_reminder_hint:"Notify once when an object's warranty is this many days from expiring.",settings_snooze_hours:"Snooze duration (hours)",settings_budget:"Budget",settings_currency:"Currency",settings_budget_monthly:"Monthly budget",settings_budget_yearly:"Yearly budget",settings_budget_alerts:"Budget alerts",settings_budget_threshold:"Alert threshold (%)",settings_import_export:"Import / Export",settings_export_json:"Export JSON",settings_export_yaml:"Export YAML",settings_export_csv:"Export CSV",settings_import_csv:"Import CSV",settings_import_placeholder:"Paste JSON or CSV content here\u2026",settings_import_btn:"Import",settings_import_success:"{count} objects imported successfully.",settings_export_success:"Export downloaded.",settings_saved:"Setting saved.",settings_include_history:"Include history",sort_alphabetical:"Alphabetical",sort_due_soonest:"Due soonest",sort_task_count:"Task count",sort_area:"Area",sort_assigned_user:"Assigned user",sort_group:"Group",groupby_none:"No grouping",groupby_area:"By area",groupby_group:"By group",groupby_user:"By user",filter_label:"Filter",user_label:"User",sort_label:"Sort",group_by_label:"Group by",state_value_help:'Use the HA state value (usually lowercase, e.g. "on"/"off"). Case is normalised on save.',target_changes_help:"Number of matching transitions before the trigger fires (default: 1).",qr_print_title:"Print QR codes",qr_print_desc:"Generate a printable page of QR codes to cut out and stick on your equipment.",qr_print_load:"Load objects",qr_print_filter:"Filter",qr_print_objects:"Objects",qr_print_actions:"Actions",qr_print_url_mode:"Link type",qr_print_estimate:"Estimated QR codes",qr_print_over_limit:"cap is 200, narrow the filter",qr_print_generate:"Generate QR codes",qr_print_generating:"Generating\u2026",qr_print_ready:"QR codes ready",qr_print_print_button:"Print",qr_print_empty:"Nothing to generate",qr_action_skip:"Skip",vacation_title:"Vacation mode",vacation_active:"active",vacation_ended:"ended",vacation_desc:"Plan a vacation: notifications are paused during the period plus a buffer of days. You can opt specific tasks back in.",vacation_enable:"Enable vacation mode",vacation_start:"Start",vacation_end:"End",vacation_buffer:"Buffer (days)",vacation_exempt_title:"Notify anyway during vacation",vacation_exempt_desc:"Pick tasks that should still notify during vacation (e.g. critical pool chemistry).",vacation_load_tasks:"Load tasks",vacation_preview_btn:"Show preview",vacation_preview_affected:"tasks affected",vacation_event_due_soon:"becomes due soon",vacation_event_overdue:"becomes overdue",vacation_event_triggered_est:"sensor trigger possible",vacation_sensor_based:"(sensor-based)",vacation_action_notify:"Notify anyway",vacation_action_unsilence:"Silence again",vacation_marked_complete:"Marked complete",vacation_marked_skip:"Skipped",vacation_end_now:"End vacation now",add:"Add",show_stats:"Show stats + graphs",hide_stats:"Hide stats",adaptive_no_data:"Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",suggestion_applied:"Suggested interval applied",vacation_mode:"Vacation mode",vacation_status_active:"Active now",vacation_status_scheduled:"Scheduled",vacation_status_inactive:"Inactive",vacation_end_now_confirm:"End vacation immediately?",vacation_exempt_count:"exempt",vacation_advanced:"Advanced\u2026",vacation_open_panel:"Open in panel",enable:"Enable",saved:"Saved",budget_monthly_set:"Set monthly",budget_yearly_set:"Set yearly",budget_advanced:"Currency, alerts\u2026",budget_open_panel:"Open in panel",groups_empty:"No groups yet.",group_new_placeholder:"Add group\u2026",group_delete_confirm:'Delete group "{name}"?',groups_manage_tasks:"Manage task assignments\u2026",groups_open_panel:"Open in panel",unassigned:"Unassigned",no_area:"No area",has_overdue:"Has overdue tasks",object:"Object",settings_panel_access:"Panel access",settings_panel_access_desc:"Admins always have full access. To delegate create, edit and delete to specific non-admins, switch this on and pick them below \u2014 everyone else sees only Complete and Skip.",settings_operator_write:"Allow selected users to create, edit & delete",settings_operator_write_desc:"Off: only admins can change content. On: the selected users below get full access too.",no_non_admin_users:"No non-admin users found. Add some in Settings \u2192 People.",owner_label:"Owner",feat_completion_actions:"Completion actions",feat_completion_actions_desc:"Per-task HA action on complete + quick-complete QR with pre-set values.",on_complete_action_title:"On complete: trigger HA action (optional)",on_complete_action_desc:"Calls an HA service when the task is completed \u2014 e.g. reset a counter on the device.",on_complete_action_service:"Service",on_complete_action_target:"Target entity",on_complete_action_target_hint:"Note: the entity domain must match the service \u2014 e.g. 'button.press' only works on button.*, 'counter.increment' only on counter.*, 'input_button.press' only on input_button.* etc. On a mismatch the action will silently fail (HA logs 'Referenced entities ... missing or not currently available').",on_complete_action_data:"Data (JSON, optional)",on_complete_action_test:"Validate configuration",on_complete_action_test_success:"\u2713 Configuration valid (action will fire only on task completion)",on_complete_action_test_failed:"Failed",quick_complete_defaults_title:"Quick-complete defaults (for QR scans, optional)",quick_complete_defaults_desc:"Pre-set values for quick-complete QR scans. Without these, the QR opens the complete dialog.",quick_complete_defaults_notes:"Notes",quick_complete_defaults_cost:"Cost",quick_complete_defaults_duration:"Duration (minutes)",quick_complete_defaults_feedback_none:"No feedback",quick_complete_defaults_feedback_needed:"Was needed",quick_complete_defaults_feedback_not_needed:"Not needed",quick_complete_success:"Quickly marked complete",show_all_objects:"Show all objects",show_all_tasks:"Clear filter \u2014 show all tasks",filter_to_overdue:"Filter task list to overdue only",filter_to_due_soon:"Filter task list to due-soon only",filter_to_triggered:"Filter task list to triggered only",open_task:"Open task",show_details:"Show history + stats",hide_details:"Hide details",history_empty:"No history yet.",history_edit_button:"Edit entry",total_cost:"Total cost",times_performed:"Performed",older_entries:"older",open_in_panel:"Open in Maintenance panel",skip_reason:"Skip reason (optional)",reset_to_date:"Reset last_performed to",delete_task_confirm:"Delete this task and its history?",delete_object_confirm:"Delete this object and all its tasks?",loading:"Loading\u2026",archive:"Archive",undo:"Undo",task_archived:"Task archived",object_archived:"Object archived",unarchive:"Unarchive",archived:"Archived",show_archived:"Show archived",hide_archived:"Hide archived",confirm_archive_object:"Archive this object and its tasks? They keep their history and can be unarchived later.",settings_archive:"Archive & Retention",settings_archive_desc:"Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",settings_archive_oneoff_days:"Auto-archive completed one-off tasks after (days, 0 = off)",settings_delete_archived_oneoff_days:"Auto-delete archived one-off tasks after (days, 0 = never)",archive_object:"Archive object",unarchive_object:"Unarchive object",documents:"Documents",documents_empty:"No documents yet.",doc_upload:"Upload file",doc_uploading:"Uploading\u2026",doc_add_link:"Add link",doc_link_url:"URL (https://\u2026)",doc_link_title:"Title (optional)",doc_open:"Open",doc_delete_confirm:'Delete "{name}"?',doc_too_large:"File is too large (max 25 MB).",doc_upload_failed:"Upload failed.",completion_photo_optional:"Completion photo (optional)",add_photo:"Add photo",uploading:"Uploading\u2026",remove:"Remove",doc_deduped:"Already stored elsewhere \u2014 shared, no extra space used.",doc_dup_in_object:"This file is already attached to this object.",doc_link_invalid:"Only http/https links are allowed.",doc_cat_manual:"Manual",doc_cat_warranty:"Warranty",doc_cat_invoice:"Invoice",doc_cat_spare_parts:"Spare parts",doc_cat_photo:"Photo",doc_cat_other:"Other",doc_link_badge:"Link",doc_storage_title:"Document storage",doc_storage_saved:"Saved via deduplication",doc_storage_refresh:"Refresh",doc_download:"Download",doc_close:"Close",doc_camera:"Take photo",doc_drop_hint:"Drop files here",doc_task_none:"No documents linked to this task.",doc_link_existing:"Link a document\u2026",doc_attach:"Link",doc_unlink:"Unlink",doc_page:"Page",chart_range_7d:"7d",chart_range_30d:"30d",chart_range_90d:"90d",chart_range_1y:"1y",chart_since_service:"since last service",chart_no_stats:"No long-term statistics for this entity \u2014 showing maintenance-event values only",auto_complete_on_recovery:"Auto-complete when the sensor recovers",auto_complete_on_recovery_help:"Records a completion (sets last performed) when the trigger clears itself \u2014 e.g. salt refilled, filter replaced.",doc_search:"Search documents\u2026",doc_search_none:"No matching documents"};var yt="\u20AC",Xt={ok:"var(--success-color, #4caf50)",due_soon:"var(--warning-color, #ff9800)",overdue:"var(--error-color, #f44336)",triggered:"var(--deep-orange-color, #ff5722)",archived:"var(--disabled-color, #9e9e9e)"},te={ok:"mdi:check-circle",due_soon:"mdi:alert-circle",overdue:"mdi:alert-octagon",triggered:"mdi:bell-alert",archived:"mdi:archive-outline",completed:"mdi:check-circle",skipped:"mdi:skip-next",missed:"mdi:calendar-remove",reset:"mdi:refresh"},Me="en",qt={en:ai},is=new Set(["de","nl","fr","it","es","pt","ru","uk","pl","cs","sv","zh","da","fi","nb","ja","hi"]),ss="/maintenance_supporter_locales",je={};function Re(n){return(n||Me).substring(0,2).toLowerCase()}function s(n,r){let t=Re(r);return qt[t]?.[n]??qt.en[n]??n}function ee(n){let r=Re(n);return r===Me||r in qt}function at(n){let r=Re(n);return r===Me||r in qt||!is.has(r)?Promise.resolve():(r in je||(je[r]=fetch(`${ss}/${r}.json`).then(t=>t.ok?t.json():null).then(t=>{t&&(qt[r]=t)}).catch(()=>{})),je[r])}function ni(n){let r=(n||"en").substring(0,2).toLowerCase();return{de:"de-DE",en:"en-US",nl:"nl-NL",fr:"fr-FR",it:"it-IT",es:"es-ES",pt:"pt-PT",ru:"ru-RU",uk:"uk-UA",zh:"zh-CN",da:"da-DK",fi:"fi-FI",nb:"nb-NO",ja:"ja-JP",hi:"hi-IN"}[r]??"en-US"}function V(n,r){if(!n)return"\u2014";try{let t=n.includes("T")?n:n+"T00:00:00";return new Date(t).toLocaleDateString(ni(r),{day:"2-digit",month:"2-digit",year:"numeric"})}catch{return n}}function ie(n,r){if(!n)return"\u2014";try{let t=ni(r),e=new Date(n);return e.toLocaleDateString(t,{day:"2-digit",month:"2-digit",year:"numeric"})+" "+e.toLocaleTimeString(t,{hour:"2-digit",minute:"2-digit"})}catch{return n}}function Et(n,r){if(n==null)return"\u2014";let t=r||"en";return n<0?`${Math.abs(n)} ${s("d_overdue",t)}`:n===0?s("today",t):`${n} ${s(n===1?"day":"days",t)}`}function ri(n,r,t){return n==null?"\u2014":`${n} ${s("unit_"+(r||"days"),t)}`}function Zt(n,r,t="long"){let e=(r||"en").substring(0,2);return new Date(Date.UTC(2024,0,1+n)).toLocaleDateString(e,{weekday:t,timeZone:"UTC"})}function se(n,r){let t=n.schedule;switch(t?.kind){case"weekdays":return(t.weekdays||[]).map(e=>Zt(e,r,"short")).join(" & ")||"\u2014";case"nth_weekday":return t.weekday==null||t.nth==null?"\u2014":`${t.nth===-1?s("ord_last",r):s("ord_"+t.nth,r)} ${Zt(t.weekday,r,"long")}`;case"day_of_month":return t.day!=null?`${s("day_word",r)} ${t.day}`:"\u2014";case"one_time":return n.due_date?V(n.due_date,r):s("one_time",r);case"manual":return s("manual",r);case"interval":return ri(t.every,t.unit,r)}return n.schedule_type==="one_time"?n.due_date?V(n.due_date,r):s("one_time",r):n.schedule_type==="manual"?s("manual",r):n.schedule_type==="sensor_based"?s("sensor_based",r):n.interval_days!=null?ri(n.interval_days,n.interval_unit,r):"\u2014"}function xt(n,r){n.currentTarget.dispatchEvent(new CustomEvent("hass-more-info",{detail:{entityId:r},bubbles:!0,composed:!0}))}var ae=A`
   :host {
     --maint-ok-color: var(--success-color, #4caf50);
     --maint-due-soon-color: var(--warning-color, #ff9800);
@@ -1125,17 +1125,17 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .stat-item { min-width: 60px; }
     .stat-value { font-size: 20px; }
   }
-`;var ss={days:1,weeks:7,months:30.4368,years:365.25};function Rt(n,a){return!n||n<=0?0:n*(ss[a||"days"]??1)}function rt(n,a,e){let t=Rt(n,e);if(t<=0||a==null)return{pct:0,overflow:!1};let i=(t-a)/t*100;return{pct:Math.max(0,Math.min(100,i)),overflow:i>100}}function L(n){return String(n??"").replace(/[&<>"']/g,a=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[a])}function oi(n,a,e,t,i,r){let l=[[e.manufacturer,n.manufacturer],[e.model,n.model],[e.serial,n.serial_number],[e.installed,n.installation_date?t(n.installation_date):null],[e.warranty,n.warranty_expiry?t(n.warranty_expiry):null]].filter(([,h])=>!!h),c=a.map(h=>{let g=e.scheduleLabel(h);return`<tr>
-      <td>${L(h.name)}</td>
-      <td>${L(e.typeLabel(h.type))}</td>
-      <td>${L(e.statusLabel(h.status))}</td>
+`;var as={days:1,weeks:7,months:30.4368,years:365.25};function Ie(n,r){return!n||n<=0?0:n*(as[r||"days"]??1)}function re(n,r,t){let e=Ie(n,t);if(e<=0||r==null)return{pct:0,overflow:!1};let i=(e-r)/e*100;return{pct:Math.max(0,Math.min(100,i)),overflow:i>100}}function L(n){return String(n??"").replace(/[&<>"']/g,r=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[r])}function oi(n,r,t,e,i,a){let l=[[t.manufacturer,n.manufacturer],[t.model,n.model],[t.serial,n.serial_number],[t.installed,n.installation_date?e(n.installation_date):null],[t.warranty,n.warranty_expiry?e(n.warranty_expiry):null]].filter(([,u])=>!!u),c=r.map(u=>{let g=t.scheduleLabel(u);return`<tr>
+      <td>${L(u.name)}</td>
+      <td>${L(t.typeLabel(u.type))}</td>
+      <td>${L(t.statusLabel(u.status))}</td>
       <td>${L(g)}</td>
-      <td>${L(h.last_performed?t(h.last_performed):e.none)}</td>
-      <td>${L(h.next_due?t(h.next_due):e.none)}</td>
-      <td class="num">${h.times_performed??0}</td>
-      <td class="num">${(h.total_cost??0).toFixed(2)} ${L(i)}</td>
-    </tr>`}).join(""),d=a.reduce((h,g)=>h+(g.total_cost??0),0);return`<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>${L(e.title)} \u2014 ${L(n.name)}</title>
+      <td>${L(u.last_performed?e(u.last_performed):t.none)}</td>
+      <td>${L(u.next_due?e(u.next_due):t.none)}</td>
+      <td class="num">${u.times_performed??0}</td>
+      <td class="num">${(u.total_cost??0).toFixed(2)} ${L(i)}</td>
+    </tr>`}).join(""),d=r.reduce((u,g)=>u+(g.total_cost??0),0);return`<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>${L(t.title)} \u2014 ${L(n.name)}</title>
 <style>
   * { box-sizing: border-box; }
   body { font: 13px/1.5 -apple-system, Segoe UI, Roboto, sans-serif; color: #1a1a1a; margin: 32px; }
@@ -1154,21 +1154,21 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
   @media print { body { margin: 0; } @page { margin: 16mm; } }
 </style></head><body>
   <h1>${L(n.name)}</h1>
-  <p class="sub">${L(e.title)} \xB7 ${L(e.generated)}: ${L(t(r))}</p>
-  ${l.length?`<div class="meta">${l.map(([h,g])=>`<div><div class="k">${L(h)}</div>${L(g)}</div>`).join("")}</div>`:""}
-  <h2>${L(e.tasksHeading)} (${a.length})</h2>
+  <p class="sub">${L(t.title)} \xB7 ${L(t.generated)}: ${L(e(a))}</p>
+  ${l.length?`<div class="meta">${l.map(([u,g])=>`<div><div class="k">${L(u)}</div>${L(g)}</div>`).join("")}</div>`:""}
+  <h2>${L(t.tasksHeading)} (${r.length})</h2>
   <table>
     <thead><tr>
-      <th>${L(e.colTask)}</th><th>${L(e.colType)}</th><th>${L(e.colStatus)}</th>
-      <th>${L(e.colSchedule)}</th><th>${L(e.colLastDone)}</th><th>${L(e.colNextDue)}</th>
-      <th class="num">${L(e.colTimes)}</th><th class="num">${L(e.colCost)}</th>
+      <th>${L(t.colTask)}</th><th>${L(t.colType)}</th><th>${L(t.colStatus)}</th>
+      <th>${L(t.colSchedule)}</th><th>${L(t.colLastDone)}</th><th>${L(t.colNextDue)}</th>
+      <th class="num">${L(t.colTimes)}</th><th class="num">${L(t.colCost)}</th>
     </tr></thead>
-    <tbody>${c||`<tr><td colspan="8">${L(e.none)}</td></tr>`}</tbody>
-    <tfoot><tr><td colspan="7">${L(e.totalCost)}</td><td class="num">${d.toFixed(2)} ${L(i)}</td></tr></tfoot>
+    <tbody>${c||`<tr><td colspan="8">${L(t.none)}</td></tr>`}</tbody>
+    <tfoot><tr><td colspan="7">${L(t.totalCost)}</td><td class="num">${d.toFixed(2)} ${L(i)}</td></tr></tfoot>
   </table>
-  ${n.notes?`<div class="notes"><strong>${L(e.notes)}:</strong>
+  ${n.notes?`<div class="notes"><strong>${L(t.notes)}:</strong>
 ${L(n.notes)}</div>`:""}
-</body></html>`}function Lt(n,a=new Date){if(!n)return{kind:"none",days:null,date:null};let e=new Date(`${n}T00:00:00`);if(isNaN(e.getTime()))return{kind:"none",days:null,date:null};let t=Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()),i=Date.UTC(e.getFullYear(),e.getMonth(),e.getDate()),r=Math.round((i-t)/864e5);return r<0?{kind:"expired",days:r,date:n}:r<=60?{kind:"expiring",days:r,date:n}:{kind:"valid",days:r,date:n}}var Se=[{key:"name",labelKey:"name",required:!0},{key:"manufacturer",labelKey:"manufacturer"},{key:"model",labelKey:"model"},{key:"serial_number",labelKey:"serial_number_label"},{key:"installation_date",labelKey:"installed"},{key:"warranty_expiry",labelKey:"warranty"},{key:"area_id",labelKey:"area"},{key:"documentation_url",labelKey:"documentation_url_label"},{key:"notes",labelKey:"object_notes_label"},{key:"task_count",labelKey:"tasks"},{key:"actions",labelKey:"actions"}],as=Se.map(n=>n.key),nt=["name","manufacturer","model","serial_number","installation_date","warranty_expiry","area_id","task_count","actions"];function Fe(n){if(!Array.isArray(n))return[...nt];let a=new Set,e=[];for(let t of n)typeof t=="string"&&as.includes(t)&&!a.has(t)&&(a.add(t),e.push(t));return e.length?(e.includes("name")||e.unshift("name"),e):[...nt]}function ot(n,a,e){let t=new Blob([n],{type:e}),i=URL.createObjectURL(t),r=document.createElement("a");r.href=i,r.download=a,r.target="_blank",r.rel="noopener",r.style.display="none",document.body.appendChild(r),r.dispatchEvent(new MouseEvent("click")),document.body.removeChild(r),setTimeout(()=>URL.revokeObjectURL(i),6e4)}function lt(n,a){let e=document.createElement("a");e.href=n,e.download=a,e.target="_blank",e.rel="noopener",e.style.display="none",document.body.appendChild(e),e.dispatchEvent(new MouseEvent("click")),document.body.removeChild(e)}var li=A`
+</body></html>`}function Le(n,r=new Date){if(!n)return{kind:"none",days:null,date:null};let t=new Date(`${n}T00:00:00`);if(isNaN(t.getTime()))return{kind:"none",days:null,date:null};let e=Date.UTC(r.getFullYear(),r.getMonth(),r.getDate()),i=Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()),a=Math.round((i-e)/864e5);return a<0?{kind:"expired",days:a,date:n}:a<=60?{kind:"expiring",days:a,date:n}:{kind:"valid",days:a,date:n}}var St=[{key:"name",labelKey:"name",required:!0},{key:"manufacturer",labelKey:"manufacturer"},{key:"model",labelKey:"model"},{key:"serial_number",labelKey:"serial_number_label"},{key:"installation_date",labelKey:"installed"},{key:"warranty_expiry",labelKey:"warranty"},{key:"area_id",labelKey:"area"},{key:"documentation_url",labelKey:"documentation_url_label"},{key:"notes",labelKey:"object_notes_label"},{key:"task_count",labelKey:"tasks"},{key:"actions",labelKey:"actions"}],rs=St.map(n=>n.key),ne=["name","manufacturer","model","serial_number","installation_date","warranty_expiry","area_id","task_count","actions"];function Ft(n){if(!Array.isArray(n))return[...ne];let r=new Set,t=[];for(let e of n)typeof e=="string"&&rs.includes(e)&&!r.has(e)&&(r.add(e),t.push(e));return t.length?(t.includes("name")||t.unshift("name"),t):[...ne]}function oe(n,r,t){let e=new Blob([n],{type:t}),i=URL.createObjectURL(e),a=document.createElement("a");a.href=i,a.download=r,a.target="_blank",a.rel="noopener",a.style.display="none",document.body.appendChild(a),a.dispatchEvent(new MouseEvent("click")),document.body.removeChild(a),setTimeout(()=>URL.revokeObjectURL(i),6e4)}function le(n,r){let t=document.createElement("a");t.href=n,t.download=r,t.target="_blank",t.rel="noopener",t.style.display="none",document.body.appendChild(t),t.dispatchEvent(new MouseEvent("click")),document.body.removeChild(t)}var li=A`
   :host {
     display: block;
     height: 100%;
@@ -1269,6 +1269,24 @@ ${L(n.notes)}</div>`:""}
     border-bottom: 1px solid var(--divider-color);
     cursor: pointer;
     transition: background 0.15s;
+  }
+
+  /* Virtualized task table (large installs): only the scroll window of rows
+     is in the DOM. The spacers span all columns and carry the off-window
+     height so the scrollbar stays honest. The sizer row is invisible and
+     zero-height but its badge cell still participates in subgrid track
+     sizing — pinning the content-sized badge column to the widest badge set
+     across ALL rows, so columns can't jitter while scrolling. */
+  .virt-spacer { grid-column: 1 / -1; }
+  .task-row.virt-sizer {
+    height: 0;
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: none;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   /* Bulk selection: a leading checkbox column while selecting. */
@@ -2527,23 +2545,23 @@ ${L(n.notes)}</div>`:""}
     from { opacity: 0; transform: translateX(-50%) translateY(16px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }
   }
-`;var ct=class{constructor(a){this._cache=new Map;this._pending=new Map;this._hass=a}updateHass(a){this._hass=a}async getDetailStats(a,e,t=30){return this._getStats(a,t<=35?"hour":"day",t,e)}async getMiniStats(a,e){return this._getStats(a,"day",14,e)}async getBatchMiniStats(a){let e=new Map,t=[];for(let d of a){let h=`${d.entityId}:day:14`,g=this._cache.get(h);g&&Date.now()-g.fetchedAt<3e5?e.set(d.entityId,g.points):t.push(d)}if(t.length===0)return e;let i=t.filter(d=>d.isCounter).map(d=>d.entityId),r=t.filter(d=>!d.isCounter).map(d=>d.entityId),l=new Date(Date.now()-336*60*60*1e3).toISOString(),c=[];return i.length>0&&c.push(this._fetchBatch(i,"day",l,["state","sum","change"],!0,e)),r.length>0&&c.push(this._fetchBatch(r,"day",l,["mean","min","max"],!1,e)),await Promise.all(c),e}clearCache(){this._cache.clear(),this._pending.clear()}async _getStats(a,e,t,i){let r=`${a}:${e}:${t}`,l=this._cache.get(r);if(l&&Date.now()-l.fetchedAt<3e5)return l.points;if(this._pending.has(r))return this._pending.get(r);let c=this._fetchAndNormalize(a,e,t,i,r);this._pending.set(r,c);try{return await c}finally{this._pending.delete(r)}}async _fetchAndNormalize(a,e,t,i,r){let l=new Date(Date.now()-t*24*60*60*1e3).toISOString(),c=i?["state","sum","change"]:["mean","min","max"];try{let h=(await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:l,statistic_ids:[a],period:e,types:c}))[a]||[],g=this._normalizeRows(h,i);return this._cache.set(r,{entityId:a,fetchedAt:Date.now(),period:e,points:g}),g}catch(d){return console.warn(`[maintenance-supporter] Failed to fetch statistics for ${a}:`,d),[]}}async _fetchBatch(a,e,t,i,r,l){try{let c=await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:t,statistic_ids:a,period:e,types:i});for(let d of a){let h=c[d]||[],g=this._normalizeRows(h,r);l.set(d,g),this._cache.set(`${d}:${e}:14`,{entityId:d,fetchedAt:Date.now(),period:e,points:g})}}catch(c){console.warn("[maintenance-supporter] Batch statistics fetch failed:",c)}}_normalizeRows(a,e){let t=[];for(let i of a){let r=null;if(e?r=i.state??null:r=i.mean??null,r===null)continue;let l={ts:i.start,val:r};e||(i.min!=null&&(l.min=i.min),i.max!=null&&(l.max=i.max)),t.push(l)}return t.sort((i,r)=>i.ts-r.ts),t}};var _e=class{constructor(a){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=a}updateHass(a){this.hass=a}async getUsers(a=!1){let e=Date.now();if(!a&&this.usersCache&&e-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=t.users,this.cacheTimestamp=e,this.usersCache}catch(t){return console.error("Failed to fetch users:",t),this.usersCache||[]}}async assignUser(a,e,t){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:a,task_id:e,user_id:t})}async getTasksByUser(a){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:a})).tasks}getUserName(a){return!a||!this.usersCache?null:this.usersCache.find(t=>t.id===a)?.name||null}getUser(a){return!a||!this.usersCache?null:this.usersCache.find(e=>e.id===a)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(a){return a?a===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}};var rs={name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",group_name:"name",group_description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_for_minutes:"trigger_for_minutes"};function ns(n,a){let e=rs[n];if(!e)return n;let t=s(e,a);return t&&t!==e?t:n}function os(n){let e=n.match(/data\['([^']+)'\]/)?.[1],t;return(t=n.match(/length of value must be at most (\d+)/))?{field:e,rule:"too_long",param:t[1]}:(t=n.match(/length of value must be at least (\d+)/))?{field:e,rule:"too_short",param:t[1]}:(t=n.match(/value must be at most (\S+)/))?{field:e,rule:"value_too_high",param:t[1]}:(t=n.match(/value must be at least (\S+)/))?{field:e,rule:"value_too_low",param:t[1]}:/required key not provided/.test(n)?{field:e,rule:"required"}:(t=n.match(/expected (\w+)/))?{field:e,rule:"wrong_type",param:t[1]}:/value must be one of/.test(n)?{field:e,rule:"invalid_choice"}:/not a valid value/.test(n)?{field:e,rule:"invalid_value"}:{field:e,rule:"unknown"}}function M(n,a,e){if(e=e??s("action_error",a),typeof n=="string")return n;if(typeof n!="object"||n===null)return e;let t=n,i=t.message||t.error?.message||"";if(!i)return e;let r=os(i),l=r.field?ns(r.field,a):"",c=d=>s(d,a).replace("{field}",l).replace("{n}",r.param??"");switch(r.rule){case"too_long":return c("err_too_long");case"too_short":return c("err_too_short");case"value_too_high":return c("err_value_too_high");case"value_too_low":return c("err_value_too_low");case"required":return c("err_required");case"wrong_type":return c("err_wrong_type").replace("{type}",r.param??"");case"invalid_choice":return c("err_invalid_choice");case"invalid_value":return c("err_invalid_value");default:return i||e}}var W=class extends S{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1}_onInput(e){let t=e.target.value;this.value=t,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:t}}))}render(){return o`
+`;var ce=class{constructor(r){this._cache=new Map;this._pending=new Map;this._hass=r}updateHass(r){this._hass=r}async getDetailStats(r,t,e=30){return this._getStats(r,e<=35?"hour":"day",e,t)}async getMiniStats(r,t){return this._getStats(r,"day",14,t)}async getBatchMiniStats(r){let t=new Map,e=[];for(let d of r){let u=`${d.entityId}:day:14`,g=this._cache.get(u);g&&Date.now()-g.fetchedAt<3e5?t.set(d.entityId,g.points):e.push(d)}if(e.length===0)return t;let i=e.filter(d=>d.isCounter).map(d=>d.entityId),a=e.filter(d=>!d.isCounter).map(d=>d.entityId),l=new Date(Date.now()-336*60*60*1e3).toISOString(),c=[];return i.length>0&&c.push(this._fetchBatch(i,"day",l,["state","sum","change"],!0,t)),a.length>0&&c.push(this._fetchBatch(a,"day",l,["mean","min","max"],!1,t)),await Promise.all(c),t}clearCache(){this._cache.clear(),this._pending.clear()}async _getStats(r,t,e,i){let a=`${r}:${t}:${e}`,l=this._cache.get(a);if(l&&Date.now()-l.fetchedAt<3e5)return l.points;if(this._pending.has(a))return this._pending.get(a);let c=this._fetchAndNormalize(r,t,e,i,a);this._pending.set(a,c);try{return await c}finally{this._pending.delete(a)}}async _fetchAndNormalize(r,t,e,i,a){let l=new Date(Date.now()-e*24*60*60*1e3).toISOString(),c=i?["state","sum","change"]:["mean","min","max"];try{let u=(await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:l,statistic_ids:[r],period:t,types:c}))[r]||[],g=this._normalizeRows(u,i);return this._cache.set(a,{entityId:r,fetchedAt:Date.now(),period:t,points:g}),g}catch(d){return console.warn(`[maintenance-supporter] Failed to fetch statistics for ${r}:`,d),[]}}async _fetchBatch(r,t,e,i,a,l){try{let c=await this._hass.connection.sendMessagePromise({type:"recorder/statistics_during_period",start_time:e,statistic_ids:r,period:t,types:i});for(let d of r){let u=c[d]||[],g=this._normalizeRows(u,a);l.set(d,g),this._cache.set(`${d}:${t}:14`,{entityId:d,fetchedAt:Date.now(),period:t,points:g})}}catch(c){console.warn("[maintenance-supporter] Batch statistics fetch failed:",c)}}_normalizeRows(r,t){let e=[];for(let i of r){let a=null;if(t?a=i.state??null:a=i.mean??null,a===null)continue;let l={ts:i.start,val:a};t||(i.min!=null&&(l.min=i.min),i.max!=null&&(l.max=i.max)),e.push(l)}return e.sort((i,a)=>i.ts-a.ts),e}};var _t=class{constructor(r){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=r}updateHass(r){this.hass=r}async getUsers(r=!1){let t=Date.now();if(!r&&this.usersCache&&t-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=e.users,this.cacheTimestamp=t,this.usersCache}catch(e){return console.error("Failed to fetch users:",e),this.usersCache||[]}}async assignUser(r,t,e){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:r,task_id:t,user_id:e})}async getTasksByUser(r){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:r})).tasks}getUserName(r){return!r||!this.usersCache?null:this.usersCache.find(e=>e.id===r)?.name||null}getUser(r){return!r||!this.usersCache?null:this.usersCache.find(t=>t.id===r)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(r){return r?r===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}};var ns={name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",group_name:"name",group_description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_for_minutes:"trigger_for_minutes"};function os(n,r){let t=ns[n];if(!t)return n;let e=s(t,r);return e&&e!==t?e:n}function ls(n){let t=n.match(/data\['([^']+)'\]/)?.[1],e;return(e=n.match(/length of value must be at most (\d+)/))?{field:t,rule:"too_long",param:e[1]}:(e=n.match(/length of value must be at least (\d+)/))?{field:t,rule:"too_short",param:e[1]}:(e=n.match(/value must be at most (\S+)/))?{field:t,rule:"value_too_high",param:e[1]}:(e=n.match(/value must be at least (\S+)/))?{field:t,rule:"value_too_low",param:e[1]}:/required key not provided/.test(n)?{field:t,rule:"required"}:(e=n.match(/expected (\w+)/))?{field:t,rule:"wrong_type",param:e[1]}:/value must be one of/.test(n)?{field:t,rule:"invalid_choice"}:/not a valid value/.test(n)?{field:t,rule:"invalid_value"}:{field:t,rule:"unknown"}}function M(n,r,t){if(t=t??s("action_error",r),typeof n=="string")return n;if(typeof n!="object"||n===null)return t;let e=n,i=e.message||e.error?.message||"";if(!i)return t;let a=ls(i),l=a.field?os(a.field,r):"",c=d=>s(d,r).replace("{field}",l).replace("{n}",a.param??"");switch(a.rule){case"too_long":return c("err_too_long");case"too_short":return c("err_too_short");case"value_too_high":return c("err_value_too_high");case"value_too_low":return c("err_value_too_low");case"required":return c("err_required");case"wrong_type":return c("err_wrong_type").replace("{type}",a.param??"");case"invalid_choice":return c("err_invalid_choice");case"invalid_value":return c("err_invalid_value");default:return i||t}}var W=class extends S{constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1}_onInput(t){let e=t.target.value;this.value=e,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:e}}))}render(){return o`
       <label class="field">
-        ${this.label?o`<span class="label">${this.label}${this.required?o`<span class="req">*</span>`:u}</span>`:u}
+        ${this.label?o`<span class="label">${this.label}${this.required?o`<span class="req">*</span>`:p}</span>`:p}
         <input
           .value=${this.value??""}
           .type=${this.type}
           ?required=${this.required}
           ?disabled=${this.disabled}
           placeholder=${this.placeholder}
-          step=${this.step??u}
-          min=${this.min??u}
-          max=${this.max??u}
-          pattern=${this.pattern??u}
+          step=${this.step??p}
+          min=${this.min??p}
+          max=${this.max??p}
+          pattern=${this.pattern??p}
           @input=${this._onInput}
           @change=${this._onInput}
         />
-        ${this.helper?o`<span class="helper">${this.helper}</span>`:u}
+        ${this.helper?o`<span class="helper">${this.helper}</span>`:p}
       </label>
     `}};W.styles=A`
     :host { display: block; }
@@ -2579,58 +2597,58 @@ ${L(n.notes)}</div>`:""}
       color: var(--secondary-text-color);
       font-style: italic;
     }
-  `,p([y()],W.prototype,"label",2),p([y()],W.prototype,"value",2),p([y()],W.prototype,"placeholder",2),p([y()],W.prototype,"type",2),p([y({type:Boolean})],W.prototype,"required",2),p([y({type:Boolean})],W.prototype,"disabled",2),p([y()],W.prototype,"step",2),p([y()],W.prototype,"min",2),p([y()],W.prototype,"max",2),p([y()],W.prototype,"pattern",2),p([y()],W.prototype,"helper",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",W);var U=class extends S{constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._entryId=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._error="",this._open=!0}openEdit(e,t){this._entryId=e,this._name=t.name||"",this._manufacturer=t.manufacturer||"",this._model=t.model||"",this._serialNumber=t.serial_number||"",this._areaId=t.area_id||"",this._installationDate=t.installation_date||"",this._warrantyExpiry=t.warranty_expiry||"",this._documentationUrl=t.documentation_url||"",this._notes=t.notes||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(e){this._error=M(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}render(){if(!this._open)return o``;let e=this._lang,t=this._entryId?s("edit_object",e):s("new_object",e);return o`
+  `,h([y()],W.prototype,"label",2),h([y()],W.prototype,"value",2),h([y()],W.prototype,"placeholder",2),h([y()],W.prototype,"type",2),h([y({type:Boolean})],W.prototype,"required",2),h([y({type:Boolean})],W.prototype,"disabled",2),h([y()],W.prototype,"step",2),h([y()],W.prototype,"min",2),h([y()],W.prototype,"max",2),h([y()],W.prototype,"pattern",2),h([y()],W.prototype,"helper",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",W);var U=class extends S{constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._entryId=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._error="",this._open=!0}openEdit(t,e){this._entryId=t,this._name=e.name||"",this._manufacturer=e.manufacturer||"",this._model=e.model||"",this._serialNumber=e.serial_number||"",this._areaId=e.area_id||"",this._installationDate=e.installation_date||"",this._warrantyExpiry=e.warranty_expiry||"",this._documentationUrl=e.documentation_url||"",this._notes=e.notes||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(t){this._error=M(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}render(){if(!this._open)return o``;let t=this._lang,e=this._entryId?s("edit_object",t):s("new_object",t);return o`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t}</div>
+        <div class="dialog-title">${e}</div>
         <div class="content">
-          ${this._error?o`<div class="error">${this._error}</div>`:u}
+          ${this._error?o`<div class="error">${this._error}</div>`:p}
           <ms-textfield
-            label="${s("name",e)}"
+            label="${s("name",t)}"
             required
             .value=${this._name}
             @input=${i=>this._name=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("manufacturer_optional",e)}"
+            label="${s("manufacturer_optional",t)}"
             .value=${this._manufacturer}
             @input=${i=>this._manufacturer=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("model_optional",e)}"
+            label="${s("model_optional",t)}"
             .value=${this._model}
             @input=${i=>this._model=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("serial_number_optional",e)}"
+            label="${s("serial_number_optional",t)}"
             .value=${this._serialNumber}
             @input=${i=>this._serialNumber=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("documentation_url_optional",e)}"
+            label="${s("documentation_url_optional",t)}"
             type="url"
             .value=${this._documentationUrl}
             @input=${i=>this._documentationUrl=i.target.value}
           ></ms-textfield>
           <ha-area-picker
             .hass=${this.hass}
-            label="${s("area_id_optional",e)}"
+            label="${s("area_id_optional",t)}"
             .value=${this._areaId}
             @value-changed=${i=>this._areaId=i.detail.value||""}
           ></ha-area-picker>
           <ms-textfield
-            label="${s("installation_date_optional",e)}"
+            label="${s("installation_date_optional",t)}"
             type="date"
             .value=${this._installationDate}
             @input=${i=>this._installationDate=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("warranty_expiry_optional",e)}"
+            label="${s("warranty_expiry_optional",t)}"
             type="date"
             .value=${this._warrantyExpiry}
             @input=${i=>this._warrantyExpiry=i.target.value}
           ></ms-textfield>
           <label class="textarea-field">
-            <span class="textarea-label">${s("object_notes_optional",e)}</span>
+            <span class="textarea-label">${s("object_notes_optional",t)}</span>
             <textarea
               rows="3"
               .value=${this._notes}
@@ -2691,7 +2709,7 @@ ${L(n.notes)}</div>`:""}
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-  `,p([y({attribute:!1})],U.prototype,"hass",2),p([_()],U.prototype,"_open",2),p([_()],U.prototype,"_loading",2),p([_()],U.prototype,"_error",2),p([_()],U.prototype,"_name",2),p([_()],U.prototype,"_manufacturer",2),p([_()],U.prototype,"_model",2),p([_()],U.prototype,"_serialNumber",2),p([_()],U.prototype,"_areaId",2),p([_()],U.prototype,"_installationDate",2),p([_()],U.prototype,"_warrantyExpiry",2),p([_()],U.prototype,"_documentationUrl",2),p([_()],U.prototype,"_notes",2),p([_()],U.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",U);function re(n){let a=n??0;return a<1024?`${a} B`:a<1024*1024?`${(a/1024).toFixed(1)} KB`:`${(a/(1024*1024)).toFixed(1)} MB`}var dt=["manual","warranty","invoice","spare_parts","photo","other"],ls={manual:"mdi:book-open-variant",warranty:"mdi:shield-check",invoice:"mdi:receipt-text-outline",spare_parts:"mdi:cog-outline",photo:"mdi:image-outline",other:"mdi:file-document-outline"},H=class extends S{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._loaded=!1;this._busy=!1;this._error="";this._hint="";this._addingLink=!1;this._linkUrl="";this._linkTitle="";this._category="manual";this._thumbs={};this._lightboxUrl="";this._editingId="";this._editTitle="";this._editCategory="manual";this._dragOver=!1;this._loadedFor=null;this._localeReady=!1}_isImage(e){return e.kind==="file"&&(e.mime||"").startsWith("image/")}async _sign(e){return(await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${e.id}`,expires:300})).path}get _lang(){return this.hass?.language||"en"}updated(e){super.updated(e),this.hass&&!this._localeReady&&(this._localeReady=!0,ae(this._lang).then(()=>this.requestUpdate())),this.hass&&this.entryId&&this._loadedFor!==this.entryId&&(this._loadedFor=this.entryId,this._load())}async _load(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:this.entryId});this._docs=e.documents||[],this._loaded=!0,this._error="",this._thumbs={},this._loadThumbs()}catch(e){this._error=M(e,this._lang),this._loaded=!0}}async _loadThumbs(){await Promise.all(this._docs.filter(e=>this._isImage(e)).map(async e=>{try{let t=await this._sign(e);this._thumbs={...this._thumbs,[e.id]:t}}catch{}}))}_category_of(e){return(e.tags||[]).find(i=>dt.includes(i))||"other"}_labelKeydown(e){(e.key==="Enter"||e.key===" ")&&(e.preventDefault(),e.currentTarget.querySelector("input")?.click())}_onFileInput(e){let t=e.target,i=Array.from(t.files??[]);i.length&&this._uploadFiles(i),t.value=""}_onCameraInput(e){let t=e.target,i=Array.from(t.files??[]);i.length&&this._uploadFiles(i,"photo"),t.value=""}_onDrop(e){if(e.preventDefault(),this._dragOver=!1,!this.canWrite||this._busy)return;let t=Array.from(e.dataTransfer?.files??[]);t.length&&this._uploadFiles(t)}_onDragOver(e){this.canWrite&&(e.preventDefault(),this._dragOver=!0)}_onDragLeave(e){let t=e.relatedTarget;(!t||!e.currentTarget.contains(t))&&(this._dragOver=!1)}async _uploadFiles(e,t){let i=t??this._category;this._busy=!0,this._error="",this._hint="";let r=0,l=0;try{for(let c of e){let d=new FormData;d.append("entry_id",this.entryId),d.append("tags",i),d.append("file",c,c.name);let h=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:d});if(!h.ok){this._error=h.status===413?s("doc_too_large",this._lang):s("doc_upload_failed",this._lang);continue}let g=await h.json();g.duplicate_in_object?l++:g.deduped&&r++}l?this._hint=s("doc_dup_in_object",this._lang):r&&(this._hint=s("doc_deduped",this._lang)),await this._load()}catch{this._error=s("doc_upload_failed",this._lang)}finally{this._busy=!1}}async _download(e){try{let t=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${e.id}`,expires:30});lt(t.path,e.filename||e.title||"document")}catch(t){this._error=M(t,this._lang)}}async _preview(e){if(this._isImage(e)){this._lightboxUrl=this._thumbs[e.id]||await this._sign(e);return}let t=window.open("about:blank","_blank");try{let i=await this._sign(e);t&&(t.location.href=new URL(i,window.location.origin).href)}catch(i){t&&t.close(),this._error=M(i,this._lang)}}_openDoc(e){e.kind==="file"?this._preview(e):e.url&&/^https?:\/\//i.test(e.url)&&window.open(e.url,"_blank","noopener")}_startEdit(e){this._editingId=e.id,this._editTitle=e.title||"",this._editCategory=this._category_of(e),this._addingLink=!1,this._error=""}_cancelEdit(){this._editingId=""}async _saveEdit(e){let t=(e.tags||[]).filter(r=>!dt.includes(r)),i=e.kind==="file"?[this._editCategory,...t]:e.tags??[];this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/update",doc_id:e.id,title:this._editTitle.trim()||e.filename||e.url||"",tags:i}),this._editingId="",await this._load()}catch(r){this._error=M(r,this._lang)}finally{this._busy=!1}}async _delete(e){let t=e.title||e.filename||e.url||"";if(window.confirm(s("doc_delete_confirm",this._lang).replace("{name}",t))){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/delete",doc_id:e.id}),await this._load()}catch(i){this._error=M(i,this._lang)}finally{this._busy=!1}}}async _addLink(){let e=this._linkUrl.trim();if(e){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/add_link",entry_id:this.entryId,url:e,title:this._linkTitle.trim()||null}),this._linkUrl="",this._linkTitle="",this._addingLink=!1,await this._load()}catch(t){this._error=M(t,this._lang,s("doc_link_invalid",this._lang))}finally{this._busy=!1}}}render(){let e=this._lang;return o`
+  `,h([y({attribute:!1})],U.prototype,"hass",2),h([_()],U.prototype,"_open",2),h([_()],U.prototype,"_loading",2),h([_()],U.prototype,"_error",2),h([_()],U.prototype,"_name",2),h([_()],U.prototype,"_manufacturer",2),h([_()],U.prototype,"_model",2),h([_()],U.prototype,"_serialNumber",2),h([_()],U.prototype,"_areaId",2),h([_()],U.prototype,"_installationDate",2),h([_()],U.prototype,"_warrantyExpiry",2),h([_()],U.prototype,"_documentationUrl",2),h([_()],U.prototype,"_notes",2),h([_()],U.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",U);function rt(n){let r=n??0;return r<1024?`${r} B`:r<1024*1024?`${(r/1024).toFixed(1)} KB`:`${(r/(1024*1024)).toFixed(1)} MB`}var de=["manual","warranty","invoice","spare_parts","photo","other"],cs={manual:"mdi:book-open-variant",warranty:"mdi:shield-check",invoice:"mdi:receipt-text-outline",spare_parts:"mdi:cog-outline",photo:"mdi:image-outline",other:"mdi:file-document-outline"},D=class extends S{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._loaded=!1;this._busy=!1;this._error="";this._hint="";this._addingLink=!1;this._linkUrl="";this._linkTitle="";this._category="manual";this._thumbs={};this._lightboxUrl="";this._editingId="";this._editTitle="";this._editCategory="manual";this._dragOver=!1;this._loadedFor=null;this._localeReady=!1}_isImage(t){return t.kind==="file"&&(t.mime||"").startsWith("image/")}async _sign(t){return(await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${t.id}`,expires:300})).path}get _lang(){return this.hass?.language||"en"}updated(t){super.updated(t),this.hass&&!this._localeReady&&(this._localeReady=!0,at(this._lang).then(()=>this.requestUpdate())),this.hass&&this.entryId&&this._loadedFor!==this.entryId&&(this._loadedFor=this.entryId,this._load())}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:this.entryId});this._docs=t.documents||[],this._loaded=!0,this._error="",this._thumbs={},this._loadThumbs()}catch(t){this._error=M(t,this._lang),this._loaded=!0}}async _loadThumbs(){await Promise.all(this._docs.filter(t=>this._isImage(t)).map(async t=>{try{let e=await this._sign(t);this._thumbs={...this._thumbs,[t.id]:e}}catch{}}))}_category_of(t){return(t.tags||[]).find(i=>de.includes(i))||"other"}_labelKeydown(t){(t.key==="Enter"||t.key===" ")&&(t.preventDefault(),t.currentTarget.querySelector("input")?.click())}_onFileInput(t){let e=t.target,i=Array.from(e.files??[]);i.length&&this._uploadFiles(i),e.value=""}_onCameraInput(t){let e=t.target,i=Array.from(e.files??[]);i.length&&this._uploadFiles(i,"photo"),e.value=""}_onDrop(t){if(t.preventDefault(),this._dragOver=!1,!this.canWrite||this._busy)return;let e=Array.from(t.dataTransfer?.files??[]);e.length&&this._uploadFiles(e)}_onDragOver(t){this.canWrite&&(t.preventDefault(),this._dragOver=!0)}_onDragLeave(t){let e=t.relatedTarget;(!e||!t.currentTarget.contains(e))&&(this._dragOver=!1)}async _uploadFiles(t,e){let i=e??this._category;this._busy=!0,this._error="",this._hint="";let a=0,l=0;try{for(let c of t){let d=new FormData;d.append("entry_id",this.entryId),d.append("tags",i),d.append("file",c,c.name);let u=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:d});if(!u.ok){this._error=u.status===413?s("doc_too_large",this._lang):s("doc_upload_failed",this._lang);continue}let g=await u.json();g.duplicate_in_object?l++:g.deduped&&a++}l?this._hint=s("doc_dup_in_object",this._lang):a&&(this._hint=s("doc_deduped",this._lang)),await this._load()}catch{this._error=s("doc_upload_failed",this._lang)}finally{this._busy=!1}}async _download(t){try{let e=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${t.id}`,expires:30});le(e.path,t.filename||t.title||"document")}catch(e){this._error=M(e,this._lang)}}async _preview(t){if(this._isImage(t)){this._lightboxUrl=this._thumbs[t.id]||await this._sign(t);return}let e=window.open("about:blank","_blank");try{let i=await this._sign(t);e&&(e.location.href=new URL(i,window.location.origin).href)}catch(i){e&&e.close(),this._error=M(i,this._lang)}}_openDoc(t){t.kind==="file"?this._preview(t):t.url&&/^https?:\/\//i.test(t.url)&&window.open(t.url,"_blank","noopener")}_startEdit(t){this._editingId=t.id,this._editTitle=t.title||"",this._editCategory=this._category_of(t),this._addingLink=!1,this._error=""}_cancelEdit(){this._editingId=""}async _saveEdit(t){let e=(t.tags||[]).filter(a=>!de.includes(a)),i=t.kind==="file"?[this._editCategory,...e]:t.tags??[];this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/update",doc_id:t.id,title:this._editTitle.trim()||t.filename||t.url||"",tags:i}),this._editingId="",await this._load()}catch(a){this._error=M(a,this._lang)}finally{this._busy=!1}}async _delete(t){let e=t.title||t.filename||t.url||"";if(window.confirm(s("doc_delete_confirm",this._lang).replace("{name}",e))){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/delete",doc_id:t.id}),await this._load()}catch(i){this._error=M(i,this._lang)}finally{this._busy=!1}}}async _addLink(){let t=this._linkUrl.trim();if(t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/add_link",entry_id:this.entryId,url:t,title:this._linkTitle.trim()||null}),this._linkUrl="",this._linkTitle="",this._addingLink=!1,await this._load()}catch(e){this._error=M(e,this._lang,s("doc_link_invalid",this._lang))}finally{this._busy=!1}}}render(){let t=this._lang;return o`
       <div
         class="doc-zone ${this._dragOver?"drag-over":""}"
         @dragover=${this._onDragOver}
@@ -2699,19 +2717,19 @@ ${L(n.notes)}</div>`:""}
         @drop=${this._onDrop}
       >
         ${this._dragOver&&this.canWrite?o`<div class="drop-overlay">
-              <ha-icon icon="mdi:tray-arrow-down"></ha-icon> ${s("doc_drop_hint",e)}
-            </div>`:u}
+              <ha-icon icon="mdi:tray-arrow-down"></ha-icon> ${s("doc_drop_hint",t)}
+            </div>`:p}
       <div class="doc-header">
-        <h3>${s("documents",e)} (${this._docs.length})</h3>
+        <h3>${s("documents",t)} (${this._docs.length})</h3>
         ${this.canWrite?o`
               <div class="doc-actions">
                 <select
                   class="cat-select"
                   .value=${this._category}
                   ?disabled=${this._busy}
-                  @change=${t=>this._category=t.target.value}
+                  @change=${e=>this._category=e.target.value}
                 >
-                  ${dt.map(t=>o`<option value=${t}>${s(`doc_cat_${t}`,e)}</option>`)}
+                  ${de.map(e=>o`<option value=${e}>${s(`doc_cat_${e}`,t)}</option>`)}
                 </select>
                 <label
                   class="btn primary ${this._busy?"disabled":""}"
@@ -2720,140 +2738,140 @@ ${L(n.notes)}</div>`:""}
                   @keydown=${this._labelKeydown}
                 >
                   <ha-icon icon="mdi:upload"></ha-icon>
-                  ${this._busy?s("doc_uploading",e):s("doc_upload",e)}
+                  ${this._busy?s("doc_uploading",t):s("doc_upload",t)}
                   <input type="file" multiple hidden ?disabled=${this._busy} @change=${this._onFileInput} />
                 </label>
                 <label
                   class="btn camera-btn ${this._busy?"disabled":""}"
                   role="button"
                   tabindex="0"
-                  aria-label=${s("doc_camera",e)}
-                  title=${s("doc_camera",e)}
+                  aria-label=${s("doc_camera",t)}
+                  title=${s("doc_camera",t)}
                   @keydown=${this._labelKeydown}
                 >
                   <ha-icon icon="mdi:camera"></ha-icon>
                   <input type="file" accept="image/*" capture="environment" hidden ?disabled=${this._busy} @change=${this._onCameraInput} />
                 </label>
                 <button class="btn" ?disabled=${this._busy} @click=${()=>this._addingLink=!this._addingLink}>
-                  <ha-icon icon="mdi:link-variant"></ha-icon> ${s("doc_add_link",e)}
+                  <ha-icon icon="mdi:link-variant"></ha-icon> ${s("doc_add_link",t)}
                 </button>
               </div>
-            `:u}
+            `:p}
       </div>
 
-      ${this._error?o`<div class="doc-msg error">${this._error}</div>`:u}
-      ${this._hint?o`<div class="doc-msg hint">${this._hint}</div>`:u}
+      ${this._error?o`<div class="doc-msg error">${this._error}</div>`:p}
+      ${this._hint?o`<div class="doc-msg hint">${this._hint}</div>`:p}
 
       ${this._addingLink&&this.canWrite?o`
             <div class="link-form">
               <input
                 type="url"
-                placeholder=${s("doc_link_url",e)}
+                placeholder=${s("doc_link_url",t)}
                 .value=${this._linkUrl}
                 ?disabled=${this._busy}
-                @input=${t=>this._linkUrl=t.target.value}
+                @input=${e=>this._linkUrl=e.target.value}
               />
               <input
                 type="text"
-                placeholder=${s("doc_link_title",e)}
+                placeholder=${s("doc_link_title",t)}
                 .value=${this._linkTitle}
                 ?disabled=${this._busy}
-                @input=${t=>this._linkTitle=t.target.value}
+                @input=${e=>this._linkTitle=e.target.value}
               />
               <button class="btn primary" ?disabled=${this._busy||!this._linkUrl.trim()} @click=${this._addLink}>
-                ${s("add",e)}
+                ${s("add",t)}
               </button>
               <button class="btn" ?disabled=${this._busy} @click=${()=>this._addingLink=!1}>
-                ${s("cancel",e)}
+                ${s("cancel",t)}
               </button>
             </div>
-          `:u}
+          `:p}
 
-      ${this._loaded?this._docs.length===0?o`<div class="doc-empty">${s("documents_empty",e)}</div>`:o`
+      ${this._loaded?this._docs.length===0?o`<div class="doc-empty">${s("documents_empty",t)}</div>`:o`
               <div class="doc-list">
-                ${this._docs.map(t=>this._renderDoc(t,e))}
+                ${this._docs.map(e=>this._renderDoc(e,t))}
               </div>
-            `:o`<div class="doc-empty">${s("loading",e)}</div>`}
+            `:o`<div class="doc-empty">${s("loading",t)}</div>`}
 
       ${this._lightboxUrl?o`<div class="lightbox" @click=${()=>this._lightboxUrl=""}>
-            <img class="lightbox-img" src=${this._lightboxUrl} @click=${t=>t.stopPropagation()} />
-            <button class="lightbox-close" title=${s("doc_close",e)} @click=${()=>this._lightboxUrl=""}>
+            <img class="lightbox-img" src=${this._lightboxUrl} @click=${e=>e.stopPropagation()} />
+            <button class="lightbox-close" title=${s("doc_close",t)} @click=${()=>this._lightboxUrl=""}>
               <ha-icon icon="mdi:close"></ha-icon>
             </button>
-          </div>`:u}
+          </div>`:p}
       </div>
-    `}_renderDoc(e,t){if(this._editingId===e.id)return this._renderEdit(e,t);let i=e.kind==="file",r=this._category_of(e),l=i?`${s(`doc_cat_${r}`,t)} \xB7 ${re(e.size)}`:s("doc_link_badge",t),c=this._thumbs[e.id];return o`
+    `}_renderDoc(t,e){if(this._editingId===t.id)return this._renderEdit(t,e);let i=t.kind==="file",a=this._category_of(t),l=i?`${s(`doc_cat_${a}`,e)} \xB7 ${rt(t.size)}`:s("doc_link_badge",e),c=this._thumbs[t.id];return o`
       <div class="doc-row">
         ${i&&c?o`<img
               class="doc-thumb"
               src=${c}
-              alt=${e.title||""}
-              title=${s("doc_open",t)}
-              @click=${()=>this._preview(e)}
+              alt=${t.title||""}
+              title=${s("doc_open",e)}
+              @click=${()=>this._preview(t)}
             />`:o`<ha-icon
               class="doc-icon ${i?"clickable":""}"
-              icon=${i?ls[r]:"mdi:link-variant"}
-              @click=${()=>i&&this._preview(e)}
+              icon=${i?cs[a]:"mdi:link-variant"}
+              @click=${()=>i&&this._preview(t)}
             ></ha-icon>`}
         <div
           class="doc-info"
           role="button"
           tabindex="0"
-          title=${s("doc_open",t)}
-          @click=${()=>this._openDoc(e)}
-          @keydown=${d=>{(d.key==="Enter"||d.key===" ")&&(d.preventDefault(),this._openDoc(e))}}
+          title=${s("doc_open",e)}
+          @click=${()=>this._openDoc(t)}
+          @keydown=${d=>{(d.key==="Enter"||d.key===" ")&&(d.preventDefault(),this._openDoc(t))}}
         >
-          <div class="doc-title">${e.title||e.filename||e.url}</div>
+          <div class="doc-title">${t.title||t.filename||t.url}</div>
           <div class="doc-meta">${l}</div>
         </div>
         <div class="doc-row-actions">
           ${i?o`
-                <button class="icon-btn" title=${s("doc_open",t)} @click=${()=>this._preview(e)}>
+                <button class="icon-btn" title=${s("doc_open",e)} @click=${()=>this._preview(t)}>
                   <ha-icon icon="mdi:eye-outline"></ha-icon>
                 </button>
-                <button class="icon-btn" title=${s("doc_download",t)} @click=${()=>this._download(e)}>
+                <button class="icon-btn" title=${s("doc_download",e)} @click=${()=>this._download(t)}>
                   <ha-icon icon="mdi:download"></ha-icon>
                 </button>`:o`<a
                 class="icon-btn"
-                href=${e.url&&/^https?:\/\//i.test(e.url)?e.url:"#"}
+                href=${t.url&&/^https?:\/\//i.test(t.url)?t.url:"#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                title=${s("doc_open",t)}
+                title=${s("doc_open",e)}
               ><ha-icon icon="mdi:open-in-new"></ha-icon></a>`}
           ${this.canWrite?o`
-                <button class="icon-btn" title=${s("edit",t)} ?disabled=${this._busy} @click=${()=>this._startEdit(e)}>
+                <button class="icon-btn" title=${s("edit",e)} ?disabled=${this._busy} @click=${()=>this._startEdit(t)}>
                   <ha-icon icon="mdi:pencil"></ha-icon>
                 </button>
-                <button class="icon-btn danger" title=${s("delete",t)} ?disabled=${this._busy} @click=${()=>this._delete(e)}>
+                <button class="icon-btn danger" title=${s("delete",e)} ?disabled=${this._busy} @click=${()=>this._delete(t)}>
                   <ha-icon icon="mdi:delete"></ha-icon>
-                </button>`:u}
+                </button>`:p}
         </div>
       </div>
-    `}_renderEdit(e,t){let i=e.kind==="file";return o`
+    `}_renderEdit(t,e){let i=t.kind==="file";return o`
       <div class="doc-row editing">
         <input
           class="edit-title"
           type="text"
-          placeholder=${s("doc_link_title",t)}
+          placeholder=${s("doc_link_title",e)}
           .value=${this._editTitle}
           ?disabled=${this._busy}
-          @input=${r=>this._editTitle=r.target.value}
+          @input=${a=>this._editTitle=a.target.value}
         />
         ${i?o`<select
               class="cat-select"
               ?disabled=${this._busy}
-              @change=${r=>this._editCategory=r.target.value}
+              @change=${a=>this._editCategory=a.target.value}
             >
-              ${dt.map(r=>o`<option value=${r} ?selected=${r===this._editCategory}>${s(`doc_cat_${r}`,t)}</option>`)}
-            </select>`:u}
-        <button class="icon-btn" title=${s("save",t)} ?disabled=${this._busy||!this._editTitle.trim()} @click=${()=>this._saveEdit(e)}>
+              ${de.map(a=>o`<option value=${a} ?selected=${a===this._editCategory}>${s(`doc_cat_${a}`,e)}</option>`)}
+            </select>`:p}
+        <button class="icon-btn" title=${s("save",e)} ?disabled=${this._busy||!this._editTitle.trim()} @click=${()=>this._saveEdit(t)}>
           <ha-icon icon="mdi:check"></ha-icon>
         </button>
-        <button class="icon-btn" title=${s("cancel",t)} ?disabled=${this._busy} @click=${this._cancelEdit}>
+        <button class="icon-btn" title=${s("cancel",e)} ?disabled=${this._busy} @click=${this._cancelEdit}>
           <ha-icon icon="mdi:close"></ha-icon>
         </button>
       </div>
-    `}};H.styles=A`
+    `}};D.styles=A`
     :host { display: block; margin: 8px 0 4px; }
     .doc-zone { position: relative; }
     .doc-zone.drag-over {
@@ -2952,62 +2970,62 @@ ${L(n.notes)}</div>`:""}
     .icon-btn.danger { color: var(--error-color, #f44336); }
     .icon-btn[disabled] { opacity: 0.4; pointer-events: none; }
     .icon-btn ha-icon { --mdc-icon-size: 20px; }
-  `,p([y({attribute:!1})],H.prototype,"hass",2),p([y({attribute:!1})],H.prototype,"entryId",2),p([y({type:Boolean})],H.prototype,"canWrite",2),p([_()],H.prototype,"_docs",2),p([_()],H.prototype,"_loaded",2),p([_()],H.prototype,"_busy",2),p([_()],H.prototype,"_error",2),p([_()],H.prototype,"_hint",2),p([_()],H.prototype,"_addingLink",2),p([_()],H.prototype,"_linkUrl",2),p([_()],H.prototype,"_linkTitle",2),p([_()],H.prototype,"_category",2),p([_()],H.prototype,"_thumbs",2),p([_()],H.prototype,"_lightboxUrl",2),p([_()],H.prototype,"_editingId",2),p([_()],H.prototype,"_editTitle",2),p([_()],H.prototype,"_editCategory",2),p([_()],H.prototype,"_dragOver",2);customElements.get("maintenance-documents-section")||customElements.define("maintenance-documents-section",H);var cs=["manual","warranty","invoice","spare_parts","photo","other"],ds={manual:"mdi:book-open-variant",warranty:"mdi:shield-check",invoice:"mdi:receipt-text-outline",spare_parts:"mdi:cog-outline",photo:"mdi:image-outline",other:"mdi:file-document-outline"},Q=class extends S{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._loaded=!1;this._busy=!1;this._error="";this._attachId="";this._loadedKey="";this._localeReady=!1}get _lang(){return this.hass?.language||"en"}updated(e){super.updated(e),this.hass&&!this._localeReady&&(this._localeReady=!0,ae(this._lang).then(()=>this.requestUpdate()));let t=`${this.entryId}|${this.taskId}`;this.hass&&this.entryId&&this.taskId&&this._loadedKey!==t&&(this._loadedKey=t,this._load())}async _load(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:this.entryId});this._docs=e.documents||[],this._loaded=!0,this._error=""}catch(e){this._error=M(e,this._lang),this._loaded=!0}}_linked(){return this._docs.filter(e=>(e.task_ids||[]).includes(this.taskId))}_available(){return this._docs.filter(e=>!(e.task_ids||[]).includes(this.taskId))}async _setTaskIds(e,t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/update",doc_id:e.id,task_ids:t}),await this._load()}catch(i){this._error=M(i,this._lang)}finally{this._busy=!1}}_link(){let e=this._docs.find(t=>t.id===this._attachId);e&&(this._attachId="",this._setTaskIds(e,[...e.task_ids||[],this.taskId]))}_unlink(e){this._setTaskIds(e,(e.task_ids||[]).filter(t=>t!==this.taskId))}_isPdf(e){return e.mime==="application/pdf"||(e.filename||"").toLowerCase().endsWith(".pdf")}_pageFor(e){return this._isPdf(e)?e.task_pages?.[this.taskId]:void 0}async _open(e){if(e.kind==="weblink"){window.open(e.url,"_blank","noopener");return}let t=this._pageFor(e),i=t?`#page=${t}`:"",r=window.open("about:blank","_blank");try{let l=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${e.id}`,expires:300});r&&(r.location.href=new URL(l.path+i,window.location.origin).href)}catch(l){r&&r.close(),this._error=M(l,this._lang)}}async _setPage(e,t){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/update",doc_id:e.id,task_pages:{[this.taskId]:t}}),await this._load()}catch(i){this._error=M(i,this._lang)}finally{this._busy=!1}}async _download(e){try{let t=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${e.id}`,expires:30});lt(t.path,e.filename||e.title||"document")}catch(t){this._error=M(t,this._lang)}}render(){if(!this._loaded||this._docs.length===0)return u;let e=this._lang,t=this._linked(),i=this._available();return o`
+  `,h([y({attribute:!1})],D.prototype,"hass",2),h([y({attribute:!1})],D.prototype,"entryId",2),h([y({type:Boolean})],D.prototype,"canWrite",2),h([_()],D.prototype,"_docs",2),h([_()],D.prototype,"_loaded",2),h([_()],D.prototype,"_busy",2),h([_()],D.prototype,"_error",2),h([_()],D.prototype,"_hint",2),h([_()],D.prototype,"_addingLink",2),h([_()],D.prototype,"_linkUrl",2),h([_()],D.prototype,"_linkTitle",2),h([_()],D.prototype,"_category",2),h([_()],D.prototype,"_thumbs",2),h([_()],D.prototype,"_lightboxUrl",2),h([_()],D.prototype,"_editingId",2),h([_()],D.prototype,"_editTitle",2),h([_()],D.prototype,"_editCategory",2),h([_()],D.prototype,"_dragOver",2);customElements.get("maintenance-documents-section")||customElements.define("maintenance-documents-section",D);var ds=["manual","warranty","invoice","spare_parts","photo","other"],ps={manual:"mdi:book-open-variant",warranty:"mdi:shield-check",invoice:"mdi:receipt-text-outline",spare_parts:"mdi:cog-outline",photo:"mdi:image-outline",other:"mdi:file-document-outline"},Q=class extends S{constructor(){super(...arguments);this.canWrite=!1;this._docs=[];this._loaded=!1;this._busy=!1;this._error="";this._attachId="";this._loadedKey="";this._localeReady=!1}get _lang(){return this.hass?.language||"en"}updated(t){super.updated(t),this.hass&&!this._localeReady&&(this._localeReady=!0,at(this._lang).then(()=>this.requestUpdate()));let e=`${this.entryId}|${this.taskId}`;this.hass&&this.entryId&&this.taskId&&this._loadedKey!==e&&(this._loadedKey=e,this._load())}async _load(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/list",entry_id:this.entryId});this._docs=t.documents||[],this._loaded=!0,this._error=""}catch(t){this._error=M(t,this._lang),this._loaded=!0}}_linked(){return this._docs.filter(t=>(t.task_ids||[]).includes(this.taskId))}_available(){return this._docs.filter(t=>!(t.task_ids||[]).includes(this.taskId))}async _setTaskIds(t,e){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/update",doc_id:t.id,task_ids:e}),await this._load()}catch(i){this._error=M(i,this._lang)}finally{this._busy=!1}}_link(){let t=this._docs.find(e=>e.id===this._attachId);t&&(this._attachId="",this._setTaskIds(t,[...t.task_ids||[],this.taskId]))}_unlink(t){this._setTaskIds(t,(t.task_ids||[]).filter(e=>e!==this.taskId))}_isPdf(t){return t.mime==="application/pdf"||(t.filename||"").toLowerCase().endsWith(".pdf")}_pageFor(t){return this._isPdf(t)?t.task_pages?.[this.taskId]:void 0}async _open(t){if(t.kind==="weblink"){window.open(t.url,"_blank","noopener");return}let e=this._pageFor(t),i=e?`#page=${e}`:"",a=window.open("about:blank","_blank");try{let l=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${t.id}`,expires:300});a&&(a.location.href=new URL(l.path+i,window.location.origin).href)}catch(l){a&&a.close(),this._error=M(l,this._lang)}}async _setPage(t,e){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/update",doc_id:t.id,task_pages:{[this.taskId]:e}}),await this._load()}catch(i){this._error=M(i,this._lang)}finally{this._busy=!1}}async _download(t){try{let e=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${t.id}`,expires:30});le(e.path,t.filename||t.title||"document")}catch(e){this._error=M(e,this._lang)}}render(){if(!this._loaded||this._docs.length===0)return p;let t=this._lang,e=this._linked(),i=this._available();return o`
       <div class="task-docs">
-        <h3><ha-icon icon="mdi:paperclip"></ha-icon> ${s("documents",e)} (${t.length})</h3>
-        ${this._error?o`<div class="tdoc-error">${this._error}</div>`:u}
-        ${t.length===0?o`<div class="tdoc-empty">${s("doc_task_none",e)}</div>`:o`<div class="tdoc-list">${t.map(r=>this._renderRow(r,e))}</div>`}
+        <h3><ha-icon icon="mdi:paperclip"></ha-icon> ${s("documents",t)} (${e.length})</h3>
+        ${this._error?o`<div class="tdoc-error">${this._error}</div>`:p}
+        ${e.length===0?o`<div class="tdoc-empty">${s("doc_task_none",t)}</div>`:o`<div class="tdoc-list">${e.map(a=>this._renderRow(a,t))}</div>`}
         ${this.canWrite&&i.length?o`<div class="tdoc-attach">
               <select
                 class="tdoc-select"
                 ?disabled=${this._busy}
-                @change=${r=>this._attachId=r.target.value}
+                @change=${a=>this._attachId=a.target.value}
               >
-                <option value="" ?selected=${!this._attachId}>${s("doc_link_existing",e)}</option>
-                ${i.map(r=>o`<option value=${r.id} ?selected=${r.id===this._attachId}>${r.title||r.filename||r.url}</option>`)}
+                <option value="" ?selected=${!this._attachId}>${s("doc_link_existing",t)}</option>
+                ${i.map(a=>o`<option value=${a.id} ?selected=${a.id===this._attachId}>${a.title||a.filename||a.url}</option>`)}
               </select>
               <button class="tdoc-btn" ?disabled=${this._busy||!this._attachId} @click=${this._link}>
-                <ha-icon icon="mdi:link-variant-plus"></ha-icon> ${s("doc_attach",e)}
+                <ha-icon icon="mdi:link-variant-plus"></ha-icon> ${s("doc_attach",t)}
               </button>
-            </div>`:u}
+            </div>`:p}
       </div>
-    `}_renderRow(e,t){let i=e.kind==="file",r=this._isPdf(e),l=e.task_pages?.[this.taskId],c=(e.tags||[]).find(h=>cs.includes(h))||"other",d=i?re(e.size):s("doc_link_badge",t);return o`
+    `}_renderRow(t,e){let i=t.kind==="file",a=this._isPdf(t),l=t.task_pages?.[this.taskId],c=(t.tags||[]).find(u=>ds.includes(u))||"other",d=i?rt(t.size):s("doc_link_badge",e);return o`
       <div class="tdoc-row">
-        <ha-icon class="tdoc-icon" icon=${i?ds[c]:"mdi:link-variant"}></ha-icon>
+        <ha-icon class="tdoc-icon" icon=${i?ps[c]:"mdi:link-variant"}></ha-icon>
         <div
           class="tdoc-info"
           role="button"
           tabindex="0"
-          title=${l?`${s("doc_open",t)} \xB7 ${s("doc_page",t)} ${l}`:s("doc_open",t)}
-          @click=${()=>this._open(e)}
-          @keydown=${h=>{(h.key==="Enter"||h.key===" ")&&(h.preventDefault(),this._open(e))}}
+          title=${l?`${s("doc_open",e)} \xB7 ${s("doc_page",e)} ${l}`:s("doc_open",e)}
+          @click=${()=>this._open(t)}
+          @keydown=${u=>{(u.key==="Enter"||u.key===" ")&&(u.preventDefault(),this._open(t))}}
         >
-          <div class="tdoc-title">${e.title||e.filename||e.url}</div>
+          <div class="tdoc-title">${t.title||t.filename||t.url}</div>
           <div class="tdoc-meta">
-            ${d}${l?o` · <span class="tdoc-pagetag">${s("doc_page",t)} ${l}</span>`:u}
+            ${d}${l?o` · <span class="tdoc-pagetag">${s("doc_page",e)} ${l}</span>`:p}
           </div>
         </div>
-        ${this.canWrite&&r?o`<input
+        ${this.canWrite&&a?o`<input
               class="tdoc-page"
               type="number"
               min="1"
               inputmode="numeric"
-              aria-label=${s("doc_page",t)}
-              title=${s("doc_page",t)}
-              placeholder=${s("doc_page",t)}
+              aria-label=${s("doc_page",e)}
+              title=${s("doc_page",e)}
+              placeholder=${s("doc_page",e)}
               .value=${l?String(l):""}
               ?disabled=${this._busy}
-              @change=${h=>{let g=parseInt(h.target.value,10);this._setPage(e,Number.isFinite(g)&&g>=1?g:0)}}
-            />`:u}
-        <button class="icon-btn" title=${s("doc_open",t)} @click=${()=>this._open(e)}>
+              @change=${u=>{let g=parseInt(u.target.value,10);this._setPage(t,Number.isFinite(g)&&g>=1?g:0)}}
+            />`:p}
+        <button class="icon-btn" title=${s("doc_open",e)} @click=${()=>this._open(t)}>
           <ha-icon icon=${i?"mdi:eye-outline":"mdi:open-in-new"}></ha-icon>
         </button>
-        ${i?o`<button class="icon-btn" title=${s("doc_download",t)} @click=${()=>this._download(e)}>
+        ${i?o`<button class="icon-btn" title=${s("doc_download",e)} @click=${()=>this._download(t)}>
               <ha-icon icon="mdi:download"></ha-icon>
-            </button>`:u}
-        ${this.canWrite?o`<button class="icon-btn" title=${s("doc_unlink",t)} ?disabled=${this._busy} @click=${()=>this._unlink(e)}>
+            </button>`:p}
+        ${this.canWrite?o`<button class="icon-btn" title=${s("doc_unlink",e)} ?disabled=${this._busy} @click=${()=>this._unlink(t)}>
               <ha-icon icon="mdi:link-variant-off"></ha-icon>
-            </button>`:u}
+            </button>`:p}
       </div>
     `}};Q.styles=A`
     :host { display: block; }
@@ -3059,37 +3077,37 @@ ${L(n.notes)}</div>`:""}
     }
     .tdoc-btn ha-icon { --mdc-icon-size: 18px; }
     .tdoc-btn[disabled] { opacity: 0.5; pointer-events: none; }
-  `,p([y({attribute:!1})],Q.prototype,"hass",2),p([y({attribute:!1})],Q.prototype,"entryId",2),p([y({attribute:!1})],Q.prototype,"taskId",2),p([y({type:Boolean})],Q.prototype,"canWrite",2),p([_()],Q.prototype,"_docs",2),p([_()],Q.prototype,"_loaded",2),p([_()],Q.prototype,"_busy",2),p([_()],Q.prototype,"_error",2),p([_()],Q.prototype,"_attachId",2);customElements.get("maintenance-task-documents")||customElements.define("maintenance-task-documents",Q);var ps=["cleaning","inspection","replacement","calibration","service","custom"],us=["low","normal","high"],hs=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],_s=["weekdays","nth_weekday","day_of_month"],ci=["threshold","counter","state_change","runtime"],gs=[...ci,"compound"];function ms(){return{entityIds:"",type:"threshold",above:"",below:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:""}}function vs(n){return{entityIds:(n.entity_ids||(n.entity_id?[n.entity_id]:[])).join(", "),type:n.type||"threshold",above:n.trigger_above?.toString()??"",below:n.trigger_below?.toString()??"",forMinutes:n.trigger_for_minutes?.toString()??"0",targetValue:n.trigger_target_value?.toString()??"",deltaMode:n.trigger_delta_mode||!1,fromState:n.trigger_from_state||"",toState:n.trigger_to_state||"",targetChanges:n.trigger_target_changes?.toString()??"",runtimeHours:n.trigger_runtime_hours?.toString()??""}}function bs(n){let a=n.entityIds.split(",").map(t=>t.trim()).filter(Boolean);if(a.length===0)return null;let e={entity_id:a[0],entity_ids:a,type:n.type};if(n.type==="threshold"){let t=parseFloat(n.above);isNaN(t)||(e.trigger_above=t);let i=parseFloat(n.below);isNaN(i)||(e.trigger_below=i);let r=parseInt(n.forMinutes,10);isNaN(r)||(e.trigger_for_minutes=r)}else if(n.type==="counter"){let t=parseFloat(n.targetValue);isNaN(t)||(e.trigger_target_value=t),e.trigger_delta_mode=n.deltaMode}else if(n.type==="state_change"){n.fromState&&(e.trigger_from_state=n.fromState),n.toState&&(e.trigger_to_state=n.toState);let t=parseInt(n.targetChanges,10);isNaN(t)||(e.trigger_target_changes=t)}else if(n.type==="runtime"){let t=parseFloat(n.runtimeHours);isNaN(t)||(e.trigger_runtime_hours=t)}return e}function fs(n){return Array.from({length:7},(a,e)=>Ze(e,n,"short"))}var x=class extends S{constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerForMinutes="0";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._availableTags=[];this._responsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._userService=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}async openCreate(e,t){this._entryId=e,this._taskId=null,this._error="",!e&&t&&t.length>0?(this._objectChoices=t.map(i=>({entry_id:i.entry_id,name:i.object.name})).sort((i,r)=>i.name.localeCompare(r.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}async openEdit(e,t){this._entryId=e,this._taskId=t.id,this._error="",this._name=t.name,this._type=t.type,this._scheduleType=t.schedule_type,this._intervalDays=t.interval_days!=null?String(t.interval_days):"",this._intervalUnit=t.interval_unit||"days",this._dueDate=t.due_date||"";let i=t.schedule;this._weekdays=i?.kind==="weekdays"?[...i.weekdays??[]]:[],this._nth=i?.kind==="nth_weekday"?String(i.nth??1):"1",this._nthWeekday=i?.kind==="nth_weekday"?String(i.weekday??5):"5",this._domDay=i?.kind==="day_of_month"?String(i.day??1):"1",this._warningDays=t.warning_days.toString(),this._earliestCompletionDays=t.earliest_completion_days!=null?String(t.earliest_completion_days):"",this._intervalAnchor=t.interval_anchor||"completion",this._notes=t.notes||"",this._documentationUrl=t.documentation_url||"",this._customIcon=t.custom_icon||"",this._priority=t.priority||"normal",this._labels=(t.labels||[]).join(", "),this._enabled=t.enabled!==!1,this._lastPerformed=t.last_performed||"",this._nfcTagId=t.nfc_tag_id||"",this._responsibleUserId=t.responsible_user_id||null,this._assigneePool=[...t.assignee_pool||[]],this._rotationStrategy=t.rotation_strategy||"",this._checklistText=(t.checklist||[]).join(`
-`),this._scheduleTime=t.schedule_time||"";let r=t.on_complete_action;if(r&&r.service){this._actionService=r.service;let d=r.target?.entity_id;this._actionTargetEntity=Array.isArray(d)?d[0]||"":d||"",this._actionData=r.data&&typeof r.data=="object"?{...r.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let l=t.quick_complete_defaults;this._qcNotes=l?.notes||"",this._qcCost=l?.cost!=null?String(l.cost):"",this._qcDuration=l?.duration!=null?String(l.duration):"",this._qcFeedback=l?.feedback||"";let c=t.adaptive_config||{};if(this._environmentalEntity=c.environmental_entity||"",this._environmentalAttribute=c.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,t.trigger_config){let d=t.trigger_config;this._triggerEntityId=d.entity_id||"",this._triggerEntityIds=d.entity_ids||(d.entity_id?[d.entity_id]:[]),this._triggerEntityLogic=d.entity_logic||"any",this._triggerAttribute=d.attribute||"",this._triggerType=d.type||"threshold",this._triggerAbove=d.trigger_above?.toString()||"",this._triggerBelow=d.trigger_below?.toString()||"",this._triggerForMinutes=d.trigger_for_minutes?.toString()||"0",this._triggerTargetValue=d.trigger_target_value?.toString()||"",this._triggerDeltaMode=d.trigger_delta_mode||!1,this._autoCompleteOnRecovery=d.auto_complete_on_recovery||!1,this._triggerFromState=d.trigger_from_state||"",this._triggerToState=d.trigger_to_state||"",this._triggerTargetChanges=d.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=d.trigger_runtime_hours?.toString()||"",d.type==="compound"?(this._compoundLogic=d.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(d.conditions||[]).map(vs)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerForMinutes="0",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new _e(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(e){console.error("Failed to load users:",e),this._availableUsers=[]}}_toggleAssignee(e){this._assigneePool=this._assigneePool.includes(e)?this._assigneePool.filter(t=>t!==e):[...this._assigneePool,e]}async _testAction(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[t,i]=e.split(".");if(!this.hass?.services?.[t]?.[i]){this._actionTestResult="error",this._actionTestError=`Service "${e}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let r=this._actionTargetEntity.trim();if(r){let l=r.split(".")[0];if(l!==t&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(t)){this._actionTestResult="error",this._actionTestError=`Service "${e}" only works on ${t}.* entities; entity "${r}" is in ${l}.* \u2014 pick a service that matches the entity domain (e.g. ${l}.${i})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[r]){this._actionTestResult="error",this._actionTestError=`Target entity "${r}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let e=JSON.parse(this._actionDataJsonFallback);if(e&&typeof e=="object"&&!Array.isArray(e))return e}catch{}return{...this._actionData}}_serviceSchema(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e))return null;let[t,i]=e.split("."),r=this.hass?.services?.[t]?.[i]?.fields;return!r||Object.keys(r).length===0?null:Object.entries(r).map(([l,c])=>({name:l,required:!!c.required,selector:c.selector||{text:{}}}))}_renderCompletionActionsSection(e){if(!this.completionActionsEnabled)return u;let t=this._serviceSchema();return o`
+  `,h([y({attribute:!1})],Q.prototype,"hass",2),h([y({attribute:!1})],Q.prototype,"entryId",2),h([y({attribute:!1})],Q.prototype,"taskId",2),h([y({type:Boolean})],Q.prototype,"canWrite",2),h([_()],Q.prototype,"_docs",2),h([_()],Q.prototype,"_loaded",2),h([_()],Q.prototype,"_busy",2),h([_()],Q.prototype,"_error",2),h([_()],Q.prototype,"_attachId",2);customElements.get("maintenance-task-documents")||customElements.define("maintenance-task-documents",Q);var hs=["cleaning","inspection","replacement","calibration","service","custom"],us=["low","normal","high"],_s=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],gs=["weekdays","nth_weekday","day_of_month"],ci=["threshold","counter","state_change","runtime"],ms=[...ci,"compound"];function vs(){return{entityIds:"",type:"threshold",above:"",below:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:""}}function bs(n){return{entityIds:(n.entity_ids||(n.entity_id?[n.entity_id]:[])).join(", "),type:n.type||"threshold",above:n.trigger_above?.toString()??"",below:n.trigger_below?.toString()??"",forMinutes:n.trigger_for_minutes?.toString()??"0",targetValue:n.trigger_target_value?.toString()??"",deltaMode:n.trigger_delta_mode||!1,fromState:n.trigger_from_state||"",toState:n.trigger_to_state||"",targetChanges:n.trigger_target_changes?.toString()??"",runtimeHours:n.trigger_runtime_hours?.toString()??""}}function fs(n){let r=n.entityIds.split(",").map(e=>e.trim()).filter(Boolean);if(r.length===0)return null;let t={entity_id:r[0],entity_ids:r,type:n.type};if(n.type==="threshold"){let e=parseFloat(n.above);isNaN(e)||(t.trigger_above=e);let i=parseFloat(n.below);isNaN(i)||(t.trigger_below=i);let a=parseInt(n.forMinutes,10);isNaN(a)||(t.trigger_for_minutes=a)}else if(n.type==="counter"){let e=parseFloat(n.targetValue);isNaN(e)||(t.trigger_target_value=e),t.trigger_delta_mode=n.deltaMode}else if(n.type==="state_change"){n.fromState&&(t.trigger_from_state=n.fromState),n.toState&&(t.trigger_to_state=n.toState);let e=parseInt(n.targetChanges,10);isNaN(e)||(t.trigger_target_changes=e)}else if(n.type==="runtime"){let e=parseFloat(n.runtimeHours);isNaN(e)||(t.trigger_runtime_hours=e)}return t}function ys(n){return Array.from({length:7},(r,t)=>Zt(t,n,"short"))}var x=class extends S{constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerForMinutes="0";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._availableTags=[];this._responsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._userService=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}async openCreate(t,e){this._entryId=t,this._taskId=null,this._error="",!t&&e&&e.length>0?(this._objectChoices=e.map(i=>({entry_id:i.entry_id,name:i.object.name})).sort((i,a)=>i.name.localeCompare(a.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}async openEdit(t,e){this._entryId=t,this._taskId=e.id,this._error="",this._name=e.name,this._type=e.type,this._scheduleType=e.schedule_type,this._intervalDays=e.interval_days!=null?String(e.interval_days):"",this._intervalUnit=e.interval_unit||"days",this._dueDate=e.due_date||"";let i=e.schedule;this._weekdays=i?.kind==="weekdays"?[...i.weekdays??[]]:[],this._nth=i?.kind==="nth_weekday"?String(i.nth??1):"1",this._nthWeekday=i?.kind==="nth_weekday"?String(i.weekday??5):"5",this._domDay=i?.kind==="day_of_month"?String(i.day??1):"1",this._warningDays=e.warning_days.toString(),this._earliestCompletionDays=e.earliest_completion_days!=null?String(e.earliest_completion_days):"",this._intervalAnchor=e.interval_anchor||"completion",this._notes=e.notes||"",this._documentationUrl=e.documentation_url||"",this._customIcon=e.custom_icon||"",this._priority=e.priority||"normal",this._labels=(e.labels||[]).join(", "),this._enabled=e.enabled!==!1,this._lastPerformed=e.last_performed||"",this._nfcTagId=e.nfc_tag_id||"",this._responsibleUserId=e.responsible_user_id||null,this._assigneePool=[...e.assignee_pool||[]],this._rotationStrategy=e.rotation_strategy||"",this._checklistText=(e.checklist||[]).join(`
+`),this._scheduleTime=e.schedule_time||"";let a=e.on_complete_action;if(a&&a.service){this._actionService=a.service;let d=a.target?.entity_id;this._actionTargetEntity=Array.isArray(d)?d[0]||"":d||"",this._actionData=a.data&&typeof a.data=="object"?{...a.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let l=e.quick_complete_defaults;this._qcNotes=l?.notes||"",this._qcCost=l?.cost!=null?String(l.cost):"",this._qcDuration=l?.duration!=null?String(l.duration):"",this._qcFeedback=l?.feedback||"";let c=e.adaptive_config||{};if(this._environmentalEntity=c.environmental_entity||"",this._environmentalAttribute=c.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,e.trigger_config){let d=e.trigger_config;this._triggerEntityId=d.entity_id||"",this._triggerEntityIds=d.entity_ids||(d.entity_id?[d.entity_id]:[]),this._triggerEntityLogic=d.entity_logic||"any",this._triggerAttribute=d.attribute||"",this._triggerType=d.type||"threshold",this._triggerAbove=d.trigger_above?.toString()||"",this._triggerBelow=d.trigger_below?.toString()||"",this._triggerForMinutes=d.trigger_for_minutes?.toString()||"0",this._triggerTargetValue=d.trigger_target_value?.toString()||"",this._triggerDeltaMode=d.trigger_delta_mode||!1,this._autoCompleteOnRecovery=d.auto_complete_on_recovery||!1,this._triggerFromState=d.trigger_from_state||"",this._triggerToState=d.trigger_to_state||"",this._triggerTargetChanges=d.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=d.trigger_runtime_hours?.toString()||"",d.type==="compound"?(this._compoundLogic=d.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(d.conditions||[]).map(bs)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerForMinutes="0",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new _t(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(t){console.error("Failed to load users:",t),this._availableUsers=[]}}_toggleAssignee(t){this._assigneePool=this._assigneePool.includes(t)?this._assigneePool.filter(e=>e!==t):[...this._assigneePool,t]}async _testAction(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[e,i]=t.split(".");if(!this.hass?.services?.[e]?.[i]){this._actionTestResult="error",this._actionTestError=`Service "${t}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let a=this._actionTargetEntity.trim();if(a){let l=a.split(".")[0];if(l!==e&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(e)){this._actionTestResult="error",this._actionTestError=`Service "${t}" only works on ${e}.* entities; entity "${a}" is in ${l}.* \u2014 pick a service that matches the entity domain (e.g. ${l}.${i})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[a]){this._actionTestResult="error",this._actionTestError=`Target entity "${a}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let t=JSON.parse(this._actionDataJsonFallback);if(t&&typeof t=="object"&&!Array.isArray(t))return t}catch{}return{...this._actionData}}_serviceSchema(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t))return null;let[e,i]=t.split("."),a=this.hass?.services?.[e]?.[i]?.fields;return!a||Object.keys(a).length===0?null:Object.entries(a).map(([l,c])=>({name:l,required:!!c.required,selector:c.selector||{text:{}}}))}_renderCompletionActionsSection(t){if(!this.completionActionsEnabled)return p;let e=this._serviceSchema();return o`
       <details class="ca-section">
-        <summary>${s("on_complete_action_title",e)}</summary>
-        <p class="field-help">${s("on_complete_action_desc",e)}</p>
+        <summary>${s("on_complete_action_title",t)}</summary>
+        <p class="field-help">${s("on_complete_action_desc",t)}</p>
         <ha-service-picker
           .hass=${this.hass}
           .value=${this._actionService}
-          @value-changed=${i=>{this._actionService=i.detail.value||"";let r=this._serviceSchema();if(r){let l=new Set(r.map(c=>c.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([c])=>l.has(c)))}}}
+          @value-changed=${i=>{this._actionService=i.detail.value||"";let a=this._serviceSchema();if(a){let l=new Set(a.map(c=>c.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([c])=>l.has(c)))}}}
         ></ha-service-picker>
         <ha-form
           .hass=${this.hass}
           .schema=${[{name:"target_entity",selector:{entity:{}}}]}
           .data=${{target_entity:this._actionTargetEntity}}
-          .computeLabel=${()=>s("on_complete_action_target",e)}
-          @value-changed=${i=>{let r=i.detail.value;this._actionTargetEntity=r.target_entity||""}}
+          .computeLabel=${()=>s("on_complete_action_target",t)}
+          @value-changed=${i=>{let a=i.detail.value;this._actionTargetEntity=a.target_entity||""}}
         ></ha-form>
         <p class="field-help ca-domain-hint">
-          ${s("on_complete_action_target_hint",e)}
+          ${s("on_complete_action_target_hint",t)}
         </p>
-        ${t?o`
+        ${e?o`
               <ha-form
                 class="ca-data-form"
                 .hass=${this.hass}
-                .schema=${t}
+                .schema=${e}
                 .data=${this._actionData}
                 @value-changed=${i=>{this._actionData={...i.detail.value}}}
               ></ha-form>
             `:o`
               <ms-textfield
-                label="${s("on_complete_action_data",e)}"
+                label="${s("on_complete_action_data",t)}"
                 placeholder="{}"
                 .value=${this._actionDataJsonFallback}
                 @input=${i=>{this._actionDataJsonFallback=i.target.value}}
@@ -3098,32 +3116,32 @@ ${L(n.notes)}</div>`:""}
         <div class="ca-test-row">
           <button type="button" ?disabled=${this._actionTesting||!this._actionService}
             @click=${this._testAction}>
-            ${this._actionTesting?"\u2026":s("on_complete_action_test",e)}
+            ${this._actionTesting?"\u2026":s("on_complete_action_test",t)}
           </button>
-          ${this._actionTestResult==="ok"?o`<span class="ca-test-ok">${s("on_complete_action_test_success",e)}</span>`:u}
+          ${this._actionTestResult==="ok"?o`<span class="ca-test-ok">${s("on_complete_action_test_success",t)}</span>`:p}
           ${this._actionTestResult==="error"?o`<div class="ca-test-error-block">
-                <span class="ca-test-error">${s("on_complete_action_test_failed",e)}</span>
-                ${this._actionTestError?o`<div class="ca-test-error-detail">${this._actionTestError}</div>`:u}
-              </div>`:u}
+                <span class="ca-test-error">${s("on_complete_action_test_failed",t)}</span>
+                ${this._actionTestError?o`<div class="ca-test-error-detail">${this._actionTestError}</div>`:p}
+              </div>`:p}
         </div>
       </details>
 
       <details class="ca-section">
-        <summary>${s("quick_complete_defaults_title",e)}</summary>
-        <p class="field-help">${s("quick_complete_defaults_desc",e)}</p>
+        <summary>${s("quick_complete_defaults_title",t)}</summary>
+        <p class="field-help">${s("quick_complete_defaults_desc",t)}</p>
         <ms-textfield
-          label="${s("quick_complete_defaults_notes",e)}"
+          label="${s("quick_complete_defaults_notes",t)}"
           .value=${this._qcNotes}
           @input=${i=>{this._qcNotes=i.target.value}}
         ></ms-textfield>
         <ms-textfield
-          label="${s("quick_complete_defaults_cost",e)}"
+          label="${s("quick_complete_defaults_cost",t)}"
           type="number" min="0" step="0.01"
           .value=${this._qcCost}
           @input=${i=>{this._qcCost=i.target.value}}
         ></ms-textfield>
         <ms-textfield
-          label="${s("quick_complete_defaults_duration",e)}"
+          label="${s("quick_complete_defaults_duration",t)}"
           type="number" min="0" step="1"
           .value=${this._qcDuration}
           @input=${i=>{this._qcDuration=i.target.value}}
@@ -3131,56 +3149,56 @@ ${L(n.notes)}</div>`:""}
         <select class="qc-feedback"
           .value=${this._qcFeedback}
           @change=${i=>{this._qcFeedback=i.target.value}}>
-          <option value="">${s("quick_complete_defaults_feedback_none",e)}</option>
-          <option value="needed">${s("quick_complete_defaults_feedback_needed",e)}</option>
-          <option value="not_needed">${s("quick_complete_defaults_feedback_not_needed",e)}</option>
+          <option value="">${s("quick_complete_defaults_feedback_none",t)}</option>
+          <option value="needed">${s("quick_complete_defaults_feedback_needed",t)}</option>
+          <option value="not_needed">${s("quick_complete_defaults_feedback_not_needed",t)}</option>
         </select>
       </details>
-    `}async _loadTags(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=e.tags||[]}catch{this._availableTags=[]}}async _fetchEntityAttributes(e){if(!e||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e});this._entityDomain=t.domain||"",this._suggestedAttributes=t.suggested_attributes||[],this._availableAttributes=t.available_attributes||[]}catch{this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{let e={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:parseInt(this._warningDays,10)||7},t=this._earliestCompletionDays.trim();if(e.earliest_completion_days=t===""?null:Math.max(0,parseInt(t,10)||0),this._taskId&&(e.task_id=this._taskId),this._scheduleType==="one_time"?(e.due_date=this._dueDate||null,e.interval_days=null):_s.includes(this._scheduleType)?(e.schedule=this._buildSchedule(),e.interval_days=null,this._taskId&&(e.due_date=null)):(this._taskId&&(e.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(e.interval_days=parseInt(this._intervalDays,10),e.interval_unit=this._intervalUnit,e.interval_anchor=this._intervalAnchor):this._taskId&&(e.interval_days=null,e.interval_anchor="completion")),e.notes=this._notes||null,e.documentation_url=this._documentationUrl||null,e.custom_icon=this._customIcon||null,e.priority=this._priority,e.labels=this._labels.split(",").map(c=>c.trim()).filter(Boolean),e.enabled=this._enabled,e.last_performed=this._lastPerformed||null,e.nfc_tag_id=this._nfcTagId||null,e.responsible_user_id=this._responsibleUserId,e.assignee_pool=this._assigneePool,e.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let c=this._compoundConditions.map(bs).filter(d=>d!==null);if(c.length>0){let d={type:"compound",compound_logic:this._compoundLogic,conditions:c};this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),e.trigger_config=d}else this._taskId&&(e.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let c=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],d={entity_id:c[0],entity_ids:c,type:this._triggerType};if(this._triggerAttribute&&(d.attribute=this._triggerAttribute),this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),c.length>1&&(d.entity_logic=this._triggerEntityLogic),this._triggerType==="threshold"){if(this._triggerAbove){let h=parseFloat(this._triggerAbove);isNaN(h)||(d.trigger_above=h)}if(this._triggerBelow){let h=parseFloat(this._triggerBelow);isNaN(h)||(d.trigger_below=h)}if(this._triggerForMinutes){let h=parseInt(this._triggerForMinutes,10);isNaN(h)||(d.trigger_for_minutes=h)}}else if(this._triggerType==="counter"){if(this._triggerTargetValue){let h=parseFloat(this._triggerTargetValue);isNaN(h)||(d.trigger_target_value=h)}d.trigger_delta_mode=this._triggerDeltaMode}else if(this._triggerType==="state_change"){if(this._triggerFromState&&(d.trigger_from_state=this._triggerFromState),this._triggerToState&&(d.trigger_to_state=this._triggerToState),this._triggerTargetChanges){let h=parseInt(this._triggerTargetChanges,10);isNaN(h)||(d.trigger_target_changes=h)}}else if(this._triggerType==="runtime"&&this._triggerRuntimeHours){let h=parseFloat(this._triggerRuntimeHours);isNaN(h)||(d.trigger_runtime_hours=h)}e.trigger_config=d}else this._taskId&&(e.trigger_config=null);if(this.scheduleTimeEnabled&&this._scheduleType==="time_based"){let c=this._scheduleTime.trim();e.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(c)?c:null}if(this.checklistsEnabled){let c=this._checklistText.split(`
-`).map(d=>d.trim()).filter(Boolean).slice(0,100);e.checklist=c.length?c:null}if(this.completionActionsEnabled){let c=this._actionService.trim();if(c&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(c)){let m={service:c},v=this._actionTargetEntity.trim();v&&(m.target={entity_id:v});let f=this._buildActionData();Object.keys(f).length>0&&(m.data=f),e.on_complete_action=m}else e.on_complete_action=null;let d={};this._qcNotes.trim()&&(d.notes=this._qcNotes.trim());let h=parseFloat(this._qcCost);!isNaN(h)&&h>=0&&(d.cost=h);let g=parseInt(this._qcDuration,10);!isNaN(g)&&g>=0&&(d.duration=g),this._qcFeedback&&(d.feedback=this._qcFeedback),e.quick_complete_defaults=Object.keys(d).length?d:null}let i=await this.hass.connection.sendMessagePromise(e),r=this._taskId||i?.task_id,l=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(r&&this._scheduleType==="sensor_based"&&l)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:r,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(e){this._error=M(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return u;let e=this._lang,t=this._triggerType==="compound";return o`
-      <h3>${s("trigger_configuration",e)}</h3>
+    `}async _loadTags(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=t.tags||[]}catch{this._availableTags=[]}}async _fetchEntityAttributes(t){if(!t||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:t});this._entityDomain=e.domain||"",this._suggestedAttributes=e.suggested_attributes||[],this._availableAttributes=e.available_attributes||[]}catch{this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{let t={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:parseInt(this._warningDays,10)||7},e=this._earliestCompletionDays.trim();if(t.earliest_completion_days=e===""?null:Math.max(0,parseInt(e,10)||0),this._taskId&&(t.task_id=this._taskId),this._scheduleType==="one_time"?(t.due_date=this._dueDate||null,t.interval_days=null):gs.includes(this._scheduleType)?(t.schedule=this._buildSchedule(),t.interval_days=null,this._taskId&&(t.due_date=null)):(this._taskId&&(t.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(t.interval_days=parseInt(this._intervalDays,10),t.interval_unit=this._intervalUnit,t.interval_anchor=this._intervalAnchor):this._taskId&&(t.interval_days=null,t.interval_anchor="completion")),t.notes=this._notes||null,t.documentation_url=this._documentationUrl||null,t.custom_icon=this._customIcon||null,t.priority=this._priority,t.labels=this._labels.split(",").map(c=>c.trim()).filter(Boolean),t.enabled=this._enabled,t.last_performed=this._lastPerformed||null,t.nfc_tag_id=this._nfcTagId||null,t.responsible_user_id=this._responsibleUserId,t.assignee_pool=this._assigneePool,t.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let c=this._compoundConditions.map(fs).filter(d=>d!==null);if(c.length>0){let d={type:"compound",compound_logic:this._compoundLogic,conditions:c};this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),t.trigger_config=d}else this._taskId&&(t.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let c=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],d={entity_id:c[0],entity_ids:c,type:this._triggerType};if(this._triggerAttribute&&(d.attribute=this._triggerAttribute),this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),c.length>1&&(d.entity_logic=this._triggerEntityLogic),this._triggerType==="threshold"){if(this._triggerAbove){let u=parseFloat(this._triggerAbove);isNaN(u)||(d.trigger_above=u)}if(this._triggerBelow){let u=parseFloat(this._triggerBelow);isNaN(u)||(d.trigger_below=u)}if(this._triggerForMinutes){let u=parseInt(this._triggerForMinutes,10);isNaN(u)||(d.trigger_for_minutes=u)}}else if(this._triggerType==="counter"){if(this._triggerTargetValue){let u=parseFloat(this._triggerTargetValue);isNaN(u)||(d.trigger_target_value=u)}d.trigger_delta_mode=this._triggerDeltaMode}else if(this._triggerType==="state_change"){if(this._triggerFromState&&(d.trigger_from_state=this._triggerFromState),this._triggerToState&&(d.trigger_to_state=this._triggerToState),this._triggerTargetChanges){let u=parseInt(this._triggerTargetChanges,10);isNaN(u)||(d.trigger_target_changes=u)}}else if(this._triggerType==="runtime"&&this._triggerRuntimeHours){let u=parseFloat(this._triggerRuntimeHours);isNaN(u)||(d.trigger_runtime_hours=u)}t.trigger_config=d}else this._taskId&&(t.trigger_config=null);if(this.scheduleTimeEnabled&&this._scheduleType==="time_based"){let c=this._scheduleTime.trim();t.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(c)?c:null}if(this.checklistsEnabled){let c=this._checklistText.split(`
+`).map(d=>d.trim()).filter(Boolean).slice(0,100);t.checklist=c.length?c:null}if(this.completionActionsEnabled){let c=this._actionService.trim();if(c&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(c)){let m={service:c},v=this._actionTargetEntity.trim();v&&(m.target={entity_id:v});let f=this._buildActionData();Object.keys(f).length>0&&(m.data=f),t.on_complete_action=m}else t.on_complete_action=null;let d={};this._qcNotes.trim()&&(d.notes=this._qcNotes.trim());let u=parseFloat(this._qcCost);!isNaN(u)&&u>=0&&(d.cost=u);let g=parseInt(this._qcDuration,10);!isNaN(g)&&g>=0&&(d.duration=g),this._qcFeedback&&(d.feedback=this._qcFeedback),t.quick_complete_defaults=Object.keys(d).length?d:null}let i=await this.hass.connection.sendMessagePromise(t),a=this._taskId||i?.task_id,l=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(a&&this._scheduleType==="sensor_based"&&l)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:a,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(t){this._error=M(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return p;let t=this._lang,e=this._triggerType==="compound";return o`
+      <h3>${s("trigger_configuration",t)}</h3>
       <div class="select-row">
-        <label>${s("trigger_type",e)}</label>
+        <label>${s("trigger_type",t)}</label>
         <select
           .value=${this._triggerType}
           @change=${i=>this._triggerType=i.target.value}
         >
-          ${gs.map(i=>o`<option value=${i} ?selected=${i===this._triggerType}>${s(i,e)}</option>`)}
+          ${ms.map(i=>o`<option value=${i} ?selected=${i===this._triggerType}>${s(i,t)}</option>`)}
         </select>
       </div>
-      ${t?this._renderCompoundEditor():o`
+      ${e?this._renderCompoundEditor():o`
         <ms-textfield
-          label="${s("entity_id",e)} (${s("comma_separated",e)})"
+          label="${s("entity_id",t)} (${s("comma_separated",t)})"
           .value=${this._triggerEntityIds.length>0?this._triggerEntityIds.join(", "):this._triggerEntityId}
           @input=${i=>{let l=i.target.value.split(",").map(c=>c.trim()).filter(Boolean);this._triggerEntityId=l[0]||"",this._triggerEntityIds=l,l[0]&&this._fetchEntityAttributes(l[0])}}
         ></ms-textfield>
         ${this._triggerEntityIds.length>1?o`
           <div class="select-row">
-            <label>${s("entity_logic",e)}</label>
+            <label>${s("entity_logic",t)}</label>
             <select
               .value=${this._triggerEntityLogic}
               @change=${i=>this._triggerEntityLogic=i.target.value}
             >
-              <option value="any" ?selected=${this._triggerEntityLogic==="any"}>${s("entity_logic_any",e)}</option>
-              <option value="all" ?selected=${this._triggerEntityLogic==="all"}>${s("entity_logic_all",e)}</option>
+              <option value="any" ?selected=${this._triggerEntityLogic==="any"}>${s("entity_logic_any",t)}</option>
+              <option value="all" ?selected=${this._triggerEntityLogic==="all"}>${s("entity_logic_all",t)}</option>
             </select>
           </div>
-        `:u}
+        `:p}
         ${this._availableAttributes.length>0?o`
             <div class="select-row">
-              <label>${s("attribute_optional",e)}</label>
+              <label>${s("attribute_optional",t)}</label>
               <select
                 .value=${this._triggerAttribute}
                 @change=${i=>this._triggerAttribute=i.target.value}
               >
-                <option value="" ?selected=${!this._triggerAttribute}>${s("use_entity_state",e)}</option>
+                <option value="" ?selected=${!this._triggerAttribute}>${s("use_entity_state",t)}</option>
                 ${this._suggestedAttributes.map(i=>o`<option value=${i} ?selected=${i===this._triggerAttribute}>${i} ★</option>`)}
                 ${this._availableAttributes.filter(i=>!this._suggestedAttributes.includes(i.name)).map(i=>o`<option value=${i.name} ?selected=${i.name===this._triggerAttribute}>${i.name}${i.numeric?"":" (non-numeric)"}</option>`)}
               </select>
             </div>
           `:o`
             <ms-textfield
-              label="${s("attribute_optional",e)}"
+              label="${s("attribute_optional",t)}"
               .value=${this._triggerAttribute}
               @input=${i=>this._triggerAttribute=i.target.value}
             ></ms-textfield>
@@ -3193,195 +3211,195 @@ ${L(n.notes)}</div>`:""}
           .checked=${this._autoCompleteOnRecovery}
           @change=${i=>this._autoCompleteOnRecovery=i.target.checked}
         />
-        ${s("auto_complete_on_recovery",e)}
+        ${s("auto_complete_on_recovery",t)}
       </label>
-      <div class="field-help">${s("auto_complete_on_recovery_help",e)}</div>
+      <div class="field-help">${s("auto_complete_on_recovery_help",t)}</div>
       <ms-textfield
-        label="${s("safety_interval",e)}"
+        label="${s("safety_interval",t)}"
         type="number"
         .value=${this._intervalDays}
         @input=${i=>this._intervalDays=i.target.value}
       ></ms-textfield>
-      ${this._intervalDays?this._renderUnitSelect():u}
-    `}_patchCondition(e,t){this._compoundConditions=this._compoundConditions.map((i,r)=>r===e?{...i,...t}:i)}_addCondition(){this._compoundConditions=[...this._compoundConditions,ms()]}_removeCondition(e){this._compoundConditions=this._compoundConditions.filter((t,i)=>i!==e)}_renderCompoundEditor(){let e=this._lang;return o`
+      ${this._intervalDays?this._renderUnitSelect():p}
+    `}_patchCondition(t,e){this._compoundConditions=this._compoundConditions.map((i,a)=>a===t?{...i,...e}:i)}_addCondition(){this._compoundConditions=[...this._compoundConditions,vs()]}_removeCondition(t){this._compoundConditions=this._compoundConditions.filter((e,i)=>i!==t)}_renderCompoundEditor(){let t=this._lang;return o`
       <div class="select-row">
-        <label>${s("compound_logic",e)}</label>
+        <label>${s("compound_logic",t)}</label>
         <select
           .value=${this._compoundLogic}
-          @change=${t=>this._compoundLogic=t.target.value}
+          @change=${e=>this._compoundLogic=e.target.value}
         >
-          <option value="AND" ?selected=${this._compoundLogic==="AND"}>${s("compound_logic_and",e)}</option>
-          <option value="OR" ?selected=${this._compoundLogic==="OR"}>${s("compound_logic_or",e)}</option>
+          <option value="AND" ?selected=${this._compoundLogic==="AND"}>${s("compound_logic_and",t)}</option>
+          <option value="OR" ?selected=${this._compoundLogic==="OR"}>${s("compound_logic_or",t)}</option>
         </select>
       </div>
-      <div class="field-help">${s("compound_help",e)}</div>
-      ${this._compoundConditions.length===0?o`<div class="field-help">${s("compound_no_conditions",e)}</div>`:this._compoundConditions.map((t,i)=>this._renderCondition(t,i))}
+      <div class="field-help">${s("compound_help",t)}</div>
+      ${this._compoundConditions.length===0?o`<div class="field-help">${s("compound_no_conditions",t)}</div>`:this._compoundConditions.map((e,i)=>this._renderCondition(e,i))}
       <button type="button" class="secondary-btn" @click=${()=>this._addCondition()}>
-        + ${s("compound_add_condition",e)}
+        + ${s("compound_add_condition",t)}
       </button>
-    `}_renderCondition(e,t){let i=this._lang,r=t+1;return o`
+    `}_renderCondition(t,e){let i=this._lang,a=e+1;return o`
       <div class="compound-condition">
         <div class="compound-condition-head">
-          <span class="compound-condition-title">${s("compound_condition",i)} ${r}</span>
+          <span class="compound-condition-title">${s("compound_condition",i)} ${a}</span>
           <button
             type="button"
             class="icon-btn"
             title="${s("compound_remove_condition",i)}"
-            @click=${()=>this._removeCondition(t)}
+            @click=${()=>this._removeCondition(e)}
           >✕</button>
         </div>
         <ms-textfield
           label="${s("entity_id",i)} (${s("comma_separated",i)})"
-          .value=${e.entityIds}
-          @input=${l=>this._patchCondition(t,{entityIds:l.target.value})}
+          .value=${t.entityIds}
+          @input=${l=>this._patchCondition(e,{entityIds:l.target.value})}
         ></ms-textfield>
         <div class="select-row">
           <label>${s("trigger_type",i)}</label>
           <select
-            .value=${e.type}
-            @change=${l=>this._patchCondition(t,{type:l.target.value})}
+            .value=${t.type}
+            @change=${l=>this._patchCondition(e,{type:l.target.value})}
           >
-            ${ci.map(l=>o`<option value=${l} ?selected=${l===e.type}>${s(l,i)}</option>`)}
+            ${ci.map(l=>o`<option value=${l} ?selected=${l===t.type}>${s(l,i)}</option>`)}
           </select>
         </div>
-        ${this._renderConditionTypeFields(e,t)}
+        ${this._renderConditionTypeFields(t,e)}
       </div>
-    `}_renderConditionTypeFields(e,t){let i=this._lang;return e.type==="threshold"?o`
-        <ms-textfield label="${s("trigger_above",i)}" type="number" .value=${e.above}
-          @input=${r=>this._patchCondition(t,{above:r.target.value})}></ms-textfield>
-        <ms-textfield label="${s("trigger_below",i)}" type="number" .value=${e.below}
-          @input=${r=>this._patchCondition(t,{below:r.target.value})}></ms-textfield>
-        <ms-textfield label="${s("for_minutes",i)}" type="number" .value=${e.forMinutes}
-          @input=${r=>this._patchCondition(t,{forMinutes:r.target.value})}></ms-textfield>
-      `:e.type==="counter"?o`
-        <ms-textfield label="${s("target_value",i)}" type="number" .value=${e.targetValue}
-          @input=${r=>this._patchCondition(t,{targetValue:r.target.value})}></ms-textfield>
+    `}_renderConditionTypeFields(t,e){let i=this._lang;return t.type==="threshold"?o`
+        <ms-textfield label="${s("trigger_above",i)}" type="number" .value=${t.above}
+          @input=${a=>this._patchCondition(e,{above:a.target.value})}></ms-textfield>
+        <ms-textfield label="${s("trigger_below",i)}" type="number" .value=${t.below}
+          @input=${a=>this._patchCondition(e,{below:a.target.value})}></ms-textfield>
+        <ms-textfield label="${s("for_minutes",i)}" type="number" .value=${t.forMinutes}
+          @input=${a=>this._patchCondition(e,{forMinutes:a.target.value})}></ms-textfield>
+      `:t.type==="counter"?o`
+        <ms-textfield label="${s("target_value",i)}" type="number" .value=${t.targetValue}
+          @input=${a=>this._patchCondition(e,{targetValue:a.target.value})}></ms-textfield>
         <label>
-          <input type="checkbox" .checked=${e.deltaMode}
-            @change=${r=>this._patchCondition(t,{deltaMode:r.target.checked})} />
+          <input type="checkbox" .checked=${t.deltaMode}
+            @change=${a=>this._patchCondition(e,{deltaMode:a.target.checked})} />
           ${s("delta_mode",i)}
         </label>
-      `:e.type==="state_change"?o`
-        <ms-textfield label="${s("from_state_optional",i)}" .value=${e.fromState}
-          @input=${r=>this._patchCondition(t,{fromState:r.target.value})}></ms-textfield>
-        <ms-textfield label="${s("to_state_optional",i)}" .value=${e.toState}
-          @input=${r=>this._patchCondition(t,{toState:r.target.value})}></ms-textfield>
-        <ms-textfield label="${s("target_changes",i)}" type="number" .value=${e.targetChanges}
-          @input=${r=>this._patchCondition(t,{targetChanges:r.target.value})}></ms-textfield>
-      `:e.type==="runtime"?o`
-        <ms-textfield label="${s("runtime_hours",i)}" type="number" .value=${e.runtimeHours}
-          @input=${r=>this._patchCondition(t,{runtimeHours:r.target.value})}></ms-textfield>
-      `:u}_renderUnitSelect(){let e=this._lang;return o`
+      `:t.type==="state_change"?o`
+        <ms-textfield label="${s("from_state_optional",i)}" .value=${t.fromState}
+          @input=${a=>this._patchCondition(e,{fromState:a.target.value})}></ms-textfield>
+        <ms-textfield label="${s("to_state_optional",i)}" .value=${t.toState}
+          @input=${a=>this._patchCondition(e,{toState:a.target.value})}></ms-textfield>
+        <ms-textfield label="${s("target_changes",i)}" type="number" .value=${t.targetChanges}
+          @input=${a=>this._patchCondition(e,{targetChanges:a.target.value})}></ms-textfield>
+      `:t.type==="runtime"?o`
+        <ms-textfield label="${s("runtime_hours",i)}" type="number" .value=${t.runtimeHours}
+          @input=${a=>this._patchCondition(e,{runtimeHours:a.target.value})}></ms-textfield>
+      `:p}_renderUnitSelect(){let t=this._lang;return o`
       <div class="select-row">
-        <label>${s("interval_unit",e)}</label>
+        <label>${s("interval_unit",t)}</label>
         <select
           .value=${this._intervalUnit}
-          @change=${t=>this._intervalUnit=t.target.value}
+          @change=${e=>this._intervalUnit=e.target.value}
         >
-          ${["days","weeks","months","years"].map(t=>o`<option value=${t} ?selected=${t===this._intervalUnit}>${s("unit_"+t,e)}</option>`)}
+          ${["days","weeks","months","years"].map(e=>o`<option value=${e} ?selected=${e===this._intervalUnit}>${s("unit_"+e,t)}</option>`)}
         </select>
-      </div>`}_toggleWeekday(e){this._weekdays=this._weekdays.includes(e)?this._weekdays.filter(t=>t!==e):[...this._weekdays,e]}_buildSchedule(){return this._scheduleType==="weekdays"?{kind:"weekdays",weekdays:[...this._weekdays].sort((e,t)=>e-t)}:this._scheduleType==="nth_weekday"?{kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)}:{kind:"day_of_month",day:parseInt(this._domDay,10)||1}}_renderCalendarFields(){let e=this._lang,t=fs(e);if(this._scheduleType==="weekdays")return o`
-        <label class="field-label">${s("recurrence_on_days",e)}</label>
+      </div>`}_toggleWeekday(t){this._weekdays=this._weekdays.includes(t)?this._weekdays.filter(e=>e!==t):[...this._weekdays,t]}_buildSchedule(){return this._scheduleType==="weekdays"?{kind:"weekdays",weekdays:[...this._weekdays].sort((t,e)=>t-e)}:this._scheduleType==="nth_weekday"?{kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)}:{kind:"day_of_month",day:parseInt(this._domDay,10)||1}}_renderCalendarFields(){let t=this._lang,e=ys(t);if(this._scheduleType==="weekdays")return o`
+        <label class="field-label">${s("recurrence_on_days",t)}</label>
         <div class="weekday-chips">
-          ${t.map((i,r)=>o`
+          ${e.map((i,a)=>o`
             <button
               type="button"
-              class="weekday-chip ${this._weekdays.includes(r)?"selected":""}"
-              @click=${()=>this._toggleWeekday(r)}
+              class="weekday-chip ${this._weekdays.includes(a)?"selected":""}"
+              @click=${()=>this._toggleWeekday(a)}
             >${i}</button>`)}
-        </div>`;if(this._scheduleType==="nth_weekday"){let i=[["1",s("ord_1",e)],["2",s("ord_2",e)],["3",s("ord_3",e)],["4",s("ord_4",e)],["5",s("ord_5",e)],["-1",s("ord_last",e)]];return o`
+        </div>`;if(this._scheduleType==="nth_weekday"){let i=[["1",s("ord_1",t)],["2",s("ord_2",t)],["3",s("ord_3",t)],["4",s("ord_4",t)],["5",s("ord_5",t)],["-1",s("ord_last",t)]];return o`
         <div class="select-row">
-          <label>${s("recurrence_occurrence",e)}</label>
-          <select .value=${this._nth} @change=${r=>this._nth=r.target.value}>
-            ${i.map(([r,l])=>o`<option value=${r} ?selected=${r===this._nth}>${l}</option>`)}
+          <label>${s("recurrence_occurrence",t)}</label>
+          <select .value=${this._nth} @change=${a=>this._nth=a.target.value}>
+            ${i.map(([a,l])=>o`<option value=${a} ?selected=${a===this._nth}>${l}</option>`)}
           </select>
         </div>
         <div class="select-row">
-          <label>${s("recurrence_weekday",e)}</label>
-          <select .value=${this._nthWeekday} @change=${r=>this._nthWeekday=r.target.value}>
-            ${t.map((r,l)=>o`<option value=${String(l)} ?selected=${String(l)===this._nthWeekday}>${r}</option>`)}
+          <label>${s("recurrence_weekday",t)}</label>
+          <select .value=${this._nthWeekday} @change=${a=>this._nthWeekday=a.target.value}>
+            ${e.map((a,l)=>o`<option value=${String(l)} ?selected=${String(l)===this._nthWeekday}>${a}</option>`)}
           </select>
         </div>`}return this._scheduleType==="day_of_month"?o`
         <ms-textfield
-          label="${s("recurrence_day",e)}"
+          label="${s("recurrence_day",t)}"
           type="number"
           min="1"
           max="31"
           .value=${this._domDay}
           @input=${i=>this._domDay=i.target.value}
-        ></ms-textfield>`:u}_renderTriggerTypeFields(){let e=this._lang;return this._triggerType==="threshold"?o`
+        ></ms-textfield>`:p}_renderTriggerTypeFields(){let t=this._lang;return this._triggerType==="threshold"?o`
         <ms-textfield
-          label="${s("trigger_above",e)}"
+          label="${s("trigger_above",t)}"
           type="number"
           step="any"
           .value=${this._triggerAbove}
-          @input=${t=>this._triggerAbove=t.target.value}
+          @input=${e=>this._triggerAbove=e.target.value}
         ></ms-textfield>
         <ms-textfield
-          label="${s("trigger_below",e)}"
+          label="${s("trigger_below",t)}"
           type="number"
           step="any"
           .value=${this._triggerBelow}
-          @input=${t=>this._triggerBelow=t.target.value}
+          @input=${e=>this._triggerBelow=e.target.value}
         ></ms-textfield>
         <ms-textfield
-          label="${s("for_at_least_minutes",e)}"
+          label="${s("for_at_least_minutes",t)}"
           type="number"
           .value=${this._triggerForMinutes}
-          @input=${t=>this._triggerForMinutes=t.target.value}
+          @input=${e=>this._triggerForMinutes=e.target.value}
         ></ms-textfield>
       `:this._triggerType==="counter"?o`
         <ms-textfield
-          label="${s("target_value",e)}"
+          label="${s("target_value",t)}"
           type="number"
           step="any"
           .value=${this._triggerTargetValue}
-          @input=${t=>this._triggerTargetValue=t.target.value}
+          @input=${e=>this._triggerTargetValue=e.target.value}
         ></ms-textfield>
         <label>
           <input
             type="checkbox"
             .checked=${this._triggerDeltaMode}
-            @change=${t=>this._triggerDeltaMode=t.target.checked}
+            @change=${e=>this._triggerDeltaMode=e.target.checked}
           />
-          ${s("delta_mode",e)}
+          ${s("delta_mode",t)}
         </label>
       `:this._triggerType==="state_change"?o`
         <ms-textfield
-          label="${s("from_state_optional",e)}"
+          label="${s("from_state_optional",t)}"
           .value=${this._triggerFromState}
-          @input=${t=>this._triggerFromState=t.target.value}
+          @input=${e=>this._triggerFromState=e.target.value}
         ></ms-textfield>
-        <div class="field-help">${s("state_value_help",e)}</div>
+        <div class="field-help">${s("state_value_help",t)}</div>
         <ms-textfield
-          label="${s("to_state_optional",e)}"
+          label="${s("to_state_optional",t)}"
           .value=${this._triggerToState}
-          @input=${t=>this._triggerToState=t.target.value}
+          @input=${e=>this._triggerToState=e.target.value}
         ></ms-textfield>
         <ms-textfield
-          label="${s("target_changes",e)}"
+          label="${s("target_changes",t)}"
           type="number"
           min="1"
           .value=${this._triggerTargetChanges}
-          @input=${t=>this._triggerTargetChanges=t.target.value}
+          @input=${e=>this._triggerTargetChanges=e.target.value}
         ></ms-textfield>
-        <div class="field-help">${s("target_changes_help",e)}</div>
+        <div class="field-help">${s("target_changes_help",t)}</div>
       `:this._triggerType==="runtime"?o`
         <ms-textfield
-          label="${s("runtime_hours",e)}"
+          label="${s("runtime_hours",t)}"
           type="number"
           step="1"
           .value=${this._triggerRuntimeHours}
-          @input=${t=>this._triggerRuntimeHours=t.target.value}
+          @input=${e=>this._triggerRuntimeHours=e.target.value}
         ></ms-textfield>
-      `:u}render(){if(!this._open)return o``;let e=this._lang,t=this._taskId?s("edit_task",e):s("new_task",e);return o`
+      `:p}render(){if(!this._open)return o``;let t=this._lang,e=this._taskId?s("edit_task",t):s("new_task",t);return o`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t}</div>
+        <div class="dialog-title">${e}</div>
         <div class="content">
-          ${this._error?o`<div class="error">${this._error}</div>`:u}
+          ${this._error?o`<div class="error">${this._error}</div>`:p}
           ${this._objectChoices.length>0?o`
             <div class="select-row">
-              <label>${s("object",e)}</label>
+              <label>${s("object",t)}</label>
               <select
                 .value=${this._entryId}
                 @change=${i=>this._entryId=i.target.value}
@@ -3389,132 +3407,132 @@ ${L(n.notes)}</div>`:""}
                 ${this._objectChoices.map(i=>o`<option value=${i.entry_id} ?selected=${i.entry_id===this._entryId}>${i.name}</option>`)}
               </select>
             </div>
-          `:u}
+          `:p}
           <ms-textfield
-            label="${s("task_name",e)}"
+            label="${s("task_name",t)}"
             required
             .value=${this._name}
             @input=${i=>this._name=i.target.value}
           ></ms-textfield>
           <div class="select-row">
-            <label>${s("maintenance_type",e)}</label>
+            <label>${s("maintenance_type",t)}</label>
             <select
               .value=${this._type}
               @change=${i=>this._type=i.target.value}
             >
-              ${ps.map(i=>o`<option value=${i} ?selected=${i===this._type}>${s(i,e)}</option>`)}
+              ${hs.map(i=>o`<option value=${i} ?selected=${i===this._type}>${s(i,t)}</option>`)}
             </select>
           </div>
           <div class="select-row">
-            <label>${s("priority",e)}</label>
+            <label>${s("priority",t)}</label>
             <select
               .value=${this._priority}
               @change=${i=>this._priority=i.target.value}
             >
-              ${us.map(i=>o`<option value=${i} ?selected=${i===this._priority}>${s("priority_"+i,e)}</option>`)}
+              ${us.map(i=>o`<option value=${i} ?selected=${i===this._priority}>${s("priority_"+i,t)}</option>`)}
             </select>
           </div>
           <div class="field">
-            <label>${s("labels",e)}</label>
+            <label>${s("labels",t)}</label>
             <input
               type="text"
               .value=${this._labels}
-              placeholder="${s("labels_placeholder",e)}"
+              placeholder="${s("labels_placeholder",t)}"
               @input=${i=>this._labels=i.target.value}
             />
-            <div class="field-help">${s("labels_help",e)}</div>
+            <div class="field-help">${s("labels_help",t)}</div>
           </div>
           <div class="select-row">
-            <label>${s("schedule_type",e)}</label>
+            <label>${s("schedule_type",t)}</label>
             <select
               .value=${this._scheduleType}
               @change=${i=>this._scheduleType=i.target.value}
             >
-              ${hs.map(i=>o`<option value=${i} ?selected=${i===this._scheduleType}>${s(i,e)}</option>`)}
+              ${_s.map(i=>o`<option value=${i} ?selected=${i===this._scheduleType}>${s(i,t)}</option>`)}
             </select>
           </div>
           ${this._scheduleType==="time_based"?o`
                 <ms-textfield
-                  label="${s("interval_value",e)}"
+                  label="${s("interval_value",t)}"
                   type="number"
                   .value=${this._intervalDays}
                   @input=${i=>this._intervalDays=i.target.value}
                 ></ms-textfield>
                 ${this._renderUnitSelect()}
                 <div class="select-row">
-                  <label>${s("interval_anchor",e)}</label>
+                  <label>${s("interval_anchor",t)}</label>
                   <select
                     .value=${this._intervalAnchor}
                     @change=${i=>this._intervalAnchor=i.target.value}
                   >
-                    <option value="completion" ?selected=${this._intervalAnchor==="completion"}>${s("anchor_completion",e)}</option>
-                    <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${s("anchor_planned",e)}</option>
+                    <option value="completion" ?selected=${this._intervalAnchor==="completion"}>${s("anchor_completion",t)}</option>
+                    <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${s("anchor_planned",t)}</option>
                   </select>
                 </div>
                 ${this.scheduleTimeEnabled?o`
                   <ms-textfield
-                    label="${s("schedule_time_optional",e)}"
+                    label="${s("schedule_time_optional",t)}"
                     type="time"
                     .value=${this._scheduleTime}
-                    helper="${s("schedule_time_help",e)}"
+                    helper="${s("schedule_time_help",t)}"
                     @input=${i=>this._scheduleTime=i.target.value}
                   ></ms-textfield>
-                `:u}
-              `:u}
+                `:p}
+              `:p}
           ${this._renderCalendarFields()}
           ${this._scheduleType==="one_time"?o`
                 <ms-textfield
-                  label="${s("due_date",e)}"
+                  label="${s("due_date",t)}"
                   type="date"
                   .value=${this._dueDate}
                   @input=${i=>this._dueDate=i.target.value}
                 ></ms-textfield>
-              `:u}
+              `:p}
           <ms-textfield
-            label="${s("warning_days",e)}"
+            label="${s("warning_days",t)}"
             type="number"
             .value=${this._warningDays}
             @input=${i=>this._warningDays=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("earliest_completion_days",e)}"
-            helper="${s("earliest_completion_days_help",e)}"
+            label="${s("earliest_completion_days",t)}"
+            helper="${s("earliest_completion_days_help",t)}"
             type="number"
             .value=${this._earliestCompletionDays}
             @input=${i=>this._earliestCompletionDays=i.target.value}
           ></ms-textfield>
           ${this.checklistsEnabled?o`
-            <h3>${s("checklist_steps_optional",e)}</h3>
+            <h3>${s("checklist_steps_optional",t)}</h3>
             <textarea
               id="checklist-textarea"
               class="checklist-textarea"
               rows="5"
-              placeholder="${s("checklist_placeholder",e)}"
+              placeholder="${s("checklist_placeholder",t)}"
               .value=${this._checklistText}
               @input=${i=>this._checklistText=i.target.value}
             ></textarea>
-            <div class="field-help">${s("checklist_help",e)}</div>
-          `:u}
+            <div class="field-help">${s("checklist_help",t)}</div>
+          `:p}
           <ms-textfield
-            label="${s("last_performed_optional",e)}"
+            label="${s("last_performed_optional",t)}"
             type="date"
             .value=${this._lastPerformed}
             @input=${i=>this._lastPerformed=i.target.value}
           ></ms-textfield>
           <div class="select-row">
-            <label>${s("responsible_user",e)}</label>
+            <label>${s("responsible_user",t)}</label>
             <select
               .value=${this._responsibleUserId||""}
-              @change=${i=>{let r=i.target.value;this._responsibleUserId=r||null}}
+              @change=${i=>{let a=i.target.value;this._responsibleUserId=a||null}}
             >
-              <option value="" ?selected=${!this._responsibleUserId}>${s("no_user_assigned",e)}</option>
+              <option value="" ?selected=${!this._responsibleUserId}>${s("no_user_assigned",t)}</option>
               ${this._availableUsers.map(i=>o`<option value=${i.id} ?selected=${i.id===this._responsibleUserId}>${i.name}</option>`)}
             </select>
           </div>
           ${this._availableUsers.length>=2?o`
             <div class="field">
-              <label>${s("shared_with",e)}</label>
-              <div class="field-help">${s("shared_with_help",e)}</div>
+              <label>${s("shared_with",t)}</label>
+              <div class="field-help">${s("shared_with_help",t)}</div>
               <div class="assignee-pool">
                 ${this._availableUsers.map(i=>o`
                   <label class="pool-item">
@@ -3527,73 +3545,73 @@ ${L(n.notes)}</div>`:""}
             </div>
             ${this._assigneePool.length>=2?o`
               <div class="select-row">
-                <label>${s("rotation_strategy",e)}</label>
+                <label>${s("rotation_strategy",t)}</label>
                 <select
                   .value=${this._rotationStrategy}
                   @change=${i=>this._rotationStrategy=i.target.value}
                 >
-                  <option value="" ?selected=${!this._rotationStrategy}>${s("rotation_none",e)}</option>
-                  ${["round_robin","least_completed","random"].map(i=>o`<option value=${i} ?selected=${i===this._rotationStrategy}>${s("rotation_"+i,e)}</option>`)}
+                  <option value="" ?selected=${!this._rotationStrategy}>${s("rotation_none",t)}</option>
+                  ${["round_robin","least_completed","random"].map(i=>o`<option value=${i} ?selected=${i===this._rotationStrategy}>${s("rotation_"+i,t)}</option>`)}
                 </select>
-              </div>`:u}
-          `:u}
+              </div>`:p}
+          `:p}
           ${this._renderTriggerFields()}
           ${this._scheduleType==="sensor_based"?o`
             <ms-textfield
-              label="${s("environmental_entity_optional",e)}"
-              helper="${s("environmental_entity_helper",e)}"
+              label="${s("environmental_entity_optional",t)}"
+              helper="${s("environmental_entity_helper",t)}"
               .value=${this._environmentalEntity}
               @input=${i=>this._environmentalEntity=i.target.value.trim()}
             ></ms-textfield>
             ${this._environmentalEntity?o`
               <ms-textfield
-                label="${s("environmental_attribute_optional",e)}"
+                label="${s("environmental_attribute_optional",t)}"
                 .value=${this._environmentalAttribute}
                 @input=${i=>this._environmentalAttribute=i.target.value.trim()}
               ></ms-textfield>
-            `:u}
-          `:u}
+            `:p}
+          `:p}
           <ms-textfield
-            label="${s("notes_optional",e)}"
+            label="${s("notes_optional",t)}"
             .value=${this._notes}
             @input=${i=>this._notes=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("documentation_url_optional",e)}"
+            label="${s("documentation_url_optional",t)}"
             .value=${this._documentationUrl}
             @input=${i=>this._documentationUrl=i.target.value}
           ></ms-textfield>
           <ha-icon-picker
             .hass=${this.hass}
-            label="${s("custom_icon_optional",e)}"
+            label="${s("custom_icon_optional",t)}"
             .value=${this._customIcon}
             @value-changed=${i=>this._customIcon=i.detail.value||""}
           ></ha-icon-picker>
           ${this._availableTags.length>0?o`
               <div class="select-row">
-                <label>${s("nfc_tag_id_optional",e)}</label>
+                <label>${s("nfc_tag_id_optional",t)}</label>
                 <select
                   .value=${this._nfcTagId}
                   @change=${i=>this._nfcTagId=i.target.value}
                 >
-                  <option value="" ?selected=${!this._nfcTagId}>${s("no_nfc_tag",e)}</option>
+                  <option value="" ?selected=${!this._nfcTagId}>${s("no_nfc_tag",t)}</option>
                   ${this._availableTags.map(i=>o`<option value=${i.id} ?selected=${i.id===this._nfcTagId}>${i.name}</option>`)}
                 </select>
                 <button type="button" class="link-button" @click=${this._loadTags}
-                  title="${s("nfc_tags_refresh",e)}">↻</button>
+                  title="${s("nfc_tags_refresh",t)}">↻</button>
               </div>
             `:o`
               <ms-textfield
-                label="${s("nfc_tag_id_optional",e)}"
+                label="${s("nfc_tag_id_optional",t)}"
                 .value=${this._nfcTagId}
                 @input=${i=>this._nfcTagId=i.target.value}
               ></ms-textfield>
               <div class="field-help">
-                ${s("nfc_tags_empty_help",e)}
-                <a href="/config/tags">${s("nfc_tags_open_settings",e)}</a>
+                ${s("nfc_tags_empty_help",t)}
+                <a href="/config/tags">${s("nfc_tags_open_settings",t)}</a>
                 ·
                 <button type="button" class="link-button" @click=${this._loadTags}>
-                  ${s("nfc_tags_refresh",e)}
+                  ${s("nfc_tags_refresh",t)}
                 </button>
               </div>
             `}
@@ -3603,17 +3621,17 @@ ${L(n.notes)}</div>`:""}
               .checked=${this._enabled}
               @change=${i=>this._enabled=i.target.checked}
             />
-            ${s("task_enabled",e)}
+            ${s("task_enabled",t)}
           </label>
-          ${this._renderCompletionActionsSection(e)}
+          ${this._renderCompletionActionsSection(t)}
         </div>
         <div class="dialog-actions">
-          <ha-button appearance="plain" @click=${this._close}>${s("cancel",e)}</ha-button>
+          <ha-button appearance="plain" @click=${this._close}>${s("cancel",t)}</ha-button>
           <ha-button
             @click=${this._save}
             .disabled=${this._loading||!this._name.trim()}
           >
-            ${this._loading?s("saving",e):s("save",e)}
+            ${this._loading?s("saving",t):s("save",t)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -3809,22 +3827,22 @@ ${L(n.notes)}</div>`:""}
       font-size: 14px;
       cursor: pointer;
     }
-  `,p([y({attribute:!1})],x.prototype,"hass",2),p([y({type:Boolean,attribute:"checklists-enabled"})],x.prototype,"checklistsEnabled",2),p([y({type:Boolean,attribute:"schedule-time-enabled"})],x.prototype,"scheduleTimeEnabled",2),p([y({type:Boolean,attribute:"completion-actions-enabled"})],x.prototype,"completionActionsEnabled",2),p([y({type:Number,attribute:"default-warning-days"})],x.prototype,"defaultWarningDays",2),p([_()],x.prototype,"_open",2),p([_()],x.prototype,"_loading",2),p([_()],x.prototype,"_error",2),p([_()],x.prototype,"_entryId",2),p([_()],x.prototype,"_taskId",2),p([_()],x.prototype,"_objectChoices",2),p([_()],x.prototype,"_name",2),p([_()],x.prototype,"_type",2),p([_()],x.prototype,"_scheduleType",2),p([_()],x.prototype,"_intervalDays",2),p([_()],x.prototype,"_intervalUnit",2),p([_()],x.prototype,"_dueDate",2),p([_()],x.prototype,"_warningDays",2),p([_()],x.prototype,"_earliestCompletionDays",2),p([_()],x.prototype,"_intervalAnchor",2),p([_()],x.prototype,"_weekdays",2),p([_()],x.prototype,"_nth",2),p([_()],x.prototype,"_nthWeekday",2),p([_()],x.prototype,"_domDay",2),p([_()],x.prototype,"_notes",2),p([_()],x.prototype,"_documentationUrl",2),p([_()],x.prototype,"_customIcon",2),p([_()],x.prototype,"_priority",2),p([_()],x.prototype,"_labels",2),p([_()],x.prototype,"_enabled",2),p([_()],x.prototype,"_triggerEntityId",2),p([_()],x.prototype,"_triggerEntityIds",2),p([_()],x.prototype,"_triggerEntityLogic",2),p([_()],x.prototype,"_triggerAttribute",2),p([_()],x.prototype,"_triggerType",2),p([_()],x.prototype,"_triggerAbove",2),p([_()],x.prototype,"_triggerBelow",2),p([_()],x.prototype,"_triggerForMinutes",2),p([_()],x.prototype,"_triggerTargetValue",2),p([_()],x.prototype,"_triggerDeltaMode",2),p([_()],x.prototype,"_autoCompleteOnRecovery",2),p([_()],x.prototype,"_triggerFromState",2),p([_()],x.prototype,"_triggerToState",2),p([_()],x.prototype,"_triggerTargetChanges",2),p([_()],x.prototype,"_triggerRuntimeHours",2),p([_()],x.prototype,"_compoundLogic",2),p([_()],x.prototype,"_compoundConditions",2),p([_()],x.prototype,"_suggestedAttributes",2),p([_()],x.prototype,"_availableAttributes",2),p([_()],x.prototype,"_entityDomain",2),p([_()],x.prototype,"_lastPerformed",2),p([_()],x.prototype,"_nfcTagId",2),p([_()],x.prototype,"_availableTags",2),p([_()],x.prototype,"_responsibleUserId",2),p([_()],x.prototype,"_assigneePool",2),p([_()],x.prototype,"_rotationStrategy",2),p([_()],x.prototype,"_availableUsers",2),p([_()],x.prototype,"_checklistText",2),p([_()],x.prototype,"_scheduleTime",2),p([_()],x.prototype,"_actionService",2),p([_()],x.prototype,"_actionTargetEntity",2),p([_()],x.prototype,"_actionData",2),p([_()],x.prototype,"_actionDataJsonFallback",2),p([_()],x.prototype,"_actionTesting",2),p([_()],x.prototype,"_actionTestResult",2),p([_()],x.prototype,"_actionTestError",2),p([_()],x.prototype,"_qcNotes",2),p([_()],x.prototype,"_qcCost",2),p([_()],x.prototype,"_qcDuration",2),p([_()],x.prototype,"_qcFeedback",2),p([_()],x.prototype,"_environmentalEntity",2),p([_()],x.prototype,"_environmentalAttribute",2);customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",x);var O=class extends S{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState={},this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1)}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _onPhotoInput(e){let t=e.target,i=t.files?.[0];if(t.value="",!!i){this._photoUploading=!0,this._error="";try{let r=new FormData;r.append("entry_id",this.entryId),r.append("tags","photo"),r.append("file",i,i.name);let l=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:r});if(!l.ok){this._error=l.status===413?s("doc_too_large",this.lang):s("doc_upload_failed",this.lang);return}let c=await l.json();c.id&&(this._photoDocId=c.id,this._photoPreview=URL.createObjectURL(i))}catch{this._error=s("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(e.notes=this._notes),this._cost){let t=parseFloat(this._cost);!isNaN(t)&&t>=0&&(e.cost=t)}if(this._duration){let t=parseInt(this._duration,10);!isNaN(t)&&t>=0&&(e.duration=t)}this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photoDocId&&(e.photo_doc_id=this._photoDocId),await this.hass.connection.sendMessagePromise(e),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(e){this._error=M(e,this.lang,s("save_error",this.lang))}finally{this._loading=!1}}_close(){this._open=!1}render(){if(!this._open)return o``;let e=this.lang||this.hass?.language||"en";return o`
+  `,h([y({attribute:!1})],x.prototype,"hass",2),h([y({type:Boolean,attribute:"checklists-enabled"})],x.prototype,"checklistsEnabled",2),h([y({type:Boolean,attribute:"schedule-time-enabled"})],x.prototype,"scheduleTimeEnabled",2),h([y({type:Boolean,attribute:"completion-actions-enabled"})],x.prototype,"completionActionsEnabled",2),h([y({type:Number,attribute:"default-warning-days"})],x.prototype,"defaultWarningDays",2),h([_()],x.prototype,"_open",2),h([_()],x.prototype,"_loading",2),h([_()],x.prototype,"_error",2),h([_()],x.prototype,"_entryId",2),h([_()],x.prototype,"_taskId",2),h([_()],x.prototype,"_objectChoices",2),h([_()],x.prototype,"_name",2),h([_()],x.prototype,"_type",2),h([_()],x.prototype,"_scheduleType",2),h([_()],x.prototype,"_intervalDays",2),h([_()],x.prototype,"_intervalUnit",2),h([_()],x.prototype,"_dueDate",2),h([_()],x.prototype,"_warningDays",2),h([_()],x.prototype,"_earliestCompletionDays",2),h([_()],x.prototype,"_intervalAnchor",2),h([_()],x.prototype,"_weekdays",2),h([_()],x.prototype,"_nth",2),h([_()],x.prototype,"_nthWeekday",2),h([_()],x.prototype,"_domDay",2),h([_()],x.prototype,"_notes",2),h([_()],x.prototype,"_documentationUrl",2),h([_()],x.prototype,"_customIcon",2),h([_()],x.prototype,"_priority",2),h([_()],x.prototype,"_labels",2),h([_()],x.prototype,"_enabled",2),h([_()],x.prototype,"_triggerEntityId",2),h([_()],x.prototype,"_triggerEntityIds",2),h([_()],x.prototype,"_triggerEntityLogic",2),h([_()],x.prototype,"_triggerAttribute",2),h([_()],x.prototype,"_triggerType",2),h([_()],x.prototype,"_triggerAbove",2),h([_()],x.prototype,"_triggerBelow",2),h([_()],x.prototype,"_triggerForMinutes",2),h([_()],x.prototype,"_triggerTargetValue",2),h([_()],x.prototype,"_triggerDeltaMode",2),h([_()],x.prototype,"_autoCompleteOnRecovery",2),h([_()],x.prototype,"_triggerFromState",2),h([_()],x.prototype,"_triggerToState",2),h([_()],x.prototype,"_triggerTargetChanges",2),h([_()],x.prototype,"_triggerRuntimeHours",2),h([_()],x.prototype,"_compoundLogic",2),h([_()],x.prototype,"_compoundConditions",2),h([_()],x.prototype,"_suggestedAttributes",2),h([_()],x.prototype,"_availableAttributes",2),h([_()],x.prototype,"_entityDomain",2),h([_()],x.prototype,"_lastPerformed",2),h([_()],x.prototype,"_nfcTagId",2),h([_()],x.prototype,"_availableTags",2),h([_()],x.prototype,"_responsibleUserId",2),h([_()],x.prototype,"_assigneePool",2),h([_()],x.prototype,"_rotationStrategy",2),h([_()],x.prototype,"_availableUsers",2),h([_()],x.prototype,"_checklistText",2),h([_()],x.prototype,"_scheduleTime",2),h([_()],x.prototype,"_actionService",2),h([_()],x.prototype,"_actionTargetEntity",2),h([_()],x.prototype,"_actionData",2),h([_()],x.prototype,"_actionDataJsonFallback",2),h([_()],x.prototype,"_actionTesting",2),h([_()],x.prototype,"_actionTestResult",2),h([_()],x.prototype,"_actionTestError",2),h([_()],x.prototype,"_qcNotes",2),h([_()],x.prototype,"_qcCost",2),h([_()],x.prototype,"_qcDuration",2),h([_()],x.prototype,"_qcFeedback",2),h([_()],x.prototype,"_environmentalEntity",2),h([_()],x.prototype,"_environmentalAttribute",2);customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",x);var O=class extends S{constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState={},this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1)}_toggleCheck(t){let e=String(t);this._checklistState={...this._checklistState,[e]:!this._checklistState[e]}}_setFeedback(t){this._feedback=t}async _onPhotoInput(t){let e=t.target,i=e.files?.[0];if(e.value="",!!i){this._photoUploading=!0,this._error="";try{let a=new FormData;a.append("entry_id",this.entryId),a.append("tags","photo"),a.append("file",i,i.name);let l=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:a});if(!l.ok){this._error=l.status===413?s("doc_too_large",this.lang):s("doc_upload_failed",this.lang);return}let c=await l.json();c.id&&(this._photoDocId=c.id,this._photoPreview=URL.createObjectURL(i))}catch{this._error=s("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let t={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(t.notes=this._notes),this._cost){let e=parseFloat(this._cost);!isNaN(e)&&e>=0&&(t.cost=e)}if(this._duration){let e=parseInt(this._duration,10);!isNaN(e)&&e>=0&&(t.duration=e)}this.checklist.length>0&&(t.checklist_state=this._checklistState),this.adaptiveEnabled&&(t.feedback=this._feedback),this._photoDocId&&(t.photo_doc_id=this._photoDocId),await this.hass.connection.sendMessagePromise(t),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(t){this._error=M(t,this.lang,s("save_error",this.lang))}finally{this._loading=!1}}_close(){this._open=!1}render(){if(!this._open)return o``;let t=this.lang||this.hass?.language||"en";return o`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${s("complete_title",e)}${this.taskName}</div>
+        <div class="dialog-title">${s("complete_title",t)}${this.taskName}</div>
         <div class="content">
-          ${this._error?o`<div class="error">${this._error}</div>`:u}
+          ${this._error?o`<div class="error">${this._error}</div>`:p}
           ${this.checklist.length>0?o`
             <div class="checklist-section">
-              <label class="checklist-label">${s("checklist",e)}</label>
-              ${this.checklist.map((t,i)=>o`
+              <label class="checklist-label">${s("checklist",t)}</label>
+              ${this.checklist.map((e,i)=>o`
                 <label class="checklist-item" @click=${()=>this._toggleCheck(i)}>
                   <input type="checkbox" .checked=${!!this._checklistState[String(i)]} />
-                  <span>${t}</span>
+                  <span>${e}</span>
                 </label>
               `)}
             </div>
-          `:u}
+          `:p}
           <!-- Native <input>s rather than <ha-textfield>: when this dialog
                is opened from a Lovelace card via dialog-mount, ha-textfield
                isn't yet registered (HA loads it lazily when its own panels
@@ -3832,34 +3850,34 @@ ${L(n.notes)}</div>`:""}
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
           <label class="field">
-            <span class="field-label">${s("notes_optional",e)}</span>
+            <span class="field-label">${s("notes_optional",t)}</span>
             <input type="text" class="field-input"
               .value=${this._notes}
-              @input=${t=>this._notes=t.target.value} />
+              @input=${e=>this._notes=e.target.value} />
           </label>
           <label class="field">
-            <span class="field-label">${s("cost_optional",e)}</span>
+            <span class="field-label">${s("cost_optional",t)}</span>
             <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._cost}
-              @input=${t=>this._cost=t.target.value} />
+              @input=${e=>this._cost=e.target.value} />
           </label>
           <label class="field">
-            <span class="field-label">${s("duration_minutes",e)}</span>
+            <span class="field-label">${s("duration_minutes",t)}</span>
             <input type="number" step="1" min="0" class="field-input"
               .value=${this._duration}
-              @input=${t=>this._duration=t.target.value} />
+              @input=${e=>this._duration=e.target.value} />
           </label>
           <div class="field">
-            <span class="field-label">${s("completion_photo_optional",e)}</span>
+            <span class="field-label">${s("completion_photo_optional",t)}</span>
             ${this._photoPreview?o`
                 <div class="photo-preview">
                   <img src=${this._photoPreview} alt="" />
                   <button type="button" class="photo-remove" @click=${this._removePhoto}
-                    title="${s("remove",e)}">✕</button>
+                    title="${s("remove",t)}">✕</button>
                 </div>`:o`
                 <label class="photo-pick">
                   <ha-icon icon="mdi:camera"></ha-icon>
-                  <span>${this._photoUploading?s("uploading",e):s("add_photo",e)}</span>
+                  <span>${this._photoUploading?s("uploading",t):s("add_photo",t)}</span>
                   <input type="file" accept="image/*" capture="environment"
                     ?disabled=${this._photoUploading}
                     @change=${this._onPhotoInput} />
@@ -3867,33 +3885,33 @@ ${L(n.notes)}</div>`:""}
           </div>
           ${this.adaptiveEnabled?o`
             <div class="feedback-section">
-              <label class="feedback-label">${s("was_maintenance_needed",e)}</label>
+              <label class="feedback-label">${s("was_maintenance_needed",t)}</label>
               <div class="feedback-buttons">
                 <button
                   class="feedback-btn ${this._feedback==="needed"?"selected":""}"
                   @click=${()=>this._setFeedback("needed")}
-                >${s("feedback_needed",e)}</button>
+                >${s("feedback_needed",t)}</button>
                 <button
                   class="feedback-btn ${this._feedback==="not_needed"?"selected":""}"
                   @click=${()=>this._setFeedback("not_needed")}
-                >${s("feedback_not_needed",e)}</button>
+                >${s("feedback_not_needed",t)}</button>
                 <button
                   class="feedback-btn ${this._feedback==="not_sure"?"selected":""}"
                   @click=${()=>this._setFeedback("not_sure")}
-                >${s("feedback_not_sure",e)}</button>
+                >${s("feedback_not_sure",t)}</button>
               </div>
             </div>
-          `:u}
+          `:p}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button
             @click=${this._complete}
             .disabled=${this._loading}
           >
-            ${this._loading?s("completing",e):s("complete",e)}
+            ${this._loading?s("completing",t):s("complete",t)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -4036,7 +4054,7 @@ ${L(n.notes)}</div>`:""}
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color);
     }
-  `,p([y({attribute:!1})],O.prototype,"hass",2),p([y()],O.prototype,"entryId",2),p([y()],O.prototype,"taskId",2),p([y()],O.prototype,"taskName",2),p([y()],O.prototype,"lang",2),p([y({type:Array})],O.prototype,"checklist",2),p([y({type:Boolean})],O.prototype,"adaptiveEnabled",2),p([_()],O.prototype,"_open",2),p([_()],O.prototype,"_notes",2),p([_()],O.prototype,"_cost",2),p([_()],O.prototype,"_duration",2),p([_()],O.prototype,"_loading",2),p([_()],O.prototype,"_error",2),p([_()],O.prototype,"_checklistState",2),p([_()],O.prototype,"_feedback",2),p([_()],O.prototype,"_photoDocId",2),p([_()],O.prototype,"_photoPreview",2),p([_()],O.prototype,"_photoUploading",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",O);function Ae(n){return n.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function di(n){return!n.startsWith("data:image/svg+xml,")&&!n.startsWith("data:image/png;base64,")?"":Ae(n)}function ys(n){return n.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var ee=class extends S{constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(e,t){this._entryId=e,this._taskId=null,this._objectName=t,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(e,t,i,r){this._entryId=e,this._taskId=t,this._objectName=i,this._taskName=r,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let t={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(t.task_id=this._taskId);let i=[this.hass.connection.sendMessagePromise({...t,action:"view"})];this._taskId&&i.push(this.hass.connection.sendMessagePromise({...t,action:"complete"}));let r=await Promise.all(i);if(e!==this._generateSeq)return;this._viewResult=r[0],r.length>1&&(this._completeResult=r[1])}catch(t){if(e!==this._generateSeq)return;let i=t?.code,r=t?.message;this._error=i==="no_url"||typeof r=="string"&&r.includes("No Home Assistant URL")?s("qr_error_no_url",this.lang):s("qr_error",this.lang)}finally{e===this._generateSeq&&(this._loading=!1)}}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,t=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,i=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),r=window.open("","_blank","width=600,height=500");if(!r)return;let l=this.lang||"en",c=Ae(t),d=Ae(i),h=!!this._completeResult,g=Ae(s("qr_action_view",l)),m=Ae(s("qr_action_complete",l));r.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+  `,h([y({attribute:!1})],O.prototype,"hass",2),h([y()],O.prototype,"entryId",2),h([y()],O.prototype,"taskId",2),h([y()],O.prototype,"taskName",2),h([y()],O.prototype,"lang",2),h([y({type:Array})],O.prototype,"checklist",2),h([y({type:Boolean})],O.prototype,"adaptiveEnabled",2),h([_()],O.prototype,"_open",2),h([_()],O.prototype,"_notes",2),h([_()],O.prototype,"_cost",2),h([_()],O.prototype,"_duration",2),h([_()],O.prototype,"_loading",2),h([_()],O.prototype,"_error",2),h([_()],O.prototype,"_checklistState",2),h([_()],O.prototype,"_feedback",2),h([_()],O.prototype,"_photoDocId",2),h([_()],O.prototype,"_photoPreview",2),h([_()],O.prototype,"_photoUploading",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",O);function At(n){return n.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function di(n){return!n.startsWith("data:image/svg+xml,")&&!n.startsWith("data:image/png;base64,")?"":At(n)}function xs(n){return n.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var tt=class extends S{constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(t,e){this._entryId=t,this._taskId=null,this._objectName=e,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(t,e,i,a){this._entryId=t,this._taskId=e,this._objectName=i,this._taskName=a,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let t=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let e={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(e.task_id=this._taskId);let i=[this.hass.connection.sendMessagePromise({...e,action:"view"})];this._taskId&&i.push(this.hass.connection.sendMessagePromise({...e,action:"complete"}));let a=await Promise.all(i);if(t!==this._generateSeq)return;this._viewResult=a[0],a.length>1&&(this._completeResult=a[1])}catch(e){if(t!==this._generateSeq)return;let i=e?.code,a=e?.message;this._error=i==="no_url"||typeof a=="string"&&a.includes("No Home Assistant URL")?s("qr_error_no_url",this.lang):s("qr_error",this.lang)}finally{t===this._generateSeq&&(this._loading=!1)}}_setUrlMode(t){this._urlMode!==t&&(this._urlMode=t,this._generate())}_print(){if(!this._viewResult)return;let t=this._viewResult,e=t.label.task_name?`${t.label.object_name} \u2014 ${t.label.task_name}`:t.label.object_name,i=[t.label.manufacturer,t.label.model].filter(Boolean).join(" "),a=window.open("","_blank","width=600,height=500");if(!a)return;let l=this.lang||"en",c=At(e),d=At(i),u=!!this._completeResult,g=At(s("qr_action_view",l)),m=At(s("qr_action_complete",l));a.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>${c}</title>
 <style>
   body{font-family:sans-serif;text-align:center;padding:20px}
@@ -4044,7 +4062,7 @@ ${L(n.notes)}</div>`:""}
   .sub{color:#666;font-size:14px;margin-bottom:16px}
   .qr-row{display:flex;justify-content:center;gap:24px;margin:12px 0}
   .qr-col{display:flex;flex-direction:column;align-items:center;gap:6px}
-  .qr-col img{width:${h?"200px":"280px"}}
+  .qr-col img{width:${u?"200px":"280px"}}
   .qr-label{font-size:13px;font-weight:500;color:#333}
   .url{font-size:10px;color:#999;word-break:break-all;margin-top:8px;max-width:480px}
 </style></head><body>
@@ -4055,18 +4073,18 @@ ${d?`<div class="sub">${d}</div>`:""}
     <img src="${di(this._viewResult.svg_data_uri)}" alt="QR Info" />
     <div class="qr-label">${g}</div>
   </div>
-  ${h?`<div class="qr-col">
+  ${u?`<div class="qr-col">
     <img src="${di(this._completeResult.svg_data_uri)}" alt="QR Complete" />
     <div class="qr-label">${m}</div>
   </div>`:""}
 </div>
-<div class="url">${Ae(this._viewResult.url)}</div>
+<div class="url">${At(this._viewResult.url)}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
-</body></html>`),r.document.close()}_downloadSvg(e,t){let i=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),r=new Blob([i],{type:"image/svg+xml"}),l=URL.createObjectURL(r),c=document.createElement("a");c.href=l;let d=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;c.download=`qr-${ys(d)}-${t}.svg`,c.click(),URL.revokeObjectURL(l)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return o``;let e=this.lang||this.hass?.language||"en",t=this._taskName?`${s("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${s("qr_code",e)}: ${this._objectName}`,i=!!this._viewResult;return o`
+</body></html>`),a.document.close()}_downloadSvg(t,e){let i=decodeURIComponent(t.svg_data_uri.replace("data:image/svg+xml,","")),a=new Blob([i],{type:"image/svg+xml"}),l=URL.createObjectURL(a),c=document.createElement("a");c.href=l;let d=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;c.download=`qr-${xs(d)}-${e}.svg`,c.click(),URL.revokeObjectURL(l)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return o``;let t=this.lang||this.hass?.language||"en",e=this._taskName?`${s("qr_code",t)}: ${this._objectName} \u2014 ${this._taskName}`:`${s("qr_code",t)}: ${this._objectName}`,i=!!this._viewResult;return o`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${t}</div>
+        <div class="dialog-title">${e}</div>
         <div class="content">
-          ${this._loading?o`<div class="loading">${s("qr_generating",e)}</div>`:this._error?o`<div class="error">${this._error}</div>`:i?o`
+          ${this._loading?o`<div class="loading">${s("qr_generating",t)}</div>`:this._error?o`<div class="error">${this._error}</div>`:i?o`
                     <div class="qr-pair">
                       <div class="qr-item">
                         <img
@@ -4074,11 +4092,11 @@ ${d?`<div class="sub">${d}</div>`:""}
                           src="${this._viewResult.svg_data_uri}"
                           alt="QR Info"
                         />
-                        <div class="qr-item-label">${s("qr_action_view",e)}</div>
+                        <div class="qr-item-label">${s("qr_action_view",t)}</div>
                         <button class="dl-btn"
                           @click=${()=>this._downloadSvg(this._viewResult,"info")}>
                           <ha-icon icon="mdi:download"></ha-icon>
-                          ${s("qr_download",e)}
+                          ${s("qr_download",t)}
                         </button>
                       </div>
                       ${this._completeResult?o`
@@ -4088,42 +4106,42 @@ ${d?`<div class="sub">${d}</div>`:""}
                                 src="${this._completeResult.svg_data_uri}"
                                 alt="QR Complete"
                               />
-                              <div class="qr-item-label">${s("qr_action_complete",e)}</div>
+                              <div class="qr-item-label">${s("qr_action_complete",t)}</div>
                               <button class="dl-btn"
                                 @click=${()=>this._downloadSvg(this._completeResult,"complete")}>
                                 <ha-icon icon="mdi:download"></ha-icon>
-                                ${s("qr_download",e)}
+                                ${s("qr_download",t)}
                               </button>
                             </div>
-                          `:u}
+                          `:p}
                     </div>
                     <div class="url-display">${this._viewResult.url}</div>
-                  `:u}
+                  `:p}
           <div class="action-row">
-            <label>${s("qr_url_mode",e)}</label>
+            <label>${s("qr_url_mode",t)}</label>
             <div class="action-toggle">
               <button class="toggle-btn ${this._urlMode==="companion"?"active":""}"
-                @click=${()=>this._setUrlMode("companion")}>${s("qr_mode_companion",e)}</button>
+                @click=${()=>this._setUrlMode("companion")}>${s("qr_mode_companion",t)}</button>
               <button class="toggle-btn ${this._urlMode==="local"?"active":""}"
-                @click=${()=>this._setUrlMode("local")}>${s("qr_mode_local",e)}</button>
+                @click=${()=>this._setUrlMode("local")}>${s("qr_mode_local",t)}</button>
               <button class="toggle-btn ${this._urlMode==="server"?"active":""}"
-                @click=${()=>this._setUrlMode("server")}>${s("qr_mode_server",e)}</button>
+                @click=${()=>this._setUrlMode("server")}>${s("qr_mode_server",t)}</button>
             </div>
           </div>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button
             @click=${this._print}
             .disabled=${!i}
           >
-            ${s("qr_print",e)}
+            ${s("qr_print",t)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};ee.styles=A`
+    `}};tt.styles=A`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -4241,7 +4259,7 @@ ${d?`<div class="sub">${d}</div>`:""}
       color: var(--text-primary-color, #fff);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
-  `,p([y({attribute:!1})],ee.prototype,"hass",2),p([y()],ee.prototype,"lang",2),p([_()],ee.prototype,"_open",2),p([_()],ee.prototype,"_loading",2),p([_()],ee.prototype,"_error",2),p([_()],ee.prototype,"_viewResult",2),p([_()],ee.prototype,"_completeResult",2),p([_()],ee.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",ee);var pi=5;function Ne(n){let a=n.getFullYear(),e=String(n.getMonth()+1).padStart(2,"0"),t=String(n.getDate()).padStart(2,"0");return`${a}-${e}-${t}`}function xs(n,a){let e=[];for(let t=0;t<a;t++){let i=new Date(n);i.setDate(i.getDate()+t),i.setHours(0,0,0,0),e.push(Ne(i))}return e}function pt(n,a){let[e,t,i]=n.split("-").map(Number),r=new Date(e,t-1,i);return r.setDate(r.getDate()+a),Ne(r)}function $s(n){if(!n||n.length===0)return null;let a=n.map(e=>e.cost).filter(e=>typeof e=="number");return a.length===0?null:a.reduce((e,t)=>e+t,0)/a.length}function ws(n){let{windowStart:a,windowEnd:e,task:t,entryId:i,objectName:r}=n,l=[],c=(m,v)=>({date:m,entry_id:i,task_id:t.id,task_name:t.name,object_name:r,status:v&&(t.status==="overdue"||t.status==="triggered")?"ok":t.status,days_until_due:v?null:t.days_until_due??null,projected:v,schedule_type:t.schedule_type,interval_days:t.interval_days??null,interval_unit:t.interval_unit??null,responsible_user_id:t.responsible_user_id??null,avg_cost:$s(t.history),adaptive_enabled:!!t.adaptive_config?.enabled,prediction_confidence:t.threshold_prediction_confidence??null}),d=Math.max(1,Math.round(Rt(t.interval_days,t.interval_unit)));if(t.status==="overdue"||t.status==="triggered"){if(l.push(c(a,!1)),t.schedule_type==="time_based"&&t.interval_days&&t.interval_days>0){let m=pt(a,d),v=1;for(;m<=e&&v<pi;)l.push(c(m,!0)),v++,m=pt(m,d)}return l}let h=t.next_due;if(typeof h!="string"||!h)return l;let g=h.slice(0,10);if(g>=a&&g<=e)l.push(c(g,!1));else if(g>e)return l;if(t.schedule_type==="time_based"&&t.interval_days&&t.interval_days>0){let m=pt(g,d),v=l.length;for(;m<=e&&v<pi;)m>=a&&(l.push(c(m,!0)),v++),m=pt(m,d)}return l}var ui={overdue:0,triggered:1,due_soon:2,ok:3};function hi(n,a,e,t=null){let i=xs(a,e),r=i[0],l=i[i.length-1],c=[];for(let h of n){let g=h.object?.name||"",m=h.entry_id,v=h.tasks||[];for(let f of v){if(t&&f.responsible_user_id!==t||f.enabled===!1)continue;let w=ws({windowStart:r,windowEnd:l,task:f,entryId:m,objectName:g});c.push(...w)}}let d=new Map;for(let h of i)d.set(h,[]);for(let h of c){let g=d.get(h.date);g&&g.push(h)}for(let[,h]of d)h.sort((g,m)=>{let v=ui[g.status]??99,f=ui[m.status]??99;if(v!==f)return v-f;if(g.projected!==m.projected)return g.projected?1:-1;let w=g.object_name.localeCompare(m.object_name);return w!==0?w:g.task_name.localeCompare(m.task_name)});return i.map(h=>({date:h,events:d.get(h)??[]}))}var ks={completed:"ok",reset:"ok",skipped:"due_soon",triggered:"triggered",trigger_replaced:"triggered",trigger_removed:"ok"};function Es(n,a){let e=[];for(let t=a-1;t>=0;t--){let i=new Date(n);i.setDate(i.getDate()-t),i.setHours(0,0,0,0),e.push(Ne(i))}return e}function _i(n,a,e,t=null){let i=Es(a,e),r=i[0],l=i[i.length-1],c=new Map;for(let h of i)c.set(h,[]);for(let h of n){let g=h.object?.name||"",m=h.entry_id,v=h.tasks||[];for(let f of v){if(t&&f.responsible_user_id!==t)continue;let w=f.history||[];for(let b of w){if(typeof b?.timestamp!="string")continue;let C=b.timestamp.slice(0,10);if(C<r||C>l)continue;let z=c.get(C);if(!z)continue;let D=b.type??"completed";z.push({date:C,entry_id:m,task_id:f.id,task_name:f.name,object_name:g,status:ks[D]??"ok",days_until_due:null,projected:!1,schedule_type:f.schedule_type,interval_days:f.interval_days??null,responsible_user_id:f.responsible_user_id??null,avg_cost:typeof b.cost=="number"?b.cost:null,adaptive_enabled:!!f.adaptive_config?.enabled,prediction_confidence:null,history_timestamp:b.timestamp,history_type:D,history_cost:typeof b.cost=="number"?b.cost:null,history_notes:typeof b.notes=="string"?b.notes:null,history_duration:typeof b.duration=="number"?b.duration:null})}}}let d={completed:0,reset:1,skipped:2,triggered:3,trigger_replaced:4};for(let[,h]of c)h.sort((g,m)=>{let v=d[g.history_type??""]??99,f=d[m.history_type??""]??99;if(v!==f)return v-f;let w=g.object_name.localeCompare(m.object_name);return w!==0?w:g.task_name.localeCompare(m.task_name)});return i.map(h=>({date:h,events:c.get(h)??[]}))}var gi=A`
+  `,h([y({attribute:!1})],tt.prototype,"hass",2),h([y()],tt.prototype,"lang",2),h([_()],tt.prototype,"_open",2),h([_()],tt.prototype,"_loading",2),h([_()],tt.prototype,"_error",2),h([_()],tt.prototype,"_viewResult",2),h([_()],tt.prototype,"_completeResult",2),h([_()],tt.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",tt);var pi=5;function Nt(n){let r=n.getFullYear(),t=String(n.getMonth()+1).padStart(2,"0"),e=String(n.getDate()).padStart(2,"0");return`${r}-${t}-${e}`}function $s(n,r){let t=[];for(let e=0;e<r;e++){let i=new Date(n);i.setDate(i.getDate()+e),i.setHours(0,0,0,0),t.push(Nt(i))}return t}function pe(n,r){let[t,e,i]=n.split("-").map(Number),a=new Date(t,e-1,i);return a.setDate(a.getDate()+r),Nt(a)}function ws(n){if(!n||n.length===0)return null;let r=n.map(t=>t.cost).filter(t=>typeof t=="number");return r.length===0?null:r.reduce((t,e)=>t+e,0)/r.length}function ks(n){let{windowStart:r,windowEnd:t,task:e,entryId:i,objectName:a}=n,l=[],c=(m,v)=>({date:m,entry_id:i,task_id:e.id,task_name:e.name,object_name:a,status:v&&(e.status==="overdue"||e.status==="triggered")?"ok":e.status,days_until_due:v?null:e.days_until_due??null,projected:v,schedule_type:e.schedule_type,interval_days:e.interval_days??null,interval_unit:e.interval_unit??null,responsible_user_id:e.responsible_user_id??null,avg_cost:ws(e.history),adaptive_enabled:!!e.adaptive_config?.enabled,prediction_confidence:e.threshold_prediction_confidence??null}),d=Math.max(1,Math.round(Ie(e.interval_days,e.interval_unit)));if(e.status==="overdue"||e.status==="triggered"){if(l.push(c(r,!1)),e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0){let m=pe(r,d),v=1;for(;m<=t&&v<pi;)l.push(c(m,!0)),v++,m=pe(m,d)}return l}let u=e.next_due;if(typeof u!="string"||!u)return l;let g=u.slice(0,10);if(g>=r&&g<=t)l.push(c(g,!1));else if(g>t)return l;if(e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0){let m=pe(g,d),v=l.length;for(;m<=t&&v<pi;)m>=r&&(l.push(c(m,!0)),v++),m=pe(m,d)}return l}var hi={overdue:0,triggered:1,due_soon:2,ok:3};function ui(n,r,t,e=null){let i=$s(r,t),a=i[0],l=i[i.length-1],c=[];for(let u of n){let g=u.object?.name||"",m=u.entry_id,v=u.tasks||[];for(let f of v){if(e&&f.responsible_user_id!==e||f.enabled===!1)continue;let w=ks({windowStart:a,windowEnd:l,task:f,entryId:m,objectName:g});c.push(...w)}}let d=new Map;for(let u of i)d.set(u,[]);for(let u of c){let g=d.get(u.date);g&&g.push(u)}for(let[,u]of d)u.sort((g,m)=>{let v=hi[g.status]??99,f=hi[m.status]??99;if(v!==f)return v-f;if(g.projected!==m.projected)return g.projected?1:-1;let w=g.object_name.localeCompare(m.object_name);return w!==0?w:g.task_name.localeCompare(m.task_name)});return i.map(u=>({date:u,events:d.get(u)??[]}))}var Ts={completed:"ok",reset:"ok",skipped:"due_soon",triggered:"triggered",trigger_replaced:"triggered",trigger_removed:"ok"};function Es(n,r){let t=[];for(let e=r-1;e>=0;e--){let i=new Date(n);i.setDate(i.getDate()-e),i.setHours(0,0,0,0),t.push(Nt(i))}return t}function _i(n,r,t,e=null){let i=Es(r,t),a=i[0],l=i[i.length-1],c=new Map;for(let u of i)c.set(u,[]);for(let u of n){let g=u.object?.name||"",m=u.entry_id,v=u.tasks||[];for(let f of v){if(e&&f.responsible_user_id!==e)continue;let w=f.history||[];for(let b of w){if(typeof b?.timestamp!="string")continue;let C=b.timestamp.slice(0,10);if(C<a||C>l)continue;let P=c.get(C);if(!P)continue;let H=b.type??"completed";P.push({date:C,entry_id:m,task_id:f.id,task_name:f.name,object_name:g,status:Ts[H]??"ok",days_until_due:null,projected:!1,schedule_type:f.schedule_type,interval_days:f.interval_days??null,responsible_user_id:f.responsible_user_id??null,avg_cost:typeof b.cost=="number"?b.cost:null,adaptive_enabled:!!f.adaptive_config?.enabled,prediction_confidence:null,history_timestamp:b.timestamp,history_type:H,history_cost:typeof b.cost=="number"?b.cost:null,history_notes:typeof b.notes=="string"?b.notes:null,history_duration:typeof b.duration=="number"?b.duration:null})}}}let d={completed:0,reset:1,skipped:2,triggered:3,trigger_replaced:4};for(let[,u]of c)u.sort((g,m)=>{let v=d[g.history_type??""]??99,f=d[m.history_type??""]??99;if(v!==f)return v-f;let w=g.object_name.localeCompare(m.object_name);return w!==0?w:g.task_name.localeCompare(m.task_name)});return i.map(u=>({date:u,events:c.get(u)??[]}))}var gi=A`
   .cal-controls {
     display: flex;
     gap: 12px;
@@ -4434,43 +4452,43 @@ ${d?`<div class="sub">${d}</div>`:""}
     .cal-pill-day { font-size: 17px; }
     .cal-user-filter { margin-left: 0; width: 100%; }
   }
-`;var te=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"};this._objects=[];this._stats=null;this._windowDays=30;this._pastDays=0;this._userFilter="";this._unsub=null;this._dataLoaded=!1;this._lastConnection=null}static getConfigElement(){return document.createElement("maintenance-supporter-calendar-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-calendar-card",window_days:30,show_window_chips:!0,show_user_filter:!0}}setConfig(e){this._config={...e},e.past_days&&[30,90].includes(e.past_days)?this._pastDays=e.past_days:e.window_days&&[7,14,30,365].includes(e.window_days)&&(this._windowDays=e.window_days,this._pastDays=0),typeof e.user_filter=="string"&&(this._userFilter=e.user_filter)}getCardSize(){return 6}get _lang(){return this.hass?.language||"en"}disconnectedCallback(){if(super.disconnectedCallback(),this._unsub){try{this._unsub()}catch{}this._unsub=null}this._dataLoaded=!1,this._lastConnection=null}updated(e){super.updated(e);let t=this.hass?.language;if(t&&!tt(t)&&ae(t).then(()=>this.requestUpdate()),e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){try{let[e,t]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);this._objects=e.objects,this._stats=t}catch{}}async _subscribe(){try{let e=await this.hass.connection.subscribeMessage(t=>{let i=t;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){e();return}this._unsub=e}catch{}}_onEventClick(e){if(e.history_timestamp){this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:edit-history",entry_id:e.entry_id,task_id:e.task_id,original_timestamp:e.history_timestamp},bubbles:!0,composed:!0}));return}this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:open-task",entry_id:e.entry_id,task_id:e.task_id},bubbles:!0,composed:!0}))}render(){if(!this.hass)return u;let e=this._lang,t=this._config.show_window_chips!==!1,i=this._config.show_user_filter!==!1,r=this._config.title,l=null;this._userFilter&&(l=this._userFilter==="current_user"?this.hass?.user?.id??null:this._userFilter);let c=new Date;c.setHours(0,0,0,0);let d=this._pastDays>0,h=d?_i(this._objects,c,this._pastDays,l):hi(this._objects,c,this._windowDays,l),g=Ne(c),m=this._windowDays===365||d,v=m?h.filter(b=>b.events.length>0):h,f=b=>{let C=`cal-status-${b.status}`,z=b.projected?"cal-event-projected":"",D=b.status==="overdue"&&b.days_until_due!=null?` (${Math.abs(b.days_until_due)}d ${s("overdue",e).toLowerCase()})`:"",I=b.projected&&b.interval_days?o`<span class="cal-event-recur">${b.interval_unit&&b.interval_unit!=="days"?`${b.interval_days} ${s("unit_"+b.interval_unit,e)}`:s("cal_every_n_days",e).replace("{n}",String(b.interval_days))}</span>`:u,T=b.schedule_type==="sensor_based",Y=T?o`<ha-icon class="cal-event-icon cal-source-sensor"
-                title="${s("cal_source_sensor",e)}" icon="mdi:trending-up"></ha-icon>`:o`<ha-icon class="cal-event-icon cal-source-time"
-                title="${b.adaptive_enabled?s("cal_source_time_adaptive",e):s("cal_source_time",e)}"
-                icon="${b.adaptive_enabled?"mdi:clock-time-four-outline":"mdi:clock-outline"}"></ha-icon>`,G=T&&b.prediction_confidence&&b.status!=="triggered"&&!b.projected?o`<span class="cal-event-prediction cal-conf-${b.prediction_confidence}">
-            ${s("cal_predicted",e)} · ${s(`cal_confidence_${b.prediction_confidence}`,e)}
-          </span>`:u,K=this._stats?.budget?.currency_symbol||ye,F=b.history_type?s(b.history_type,e):s(b.status,e);return o`
-        <div class="cal-event ${z}"
+`;var et=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"};this._objects=[];this._stats=null;this._windowDays=30;this._pastDays=0;this._userFilter="";this._unsub=null;this._dataLoaded=!1;this._lastConnection=null}static getConfigElement(){return document.createElement("maintenance-supporter-calendar-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-calendar-card",window_days:30,show_window_chips:!0,show_user_filter:!0}}setConfig(t){this._config={...t},t.past_days&&[30,90].includes(t.past_days)?this._pastDays=t.past_days:t.window_days&&[7,14,30,365].includes(t.window_days)&&(this._windowDays=t.window_days,this._pastDays=0),typeof t.user_filter=="string"&&(this._userFilter=t.user_filter)}getCardSize(){return 6}get _lang(){return this.hass?.language||"en"}disconnectedCallback(){if(super.disconnectedCallback(),this._unsub){try{this._unsub()}catch{}this._unsub=null}this._dataLoaded=!1,this._lastConnection=null}updated(t){super.updated(t);let e=this.hass?.language;if(e&&!ee(e)&&at(e).then(()=>this.requestUpdate()),t.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){try{let[t,e]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);this._objects=t.objects,this._stats=e}catch{}}async _subscribe(){try{let t=await this.hass.connection.subscribeMessage(e=>{let i=e;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){t();return}this._unsub=t}catch{}}_onEventClick(t){if(t.history_timestamp){this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:edit-history",entry_id:t.entry_id,task_id:t.task_id,original_timestamp:t.history_timestamp},bubbles:!0,composed:!0}));return}this.dispatchEvent(new CustomEvent("ll-custom",{detail:{type:"maintenance-supporter:open-task",entry_id:t.entry_id,task_id:t.task_id},bubbles:!0,composed:!0}))}render(){if(!this.hass)return p;let t=this._lang,e=this._config.show_window_chips!==!1,i=this._config.show_user_filter!==!1,a=this._config.title,l=null;this._userFilter&&(l=this._userFilter==="current_user"?this.hass?.user?.id??null:this._userFilter);let c=new Date;c.setHours(0,0,0,0);let d=this._pastDays>0,u=d?_i(this._objects,c,this._pastDays,l):ui(this._objects,c,this._windowDays,l),g=Nt(c),m=this._windowDays===365||d,v=m?u.filter(b=>b.events.length>0):u,f=b=>{let C=`cal-status-${b.status}`,P=b.projected?"cal-event-projected":"",H=b.status==="overdue"&&b.days_until_due!=null?` (${Math.abs(b.days_until_due)}d ${s("overdue",t).toLowerCase()})`:"",R=b.projected&&b.interval_days?o`<span class="cal-event-recur">${b.interval_unit&&b.interval_unit!=="days"?`${b.interval_days} ${s("unit_"+b.interval_unit,t)}`:s("cal_every_n_days",t).replace("{n}",String(b.interval_days))}</span>`:p,E=b.schedule_type==="sensor_based",Y=E?o`<ha-icon class="cal-event-icon cal-source-sensor"
+                title="${s("cal_source_sensor",t)}" icon="mdi:trending-up"></ha-icon>`:o`<ha-icon class="cal-event-icon cal-source-time"
+                title="${b.adaptive_enabled?s("cal_source_time_adaptive",t):s("cal_source_time",t)}"
+                icon="${b.adaptive_enabled?"mdi:clock-time-four-outline":"mdi:clock-outline"}"></ha-icon>`,G=E&&b.prediction_confidence&&b.status!=="triggered"&&!b.projected?o`<span class="cal-event-prediction cal-conf-${b.prediction_confidence}">
+            ${s("cal_predicted",t)} · ${s(`cal_confidence_${b.prediction_confidence}`,t)}
+          </span>`:p,K=this._stats?.budget?.currency_symbol||yt,F=b.history_type?s(b.history_type,t):s(b.status,t);return o`
+        <div class="cal-event ${P}"
           @click=${()=>this._onEventClick(b)}>
           ${Y}
           <span class="cal-status-pill ${C}">${F}</span>
           <div class="cal-event-body">
-            <div class="cal-event-title">${b.object_name} · ${b.task_name}${D}</div>
+            <div class="cal-event-title">${b.object_name} · ${b.task_name}${H}</div>
             ${G}
-            ${I}
+            ${R}
           </div>
-          ${b.avg_cost!=null&&b.avg_cost>0?o`<span class="cal-event-cost">${b.avg_cost.toFixed(0)} ${K}</span>`:u}
+          ${b.avg_cost!=null&&b.avg_cost>0?o`<span class="cal-event-cost">${b.avg_cost.toFixed(0)} ${K}</span>`:p}
         </div>
-      `},w=b=>{let[C,z,D]=b.date.split("-").map(Number),I=new Date(C,z-1,D),T=b.date===g,Y=I.toLocaleDateString(e,{weekday:"short"}),G=I.toLocaleDateString(e,{month:"long"});return o`
+      `},w=b=>{let[C,P,H]=b.date.split("-").map(Number),R=new Date(C,P-1,H),E=b.date===g,Y=R.toLocaleDateString(t,{weekday:"short"}),G=R.toLocaleDateString(t,{month:"long"});return o`
         <div class="cal-day-row">
-          <div class="cal-day-pill ${T?"cal-today":""}">
+          <div class="cal-day-pill ${E?"cal-today":""}">
             <span class="cal-pill-weekday">${Y}</span>
-            <span class="cal-pill-day">${I.getDate()}</span>
+            <span class="cal-pill-day">${R.getDate()}</span>
           </div>
           <div class="cal-day-content">
             <div class="cal-day-header">
               <span class="cal-day-month">${G}</span>
-              ${T?o`<span class="cal-day-today-badge">${s("today",e)}</span>`:u}
+              ${E?o`<span class="cal-day-today-badge">${s("today",t)}</span>`:p}
             </div>
-            ${b.events.length===0?o`<div class="cal-empty">${s("cal_no_events",e)}</div>`:b.events.map(f)}
+            ${b.events.length===0?o`<div class="cal-empty">${s("cal_no_events",t)}</div>`:b.events.map(f)}
           </div>
         </div>
       `};return o`
-      <ha-card .header=${r}>
-        ${t||i?o`
+      <ha-card .header=${a}>
+        ${e||i?o`
               <div class="cal-controls">
-                ${t?o`
-                      <div class="cal-window-chips cal-past-chips" title="${s("cal_past_windows",e)||"Past windows"}">
+                ${e?o`
+                      <div class="cal-window-chips cal-past-chips" title="${s("cal_past_windows",t)||"Past windows"}">
                         ${[30,90].map(b=>o`
                           <button class="cal-window-chip cal-past-chip ${this._pastDays===b?"active":""}"
                             @click=${()=>{this._pastDays=b}}>
@@ -4479,7 +4497,7 @@ ${d?`<div class="sub">${d}</div>`:""}
                         `)}
                       </div>
                       <span class="cal-chip-separator" aria-hidden="true">●</span>
-                      <div class="cal-window-chips" title="${s("cal_forward_windows",e)||"Forward windows"}">
+                      <div class="cal-window-chips" title="${s("cal_forward_windows",t)||"Forward windows"}">
                         ${[7,14,30,365].map(b=>o`
                           <button class="cal-window-chip ${this._pastDays===0&&this._windowDays===b?"active":""}"
                             @click=${()=>{this._windowDays=b,this._pastDays=0}}>
@@ -4487,25 +4505,25 @@ ${d?`<div class="sub">${d}</div>`:""}
                           </button>
                         `)}
                       </div>
-                    `:u}
+                    `:p}
                 ${i?o`
                       <select class="cal-user-filter"
                         .value=${this._userFilter}
                         @change=${b=>{this._userFilter=b.target.value}}>
-                        <option value="">${s("all_users",e)}</option>
-                        <option value="current_user">${s("my_tasks",e)}</option>
+                        <option value="">${s("all_users",t)}</option>
+                        <option value="current_user">${s("my_tasks",t)}</option>
                       </select>
-                    `:u}
+                    `:p}
               </div>
-            `:u}
+            `:p}
         <div class="cal-rolling">
-          ${v.length===0&&m?o`<div class="cal-empty">${s("cal_no_events",e)}</div>`:v.map(w)}
+          ${v.length===0&&m?o`<div class="cal-empty">${s("cal_no_events",t)}</div>`:v.map(w)}
         </div>
       </ha-card>
-    `}};te.styles=[at,gi,A`
+    `}};et.styles=[ae,gi,A`
       :host { display: block; }
       ha-card { padding: 0; overflow: hidden; }
-    `],p([y({attribute:!1})],te.prototype,"hass",2),p([_()],te.prototype,"_config",2),p([_()],te.prototype,"_objects",2),p([_()],te.prototype,"_stats",2),p([_()],te.prototype,"_windowDays",2),p([_()],te.prototype,"_pastDays",2),p([_()],te.prototype,"_userFilter",2),p([_()],te.prototype,"_unsub",2);var Ts=[{value:7,label:"Week (7 days)"},{value:14,label:"Fortnight (14 days)"},{value:30,label:"Month (30 days, default)"},{value:365,label:"Year (365 days, empty days collapsed)"}],Ce=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"}}setConfig(e){this._config={...e}}_valueChanged(e,t){let i={...this._config,[e]:t};e==="show_window_chips"&&t===!0&&delete i.show_window_chips,e==="show_user_filter"&&t===!0&&delete i.show_user_filter,e==="title"&&(!t||typeof t=="string"&&t.trim()==="")&&delete i.title,e==="user_filter"&&t===""&&delete i.user_filter,this._config=i,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:i},bubbles:!0,composed:!0}))}render(){let e=this._config.window_days??30,t=this._config.show_window_chips!==!1,i=this._config.show_user_filter!==!1,r=this._config.user_filter??"",l=this._config.title??"";return o`
+    `],h([y({attribute:!1})],et.prototype,"hass",2),h([_()],et.prototype,"_config",2),h([_()],et.prototype,"_objects",2),h([_()],et.prototype,"_stats",2),h([_()],et.prototype,"_windowDays",2),h([_()],et.prototype,"_pastDays",2),h([_()],et.prototype,"_userFilter",2),h([_()],et.prototype,"_unsub",2);var Ss=[{value:7,label:"Week (7 days)"},{value:14,label:"Fortnight (14 days)"},{value:30,label:"Month (30 days, default)"},{value:365,label:"Year (365 days, empty days collapsed)"}],Ct=class extends S{constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-calendar-card"}}setConfig(t){this._config={...t}}_valueChanged(t,e){let i={...this._config,[t]:e};t==="show_window_chips"&&e===!0&&delete i.show_window_chips,t==="show_user_filter"&&e===!0&&delete i.show_user_filter,t==="title"&&(!e||typeof e=="string"&&e.trim()==="")&&delete i.title,t==="user_filter"&&e===""&&delete i.user_filter,this._config=i,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:i},bubbles:!0,composed:!0}))}render(){let t=this._config.window_days??30,e=this._config.show_window_chips!==!1,i=this._config.show_user_filter!==!1,a=this._config.user_filter??"",l=this._config.title??"";return o`
       <div class="editor">
         <div class="row">
           <label for="title">Title (optional)</label>
@@ -4522,7 +4540,7 @@ ${d?`<div class="sub">${d}</div>`:""}
             id="window"
             @change=${c=>this._valueChanged("window_days",Number(c.target.value))}
           >
-            ${Ts.map(c=>o`<option value="${c.value}" ?selected=${c.value===e}>${c.label}</option>`)}
+            ${Ss.map(c=>o`<option value="${c.value}" ?selected=${c.value===t}>${c.label}</option>`)}
           </select>
         </div>
         <div class="row toggle">
@@ -4530,7 +4548,7 @@ ${d?`<div class="sub">${d}</div>`:""}
           <input
             id="chips"
             type="checkbox"
-            .checked=${t}
+            .checked=${e}
             @change=${c=>this._valueChanged("show_window_chips",c.target.checked)}
           />
         </div>
@@ -4553,14 +4571,14 @@ ${d?`<div class="sub">${d}</div>`:""}
             id="userv"
             @change=${c=>this._valueChanged("user_filter",c.target.value)}
           >
-            <option value="" ?selected=${r===""}>All users</option>
-            <option value="current_user" ?selected=${r==="current_user"}>
+            <option value="" ?selected=${a===""}>All users</option>
+            <option value="current_user" ?selected=${a==="current_user"}>
               My tasks (current user)
             </option>
           </select>
         </div>
       </div>
-    `}};Ce.styles=A`
+    `}};Ct.styles=A`
     :host { display: block; padding: 8px 0; }
     .editor { display: flex; flex-direction: column; gap: 12px; }
     .row { display: flex; flex-direction: column; gap: 4px; }
@@ -4584,52 +4602,52 @@ ${d?`<div class="sub">${d}</div>`:""}
       font-size: 12px;
       color: var(--secondary-text-color, #666);
     }
-  `,p([y({attribute:!1})],Ce.prototype,"hass",2),p([_()],Ce.prototype,"_config",2);customElements.get("maintenance-supporter-calendar-card")||customElements.define("maintenance-supporter-calendar-card",te);customElements.get("maintenance-supporter-calendar-card-editor")||customElements.define("maintenance-supporter-calendar-card-editor",Ce);var ut=window;ut.customCards=ut.customCards||[];var mi="maintenance-supporter-calendar-card",Ss=ut.customCards.some(n=>n.type===mi);Ss||ut.customCards.push({type:mi,name:"Maintenance Supporter \u2014 Calendar",description:"Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",preview:!0});var ce=class extends S{constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null}get _lang(){return this.hass?.language||"en"}openEdit(e){this._draft={...e},this._originalSnapshot={...e},this._error="",this._open=!0}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(e,t){this._draft&&(this._draft={...this._draft,[e]:t})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let e={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(e.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(e.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(e.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(e.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(e.completed_by=this._draft.completed_by),Object.keys(e).filter(i=>!["type","entry_id","task_id","original_timestamp"].includes(i)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(e),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=M(e,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return u;let e=this._lang,t=this._draft;return o`
+  `,h([y({attribute:!1})],Ct.prototype,"hass",2),h([_()],Ct.prototype,"_config",2);customElements.get("maintenance-supporter-calendar-card")||customElements.define("maintenance-supporter-calendar-card",et);customElements.get("maintenance-supporter-calendar-card-editor")||customElements.define("maintenance-supporter-calendar-card-editor",Ct);var he=window;he.customCards=he.customCards||[];var mi="maintenance-supporter-calendar-card",As=he.customCards.some(n=>n.type===mi);As||he.customCards.push({type:mi,name:"Maintenance Supporter \u2014 Calendar",description:"Rolling calendar of maintenance tasks with 7/14/30/365 day windows, source icons, and prediction-confidence pills.",preview:!0});var ct=class extends S{constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null}get _lang(){return this.hass?.language||"en"}openEdit(t){this._draft={...t},this._originalSnapshot={...t},this._error="",this._open=!0}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(t,e){this._draft&&(this._draft={...this._draft,[t]:e})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let t={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(t.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(t.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(t.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(t.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(t.completed_by=this._draft.completed_by),Object.keys(t).filter(i=>!["type","entry_id","task_id","original_timestamp"].includes(i)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(t),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=M(t,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return p;let t=this._lang,e=this._draft;return o`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
-        <h2>${s("history_edit_title",e)||"Edit history entry"}</h2>
+        <h2>${s("history_edit_title",t)||"Edit history entry"}</h2>
         <div class="entry-type">
           <ha-icon icon="mdi:tag-outline"></ha-icon>
-          <span>${s(t.type,e)||t.type}</span>
+          <span>${s(e.type,t)||e.type}</span>
         </div>
         <label>
-          <span>${s("history_edit_timestamp",e)||"Timestamp"}</span>
+          <span>${s("history_edit_timestamp",t)||"Timestamp"}</span>
           <input type="datetime-local"
-            .value=${t.timestamp.length>=16?t.timestamp.slice(0,16):t.timestamp}
-            @change=${i=>{let r=i.target.value;this._set("timestamp",r.length===16?`${r}:00`:r)}} />
+            .value=${e.timestamp.length>=16?e.timestamp.slice(0,16):e.timestamp}
+            @change=${i=>{let a=i.target.value;this._set("timestamp",a.length===16?`${a}:00`:a)}} />
         </label>
         <label>
-          <span>${s("notes_label",e)}</span>
+          <span>${s("notes_label",t)}</span>
           <textarea
             rows="3"
-            @input=${i=>{let r=i.target.value;this._set("notes",r||null)}}
-            .value=${t.notes??""}></textarea>
+            @input=${i=>{let a=i.target.value;this._set("notes",a||null)}}
+            .value=${e.notes??""}></textarea>
         </label>
         <div class="row">
           <label>
-            <span>${s("cost",e)||"Cost"}</span>
+            <span>${s("cost",t)||"Cost"}</span>
             <input type="number" min="0" step="0.01"
-              .value=${t.cost!=null?String(t.cost):""}
-              @input=${i=>{let r=i.target.value;this._set("cost",r?Number(r):null)}} />
+              .value=${e.cost!=null?String(e.cost):""}
+              @input=${i=>{let a=i.target.value;this._set("cost",a?Number(a):null)}} />
           </label>
           <label>
-            <span>${s("duration",e)||"Duration (min)"}</span>
+            <span>${s("duration",t)||"Duration (min)"}</span>
             <input type="number" min="0"
-              .value=${t.duration!=null?String(t.duration):""}
-              @input=${i=>{let r=i.target.value;this._set("duration",r?Number(r):null)}} />
+              .value=${e.duration!=null?String(e.duration):""}
+              @input=${i=>{let a=i.target.value;this._set("duration",a?Number(a):null)}} />
           </label>
         </div>
-        ${this._error?o`<div class="error">${this._error}</div>`:u}
+        ${this._error?o`<div class="error">${this._error}</div>`:p}
         <div class="actions">
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
-            ${s("cancel",e)||"Cancel"}
+            ${s("cancel",t)||"Cancel"}
           </button>
           <button class="save" @click=${this._save} ?disabled=${this._saving}>
-            ${this._saving?s("saving",e)||"Saving\u2026":s("save",e)||"Save"}
+            ${this._saving?s("saving",t)||"Saving\u2026":s("save",t)||"Save"}
           </button>
         </div>
       </div>
-    `}};ce.styles=A`
+    `}};ct.styles=A`
     :host { display: contents; }
     .backdrop {
       position: fixed; inset: 0;
@@ -4691,7 +4709,7 @@ ${d?`<div class="sub">${d}</div>`:""}
       background: rgba(211,47,47,0.1);
       border-radius: 6px;
     }
-  `,p([y({attribute:!1})],ce.prototype,"hass",2),p([_()],ce.prototype,"_open",2),p([_()],ce.prototype,"_saving",2),p([_()],ce.prototype,"_error",2),p([_()],ce.prototype,"_draft",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",ce);var J=class extends S{constructor(){super(...arguments);this._open=!1;this._title="";this._message="";this._confirmText="";this._danger=!1;this._inputLabel="";this._inputType="";this._inputValue="";this._resolve=null;this._promptResolve=null}confirm(e){return this._title=e.title,this._message=e.message,this._confirmText=e.confirmText||"OK",this._danger=e.danger||!1,this._inputLabel="",this._inputType="",this._inputValue="",this._open=!0,new Promise(t=>{this._resolve=t,this._promptResolve=null})}prompt(e){return this._title=e.title,this._message=e.message,this._confirmText=e.confirmText||"OK",this._danger=e.danger||!1,this._inputLabel=e.inputLabel||"",this._inputType=e.inputType||"text",this._inputValue=e.inputValue||"",this._open=!0,new Promise(t=>{this._promptResolve=t,this._resolve=null})}_cancel(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!1,value:""}),this._promptResolve=null),this._resolve?.(!1),this._resolve=null}_confirmAction(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!0,value:this._inputValue}),this._promptResolve=null),this._resolve?.(!0),this._resolve=null}render(){if(!this._open)return u;let e=this.hass?.language||"en";return o`
+  `,h([y({attribute:!1})],ct.prototype,"hass",2),h([_()],ct.prototype,"_open",2),h([_()],ct.prototype,"_saving",2),h([_()],ct.prototype,"_error",2),h([_()],ct.prototype,"_draft",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",ct);var J=class extends S{constructor(){super(...arguments);this._open=!1;this._title="";this._message="";this._confirmText="";this._danger=!1;this._inputLabel="";this._inputType="";this._inputValue="";this._resolve=null;this._promptResolve=null}confirm(t){return this._title=t.title,this._message=t.message,this._confirmText=t.confirmText||"OK",this._danger=t.danger||!1,this._inputLabel="",this._inputType="",this._inputValue="",this._open=!0,new Promise(e=>{this._resolve=e,this._promptResolve=null})}prompt(t){return this._title=t.title,this._message=t.message,this._confirmText=t.confirmText||"OK",this._danger=t.danger||!1,this._inputLabel=t.inputLabel||"",this._inputType=t.inputType||"text",this._inputValue=t.inputValue||"",this._open=!0,new Promise(e=>{this._promptResolve=e,this._resolve=null})}_cancel(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!1,value:""}),this._promptResolve=null),this._resolve?.(!1),this._resolve=null}_confirmAction(){this._open=!1,this._promptResolve&&(this._promptResolve({confirmed:!0,value:this._inputValue}),this._promptResolve=null),this._resolve?.(!0),this._resolve=null}render(){if(!this._open)return p;let t=this.hass?.language||"en";return o`
       <ha-dialog open @closed=${this._cancel}>
         <div class="dialog-title">${this._title}</div>
         <div class="content">
@@ -4701,13 +4719,13 @@ ${d?`<div class="sub">${d}</div>`:""}
               label="${this._inputLabel}"
               type="${this._inputType}"
               .value=${this._inputValue}
-              @input=${t=>this._inputValue=t.target.value}
+              @input=${e=>this._inputValue=e.target.value}
             ></ha-textfield>
-          `:u}
+          `:p}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._cancel}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button
             class="${this._danger?"danger":""}"
@@ -4743,338 +4761,338 @@ ${d?`<div class="sub">${d}</div>`:""}
     ha-button.danger {
       --mdc-theme-primary: var(--error-color, #f44336);
     }
-  `,p([y({attribute:!1})],J.prototype,"hass",2),p([_()],J.prototype,"_open",2),p([_()],J.prototype,"_title",2),p([_()],J.prototype,"_message",2),p([_()],J.prototype,"_confirmText",2),p([_()],J.prototype,"_danger",2),p([_()],J.prototype,"_inputLabel",2),p([_()],J.prototype,"_inputType",2),p([_()],J.prototype,"_inputValue",2);customElements.get("maintenance-confirm-dialog")||customElements.define("maintenance-confirm-dialog",J);var vi={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},bi=n=>(...a)=>({_$litDirective$:n,values:a}),ht=class{constructor(a){}get _$AU(){return this._$AM._$AU}_$AT(a,e,t){this._$Ct=a,this._$AM=e,this._$Ci=t}_$AS(a,e){return this.update(a,e)}update(a,e){return this.render(...e)}};var Ue=class extends ht{constructor(a){if(super(a),this.it=u,a.type!==vi.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(a){if(a===u||a==null)return this._t=void 0,this.it=a;if(a===le)return a;if(typeof a!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(a===this.it)return this._t;this.it=a;let e=[a];return e.raw=e,this._t={_$litType$:this.constructor.resultType,strings:e,values:[]}}};Ue.directiveName="unsafeHTML",Ue.resultType=1;var fi=bi(Ue);var As=["EUR","USD","GBP","JPY","CHF","CAD","AUD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],j=class extends S{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._users=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async()=>{this._testingNotification=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification"}),t=e.message||(e.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(t)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{this._testingNotification=!1}}}get _lang(){return this.hass?.language||"en"}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new _e(this.hass),this._loadSettings(),this._loadUsers()):e.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService)try{this._users=await this._userService.getUsers()}catch{this._users=[]}}async _loadSettings(){this._loading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=e,this._hydrateVacationFromSettings()}catch{}this._loading=!1}_hydrateVacationFromSettings(){let e=this._settings?.vacation;e&&(this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end)}async _updateSetting(e,t){try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/update",settings:{[e]:t}});this._settings=i,this._showToast(s("settings_saved",this._lang)),this.dispatchEvent(new CustomEvent("settings-changed"))}catch{this._showToast(s("action_error",this._lang))}}_showToast(e){this._toast=e,setTimeout(()=>{this._toast=""},3e3)}_downloadFile(e,t,i){ot(e,t,i)}render(){let e=this._lang;return this._loading||!this._settings?o`<div class="settings-loading">Loading…</div>`:o`
-      ${this._renderFeatures(e)}
-      ${this._renderPanelAccess(e)}
-      ${this._renderGeneral(e)}
-      ${this._renderObjectsColumns(e)}
-      ${this._settings.general.notifications_enabled?this._renderNotifications(e):u}
-      ${this.features.budget?this._renderBudget(e):u}
-      ${this._renderArchive(e)}
-      ${this._renderVacation(e)}
-      ${this._renderPrintQr(e)}
-      ${this._renderImportExport(e)}
-      ${this._toast?o`<div class="settings-toast">${this._toast}</div>`:u}
-    `}scrollToSection(e){requestAnimationFrame(()=>{let t=this.shadowRoot;if(!t)return;let i=t.querySelector(`[data-section="${e}"]`)??t.querySelector(`[data-section-alt="${e}"]`);i&&i.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(e){let t=new Set(this._settings.admin_panel_user_ids||[]),i=this._users.filter(c=>!c.is_admin),r=this._settings.operator_write_enabled??!1,l=(c,d)=>{let h=new Set(t);d?h.add(c):h.delete(c),this._updateSetting("admin_panel_user_ids",[...h])};return o`
+  `,h([y({attribute:!1})],J.prototype,"hass",2),h([_()],J.prototype,"_open",2),h([_()],J.prototype,"_title",2),h([_()],J.prototype,"_message",2),h([_()],J.prototype,"_confirmText",2),h([_()],J.prototype,"_danger",2),h([_()],J.prototype,"_inputLabel",2),h([_()],J.prototype,"_inputType",2),h([_()],J.prototype,"_inputValue",2);customElements.get("maintenance-confirm-dialog")||customElements.define("maintenance-confirm-dialog",J);var vi={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},bi=n=>(...r)=>({_$litDirective$:n,values:r}),ue=class{constructor(r){}get _$AU(){return this._$AM._$AU}_$AT(r,t,e){this._$Ct=r,this._$AM=t,this._$Ci=e}_$AS(r,t){return this.update(r,t)}update(r,t){return this.render(...t)}};var Ut=class extends ue{constructor(r){if(super(r),this.it=p,r.type!==vi.CHILD)throw Error(this.constructor.directiveName+"() can only be used in child bindings")}render(r){if(r===p||r==null)return this._t=void 0,this.it=r;if(r===lt)return r;if(typeof r!="string")throw Error(this.constructor.directiveName+"() called with a non-string value");if(r===this.it)return this._t;this.it=r;let t=[r];return t.raw=t,this._t={_$litType$:this.constructor.resultType,strings:t,values:[]}}};Ut.directiveName="unsafeHTML",Ut.resultType=1;var fi=bi(Ut);var Cs=["EUR","USD","GBP","JPY","CHF","CAD","AUD","CNY","INR","BRL","CZK","PLN","RUB","SEK","NOK","DKK","UAH"],j=class extends S{constructor(){super(...arguments);this.budget=null;this._settings=null;this._loading=!0;this._importCsv="";this._importLoading=!1;this._includeHistory=!0;this._toast="";this._testingNotification=!1;this._users=[];this._vacEnabled=!1;this._vacStart="";this._vacEnd="";this._vacBuffer=3;this._vacExempt=new Set;this._vacIsActive=!1;this._vacWindowEnd=null;this._vacAllTasks=[];this._vacPreview=[];this._vacPreviewLoading=!1;this._vacSaving=!1;this._qrObjects=[];this._qrSelectedEntries=new Set;this._qrActions=new Set(["view"]);this._qrUrlMode="companion";this._qrBatchLoading=!1;this._qrBatchResults=[];this._qrObjectsLoaded=!1;this._loaded=!1;this._userService=null;this._sendTestNotification=async()=>{this._testingNotification=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/test_notification"}),e=t.message||(t.success?s("test_notification_success",this._lang):s("test_notification_failed",this._lang));this._showToast(e)}catch{this._showToast(s("test_notification_failed",this._lang))}finally{this._testingNotification=!1}}}get _lang(){return this.hass?.language||"en"}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._loaded?(this._loaded=!0,this._userService=new _t(this.hass),this._loadSettings(),this._loadUsers()):t.has("hass")&&this.hass&&this._userService&&this._userService.updateHass(this.hass)}async _loadUsers(){if(this._userService)try{this._users=await this._userService.getUsers()}catch{this._users=[]}}async _loadSettings(){this._loading=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});this._settings=t,this._hydrateVacationFromSettings()}catch{}this._loading=!1}_hydrateVacationFromSettings(){let t=this._settings?.vacation;t&&(this._vacEnabled=t.enabled,this._vacStart=t.start||"",this._vacEnd=t.end||"",this._vacBuffer=t.buffer_days,this._vacExempt=new Set(t.exempt_task_ids||[]),this._vacIsActive=t.is_active,this._vacWindowEnd=t.window_end)}async _updateSetting(t,e){try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/global/update",settings:{[t]:e}});this._settings=i,this._showToast(s("settings_saved",this._lang)),this.dispatchEvent(new CustomEvent("settings-changed"))}catch{this._showToast(s("action_error",this._lang))}}_showToast(t){this._toast=t,setTimeout(()=>{this._toast=""},3e3)}_downloadFile(t,e,i){oe(t,e,i)}render(){let t=this._lang;return this._loading||!this._settings?o`<div class="settings-loading">Loading…</div>`:o`
+      ${this._renderFeatures(t)}
+      ${this._renderPanelAccess(t)}
+      ${this._renderGeneral(t)}
+      ${this._renderObjectsColumns(t)}
+      ${this._settings.general.notifications_enabled?this._renderNotifications(t):p}
+      ${this.features.budget?this._renderBudget(t):p}
+      ${this._renderArchive(t)}
+      ${this._renderVacation(t)}
+      ${this._renderPrintQr(t)}
+      ${this._renderImportExport(t)}
+      ${this._toast?o`<div class="settings-toast">${this._toast}</div>`:p}
+    `}scrollToSection(t){requestAnimationFrame(()=>{let e=this.shadowRoot;if(!e)return;let i=e.querySelector(`[data-section="${t}"]`)??e.querySelector(`[data-section-alt="${t}"]`);i&&i.scrollIntoView({behavior:"smooth",block:"start"})})}_renderPanelAccess(t){let e=new Set(this._settings.admin_panel_user_ids||[]),i=this._users.filter(c=>!c.is_admin),a=this._settings.operator_write_enabled??!1,l=(c,d)=>{let u=new Set(e);d?u.add(c):u.delete(c),this._updateSetting("admin_panel_user_ids",[...u])};return o`
       <div class="settings-section">
-        <h3>${s("settings_panel_access",e)} ${r&&t.size>0?o`<span class="section-badge">${t.size}</span>`:u}</h3>
-        <p class="section-desc">${s("settings_panel_access_desc",e)}</p>
+        <h3>${s("settings_panel_access",t)} ${a&&e.size>0?o`<span class="section-badge">${e.size}</span>`:p}</h3>
+        <p class="section-desc">${s("settings_panel_access_desc",t)}</p>
         <label class="setting-row">
           <span>
-            <span class="setting-label">${s("settings_operator_write",e)}</span>
-            <span class="setting-desc">${s("settings_operator_write_desc",e)}</span>
+            <span class="setting-label">${s("settings_operator_write",t)}</span>
+            <span class="setting-desc">${s("settings_operator_write_desc",t)}</span>
           </span>
           <input type="checkbox"
-            .checked=${r}
+            .checked=${a}
             @change=${c=>this._updateSetting("operator_write_enabled",c.target.checked)} />
         </label>
-        ${r?i.length===0?o`<div class="setting-row hint">${s("no_non_admin_users",e)}</div>`:i.map(c=>o`
+        ${a?i.length===0?o`<div class="setting-row hint">${s("no_non_admin_users",t)}</div>`:i.map(c=>o`
               <label class="setting-row">
                 <span>
                   <span class="setting-label">${c.name||c.id.slice(0,8)}</span>
-                  <span class="setting-desc">${c.is_owner?s("owner_label",e):""}</span>
+                  <span class="setting-desc">${c.is_owner?s("owner_label",t):""}</span>
                 </span>
                 <input type="checkbox"
-                  .checked=${t.has(c.id)}
+                  .checked=${e.has(c.id)}
                   @change=${d=>l(c.id,d.target.checked)} />
               </label>
-            `):u}
+            `):p}
       </div>
-    `}_renderFeatures(e){let t=this._settings.features,i=[{key:"adaptive",settingKey:"advanced_adaptive_visible",label:s("feat_adaptive",e),desc:s("feat_adaptive_desc",e)},{key:"predictions",settingKey:"advanced_predictions_visible",label:s("feat_predictions",e),desc:s("feat_predictions_desc",e)},{key:"seasonal",settingKey:"advanced_seasonal_visible",label:s("feat_seasonal",e),desc:s("feat_seasonal_desc",e)},{key:"environmental",settingKey:"advanced_environmental_visible",label:s("feat_environmental",e),desc:s("feat_environmental_desc",e)},{key:"budget",settingKey:"advanced_budget_visible",label:s("feat_budget",e),desc:s("feat_budget_desc",e)},{key:"groups",settingKey:"advanced_groups_visible",label:s("feat_groups",e),desc:s("feat_groups_desc",e)},{key:"checklists",settingKey:"advanced_checklists_visible",label:s("feat_checklists",e),desc:s("feat_checklists_desc",e)},{key:"schedule_time",settingKey:"advanced_schedule_time_visible",label:s("feat_schedule_time",e),desc:s("feat_schedule_time_desc",e)},{key:"completion_actions",settingKey:"advanced_completion_actions_visible",label:s("feat_completion_actions",e),desc:s("feat_completion_actions_desc",e)}];return o`
+    `}_renderFeatures(t){let e=this._settings.features,i=[{key:"adaptive",settingKey:"advanced_adaptive_visible",label:s("feat_adaptive",t),desc:s("feat_adaptive_desc",t)},{key:"predictions",settingKey:"advanced_predictions_visible",label:s("feat_predictions",t),desc:s("feat_predictions_desc",t)},{key:"seasonal",settingKey:"advanced_seasonal_visible",label:s("feat_seasonal",t),desc:s("feat_seasonal_desc",t)},{key:"environmental",settingKey:"advanced_environmental_visible",label:s("feat_environmental",t),desc:s("feat_environmental_desc",t)},{key:"budget",settingKey:"advanced_budget_visible",label:s("feat_budget",t),desc:s("feat_budget_desc",t)},{key:"groups",settingKey:"advanced_groups_visible",label:s("feat_groups",t),desc:s("feat_groups_desc",t)},{key:"checklists",settingKey:"advanced_checklists_visible",label:s("feat_checklists",t),desc:s("feat_checklists_desc",t)},{key:"schedule_time",settingKey:"advanced_schedule_time_visible",label:s("feat_schedule_time",t),desc:s("feat_schedule_time_desc",t)},{key:"completion_actions",settingKey:"advanced_completion_actions_visible",label:s("feat_completion_actions",t),desc:s("feat_completion_actions_desc",t)}];return o`
       <div class="settings-section" data-section="settings" data-section-alt="groups">
-        <h3>${s("settings_features",e)}</h3>
-        <p class="section-desc">${s("settings_features_desc",e)}</p>
-        ${i.map(r=>o`
+        <h3>${s("settings_features",t)}</h3>
+        <p class="section-desc">${s("settings_features_desc",t)}</p>
+        ${i.map(a=>o`
           <label class="setting-row">
             <span>
-              <span class="setting-label">${r.label}</span>
-              <span class="setting-desc">${r.desc}</span>
+              <span class="setting-label">${a.label}</span>
+              <span class="setting-desc">${a.desc}</span>
             </span>
-            <input type="checkbox" .checked=${t[r.key]}
-              @change=${l=>this._updateSetting(r.settingKey,l.target.checked)} />
+            <input type="checkbox" .checked=${e[a.key]}
+              @change=${l=>this._updateSetting(a.settingKey,l.target.checked)} />
           </label>
         `)}
       </div>
-    `}_renderObjectsColumns(e){let t=Fe(this._settings.objects_table_columns);return o`
+    `}_renderObjectsColumns(t){let e=Ft(this._settings.objects_table_columns);return o`
       <div class="settings-section" data-section="objects_table_columns">
-        <h3>${s("objects_table_columns_label",e)}</h3>
-        <p class="section-desc">${s("objects_table_columns_hint",e)}</p>
-        ${Se.map(i=>o`
+        <h3>${s("objects_table_columns_label",t)}</h3>
+        <p class="section-desc">${s("objects_table_columns_hint",t)}</p>
+        ${St.map(i=>o`
           <label class="setting-row">
-            <span class="setting-label">${s(i.labelKey,e)}</span>
+            <span class="setting-label">${s(i.labelKey,t)}</span>
             <input
               type="checkbox"
-              .checked=${t.includes(i.key)}
+              .checked=${e.includes(i.key)}
               ?disabled=${!!i.required}
-              @change=${r=>this._toggleColumn(i.key,r.target.checked)}
+              @change=${a=>this._toggleColumn(i.key,a.target.checked)}
             />
           </label>
         `)}
       </div>
-    `}_toggleColumn(e,t){let i=new Set(Fe(this._settings.objects_table_columns));t?i.add(e):i.delete(e);let r=Se.filter(l=>l.required||i.has(l.key)).map(l=>l.key);this._updateSetting("objects_table_columns",r)}_renderGeneral(e){let t=this._settings.general,i=t.notify_targets??[],r=this._settings.budget;return o`
+    `}_toggleColumn(t,e){let i=new Set(Ft(this._settings.objects_table_columns));e?i.add(t):i.delete(t);let a=St.filter(l=>l.required||i.has(l.key)).map(l=>l.key);this._updateSetting("objects_table_columns",a)}_renderGeneral(t){let e=this._settings.general,i=e.notify_targets??[],a=this._settings.budget;return o`
       <div class="settings-section">
-        <h3>${s("settings_general",e)}</h3>
+        <h3>${s("settings_general",t)}</h3>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_default_warning",e)}</span>
-          <input type="number" min="1" max="365" .value=${String(t.default_warning_days)}
+          <span class="setting-label">${s("settings_default_warning",t)}</span>
+          <input type="number" min="1" max="365" .value=${String(e.default_warning_days)}
             @change=${l=>{let c=parseInt(l.target.value,10);c>=1&&c<=365&&this._updateSetting("default_warning_days",c)}} />
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_currency",e)}</span>
+          <span class="setting-label">${s("settings_currency",t)}</span>
           <select @change=${l=>this._updateSetting("budget_currency",l.target.value)}>
-            ${As.map(l=>o`<option value=${l} ?selected=${r.currency===l}>${l}</option>`)}
+            ${Cs.map(l=>o`<option value=${l} ?selected=${a.currency===l}>${l}</option>`)}
           </select>
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_panel_enabled",e)}</span>
-          <input type="checkbox" .checked=${t.panel_enabled}
+          <span class="setting-label">${s("settings_panel_enabled",t)}</span>
+          <input type="checkbox" .checked=${e.panel_enabled}
             @change=${l=>this._updateSetting("panel_enabled",l.target.checked)} />
         </label>
-        ${t.panel_enabled?o`
+        ${e.panel_enabled?o`
           <label class="setting-row">
-            <span class="setting-label">${s("settings_panel_title",e)}</span>
-            <input type="text" .value=${t.panel_title??""}
+            <span class="setting-label">${s("settings_panel_title",t)}</span>
+            <input type="text" .value=${e.panel_title??""}
               placeholder="Maintenance"
               maxlength="50"
               @change=${l=>this._updateSetting("panel_title",l.target.value.trim())} />
           </label>
         `:""}
         <label class="setting-row">
-          <span class="setting-label">${s("settings_notifications",e)}</span>
-          <input type="checkbox" .checked=${t.notifications_enabled}
+          <span class="setting-label">${s("settings_notifications",t)}</span>
+          <input type="checkbox" .checked=${e.notifications_enabled}
             @change=${l=>this._updateSetting("notifications_enabled",l.target.checked)} />
         </label>
-        ${t.notifications_enabled?o`
+        ${e.notifications_enabled?o`
           <label class="setting-row">
-            <span class="setting-label">${s("settings_notify_service",e)}</span>
-            <input type="text" list="ms-notify-services" .value=${t.notify_service}
+            <span class="setting-label">${s("settings_notify_service",t)}</span>
+            <input type="text" list="ms-notify-services" .value=${e.notify_service}
               @change=${l=>this._updateSetting("notify_service",l.target.value.trim())} />
             <datalist id="ms-notify-services">
               ${i.map(l=>o`<option value=${l}></option>`)}
             </datalist>
           </label>
           <div class="setting-row">
-            <span class="setting-label">${s("test_notification",e)}</span>
+            <span class="setting-label">${s("test_notification",t)}</span>
             <button class="ha-button secondary"
-              ?disabled=${!t.notify_service||this._testingNotification}
+              ?disabled=${!e.notify_service||this._testingNotification}
               @click=${this._sendTestNotification}>
-              ${this._testingNotification?s("testing",e):s("send_test",e)}
+              ${this._testingNotification?s("testing",t):s("send_test",t)}
             </button>
           </div>
-        `:u}
+        `:p}
       </div>
-    `}_renderNotifications(e){let t=this._settings.notifications,i=this._settings.actions;return o`
+    `}_renderNotifications(t){let e=this._settings.notifications,i=this._settings.actions;return o`
       <div class="settings-section">
-        <h3>${s("settings_notifications",e)}</h3>
+        <h3>${s("settings_notifications",t)}</h3>
 
         <label class="setting-row">
           <span>
-            <span class="setting-label">${s("settings_notify_due_soon",e)}</span>
+            <span class="setting-label">${s("settings_notify_due_soon",t)}</span>
           </span>
-          <input type="checkbox" .checked=${t.due_soon_enabled}
-            @change=${r=>this._updateSetting("notify_due_soon_enabled",r.target.checked)} />
+          <input type="checkbox" .checked=${e.due_soon_enabled}
+            @change=${a=>this._updateSetting("notify_due_soon_enabled",a.target.checked)} />
         </label>
-        ${t.due_soon_enabled?o`
+        ${e.due_soon_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_interval_hours",e)}</span>
-            <input type="number" min="0" max="720" .value=${String(t.due_soon_interval_hours)}
-              @change=${r=>this._updateSetting("notify_due_soon_interval_hours",parseInt(r.target.value,10)||0)} />
+            <span class="setting-desc">${s("settings_interval_hours",t)}</span>
+            <input type="number" min="0" max="720" .value=${String(e.due_soon_interval_hours)}
+              @change=${a=>this._updateSetting("notify_due_soon_interval_hours",parseInt(a.target.value,10)||0)} />
           </label>
-        `:u}
+        `:p}
 
         <label class="setting-row">
           <span>
-            <span class="setting-label">${s("settings_notify_overdue",e)}</span>
+            <span class="setting-label">${s("settings_notify_overdue",t)}</span>
           </span>
-          <input type="checkbox" .checked=${t.overdue_enabled}
-            @change=${r=>this._updateSetting("notify_overdue_enabled",r.target.checked)} />
+          <input type="checkbox" .checked=${e.overdue_enabled}
+            @change=${a=>this._updateSetting("notify_overdue_enabled",a.target.checked)} />
         </label>
-        ${t.overdue_enabled?o`
+        ${e.overdue_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_interval_hours",e)}</span>
-            <input type="number" min="0" max="720" .value=${String(t.overdue_interval_hours)}
-              @change=${r=>this._updateSetting("notify_overdue_interval_hours",parseInt(r.target.value,10)||0)} />
+            <span class="setting-desc">${s("settings_interval_hours",t)}</span>
+            <input type="number" min="0" max="720" .value=${String(e.overdue_interval_hours)}
+              @change=${a=>this._updateSetting("notify_overdue_interval_hours",parseInt(a.target.value,10)||0)} />
           </label>
-        `:u}
+        `:p}
 
         <label class="setting-row">
           <span>
-            <span class="setting-label">${s("settings_notify_triggered",e)}</span>
+            <span class="setting-label">${s("settings_notify_triggered",t)}</span>
           </span>
-          <input type="checkbox" .checked=${t.triggered_enabled}
-            @change=${r=>this._updateSetting("notify_triggered_enabled",r.target.checked)} />
+          <input type="checkbox" .checked=${e.triggered_enabled}
+            @change=${a=>this._updateSetting("notify_triggered_enabled",a.target.checked)} />
         </label>
-        ${t.triggered_enabled?o`
+        ${e.triggered_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_interval_hours",e)}</span>
-            <input type="number" min="0" max="720" .value=${String(t.triggered_interval_hours)}
-              @change=${r=>this._updateSetting("notify_triggered_interval_hours",parseInt(r.target.value,10)||0)} />
+            <span class="setting-desc">${s("settings_interval_hours",t)}</span>
+            <input type="number" min="0" max="720" .value=${String(e.triggered_interval_hours)}
+              @change=${a=>this._updateSetting("notify_triggered_interval_hours",parseInt(a.target.value,10)||0)} />
           </label>
-        `:u}
+        `:p}
 
         <label class="setting-row">
-          <span class="setting-label">${s("settings_quiet_hours",e)}</span>
-          <input type="checkbox" .checked=${t.quiet_hours_enabled}
-            @change=${r=>this._updateSetting("quiet_hours_enabled",r.target.checked)} />
+          <span class="setting-label">${s("settings_quiet_hours",t)}</span>
+          <input type="checkbox" .checked=${e.quiet_hours_enabled}
+            @change=${a=>this._updateSetting("quiet_hours_enabled",a.target.checked)} />
         </label>
-        ${t.quiet_hours_enabled?o`
+        ${e.quiet_hours_enabled?o`
           <div class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_quiet_start",e)}</span>
-            <input type="time" .value=${t.quiet_hours_start}
-              @change=${r=>this._updateSetting("quiet_hours_start",r.target.value)} />
+            <span class="setting-desc">${s("settings_quiet_start",t)}</span>
+            <input type="time" .value=${e.quiet_hours_start}
+              @change=${a=>this._updateSetting("quiet_hours_start",a.target.value)} />
           </div>
           <div class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_quiet_end",e)}</span>
-            <input type="time" .value=${t.quiet_hours_end}
-              @change=${r=>this._updateSetting("quiet_hours_end",r.target.value)} />
+            <span class="setting-desc">${s("settings_quiet_end",t)}</span>
+            <input type="time" .value=${e.quiet_hours_end}
+              @change=${a=>this._updateSetting("quiet_hours_end",a.target.value)} />
           </div>
-        `:u}
+        `:p}
 
         <label class="setting-row">
-          <span class="setting-label">${s("settings_max_per_day",e)}</span>
-          <input type="number" min="0" max="100" .value=${String(t.max_per_day)}
-            @change=${r=>this._updateSetting("max_notifications_per_day",parseInt(r.target.value,10)||0)} />
+          <span class="setting-label">${s("settings_max_per_day",t)}</span>
+          <input type="number" min="0" max="100" .value=${String(e.max_per_day)}
+            @change=${a=>this._updateSetting("max_notifications_per_day",parseInt(a.target.value,10)||0)} />
         </label>
 
         <label class="setting-row">
-          <span class="setting-label">${s("settings_bundling",e)}</span>
-          <input type="checkbox" .checked=${t.bundling_enabled}
-            @change=${r=>this._updateSetting("notification_bundling_enabled",r.target.checked)} />
+          <span class="setting-label">${s("settings_bundling",t)}</span>
+          <input type="checkbox" .checked=${e.bundling_enabled}
+            @change=${a=>this._updateSetting("notification_bundling_enabled",a.target.checked)} />
         </label>
-        ${t.bundling_enabled?o`
+        ${e.bundling_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_bundle_threshold",e)}</span>
-            <input type="number" min="2" max="20" .value=${String(t.bundle_threshold)}
-              @change=${r=>this._updateSetting("notification_bundle_threshold",parseInt(r.target.value,10)||2)} />
+            <span class="setting-desc">${s("settings_bundle_threshold",t)}</span>
+            <input type="number" min="2" max="20" .value=${String(e.bundle_threshold)}
+              @change=${a=>this._updateSetting("notification_bundle_threshold",parseInt(a.target.value,10)||2)} />
           </label>
-        `:u}
+        `:p}
 
-        <h4 style="margin: 16px 0 8px; font-size: 14px;">${s("settings_actions",e)}</h4>
+        <h4 style="margin: 16px 0 8px; font-size: 14px;">${s("settings_actions",t)}</h4>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_action_complete",e)}</span>
+          <span class="setting-label">${s("settings_action_complete",t)}</span>
           <input type="checkbox" .checked=${i.complete_enabled}
-            @change=${r=>this._updateSetting("action_complete_enabled",r.target.checked)} />
+            @change=${a=>this._updateSetting("action_complete_enabled",a.target.checked)} />
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_action_skip",e)}</span>
+          <span class="setting-label">${s("settings_action_skip",t)}</span>
           <input type="checkbox" .checked=${i.skip_enabled}
-            @change=${r=>this._updateSetting("action_skip_enabled",r.target.checked)} />
+            @change=${a=>this._updateSetting("action_skip_enabled",a.target.checked)} />
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_action_snooze",e)}</span>
+          <span class="setting-label">${s("settings_action_snooze",t)}</span>
           <input type="checkbox" .checked=${i.snooze_enabled}
-            @change=${r=>this._updateSetting("action_snooze_enabled",r.target.checked)} />
+            @change=${a=>this._updateSetting("action_snooze_enabled",a.target.checked)} />
         </label>
         ${i.snooze_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_snooze_hours",e)}</span>
+            <span class="setting-desc">${s("settings_snooze_hours",t)}</span>
             <input type="number" min="1" max="168" .value=${String(i.snooze_duration_hours)}
-              @change=${r=>this._updateSetting("snooze_duration_hours",parseInt(r.target.value,10)||4)} />
+              @change=${a=>this._updateSetting("snooze_duration_hours",parseInt(a.target.value,10)||4)} />
           </label>
-        `:u}
+        `:p}
         <label class="setting-row">
-          <span class="setting-label">${s("settings_weekly_digest",e)}</span>
+          <span class="setting-label">${s("settings_weekly_digest",t)}</span>
           <input type="checkbox" .checked=${i.weekly_digest_enabled}
-            @change=${r=>this._updateSetting("weekly_digest_enabled",r.target.checked)} />
+            @change=${a=>this._updateSetting("weekly_digest_enabled",a.target.checked)} />
         </label>
-        <div class="setting-hint">${s("settings_weekly_digest_hint",e)}</div>
+        <div class="setting-hint">${s("settings_weekly_digest_hint",t)}</div>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_warranty_reminder",e)}</span>
+          <span class="setting-label">${s("settings_warranty_reminder",t)}</span>
           <input type="checkbox" .checked=${i.warranty_reminder_enabled}
-            @change=${r=>this._updateSetting("warranty_reminder_enabled",r.target.checked)} />
+            @change=${a=>this._updateSetting("warranty_reminder_enabled",a.target.checked)} />
         </label>
         ${i.warranty_reminder_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_warranty_reminder_days",e)}</span>
+            <span class="setting-desc">${s("settings_warranty_reminder_days",t)}</span>
             <input type="number" min="1" max="365" .value=${String(i.warranty_reminder_days)}
-              @change=${r=>this._updateSetting("warranty_reminder_days",parseInt(r.target.value,10)||30)} />
+              @change=${a=>this._updateSetting("warranty_reminder_days",parseInt(a.target.value,10)||30)} />
           </label>
-        `:u}
-        <div class="setting-hint">${s("settings_warranty_reminder_hint",e)}</div>
+        `:p}
+        <div class="setting-hint">${s("settings_warranty_reminder_hint",t)}</div>
       </div>
-    `}_renderBudget(e){let t=this._settings.budget;return o`
+    `}_renderBudget(t){let e=this._settings.budget;return o`
       <div class="settings-section" data-section="budget">
-        <h3>${s("settings_budget",e)}</h3>
+        <h3>${s("settings_budget",t)}</h3>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_budget_monthly",e)}</span>
-          <input type="number" min="0" step="0.01" .value=${String(t.monthly)}
+          <span class="setting-label">${s("settings_budget_monthly",t)}</span>
+          <input type="number" min="0" step="0.01" .value=${String(e.monthly)}
             @change=${i=>this._updateSetting("budget_monthly",parseFloat(i.target.value)||0)} />
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_budget_yearly",e)}</span>
-          <input type="number" min="0" step="0.01" .value=${String(t.yearly)}
+          <span class="setting-label">${s("settings_budget_yearly",t)}</span>
+          <input type="number" min="0" step="0.01" .value=${String(e.yearly)}
             @change=${i=>this._updateSetting("budget_yearly",parseFloat(i.target.value)||0)} />
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_budget_alerts",e)}</span>
-          <input type="checkbox" .checked=${t.alerts_enabled}
+          <span class="setting-label">${s("settings_budget_alerts",t)}</span>
+          <input type="checkbox" .checked=${e.alerts_enabled}
             @change=${i=>this._updateSetting("budget_alerts_enabled",i.target.checked)} />
         </label>
-        ${t.alerts_enabled?o`
+        ${e.alerts_enabled?o`
           <label class="setting-row sub-row">
-            <span class="setting-desc">${s("settings_budget_threshold",e)}</span>
-            <input type="number" min="1" max="100" .value=${String(t.alert_threshold_pct)}
+            <span class="setting-desc">${s("settings_budget_threshold",t)}</span>
+            <input type="number" min="1" max="100" .value=${String(e.alert_threshold_pct)}
               @change=${i=>this._updateSetting("budget_alert_threshold",parseInt(i.target.value,10)||80)} />
           </label>
-        `:u}
+        `:p}
       </div>
-    `}_renderArchive(e){let t=this._settings.archive??{oneoff_days:14,delete_archived_oneoff_days:0};return o`
+    `}_renderArchive(t){let e=this._settings.archive??{oneoff_days:14,delete_archived_oneoff_days:0};return o`
       <div class="settings-section" data-section="archive">
-        <h3>${s("settings_archive",e)}</h3>
-        <p class="section-desc">${s("settings_archive_desc",e)}</p>
+        <h3>${s("settings_archive",t)}</h3>
+        <p class="section-desc">${s("settings_archive_desc",t)}</p>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_archive_oneoff_days",e)}</span>
-          <input type="number" min="0" max="3650" step="1" .value=${String(t.oneoff_days)}
+          <span class="setting-label">${s("settings_archive_oneoff_days",t)}</span>
+          <input type="number" min="0" max="3650" step="1" .value=${String(e.oneoff_days)}
             @change=${i=>this._updateSetting("archive_oneoff_days",parseInt(i.target.value,10)||0)} />
         </label>
         <label class="setting-row">
-          <span class="setting-label">${s("settings_delete_archived_oneoff_days",e)}</span>
-          <input type="number" min="0" max="3650" step="1" .value=${String(t.delete_archived_oneoff_days)}
+          <span class="setting-label">${s("settings_delete_archived_oneoff_days",t)}</span>
+          <input type="number" min="0" max="3650" step="1" .value=${String(e.delete_archived_oneoff_days)}
             @change=${i=>this._updateSetting("delete_archived_oneoff_days",parseInt(i.target.value,10)||0)} />
         </label>
       </div>
-    `}_renderVacation(e){let t=this._vacEnabled&&!this._vacIsActive&&this._vacWindowEnd&&new Date(this._vacWindowEnd)<new Date,i=this._vacExempt.size;return o`
+    `}_renderVacation(t){let e=this._vacEnabled&&!this._vacIsActive&&this._vacWindowEnd&&new Date(this._vacWindowEnd)<new Date,i=this._vacExempt.size;return o`
       <div class="settings-section vacation-section" data-section="vacation">
         <h3>
-          ${s("vacation_title",e)}
-          ${this._vacIsActive?o`<span class="vac-badge active">${s("vacation_active",e)}</span>`:u}
-          ${t?o`<span class="vac-badge stale">${s("vacation_ended",e)}</span>`:u}
+          ${s("vacation_title",t)}
+          ${this._vacIsActive?o`<span class="vac-badge active">${s("vacation_active",t)}</span>`:p}
+          ${e?o`<span class="vac-badge stale">${s("vacation_ended",t)}</span>`:p}
         </h3>
-        <p class="section-desc">${s("vacation_desc",e)}</p>
+        <p class="section-desc">${s("vacation_desc",t)}</p>
 
         <label class="vac-toggle">
           <input type="checkbox" .checked=${this._vacEnabled}
-            @change=${r=>this._toggleVacationEnabled(r.target.checked)} />
-          ${s("vacation_enable",e)}
+            @change=${a=>this._toggleVacationEnabled(a.target.checked)} />
+          ${s("vacation_enable",t)}
         </label>
 
         <div class="vac-grid">
           <label class="vac-field">
-            <span class="filter-label">${s("vacation_start",e)}</span>
+            <span class="filter-label">${s("vacation_start",t)}</span>
             <input type="date" .value=${this._vacStart}
-              @change=${r=>this._setVacationDate("start",r.target.value)} />
+              @change=${a=>this._setVacationDate("start",a.target.value)} />
           </label>
           <label class="vac-field">
-            <span class="filter-label">${s("vacation_end",e)}</span>
+            <span class="filter-label">${s("vacation_end",t)}</span>
             <input type="date" .value=${this._vacEnd}
-              @change=${r=>this._setVacationDate("end",r.target.value)} />
+              @change=${a=>this._setVacationDate("end",a.target.value)} />
           </label>
           <label class="vac-field">
-            <span class="filter-label">${s("vacation_buffer",e)}</span>
+            <span class="filter-label">${s("vacation_buffer",t)}</span>
             <input type="number" min="0" max="14" .value=${String(this._vacBuffer)}
-              @change=${r=>this._setVacationBuffer(parseInt(r.target.value,10)||0)} />
+              @change=${a=>this._setVacationBuffer(parseInt(a.target.value,10)||0)} />
           </label>
         </div>
 
         <details class="vac-exempt-panel">
           <summary>
-            ${s("vacation_exempt_title",e)}
-            ${i>0?o`<span class="section-badge">${i}</span>`:u}
+            ${s("vacation_exempt_title",t)}
+            ${i>0?o`<span class="section-badge">${i}</span>`:p}
           </summary>
-          <p class="section-desc">${s("vacation_exempt_desc",e)}</p>
-          ${this._vacAllTasks.length===0?o`<button @click=${this._loadAllTasksForVacation}>${s("vacation_load_tasks",e)}</button>`:o`
+          <p class="section-desc">${s("vacation_exempt_desc",t)}</p>
+          ${this._vacAllTasks.length===0?o`<button @click=${this._loadAllTasksForVacation}>${s("vacation_load_tasks",t)}</button>`:o`
               <div class="vac-task-list">
-                ${this._renderVacationTaskList(e)}
+                ${this._renderVacationTaskList(t)}
               </div>
             `}
         </details>
@@ -5082,20 +5100,20 @@ ${d?`<div class="sub">${d}</div>`:""}
         ${this._vacStart&&this._vacEnd?o`
           <div class="vac-preview-toolbar">
             <button @click=${this._loadVacationPreview} ?disabled=${this._vacPreviewLoading}>
-              ${this._vacPreviewLoading?"\u2026":s("vacation_preview_btn",e)}
+              ${this._vacPreviewLoading?"\u2026":s("vacation_preview_btn",t)}
             </button>
-            ${this._vacPreview.length>0?o`<span class="vac-preview-count">${this._vacPreview.length} ${s("vacation_preview_affected",e)}</span>`:u}
+            ${this._vacPreview.length>0?o`<span class="vac-preview-count">${this._vacPreview.length} ${s("vacation_preview_affected",t)}</span>`:p}
           </div>
-          ${this._vacPreview.length>0?this._renderVacationPreview(e):u}
-        `:u}
+          ${this._vacPreview.length>0?this._renderVacationPreview(t):p}
+        `:p}
 
-        ${this._vacIsActive||t?o`<button class="vac-end-now" @click=${this._endVacationNow}>
-              ${s("vacation_end_now",e)}
-            </button>`:u}
+        ${this._vacIsActive||e?o`<button class="vac-end-now" @click=${this._endVacationNow}>
+              ${s("vacation_end_now",t)}
+            </button>`:p}
       </div>
-    `}_renderVacationTaskList(e){let t=new Map;for(let r of this._vacAllTasks){let l=t.get(r.object_name)||[];l.push(r),t.set(r.object_name,l)}return[...t.entries()].sort(([r],[l])=>r.localeCompare(l)).map(([r,l])=>o`
+    `}_renderVacationTaskList(t){let e=new Map;for(let a of this._vacAllTasks){let l=e.get(a.object_name)||[];l.push(a),e.set(a.object_name,l)}return[...e.entries()].sort(([a],[l])=>a.localeCompare(l)).map(([a,l])=>o`
       <div class="vac-task-group">
-        <div class="vac-task-group-name">${r||s("no_objects",e)}</div>
+        <div class="vac-task-group-name">${a||s("no_objects",t)}</div>
         ${l.sort((c,d)=>c.task_name.localeCompare(d.task_name)).map(c=>o`
             <label class="vac-task-row">
               <input type="checkbox"
@@ -5105,41 +5123,41 @@ ${d?`<div class="sub">${d}</div>`:""}
             </label>
           `)}
       </div>
-    `)}_renderVacationPreview(e){return o`
+    `)}_renderVacationPreview(t){return o`
       <div class="vac-preview-list">
-        ${this._vacPreview.map(t=>{let i=t.events.map(l=>{let c=`vacation_event_${l.status}`;return`${l.date} (${s(c,e)})`}).join(" \xB7 "),r=!t.will_suppress;return o`
-            <div class="vac-preview-row ${r?"exempt":""}">
+        ${this._vacPreview.map(e=>{let i=e.events.map(l=>{let c=`vacation_event_${l.status}`;return`${l.date} (${s(c,t)})`}).join(" \xB7 "),a=!e.will_suppress;return o`
+            <div class="vac-preview-row ${a?"exempt":""}">
               <div class="vac-preview-info">
                 <div class="vac-preview-name">
-                  <strong>${t.object_name}</strong> · ${t.task_name}
-                  ${t.kind==="sensor_based"?o`<span class="vac-preview-kind">${s("vacation_sensor_based",e)}</span>`:u}
+                  <strong>${e.object_name}</strong> · ${e.task_name}
+                  ${e.kind==="sensor_based"?o`<span class="vac-preview-kind">${s("vacation_sensor_based",t)}</span>`:p}
                 </div>
                 <div class="vac-preview-events">${i}</div>
               </div>
               <div class="vac-preview-actions">
-                <button @click=${()=>this._previewActionComplete(t)}>${s("qr_action_complete",e)}</button>
-                ${t.kind==="time_based"?o`<button @click=${()=>this._previewActionSkip(t)}>${s("qr_action_skip",e)}</button>`:u}
-                <button class=${r?"vac-notify-on":""}
-                  @click=${()=>this._toggleVacationExempt(t.task_id,!r)}>
-                  ${r?s("vacation_action_unsilence",e):s("vacation_action_notify",e)}
+                <button @click=${()=>this._previewActionComplete(e)}>${s("qr_action_complete",t)}</button>
+                ${e.kind==="time_based"?o`<button @click=${()=>this._previewActionSkip(e)}>${s("qr_action_skip",t)}</button>`:p}
+                <button class=${a?"vac-notify-on":""}
+                  @click=${()=>this._toggleVacationExempt(e.task_id,!a)}>
+                  ${a?s("vacation_action_unsilence",t):s("vacation_action_notify",t)}
                 </button>
               </div>
             </div>
           `})}
       </div>
-    `}async _loadAllTasksForVacation(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),t=[];for(let i of e.objects||[])for(let r of i.tasks||[])t.push({entry_id:i.entry_id,object_name:i.object.name||"",task_id:r.id,task_name:r.name||""});this._vacAllTasks=t}catch{this._showToast(s("action_error",this._lang))}}async _saveVacation(e){if(!this._vacSaving){this._vacSaving=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/update",...e});this._vacEnabled=t.enabled,this._vacStart=t.start||"",this._vacEnd=t.end||"",this._vacBuffer=t.buffer_days,this._vacExempt=new Set(t.exempt_task_ids||[]),this._vacIsActive=t.is_active,this._vacWindowEnd=t.window_end,this.dispatchEvent(new CustomEvent("settings-changed"))}catch(t){let i=t?.message||s("action_error",this._lang);this._showToast(i)}finally{this._vacSaving=!1}}}_toggleVacationEnabled(e){this._saveVacation({enabled:e})}_setVacationDate(e,t){let i={};i[e]=t||null,this._saveVacation(i)}_setVacationBuffer(e){e<0||e>14||this._saveVacation({buffer_days:e})}_toggleVacationExempt(e,t){let i=new Set(this._vacExempt);t?i.add(e):i.delete(e),this._saveVacation({exempt_task_ids:[...i]})}async _loadVacationPreview(){this._vacPreviewLoading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/preview"});this._vacPreview=e.rows||[]}catch{this._showToast(s("action_error",this._lang))}finally{this._vacPreviewLoading=!1}}async _previewActionComplete(e){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/complete",entry_id:e.entry_id,task_id:e.task_id}),this._showToast(s("vacation_marked_complete",this._lang)),await this._loadVacationPreview()}catch{this._showToast(s("action_error",this._lang))}}async _previewActionSkip(e){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/skip",entry_id:e.entry_id,task_id:e.task_id,reason:"Skipped before vacation"}),this._showToast(s("vacation_marked_skip",this._lang)),await this._loadVacationPreview()}catch{this._showToast(s("action_error",this._lang))}}async _endVacationNow(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/end_now"});this._vacEnabled=e.enabled,this._vacEnd=e.end||"",this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end,this.dispatchEvent(new CustomEvent("settings-changed")),this._showToast(s("vacation_ended",this._lang))}catch{this._showToast(s("action_error",this._lang))}}_renderPrintQr(e){let t=this._qrSelectedEntries.size||this._qrObjects.length,i=this._qrActions.size,r=t*i,l=r>200;return o`
+    `}async _loadAllTasksForVacation(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),e=[];for(let i of t.objects||[])for(let a of i.tasks||[])e.push({entry_id:i.entry_id,object_name:i.object.name||"",task_id:a.id,task_name:a.name||""});this._vacAllTasks=e}catch{this._showToast(s("action_error",this._lang))}}async _saveVacation(t){if(!this._vacSaving){this._vacSaving=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/update",...t});this._vacEnabled=e.enabled,this._vacStart=e.start||"",this._vacEnd=e.end||"",this._vacBuffer=e.buffer_days,this._vacExempt=new Set(e.exempt_task_ids||[]),this._vacIsActive=e.is_active,this._vacWindowEnd=e.window_end,this.dispatchEvent(new CustomEvent("settings-changed"))}catch(e){let i=e?.message||s("action_error",this._lang);this._showToast(i)}finally{this._vacSaving=!1}}}_toggleVacationEnabled(t){this._saveVacation({enabled:t})}_setVacationDate(t,e){let i={};i[t]=e||null,this._saveVacation(i)}_setVacationBuffer(t){t<0||t>14||this._saveVacation({buffer_days:t})}_toggleVacationExempt(t,e){let i=new Set(this._vacExempt);e?i.add(t):i.delete(t),this._saveVacation({exempt_task_ids:[...i]})}async _loadVacationPreview(){this._vacPreviewLoading=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/preview"});this._vacPreview=t.rows||[]}catch{this._showToast(s("action_error",this._lang))}finally{this._vacPreviewLoading=!1}}async _previewActionComplete(t){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/complete",entry_id:t.entry_id,task_id:t.task_id}),this._showToast(s("vacation_marked_complete",this._lang)),await this._loadVacationPreview()}catch{this._showToast(s("action_error",this._lang))}}async _previewActionSkip(t){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/skip",entry_id:t.entry_id,task_id:t.task_id,reason:"Skipped before vacation"}),this._showToast(s("vacation_marked_skip",this._lang)),await this._loadVacationPreview()}catch{this._showToast(s("action_error",this._lang))}}async _endVacationNow(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/vacation/end_now"});this._vacEnabled=t.enabled,this._vacEnd=t.end||"",this._vacIsActive=t.is_active,this._vacWindowEnd=t.window_end,this.dispatchEvent(new CustomEvent("settings-changed")),this._showToast(s("vacation_ended",this._lang))}catch{this._showToast(s("action_error",this._lang))}}_renderPrintQr(t){let e=this._qrSelectedEntries.size||this._qrObjects.length,i=this._qrActions.size,a=e*i,l=a>200;return o`
       <div class="settings-section qr-print-section">
-        <h3>${s("qr_print_title",e)}</h3>
-        <p class="section-desc">${s("qr_print_desc",e)}</p>
+        <h3>${s("qr_print_title",t)}</h3>
+        <p class="section-desc">${s("qr_print_desc",t)}</p>
 
         ${this._qrObjectsLoaded?o`
             <details open class="qr-filter-panel">
-              <summary>${s("qr_print_filter",e)}</summary>
+              <summary>${s("qr_print_filter",t)}</summary>
 
               <div class="qr-filter-group">
-                <div class="qr-filter-label">${s("qr_print_objects",e)}</div>
+                <div class="qr-filter-label">${s("qr_print_objects",t)}</div>
                 <div class="qr-object-list">
-                  ${this._qrObjects.length===0?o`<div class="hint">${s("no_objects",e)}</div>`:this._qrObjects.map(c=>o`
+                  ${this._qrObjects.length===0?o`<div class="hint">${s("no_objects",t)}</div>`:this._qrObjects.map(c=>o`
                       <label class="qr-object-row">
                         <input type="checkbox"
                           .checked=${this._qrSelectedEntries.size===0||this._qrSelectedEntries.has(c.entry_id)}
@@ -5152,46 +5170,46 @@ ${d?`<div class="sub">${d}</div>`:""}
               </div>
 
               <div class="qr-filter-group">
-                <div class="qr-filter-label">${s("qr_print_actions",e)}</div>
+                <div class="qr-filter-label">${s("qr_print_actions",t)}</div>
                 <div class="qr-action-chips">
                   ${["view","complete","skip"].map(c=>o`
                     <label class="qr-action-chip ${this._qrActions.has(c)?"active":""}">
                       <input type="checkbox"
                         .checked=${this._qrActions.has(c)}
                         @change=${d=>this._toggleQrAction(c,d.target.checked)} />
-                      ${s("qr_action_"+c,e)}
+                      ${s("qr_action_"+c,t)}
                     </label>
                   `)}
                 </div>
               </div>
 
               <div class="qr-filter-group">
-                <div class="qr-filter-label">${s("qr_print_url_mode",e)}</div>
+                <div class="qr-filter-label">${s("qr_print_url_mode",t)}</div>
                 <select .value=${this._qrUrlMode}
                   @change=${c=>{this._qrUrlMode=c.target.value}}>
-                  <option value="companion">${s("qr_mode_companion",e)}</option>
-                  <option value="local">${s("qr_mode_local",e)}</option>
-                  <option value="server">${s("qr_mode_server",e)}</option>
+                  <option value="companion">${s("qr_mode_companion",t)}</option>
+                  <option value="local">${s("qr_mode_local",t)}</option>
+                  <option value="server">${s("qr_mode_server",t)}</option>
                 </select>
               </div>
 
               <div class="qr-filter-group qr-filter-actions">
                 <div class="qr-estimate ${l?"error":""}">
-                  ${s("qr_print_estimate",e)}: <strong>${r}</strong>
-                  ${l?o` — ${s("qr_print_over_limit",e)}`:u}
+                  ${s("qr_print_estimate",t)}: <strong>${a}</strong>
+                  ${l?o` — ${s("qr_print_over_limit",t)}`:p}
                 </div>
                 <button
                   ?disabled=${this._qrBatchLoading||l||i===0}
                   @click=${this._generateBatch}>
-                  ${this._qrBatchLoading?s("qr_print_generating",e):s("qr_print_generate",e)}
+                  ${this._qrBatchLoading?s("qr_print_generating",t):s("qr_print_generate",t)}
                 </button>
               </div>
             </details>
 
             ${this._qrBatchResults.length>0?o`
                 <div class="qr-results-toolbar">
-                  <span>${this._qrBatchResults.length} ${s("qr_print_ready",e)}</span>
-                  <button @click=${this._printQrs}>${s("qr_print_print_button",e)}</button>
+                  <span>${this._qrBatchResults.length} ${s("qr_print_ready",t)}</span>
+                  <button @click=${this._printQrs}>${s("qr_print_print_button",t)}</button>
                 </div>
                 <div class="qr-print-grid">
                   ${this._qrBatchResults.map(c=>o`
@@ -5200,15 +5218,15 @@ ${d?`<div class="sub">${d}</div>`:""}
                       <div class="qr-label">
                         <div class="qr-label-obj">${c.object_name}</div>
                         <div class="qr-label-task">${c.task_name}</div>
-                        <div class="qr-label-action">${s("qr_action_"+c.action,e)}</div>
+                        <div class="qr-label-action">${s("qr_action_"+c.action,t)}</div>
                       </div>
                     </div>
                   `)}
                 </div>
-              `:u}
-          `:o`<button @click=${this._loadQrObjects}>${s("qr_print_load",e)}</button>`}
+              `:p}
+          `:o`<button @click=${this._loadQrObjects}>${s("qr_print_load",t)}</button>`}
       </div>
-    `}async _loadQrObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._qrObjects=(e.objects||[]).map(t=>({entry_id:t.entry_id,name:t.object.name,task_count:(t.tasks||[]).length})).sort((t,i)=>t.name.localeCompare(i.name)),this._qrObjectsLoaded=!0}catch{this._showToast(s("action_error",this._lang))}}_toggleQrObject(e,t){let i=new Set(this._qrSelectedEntries);if(i.size===0)for(let r of this._qrObjects)i.add(r.entry_id);t?i.add(e):i.delete(e),i.size===this._qrObjects.length&&i.clear(),this._qrSelectedEntries=i}_toggleQrAction(e,t){let i=new Set(this._qrActions);t?i.add(e):i.delete(e),this._qrActions=i}async _generateBatch(){this._qrBatchLoading=!0,this._qrBatchResults=[];try{let e={type:"maintenance_supporter/qr/batch_generate",actions:[...this._qrActions],url_mode:this._qrUrlMode};this._qrSelectedEntries.size>0&&(e.entry_ids=[...this._qrSelectedEntries]);let t=await this.hass.connection.sendMessagePromise(e);this._qrBatchResults=t.qrs||[],this._qrBatchResults.length===0&&this._showToast(s("qr_print_empty",this._lang))}catch(e){let t=e?.message||s("action_error",this._lang);this._showToast(t)}finally{this._qrBatchLoading=!1}}_printQrs(){if(this._qrBatchResults.length===0)return;let e=this._lang,t=this._qrBatchResults.map(c=>{let d=s("qr_action_"+c.action,e);return`
+    `}async _loadQrObjects(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._qrObjects=(t.objects||[]).map(e=>({entry_id:e.entry_id,name:e.object.name,task_count:(e.tasks||[]).length})).sort((e,i)=>e.name.localeCompare(i.name)),this._qrObjectsLoaded=!0}catch{this._showToast(s("action_error",this._lang))}}_toggleQrObject(t,e){let i=new Set(this._qrSelectedEntries);if(i.size===0)for(let a of this._qrObjects)i.add(a.entry_id);e?i.add(t):i.delete(t),i.size===this._qrObjects.length&&i.clear(),this._qrSelectedEntries=i}_toggleQrAction(t,e){let i=new Set(this._qrActions);e?i.add(t):i.delete(t),this._qrActions=i}async _generateBatch(){this._qrBatchLoading=!0,this._qrBatchResults=[];try{let t={type:"maintenance_supporter/qr/batch_generate",actions:[...this._qrActions],url_mode:this._qrUrlMode};this._qrSelectedEntries.size>0&&(t.entry_ids=[...this._qrSelectedEntries]);let e=await this.hass.connection.sendMessagePromise(t);this._qrBatchResults=e.qrs||[],this._qrBatchResults.length===0&&this._showToast(s("qr_print_empty",this._lang))}catch(t){let e=t?.message||s("action_error",this._lang);this._showToast(e)}finally{this._qrBatchLoading=!1}}_printQrs(){if(this._qrBatchResults.length===0)return;let t=this._lang,e=this._qrBatchResults.map(c=>{let d=s("qr_action_"+c.action,t);return`
         <div class="cell">
           <div class="qr">${c.svg}</div>
           <div class="label">
@@ -5216,8 +5234,8 @@ ${d?`<div class="sub">${d}</div>`:""}
             <div class="task">${this._escapeHtml(c.task_name)}</div>
             <div class="action">${this._escapeHtml(d)}</div>
           </div>
-        </div>`}).join(""),i=s("qr_print_title",e),r=`<!DOCTYPE html>
-<html lang="${this._escapeHtml(e)}">
+        </div>`}).join(""),i=s("qr_print_title",t),a=`<!DOCTYPE html>
+<html lang="${this._escapeHtml(t)}">
 <head>
   <meta charset="utf-8" />
   <title>${this._escapeHtml(i)}</title>
@@ -5246,40 +5264,40 @@ ${d?`<div class="sub">${d}</div>`:""}
 <body>
   <div class="toolbar">
     <h1>${this._escapeHtml(i)} \u2014 ${this._qrBatchResults.length}</h1>
-    <button onclick="window.print()">${this._escapeHtml(s("qr_print_print_button",e))}</button>
+    <button onclick="window.print()">${this._escapeHtml(s("qr_print_print_button",t))}</button>
   </div>
-  <div class="grid">${t}</div>
+  <div class="grid">${e}</div>
   <script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 250); });<\/script>
 </body>
-</html>`,l=window.open("","_blank","width=900,height=1100");if(!l){window.print();return}l.document.open(),l.document.write(r),l.document.close()}_escapeHtml(e){return e.replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}_renderImportExport(e){return o`
+</html>`,l=window.open("","_blank","width=900,height=1100");if(!l){window.print();return}l.document.open(),l.document.write(a),l.document.close()}_escapeHtml(t){return t.replace(/[&<>"']/g,e=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[e])}_renderImportExport(t){return o`
       <div class="settings-section">
-        <h3>${s("settings_import_export",e)}</h3>
+        <h3>${s("settings_import_export",t)}</h3>
         <div class="settings-actions">
           <label class="export-history-toggle">
             <input type="checkbox" .checked=${this._includeHistory}
-              @change=${t=>{this._includeHistory=t.target.checked}} />
-            ${s("settings_include_history",e)}
+              @change=${e=>{this._includeHistory=e.target.checked}} />
+            ${s("settings_include_history",t)}
           </label>
         </div>
         <div class="settings-actions">
-          <button @click=${this._exportJson}>${s("settings_export_json",e)}</button>
-          <button @click=${this._exportYaml}>${s("settings_export_yaml",e)}</button>
-          <button @click=${this._exportCsv}>${s("settings_export_csv",e)}</button>
+          <button @click=${this._exportJson}>${s("settings_export_json",t)}</button>
+          <button @click=${this._exportYaml}>${s("settings_export_yaml",t)}</button>
+          <button @click=${this._exportCsv}>${s("settings_export_csv",t)}</button>
         </div>
         <div class="import-section">
           <textarea class="import-area" .value=${this._importCsv}
-            placeholder=${s("settings_import_placeholder",e)}
-            @input=${t=>{this._importCsv=t.target.value}}
+            placeholder=${s("settings_import_placeholder",t)}
+            @input=${e=>{this._importCsv=e.target.value}}
           ></textarea>
           <div class="settings-actions">
             <button ?disabled=${!this._importCsv.trim()||this._importLoading}
               @click=${this._importCsvAction}>
-              ${this._importLoading?"\u2026":s("settings_import_btn",e)}
+              ${this._importLoading?"\u2026":s("settings_import_btn",t)}
             </button>
           </div>
         </div>
       </div>
-    `}async _exportJson(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/export",format:"json",include_history:this._includeHistory}),t=new Date().toISOString().slice(0,10);this._downloadFile(e.data,`maintenance_export_${t}.json`,"application/json"),this._showToast(s("settings_export_success",this._lang))}catch{this._showToast(s("action_error",this._lang))}}async _exportYaml(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/export",format:"yaml",include_history:this._includeHistory}),t=new Date().toISOString().slice(0,10);this._downloadFile(e.data,`maintenance_export_${t}.yaml`,"application/yaml"),this._showToast(s("settings_export_success",this._lang))}catch{this._showToast(s("action_error",this._lang))}}async _exportCsv(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/csv/export"}),t=new Date().toISOString().slice(0,10);this._downloadFile(e.csv,`maintenance_export_${t}.csv`,"text/csv"),this._showToast(s("settings_export_success",this._lang))}catch{this._showToast(s("action_error",this._lang))}}async _importCsvAction(){let e=this._importCsv.trim();if(e){this._importLoading=!0;try{let t=e.startsWith("object_name"),r=(await this.hass.connection.sendMessagePromise(t?{type:"maintenance_supporter/csv/import",csv_content:e}:{type:"maintenance_supporter/json/import",json_content:e})).created??0;this._showToast(s("settings_import_success",this._lang).replace("{count}",String(r))),this._importCsv="",this.dispatchEvent(new CustomEvent("settings-changed"))}catch{this._showToast(s("action_error",this._lang))}this._importLoading=!1}}};j.styles=A`
+    `}async _exportJson(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/export",format:"json",include_history:this._includeHistory}),e=new Date().toISOString().slice(0,10);this._downloadFile(t.data,`maintenance_export_${e}.json`,"application/json"),this._showToast(s("settings_export_success",this._lang))}catch{this._showToast(s("action_error",this._lang))}}async _exportYaml(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/export",format:"yaml",include_history:this._includeHistory}),e=new Date().toISOString().slice(0,10);this._downloadFile(t.data,`maintenance_export_${e}.yaml`,"application/yaml"),this._showToast(s("settings_export_success",this._lang))}catch{this._showToast(s("action_error",this._lang))}}async _exportCsv(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/csv/export"}),e=new Date().toISOString().slice(0,10);this._downloadFile(t.csv,`maintenance_export_${e}.csv`,"text/csv"),this._showToast(s("settings_export_success",this._lang))}catch{this._showToast(s("action_error",this._lang))}}async _importCsvAction(){let t=this._importCsv.trim();if(t){this._importLoading=!0;try{let e=t.startsWith("object_name"),a=(await this.hass.connection.sendMessagePromise(e?{type:"maintenance_supporter/csv/import",csv_content:t}:{type:"maintenance_supporter/json/import",json_content:t})).created??0;this._showToast(s("settings_import_success",this._lang).replace("{count}",String(a))),this._importCsv="",this.dispatchEvent(new CustomEvent("settings-changed"))}catch{this._showToast(s("action_error",this._lang))}this._importLoading=!1}}};j.styles=A`
     :host { display: block; }
 
     .settings-loading {
@@ -5713,16 +5731,16 @@ ${d?`<div class="sub">${d}</div>`:""}
       .qr-print-cell .qr-svg { max-width: 48mm; }
       .qr-label { font-size: 9pt; }
     }
-  `,p([y({attribute:!1})],j.prototype,"hass",2),p([y({attribute:!1})],j.prototype,"features",2),p([y({attribute:!1})],j.prototype,"budget",2),p([_()],j.prototype,"_settings",2),p([_()],j.prototype,"_loading",2),p([_()],j.prototype,"_importCsv",2),p([_()],j.prototype,"_importLoading",2),p([_()],j.prototype,"_includeHistory",2),p([_()],j.prototype,"_toast",2),p([_()],j.prototype,"_testingNotification",2),p([_()],j.prototype,"_users",2),p([_()],j.prototype,"_vacEnabled",2),p([_()],j.prototype,"_vacStart",2),p([_()],j.prototype,"_vacEnd",2),p([_()],j.prototype,"_vacBuffer",2),p([_()],j.prototype,"_vacExempt",2),p([_()],j.prototype,"_vacIsActive",2),p([_()],j.prototype,"_vacWindowEnd",2),p([_()],j.prototype,"_vacAllTasks",2),p([_()],j.prototype,"_vacPreview",2),p([_()],j.prototype,"_vacPreviewLoading",2),p([_()],j.prototype,"_vacSaving",2),p([_()],j.prototype,"_qrObjects",2),p([_()],j.prototype,"_qrSelectedEntries",2),p([_()],j.prototype,"_qrActions",2),p([_()],j.prototype,"_qrUrlMode",2),p([_()],j.prototype,"_qrBatchLoading",2),p([_()],j.prototype,"_qrBatchResults",2),p([_()],j.prototype,"_qrObjectsLoaded",2);customElements.define("maintenance-settings-view",j);var Z=class extends S{constructor(){super(...arguments);this.objects=[];this._summary=null;this._loaded=!1;this._busy=!1;this._error="";this._query="";this._results=[];this._expanded=!1;this._initiallyLoaded=!1;this._searchTimer=0}get _lang(){return this.hass?.language||"en"}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._initiallyLoaded&&(this._initiallyLoaded=!0,this._load(),ae(this._lang).then(()=>this.requestUpdate()))}async _load(){this._busy=!0;try{this._summary=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/storage"}),this._error=""}catch(e){this._error=M(e,this._lang)}finally{this._loaded=!0,this._busy=!1}}_nameFor(e){return this.objects.find(i=>i.object?.id===e)?.object?.name||e.slice(0,8)}_entryFor(e){return this.objects.find(t=>t.object?.id===e)?.entry_id}_toggle(){this._expanded=!this._expanded}_openObject(e){this.dispatchEvent(new CustomEvent("open-object",{detail:{entry_id:e},bubbles:!0,composed:!0}))}_onSearch(e){this._query=e.target.value,clearTimeout(this._searchTimer),this._searchTimer=window.setTimeout(()=>{this._doSearch()},250)}async _doSearch(){let e=this._query.trim();if(!e){this._results=[];return}try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/search",query:e});this._results=t.results||[]}catch(t){this._error=M(t,this._lang),this._results=[]}}async _openResult(e){if(e.kind==="weblink"){window.open(e.url,"_blank","noopener");return}let t=window.open("about:blank","_blank");try{let i=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${e.id}`,expires:300});t&&(t.location.href=new URL(i.path,window.location.origin).href)}catch(i){t&&t.close(),this._error=M(i,this._lang)}}_renderResult(e,t){return o`
-      <div class="obj-row result-row" title=${s("doc_open",t)} @click=${()=>this._openResult(e)}>
-        <ha-icon icon=${e.kind==="weblink"?"mdi:link-variant":"mdi:file-document-outline"}></ha-icon>
+  `,h([y({attribute:!1})],j.prototype,"hass",2),h([y({attribute:!1})],j.prototype,"features",2),h([y({attribute:!1})],j.prototype,"budget",2),h([_()],j.prototype,"_settings",2),h([_()],j.prototype,"_loading",2),h([_()],j.prototype,"_importCsv",2),h([_()],j.prototype,"_importLoading",2),h([_()],j.prototype,"_includeHistory",2),h([_()],j.prototype,"_toast",2),h([_()],j.prototype,"_testingNotification",2),h([_()],j.prototype,"_users",2),h([_()],j.prototype,"_vacEnabled",2),h([_()],j.prototype,"_vacStart",2),h([_()],j.prototype,"_vacEnd",2),h([_()],j.prototype,"_vacBuffer",2),h([_()],j.prototype,"_vacExempt",2),h([_()],j.prototype,"_vacIsActive",2),h([_()],j.prototype,"_vacWindowEnd",2),h([_()],j.prototype,"_vacAllTasks",2),h([_()],j.prototype,"_vacPreview",2),h([_()],j.prototype,"_vacPreviewLoading",2),h([_()],j.prototype,"_vacSaving",2),h([_()],j.prototype,"_qrObjects",2),h([_()],j.prototype,"_qrSelectedEntries",2),h([_()],j.prototype,"_qrActions",2),h([_()],j.prototype,"_qrUrlMode",2),h([_()],j.prototype,"_qrBatchLoading",2),h([_()],j.prototype,"_qrBatchResults",2),h([_()],j.prototype,"_qrObjectsLoaded",2);customElements.define("maintenance-settings-view",j);var Z=class extends S{constructor(){super(...arguments);this.objects=[];this._summary=null;this._loaded=!1;this._busy=!1;this._error="";this._query="";this._results=[];this._expanded=!1;this._initiallyLoaded=!1;this._searchTimer=0}get _lang(){return this.hass?.language||"en"}updated(t){super.updated(t),t.has("hass")&&this.hass&&!this._initiallyLoaded&&(this._initiallyLoaded=!0,this._load(),at(this._lang).then(()=>this.requestUpdate()))}async _load(){this._busy=!0;try{this._summary=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/storage"}),this._error=""}catch(t){this._error=M(t,this._lang)}finally{this._loaded=!0,this._busy=!1}}_nameFor(t){return this.objects.find(i=>i.object?.id===t)?.object?.name||t.slice(0,8)}_entryFor(t){return this.objects.find(e=>e.object?.id===t)?.entry_id}_toggle(){this._expanded=!this._expanded}_openObject(t){this.dispatchEvent(new CustomEvent("open-object",{detail:{entry_id:t},bubbles:!0,composed:!0}))}_onSearch(t){this._query=t.target.value,clearTimeout(this._searchTimer),this._searchTimer=window.setTimeout(()=>{this._doSearch()},250)}async _doSearch(){let t=this._query.trim();if(!t){this._results=[];return}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/documents/search",query:t});this._results=e.results||[]}catch(e){this._error=M(e,this._lang),this._results=[]}}async _openResult(t){if(t.kind==="weblink"){window.open(t.url,"_blank","noopener");return}let e=window.open("about:blank","_blank");try{let i=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${t.id}`,expires:300});e&&(e.location.href=new URL(i.path,window.location.origin).href)}catch(i){e&&e.close(),this._error=M(i,this._lang)}}_renderResult(t,e){return o`
+      <div class="obj-row result-row" title=${s("doc_open",e)} @click=${()=>this._openResult(t)}>
+        <ha-icon icon=${t.kind==="weblink"?"mdi:link-variant":"mdi:file-document-outline"}></ha-icon>
         <div class="result-info">
-          <div class="result-title">${e.title||e.filename||e.url}</div>
-          <div class="result-obj">${e.object_name}</div>
+          <div class="result-title">${t.title||t.filename||t.url}</div>
+          <div class="result-obj">${t.object_name}</div>
         </div>
-        <ha-icon class="result-open" icon=${e.kind==="weblink"?"mdi:open-in-new":"mdi:eye-outline"}></ha-icon>
+        <ha-icon class="result-open" icon=${t.kind==="weblink"?"mdi:open-in-new":"mdi:eye-outline"}></ha-icon>
       </div>
-    `}render(){if(!this._loaded||!this._summary)return u;let e=this._summary;if(e.document_count===0)return u;let t=this._lang,i=Object.entries(e.by_object).filter(([,r])=>r.files>0||r.links>0).map(([r,l])=>({id:r,name:this._nameFor(r),entry:this._entryFor(r),...l})).sort((r,l)=>l.bytes-r.bytes);return o`
+    `}render(){if(!this._loaded||!this._summary)return p;let t=this._summary;if(t.document_count===0)return p;let e=this._lang,i=Object.entries(t.by_object).filter(([,a])=>a.files>0||a.links>0).map(([a,l])=>({id:a,name:this._nameFor(a),entry:this._entryFor(a),...l})).sort((a,l)=>l.bytes-a.bytes);return o`
       <ha-card>
         <div class="card-content">
           <div class="header">
@@ -5730,19 +5748,19 @@ ${d?`<div class="sub">${d}</div>`:""}
               class="toggle"
               @click=${this._toggle}
               aria-expanded=${this._expanded?"true":"false"}
-              aria-label=${s("doc_storage_title",t)}
+              aria-label=${s("doc_storage_title",e)}
             >
               <ha-icon class="chevron" icon=${this._expanded?"mdi:chevron-down":"mdi:chevron-right"}></ha-icon>
               <span class="emoji">🗄️</span>
-              <span class="title-text">${s("doc_storage_title",t)}</span>
+              <span class="title-text">${s("doc_storage_title",e)}</span>
               <span class="header-summary">
-                ${re(e.total_bytes)}
-                ${e.dedup_savings_bytes>0?o`<span class="saved">−${re(e.dedup_savings_bytes)}</span>`:u}
+                ${rt(t.total_bytes)}
+                ${t.dedup_savings_bytes>0?o`<span class="saved">−${rt(t.dedup_savings_bytes)}</span>`:p}
               </span>
             </button>
             <button
               class="icon-btn"
-              title=${s("doc_storage_refresh",t)}
+              title=${s("doc_storage_refresh",e)}
               ?disabled=${this._busy}
               @click=${this._load}
             >
@@ -5754,52 +5772,52 @@ ${d?`<div class="sub">${d}</div>`:""}
                 <div class="body">
                   <div class="totals">
                     <div class="stat">
-                      <div class="stat-value">${re(e.total_bytes)}</div>
+                      <div class="stat-value">${rt(t.total_bytes)}</div>
                       <div class="stat-label">
-                        <ha-icon icon="mdi:file-document-outline"></ha-icon> ${e.file_count}
-                        <ha-icon icon="mdi:link-variant"></ha-icon> ${e.link_count}
+                        <ha-icon icon="mdi:file-document-outline"></ha-icon> ${t.file_count}
+                        <ha-icon icon="mdi:link-variant"></ha-icon> ${t.link_count}
                       </div>
                     </div>
-                    ${e.dedup_savings_bytes>0?o`<div class="stat">
-                          <div class="stat-value saved">−${re(e.dedup_savings_bytes)}</div>
-                          <div class="stat-label">${s("doc_storage_saved",t)}</div>
-                        </div>`:u}
+                    ${t.dedup_savings_bytes>0?o`<div class="stat">
+                          <div class="stat-value saved">−${rt(t.dedup_savings_bytes)}</div>
+                          <div class="stat-label">${s("doc_storage_saved",e)}</div>
+                        </div>`:p}
                   </div>
 
                   <div class="doc-search">
                     <ha-icon icon="mdi:magnify"></ha-icon>
                     <input
                       type="search"
-                      aria-label=${s("doc_search",t)}
-                      placeholder=${s("doc_search",t)}
+                      aria-label=${s("doc_search",e)}
+                      placeholder=${s("doc_search",e)}
                       .value=${this._query}
                       @input=${this._onSearch}
                     />
                   </div>
 
-                  ${this._error?o`<div class="error">${this._error}</div>`:u}
+                  ${this._error?o`<div class="error">${this._error}</div>`:p}
 
-                  ${this._query.trim()?this._results.length?o`<div class="obj-list">${this._results.map(r=>this._renderResult(r,t))}</div>`:o`<div class="search-empty">${s("doc_search_none",t)}</div>`:i.length?o`<div class="obj-list">${i.map(r=>this._renderObjRow(r,t))}</div>`:u}
+                  ${this._query.trim()?this._results.length?o`<div class="obj-list">${this._results.map(a=>this._renderResult(a,e))}</div>`:o`<div class="search-empty">${s("doc_search_none",e)}</div>`:i.length?o`<div class="obj-list">${i.map(a=>this._renderObjRow(a,e))}</div>`:p}
                 </div>
-              `:u}
+              `:p}
         </div>
       </ha-card>
-    `}_renderObjRow(e,t){let i=e.entry;return o`
+    `}_renderObjRow(t,e){let i=t.entry;return o`
       <div
         class="obj-row ${i?"clickable":""}"
-        role=${i?"button":u}
-        tabindex=${i?"0":u}
-        aria-label=${i?e.name:u}
+        role=${i?"button":p}
+        tabindex=${i?"0":p}
+        aria-label=${i?t.name:p}
         @click=${i?()=>this._openObject(i):void 0}
-        @keydown=${i?r=>{(r.key==="Enter"||r.key===" ")&&(r.preventDefault(),this._openObject(i))}:void 0}
+        @keydown=${i?a=>{(a.key==="Enter"||a.key===" ")&&(a.preventDefault(),this._openObject(i))}:void 0}
       >
-        <span class="obj-name">${e.name}</span>
+        <span class="obj-name">${t.name}</span>
         <span class="obj-meta">
-          ${e.files>0?o`<ha-icon icon="mdi:file-document-outline"></ha-icon>${e.files}`:u}
-          ${e.links>0?o`<ha-icon icon="mdi:link-variant"></ha-icon>${e.links}`:u}
+          ${t.files>0?o`<ha-icon icon="mdi:file-document-outline"></ha-icon>${t.files}`:p}
+          ${t.links>0?o`<ha-icon icon="mdi:link-variant"></ha-icon>${t.links}`:p}
         </span>
-        <span class="obj-size">${re(e.bytes)}</span>
-        ${i?o`<ha-icon class="obj-go" icon="mdi:chevron-right"></ha-icon>`:u}
+        <span class="obj-size">${rt(t.bytes)}</span>
+        ${i?o`<ha-icon class="obj-go" icon="mdi:chevron-right"></ha-icon>`:p}
       </div>
     `}};Z.styles=A`
     ha-card { margin-top: 16px; }
@@ -5871,37 +5889,37 @@ ${d?`<div class="sub">${d}</div>`:""}
     .icon-btn:hover { background: var(--secondary-background-color, rgba(0,0,0,0.06)); }
     .icon-btn[disabled] { opacity: 0.4; pointer-events: none; }
     .error { color: var(--error-color, #f44336); font-size: 13px; margin-top: 6px; }
-  `,p([y({attribute:!1})],Z.prototype,"hass",2),p([y({attribute:!1})],Z.prototype,"objects",2),p([_()],Z.prototype,"_summary",2),p([_()],Z.prototype,"_loaded",2),p([_()],Z.prototype,"_busy",2),p([_()],Z.prototype,"_error",2),p([_()],Z.prototype,"_query",2),p([_()],Z.prototype,"_results",2),p([_()],Z.prototype,"_expanded",2);customElements.get("maintenance-storage-section-card")||customElements.define("maintenance-storage-section-card",Z);var Cs=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"],ie=class extends S{constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId="";this._values=new Array(12).fill("");this._save=async()=>{let e=this._buildOverrides();if(e!==null){this._loading=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/seasonal_overrides",entry_id:this._entryId,task_id:this._taskId,overrides:e}),this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved"))}catch(t){this._error=M(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}};this._clearAll=async()=>{this._loading=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/seasonal_overrides",entry_id:this._entryId,task_id:this._taskId,overrides:{}}),this._values=new Array(12).fill(""),this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved"))}catch(e){this._error=M(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}open(e,t,i){if(this._entryId=e,this._taskId=t,this._values=new Array(12).fill(""),i)for(let[r,l]of Object.entries(i)){let c=parseInt(r,10);c>=1&&c<=12&&typeof l=="number"&&(this._values[c-1]=l.toString())}this._error="",this._open=!0}_close(){this._open=!1}_buildOverrides(){let e={};for(let t=0;t<12;t++){let i=this._values[t].trim();if(!i)continue;let r=parseFloat(i);if(Number.isNaN(r))return this._error=`${s("month_"+["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][t],this._lang)}: ${s("seasonal_override_invalid",this._lang)}`,null;if(r<.1||r>5)return this._error=s("seasonal_override_range",this._lang),null;e[t+1]=r}return e}render(){if(!this._open)return o``;let e=this._lang;return o`
-      <ha-dialog open @closed=${this._close} heading="${s("seasonal_overrides_title",e)}">
+  `,h([y({attribute:!1})],Z.prototype,"hass",2),h([y({attribute:!1})],Z.prototype,"objects",2),h([_()],Z.prototype,"_summary",2),h([_()],Z.prototype,"_loaded",2),h([_()],Z.prototype,"_busy",2),h([_()],Z.prototype,"_error",2),h([_()],Z.prototype,"_query",2),h([_()],Z.prototype,"_results",2),h([_()],Z.prototype,"_expanded",2);customElements.get("maintenance-storage-section-card")||customElements.define("maintenance-storage-section-card",Z);var js=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"],it=class extends S{constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId="";this._values=new Array(12).fill("");this._save=async()=>{let t=this._buildOverrides();if(t!==null){this._loading=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/seasonal_overrides",entry_id:this._entryId,task_id:this._taskId,overrides:t}),this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved"))}catch(e){this._error=M(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}};this._clearAll=async()=>{this._loading=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/seasonal_overrides",entry_id:this._entryId,task_id:this._taskId,overrides:{}}),this._values=new Array(12).fill(""),this._open=!1,this.dispatchEvent(new CustomEvent("overrides-saved"))}catch(t){this._error=M(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}open(t,e,i){if(this._entryId=t,this._taskId=e,this._values=new Array(12).fill(""),i)for(let[a,l]of Object.entries(i)){let c=parseInt(a,10);c>=1&&c<=12&&typeof l=="number"&&(this._values[c-1]=l.toString())}this._error="",this._open=!0}_close(){this._open=!1}_buildOverrides(){let t={};for(let e=0;e<12;e++){let i=this._values[e].trim();if(!i)continue;let a=parseFloat(i);if(Number.isNaN(a))return this._error=`${s("month_"+["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][e],this._lang)}: ${s("seasonal_override_invalid",this._lang)}`,null;if(a<.1||a>5)return this._error=s("seasonal_override_range",this._lang),null;t[e+1]=a}return t}render(){if(!this._open)return o``;let t=this._lang;return o`
+      <ha-dialog open @closed=${this._close} heading="${s("seasonal_overrides_title",t)}">
         <div class="content">
-          <p class="hint">${s("seasonal_overrides_hint",e)}</p>
-          ${this._error?o`<div class="error">${this._error}</div>`:u}
+          <p class="hint">${s("seasonal_overrides_hint",t)}</p>
+          ${this._error?o`<div class="error">${this._error}</div>`:p}
           <div class="months">
-            ${Cs.map((t,i)=>o`
+            ${js.map((e,i)=>o`
               <label class="month">
-                <span class="mn">${s(t,e)}</span>
+                <span class="mn">${s(e,t)}</span>
                 <input type="number" step="0.1" min="0.1" max="5.0"
                   placeholder="1.0"
                   .value=${this._values[i]}
-                  @input=${r=>{let l=[...this._values];l[i]=r.target.value,this._values=l}} />
+                  @input=${a=>{let l=[...this._values];l[i]=a.target.value,this._values=l}} />
               </label>
             `)}
           </div>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._clearAll} .disabled=${this._loading}>
-            ${s("clear_all",e)}
+            ${s("clear_all",t)}
           </ha-button>
           <div class="spacer"></div>
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button @click=${this._save} .disabled=${this._loading}>
-            ${this._loading?s("saving",e):s("save",e)}
+            ${this._loading?s("saving",t):s("save",t)}
           </ha-button>
         </div>
       </ha-dialog>
-    `}};ie.styles=A`
+    `}};it.styles=A`
     .content {
       min-width: 320px;
       max-width: 480px;
@@ -5946,34 +5964,34 @@ ${d?`<div class="sub">${d}</div>`:""}
       padding-top: 16px;
     }
     .spacer { flex: 1; }
-  `,p([y({attribute:!1})],ie.prototype,"hass",2),p([_()],ie.prototype,"_open",2),p([_()],ie.prototype,"_loading",2),p([_()],ie.prototype,"_error",2),p([_()],ie.prototype,"_entryId",2),p([_()],ie.prototype,"_taskId",2),p([_()],ie.prototype,"_values",2);customElements.get("maintenance-seasonal-overrides-dialog")||customElements.define("maintenance-seasonal-overrides-dialog",ie);var X=class extends S{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._groupId=null;this._name="";this._description="";this._selected=new Set;this._toggleTask=(e,t)=>{let i=`${e}:${t}`,r=new Set(this._selected);r.has(i)?r.delete(i):r.add(i),this._selected=r};this._save=async()=>{let e=this._name.trim();if(!e){this._error=s("group_name_required",this._lang);return}this._loading=!0,this._error="";try{let t=this._buildTaskRefs();this._groupId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/update",group_id:this._groupId,name:e,description:this._description,task_refs:t}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/create",name:e,description:this._description,task_refs:t}),this._open=!1,this.dispatchEvent(new CustomEvent("group-saved"))}catch(t){this._error=M(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._reset(),this._open=!0}openEdit(e,t){this._reset(),this._groupId=e,this._name=t.name,this._description=t.description||"",this._selected=new Set(t.task_refs.map(i=>`${i.entry_id}:${i.task_id}`)),this._open=!0}_reset(){this._groupId=null,this._name="",this._description="",this._selected=new Set,this._error=""}_close(){this._open=!1}_buildTaskRefs(){return[...this._selected].map(e=>{let[t,i]=e.split(":",2);return{entry_id:t,task_id:i}})}render(){if(!this._open)return o``;let e=this._lang,t=this._groupId?s("edit_group",e):s("new_group",e);return o`
-      <ha-dialog open @closed=${this._close} heading="${t}">
+  `,h([y({attribute:!1})],it.prototype,"hass",2),h([_()],it.prototype,"_open",2),h([_()],it.prototype,"_loading",2),h([_()],it.prototype,"_error",2),h([_()],it.prototype,"_entryId",2),h([_()],it.prototype,"_taskId",2),h([_()],it.prototype,"_values",2);customElements.get("maintenance-seasonal-overrides-dialog")||customElements.define("maintenance-seasonal-overrides-dialog",it);var X=class extends S{constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._groupId=null;this._name="";this._description="";this._selected=new Set;this._toggleTask=(t,e)=>{let i=`${t}:${e}`,a=new Set(this._selected);a.has(i)?a.delete(i):a.add(i),this._selected=a};this._save=async()=>{let t=this._name.trim();if(!t){this._error=s("group_name_required",this._lang);return}this._loading=!0,this._error="";try{let e=this._buildTaskRefs();this._groupId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/update",group_id:this._groupId,name:t,description:this._description,task_refs:e}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/create",name:t,description:this._description,task_refs:e}),this._open=!1,this.dispatchEvent(new CustomEvent("group-saved"))}catch(e){this._error=M(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._reset(),this._open=!0}openEdit(t,e){this._reset(),this._groupId=t,this._name=e.name,this._description=e.description||"",this._selected=new Set(e.task_refs.map(i=>`${i.entry_id}:${i.task_id}`)),this._open=!0}_reset(){this._groupId=null,this._name="",this._description="",this._selected=new Set,this._error=""}_close(){this._open=!1}_buildTaskRefs(){return[...this._selected].map(t=>{let[e,i]=t.split(":",2);return{entry_id:e,task_id:i}})}render(){if(!this._open)return o``;let t=this._lang,e=this._groupId?s("edit_group",t):s("new_group",t);return o`
+      <ha-dialog open @closed=${this._close} heading="${e}">
         <div class="content">
-          ${this._error?o`<div class="error">${this._error}</div>`:u}
+          ${this._error?o`<div class="error">${this._error}</div>`:p}
           <ms-textfield
-            label="${s("name",e)}"
+            label="${s("name",t)}"
             required
             .value=${this._name}
             @input=${i=>this._name=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("description_optional",e)}"
+            label="${s("description_optional",t)}"
             .value=${this._description}
             @input=${i=>this._description=i.target.value}
           ></ms-textfield>
 
-          <div class="section-title">${s("group_select_tasks",e)}</div>
-          ${this.objects.length===0?o`<div class="hint">${s("no_objects",e)}</div>`:o`
+          <div class="section-title">${s("group_select_tasks",t)}</div>
+          ${this.objects.length===0?o`<div class="hint">${s("no_objects",t)}</div>`:o`
               <div class="objects">
-                ${[...this.objects].sort((i,r)=>i.object.name.localeCompare(r.object.name)).map(i=>o`
+                ${[...this.objects].sort((i,a)=>i.object.name.localeCompare(a.object.name)).map(i=>o`
                   <div class="object-block">
                     <div class="object-name">${i.object.name}</div>
-                    ${i.tasks.length===0?o`<div class="hint small">${s("no_tasks_short",e)}</div>`:[...i.tasks].sort((r,l)=>r.name.localeCompare(l.name)).map(r=>{let l=`${i.entry_id}:${r.id}`,c=this._selected.has(l);return o`
+                    ${i.tasks.length===0?o`<div class="hint small">${s("no_tasks_short",t)}</div>`:[...i.tasks].sort((a,l)=>a.name.localeCompare(l.name)).map(a=>{let l=`${i.entry_id}:${a.id}`,c=this._selected.has(l);return o`
                           <label class="task-row">
                             <input type="checkbox"
                               .checked=${c}
-                              @change=${()=>this._toggleTask(i.entry_id,r.id)} />
-                            <span>${r.name}</span>
+                              @change=${()=>this._toggleTask(i.entry_id,a.id)} />
+                            <span>${a.name}</span>
                           </label>
                         `})}
                   </div>
@@ -5981,15 +5999,15 @@ ${d?`<div class="sub">${d}</div>`:""}
               </div>
             `}
           <div class="selected-count">
-            ${s("selected",e)}: ${this._selected.size}
+            ${s("selected",t)}: ${this._selected.size}
           </div>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${s("cancel",t)}
           </ha-button>
           <ha-button @click=${this._save} .disabled=${this._loading||!this._name.trim()}>
-            ${this._loading?s("saving",e):s("save",e)}
+            ${this._loading?s("saving",t):s("save",t)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -6057,29 +6075,29 @@ ${d?`<div class="sub">${d}</div>`:""}
       gap: 8px;
       padding-top: 16px;
     }
-  `,p([y({attribute:!1})],X.prototype,"hass",2),p([y({attribute:!1})],X.prototype,"objects",2),p([_()],X.prototype,"_open",2),p([_()],X.prototype,"_loading",2),p([_()],X.prototype,"_error",2),p([_()],X.prototype,"_groupId",2),p([_()],X.prototype,"_name",2),p([_()],X.prototype,"_description",2),p([_()],X.prototype,"_selected",2);customElements.get("maintenance-group-dialog")||customElements.define("maintenance-group-dialog",X);var js=60,Ms=20,yi=30;function Pt(n){let a=n.trigger_config??null;if(!a)return u;let e=a.type||"threshold",t=n.trigger_entity_info?.unit_of_measurement??"",i=0,r="";if(e==="threshold"){let d=n.trigger_current_value??null;if(d==null)return u;let h=a.trigger_above,g=a.trigger_below;if(h!=null){let m=g??0,v=h-m||1;i=Math.min(100,Math.max(0,(d-m)/v*100)),r=`${d.toFixed(1)} / ${h} ${t}`}else if(g!=null){let v=n.trigger_entity_info?.max??(g*2||100),f=v-g||1;i=Math.min(100,Math.max(0,(v-d)/f*100)),r=`${d.toFixed(1)} / ${g} ${t}`}else return u}else if(e==="counter"){let d=a.trigger_target_value||1,g=n.trigger_current_delta??null??n.trigger_current_value??null;if(g==null)return u;i=Math.min(100,Math.max(0,g/d*100)),r=`${g.toFixed(1)} / ${d} ${t}`}else if(e==="state_change"){let d=a.trigger_target_changes||1,h=n.trigger_current_value??null;if(h==null)return u;i=Math.min(100,Math.max(0,h/d*100)),r=`${Math.round(h)} / ${d}`}else if(e==="runtime"){let d=a.trigger_runtime_hours||100,h=n.trigger_current_value??null;if(h==null)return u;i=Math.min(100,Math.max(0,h/d*100)),r=`${h.toFixed(1)}h / ${d}h`}else if(e==="compound"){let d=a.compound_logic||a.operator||"AND",h=a.conditions?.length||0;r=`${d} (${h})`,i=n.trigger_active?100:0}else return u;let l=i>=100,c=i>90?"var(--error-color, #f44336)":i>70?"var(--warning-color, #ff9800)":"var(--primary-color)";return o`
+  `,h([y({attribute:!1})],X.prototype,"hass",2),h([y({attribute:!1})],X.prototype,"objects",2),h([_()],X.prototype,"_open",2),h([_()],X.prototype,"_loading",2),h([_()],X.prototype,"_error",2),h([_()],X.prototype,"_groupId",2),h([_()],X.prototype,"_name",2),h([_()],X.prototype,"_description",2),h([_()],X.prototype,"_selected",2);customElements.get("maintenance-group-dialog")||customElements.define("maintenance-group-dialog",X);var Ms=60,Rs=20,yi=30;function ze(n){let r=n.trigger_config??null;if(!r)return p;let t=r.type||"threshold",e=n.trigger_entity_info?.unit_of_measurement??"",i=0,a="";if(t==="threshold"){let d=n.trigger_current_value??null;if(d==null)return p;let u=r.trigger_above,g=r.trigger_below;if(u!=null){let m=g??0,v=u-m||1;i=Math.min(100,Math.max(0,(d-m)/v*100)),a=`${d.toFixed(1)} / ${u} ${e}`}else if(g!=null){let v=n.trigger_entity_info?.max??(g*2||100),f=v-g||1;i=Math.min(100,Math.max(0,(v-d)/f*100)),a=`${d.toFixed(1)} / ${g} ${e}`}else return p}else if(t==="counter"){let d=r.trigger_target_value||1,g=n.trigger_current_delta??null??n.trigger_current_value??null;if(g==null)return p;i=Math.min(100,Math.max(0,g/d*100)),a=`${g.toFixed(1)} / ${d} ${e}`}else if(t==="state_change"){let d=r.trigger_target_changes||1,u=n.trigger_current_value??null;if(u==null)return p;i=Math.min(100,Math.max(0,u/d*100)),a=`${Math.round(u)} / ${d}`}else if(t==="runtime"){let d=r.trigger_runtime_hours||100,u=n.trigger_current_value??null;if(u==null)return p;i=Math.min(100,Math.max(0,u/d*100)),a=`${u.toFixed(1)}h / ${d}h`}else if(t==="compound"){let d=r.compound_logic||r.operator||"AND",u=r.conditions?.length||0;a=`${d} (${u})`,i=n.trigger_active?100:0}else return p;let l=i>=100,c=i>90?"var(--error-color, #f44336)":i>70?"var(--warning-color, #ff9800)":"var(--primary-color)";return o`
     <div class="trigger-progress">
       <div class="trigger-progress-bar">
         <div class="trigger-progress-fill${l?" overflow":""}" style="width:${i}%;background:${c}"></div>
       </div>
-      <span class="trigger-progress-label">${r}</span>
+      <span class="trigger-progress-label">${a}</span>
     </div>
-  `}function zt(n,a,e){if(!n.trigger_config?.entity_id)return u;let t=n.trigger_config.entity_id,i=a.get(t)||[],r=[];if(i.length>=2)r=i.map(T=>({ts:T.ts,val:T.val}));else{if(!n.history)return u;for(let T of n.history)T.trigger_value!=null&&r.push({ts:new Date(T.timestamp).getTime(),val:T.trigger_value})}if(n.trigger_current_value!=null&&r.push({ts:Date.now(),val:n.trigger_current_value}),r.length<2)return u;r.sort((T,Y)=>T.ts-Y.ts);let l=js,c=Ms,d=r.map(T=>T.val),h=Math.min(...d),g=Math.max(...d),m=g-h||1;h-=m*.1,g+=m*.1;let v=r[0].ts,w=r[r.length-1].ts-v||1,b=T=>(T-v)/w*l,C=T=>2+(1-(T-h)/(g-h))*(c-4),z=r;if(z.length>yi){let T=Math.ceil(z.length/yi);z=z.filter((Y,G)=>G%T===0||G===z.length-1)}let D=z.map(T=>`${b(T.ts).toFixed(1)},${C(T.val).toFixed(1)}`).join(" "),I=n.trigger_active?"var(--error-color, #f44336)":"var(--primary-color)";return o`
-    <svg class="mini-sparkline" viewBox="0 0 ${l} ${c}" preserveAspectRatio="none" role="img" aria-label="${s("chart_mini_sparkline",e)}">
-      <polyline points="${D}" fill="none" stroke="${I}" stroke-width="1.5" stroke-linejoin="round" />
+  `}function Pe(n,r,t){if(!n.trigger_config?.entity_id)return p;let e=n.trigger_config.entity_id,i=r.get(e)||[],a=[];if(i.length>=2)a=i.map(E=>({ts:E.ts,val:E.val}));else{if(!n.history)return p;for(let E of n.history)E.trigger_value!=null&&a.push({ts:new Date(E.timestamp).getTime(),val:E.trigger_value})}if(n.trigger_current_value!=null&&a.push({ts:Date.now(),val:n.trigger_current_value}),a.length<2)return p;a.sort((E,Y)=>E.ts-Y.ts);let l=Ms,c=Rs,d=a.map(E=>E.val),u=Math.min(...d),g=Math.max(...d),m=g-u||1;u-=m*.1,g+=m*.1;let v=a[0].ts,w=a[a.length-1].ts-v||1,b=E=>(E-v)/w*l,C=E=>2+(1-(E-u)/(g-u))*(c-4),P=a;if(P.length>yi){let E=Math.ceil(P.length/yi);P=P.filter((Y,G)=>G%E===0||G===P.length-1)}let H=P.map(E=>`${b(E.ts).toFixed(1)},${C(E.val).toFixed(1)}`).join(" "),R=n.trigger_active?"var(--error-color, #f44336)":"var(--primary-color)";return o`
+    <svg class="mini-sparkline" viewBox="0 0 ${l} ${c}" preserveAspectRatio="none" role="img" aria-label="${s("chart_mini_sparkline",t)}">
+      <polyline points="${H}" fill="none" stroke="${R}" stroke-width="1.5" stroke-linejoin="round" />
     </svg>
-  `}function xi(n,a){let e=a;if(n.days_until_due==null||!n.interval_days||n.interval_days<=0)return u;let{pct:t,overflow:i}=rt(n.interval_days,n.days_until_due,n.interval_unit),r="var(--success-color, #4caf50)";return n.status==="overdue"?r="var(--error-color, #f44336)":n.status==="due_soon"&&(r="var(--warning-color, #ff9800)"),o`
+  `}function xi(n,r){let t=r;if(n.days_until_due==null||!n.interval_days||n.interval_days<=0)return p;let{pct:e,overflow:i}=re(n.interval_days,n.days_until_due,n.interval_unit),a="var(--success-color, #4caf50)";return n.status==="overdue"?a="var(--error-color, #f44336)":n.status==="due_soon"&&(a="var(--warning-color, #ff9800)"),o`
     <div class="days-progress">
       <div class="days-progress-labels">
-        <span>${n.last_performed?`${s("last_performed",e)}: ${V(n.last_performed,e)}`:""}</span>
-        <span>${n.next_due?`${s("next_due",e)}: ${V(n.next_due,e)}`:""}</span>
+        <span>${n.last_performed?`${s("last_performed",t)}: ${V(n.last_performed,t)}`:""}</span>
+        <span>${n.next_due?`${s("next_due",t)}: ${V(n.next_due,t)}`:""}</span>
       </div>
-      <div class="days-progress-bar" role="progressbar" aria-valuenow="${Math.round(t)}" aria-valuemin="0" aria-valuemax="100" aria-label="${s("days_progress",e)}">
-        <div class="days-progress-fill${i?" overflow":""}" style="width:${t}%;background:${r}"></div>
+      <div class="days-progress-bar" role="progressbar" aria-valuenow="${Math.round(e)}" aria-valuemin="0" aria-valuemax="100" aria-label="${s("days_progress",t)}">
+        <div class="days-progress-fill${i?" overflow":""}" style="width:${e}%;background:${a}"></div>
       </div>
-      <div class="days-progress-text">${Te(n.days_until_due,e)}</div>
+      <div class="days-progress-text">${Et(n.days_until_due,t)}</div>
     </div>
-  `}function Be(n,a,e=4){if(!isFinite(n)||!isFinite(a))return{ticks:[],niceMin:0,niceMax:1};if(n===a){let h=Math.abs(n)*.1||1;n-=h,a+=h}let t=a-n,i=Math.pow(10,Math.floor(Math.log10(t/Math.max(1,e)))),r=i;for(let h of[1,2,5,10])if(r=i*h,t/r<=e+.5)break;let l=Math.floor(n/r)*r,c=Math.ceil(a/r)*r,d=[];for(let h=l;h<=c+r*1e-6;h+=r)d.push(Math.abs(h)<r*1e-9?0:h);return{ticks:d,niceMin:l,niceMax:c}}function ne(n){let a=Math.abs(n);return a>=1e6?je((n/1e6).toFixed(a>=1e7?0:1))+"M":a>=1e4?je((n/1e3).toFixed(0))+"k":a>=1e3?je((n/1e3).toFixed(1))+"k":a>=100?n.toFixed(0):a>=10||a>=1?je(n.toFixed(1)):a===0?"0":je(n.toFixed(2))}function je(n){return n.replace(/\.0+$/,"").replace(/(\.\d*[1-9])0+$/,"$1")}function $e(n,a,e){let t=n.toLocaleString(e,{maximumFractionDigits:Math.abs(n)>=100?0:1});return a?`${t} ${a}`:t}function Me(n,a,e){let t=new Date(n),i=e?{month:"short",day:"numeric",year:"2-digit"}:{month:"short",day:"numeric"};return t.toLocaleDateString(a,i)}function Dt(n,a){return new Date(n).toLocaleDateString(a,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}function _t(n,a){return new Date(n).getFullYear()!==new Date(a).getFullYear()}function gt(n,a,e){if(e<2||a<=n)return[n,a];let t=[];for(let i=0;i<e;i++)t.push(n+(a-n)*i/(e-1));return t}var mt=210,se=46,de=14,pe=12,$i=14,Is=20+$i,Rs=[{days:7,key:"chart_range_7d"},{days:30,key:"chart_range_30d"},{days:90,key:"chart_range_90d"},{days:365,key:"chart_range_1y"}],N=class extends S{constructor(){super(...arguments);this.points=[];this.events=[];this.unit="";this.lang="en";this.thresholdAbove=null;this.thresholdBelow=null;this.targetValue=null;this.forceZero=!1;this.projection=null;this.rangeDays=30;this.showRange=!0;this.busy=!1;this.hideOutliers=!1;this.showOutlierToggle=!0;this._width=0;this._hover=null;this._ro=null}connectedCallback(){super.connectedCallback(),this._ro=new ResizeObserver(e=>{let t=Math.floor(e[0]?.contentRect?.width||0);t&&Math.abs(t-this._width)>2&&(this._width=t)}),this._ro.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this._ro?.disconnect(),this._ro=null}_emitRange(e){e!==this.rangeDays&&this.dispatchEvent(new CustomEvent("range-change",{detail:{days:e},bubbles:!0,composed:!0}))}_toggleOutliers(){this.dispatchEvent(new CustomEvent("outlier-toggle",{detail:{hide:!this.hideOutliers},bubbles:!0,composed:!0}))}render(){let e=this._width||320,t=[...this.points].sort((r,l)=>r.ts-l.ts),i=this.lang;return o`
+  `}function Bt(n,r,t=4){if(!isFinite(n)||!isFinite(r))return{ticks:[],niceMin:0,niceMax:1};if(n===r){let u=Math.abs(n)*.1||1;n-=u,r+=u}let e=r-n,i=Math.pow(10,Math.floor(Math.log10(e/Math.max(1,t)))),a=i;for(let u of[1,2,5,10])if(a=i*u,e/a<=t+.5)break;let l=Math.floor(n/a)*a,c=Math.ceil(r/a)*a,d=[];for(let u=l;u<=c+a*1e-6;u+=a)d.push(Math.abs(u)<a*1e-9?0:u);return{ticks:d,niceMin:l,niceMax:c}}function nt(n){let r=Math.abs(n);return r>=1e6?jt((n/1e6).toFixed(r>=1e7?0:1))+"M":r>=1e4?jt((n/1e3).toFixed(0))+"k":r>=1e3?jt((n/1e3).toFixed(1))+"k":r>=100?n.toFixed(0):r>=10||r>=1?jt(n.toFixed(1)):r===0?"0":jt(n.toFixed(2))}function jt(n){return n.replace(/\.0+$/,"").replace(/(\.\d*[1-9])0+$/,"$1")}function $t(n,r,t){let e=n.toLocaleString(t,{maximumFractionDigits:Math.abs(n)>=100?0:1});return r?`${e} ${r}`:e}function Mt(n,r,t){let e=new Date(n),i=t?{month:"short",day:"numeric",year:"2-digit"}:{month:"short",day:"numeric"};return e.toLocaleDateString(r,i)}function He(n,r){return new Date(n).toLocaleDateString(r,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}function _e(n,r){return new Date(n).getFullYear()!==new Date(r).getFullYear()}function ge(n,r,t){if(t<2||r<=n)return[n,r];let e=[];for(let i=0;i<t;i++)e.push(n+(r-n)*i/(t-1));return e}var me=210,st=46,dt=14,pt=12,$i=14,Is=20+$i,Ls=[{days:7,key:"chart_range_7d"},{days:30,key:"chart_range_30d"},{days:90,key:"chart_range_90d"},{days:365,key:"chart_range_1y"}],N=class extends S{constructor(){super(...arguments);this.points=[];this.events=[];this.unit="";this.lang="en";this.thresholdAbove=null;this.thresholdBelow=null;this.targetValue=null;this.forceZero=!1;this.projection=null;this.rangeDays=30;this.showRange=!0;this.busy=!1;this.hideOutliers=!1;this.showOutlierToggle=!0;this._width=0;this._hover=null;this._ro=null}connectedCallback(){super.connectedCallback(),this._ro=new ResizeObserver(t=>{let e=Math.floor(t[0]?.contentRect?.width||0);e&&Math.abs(e-this._width)>2&&(this._width=e)}),this._ro.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this._ro?.disconnect(),this._ro=null}_emitRange(t){t!==this.rangeDays&&this.dispatchEvent(new CustomEvent("range-change",{detail:{days:t},bubbles:!0,composed:!0}))}_toggleOutliers(){this.dispatchEvent(new CustomEvent("outlier-toggle",{detail:{hide:!this.hideOutliers},bubbles:!0,composed:!0}))}render(){let t=this._width||320,e=[...this.points].sort((a,l)=>a.ts-l.ts),i=this.lang;return o`
       <div class="chart-wrap">
         ${this.showRange?o`<div class="range-chips" role="group">
               ${this.showOutlierToggle?o`<button
@@ -6087,33 +6105,33 @@ ${d?`<div class="sub">${d}</div>`:""}
                     ?disabled=${this.busy}
                     title=${s("hide_outliers",i)}
                     @click=${()=>this._toggleOutliers()}
-                  ><ha-icon icon="mdi:filter-variant"></ha-icon></button>`:u}
-              ${Rs.map(r=>o`<button
-                  class="range-chip ${this.rangeDays===r.days?"active":""}"
+                  ><ha-icon icon="mdi:filter-variant"></ha-icon></button>`:p}
+              ${Ls.map(a=>o`<button
+                  class="range-chip ${this.rangeDays===a.days?"active":""}"
                   ?disabled=${this.busy}
-                  @click=${()=>this._emitRange(r.days)}
-                >${s(r.key,i)}</button>`)}
-            </div>`:u}
-        ${t.length<2?o`<div class="chart-empty">
+                  @click=${()=>this._emitRange(a.days)}
+                >${s(a.key,i)}</button>`)}
+            </div>`:p}
+        ${e.length<2?o`<div class="chart-empty">
               <ha-icon icon="mdi:chart-line"></ha-icon> ${s("loading_chart",i)}
-            </div>`:this._renderSvg(e,t)}
+            </div>`:this._renderSvg(t,e)}
       </div>
-    `}_renderSvg(e,t){let i=this.lang,r=e-se-de,l=mt-Is,c=l-pe,d=1/0,h=-1/0;for(let k of t)d=Math.min(d,k.min??k.val),h=Math.max(h,k.max??k.val);this.thresholdAbove!=null&&(d=Math.min(d,this.thresholdAbove),h=Math.max(h,this.thresholdAbove)),this.thresholdBelow!=null&&(d=Math.min(d,this.thresholdBelow),h=Math.max(h,this.thresholdBelow)),this.targetValue!=null&&(d=Math.min(d,this.targetValue),h=Math.max(h,this.targetValue)),this.forceZero&&(d=Math.min(d,0));let g=(h-d||1)*.06,m=this.forceZero&&d>=0?0:d-g,{ticks:v,niceMin:f,niceMax:w}=Be(m,h+g,4);this.forceZero&&d>=0&&f<0&&(f=0,v=v.filter(k=>k>=0));let b=t[0].ts,C=t[t.length-1].ts,z=C-b||1,D=_t(b,C),I=k=>se+(k-b)/z*r,T=k=>pe+(1-(k-f)/(w-f||1))*c,Y=t.map(k=>`${I(k.ts).toFixed(1)},${T(k.val).toFixed(1)}`).join(" "),G=`M${I(t[0].ts).toFixed(1)},${l} `+t.map(k=>`L${I(k.ts).toFixed(1)},${T(k.val).toFixed(1)}`).join(" ")+` L${I(t[t.length-1].ts).toFixed(1)},${l} Z`,K="",F=t.filter(k=>k.min!=null&&k.max!=null);if(F.length>=2){let k=F.map(R=>`${I(R.ts).toFixed(1)},${T(R.max).toFixed(1)}`),$=[...F].reverse().map(R=>`${I(R.ts).toFixed(1)},${T(R.min).toFixed(1)}`);K=`M${k[0]} `+k.slice(1).map(R=>`L${R}`).join(" ")+` L${$.join(" L")} Z`}let q=[];if(this.thresholdBelow!=null){let k=T(this.thresholdBelow);q.push({y:k,h:Math.max(0,l-k),lineY:k,label:`\u25BC ${ne(this.thresholdBelow)}`,labelY:Math.min(l-4,k+13)})}if(this.thresholdAbove!=null){let k=T(this.thresholdAbove);q.push({y:pe,h:Math.max(0,k-pe),lineY:k,label:`\u25B2 ${ne(this.thresholdAbove)}`,labelY:Math.max(pe+11,k-5)})}let ue=t[t.length-1],me=(this.events||[]).filter(k=>k.ts>=b&&k.ts<=C),we=gt(b,C,Math.max(2,Math.min(5,Math.floor(r/110)+1))),B=this._hover;return o`
+    `}_renderSvg(t,e){let i=this.lang,a=t-st-dt,l=me-Is,c=l-pt,d=1/0,u=-1/0;for(let k of e)d=Math.min(d,k.min??k.val),u=Math.max(u,k.max??k.val);this.thresholdAbove!=null&&(d=Math.min(d,this.thresholdAbove),u=Math.max(u,this.thresholdAbove)),this.thresholdBelow!=null&&(d=Math.min(d,this.thresholdBelow),u=Math.max(u,this.thresholdBelow)),this.targetValue!=null&&(d=Math.min(d,this.targetValue),u=Math.max(u,this.targetValue)),this.forceZero&&(d=Math.min(d,0));let g=(u-d||1)*.06,m=this.forceZero&&d>=0?0:d-g,{ticks:v,niceMin:f,niceMax:w}=Bt(m,u+g,4);this.forceZero&&d>=0&&f<0&&(f=0,v=v.filter(k=>k>=0));let b=e[0].ts,C=e[e.length-1].ts,P=C-b||1,H=_e(b,C),R=k=>st+(k-b)/P*a,E=k=>pt+(1-(k-f)/(w-f||1))*c,Y=e.map(k=>`${R(k.ts).toFixed(1)},${E(k.val).toFixed(1)}`).join(" "),G=`M${R(e[0].ts).toFixed(1)},${l} `+e.map(k=>`L${R(k.ts).toFixed(1)},${E(k.val).toFixed(1)}`).join(" ")+` L${R(e[e.length-1].ts).toFixed(1)},${l} Z`,K="",F=e.filter(k=>k.min!=null&&k.max!=null);if(F.length>=2){let k=F.map(I=>`${R(I.ts).toFixed(1)},${E(I.max).toFixed(1)}`),$=[...F].reverse().map(I=>`${R(I.ts).toFixed(1)},${E(I.min).toFixed(1)}`);K=`M${k[0]} `+k.slice(1).map(I=>`L${I}`).join(" ")+` L${$.join(" L")} Z`}let q=[];if(this.thresholdBelow!=null){let k=E(this.thresholdBelow);q.push({y:k,h:Math.max(0,l-k),lineY:k,label:`\u25BC ${nt(this.thresholdBelow)}`,labelY:Math.min(l-4,k+13)})}if(this.thresholdAbove!=null){let k=E(this.thresholdAbove);q.push({y:pt,h:Math.max(0,k-pt),lineY:k,label:`\u25B2 ${nt(this.thresholdAbove)}`,labelY:Math.max(pt+11,k-5)})}let ht=e[e.length-1],mt=(this.events||[]).filter(k=>k.ts>=b&&k.ts<=C),wt=ge(b,C,Math.max(2,Math.min(5,Math.floor(a/110)+1))),B=this._hover;return o`
       <div class="svg-holder">
         <svg
           class="chart-svg"
-          viewBox="0 0 ${e} ${mt}"
-          width=${e}
-          height=${mt}
+          viewBox="0 0 ${t} ${me}"
+          width=${t}
+          height=${me}
           role="img"
           aria-label=${s("chart_sparkline",i)}
-          @pointermove=${k=>this._onPointer(k,t,I,T,e)}
-          @pointerdown=${k=>this._onPointer(k,t,I,T,e)}
+          @pointermove=${k=>this._onPointer(k,e,R,E,t)}
+          @pointerdown=${k=>this._onPointer(k,e,R,E,t)}
           @pointerleave=${()=>this._hover=null}
         >
           <defs>
-            <clipPath id="plot"><rect x="${se}" y="${pe}" width="${r}" height="${c}" /></clipPath>
-            ${q.length?P`<clipPath id="danger">${q.map(k=>P`<rect x="${se}" y="${k.y.toFixed(1)}" width="${r}" height="${k.h.toFixed(1)}" />`)}</clipPath>`:u}
+            <clipPath id="plot"><rect x="${st}" y="${pt}" width="${a}" height="${c}" /></clipPath>
+            ${q.length?z`<clipPath id="danger">${q.map(k=>z`<rect x="${st}" y="${k.y.toFixed(1)}" width="${a}" height="${k.h.toFixed(1)}" />`)}</clipPath>`:p}
             <!-- Diagonal hatch so the danger zone reads without relying on the
                  red tint alone (dark-theme contrast + colour-blind support). -->
             <pattern id="dangerHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
@@ -6122,63 +6140,63 @@ ${d?`<div class="sub">${d}</div>`:""}
             </pattern>
           </defs>
 
-          ${v.map(k=>{let $=T(k);return $<pe-1||$>l+1?u:P`
-              <line x1="${se}" y1="${$.toFixed(1)}" x2="${e-de}" y2="${$.toFixed(1)}"
+          ${v.map(k=>{let $=E(k);return $<pt-1||$>l+1?p:z`
+              <line x1="${st}" y1="${$.toFixed(1)}" x2="${t-dt}" y2="${$.toFixed(1)}"
                 stroke="var(--divider-color)" stroke-width="1" opacity="0.6" />
-              <text x="${se-7}" y="${($+3.5).toFixed(1)}" text-anchor="end" class="tick-label">${ne(k)}</text>`})}
+              <text x="${st-7}" y="${($+3.5).toFixed(1)}" text-anchor="end" class="tick-label">${nt(k)}</text>`})}
 
-          ${q.map(k=>P`<rect x="${se}" y="${k.y.toFixed(1)}" width="${r}" height="${k.h.toFixed(1)}"
+          ${q.map(k=>z`<rect x="${st}" y="${k.y.toFixed(1)}" width="${a}" height="${k.h.toFixed(1)}"
               fill="url(#dangerHatch)" />`)}
 
-          ${K?P`<path d="${K}" fill="var(--primary-color)" opacity="0.08" clip-path="url(#plot)" />`:u}
+          ${K?z`<path d="${K}" fill="var(--primary-color)" opacity="0.08" clip-path="url(#plot)" />`:p}
           <path d="${G}" fill="var(--primary-color)" opacity="0.10" clip-path="url(#plot)" />
           <polyline points="${Y}" fill="none" stroke="var(--primary-color)" stroke-width="2"
             stroke-linejoin="round" stroke-linecap="round" clip-path="url(#plot)" />
-          ${q.length?P`<polyline points="${Y}" fill="none" stroke="var(--error-color, #f44336)" stroke-width="2"
-                stroke-linejoin="round" stroke-linecap="round" clip-path="url(#danger)" />`:u}
+          ${q.length?z`<polyline points="${Y}" fill="none" stroke="var(--error-color, #f44336)" stroke-width="2"
+                stroke-linejoin="round" stroke-linecap="round" clip-path="url(#danger)" />`:p}
 
-          ${q.map(k=>P`
-              <line x1="${se}" y1="${k.lineY.toFixed(1)}" x2="${e-de}" y2="${k.lineY.toFixed(1)}"
+          ${q.map(k=>z`
+              <line x1="${st}" y1="${k.lineY.toFixed(1)}" x2="${t-dt}" y2="${k.lineY.toFixed(1)}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${e-de-4}" y="${k.labelY.toFixed(1)}" text-anchor="end" class="zone-label">${k.label}</text>`)}
+              <text x="${t-dt-4}" y="${k.labelY.toFixed(1)}" text-anchor="end" class="zone-label">${k.label}</text>`)}
 
-          ${this.targetValue!=null?P`<line x1="${se}" y1="${T(this.targetValue).toFixed(1)}" x2="${e-de}" y2="${T(this.targetValue).toFixed(1)}"
+          ${this.targetValue!=null?z`<line x1="${st}" y1="${E(this.targetValue).toFixed(1)}" x2="${t-dt}" y2="${E(this.targetValue).toFixed(1)}"
                 stroke="var(--error-color, #f44336)" stroke-width="1.5" stroke-dasharray="6,4" />
-              <text x="${e-de-4}" y="${(T(this.targetValue)-5).toFixed(1)}" text-anchor="end" class="zone-label">◆ ${ne(this.targetValue)} ${this.unit}</text>`:u}
+              <text x="${t-dt-4}" y="${(E(this.targetValue)-5).toFixed(1)}" text-anchor="end" class="zone-label">◆ ${nt(this.targetValue)} ${this.unit}</text>`:p}
 
-          ${this.projection&&this.projection.length===2?P`<line x1="${I(this.projection[0].ts).toFixed(1)}" y1="${T(this.projection[0].val).toFixed(1)}"
-                x2="${Math.min(I(this.projection[1].ts),e-de).toFixed(1)}" y2="${T(Math.max(f,Math.min(w,this.projection[1].val))).toFixed(1)}"
-                stroke="var(--warning-color, #ff9800)" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8" />`:u}
+          ${this.projection&&this.projection.length===2?z`<line x1="${R(this.projection[0].ts).toFixed(1)}" y1="${E(this.projection[0].val).toFixed(1)}"
+                x2="${Math.min(R(this.projection[1].ts),t-dt).toFixed(1)}" y2="${E(Math.max(f,Math.min(w,this.projection[1].val))).toFixed(1)}"
+                stroke="var(--warning-color, #ff9800)" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8" />`:p}
 
-          ${we.map((k,$)=>{let R=I(k),vt=$===0?"start":$===we.length-1?"end":"middle";return P`<text x="${R.toFixed(1)}" y="${mt-5}" text-anchor="${vt}" class="tick-label">${Me(k,i,D)}</text>`})}
+          ${wt.map((k,$)=>{let I=R(k),ve=$===0?"start":$===wt.length-1?"end":"middle";return z`<text x="${I.toFixed(1)}" y="${me-5}" text-anchor="${ve}" class="tick-label">${Mt(k,i,H)}</text>`})}
 
-          <line x1="${se}" y1="${l}" x2="${e-de}" y2="${l}" stroke="var(--divider-color)" stroke-width="1" />
+          <line x1="${st}" y1="${l}" x2="${t-dt}" y2="${l}" stroke="var(--divider-color)" stroke-width="1" />
 
-          ${me.map(k=>{let $=I(k.ts),R=k.type==="completed"?"var(--success-color, #4caf50)":k.type==="skipped"?"var(--warning-color, #ff9800)":"var(--info-color, #2196f3)";return P`
-              <line x1="${$.toFixed(1)}" y1="${pe}" x2="${$.toFixed(1)}" y2="${l}" stroke="${R}" stroke-width="1" opacity="0.14" />
-              <rect x="${($-1.5).toFixed(1)}" y="${l+3}" width="3" height="${$i-6}" rx="1.5" fill="${R}">
-                <title>${Dt(k.ts,i)}</title>
+          ${mt.map(k=>{let $=R(k.ts),I=k.type==="completed"?"var(--success-color, #4caf50)":k.type==="skipped"?"var(--warning-color, #ff9800)":"var(--info-color, #2196f3)";return z`
+              <line x1="${$.toFixed(1)}" y1="${pt}" x2="${$.toFixed(1)}" y2="${l}" stroke="${I}" stroke-width="1" opacity="0.14" />
+              <rect x="${($-1.5).toFixed(1)}" y="${l+3}" width="3" height="${$i-6}" rx="1.5" fill="${I}">
+                <title>${He(k.ts,i)}</title>
               </rect>`})}
 
-          ${B?P`
-                <line x1="${B.x.toFixed(1)}" y1="${pe}" x2="${B.x.toFixed(1)}" y2="${l}"
+          ${B?z`
+                <line x1="${B.x.toFixed(1)}" y1="${pt}" x2="${B.x.toFixed(1)}" y2="${l}"
                   stroke="var(--secondary-text-color)" stroke-width="1" stroke-dasharray="3,3" opacity="0.7" />
                 <circle cx="${B.x.toFixed(1)}" cy="${B.y.toFixed(1)}" r="4.5" fill="var(--primary-color)"
-                  stroke="var(--card-background-color, #fff)" stroke-width="2" />`:P`<circle cx="${I(ue.ts).toFixed(1)}" cy="${T(ue.val).toFixed(1)}" r="4" fill="var(--primary-color)"
+                  stroke="var(--card-background-color, #fff)" stroke-width="2" />`:z`<circle cx="${R(ht.ts).toFixed(1)}" cy="${E(ht.val).toFixed(1)}" r="4" fill="var(--primary-color)"
                 stroke="var(--card-background-color, #fff)" stroke-width="1.5" />`}
         </svg>
         ${B?o`<div
               class="hover-chip"
-              style="left:${Math.min(Math.max(B.x,70),e-70)}px"
+              style="left:${Math.min(Math.max(B.x,70),t-70)}px"
             >
-              <div class="hover-date">${Dt(B.p.ts,i)}</div>
+              <div class="hover-date">${He(B.p.ts,i)}</div>
               <div class="hover-val">
-                ${$e(B.p.val,this.unit,i)}
-                ${B.p.min!=null&&B.p.max!=null?o`<span class="hover-range">(${ne(B.p.min)}–${ne(B.p.max)})</span>`:u}
+                ${$t(B.p.val,this.unit,i)}
+                ${B.p.min!=null&&B.p.max!=null?o`<span class="hover-range">(${nt(B.p.min)}–${nt(B.p.max)})</span>`:p}
               </div>
-            </div>`:u}
+            </div>`:p}
       </div>
-    `}_onPointer(e,t,i,r,l){let d=e.currentTarget.getBoundingClientRect(),h=(e.clientX-d.left)/d.width*l;if(h<se-8||h>l-de+8){this._hover=null;return}let g=t[0],m=1/0;for(let v of t){let f=Math.abs(i(v.ts)-h);f<m&&(m=f,g=v)}this._hover={x:i(g.ts),y:r(g.val),p:g}}};N.styles=A`
+    `}_onPointer(t,e,i,a,l){let d=t.currentTarget.getBoundingClientRect(),u=(t.clientX-d.left)/d.width*l;if(u<st-8||u>l-dt+8){this._hover=null;return}let g=e[0],m=1/0;for(let v of e){let f=Math.abs(i(v.ts)-u);f<m&&(m=f,g=v)}this._hover={x:i(g.ts),y:a(g.val),p:g}}};N.styles=A`
     :host { display: block; width: 100%; }
     .chart-wrap { position: relative; }
     .range-chips { display: flex; gap: 4px; justify-content: flex-end; margin-bottom: 2px; }
@@ -6213,158 +6231,158 @@ ${d?`<div class="sub">${d}</div>`:""}
     .hover-date { font-size: 10.5px; color: var(--secondary-text-color); }
     .hover-val { font-size: 12.5px; font-weight: 600; color: var(--primary-text-color); }
     .hover-range { font-weight: 400; color: var(--secondary-text-color); font-size: 11px; }
-  `,p([y({attribute:!1})],N.prototype,"points",2),p([y({attribute:!1})],N.prototype,"events",2),p([y()],N.prototype,"unit",2),p([y()],N.prototype,"lang",2),p([y({attribute:!1})],N.prototype,"thresholdAbove",2),p([y({attribute:!1})],N.prototype,"thresholdBelow",2),p([y({attribute:!1})],N.prototype,"targetValue",2),p([y({type:Boolean})],N.prototype,"forceZero",2),p([y({attribute:!1})],N.prototype,"projection",2),p([y({attribute:!1})],N.prototype,"rangeDays",2),p([y({type:Boolean})],N.prototype,"showRange",2),p([y({type:Boolean})],N.prototype,"busy",2),p([y({type:Boolean})],N.prototype,"hideOutliers",2),p([y({type:Boolean})],N.prototype,"showOutlierToggle",2),p([_()],N.prototype,"_width",2),p([_()],N.prototype,"_hover",2);customElements.get("maintenance-trigger-chart")||customElements.define("maintenance-trigger-chart",N);function Ls(n){if(n.length<4)return n;let a=n.map(h=>h.val).sort((h,g)=>h-g),e=h=>{let g=(a.length-1)*h,m=Math.floor(g),v=Math.ceil(g);return a[m]+(a[v]-a[m])*(g-m)},t=e(.25),i=e(.75),r=i-t;if(r===0)return n;let l=t-1.5*r,c=i+1.5*r,d=n.filter(h=>h.val>=l&&h.val<=c);return d.length>=2?d:n}function wi(n,a){let e=n.trigger_config;if(!e)return u;let t=a.lang,i=n.trigger_entity_info,r=n.trigger_entity_infos,l=i?.friendly_name||e.entity_id||"\u2014",c=e.entity_id||"",d=e.entity_ids||(c?[c]:[]),h=i?.unit_of_measurement||"",g=n.trigger_current_value,m=e.type||"threshold",v=d.length>1,f=Ps(n,h,a);return o`
-    <h3>${s("trigger",t)}</h3>
+  `,h([y({attribute:!1})],N.prototype,"points",2),h([y({attribute:!1})],N.prototype,"events",2),h([y()],N.prototype,"unit",2),h([y()],N.prototype,"lang",2),h([y({attribute:!1})],N.prototype,"thresholdAbove",2),h([y({attribute:!1})],N.prototype,"thresholdBelow",2),h([y({attribute:!1})],N.prototype,"targetValue",2),h([y({type:Boolean})],N.prototype,"forceZero",2),h([y({attribute:!1})],N.prototype,"projection",2),h([y({attribute:!1})],N.prototype,"rangeDays",2),h([y({type:Boolean})],N.prototype,"showRange",2),h([y({type:Boolean})],N.prototype,"busy",2),h([y({type:Boolean})],N.prototype,"hideOutliers",2),h([y({type:Boolean})],N.prototype,"showOutlierToggle",2),h([_()],N.prototype,"_width",2),h([_()],N.prototype,"_hover",2);customElements.get("maintenance-trigger-chart")||customElements.define("maintenance-trigger-chart",N);function zs(n){if(n.length<4)return n;let r=n.map(u=>u.val).sort((u,g)=>u-g),t=u=>{let g=(r.length-1)*u,m=Math.floor(g),v=Math.ceil(g);return r[m]+(r[v]-r[m])*(g-m)},e=t(.25),i=t(.75),a=i-e;if(a===0)return n;let l=e-1.5*a,c=i+1.5*a,d=n.filter(u=>u.val>=l&&u.val<=c);return d.length>=2?d:n}function wi(n,r){let t=n.trigger_config;if(!t)return p;let e=r.lang,i=n.trigger_entity_info,a=n.trigger_entity_infos,l=i?.friendly_name||t.entity_id||"\u2014",c=t.entity_id||"",d=t.entity_ids||(c?[c]:[]),u=i?.unit_of_measurement||"",g=n.trigger_current_value,m=t.type||"threshold",v=d.length>1,f=Ps(n,u,r);return o`
+    <h3>${s("trigger",e)}</h3>
     <div class="trigger-card">
       <div class="trigger-header">
         <ha-icon icon="mdi:pulse" style="color: var(--primary-color); --mdc-icon-size: 20px;"></ha-icon>
         <div>
           ${v?o`
-            <div class="trigger-entity-name">${d.length} ${s("entities",t)} (${e.entity_logic||"any"})</div>
-            <div class="trigger-entity-id">${d.map((w,b)=>o`${b>0?", ":""}<span class="entity-link" @click=${C=>xe(C,w)}>${w}</span>`)}${e.attribute?` \u2192 ${e.attribute}`:""}</div>
+            <div class="trigger-entity-name">${d.length} ${s("entities",e)} (${t.entity_logic||"any"})</div>
+            <div class="trigger-entity-id">${d.map((w,b)=>o`${b>0?", ":""}<span class="entity-link" @click=${C=>xt(C,w)}>${w}</span>`)}${t.attribute?` \u2192 ${t.attribute}`:""}</div>
           `:o`
             <div class="trigger-entity-name">${l}</div>
-            <div class="trigger-entity-id">${c?o`<span class="entity-link" @click=${w=>xe(w,c)}>${c}</span>`:""}${e.attribute?` \u2192 ${e.attribute}`:""}</div>
+            <div class="trigger-entity-id">${c?o`<span class="entity-link" @click=${w=>xt(w,c)}>${c}</span>`:""}${t.attribute?` \u2192 ${t.attribute}`:""}</div>
           `}
         </div>
         <span class="status-badge ${n.trigger_active?"triggered":"ok"}" style="margin-left: auto;">
-          ${n.trigger_active?s("triggered",t):s("ok",t)}
+          ${n.trigger_active?s("triggered",e):s("ok",e)}
         </span>
       </div>
 
-      ${f?zs(f,t):g!=null?o`
+      ${f?Hs(f,e):g!=null?o`
               <div class="trigger-value-row">
-                <span class="trigger-current ${n.trigger_active?"active":""}">${typeof g=="number"?$e(g,"",t):g}</span>
-                ${h?o`<span class="trigger-unit">${h}</span>`:u}
+                <span class="trigger-current ${n.trigger_active?"active":""}">${typeof g=="number"?$t(g,"",e):g}</span>
+                ${u?o`<span class="trigger-unit">${u}</span>`:p}
               </div>
-            `:u}
+            `:p}
 
       <div class="trigger-limits">
         ${m==="threshold"?o`
-          ${e.trigger_above!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_above",t)}: ${e.trigger_above} ${h}</span>`:u}
-          ${e.trigger_below!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_below",t)}: ${e.trigger_below} ${h}</span>`:u}
-          ${e.trigger_for_minutes?o`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${s("for_minutes",t)}: ${e.trigger_for_minutes}</span>`:u}
-        `:u}
+          ${t.trigger_above!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_above",e)}: ${t.trigger_above} ${u}</span>`:p}
+          ${t.trigger_below!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("threshold_below",e)}: ${t.trigger_below} ${u}</span>`:p}
+          ${t.trigger_for_minutes?o`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${s("for_minutes",e)}: ${t.trigger_for_minutes}</span>`:p}
+        `:p}
         ${m==="state_change"?o`
-          ${e.trigger_target_changes!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("target_changes",t)}: ${e.trigger_target_changes}</span>`:u}
-        `:u}
+          ${t.trigger_target_changes!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("target_changes",e)}: ${t.trigger_target_changes}</span>`:p}
+        `:p}
         ${m==="runtime"?o`
-          ${e.trigger_runtime_hours!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("runtime_hours",t)}: ${e.trigger_runtime_hours}h</span>`:u}
-        `:u}
+          ${t.trigger_runtime_hours!=null?o`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("runtime_hours",e)}: ${t.trigger_runtime_hours}h</span>`:p}
+        `:p}
         ${m==="compound"?o`
-          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("compound_logic",t)}: ${e.compound_logic||e.operator||"AND"}</span>
-          ${(e.conditions||[]).map((w,b)=>o`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${b+1}. ${s(w.type||"unknown",t)}: ${w.entity_id?o`<span class="entity-link" @click=${C=>xe(C,w.entity_id)}>${w.entity_id}</span>`:""}</span>
+          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${s("compound_logic",e)}: ${t.compound_logic||t.operator||"AND"}</span>
+          ${(t.conditions||[]).map((w,b)=>o`
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${b+1}. ${s(w.type||"unknown",e)}: ${w.entity_id?o`<span class="entity-link" @click=${C=>xt(C,w.entity_id)}>${w.entity_id}</span>`:""}</span>
           `)}
-        `:u}
+        `:p}
       </div>
 
-      ${r&&r.length>1?o`
+      ${a&&a.length>1?o`
         <div class="trigger-entity-list">
-          ${r.map(w=>o`
-            <span class="trigger-entity-id">${w.friendly_name} (<span class="entity-link" @click=${b=>xe(b,w.entity_id)}>${w.entity_id}</span>)</span>
+          ${a.map(w=>o`
+            <span class="trigger-entity-id">${w.friendly_name} (<span class="entity-link" @click=${b=>xt(b,w.entity_id)}>${w.entity_id}</span>)</span>
           `)}
         </div>
-      `:u}
+      `:p}
 
-      ${Ds(n,h,a)}
+      ${Ds(n,u,r)}
     </div>
-  `}function Ps(n,a,e){let t=n.trigger_config,i=n.trigger_current_value;if(!t||i==null)return null;switch(t.type||"threshold"){case"counter":{let r=t.trigger_target_value;if(r==null||r<=0)return null;let l=ki(n,Ei(n,e));return{progress:Math.max(0,i-(l?.value??i)),target:r,unit:a,meter:i}}case"state_change":{let r=t.trigger_target_changes;return r==null||r<=0?null:{progress:Math.max(0,i),target:r,unit:"",meter:null}}case"runtime":{let r=t.trigger_runtime_hours;return r==null||r<=0?null:{progress:Math.max(0,i),target:r,unit:"h",meter:null}}}return null}function ki(n,a){if(n.trigger_baseline_value!=null)return{value:n.trigger_baseline_value,ts:Ht(n)};if(!a.length)return null;let e=Ht(n);if(e==null)return{value:a[0].val,ts:null};let t=a[0],i=Math.abs(a[0].ts-e);for(let r of a){let l=Math.abs(r.ts-e);l<i&&(t=r,i=l)}return{value:t.val,ts:e}}function Ht(n){let a=[...n.history].filter(e=>e.type==="completed"||e.type==="reset").sort((e,t)=>new Date(t.timestamp).getTime()-new Date(e.timestamp).getTime())[0];return a?new Date(a.timestamp).getTime():null}function zs(n,a){let e=Math.min(999,Math.round(n.progress/n.target*100)),t=e>=100?"over":e>=75?"near":"ok";return o`
+  `}function Ps(n,r,t){let e=n.trigger_config,i=n.trigger_current_value;if(!e||i==null)return null;switch(e.type||"threshold"){case"counter":{let a=e.trigger_target_value;if(a==null||a<=0)return null;let l=ki(n,Ti(n,t));return{progress:Math.max(0,i-(l?.value??i)),target:a,unit:r,meter:i}}case"state_change":{let a=e.trigger_target_changes;return a==null||a<=0?null:{progress:Math.max(0,i),target:a,unit:"",meter:null}}case"runtime":{let a=e.trigger_runtime_hours;return a==null||a<=0?null:{progress:Math.max(0,i),target:a,unit:"h",meter:null}}}return null}function ki(n,r){if(n.trigger_baseline_value!=null)return{value:n.trigger_baseline_value,ts:De(n)};if(!r.length)return null;let t=De(n);if(t==null)return{value:r[0].val,ts:null};let e=r[0],i=Math.abs(r[0].ts-t);for(let a of r){let l=Math.abs(a.ts-t);l<i&&(e=a,i=l)}return{value:e.val,ts:t}}function De(n){let r=[...n.history].filter(t=>t.type==="completed"||t.type==="reset").sort((t,e)=>new Date(e.timestamp).getTime()-new Date(t.timestamp).getTime())[0];return r?new Date(r.timestamp).getTime():null}function Hs(n,r){let t=Math.min(999,Math.round(n.progress/n.target*100)),e=t>=100?"over":t>=75?"near":"ok";return o`
     <div class="counter-progress">
       <div class="counter-progress-nums">
-        <span class="counter-progress-main">${$e(n.progress,"",a)}<span class="counter-progress-target"> / ${$e(n.target,n.unit,a)}</span></span>
-        <span class="counter-progress-pct ${t}">${e} %</span>
+        <span class="counter-progress-main">${$t(n.progress,"",r)}<span class="counter-progress-target"> / ${$t(n.target,n.unit,r)}</span></span>
+        <span class="counter-progress-pct ${e}">${t} %</span>
       </div>
-      <div class="counter-progress-bar" role="progressbar" aria-valuenow=${e} aria-valuemin="0" aria-valuemax="100">
-        <div class="counter-progress-fill ${t}" style="width:${Math.min(100,e)}%"></div>
+      <div class="counter-progress-bar" role="progressbar" aria-valuenow=${t} aria-valuemin="0" aria-valuemax="100">
+        <div class="counter-progress-fill ${e}" style="width:${Math.min(100,t)}%"></div>
       </div>
       <div class="counter-progress-caption">
-        ${s("chart_since_service",a)}${n.meter!=null?o` · ${s("current",a)}: ${$e(n.meter,n.unit,a)}`:u}
+        ${s("chart_since_service",r)}${n.meter!=null?o` · ${s("current",r)}: ${$t(n.meter,n.unit,r)}`:p}
       </div>
     </div>
-  `}function Ei(n,a){let e=n.trigger_config;if(!e)return[];let t=e.type||"threshold",i=e.entity_id||"",r=t==="runtime"?[]:a.detailStatsData.get(i)||[],l=a.isCounterEntity(e),c=[];if(r.length>=2)for(let d of r){let h={ts:d.ts,val:d.val};!l&&d.min!=null&&d.max!=null&&(h.min=d.min,h.max=d.max),c.push(h)}else for(let d of n.history)d.trigger_value!=null&&c.push({ts:new Date(d.timestamp).getTime(),val:d.trigger_value});return n.trigger_current_value!=null&&c.push({ts:Date.now(),val:n.trigger_current_value}),c.sort((d,h)=>d.ts-h.ts),c}function Ds(n,a,e){let t=n.trigger_config;if(!t)return u;let i=t.type||"threshold",r=t.entity_id||"",l=Ei(n,e);i==="runtime"&&t.trigger_runtime_hours&&n.trigger_current_value!=null&&(l=[{ts:Ht(n)??l[0]?.ts??Date.now()-864e5,val:0},{ts:Date.now(),val:Math.max(0,n.trigger_current_value)}]),e.hideOutliers&&(l=Ls(l));let c=l.length<2&&!!r&&e.hasStatsService&&!e.detailStatsData.has(r);if(l.length<2&&!c)return u;let d=!!r&&e.detailStatsData.has(r)&&(e.detailStatsData.get(r)?.length??0)<2,h=Date.now()-e.rangeDays*864e5,g=l.filter(b=>b.ts>=h);g.length>=2&&(l=g);let m=null,v=!1;if(i==="counter"&&t.trigger_target_value!=null&&l.length){let b=ki(n,l);if(b){if(b.ts!=null){let C=l.filter(z=>z.ts>=b.ts);C.length>=2&&(l=C)}l=l.map(C=>({...C,val:Math.max(0,C.val-b.value)}))}m=t.trigger_target_value,v=!0}else i==="state_change"&&t.trigger_target_changes?(m=t.trigger_target_changes,v=!0):i==="runtime"&&t.trigger_runtime_hours&&(m=t.trigger_runtime_hours,v=!0);let f=null;if(m==null&&n.degradation_rate!=null&&(n.degradation_trend!=="stable"||n.days_until_threshold!=null)&&n.degradation_trend!=="insufficient_data"&&l.length>=2){let b=l[l.length-1];f=[b,{ts:b.ts+30*864e5,val:b.val+n.degradation_rate*30}]}let w=n.history.filter(b=>["completed","skipped","reset"].includes(b.type)).map(b=>({ts:new Date(b.timestamp).getTime(),type:b.type}));return o`
+  `}function Ti(n,r){let t=n.trigger_config;if(!t)return[];let e=t.type||"threshold",i=t.entity_id||"",a=e==="runtime"?[]:r.detailStatsData.get(i)||[],l=r.isCounterEntity(t),c=[];if(a.length>=2)for(let d of a){let u={ts:d.ts,val:d.val};!l&&d.min!=null&&d.max!=null&&(u.min=d.min,u.max=d.max),c.push(u)}else for(let d of n.history)d.trigger_value!=null&&c.push({ts:new Date(d.timestamp).getTime(),val:d.trigger_value});return n.trigger_current_value!=null&&c.push({ts:Date.now(),val:n.trigger_current_value}),c.sort((d,u)=>d.ts-u.ts),c}function Ds(n,r,t){let e=n.trigger_config;if(!e)return p;let i=e.type||"threshold",a=e.entity_id||"",l=Ti(n,t);i==="runtime"&&e.trigger_runtime_hours&&n.trigger_current_value!=null&&(l=[{ts:De(n)??l[0]?.ts??Date.now()-864e5,val:0},{ts:Date.now(),val:Math.max(0,n.trigger_current_value)}]),t.hideOutliers&&(l=zs(l));let c=l.length<2&&!!a&&t.hasStatsService&&!t.detailStatsData.has(a);if(l.length<2&&!c)return p;let d=!!a&&t.detailStatsData.has(a)&&(t.detailStatsData.get(a)?.length??0)<2,u=Date.now()-t.rangeDays*864e5,g=l.filter(b=>b.ts>=u);g.length>=2&&(l=g);let m=null,v=!1;if(i==="counter"&&e.trigger_target_value!=null&&l.length){let b=ki(n,l);if(b){if(b.ts!=null){let C=l.filter(P=>P.ts>=b.ts);C.length>=2&&(l=C)}l=l.map(C=>({...C,val:Math.max(0,C.val-b.value)}))}m=e.trigger_target_value,v=!0}else i==="state_change"&&e.trigger_target_changes?(m=e.trigger_target_changes,v=!0):i==="runtime"&&e.trigger_runtime_hours&&(m=e.trigger_runtime_hours,v=!0);let f=null;if(m==null&&n.degradation_rate!=null&&(n.degradation_trend!=="stable"||n.days_until_threshold!=null)&&n.degradation_trend!=="insufficient_data"&&l.length>=2){let b=l[l.length-1];f=[b,{ts:b.ts+30*864e5,val:b.val+n.degradation_rate*30}]}let w=n.history.filter(b=>["completed","skipped","reset"].includes(b.type)).map(b=>({ts:new Date(b.timestamp).getTime(),type:b.type}));return o`
     <maintenance-trigger-chart
       .points=${c?[]:l}
       .events=${w}
-      .unit=${a}
-      .lang=${e.lang}
-      .thresholdAbove=${i==="threshold"?t.trigger_above??null:null}
-      .thresholdBelow=${i==="threshold"?t.trigger_below??null:null}
+      .unit=${r}
+      .lang=${t.lang}
+      .thresholdAbove=${i==="threshold"?e.trigger_above??null:null}
+      .thresholdBelow=${i==="threshold"?e.trigger_below??null:null}
       .targetValue=${m}
       .forceZero=${v}
       .projection=${f}
-      .rangeDays=${e.rangeDays}
-      .hideOutliers=${e.hideOutliers}
+      .rangeDays=${t.rangeDays}
+      .hideOutliers=${t.hideOutliers}
       .busy=${c}
-      @range-change=${b=>e.setRangeDays(b.detail.days)}
-      @outlier-toggle=${b=>e.setHideOutliers(b.detail.hide)}
+      @range-change=${b=>t.setRangeDays(b.detail.days)}
+      @outlier-toggle=${b=>t.setHideOutliers(b.detail.hide)}
     ></maintenance-trigger-chart>
     ${d&&!c?o`<div class="chart-note">
           <ha-icon icon="mdi:information-outline"></ha-icon>
-          ${s("chart_no_stats",e.lang)}
-        </div>`:u}
-  `}function Ti(n,a,e){let t=n.degradation_trend!=null&&n.degradation_trend!=="insufficient_data",i=n.days_until_threshold!=null,r=n.environmental_factor!=null&&n.environmental_factor!==1;if(!t&&!i&&!r)return u;let l=n.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":n.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return o`
+          ${s("chart_no_stats",t.lang)}
+        </div>`:p}
+  `}function Ei(n,r,t){let e=n.degradation_trend!=null&&n.degradation_trend!=="insufficient_data",i=n.days_until_threshold!=null,a=n.environmental_factor!=null&&n.environmental_factor!==1;if(!e&&!i&&!a)return p;let l=n.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":n.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return o`
     <div class="prediction-section">
       ${n.sensor_prediction_urgency?o`
         <div class="prediction-urgency-banner">
           <ha-svg-icon path="M1,21H23L12,2L1,21M12,18A1,1 0 0,1 11,17A1,1 0 0,1 12,16A1,1 0 0,1 13,17A1,1 0 0,1 12,18M13,15H11V10H13V15Z"></ha-svg-icon>
-          ${s("sensor_prediction_urgency",a).replace("{days}",String(Math.round(n.days_until_threshold||0)))}
+          ${s("sensor_prediction_urgency",r).replace("{days}",String(Math.round(n.days_until_threshold||0)))}
         </div>
-      `:u}
+      `:p}
       <div class="prediction-title">
         <ha-svg-icon path="M2,2V4H7V2H2M22,2V4H13V2H22M7,7V9H2V7H7M22,7V9H13V7H22M7,12V14H2V12H7M22,12V14H13V12H22M7,17V19H2V17H7M22,17V19H13V17H22M9,2V19L12,22L15,19V2H9M11,4H13V17.17L12,18.17L11,17.17V4Z"></ha-svg-icon>
-        ${s("sensor_prediction",a)}
+        ${s("sensor_prediction",r)}
       </div>
       <div class="prediction-grid">
-        ${t?o`
+        ${e?o`
           <div class="prediction-item">
             <ha-svg-icon path="${l}"></ha-svg-icon>
-            <span class="prediction-label">${s("degradation_trend",a)}</span>
-            <span class="prediction-value ${n.degradation_trend}">${s("trend_"+n.degradation_trend,a)}</span>
-            ${n.degradation_rate!=null?o`<span class="prediction-rate">${n.degradation_rate>0?"+":""}${Math.abs(n.degradation_rate)>=10?Math.round(n.degradation_rate).toLocaleString():n.degradation_rate.toFixed(1)} ${n.trigger_entity_info?.unit_of_measurement||""}/${s("day_short",a)}</span>`:u}
+            <span class="prediction-label">${s("degradation_trend",r)}</span>
+            <span class="prediction-value ${n.degradation_trend}">${s("trend_"+n.degradation_trend,r)}</span>
+            ${n.degradation_rate!=null?o`<span class="prediction-rate">${n.degradation_rate>0?"+":""}${Math.abs(n.degradation_rate)>=10?Math.round(n.degradation_rate).toLocaleString():n.degradation_rate.toFixed(1)} ${n.trigger_entity_info?.unit_of_measurement||""}/${s("day_short",r)}</span>`:p}
           </div>
-        `:u}
+        `:p}
         ${i?o`
           <div class="prediction-item">
             <ha-svg-icon path="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z"></ha-svg-icon>
-            <span class="prediction-label">${s("days_until_threshold",a)}</span>
-            <span class="prediction-value prediction-days${n.days_until_threshold===0?" exceeded":n.sensor_prediction_urgency?" urgent":""}">${n.days_until_threshold===0?s("threshold_exceeded",a):"~"+Math.round(n.days_until_threshold)+" "+s("days",a)}</span>
-            ${n.threshold_prediction_date?o`<span class="prediction-date">${V(n.threshold_prediction_date,a)}</span>`:u}
-            ${n.threshold_prediction_confidence?o`<span class="confidence-dot ${n.threshold_prediction_confidence}"></span>`:u}
+            <span class="prediction-label">${s("days_until_threshold",r)}</span>
+            <span class="prediction-value prediction-days${n.days_until_threshold===0?" exceeded":n.sensor_prediction_urgency?" urgent":""}">${n.days_until_threshold===0?s("threshold_exceeded",r):"~"+Math.round(n.days_until_threshold)+" "+s("days",r)}</span>
+            ${n.threshold_prediction_date?o`<span class="prediction-date">${V(n.threshold_prediction_date,r)}</span>`:p}
+            ${n.threshold_prediction_confidence?o`<span class="confidence-dot ${n.threshold_prediction_confidence}"></span>`:p}
           </div>
-        `:u}
-        ${r&&e.environmental?o`
+        `:p}
+        ${a&&t.environmental?o`
           <div class="prediction-item">
             <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
-            <span class="prediction-label">${s("environmental_adjustment",a)}</span>
+            <span class="prediction-label">${s("environmental_adjustment",r)}</span>
             <span class="prediction-value">${n.environmental_factor.toFixed(2)}x</span>
-            ${n.environmental_entity?o`<span class="prediction-entity entity-link" @click=${c=>xe(c,n.environmental_entity)}>${n.environmental_entity}</span>`:u}
+            ${n.environmental_entity?o`<span class="prediction-entity entity-link" @click=${c=>xt(c,n.environmental_entity)}>${n.environmental_entity}</span>`:p}
           </div>
-        `:u}
+        `:p}
       </div>
     </div>
-  `}function Si(n,a){let e=n.interval_analysis,t=e?.weibull_beta,i=e?.weibull_eta;if(t==null||i==null||i<=0)return u;let r=n.interval_days??0,l=n.suggested_interval??r;return o`
+  `}function Si(n,r){let t=n.interval_analysis,e=t?.weibull_beta,i=t?.weibull_eta;if(e==null||i==null||i<=0)return p;let a=n.interval_days??0,l=n.suggested_interval??a;return o`
     <div class="weibull-section">
       <div class="weibull-title">
         <ha-svg-icon aria-hidden="true" path="M3,14L3.5,14.07L8.07,9.5C7.89,8.85 8.06,8.11 8.59,7.59C9.37,6.8 10.63,6.8 11.41,7.59C11.94,8.11 12.11,8.85 11.93,9.5L14.5,12.07L15,12C15.18,12 15.35,12 15.5,12.07L19.07,8.5C19,8.35 19,8.18 19,8A2,2 0 0,1 21,6A2,2 0 0,1 23,8A2,2 0 0,1 21,10C20.82,10 20.65,10 20.5,9.93L16.93,13.5C17,13.65 17,13.82 17,14A2,2 0 0,1 15,16A2,2 0 0,1 13,14L13.07,13.5L10.5,10.93C10.18,11 9.82,11 9.5,10.93L4.93,15.5L5,16A2,2 0 0,1 3,18A2,2 0 0,1 1,16A2,2 0 0,1 3,14Z"></ha-svg-icon>
-        ${s("weibull_reliability_curve",a)}
-        ${Hs(t,a)}
+        ${s("weibull_reliability_curve",r)}
+        ${Os(e,r)}
       </div>
-      ${Os(t,i,r,l,a)}
-      ${qs(e,a)}
-      ${e?.confidence_interval_low!=null?Fs(e,n,a):u}
+      ${qs(e,i,a,l,r)}
+      ${Fs(t,r)}
+      ${t?.confidence_interval_low!=null?Ns(t,n,r):p}
     </div>
-  `}function Hs(n,a){let e,t,i;return n<.8?(e="early_failures",t="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",i="beta_early_failures"):n<=1.2?(e="random_failures",t="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",i="beta_random_failures"):n<=3.5?(e="wear_out",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",i="beta_wear_out"):(e="highly_predictable",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",i="beta_highly_predictable"),o`
-    <span class="beta-badge ${e}">
-      <ha-svg-icon path="${t}"></ha-svg-icon>
-      ${s(i,a)} (\u03B2=${n.toFixed(2)})
+  `}function Os(n,r){let t,e,i;return n<.8?(t="early_failures",e="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",i="beta_early_failures"):n<=1.2?(t="random_failures",e="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",i="beta_random_failures"):n<=3.5?(t="wear_out",e="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",i="beta_wear_out"):(t="highly_predictable",e="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",i="beta_highly_predictable"),o`
+    <span class="beta-badge ${t}">
+      <ha-svg-icon path="${e}"></ha-svg-icon>
+      ${s(i,r)} (\u03B2=${n.toFixed(2)})
     </span>
-  `}function Os(n,a,e,t,i){let f=Math.max(e,t,a,1)*1.3,w=50,b=[];for(let F=0;F<=w;F++){let q=F/w*f,ue=1-Math.exp(-Math.pow(q/a,n)),me=32+q/f*260,we=136-ue*128;b.push([me,we])}let C=b.map(([F,q])=>`${F.toFixed(1)},${q.toFixed(1)}`).join(" "),z="M32,136 "+b.map(([F,q])=>`L${F.toFixed(1)},${q.toFixed(1)}`).join(" ")+` L${b[w][0].toFixed(1)},136 Z`,D=32+e/f*260,I=1-Math.exp(-Math.pow(e/a,n)),T=136-I*128,Y=((1-I)*100).toFixed(0),G=32+t/f*260,K=[0,.25,.5,.75,1];return o`
+  `}function qs(n,r,t,e,i){let f=Math.max(t,e,r,1)*1.3,w=50,b=[];for(let F=0;F<=w;F++){let q=F/w*f,ht=1-Math.exp(-Math.pow(q/r,n)),mt=32+q/f*260,wt=136-ht*128;b.push([mt,wt])}let C=b.map(([F,q])=>`${F.toFixed(1)},${q.toFixed(1)}`).join(" "),P="M32,136 "+b.map(([F,q])=>`L${F.toFixed(1)},${q.toFixed(1)}`).join(" ")+` L${b[w][0].toFixed(1)},136 Z`,H=32+t/f*260,R=1-Math.exp(-Math.pow(t/r,n)),E=136-R*128,Y=((1-R)*100).toFixed(0),G=32+e/f*260,K=[0,.25,.5,.75,1];return o`
     <div class="weibull-chart">
       <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_weibull",i)}">
-        ${K.map(F=>{let q=136-F*128;return P`
+        ${K.map(F=>{let q=136-F*128;return z`
             <line x1="${32}" y1="${q.toFixed(1)}" x2="${292}" y2="${q.toFixed(1)}"
-              stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${F===.5?"4,3":u}" />
+              stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${F===.5?"4,3":p}" />
             <text x="${28}" y="${(q+3).toFixed(1)}" fill="var(--secondary-text-color)"
               font-size="8" text-anchor="end">${(F*100).toFixed(0)}%</text>
           `})}
@@ -6373,23 +6391,23 @@ ${d?`<div class="sub">${d}</div>`:""}
         <text x="${324/2}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(f/2)}</text>
         <text x="${292}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(f)}</text>
 
-        <path d="${z}" fill="var(--primary-color, #03a9f4)" opacity="0.08" />
+        <path d="${P}" fill="var(--primary-color, #03a9f4)" opacity="0.08" />
         <polyline points="${C}" fill="none"
           stroke="var(--primary-color, #03a9f4)" stroke-width="2" />
 
-        ${e>0?P`
-          <line x1="${D.toFixed(1)}" y1="${8}" x2="${D.toFixed(1)}" y2="${136 .toFixed(1)}"
+        ${t>0?z`
+          <line x1="${H.toFixed(1)}" y1="${8}" x2="${H.toFixed(1)}" y2="${136 .toFixed(1)}"
             stroke="var(--primary-color, #03a9f4)" stroke-width="1.5" stroke-dasharray="4,3" />
-          <circle cx="${D.toFixed(1)}" cy="${T.toFixed(1)}" r="3"
+          <circle cx="${H.toFixed(1)}" cy="${E.toFixed(1)}" r="3"
             fill="var(--primary-color, #03a9f4)" />
-          <text x="${(D+4).toFixed(1)}" y="${(T-6).toFixed(1)}" fill="var(--primary-color, #03a9f4)"
+          <text x="${(H+4).toFixed(1)}" y="${(E-6).toFixed(1)}" fill="var(--primary-color, #03a9f4)"
             font-size="9" font-weight="600">R=${Y}%</text>
-        `:u}
+        `:p}
 
-        ${t>0&&t!==e?P`
+        ${e>0&&e!==t?z`
           <line x1="${G.toFixed(1)}" y1="${8}" x2="${G.toFixed(1)}" y2="${136 .toFixed(1)}"
             stroke="var(--success-color, #4caf50)" stroke-width="1.5" stroke-dasharray="4,3" />
-        `:u}
+        `:p}
 
         <line x1="${32}" y1="${8}" x2="${32}" y2="${136}"
           stroke="var(--secondary-text-color)" stroke-width="1" />
@@ -6399,153 +6417,153 @@ ${d?`<div class="sub">${d}</div>`:""}
     </div>
     <div class="chart-legend">
       <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${s("weibull_failure_probability",i)}</span>
-      ${e>0?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${s("current_interval_marker",i)}</span>`:u}
-      ${t>0&&t!==e?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${s("recommended_marker",i)}</span>`:u}
+      ${t>0?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${s("current_interval_marker",i)}</span>`:p}
+      ${e>0&&e!==t?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${s("recommended_marker",i)}</span>`:p}
     </div>
-  `}function qs(n,a){return o`
+  `}function Fs(n,r){return o`
     <div class="weibull-info-row">
       <div class="weibull-info-item">
-        <span>${s("characteristic_life",a)}</span>
-        <span class="weibull-info-value">${Math.round(n.weibull_eta)} ${s("days",a)}</span>
+        <span>${s("characteristic_life",r)}</span>
+        <span class="weibull-info-value">${Math.round(n.weibull_eta)} ${s("days",r)}</span>
       </div>
       ${n.weibull_r_squared!=null?o`
         <div class="weibull-info-item">
-          <span>${s("weibull_r_squared",a)}</span>
+          <span>${s("weibull_r_squared",r)}</span>
           <span class="weibull-info-value">${n.weibull_r_squared.toFixed(3)}</span>
         </div>
-      `:u}
+      `:p}
     </div>
-  `}function Fs(n,a,e){let t=n.confidence_interval_low,i=n.confidence_interval_high,r=a.suggested_interval??a.interval_days??0,l=a.interval_days??0,c=Math.max(0,t-5),h=i+5-c,g=(t-c)/h*100,m=(i-t)/h*100,v=(r-c)/h*100,f=l>0?(l-c)/h*100:-1;return o`
+  `}function Ns(n,r,t){let e=n.confidence_interval_low,i=n.confidence_interval_high,a=r.suggested_interval??r.interval_days??0,l=r.interval_days??0,c=Math.max(0,e-5),u=i+5-c,g=(e-c)/u*100,m=(i-e)/u*100,v=(a-c)/u*100,f=l>0?(l-c)/u*100:-1;return o`
     <div class="confidence-range">
       <div class="confidence-range-title">
-        ${s("confidence_interval",e)}: ${r} ${s("days",e)} (${t}\u2013${i})
+        ${s("confidence_interval",t)}: ${a} ${s("days",t)} (${e}\u2013${i})
       </div>
       <div class="confidence-bar">
         <div class="confidence-fill" style="left:${g.toFixed(1)}%;width:${m.toFixed(1)}%"></div>
-        ${f>=0?o`<div class="confidence-marker current" style="left:${f.toFixed(1)}%"></div>`:u}
+        ${f>=0?o`<div class="confidence-marker current" style="left:${f.toFixed(1)}%"></div>`:p}
         <div class="confidence-marker recommended" style="left:${v.toFixed(1)}%"></div>
       </div>
       <div class="confidence-labels">
-        <span class="confidence-text low">${s("confidence_conservative",e)} (${t}${s("days",e).charAt(0)})</span>
-        <span class="confidence-text high">${s("confidence_aggressive",e)} (${i}${s("days",e).charAt(0)})</span>
+        <span class="confidence-text low">${s("confidence_conservative",t)} (${e}${s("days",t).charAt(0)})</span>
+        <span class="confidence-text high">${s("confidence_aggressive",t)} (${i}${s("days",t).charAt(0)})</span>
       </div>
     </div>
-  `}function Ai(n,a,e,t){let i=Math.max(n||1,a);return o`
+  `}function Ai(n,r,t,e){let i=Math.max(n||1,r);return o`
     <div class="interval-comparison">
       <div class="interval-bar">
         <div class="interval-label">
-          ${s("current",t)}: ${n??"\u2014"} ${n!=null?s("days",t):""}
+          ${s("current",e)}: ${n??"\u2014"} ${n!=null?s("days",e):""}
         </div>
         <div class="interval-visual current"
           style="width: ${n!=null?Math.min(n/i*100,100):0}%"></div>
       </div>
       <div class="interval-bar">
         <div class="interval-label">
-          ${s("recommended",t)}: ${a} ${s("days",t)}
-          <span class="confidence-badge ${e}">${s(`confidence_${e}`,t)}</span>
+          ${s("recommended",e)}: ${r} ${s("days",e)}
+          <span class="confidence-badge ${t}">${s(`confidence_${t}`,e)}</span>
         </div>
         <div class="interval-visual suggested"
-          style="width: ${Math.min(a/i*100,100)}%"></div>
+          style="width: ${Math.min(r/i*100,100)}%"></div>
       </div>
     </div>
-  `}var Ci=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"];function ji(n,a,e){if(!e.seasonal||!n.seasonal_factor||n.seasonal_factor===1)return u;let t=Ci.map(c=>s(c,a)),i=new Date().getMonth(),r=n.seasonal_factors||n.interval_analysis?.seasonal_factors||null,l=r&&r.length===12?r:t.map((c,d)=>{let h=n.seasonal_factor||1,g=Math.sin((d-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,h+g))});return o`
+  `}var Ci=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"];function ji(n,r,t){if(!t.seasonal||!n.seasonal_factor||n.seasonal_factor===1)return p;let e=Ci.map(c=>s(c,r)),i=new Date().getMonth(),a=n.seasonal_factors||n.interval_analysis?.seasonal_factors||null,l=a&&a.length===12?a:e.map((c,d)=>{let u=n.seasonal_factor||1,g=Math.sin((d-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,u+g))});return o`
     <div class="seasonal-card-compact">
-      <h4>${s("seasonal_awareness",a)}</h4>
+      <h4>${s("seasonal_awareness",r)}</h4>
       <div class="seasonal-mini-chart">
-        ${l.map((c,d)=>{let h=c*40,g=c<.9?"low":c>1.1?"high":"normal";return o`
+        ${l.map((c,d)=>{let u=c*40,g=c<.9?"low":c>1.1?"high":"normal";return o`
             <div class="seasonal-bar ${g} ${d===i?"current":""}"
-                 style="height: ${h}px"
-                 title="${t[d]}: ${c.toFixed(2)}x">
+                 style="height: ${u}px"
+                 title="${e[d]}: ${c.toFixed(2)}x">
             </div>
           `})}
       </div>
       <div class="seasonal-legend">
-        <span class="legend-item"><span class="dot low"></span> ${s("shorter",a)||"K\xFCrzer"}</span>
-        <span class="legend-item"><span class="dot normal"></span> ${s("normal",a)||"Normal"}</span>
-        <span class="legend-item"><span class="dot high"></span> ${s("longer",a)||"L\xE4nger"}</span>
+        <span class="legend-item"><span class="dot low"></span> ${s("shorter",r)||"K\xFCrzer"}</span>
+        <span class="legend-item"><span class="dot normal"></span> ${s("normal",r)||"Normal"}</span>
+        <span class="legend-item"><span class="dot high"></span> ${s("longer",r)||"L\xE4nger"}</span>
       </div>
     </div>
-  `}function Mi(n,a){return Ns(n,a)}function Ns(n,a){let e=n.seasonal_factors??n.interval_analysis?.seasonal_factors;if(!e||e.length!==12)return u;let t=n.interval_analysis?.seasonal_reason,i=new Date().getMonth(),r=300,l=100,c=8,h=l-c-4,g=Math.max(...e,1.5),m=r/12,v=m*.65,f=c+h-1/g*h;return o`
+  `}function Mi(n,r){return Us(n,r)}function Us(n,r){let t=n.seasonal_factors??n.interval_analysis?.seasonal_factors;if(!t||t.length!==12)return p;let e=n.interval_analysis?.seasonal_reason,i=new Date().getMonth(),a=300,l=100,c=8,u=l-c-4,g=Math.max(...t,1.5),m=a/12,v=m*.65,f=c+u-1/g*u;return o`
     <div class="seasonal-chart">
       <div class="seasonal-chart-title">
         <ha-svg-icon aria-hidden="true" path="M17.75 4.09L15.22 6.03L16.13 9.09L13.5 7.28L10.87 9.09L11.78 6.03L9.25 4.09L12.44 4L13.5 1L14.56 4L17.75 4.09M21.25 11L19.61 12.25L20.2 14.23L18.5 13.06L16.8 14.23L17.39 12.25L15.75 11L17.81 10.95L18.5 9L19.19 10.95L21.25 11M18.97 15.95C19.8 15.87 20.69 17.05 20.16 17.8C19.84 18.25 19.5 18.67 19.08 19.07C15.17 23 8.84 23 4.94 19.07C1.03 15.17 1.03 8.83 4.94 4.93C5.34 4.53 5.76 4.17 6.21 3.85C6.96 3.32 8.14 4.21 8.06 5.04C7.79 7.9 8.75 10.87 10.95 13.06C13.14 15.26 16.1 16.22 18.97 15.95Z"></ha-svg-icon>
-        ${s("seasonal_chart_title",a)}
-        ${t?o`<span class="source-tag">${t==="learned"?s("seasonal_learned",a):s("seasonal_manual",a)}</span>`:u}
+        ${s("seasonal_chart_title",r)}
+        ${e?o`<span class="source-tag">${e==="learned"?s("seasonal_learned",r):s("seasonal_manual",r)}</span>`:p}
       </div>
-      <svg viewBox="0 0 ${r} ${l}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_seasonal",a)}">
-        <line x1="0" y1="${f.toFixed(1)}" x2="${r}" y2="${f.toFixed(1)}"
+      <svg viewBox="0 0 ${a} ${l}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_seasonal",r)}">
+        <line x1="0" y1="${f.toFixed(1)}" x2="${a}" y2="${f.toFixed(1)}"
           stroke="var(--divider-color)" stroke-width="1" stroke-dasharray="4,3" />
-        ${e.map((w,b)=>{let C=w/g*h,z=b*m+(m-v)/2,D=c+h-C,I=b===i,T=w<1?"var(--success-color, #4caf50)":w>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return P`
-            <rect x="${z.toFixed(1)}" y="${D.toFixed(1)}"
+        ${t.map((w,b)=>{let C=w/g*u,P=b*m+(m-v)/2,H=c+u-C,R=b===i,E=w<1?"var(--success-color, #4caf50)":w>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return z`
+            <rect x="${P.toFixed(1)}" y="${H.toFixed(1)}"
               width="${v.toFixed(1)}" height="${C.toFixed(1)}"
-              fill="${T}" opacity="${I?1:.5}" rx="2" />
+              fill="${E}" opacity="${R?1:.5}" rx="2" />
           `})}
       </svg>
       <div class="seasonal-labels">
-        ${Ci.map((w,b)=>o`<span class="seasonal-label ${b===i?"active-month":""}">${s(w,a)}</span>`)}
+        ${Ci.map((w,b)=>o`<span class="seasonal-label ${b===i?"active-month":""}">${s(w,r)}</span>`)}
       </div>
     </div>
-  `}var Us=200,Ve=10,Bs=22;function Ii(n,a,e,t){let i=n.history.filter(c=>c.type==="completed"&&(c.cost!=null||c.duration!=null));if(i.length<2)return u;let r=i.some(c=>(c.cost??0)>0),l=i.some(c=>(c.duration??0)>0);return!r&&!l?u:o`
+  `}var Bs=200,Vt=10,Vs=22;function Ri(n,r,t,e){let i=n.history.filter(c=>c.type==="completed"&&(c.cost!=null||c.duration!=null));if(i.length<2)return p;let a=i.some(c=>(c.cost??0)>0),l=i.some(c=>(c.duration??0)>0);return!a&&!l?p:o`
     <div class="cost-duration-card">
       <div class="card-header">
-        <h3>${s("cost_duration_chart",a)}</h3>
+        <h3>${s("cost_duration_chart",r)}</h3>
         <div class="toggle-buttons">
-          ${r?o`<button
-            class="toggle-btn ${e==="cost"?"active":""}"
-            @click=${()=>t("cost")}>
-            ${s("cost",a)}
-          </button>`:u}
-          ${r&&l?o`<button
-            class="toggle-btn ${e==="both"?"active":""}"
-            @click=${()=>t("both")}>
-            ${s("both",a)}
-          </button>`:u}
+          ${a?o`<button
+            class="toggle-btn ${t==="cost"?"active":""}"
+            @click=${()=>e("cost")}>
+            ${s("cost",r)}
+          </button>`:p}
+          ${a&&l?o`<button
+            class="toggle-btn ${t==="both"?"active":""}"
+            @click=${()=>e("both")}>
+            ${s("both",r)}
+          </button>`:p}
           ${l?o`<button
-            class="toggle-btn ${e==="duration"?"active":""}"
-            @click=${()=>t("duration")}>
-            ${s("duration",a)}
-          </button>`:u}
+            class="toggle-btn ${t==="duration"?"active":""}"
+            @click=${()=>e("duration")}>
+            ${s("duration",r)}
+          </button>`:p}
         </div>
       </div>
-      ${Vs(n,a,e)}
+      ${Ws(n,r,t)}
     </div>
-  `}function Vs(n,a,e){let t=n.history.filter($=>$.type==="completed"&&($.cost!=null||$.duration!=null)).map($=>({ts:new Date($.timestamp).getTime(),cost:$.cost??0,duration:$.duration??0})).sort(($,R)=>$.ts-R.ts);if(t.length<2)return u;let i=t.some($=>$.cost>0),r=t.some($=>$.duration>0);if(!i&&!r)return u;let l=e!=="duration"&&i,c=e!=="cost"&&r,d=l||!c&&i,h=c||!l&&r,g=640,m=Us,v=d?44:12,f=h?44:12,w=g-v-f,b=m-Bs,C=b-Ve,z=t[0].ts,D=t[t.length-1].ts,I=(D-z||864e5)*.05,T=z-I,Y=D+I,G=_t(z,D),K=$=>v+($-T)/(Y-T)*w,F=Be(0,Math.max(...t.map($=>$.cost))||1,3),q=Be(0,Math.max(...t.map($=>$.duration))||1,3),ue=$=>Ve+(1-$/(F.niceMax||1))*C,me=$=>Ve+(1-$/(q.niceMax||1))*C,we=t.length>1?Math.min(...t.slice(1).map(($,R)=>K($.ts)-K(t[R].ts))):w,B=Math.max(6,Math.min(22,we*.55)),k=gt(z,D,Math.max(2,Math.min(4,t.length)));return o`
+  `}function Ws(n,r,t){let e=n.history.filter($=>$.type==="completed"&&($.cost!=null||$.duration!=null)).map($=>({ts:new Date($.timestamp).getTime(),cost:$.cost??0,duration:$.duration??0})).sort(($,I)=>$.ts-I.ts);if(e.length<2)return p;let i=e.some($=>$.cost>0),a=e.some($=>$.duration>0);if(!i&&!a)return p;let l=t!=="duration"&&i,c=t!=="cost"&&a,d=l||!c&&i,u=c||!l&&a,g=640,m=Bs,v=d?44:12,f=u?44:12,w=g-v-f,b=m-Vs,C=b-Vt,P=e[0].ts,H=e[e.length-1].ts,R=(H-P||864e5)*.05,E=P-R,Y=H+R,G=_e(P,H),K=$=>v+($-E)/(Y-E)*w,F=Bt(0,Math.max(...e.map($=>$.cost))||1,3),q=Bt(0,Math.max(...e.map($=>$.duration))||1,3),ht=$=>Vt+(1-$/(F.niceMax||1))*C,mt=$=>Vt+(1-$/(q.niceMax||1))*C,wt=e.length>1?Math.min(...e.slice(1).map(($,I)=>K($.ts)-K(e[I].ts))):w,B=Math.max(6,Math.min(22,wt*.55)),k=ge(P,H,Math.max(2,Math.min(4,e.length)));return o`
     <div class="sparkline-container">
-      <svg class="history-chart" viewBox="0 0 ${g} ${m}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_history",a)}">
-        ${d?F.ticks.map($=>{let R=ue($);return R<Ve-1||R>b+1?u:P`
-            <line x1="${v}" y1="${R.toFixed(1)}" x2="${g-f}" y2="${R.toFixed(1)}" stroke="var(--divider-color)" stroke-width="1" opacity="0.55" />
-            <text x="${v-6}" y="${(R+3.5).toFixed(1)}" text-anchor="end" fill="var(--primary-color)" font-size="10.5">${ne($)}€</text>`}):u}
-        ${h?q.ticks.map($=>{let R=me($);return R<Ve-1||R>b+1?u:P`<text x="${g-f+6}" y="${(R+3.5).toFixed(1)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${ne($)}m</text>`}):u}
+      <svg class="history-chart" viewBox="0 0 ${g} ${m}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_history",r)}">
+        ${d?F.ticks.map($=>{let I=ht($);return I<Vt-1||I>b+1?p:z`
+            <line x1="${v}" y1="${I.toFixed(1)}" x2="${g-f}" y2="${I.toFixed(1)}" stroke="var(--divider-color)" stroke-width="1" opacity="0.55" />
+            <text x="${v-6}" y="${(I+3.5).toFixed(1)}" text-anchor="end" fill="var(--primary-color)" font-size="10.5">${nt($)}€</text>`}):p}
+        ${u?q.ticks.map($=>{let I=mt($);return I<Vt-1||I>b+1?p:z`<text x="${g-f+6}" y="${(I+3.5).toFixed(1)}" text-anchor="start" fill="var(--accent-color, #ff9800)" font-size="10.5">${nt($)}m</text>`}):p}
 
-        ${d?t.filter($=>$.cost>0).map($=>P`
-          <rect x="${(K($.ts)-B/2).toFixed(1)}" y="${ue($.cost).toFixed(1)}" width="${B.toFixed(1)}" height="${(b-ue($.cost)).toFixed(1)}"
+        ${d?e.filter($=>$.cost>0).map($=>z`
+          <rect x="${(K($.ts)-B/2).toFixed(1)}" y="${ht($.cost).toFixed(1)}" width="${B.toFixed(1)}" height="${(b-ht($.cost)).toFixed(1)}"
             fill="var(--primary-color)" opacity="0.6" rx="2">
-            <title>${Me($.ts,a,!0)}: ${$.cost.toLocaleString(a)}€${$.duration?` \xB7 ${$.duration}m`:""}</title>
+            <title>${Mt($.ts,r,!0)}: ${$.cost.toLocaleString(r)}€${$.duration?` \xB7 ${$.duration}m`:""}</title>
           </rect>
-        `):u}
-        ${h?P`
-          <polyline points="${t.map($=>`${K($.ts).toFixed(1)},${me($.duration).toFixed(1)}`).join(" ")}"
+        `):p}
+        ${u?z`
+          <polyline points="${e.map($=>`${K($.ts).toFixed(1)},${mt($.duration).toFixed(1)}`).join(" ")}"
             fill="none" stroke="var(--accent-color, #ff9800)" stroke-width="2" stroke-linejoin="round" />
-          ${t.map($=>P`
-            <circle cx="${K($.ts).toFixed(1)}" cy="${me($.duration).toFixed(1)}" r="3.5" fill="var(--accent-color, #ff9800)">
-              <title>${Me($.ts,a,!0)}: ${$.duration}m${$.cost?` \xB7 ${$.cost.toLocaleString(a)}\u20AC`:""}</title>
+          ${e.map($=>z`
+            <circle cx="${K($.ts).toFixed(1)}" cy="${mt($.duration).toFixed(1)}" r="3.5" fill="var(--accent-color, #ff9800)">
+              <title>${Mt($.ts,r,!0)}: ${$.duration}m${$.cost?` \xB7 ${$.cost.toLocaleString(r)}\u20AC`:""}</title>
             </circle>
           `)}
-        `:u}
+        `:p}
 
         <line x1="${v}" y1="${b}" x2="${g-f}" y2="${b}" stroke="var(--divider-color)" stroke-width="1" />
-        ${k.map(($,R)=>{let vt=R===0?"start":R===k.length-1?"end":"middle";return P`<text x="${K($).toFixed(1)}" y="${m-6}" text-anchor="${vt}" fill="var(--secondary-text-color)" font-size="10">${Me($,a,G)}</text>`})}
+        ${k.map(($,I)=>{let ve=I===0?"start":I===k.length-1?"end":"middle";return z`<text x="${K($).toFixed(1)}" y="${m-6}" text-anchor="${ve}" fill="var(--secondary-text-color)" font-size="10">${Mt($,r,G)}</text>`})}
       </svg>
     </div>
     <div class="chart-legend">
-      ${d?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${s("cost",a)}</span>`:u}
-      ${h?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${s("duration",a)}</span>`:u}
+      ${d?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color);opacity:0.6"></span>${s("cost",r)}</span>`:p}
+      ${u?o`<span class="legend-item"><span class="legend-swatch" style="background:var(--accent-color, #ff9800)"></span>${s("duration",r)}</span>`:p}
     </div>
-  `}var ge=class extends S{constructor(){super(...arguments);this.docId="";this._url="";this._failed=!1;this._signedFor=""}updated(){this.hass&&this.docId&&this._signedFor!==this.docId&&(this._signedFor=this.docId,this._url="",this._failed=!1,this._sign())}async _sign(){try{let e=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${this.docId}`,expires:300});this._url=e.path}catch{this._failed=!0}}render(){return this._failed||!this.docId?u:this._url?o`
+  `}var gt=class extends S{constructor(){super(...arguments);this.docId="";this._url="";this._failed=!1;this._signedFor=""}updated(){this.hass&&this.docId&&this._signedFor!==this.docId&&(this._signedFor=this.docId,this._url="",this._failed=!1,this._sign())}async _sign(){try{let t=await this.hass.connection.sendMessagePromise({type:"auth/sign_path",path:`/api/maintenance_supporter/document/${this.docId}`,expires:300});this._url=t.path}catch{this._failed=!0}}render(){return this._failed||!this.docId?p:this._url?o`
       <a href=${this._url} target="_blank" rel="noopener" class="wrap">
         <img src=${this._url} alt="" loading="lazy"
           @error=${()=>this._failed=!0} />
-      </a>`:o`<div class="ph"></div>`}};ge.styles=A`
+      </a>`:o`<div class="ph"></div>`}};gt.styles=A`
     .wrap { display: inline-block; margin-top: 4px; }
     img {
       max-width: 96px;
@@ -6561,274 +6579,274 @@ ${d?`<div class="sub">${d}</div>`:""}
       background: var(--secondary-background-color, rgba(0,0,0,0.06));
       margin-top: 4px;
     }
-  `,p([y({attribute:!1})],ge.prototype,"hass",2),p([y()],ge.prototype,"docId",2),p([_()],ge.prototype,"_url",2),p([_()],ge.prototype,"_failed",2);customElements.get("maintenance-history-photo")||customElements.define("maintenance-history-photo",ge);var Ws=["completed","skipped","missed","reset","triggered"];function Ri(n,a){let e=a.lang;return o`
+  `,h([y({attribute:!1})],gt.prototype,"hass",2),h([y()],gt.prototype,"docId",2),h([_()],gt.prototype,"_url",2),h([_()],gt.prototype,"_failed",2);customElements.get("maintenance-history-photo")||customElements.define("maintenance-history-photo",gt);var Ks=["completed","skipped","missed","reset","triggered"];function Ii(n,r){let t=r.lang;return o`
     <div class="history-filters-new">
       <div class="filter-chips">
-        ${Ws.map(t=>{let i=n.history.filter(r=>r.type===t).length;return i===0?u:o`
-            <span class="filter-chip ${a.filter===t?"active":""}"
-              @click=${()=>a.setFilter(a.filter===t?null:t)}>
-              ${s(t,e)} (${i})
+        ${Ks.map(e=>{let i=n.history.filter(a=>a.type===e).length;return i===0?p:o`
+            <span class="filter-chip ${r.filter===e?"active":""}"
+              @click=${()=>r.setFilter(r.filter===e?null:e)}>
+              ${s(e,t)} (${i})
             </span>
           `})}
-        ${a.filter?o`<span class="filter-chip clear" @click=${()=>a.setFilter(null)}>${s("show_all",e)}</span>`:u}
+        ${r.filter?o`<span class="filter-chip clear" @click=${()=>r.setFilter(null)}>${s("show_all",t)}</span>`:p}
       </div>
       <div class="filter-controls">
-        <input type="text" class="search-input" placeholder="${s("search_notes",e)}..." .value=${a.search} @input=${t=>a.setSearch(t.target.value)} />
+        <input type="text" class="search-input" placeholder="${s("search_notes",t)}..." .value=${r.search} @input=${e=>r.setSearch(e.target.value)} />
       </div>
     </div>
-  `}function Li(n,a){let e=a.lang,t=a.filter?n.history.filter(i=>i.type===a.filter):n.history;if(a.search){let i=a.search.toLowerCase();t=t.filter(r=>r.notes?.toLowerCase().includes(i))}return t.length===0?o`<p class="empty">${s("no_history",e)}</p>`:o`
+  `}function Li(n,r){let t=r.lang,e=r.filter?n.history.filter(i=>i.type===r.filter):n.history;if(r.search){let i=r.search.toLowerCase();e=e.filter(a=>a.notes?.toLowerCase().includes(i))}return e.length===0?o`<p class="empty">${s("no_history",t)}</p>`:o`
     <div class="history-timeline">
-      ${[...t].reverse().map(i=>Ks(i,a))}
+      ${[...e].reverse().map(i=>Ys(i,r))}
     </div>
-  `}function Ks(n,a){let e=a.lang,t=["completed","reset","skipped"].includes(n.type);return o`
+  `}function Ys(n,r){let t=r.lang,e=["completed","reset","skipped"].includes(n.type);return o`
     <div class="history-entry">
       <div class="history-icon ${n.type}">
-        <ha-icon .icon=${et[n.type]||"mdi:circle"}></ha-icon>
+        <ha-icon .icon=${te[n.type]||"mdi:circle"}></ha-icon>
       </div>
       <div class="history-content">
         <div class="history-row">
-          <strong>${s(n.type,e)}</strong>
-          ${t?o`<button class="history-edit-btn"
-                     title=${s("history_edit_button",e)||"Edit entry"}
-                     @click=${()=>a.openEdit(n)}>
+          <strong>${s(n.type,t)}</strong>
+          ${e?o`<button class="history-edit-btn"
+                     title=${s("history_edit_button",t)||"Edit entry"}
+                     @click=${()=>r.openEdit(n)}>
                 <ha-icon icon="mdi:pencil"></ha-icon>
-              </button>`:u}
+              </button>`:p}
         </div>
-        <div class="history-date">${it(n.timestamp,e)}</div>
-        ${n.notes?o`<div>${n.notes}</div>`:u}
-        ${n.photo_doc_id?o`<maintenance-history-photo .hass=${a.hass} .docId=${n.photo_doc_id}></maintenance-history-photo>`:u}
+        <div class="history-date">${ie(n.timestamp,t)}</div>
+        ${n.notes?o`<div>${n.notes}</div>`:p}
+        ${n.photo_doc_id?o`<maintenance-history-photo .hass=${r.hass} .docId=${n.photo_doc_id}></maintenance-history-photo>`:p}
         <div class="history-details">
-          ${n.cost!=null?o`<span>${s("cost",e)}: ${n.cost.toFixed(2)} ${a.currencySymbol}</span>`:u}
-          ${n.duration!=null?o`<span>${s("duration",e)}: ${n.duration} min</span>`:u}
-          ${n.trigger_value!=null?o`<span>${s("trigger_val",e)}: ${n.trigger_value}</span>`:u}
+          ${n.cost!=null?o`<span>${s("cost",t)}: ${n.cost.toFixed(2)} ${r.currencySymbol}</span>`:p}
+          ${n.duration!=null?o`<span>${s("duration",t)}: ${n.duration} min</span>`:p}
+          ${n.trigger_value!=null?o`<span>${s("trigger_val",t)}: ${n.trigger_value}</span>`:p}
         </div>
       </div>
     </div>
-  `}function Ot(n,a){if(!n.responsible_user_id)return u;let e=a(n.responsible_user_id);return e?o`
+  `}function Oe(n,r){if(!n.responsible_user_id)return p;let t=r(n.responsible_user_id);return t?o`
     <span class="user-badge">
       <ha-icon icon="mdi:account"></ha-icon>
-      ${e}
+      ${t}
     </span>
-  `:u}function Ys(n,a){let e=a.lang,t=a.isOperator,i=n.archived?"archived":n.is_done?"done":n.status==="due_soon"?"warning":n.status||"ok",r=n.archived?s("archived",e):n.is_done?s("completed",e):s(n.status||"ok",e);return o`
+  `:p}function Gs(n,r){let t=r.lang,e=r.isOperator,i=n.archived?"archived":n.is_done?"done":n.status==="due_soon"?"warning":n.status||"ok",a=n.archived?s("archived",t):n.is_done?s("completed",t):s(n.status||"ok",t);return o`
     <div class="task-header">
       <div class="task-header-title">
-        <span class="task-name-breadcrumb" @click=${()=>a.showTaskView()}>${n.name}</span>
+        <span class="task-name-breadcrumb" @click=${()=>r.showTaskView()}>${n.name}</span>
         <span class="breadcrumb-separator">·</span>
-        <span class="object-name-breadcrumb" @click=${()=>a.showObject()}>${a.objectName}</span>
-        <span class="status-chip ${i}">${r}</span>
-        ${Ot(n,a.getUserName)}
-        ${n.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_tag_id",e)}: ${n.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`:t?u:o`<span class="nfc-badge unlinked" title="${s("nfc_link_hint",e)}"
-              @click=${()=>a.openEdit(n)}>
+        <span class="object-name-breadcrumb" @click=${()=>r.showObject()}>${r.objectName}</span>
+        <span class="status-chip ${i}">${a}</span>
+        ${Oe(n,r.getUserName)}
+        ${n.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_tag_id",t)}: ${n.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`:e?p:o`<span class="nfc-badge unlinked" title="${s("nfc_link_hint",t)}"
+              @click=${()=>r.openEdit(n)}>
               <ha-icon icon="mdi:nfc-variant"></ha-icon>
             </span>`}
       </div>
       <div class="task-header-actions">
-        <ha-button appearance="filled" @click=${()=>a.openComplete(n)}>${s("complete",e)}</ha-button>
-        <ha-button appearance="plain" .disabled=${a.actionLoading} @click=${()=>a.promptSkip()}>${s("skip",e)}</ha-button>
-        ${t?u:o`
-          <ha-button appearance="plain" @click=${()=>a.toggleArchive(!!n.archived)}>
+        <ha-button appearance="filled" @click=${()=>r.openComplete(n)}>${s("complete",t)}</ha-button>
+        <ha-button appearance="plain" .disabled=${r.actionLoading} @click=${()=>r.promptSkip()}>${s("skip",t)}</ha-button>
+        ${e?p:o`
+          <ha-button appearance="plain" @click=${()=>r.toggleArchive(!!n.archived)}>
             <ha-icon icon="${n.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
-            ${n.archived?s("unarchive",e):s("archive",e)}
+            ${n.archived?s("unarchive",t):s("archive",t)}
           </ha-button>
         `}
-        <ha-button appearance="plain" @click=${()=>a.openQr(n.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${s("qr_code",e)}</ha-button>
-        ${t?u:o`
+        <ha-button appearance="plain" @click=${()=>r.openQr(n.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${s("qr_code",t)}</ha-button>
+        ${e?p:o`
           <div class="more-menu-wrapper">
-            <ha-icon-button .disabled=${a.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${()=>a.toggleMoreMenu()}></ha-icon-button>
-            ${a.moreMenuOpen?o`
+            <ha-icon-button .disabled=${r.actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${()=>r.toggleMoreMenu()}></ha-icon-button>
+            ${r.moreMenuOpen?o`
               <div class="popup-menu" @click=${l=>l.stopPropagation()}>
-                <div class="popup-menu-item" @click=${()=>{a.closeMoreMenu(),a.openEdit(n)}}>${s("edit",e)}</div>
-                <div class="popup-menu-item" @click=${()=>a.duplicateTask()}>${s("duplicate",e)}</div>
-                <div class="popup-menu-item" @click=${()=>{a.closeMoreMenu(),a.promptReset()}}>${s("reset",e)}</div>
-                <div class="popup-menu-item" @click=${()=>{a.closeMoreMenu(),a.snoozeTask()}}>${s("snooze",e)}</div>
+                <div class="popup-menu-item" @click=${()=>{r.closeMoreMenu(),r.openEdit(n)}}>${s("edit",t)}</div>
+                <div class="popup-menu-item" @click=${()=>r.duplicateTask()}>${s("duplicate",t)}</div>
+                <div class="popup-menu-item" @click=${()=>{r.closeMoreMenu(),r.promptReset()}}>${s("reset",t)}</div>
+                <div class="popup-menu-item" @click=${()=>{r.closeMoreMenu(),r.snoozeTask()}}>${s("snooze",t)}</div>
                 <div class="popup-menu-divider"></div>
-                <div class="popup-menu-item danger" @click=${()=>{a.closeMoreMenu(),a.deleteTask()}}>${s("delete",e)}</div>
+                <div class="popup-menu-item danger" @click=${()=>{r.closeMoreMenu(),r.deleteTask()}}>${s("delete",t)}</div>
               </div>
-            `:u}
+            `:p}
           </div>
         `}
       </div>
     </div>
-  `}function Gs(n){let a=n.lang;return o`
+  `}function Qs(n){let r=n.lang;return o`
     <div class="tab-bar">
       <div class="tab ${n.activeTab==="overview"?"active":""}" @click=${()=>n.setActiveTab("overview")}>
-        ${s("overview",a)}
+        ${s("overview",r)}
       </div>
       <div class="tab ${n.activeTab==="history"?"active":""}" @click=${()=>n.setActiveTab("history")}>
-        ${s("history",a)}
+        ${s("history",r)}
       </div>
     </div>
-  `}function Pi(n,a,e,t){let i=t.collapsedSections.has(n);return o`
+  `}function zi(n,r,t,e){let i=e.collapsedSections.has(n);return o`
     <div class="collapsible ${i?"collapsed":""}">
-      <button class="collapsible-head" @click=${()=>t.toggleSection(n)}
+      <button class="collapsible-head" @click=${()=>e.toggleSection(n)}
         aria-expanded=${i?"false":"true"}>
         <ha-icon icon="${i?"mdi:chevron-right":"mdi:chevron-down"}"></ha-icon>
-        <span>${s(a,t.lang)}</span>
+        <span>${s(r,e.lang)}</span>
       </button>
-      ${i?u:o`<div class="collapsible-body">${e}</div>`}
+      ${i?p:o`<div class="collapsible-body">${t}</div>`}
     </div>
-  `}function Qs(n,a){if(!a.features.checklists)return u;let e=n.checklist||[];if(e.length===0)return u;let t=a.lang;return o`
+  `}function Js(n,r){if(!r.features.checklists)return p;let t=n.checklist||[];if(t.length===0)return p;let e=r.lang;return o`
     <div class="checklist-preview-card">
       <div class="checklist-preview-header">
         <ha-icon icon="mdi:format-list-checks"></ha-icon>
-        <span>${s("checklist",t)} (${e.length})</span>
+        <span>${s("checklist",e)} (${t.length})</span>
       </div>
       <ol class="checklist-preview-list">
-        ${e.map(i=>o`<li>${i}</li>`)}
+        ${t.map(i=>o`<li>${i}</li>`)}
       </ol>
     </div>
-  `}function Js(n,a){let e=n.documentation_url&&/^https?:\/\//i.test(n.documentation_url)?n.documentation_url:null,t=a.objectDocUrl&&/^https?:\/\//i.test(a.objectDocUrl)?a.objectDocUrl:null;if(!n.notes&&!e&&!t)return u;let i=a.lang;return o`
+  `}function Zs(n,r){let t=n.documentation_url&&/^https?:\/\//i.test(n.documentation_url)?n.documentation_url:null,e=r.objectDocUrl&&/^https?:\/\//i.test(r.objectDocUrl)?r.objectDocUrl:null;if(!n.notes&&!t&&!e)return p;let i=r.lang;return o`
     <div class="task-meta-card">
       ${n.notes?o`
         <div class="task-meta-row">
           <ha-icon icon="mdi:note-text-outline"></ha-icon>
           <span class="task-meta-notes">${n.notes}</span>
         </div>
-      `:u}
-      ${e?o`
-        <div class="task-meta-row task-meta-link">
-          <ha-icon icon="mdi:open-in-new"></ha-icon>
-          <a href="${e}" target="_blank" rel="noopener noreferrer">${s("documentation_label",i)}</a>
-        </div>
-      `:u}
+      `:p}
       ${t?o`
         <div class="task-meta-row task-meta-link">
-          <ha-icon icon="mdi:book-open-variant"></ha-icon>
-          <a href="${t}" target="_blank" rel="noopener noreferrer">${s("documentation_url_label",i)} (${a.objectName})</a>
+          <ha-icon icon="mdi:open-in-new"></ha-icon>
+          <a href="${t}" target="_blank" rel="noopener noreferrer">${s("documentation_label",i)}</a>
         </div>
-      `:u}
+      `:p}
+      ${e?o`
+        <div class="task-meta-row task-meta-link">
+          <ha-icon icon="mdi:book-open-variant"></ha-icon>
+          <a href="${e}" target="_blank" rel="noopener noreferrer">${s("documentation_url_label",i)} (${r.objectName})</a>
+        </div>
+      `:p}
     </div>
-  `}function Zs(n,a){let e=a.lang,t=n.times_performed>0?n.total_cost/n.times_performed:0,i=n.days_until_due!==null&&n.days_until_due!==void 0?n.days_until_due<0?"overdue":n.days_until_due<=n.warning_days?"warning":"":"";return o`
+  `}function Xs(n,r){let t=r.lang,e=n.times_performed>0?n.total_cost/n.times_performed:0,i=n.days_until_due!==null&&n.days_until_due!==void 0?n.days_until_due<0?"overdue":n.days_until_due<=n.warning_days?"warning":"":"";return o`
     <div class="kpi-bar">
       <div class="kpi-card">
-        <div class="kpi-label">${s("next_due",e)}</div>
-        <div class="kpi-value">${n.next_due?V(n.next_due,e):"\u2014"}</div>
-        ${a.features.schedule_time&&n.schedule_time?o`<div class="kpi-subtext">${s("at_time",e)} ${n.schedule_time}</div>`:u}
+        <div class="kpi-label">${s("next_due",t)}</div>
+        <div class="kpi-value">${n.next_due?V(n.next_due,t):"\u2014"}</div>
+        ${r.features.schedule_time&&n.schedule_time?o`<div class="kpi-subtext">${s("at_time",t)} ${n.schedule_time}</div>`:p}
       </div>
       <div class="kpi-card ${i}">
-        <div class="kpi-label">${s("days_until_due",e)}</div>
+        <div class="kpi-label">${s("days_until_due",t)}</div>
         <div class="kpi-value-large">${n.days_until_due!==null&&n.days_until_due!==void 0?n.days_until_due:"\u2014"}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("interval",e)}</div>
-        <div class="kpi-value">${st(n,e)}</div>
-        ${a.features.adaptive&&n.suggested_interval&&n.suggested_interval!==n.interval_days?o`
-          <div class="kpi-subtext">${s("recommended",e)}: ${n.suggested_interval}${n.interval_analysis?.confidence_interval_low!=null?` (${n.interval_analysis.confidence_interval_low}\u2013${n.interval_analysis.confidence_interval_high})`:""}</div>
-        `:u}
+        <div class="kpi-label">${s("interval",t)}</div>
+        <div class="kpi-value">${se(n,t)}</div>
+        ${r.features.adaptive&&n.suggested_interval&&n.suggested_interval!==n.interval_days?o`
+          <div class="kpi-subtext">${s("recommended",t)}: ${n.suggested_interval}${n.interval_analysis?.confidence_interval_low!=null?` (${n.interval_analysis.confidence_interval_low}\u2013${n.interval_analysis.confidence_interval_high})`:""}</div>
+        `:p}
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("warning",e)}</div>
-        <div class="kpi-value">${n.warning_days} ${s("days",e)}</div>
+        <div class="kpi-label">${s("warning",t)}</div>
+        <div class="kpi-value">${n.warning_days} ${s("days",t)}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("last_performed",e)}</div>
-        <div class="kpi-value">${n.last_performed?V(n.last_performed,e):"\u2014"}</div>
+        <div class="kpi-label">${s("last_performed",t)}</div>
+        <div class="kpi-value">${n.last_performed?V(n.last_performed,t):"\u2014"}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("avg_cost",e)}</div>
-        <div class="kpi-value">${t.toFixed(0)} ${a.currencySymbol}</div>
+        <div class="kpi-label">${s("avg_cost",t)}</div>
+        <div class="kpi-value">${e.toFixed(0)} ${r.currencySymbol}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">${s("avg_duration",e)}</div>
+        <div class="kpi-label">${s("avg_duration",t)}</div>
         <div class="kpi-value">${n.average_duration?n.average_duration.toFixed(0):"\u2014"} min</div>
       </div>
     </div>
-  `}function Xs(n,a){let e=a.lang;if(!a.features.adaptive||!n.suggested_interval||n.suggested_interval===n.interval_days)return u;if(a.suggestionDismissed)return u;let t=n.suggested_interval;return o`
+  `}function ta(n,r){let t=r.lang;if(!r.features.adaptive||!n.suggested_interval||n.suggested_interval===n.interval_days)return p;if(r.suggestionDismissed)return p;let e=n.suggested_interval;return o`
     <div class="recommendation-card">
-      <h4>${s("suggested_interval",e)}</h4>
-      ${Ai(n.interval_days,t,n.interval_confidence||"medium",e)}
+      <h4>${s("suggested_interval",t)}</h4>
+      ${Ai(n.interval_days,e,n.interval_confidence||"medium",t)}
       <div class="recommendation-actions">
         <ha-button appearance="filled"
-          @click=${()=>a.applySuggestion(t)}>
-          ${s("apply_suggestion",e)}
+          @click=${()=>r.applySuggestion(e)}>
+          ${s("apply_suggestion",t)}
         </ha-button>
         <ha-button appearance="plain"
-          @click=${()=>a.reanalyze()}>
-          ${s("reanalyze",e)}
+          @click=${()=>r.reanalyze()}>
+          ${s("reanalyze",t)}
         </ha-button>
         <ha-button appearance="plain"
-          @click=${()=>a.dismissSuggestion()}>
-          ${s("dismiss_suggestion",e)}
+          @click=${()=>r.dismissSuggestion()}>
+          ${s("dismiss_suggestion",t)}
         </ha-button>
       </div>
     </div>
-  `}function ea(n,a){let e=a.lang,t=n.history.slice(-3).reverse();if(t.length===0)return u;let i=r=>{switch(r){case"completed":return"\u2713";case"triggered":return"\u2297";case"skipped":return"\u21B7";case"reset":return"\u21BA";default:return"\xB7"}};return o`
+  `}function ea(n,r){let t=r.lang,e=n.history.slice(-3).reverse();if(e.length===0)return p;let i=a=>{switch(a){case"completed":return"\u2713";case"triggered":return"\u2297";case"skipped":return"\u21B7";case"reset":return"\u21BA";default:return"\xB7"}};return o`
     <div class="recent-activities">
-      <h3>${s("recent_activities",e)}</h3>
-      ${t.map(r=>o`
+      <h3>${s("recent_activities",t)}</h3>
+      ${e.map(a=>o`
         <div class="activity-item">
-          <span class="activity-icon">${i(r.type)}</span>
-          <span class="activity-date">${it(r.timestamp,e)}</span>
-          <span class="activity-note">${r.notes||"\u2014"}</span>
-          ${r.cost?o`<span class="activity-badge">${r.cost.toFixed(0)}${a.currencySymbol}</span>`:u}
-          ${r.duration?o`<span class="activity-badge">${r.duration}min</span>`:u}
+          <span class="activity-icon">${i(a.type)}</span>
+          <span class="activity-date">${ie(a.timestamp,t)}</span>
+          <span class="activity-note">${a.notes||"\u2014"}</span>
+          ${a.cost?o`<span class="activity-badge">${a.cost.toFixed(0)}${r.currencySymbol}</span>`:p}
+          ${a.duration?o`<span class="activity-badge">${a.duration}min</span>`:p}
         </div>
       `)}
       <div class="activity-show-all">
-        <ha-button appearance="plain" @click=${()=>a.setActiveTab("history")}>${s("show_all",e)} →</ha-button>
+        <ha-button appearance="plain" @click=${()=>r.setActiveTab("history")}>${s("show_all",t)} →</ha-button>
       </div>
     </div>
-  `}function ta(n,a){let e=a.lang,t=a.features.adaptive&&n.suggested_interval&&n.suggested_interval!==n.interval_days,i=a.features.seasonal&&n.seasonal_factor&&n.seasonal_factor!==1,r=t||i,l=a.features.adaptive&&n.interval_analysis?.weibull_beta!=null&&n.interval_analysis?.weibull_eta!=null,c=a.features.seasonal&&(n.seasonal_factors?.length===12||n.interval_analysis?.seasonal_factors?.length===12);return o`
+  `}function ia(n,r){let t=r.lang,e=r.features.adaptive&&n.suggested_interval&&n.suggested_interval!==n.interval_days,i=r.features.seasonal&&n.seasonal_factor&&n.seasonal_factor!==1,a=e||i,l=r.features.adaptive&&n.interval_analysis?.weibull_beta!=null&&n.interval_analysis?.weibull_eta!=null,c=r.features.seasonal&&(n.seasonal_factors?.length===12||n.interval_analysis?.seasonal_factors?.length===12);return o`
     <div class="tab-content overview-tab">
-      ${Zs(n,a)}
-      ${Js(n,a)}
-      ${xi(n,a.lang)}
-      ${wi(n,a.sparkline)}
-      ${Ti(n,e,a.features)}
-      <div class="two-column-layout ${r?"":"single-column"}">
-        ${r?o`
+      ${Xs(n,r)}
+      ${Zs(n,r)}
+      ${xi(n,r.lang)}
+      ${wi(n,r.sparkline)}
+      ${Ei(n,t,r.features)}
+      <div class="two-column-layout ${a?"":"single-column"}">
+        ${a?o`
           <div class="left-column">
-            ${Xs(n,a)}
-            ${ji(n,e,a.features)}
+            ${ta(n,r)}
+            ${ji(n,t,r.features)}
           </div>
-        `:u}
+        `:p}
         <div class="right-column">
-          ${Ii(n,e,a.costDurationToggle,d=>a.setCostDurationToggle(d))}
+          ${Ri(n,t,r.costDurationToggle,d=>r.setCostDurationToggle(d))}
         </div>
       </div>
-      ${l?Pi("weibull","weibull_reliability_curve",Si(n,e),a):u}
-      ${c?Pi("seasonal","seasonal_chart_title",o`
-            ${Mi(n,e)}
+      ${l?zi("weibull","weibull_reliability_curve",Si(n,t),r):p}
+      ${c?zi("seasonal","seasonal_chart_title",o`
+            ${Mi(n,t)}
             <div class="seasonal-actions">
-              <ha-button appearance="plain" @click=${()=>a.openSeasonalOverrides(n)}>
-                ${s("edit_seasonal_overrides",e)}
+              <ha-button appearance="plain" @click=${()=>r.openSeasonalOverrides(n)}>
+                ${s("edit_seasonal_overrides",t)}
               </ha-button>
             </div>
-          `,a):u}
-      ${Qs(n,a)}
-      ${ea(n,a)}
+          `,r):p}
+      ${Js(n,r)}
+      ${ea(n,r)}
     </div>
-  `}function ia(n,a){return o`
+  `}function sa(n,r){return o`
     <div class="tab-content history-tab">
-      ${Ri(n,a.history)}
-      ${Li(n,a.history)}
+      ${Ii(n,r.history)}
+      ${Li(n,r.history)}
     </div>
-  `}function sa(n,a){switch(a.activeTab){case"overview":return ta(n,a);case"history":return ia(n,a);default:return u}}function zi(n,a){return o`
+  `}function aa(n,r){switch(r.activeTab){case"overview":return ia(n,r);case"history":return sa(n,r);default:return p}}function Pi(n,r){return o`
     <div class="detail-section">
-      ${Ys(n,a)}
-      ${Gs(a)}
-      ${sa(n,a)}
+      ${Gs(n,r)}
+      ${Qs(r)}
+      ${aa(n,r)}
       <maintenance-task-documents
-        .hass=${a.hass}
-        .entryId=${a.entryId}
-        .taskId=${a.taskId}
-        .canWrite=${!a.isOperator}
+        .hass=${r.hass}
+        .entryId=${r.entryId}
+        .taskId=${r.taskId}
+        .canWrite=${!r.isOperator}
       ></maintenance-task-documents>
     </div>
-  `}var E=class extends S{constructor(){super(...arguments);this.narrow=!1;this.panel={};this._objects=[];this._stats=null;this._view="overview";this._selectedEntryId=null;this._selectedTaskId=null;this._filterStatus="";this._filterUser=null;this._unsub=null;this._chartRangeDays=(()=>{try{let e=parseInt(localStorage.getItem("msp-chart-range")||"",10);return[7,30,90,365].includes(e)?e:30}catch{return 30}})();this._hideOutliers=(()=>{try{return localStorage.getItem("msp-chart-hide-outliers")==="1"}catch{return!1}})();this._historyFilter=null;this._budget=null;this._groups={};this._detailStatsData=new Map;this._miniStatsData=new Map;this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._adminPanelUserIds=[];this._operatorWriteEnabled=!1;this._defaultWarningDays=7;this._actionLoading=!1;this._moreMenuOpen=!1;this._toastMessage="";this._toastUndo=null;this._toastTimer=null;this._dismissedSuggestions=new Set;this._overviewTab=(()=>{try{let e=localStorage.getItem("msp-overview-tab");return e==="today"||e==="calendar"?e:"dashboard"}catch{return"dashboard"}})();this._activeTab="overview";this._costDurationToggle="both";this._historySearch="";this._sortMode="due_date";this._objectSortMode="alphabetical";this._groupByMode="none";this._objectViewMode="cards";this._objectsTableColumns=nt;this._showArchived=!1;this._bulkMode=!1;this._bulkSelected=new Set;this._collapsedSections=(()=>{try{return new Set(JSON.parse(localStorage.getItem("msp-collapsed-sections")||"[]"))}catch{return new Set}})();this._paletteOpen=!1;this._paletteQuery="";this._paletteActive=0;this._templateGalleryOpen=!1;this._templates=[];this._templateCategories={};this._templateBusy=!1;this._statsService=null;this._userService=null;this._dataLoaded=!1;this._lastConnection=null;this._popstateHandler=e=>this._onPopState(e);this._deepLinkHandled=!1;this._paletteKeydown=e=>{if((e.ctrlKey||e.metaKey)&&(e.key==="k"||e.key==="K")){e.preventDefault(),this._paletteOpen?this._closePalette():this._openPalette();return}if(!this._paletteOpen)return;let t=this._paletteResults;if(e.key==="Escape")e.preventDefault(),this._closePalette();else if(e.key==="ArrowDown")e.preventDefault(),this._paletteActive=Math.min(this._paletteActive+1,t.length-1);else if(e.key==="ArrowUp")e.preventDefault(),this._paletteActive=Math.max(this._paletteActive-1,0);else if(e.key==="Enter"){e.preventDefault();let i=t[this._paletteActive];i&&this._selectPaletteResult(i)}};this._onDialogEvent=async()=>{try{await this._loadData()}catch{}};this._onCalendarLlCustom=e=>{let t=e.detail;t?.type==="maintenance-supporter:open-task"&&t.entry_id&&t.task_id&&(e.stopPropagation(),this._showTask(t.entry_id,t.task_id))};this._onHistoryEntrySaved=async()=>{await this._loadData()}}get _lang(){return this.hass?.language||"en"}get _isOperator(){let e=this.hass?.user;return e?e.is_admin?!1:!(this._operatorWriteEnabled&&this._adminPanelUserIds.includes(e.id)):!0}connectedCallback(){super.connectedCallback(),window.addEventListener("popstate",this._popstateHandler),window.addEventListener("keydown",this._paletteKeydown);let e=localStorage.getItem("maintenance_supporter_sort");e&&["due_date","object","type","task_name","area","assigned_user","group"].includes(e)&&(this._sortMode=e);let t=localStorage.getItem("maintenance_supporter_object_sort");t&&["alphabetical","due_soonest","task_count"].includes(t)&&(this._objectSortMode=t);let i=localStorage.getItem("maintenance_supporter_groupby");i&&["none","area","group","user"].includes(i)&&(this._groupByMode=i);let r=localStorage.getItem("maintenance_supporter_object_view");(r==="cards"||r==="table")&&(this._objectViewMode=r)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("popstate",this._popstateHandler),window.removeEventListener("keydown",this._paletteKeydown),this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._lastConnection=null,this._deepLinkHandled=!1,this._statsService?.clearCache(),this._statsService=null}updated(e){super.updated(e);let t=this.hass?.language;if(t&&!tt(t)&&ae(t).then(()=>this.requestUpdate()),e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,history.replaceState({msp_view:"overview",msp_entry:null,msp_task:null},""),this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}this._statsService?this._statsService.updateHass(this.hass):(this._statsService=new ct(this.hass),this._fetchMiniStatsForOverview()),this._userService?this._userService.updateHass(this.hass):(this._userService=new _e(this.hass),this._userService.getUsers())}}async _loadData(){let[e,t,i,r,l]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/groups"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).catch(()=>null)]);if(e&&(this._objects=e.objects),t&&(this._stats=t),i&&(this._budget=i),r&&(this._groups=r.groups||{}),l){let c=l;this._features=c.features,this._adminPanelUserIds=c.admin_panel_user_ids||[],this._operatorWriteEnabled=c.operator_write_enabled??!1;let d=c.general?.default_warning_days;typeof d=="number"&&d>=0&&d<=365&&(this._defaultWarningDays=d),this._objectsTableColumns=Fe(c.objects_table_columns)}this._fetchMiniStatsForOverview(),this._handleDeepLink()}_handleDeepLink(){if(this._deepLinkHandled)return;let e=new URLSearchParams(window.location.search),t=e.get("ms_action"),i=()=>{let g=window.location.pathname+window.location.hash;history.replaceState(history.state,"",g)};if(t==="add_object"){this._deepLinkHandled=!0,i(),requestAnimationFrame(()=>{this.shadowRoot?.querySelector("maintenance-object-dialog")?.openCreate()});return}if(t==="open_vacation"||t==="open_budget"||t==="open_groups"||t==="open_settings"){this._deepLinkHandled=!0,i(),this._overviewTab="settings",requestAnimationFrame(()=>{let g=this.shadowRoot?.querySelector("maintenance-settings-view"),m=t.replace("open_","");g?.scrollToSection?.(m)});return}let r=e.get("entry_id");if(!r)return;this._deepLinkHandled=!0;let l=e.get("task_id"),c=e.get("action"),d=window.location.pathname+window.location.hash;history.replaceState(history.state,"",d);let h=this._getObject(r);if(!h){this._showOverview();return}if(l){let g=h.tasks.find(m=>m.id===l);if(!g){this._showObject(r);return}this._showTask(r,l),c==="complete"?requestAnimationFrame(()=>{this._openCompleteDialog(r,l,g.name,this._features.checklists?g.checklist:void 0,this._features.adaptive&&!!g.adaptive_config?.enabled)}):c==="quick_complete"&&requestAnimationFrame(()=>{this._handleQuickComplete(r,l,g)})}else this._showObject(r)}_isCounterEntity(e){if(!e)return!1;let t=e.type||"threshold";return t==="counter"||t==="state_change"}async _fetchDetailStats(e,t){if(!this._statsService)return;let i=await this._statsService.getDetailStats(e,t,this._chartRangeDays),r=new Map(this._detailStatsData);r.set(e,i),this._detailStatsData=r}_setChartRange(e){if(e===this._chartRangeDays)return;this._chartRangeDays=e;try{localStorage.setItem("msp-chart-range",String(e))}catch{}let t=this._selectedEntryId&&this._selectedTaskId?this._getTask(this._selectedEntryId,this._selectedTaskId):null,i=t?.trigger_config?.entity_id;if(i){let r=new Map(this._detailStatsData);r.delete(i),this._detailStatsData=r,this._fetchDetailStats(i,this._isCounterEntity(t.trigger_config))}}_setHideOutliers(e){if(e!==this._hideOutliers){this._hideOutliers=e;try{localStorage.setItem("msp-chart-hide-outliers",e?"1":"0")}catch{}}}async _fetchMiniStatsForOverview(){if(!this._statsService)return;let e=[];for(let i of this._objects)for(let r of i.tasks){let l=r.trigger_config?.entity_id;l&&e.push({entityId:l,isCounter:this._isCounterEntity(r.trigger_config)})}if(e.length===0)return;let t=await this._statsService.getBatchMiniStats(e);this._miniStatsData=new Map([...this._miniStatsData,...t])}async _subscribe(){try{let e=await this.hass.connection.subscribeMessage(t=>{let i=t;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){e();return}this._unsub=e}catch{}}get _taskRows(){let e=[];for(let m of this._objects)for(let v of m.tasks){if(!this._showArchived&&v.archived||this._filterStatus&&v.status!==this._filterStatus)continue;if(this._filterUser){let w=this._filterUser==="current_user"?this._userService?.getCurrentUserId():this._filterUser;if(v.responsible_user_id!==w)continue}let f=[];for(let w of Object.values(this._groups))w.task_refs?.some(b=>b.entry_id===m.entry_id&&b.task_id===v.id)&&f.push(w.name);e.push({entry_id:m.entry_id,task_id:v.id,object_name:m.object.name,task_name:v.name,type:v.type,schedule_type:v.schedule_type,status:v.status,days_until_due:v.days_until_due??null,next_due:v.next_due??null,trigger_active:v.trigger_active,trigger_current_value:v.trigger_current_value??null,trigger_current_delta:v.trigger_current_delta??null,trigger_config:v.trigger_config??null,trigger_entity_info:v.trigger_entity_info??null,times_performed:v.times_performed,total_cost:v.total_cost,interval_days:v.interval_days??null,interval_unit:v.interval_unit??null,interval_anchor:v.interval_anchor??null,is_done:v.is_done??!1,archived:v.archived??!1,history:v.history||[],enabled:v.enabled,nfc_tag_id:v.nfc_tag_id??null,priority:v.priority??"normal",labels:v.labels??[],area_id:m.object.area_id??null,responsible_user_id:v.responsible_user_id??null,group_names:f})}let t={overdue:0,triggered:1,due_soon:2,ok:3},i=(m,v)=>(t[m.status]??9)-(t[v.status]??9),r=(m,v)=>(m.days_until_due??99999)-(v.days_until_due??99999),l=(m,v)=>i(m,v)||r(m,v),c=m=>m.area_id&&this.hass?.areas?.[m.area_id]?.name||"",d=m=>m.responsible_user_id&&this._userService?.getUserName(m.responsible_user_id)||"",h=m=>m.group_names[0]||"",g={due_date:l,object:(m,v)=>m.object_name.localeCompare(v.object_name)||l(m,v),type:(m,v)=>m.type.localeCompare(v.type)||l(m,v),task_name:(m,v)=>m.task_name.localeCompare(v.task_name),area:(m,v)=>{let f=c(m),w=c(v);return!f&&w?1:f&&!w?-1:f.localeCompare(w)||l(m,v)},assigned_user:(m,v)=>{let f=d(m),w=d(v);return!f&&w?1:f&&!w?-1:f.localeCompare(w)||l(m,v)},group:(m,v)=>{let f=h(m),w=h(v);return!f&&w?1:f&&!w?-1:f.localeCompare(w)||l(m,v)}};return e.sort(g[this._sortMode]),e}_getObject(e){return this._objects.find(t=>t.entry_id===e)}_getTask(e,t){return this._getObject(e)?.tasks.find(r=>r.id===t)}_pushPanelState(e,t,i){let r={msp_view:e,msp_entry:t||null,msp_task:i||null};history.pushState(r,"")}_onPopState(e){let t=e.state;if(t?.msp_view&&(this._view=t.msp_view,this._selectedEntryId=t.msp_entry||null,this._selectedTaskId=t.msp_task||null,this._moreMenuOpen=!1,t.msp_view==="task"&&t.msp_entry&&t.msp_task)){this._historyFilter=null;let i=this._getTask(t.msp_entry,t.msp_task);i?.trigger_config?.entity_id&&this._fetchDetailStats(i.trigger_config.entity_id,this._isCounterEntity(i.trigger_config))}}_showOverview(){this._pushPanelState("overview"),this._view="overview",this._selectedEntryId=null,this._selectedTaskId=null,this._moreMenuOpen=!1,this._scrollContentToTop()}_showAllObjects(){this._pushPanelState("all_objects"),this._view="all_objects",this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_filterByStatus(e){this._filterStatus=e,this._overviewTab!=="dashboard"&&(this._overviewTab="dashboard"),this._scrollContentToTop()}_scrollContentToTop(){requestAnimationFrame(()=>{let e=this.shadowRoot?.querySelector(".content");e&&e.scrollTo({top:0,behavior:"smooth"})})}_showObject(e){this._pushPanelState("object",e),this._view="object",this._selectedEntryId=e,this._selectedTaskId=null,this._scrollContentToTop()}_showTask(e,t){this._pushPanelState("task",e,t),this._view="task",this._selectedEntryId=e,this._selectedTaskId=t,this._activeTab="overview",this._historyFilter=null,this._scrollContentToTop();let i=this._getTask(e,t);if(i?.trigger_config?.entity_id){let r=i.trigger_config.entity_id,l=this._isCounterEntity(i.trigger_config);this._fetchDetailStats(r,l)}}_showToast(e){this._toastTimer&&clearTimeout(this._toastTimer),this._toastUndo=null,this._toastMessage=e,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastTimer=null},4e3)}_showUndoToast(e,t){this._toastTimer&&clearTimeout(this._toastTimer),this._toastMessage=e,this._toastUndo=t,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastUndo=null,this._toastTimer=null},7e3)}_runToastUndo(){let e=this._toastUndo;this._toastTimer&&clearTimeout(this._toastTimer),this._toastMessage="",this._toastUndo=null,this._toastTimer=null,e?.()}_openPalette(){this._paletteQuery="",this._paletteActive=0,this._paletteOpen=!0,this.updateComplete.then(()=>{this.shadowRoot?.querySelector(".palette-input")?.focus()})}_closePalette(){this._paletteOpen=!1,this._paletteQuery=""}get _paletteResults(){let e=this._paletteQuery.trim().toLowerCase(),t=[];for(let i of this._objects){let r=i.object.name||"";(!e||r.toLowerCase().includes(e))&&t.push({kind:"object",entryId:i.entry_id,label:r,sub:s("object",this._lang)});for(let l of i.tasks){if(l.archived)continue;let c=l.name||"",d=(l.labels||[]).some(h=>h.toLowerCase().includes(e));if(!e||c.toLowerCase().includes(e)||r.toLowerCase().includes(e)||d){let h=(l.labels||[]).length?`  #${(l.labels||[]).join(" #")}`:"";t.push({kind:"task",entryId:i.entry_id,taskId:l.id,label:c,sub:r+h})}}if(t.length>60)break}return t.slice(0,40)}_selectPaletteResult(e){this._closePalette(),e.kind==="task"&&e.taskId?this._showTask(e.entryId,e.taskId):this._showObject(e.entryId)}_renderPalette(){if(!this._paletteOpen)return u;let e=this._lang,t=this._paletteResults;return o`
+  `}function Hi(n){if(n.total<=0)return{start:0,end:0,padTop:0,padBottom:0};let r=n.overscan??12,t=Math.max(1,n.step??6),e=Math.max(1,n.rowHeight),i=Math.floor((n.scrollTop-n.listTop)/e),a=Math.ceil(n.viewportHeight/e)+1,l=Math.max(0,i-r);l=Math.floor(l/t)*t;let c=Math.min(n.total,Math.max(i,0)+a+r);return c=Math.min(n.total,Math.ceil(c/t)*t),l>=c&&(l=Math.min(l,Math.max(0,n.total-1)),c=Math.min(n.total,l+Math.max(a,1))),{start:l,end:c,padTop:l*e,padBottom:(n.total-c)*e}}var T=class extends S{constructor(){super(...arguments);this.narrow=!1;this.panel={};this._objects=[];this._stats=null;this._view="overview";this._selectedEntryId=null;this._selectedTaskId=null;this._filterStatus="";this._filterUser=null;this._unsub=null;this._chartRangeDays=(()=>{try{let t=parseInt(localStorage.getItem("msp-chart-range")||"",10);return[7,30,90,365].includes(t)?t:30}catch{return 30}})();this._hideOutliers=(()=>{try{return localStorage.getItem("msp-chart-hide-outliers")==="1"}catch{return!1}})();this._historyFilter=null;this._budget=null;this._groups={};this._detailStatsData=new Map;this._miniStatsData=new Map;this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._adminPanelUserIds=[];this._operatorWriteEnabled=!1;this._defaultWarningDays=7;this._actionLoading=!1;this._moreMenuOpen=!1;this._toastMessage="";this._toastUndo=null;this._toastTimer=null;this._dismissedSuggestions=new Set;this._overviewTab=(()=>{try{let t=localStorage.getItem("msp-overview-tab");return t==="today"||t==="calendar"?t:"dashboard"}catch{return"dashboard"}})();this._activeTab="overview";this._costDurationToggle="both";this._historySearch="";this._sortMode="due_date";this._objectSortMode="alphabetical";this._groupByMode="none";this._objectViewMode="cards";this._objectsTableColumns=ne;this._showArchived=!1;this._bulkMode=!1;this._bulkSelected=new Set;this._virtStart=0;this._virtEnd=0;this._virtRowHeight=53;this._virtTotalRows=0;this._virtScrollAttached=!1;this._virtRaf=0;this._collapsedSections=(()=>{try{return new Set(JSON.parse(localStorage.getItem("msp-collapsed-sections")||"[]"))}catch{return new Set}})();this._paletteOpen=!1;this._paletteQuery="";this._paletteActive=0;this._templateGalleryOpen=!1;this._templates=[];this._templateCategories={};this._templateBusy=!1;this._statsService=null;this._userService=null;this._dataLoaded=!1;this._lastConnection=null;this._popstateHandler=t=>this._onPopState(t);this._onVirtualScroll=()=>{this._virtRaf||(this._virtRaf=requestAnimationFrame(()=>{this._virtRaf=0,this._updateVirtualWindow()}))};this._deepLinkHandled=!1;this._paletteKeydown=t=>{if((t.ctrlKey||t.metaKey)&&(t.key==="k"||t.key==="K")){t.preventDefault(),this._paletteOpen?this._closePalette():this._openPalette();return}if(!this._paletteOpen)return;let e=this._paletteResults;if(t.key==="Escape")t.preventDefault(),this._closePalette();else if(t.key==="ArrowDown")t.preventDefault(),this._paletteActive=Math.min(this._paletteActive+1,e.length-1);else if(t.key==="ArrowUp")t.preventDefault(),this._paletteActive=Math.max(this._paletteActive-1,0);else if(t.key==="Enter"){t.preventDefault();let i=e[this._paletteActive];i&&this._selectPaletteResult(i)}};this._onDialogEvent=async()=>{try{await this._loadData()}catch{}};this._onCalendarLlCustom=t=>{let e=t.detail;e?.type==="maintenance-supporter:open-task"&&e.entry_id&&e.task_id&&(t.stopPropagation(),this._showTask(e.entry_id,e.task_id))};this._onHistoryEntrySaved=async()=>{await this._loadData()}}get _lang(){return this.hass?.language||"en"}get _isOperator(){let t=this.hass?.user;return t?t.is_admin?!1:!(this._operatorWriteEnabled&&this._adminPanelUserIds.includes(t.id)):!0}connectedCallback(){super.connectedCallback(),window.addEventListener("popstate",this._popstateHandler),window.addEventListener("keydown",this._paletteKeydown),window.addEventListener("resize",this._onVirtualScroll,{passive:!0});let t=localStorage.getItem("maintenance_supporter_sort");t&&["due_date","object","type","task_name","area","assigned_user","group"].includes(t)&&(this._sortMode=t);let e=localStorage.getItem("maintenance_supporter_object_sort");e&&["alphabetical","due_soonest","task_count"].includes(e)&&(this._objectSortMode=e);let i=localStorage.getItem("maintenance_supporter_groupby");i&&["none","area","group","user"].includes(i)&&(this._groupByMode=i);let a=localStorage.getItem("maintenance_supporter_object_view");(a==="cards"||a==="table")&&(this._objectViewMode=a)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("popstate",this._popstateHandler),window.removeEventListener("keydown",this._paletteKeydown),window.removeEventListener("resize",this._onVirtualScroll),this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll",this._onVirtualScroll),this._virtScrollAttached=!1,this._virtRaf&&cancelAnimationFrame(this._virtRaf),this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._lastConnection=null,this._deepLinkHandled=!1,this._statsService?.clearCache(),this._statsService=null}updated(t){super.updated(t);let e=this.hass?.language;if(e&&!ee(e)&&at(e).then(()=>this.requestUpdate()),t.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,history.replaceState({msp_view:"overview",msp_entry:null,msp_task:null},""),this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}this._statsService?this._statsService.updateHass(this.hass):(this._statsService=new ce(this.hass),this._fetchMiniStatsForOverview()),this._userService?this._userService.updateHass(this.hass):(this._userService=new _t(this.hass),this._userService.getUsers())}let i=this.shadowRoot?.querySelector(".content");i&&!this._virtScrollAttached&&(i.addEventListener("scroll",this._onVirtualScroll,{passive:!0}),this._virtScrollAttached=!0),this._updateVirtualWindow()}_updateVirtualWindow(){let t=this.shadowRoot?.querySelector(".content"),e=this.shadowRoot?.querySelector(".task-table.virtual");if(!t||!e)return;let i=e.querySelector(".task-row:not(.virt-sizer)");i&&i.offsetHeight>20&&(this._virtRowHeight=i.offsetHeight);let a=e.getBoundingClientRect().top-t.getBoundingClientRect().top+t.scrollTop,l=Hi({scrollTop:t.scrollTop,viewportHeight:t.clientHeight,listTop:a,rowHeight:this._virtRowHeight,total:this._virtTotalRows});(l.start!==this._virtStart||l.end!==this._virtEnd)&&(this._virtStart=l.start,this._virtEnd=l.end)}async _loadData(){let[t,e,i,a,l]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/budget_status"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/groups"}).catch(()=>null),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).catch(()=>null)]);if(t&&(this._objects=t.objects),e&&(this._stats=e),i&&(this._budget=i),a&&(this._groups=a.groups||{}),l){let c=l;this._features=c.features,this._adminPanelUserIds=c.admin_panel_user_ids||[],this._operatorWriteEnabled=c.operator_write_enabled??!1;let d=c.general?.default_warning_days;typeof d=="number"&&d>=0&&d<=365&&(this._defaultWarningDays=d),this._objectsTableColumns=Ft(c.objects_table_columns)}this._fetchMiniStatsForOverview(),this._handleDeepLink()}_handleDeepLink(){if(this._deepLinkHandled)return;let t=new URLSearchParams(window.location.search),e=t.get("ms_action"),i=()=>{let g=window.location.pathname+window.location.hash;history.replaceState(history.state,"",g)};if(e==="add_object"){this._deepLinkHandled=!0,i(),requestAnimationFrame(()=>{this.shadowRoot?.querySelector("maintenance-object-dialog")?.openCreate()});return}if(e==="open_vacation"||e==="open_budget"||e==="open_groups"||e==="open_settings"){this._deepLinkHandled=!0,i(),this._overviewTab="settings",requestAnimationFrame(()=>{let g=this.shadowRoot?.querySelector("maintenance-settings-view"),m=e.replace("open_","");g?.scrollToSection?.(m)});return}let a=t.get("entry_id");if(!a)return;this._deepLinkHandled=!0;let l=t.get("task_id"),c=t.get("action"),d=window.location.pathname+window.location.hash;history.replaceState(history.state,"",d);let u=this._getObject(a);if(!u){this._showOverview();return}if(l){let g=u.tasks.find(m=>m.id===l);if(!g){this._showObject(a);return}this._showTask(a,l),c==="complete"?requestAnimationFrame(()=>{this._openCompleteDialog(a,l,g.name,this._features.checklists?g.checklist:void 0,this._features.adaptive&&!!g.adaptive_config?.enabled)}):c==="quick_complete"&&requestAnimationFrame(()=>{this._handleQuickComplete(a,l,g)})}else this._showObject(a)}_isCounterEntity(t){if(!t)return!1;let e=t.type||"threshold";return e==="counter"||e==="state_change"}async _fetchDetailStats(t,e){if(!this._statsService)return;let i=await this._statsService.getDetailStats(t,e,this._chartRangeDays),a=new Map(this._detailStatsData);a.set(t,i),this._detailStatsData=a}_setChartRange(t){if(t===this._chartRangeDays)return;this._chartRangeDays=t;try{localStorage.setItem("msp-chart-range",String(t))}catch{}let e=this._selectedEntryId&&this._selectedTaskId?this._getTask(this._selectedEntryId,this._selectedTaskId):null,i=e?.trigger_config?.entity_id;if(i){let a=new Map(this._detailStatsData);a.delete(i),this._detailStatsData=a,this._fetchDetailStats(i,this._isCounterEntity(e.trigger_config))}}_setHideOutliers(t){if(t!==this._hideOutliers){this._hideOutliers=t;try{localStorage.setItem("msp-chart-hide-outliers",t?"1":"0")}catch{}}}async _fetchMiniStatsForOverview(){if(!this._statsService)return;let t=[];for(let i of this._objects)for(let a of i.tasks){let l=a.trigger_config?.entity_id;l&&t.push({entityId:l,isCounter:this._isCounterEntity(a.trigger_config)})}if(t.length===0)return;let e=await this._statsService.getBatchMiniStats(t);this._miniStatsData=new Map([...this._miniStatsData,...e])}async _subscribe(){try{let t=await this.hass.connection.subscribeMessage(e=>{let i=e;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){t();return}this._unsub=t}catch{}}get _taskRows(){let t=[];for(let m of this._objects)for(let v of m.tasks){if(!this._showArchived&&v.archived||this._filterStatus&&v.status!==this._filterStatus)continue;if(this._filterUser){let w=this._filterUser==="current_user"?this._userService?.getCurrentUserId():this._filterUser;if(v.responsible_user_id!==w)continue}let f=[];for(let w of Object.values(this._groups))w.task_refs?.some(b=>b.entry_id===m.entry_id&&b.task_id===v.id)&&f.push(w.name);t.push({entry_id:m.entry_id,task_id:v.id,object_name:m.object.name,task_name:v.name,type:v.type,schedule_type:v.schedule_type,status:v.status,days_until_due:v.days_until_due??null,next_due:v.next_due??null,trigger_active:v.trigger_active,trigger_current_value:v.trigger_current_value??null,trigger_current_delta:v.trigger_current_delta??null,trigger_config:v.trigger_config??null,trigger_entity_info:v.trigger_entity_info??null,times_performed:v.times_performed,total_cost:v.total_cost,interval_days:v.interval_days??null,interval_unit:v.interval_unit??null,interval_anchor:v.interval_anchor??null,is_done:v.is_done??!1,archived:v.archived??!1,history:v.history||[],enabled:v.enabled,nfc_tag_id:v.nfc_tag_id??null,priority:v.priority??"normal",labels:v.labels??[],area_id:m.object.area_id??null,responsible_user_id:v.responsible_user_id??null,group_names:f})}let e={overdue:0,triggered:1,due_soon:2,ok:3},i=(m,v)=>(e[m.status]??9)-(e[v.status]??9),a=(m,v)=>(m.days_until_due??99999)-(v.days_until_due??99999),l=(m,v)=>i(m,v)||a(m,v),c=m=>m.area_id&&this.hass?.areas?.[m.area_id]?.name||"",d=m=>m.responsible_user_id&&this._userService?.getUserName(m.responsible_user_id)||"",u=m=>m.group_names[0]||"",g={due_date:l,object:(m,v)=>m.object_name.localeCompare(v.object_name)||l(m,v),type:(m,v)=>m.type.localeCompare(v.type)||l(m,v),task_name:(m,v)=>m.task_name.localeCompare(v.task_name),area:(m,v)=>{let f=c(m),w=c(v);return!f&&w?1:f&&!w?-1:f.localeCompare(w)||l(m,v)},assigned_user:(m,v)=>{let f=d(m),w=d(v);return!f&&w?1:f&&!w?-1:f.localeCompare(w)||l(m,v)},group:(m,v)=>{let f=u(m),w=u(v);return!f&&w?1:f&&!w?-1:f.localeCompare(w)||l(m,v)}};return t.sort(g[this._sortMode]),t}_getObject(t){return this._objects.find(e=>e.entry_id===t)}_getTask(t,e){return this._getObject(t)?.tasks.find(a=>a.id===e)}_pushPanelState(t,e,i){let a={msp_view:t,msp_entry:e||null,msp_task:i||null};history.pushState(a,"")}_onPopState(t){let e=t.state;if(e?.msp_view&&(this._view=e.msp_view,this._selectedEntryId=e.msp_entry||null,this._selectedTaskId=e.msp_task||null,this._moreMenuOpen=!1,e.msp_view==="task"&&e.msp_entry&&e.msp_task)){this._historyFilter=null;let i=this._getTask(e.msp_entry,e.msp_task);i?.trigger_config?.entity_id&&this._fetchDetailStats(i.trigger_config.entity_id,this._isCounterEntity(i.trigger_config))}}_showOverview(){this._pushPanelState("overview"),this._view="overview",this._selectedEntryId=null,this._selectedTaskId=null,this._moreMenuOpen=!1,this._scrollContentToTop()}_showAllObjects(){this._pushPanelState("all_objects"),this._view="all_objects",this._selectedEntryId=null,this._selectedTaskId=null,this._scrollContentToTop()}_filterByStatus(t){this._filterStatus=t,this._overviewTab!=="dashboard"&&(this._overviewTab="dashboard"),this._scrollContentToTop()}_scrollContentToTop(){requestAnimationFrame(()=>{let t=this.shadowRoot?.querySelector(".content");t&&t.scrollTo({top:0,behavior:"smooth"})})}_showObject(t){this._pushPanelState("object",t),this._view="object",this._selectedEntryId=t,this._selectedTaskId=null,this._scrollContentToTop()}_showTask(t,e){this._pushPanelState("task",t,e),this._view="task",this._selectedEntryId=t,this._selectedTaskId=e,this._activeTab="overview",this._historyFilter=null,this._scrollContentToTop();let i=this._getTask(t,e);if(i?.trigger_config?.entity_id){let a=i.trigger_config.entity_id,l=this._isCounterEntity(i.trigger_config);this._fetchDetailStats(a,l)}}_showToast(t){this._toastTimer&&clearTimeout(this._toastTimer),this._toastUndo=null,this._toastMessage=t,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastTimer=null},4e3)}_showUndoToast(t,e){this._toastTimer&&clearTimeout(this._toastTimer),this._toastMessage=t,this._toastUndo=e,this._toastTimer=setTimeout(()=>{this._toastMessage="",this._toastUndo=null,this._toastTimer=null},7e3)}_runToastUndo(){let t=this._toastUndo;this._toastTimer&&clearTimeout(this._toastTimer),this._toastMessage="",this._toastUndo=null,this._toastTimer=null,t?.()}_openPalette(){this._paletteQuery="",this._paletteActive=0,this._paletteOpen=!0,this.updateComplete.then(()=>{this.shadowRoot?.querySelector(".palette-input")?.focus()})}_closePalette(){this._paletteOpen=!1,this._paletteQuery=""}get _paletteResults(){let t=this._paletteQuery.trim().toLowerCase(),e=[];for(let i of this._objects){let a=i.object.name||"";(!t||a.toLowerCase().includes(t))&&e.push({kind:"object",entryId:i.entry_id,label:a,sub:s("object",this._lang)});for(let l of i.tasks){if(l.archived)continue;let c=l.name||"",d=(l.labels||[]).some(u=>u.toLowerCase().includes(t));if(!t||c.toLowerCase().includes(t)||a.toLowerCase().includes(t)||d){let u=(l.labels||[]).length?`  #${(l.labels||[]).join(" #")}`:"";e.push({kind:"task",entryId:i.entry_id,taskId:l.id,label:c,sub:a+u})}}if(e.length>60)break}return e.slice(0,40)}_selectPaletteResult(t){this._closePalette(),t.kind==="task"&&t.taskId?this._showTask(t.entryId,t.taskId):this._showObject(t.entryId)}_renderPalette(){if(!this._paletteOpen)return p;let t=this._lang,e=this._paletteResults;return o`
       <div class="palette-backdrop" @click=${()=>this._closePalette()}>
         <div class="palette" @click=${i=>i.stopPropagation()}>
           <input
             class="palette-input"
             type="text"
-            placeholder="${s("palette_placeholder",e)}"
+            placeholder="${s("palette_placeholder",t)}"
             .value=${this._paletteQuery}
             @input=${i=>{this._paletteQuery=i.target.value,this._paletteActive=0}}
           />
           <div class="palette-results">
-            ${t.length===0?o`<div class="palette-empty">${s("palette_no_results",e)}</div>`:t.map((i,r)=>o`
-                  <div class="palette-item ${r===this._paletteActive?"active":""}"
-                    @mouseenter=${()=>{this._paletteActive=r}}
+            ${e.length===0?o`<div class="palette-empty">${s("palette_no_results",t)}</div>`:e.map((i,a)=>o`
+                  <div class="palette-item ${a===this._paletteActive?"active":""}"
+                    @mouseenter=${()=>{this._paletteActive=a}}
                     @click=${()=>this._selectPaletteResult(i)}>
                     <ha-icon icon="${i.kind==="task"?"mdi:clipboard-check-outline":"mdi:package-variant-closed"}"></ha-icon>
                     <span class="palette-label">${i.label}</span>
@@ -6836,30 +6854,30 @@ ${d?`<div class="sub">${d}</div>`:""}
                   </div>
                 `)}
           </div>
-          <div class="palette-hint">${s("palette_hint",e)}</div>
+          <div class="palette-hint">${s("palette_hint",t)}</div>
         </div>
       </div>
-    `}async _openTemplateGallery(){if(this._templateGalleryOpen=!0,!(this._templates.length>0))try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates"});this._templateCategories=e.categories||{},this._templates=e.templates||[]}catch{this._showToast(s("action_error",this._lang))}}async _createFromTemplate(e){this._templateBusy=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/from_template",template_id:e});this._templateGalleryOpen=!1,await this._loadData(),this._showToast(s("template_created",this._lang)),t?.entry_id&&this._showObject(t.entry_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._templateBusy=!1}}_categoryName(e){let t=this._templateCategories[e];return t&&(t[`name_${this._lang}`]||t.name_en)||e}_renderTemplateGallery(){if(!this._templateGalleryOpen)return u;let e=this._lang,t=new Map;for(let i of this._templates)t.has(i.category)||t.set(i.category,[]),t.get(i.category).push(i);return o`
+    `}async _openTemplateGallery(){if(this._templateGalleryOpen=!0,!(this._templates.length>0))try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates"});this._templateCategories=t.categories||{},this._templates=t.templates||[]}catch{this._showToast(s("action_error",this._lang))}}async _createFromTemplate(t){this._templateBusy=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/from_template",template_id:t});this._templateGalleryOpen=!1,await this._loadData(),this._showToast(s("template_created",this._lang)),e?.entry_id&&this._showObject(e.entry_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._templateBusy=!1}}_categoryName(t){let e=this._templateCategories[t];return e&&(e[`name_${this._lang}`]||e.name_en)||t}_renderTemplateGallery(){if(!this._templateGalleryOpen)return p;let t=this._lang,e=new Map;for(let i of this._templates)e.has(i.category)||e.set(i.category,[]),e.get(i.category).push(i);return o`
       <div class="palette-backdrop" @click=${()=>{this._templateGalleryOpen=!1}}>
         <div class="template-gallery" @click=${i=>i.stopPropagation()}>
           <div class="template-gallery-head">
-            <span>${s("templates_title",e)}</span>
+            <span>${s("templates_title",t)}</span>
             <ha-icon-button .path=${"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"}
               @click=${()=>{this._templateGalleryOpen=!1}}></ha-icon-button>
           </div>
           <div class="template-gallery-body">
-            ${this._templates.length===0?o`<div class="palette-empty">${s("loading",e)}…</div>`:[...t.entries()].map(([i,r])=>o`
+            ${this._templates.length===0?o`<div class="palette-empty">${s("loading",t)}…</div>`:[...e.entries()].map(([i,a])=>o`
                   <div class="template-cat">
                     <div class="template-cat-head">
                       <ha-icon icon="${this._templateCategories[i]?.icon||"mdi:folder-outline"}"></ha-icon>
                       ${this._categoryName(i)}
                     </div>
                     <div class="template-grid">
-                      ${r.map(l=>o`
+                      ${a.map(l=>o`
                         <button class="template-card" .disabled=${this._templateBusy}
                           @click=${()=>this._createFromTemplate(l.id)}>
                           <span class="template-card-name">${l.name}</span>
-                          <span class="template-card-count">${s("templates_task_count",e).replace("{n}",String(l.tasks.length))}</span>
+                          <span class="template-card-count">${s("templates_task_count",t).replace("{n}",String(l.tasks.length))}</span>
                         </button>
                       `)}
                     </div>
@@ -6868,9 +6886,9 @@ ${d?`<div class="sub">${d}</div>`:""}
           </div>
         </div>
       </div>
-    `}_bulkKey(e){return`${e.entry_id}:${e.task_id}`}_toggleBulkMode(){this._bulkMode=!this._bulkMode,this._bulkMode||(this._bulkSelected=new Set)}_toggleBulkRow(e){let t=this._bulkKey(e),i=new Set(this._bulkSelected);i.has(t)?i.delete(t):i.add(t),this._bulkSelected=i}_bulkSelectAll(e){let t=e.map(r=>this._bulkKey(r)),i=t.every(r=>this._bulkSelected.has(r));this._bulkSelected=i?new Set:new Set(t)}async _runBulk(e,t,i,r){let l=e.filter(d=>this._bulkSelected.has(this._bulkKey(d)));if(l.length===0)return;this._actionLoading=!0;let c=0;for(let d of l)try{await this.hass.connection.sendMessagePromise(t(d)),c++}catch{}this._actionLoading=!1,this._bulkSelected=new Set,this._bulkMode=!1,await this._loadData(),r&&c>0?this._showUndoToast(i(c),r):this._showToast(i(c))}_bulkComplete(e){this._runBulk(e,t=>({type:"maintenance_supporter/task/complete",entry_id:t.entry_id,task_id:t.task_id}),t=>s("bulk_completed",this._lang).replace("{n}",String(t)))}_bulkArchive(e){let t=e.filter(i=>this._bulkSelected.has(this._bulkKey(i))).map(i=>({entry_id:i.entry_id,task_id:i.task_id}));this._runBulk(e,i=>({type:"maintenance_supporter/task/archive",entry_id:i.entry_id,task_id:i.task_id}),i=>s("bulk_archived",this._lang).replace("{n}",String(i)),async()=>{for(let i of t)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/unarchive",entry_id:i.entry_id,task_id:i.task_id})}catch{}await this._loadData()})}async _deleteObject(e){if(await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("confirm_delete_object",this._lang),confirmText:s("delete",this._lang),danger:!0}))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:e}),this._showOverview(),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_printObjectReport(e){let t=this._getObject(e);if(!t)return;let i=this._lang,r={title:s("report_title",i),generated:s("report_generated",i),manufacturer:s("manufacturer",i),model:s("model",i),serial:s("serial_number_label",i),installed:s("installed",i),warranty:s("warranty",i),area:s("area",i),notes:s("report_notes",i),tasksHeading:s("tasks",i),colTask:s("task_name",i),colType:s("report_col_type",i),colStatus:s("report_col_status",i),colSchedule:s("report_col_schedule",i),colLastDone:s("last_performed",i),colNextDue:s("next_due",i),colCost:s("cost",i),colTimes:s("report_times_done",i),totalCost:s("report_total_cost",i),scheduleLabel:d=>st(d,i),none:"\u2014",statusLabel:d=>s(d,i),typeLabel:d=>s(d,i)},l=oi(t.object,t.tasks,r,d=>d?V(d,i):"",this._budget?.currency_symbol||ye,new Date().toISOString()),c=URL.createObjectURL(new Blob([l],{type:"text/html"}));window.open(c,"_blank"),setTimeout(()=>URL.revokeObjectURL(c),6e4)}async _duplicateObject(e){this._actionLoading=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/duplicate",entry_id:e});await this._loadData(),this._showToast(s("object_duplicated",this._lang)),t?.entry_id&&this._showObject(t.entry_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _deleteTask(e,t){if(await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("confirm_delete_task",this._lang),confirmText:s("delete",this._lang),danger:!0}))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/delete",entry_id:e,task_id:t}),this._showObject(e),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}async _duplicateTask(e,t){this._moreMenuOpen=!1,this._actionLoading=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/duplicate",entry_id:e,task_id:t});await this._loadData(),this._showToast(s("task_duplicated",this._lang)),i?.task_id&&this._showTask(e,i.task_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _toggleArchiveTask(e,t,i){this._actionLoading=!0;try{await this.hass.connection.sendMessagePromise({type:i?"maintenance_supporter/task/unarchive":"maintenance_supporter/task/archive",entry_id:e,task_id:t}),await this._loadData(),i||this._showUndoToast(s("task_archived",this._lang),()=>this._toggleArchiveTask(e,t,!0))}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _toggleArchiveObject(e,t){try{await this.hass.connection.sendMessagePromise({type:t?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:e}),await this._loadData(),t||this._showUndoToast(s("object_archived",this._lang),()=>this._toggleArchiveObject(e,!0))}catch{this._showToast(s("action_error",this._lang))}}async _skipTask(e,t,i){this._actionLoading=!0;try{let r={type:"maintenance_supporter/task/skip",entry_id:e,task_id:t};i&&(r.reason=i),await this.hass.connection.sendMessagePromise(r),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _resetTask(e,t,i){this._actionLoading=!0;try{let r={type:"maintenance_supporter/task/reset",entry_id:e,task_id:t};i&&(r.date=i),await this.hass.connection.sendMessagePromise(r),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _applySuggestion(e,t,i){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/apply_suggestion",entry_id:e,task_id:t,interval:i}),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_openSeasonalOverrides(e){let t=this.shadowRoot.querySelector("maintenance-seasonal-overrides-dialog");if(!t||!this._selectedEntryId)return;let i=e.adaptive_config?.seasonal_overrides;t.open(this._selectedEntryId,e.id,i)}async _reanalyzeInterval(e,t){try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:e,task_id:t});i.recommended_interval?this._showToast(`${s("reanalyze_result",this._lang)}: ${i.recommended_interval} ${s("days",this._lang)} (${s(`confidence_${i.confidence}`,this._lang)}, ${i.data_points} ${s("data_points",this._lang)})`):this._showToast(s("reanalyze_insufficient_data",this._lang)),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}async _promptSkipTask(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let r=await i.prompt({title:s("skip",this._lang),message:s("skip_reason_prompt",this._lang),confirmText:s("skip",this._lang),inputLabel:s("reason_optional",this._lang),inputType:"text"});r.confirmed&&this._skipTask(e,t,r.value||void 0)}async _promptResetTask(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let r=await i.prompt({title:s("reset",this._lang),message:s("reset_date_prompt",this._lang),confirmText:s("reset",this._lang),inputLabel:s("reset_date_optional",this._lang),inputType:"date"});r.confirmed&&this._resetTask(e,t,r.value||void 0)}async _snoozeTask(e,t){this._actionLoading=!0;try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/snooze",entry_id:e,task_id:t}),this._showToast(s("snoozed",this._lang))}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}_dismissSuggestion(e,t){e&&t&&this._dismissedSuggestions.add(`${e}_${t}`),this.requestUpdate()}async _handleQuickComplete(e,t,i){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/quick_complete",entry_id:e,task_id:t}),this._showToast(s("quick_complete_success",this._lang))}catch(r){(r?.code||"")==="no_defaults"?this._openCompleteDialog(e,t,i.name,this._features.checklists?i.checklist:void 0,this._features.adaptive&&!!i.adaptive_config?.enabled):this._showToast(s("action_error",this._lang))}}_openCompleteDialog(e,t,i,r,l){let c=this.shadowRoot.querySelector("maintenance-complete-dialog");c&&(c.entryId=e,c.taskId=t,c.taskName=i,c.lang=this._lang,c.checklist=r||[],c.adaptiveEnabled=!!l,c.open())}_openQrForObject(e,t){this.shadowRoot.querySelector("maintenance-qr-dialog")?.openForObject(e,t)}_openQrForTask(e,t,i,r){this.shadowRoot.querySelector("maintenance-qr-dialog")?.openForTask(e,t,i,r)}render(){return o`
+    `}_bulkKey(t){return`${t.entry_id}:${t.task_id}`}_toggleBulkMode(){this._bulkMode=!this._bulkMode,this._bulkMode||(this._bulkSelected=new Set)}_toggleBulkRow(t){let e=this._bulkKey(t),i=new Set(this._bulkSelected);i.has(e)?i.delete(e):i.add(e),this._bulkSelected=i}_bulkSelectAll(t){let e=t.map(a=>this._bulkKey(a)),i=e.every(a=>this._bulkSelected.has(a));this._bulkSelected=i?new Set:new Set(e)}async _runBulk(t,e,i,a){let l=t.filter(d=>this._bulkSelected.has(this._bulkKey(d)));if(l.length===0)return;this._actionLoading=!0;let c=0;for(let d of l)try{await this.hass.connection.sendMessagePromise(e(d)),c++}catch{}this._actionLoading=!1,this._bulkSelected=new Set,this._bulkMode=!1,await this._loadData(),a&&c>0?this._showUndoToast(i(c),a):this._showToast(i(c))}_bulkComplete(t){this._runBulk(t,e=>({type:"maintenance_supporter/task/complete",entry_id:e.entry_id,task_id:e.task_id}),e=>s("bulk_completed",this._lang).replace("{n}",String(e)))}_bulkArchive(t){let e=t.filter(i=>this._bulkSelected.has(this._bulkKey(i))).map(i=>({entry_id:i.entry_id,task_id:i.task_id}));this._runBulk(t,i=>({type:"maintenance_supporter/task/archive",entry_id:i.entry_id,task_id:i.task_id}),i=>s("bulk_archived",this._lang).replace("{n}",String(i)),async()=>{for(let i of e)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/unarchive",entry_id:i.entry_id,task_id:i.task_id})}catch{}await this._loadData()})}async _deleteObject(t){if(await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("confirm_delete_object",this._lang),confirmText:s("delete",this._lang),danger:!0}))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:t}),this._showOverview(),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_printObjectReport(t){let e=this._getObject(t);if(!e)return;let i=this._lang,a={title:s("report_title",i),generated:s("report_generated",i),manufacturer:s("manufacturer",i),model:s("model",i),serial:s("serial_number_label",i),installed:s("installed",i),warranty:s("warranty",i),area:s("area",i),notes:s("report_notes",i),tasksHeading:s("tasks",i),colTask:s("task_name",i),colType:s("report_col_type",i),colStatus:s("report_col_status",i),colSchedule:s("report_col_schedule",i),colLastDone:s("last_performed",i),colNextDue:s("next_due",i),colCost:s("cost",i),colTimes:s("report_times_done",i),totalCost:s("report_total_cost",i),scheduleLabel:d=>se(d,i),none:"\u2014",statusLabel:d=>s(d,i),typeLabel:d=>s(d,i)},l=oi(e.object,e.tasks,a,d=>d?V(d,i):"",this._budget?.currency_symbol||yt,new Date().toISOString()),c=URL.createObjectURL(new Blob([l],{type:"text/html"}));window.open(c,"_blank"),setTimeout(()=>URL.revokeObjectURL(c),6e4)}async _duplicateObject(t){this._actionLoading=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/duplicate",entry_id:t});await this._loadData(),this._showToast(s("object_duplicated",this._lang)),e?.entry_id&&this._showObject(e.entry_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _deleteTask(t,e){if(await this.shadowRoot.querySelector("maintenance-confirm-dialog")?.confirm({title:s("delete",this._lang),message:s("confirm_delete_task",this._lang),confirmText:s("delete",this._lang),danger:!0}))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/delete",entry_id:t,task_id:e}),this._showObject(t),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}async _duplicateTask(t,e){this._moreMenuOpen=!1,this._actionLoading=!0;try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/duplicate",entry_id:t,task_id:e});await this._loadData(),this._showToast(s("task_duplicated",this._lang)),i?.task_id&&this._showTask(t,i.task_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _toggleArchiveTask(t,e,i){this._actionLoading=!0;try{await this.hass.connection.sendMessagePromise({type:i?"maintenance_supporter/task/unarchive":"maintenance_supporter/task/archive",entry_id:t,task_id:e}),await this._loadData(),i||this._showUndoToast(s("task_archived",this._lang),()=>this._toggleArchiveTask(t,e,!0))}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _toggleArchiveObject(t,e){try{await this.hass.connection.sendMessagePromise({type:e?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:t}),await this._loadData(),e||this._showUndoToast(s("object_archived",this._lang),()=>this._toggleArchiveObject(t,!0))}catch{this._showToast(s("action_error",this._lang))}}async _skipTask(t,e,i){this._actionLoading=!0;try{let a={type:"maintenance_supporter/task/skip",entry_id:t,task_id:e};i&&(a.reason=i),await this.hass.connection.sendMessagePromise(a),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _resetTask(t,e,i){this._actionLoading=!0;try{let a={type:"maintenance_supporter/task/reset",entry_id:t,task_id:e};i&&(a.date=i),await this.hass.connection.sendMessagePromise(a),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}async _applySuggestion(t,e,i){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/apply_suggestion",entry_id:t,task_id:e,interval:i}),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_openSeasonalOverrides(t){let e=this.shadowRoot.querySelector("maintenance-seasonal-overrides-dialog");if(!e||!this._selectedEntryId)return;let i=t.adaptive_config?.seasonal_overrides;e.open(this._selectedEntryId,t.id,i)}async _reanalyzeInterval(t,e){try{let i=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:t,task_id:e});i.recommended_interval?this._showToast(`${s("reanalyze_result",this._lang)}: ${i.recommended_interval} ${s("days",this._lang)} (${s(`confidence_${i.confidence}`,this._lang)}, ${i.data_points} ${s("data_points",this._lang)})`):this._showToast(s("reanalyze_insufficient_data",this._lang)),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}async _promptSkipTask(t,e){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("skip",this._lang),message:s("skip_reason_prompt",this._lang),confirmText:s("skip",this._lang),inputLabel:s("reason_optional",this._lang),inputType:"text"});a.confirmed&&this._skipTask(t,e,a.value||void 0)}async _promptResetTask(t,e){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(!i)return;let a=await i.prompt({title:s("reset",this._lang),message:s("reset_date_prompt",this._lang),confirmText:s("reset",this._lang),inputLabel:s("reset_date_optional",this._lang),inputType:"date"});a.confirmed&&this._resetTask(t,e,a.value||void 0)}async _snoozeTask(t,e){this._actionLoading=!0;try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/snooze",entry_id:t,task_id:e}),this._showToast(s("snoozed",this._lang))}catch{this._showToast(s("action_error",this._lang))}finally{this._actionLoading=!1}}_dismissSuggestion(t,e){t&&e&&this._dismissedSuggestions.add(`${t}_${e}`),this.requestUpdate()}async _handleQuickComplete(t,e,i){try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/quick_complete",entry_id:t,task_id:e}),this._showToast(s("quick_complete_success",this._lang))}catch(a){(a?.code||"")==="no_defaults"?this._openCompleteDialog(t,e,i.name,this._features.checklists?i.checklist:void 0,this._features.adaptive&&!!i.adaptive_config?.enabled):this._showToast(s("action_error",this._lang))}}_openCompleteDialog(t,e,i,a,l){let c=this.shadowRoot.querySelector("maintenance-complete-dialog");c&&(c.entryId=t,c.taskId=e,c.taskName=i,c.lang=this._lang,c.checklist=a||[],c.adaptiveEnabled=!!l,c.open())}_openQrForObject(t,e){this.shadowRoot.querySelector("maintenance-qr-dialog")?.openForObject(t,e)}_openQrForTask(t,e,i,a){this.shadowRoot.querySelector("maintenance-qr-dialog")?.openForTask(t,e,i,a)}render(){return o`
       <div class="panel">
-        ${this.narrow||this._view!=="overview"?this._renderHeader():u}
+        ${this.narrow||this._view!=="overview"?this._renderHeader():p}
         <div class="content">
           ${this._view==="overview"?this._renderOverview():this._view==="all_objects"?this._renderAllObjects():this._view==="object"?this._renderObjectDetail():this._renderTaskDetail()}
         </div>
@@ -6913,78 +6931,78 @@ ${d?`<div class="sub">${d}</div>`:""}
       ></maintenance-group-dialog>
       ${this._toastMessage?o`<div class="toast">
         <span>${this._toastMessage}</span>
-        ${this._toastUndo?o`<button class="toast-undo" @click=${()=>this._runToastUndo()}>${s("undo",this._lang)}</button>`:u}
-      </div>`:u}
+        ${this._toastUndo?o`<button class="toast-undo" @click=${()=>this._runToastUndo()}>${s("undo",this._lang)}</button>`:p}
+      </div>`:p}
       ${this._renderPalette()}
       ${this._renderTemplateGallery()}
-    `}_renderHeader(){let e=[{label:s("maintenance",this._lang),action:()=>this._showOverview()}];if(this._view==="object"&&this._selectedEntryId){let t=this._getObject(this._selectedEntryId);e.push({label:t?.object.name||"Object"})}if(this._view==="task"&&this._selectedEntryId&&this._selectedTaskId){let t=this._getObject(this._selectedEntryId);e.push({label:t?.object.name||"Object",action:()=>this._showObject(this._selectedEntryId)});let i=this._getTask(this._selectedEntryId,this._selectedTaskId);e.push({label:i?.name||"Task"})}return o`
+    `}_renderHeader(){let t=[{label:s("maintenance",this._lang),action:()=>this._showOverview()}];if(this._view==="object"&&this._selectedEntryId){let e=this._getObject(this._selectedEntryId);t.push({label:e?.object.name||"Object"})}if(this._view==="task"&&this._selectedEntryId&&this._selectedTaskId){let e=this._getObject(this._selectedEntryId);t.push({label:e?.object.name||"Object",action:()=>this._showObject(this._selectedEntryId)});let i=this._getTask(this._selectedEntryId,this._selectedTaskId);t.push({label:i?.name||"Task"})}return o`
       <div class="header">
-        ${this.narrow?o`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>`:u}
+        ${this.narrow?o`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>`:p}
         ${this._view!=="overview"?o`<ha-icon-button
               .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
               @click=${()=>{this._view==="task"?this._showObject(this._selectedEntryId):this._showOverview()}}
-            ></ha-icon-button>`:u}
+            ></ha-icon-button>`:p}
         <div class="breadcrumbs">
-          ${e.map((t,i)=>o`
-              ${i>0?o`<span class="sep">/</span>`:u}
-              ${t.action?o`<a @click=${t.action}>${t.label}</a>`:o`<span class="current">${t.label}</span>`}
+          ${t.map((e,i)=>o`
+              ${i>0?o`<span class="sep">/</span>`:p}
+              ${e.action?o`<a @click=${e.action}>${e.label}</a>`:o`<span class="current">${e.label}</span>`}
             `)}
         </div>
       </div>
-    `}_renderOverview(){let e=this._lang,t=!!this.hass?.user?.is_admin,i=this._stats;return!t&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),o`
+    `}_renderOverview(){let t=this._lang,e=!!this.hass?.user?.is_admin,i=this._stats;return!e&&this._overviewTab==="settings"&&(this._overviewTab="dashboard"),o`
       ${i?o`
             <div class="stats-bar">
               <div class="stat-item clickable"
                    @click=${()=>this._showAllObjects()}
-                   title=${s("show_all_objects",e)}>
+                   title=${s("show_all_objects",t)}>
                 <span class="stat-value">${i.total_objects}</span>
-                <span class="stat-label">${s("objects",e)}</span>
+                <span class="stat-label">${s("objects",t)}</span>
               </div>
               <div class="stat-item clickable"
                    @click=${()=>this._filterByStatus("")}
-                   title=${s("show_all_tasks",e)}>
+                   title=${s("show_all_tasks",t)}>
                 <span class="stat-value">${i.total_tasks}</span>
-                <span class="stat-label">${s("tasks",e)}</span>
+                <span class="stat-label">${s("tasks",t)}</span>
               </div>
               <div class="stat-item clickable ${this._filterStatus==="overdue"&&this._overviewTab==="dashboard"?"active":""}"
                    @click=${()=>this._filterByStatus("overdue")}
-                   title=${s("filter_to_overdue",e)}>
+                   title=${s("filter_to_overdue",t)}>
                 <span class="stat-value" style="color: var(--error-color)">${i.overdue}</span>
-                <span class="stat-label">${s("overdue",e)}</span>
+                <span class="stat-label">${s("overdue",t)}</span>
               </div>
               <div class="stat-item clickable ${this._filterStatus==="due_soon"&&this._overviewTab==="dashboard"?"active":""}"
                    @click=${()=>this._filterByStatus("due_soon")}
-                   title=${s("filter_to_due_soon",e)}>
+                   title=${s("filter_to_due_soon",t)}>
                 <span class="stat-value" style="color: var(--warning-color)">${i.due_soon}</span>
-                <span class="stat-label">${s("due_soon",e)}</span>
+                <span class="stat-label">${s("due_soon",t)}</span>
               </div>
               <div class="stat-item clickable ${this._filterStatus==="triggered"&&this._overviewTab==="dashboard"?"active":""}"
                    @click=${()=>this._filterByStatus("triggered")}
-                   title=${s("filter_to_triggered",e)}>
+                   title=${s("filter_to_triggered",t)}>
                 <span class="stat-value" style="color: #ff5722">${i.triggered}</span>
-                <span class="stat-label">${s("triggered",e)}</span>
+                <span class="stat-label">${s("triggered",t)}</span>
               </div>
             </div>
-          `:u}
+          `:p}
       <div class="tab-bar">
         <div class="tab ${this._overviewTab==="today"?"active":""}"
           @click=${()=>this._setOverviewTab("today")}>
-          ${s("tab_today",e)}
+          ${s("tab_today",t)}
         </div>
         <div class="tab ${this._overviewTab==="dashboard"?"active":""}"
           @click=${()=>this._setOverviewTab("dashboard")}>
-          ${s("dashboard",e)}
+          ${s("dashboard",t)}
         </div>
         <div class="tab ${this._overviewTab==="calendar"?"active":""}"
           @click=${()=>this._setOverviewTab("calendar")}>
-          ${s("tab_calendar",e)}
+          ${s("tab_calendar",t)}
         </div>
-        ${t?o`
+        ${e?o`
           <div class="tab ${this._overviewTab==="settings"?"active":""}"
             @click=${()=>this._setOverviewTab("settings")}>
-            ${s("settings",e)}
+            ${s("settings",t)}
           </div>
-        `:u}
+        `:p}
       </div>
       ${this._overviewTab==="today"?this._renderToday():this._overviewTab==="dashboard"?this._renderDashboard():this._overviewTab==="calendar"?o`
             <div @ll-custom=${this._onCalendarLlCustom}>
@@ -6998,38 +7016,38 @@ ${d?`<div class="sub">${d}</div>`:""}
             .budget=${this._budget}
             @settings-changed=${this._onSettingsChanged}
           ></maintenance-settings-view>`}
-    `}_statusBadge(e,t,i){let r=this._lang,l=e?"archived":t?"done":i,c=e?"archived":t?"completed":i,d=e?s("archived",r):t?s("completed",r):s(i,r);return o`<span class="status-badge ${l}"><ha-icon icon="${et[c]||"mdi:circle-medium"}"></ha-icon>${d}</span>`}_setOverviewTab(e){this._overviewTab=e;try{localStorage.setItem("msp-overview-tab",e)}catch{}this._scrollContentToTop()}_renderToday(){let e=this._lang,t=this._taskRows,i=h=>`${h.entry_id}:${h.task_id}`,r=t.filter(h=>h.status==="overdue"||h.trigger_active),l=new Set(r.map(i)),c=t.filter(h=>!l.has(i(h))&&h.days_until_due===0);c.forEach(h=>l.add(i(h)));let d=t.filter(h=>!l.has(i(h))&&h.days_until_due!=null&&h.days_until_due>0&&h.days_until_due<=7);return r.length+c.length+d.length===0?o`
+    `}_statusBadge(t,e,i){let a=this._lang,l=t?"archived":e?"done":i,c=t?"archived":e?"completed":i,d=t?s("archived",a):e?s("completed",a):s(i,a);return o`<span class="status-badge ${l}"><ha-icon icon="${te[c]||"mdi:circle-medium"}"></ha-icon>${d}</span>`}_setOverviewTab(t){this._overviewTab=t;try{localStorage.setItem("msp-overview-tab",t)}catch{}this._scrollContentToTop()}_renderToday(){let t=this._lang,e=this._taskRows,i=u=>`${u.entry_id}:${u.task_id}`,a=e.filter(u=>u.status==="overdue"||u.trigger_active),l=new Set(a.map(i)),c=e.filter(u=>!l.has(i(u))&&u.days_until_due===0);c.forEach(u=>l.add(i(u)));let d=e.filter(u=>!l.has(i(u))&&u.days_until_due!=null&&u.days_until_due>0&&u.days_until_due<=7);return a.length+c.length+d.length===0?o`
         <div class="today-empty">
           <ha-icon icon="mdi:check-circle-outline"></ha-icon>
-          <p>${s("today_all_caught_up",e)}</p>
+          <p>${s("today_all_caught_up",t)}</p>
         </div>
       `:o`
       <div class="today-view">
-        ${this._renderTodaySection("today_overdue",r,"overdue")}
+        ${this._renderTodaySection("today_overdue",a,"overdue")}
         ${this._renderTodaySection("today_due_today",c,"due_soon")}
         ${this._renderTodaySection("today_this_week",d,"")}
       </div>
-    `}_renderTodaySection(e,t,i){if(t.length===0)return u;let r=this._lang;return o`
+    `}_renderTodaySection(t,e,i){if(e.length===0)return p;let a=this._lang;return o`
       <div class="today-section">
         <div class="today-section-header ${i}">
-          <span>${s(e,r)}</span><span class="today-badge">${t.length}</span>
+          <span>${s(t,a)}</span><span class="today-badge">${e.length}</span>
         </div>
-        ${t.map(l=>o`
+        ${e.map(l=>o`
           <div class="today-row" @click=${()=>this._showTask(l.entry_id,l.task_id)}>
             <span class="today-dot ${l.trigger_active?"triggered":l.status}"></span>
             <div class="today-main">
               <div class="today-task">${l.task_name}</div>
-              <div class="today-object">${l.object_name} · ${Te(l.days_until_due,r)}</div>
+              <div class="today-object">${l.object_name} · ${Et(l.days_until_due,a)}</div>
             </div>
-            <mwc-icon-button class="btn-complete" title="${s("complete",r)}"
+            <mwc-icon-button class="btn-complete" title="${s("complete",a)}"
               @click=${c=>{c.stopPropagation(),this._openCompleteDialogForRow(l)}}>
               <ha-icon icon="mdi:check"></ha-icon>
             </mwc-icon-button>
           </div>
         `)}
       </div>
-    `}_renderDashboard(){let e=this._stats,t=this._taskRows,i=this._lang,r=this._isOperator,l=this._objects.reduce((c,d)=>c+d.tasks.filter(h=>h.archived).length,0);return o`
-      ${this._features.budget?this._renderBudgetBar():u}
+    `}_renderDashboard(){let t=this._stats,e=this._taskRows,i=this._lang,a=this._isOperator,l=this._objects.reduce((c,d)=>c+d.tasks.filter(u=>u.archived).length,0);return o`
+      ${this._features.budget?this._renderBudgetBar():p}
 
       <div class="filter-bar">
         <label class="filter-field">
@@ -7078,7 +7096,7 @@ ${d?`<div class="sub">${d}</div>`:""}
           >
             <option value="none" ?selected=${this._groupByMode==="none"}>${s("groupby_none",i)}</option>
             <option value="area" ?selected=${this._groupByMode==="area"}>${s("groupby_area",i)}</option>
-            ${this._features.groups?o`<option value="group" ?selected=${this._groupByMode==="group"}>${s("groupby_group",i)}</option>`:u}
+            ${this._features.groups?o`<option value="group" ?selected=${this._groupByMode==="group"}>${s("groupby_group",i)}</option>`:p}
             <option value="user" ?selected=${this._groupByMode==="user"}>${s("groupby_user",i)}</option>
           </select>
         </label>
@@ -7090,8 +7108,8 @@ ${d?`<div class="sub">${d}</div>`:""}
             <ha-icon icon="mdi:archive-outline"></ha-icon>
             ${this._showArchived?s("hide_archived",i):`${s("show_archived",i)} (${l})`}
           </ha-button>
-        `:u}
-        ${!r&&t.length>0?o`
+        `:p}
+        ${!a&&e.length>0?o`
           <ha-button
             class="bulk-toggle ${this._bulkMode?"active":""}"
             @click=${()=>this._toggleBulkMode()}
@@ -7099,8 +7117,8 @@ ${d?`<div class="sub">${d}</div>`:""}
             <ha-icon icon="mdi:checkbox-multiple-marked-outline"></ha-icon>
             ${this._bulkMode?s("cancel",i):s("bulk_select",i)}
           </ha-button>
-        `:u}
-        ${r?u:o`
+        `:p}
+        ${a?p:o`
           <ha-button
             @click=${()=>this.shadowRoot.querySelector("maintenance-object-dialog")?.openCreate()}
           >
@@ -7117,11 +7135,11 @@ ${d?`<div class="sub">${d}</div>`:""}
         `}
       </div>
 
-      ${t.length===0?o`
+      ${e.length===0?o`
             <div class="empty-state">
               <ha-svg-icon path="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></ha-svg-icon>
               <p>${s("no_tasks",i)}</p>
-              ${!r&&this._objects.length===0?o`
+              ${!a&&this._objects.length===0?o`
                 <p class="empty-onboard-hint">${s("onboard_hint",i)}</p>
                 <div class="empty-onboard-actions">
                   <ha-button appearance="filled" @click=${()=>this._openTemplateGallery()}>
@@ -7131,132 +7149,150 @@ ${d?`<div class="sub">${d}</div>`:""}
                     ${s("new_object",i)}
                   </ha-button>
                 </div>
-              `:u}
+              `:p}
             </div>
           `:o`
-            ${this._bulkMode?this._renderBulkBar(t,i):u}
-            ${this._groupByMode==="none"?o`
-                  <div class="task-table${this._bulkMode?" bulk":""}">
-                    ${t.map(c=>this._renderOverviewRow(c))}
-                  </div>
-                `:this._renderGroupedTasks(t,i)}
+            ${this._bulkMode?this._renderBulkBar(e,i):p}
+            ${this._groupByMode==="none"?this._renderTaskTable(e):this._renderGroupedTasks(e,i)}
           `}
 
-      ${this._features.groups&&!r?this._renderGroupsSection():u}
-      ${r?u:o`<maintenance-storage-section-card
+      ${this._features.groups&&!a?this._renderGroupsSection():p}
+      ${a?p:o`<maintenance-storage-section-card
             .hass=${this.hass}
             .objects=${this._objects}
             @open-object=${c=>{let d=c.detail?.entry_id;d&&this._showObject(d)}}
           ></maintenance-storage-section-card>`}
-    `}_renderBulkBar(e,t){let i=this._bulkSelected.size,r=e.length>0&&e.every(l=>this._bulkSelected.has(this._bulkKey(l)));return o`
+    `}_renderTaskTable(t){let e=this._bulkMode?" bulk":"";if(this._virtTotalRows=t.length,this.narrow||t.length<120)return o`
+        <div class="task-table${e}">
+          ${t.map(g=>this._renderOverviewRow(g))}
+        </div>
+      `;let i=t.length,a=this._virtRowHeight,l=Math.max(0,Math.min(this._virtStart,i)),c=this._virtEnd>0?Math.min(this._virtEnd,i):Math.min(i,40);c<l&&(l=0,c=Math.min(i,40));let d=l*a,u=(i-c)*a;return o`
+      <div class="task-table${e} virtual">
+        ${this._renderVirtSizerRow(t)}
+        ${d>0?o`<div class="virt-spacer" style="height:${d}px"></div>`:p}
+        ${t.slice(l,c).map(g=>this._renderOverviewRow(g))}
+        ${u>0?o`<div class="virt-spacer" style="height:${u}px"></div>`:p}
+      </div>
+    `}_renderVirtSizerRow(t){let e=this._lang,i="",a=!1,l=!1,c=!1;for(let d of t){let u=d.archived?s("archived",e):d.is_done?s("completed",e):s(d.status,e);u.length>i.length&&(i=u),d.enabled||(a=!0),d.nfc_tag_id&&(l=!0),(d.priority==="high"||d.priority==="low")&&(c=!0)}return o`
+      <div class="task-row virt-sizer" aria-hidden="true">
+        ${this._bulkMode?o`<span></span>`:p}
+        <span class="cell-badges">
+          <span class="status-badge"><ha-icon icon="mdi:circle-medium"></ha-icon>${i}</span>
+          ${a?o`<span class="badge-disabled">${s("disabled",e)}</span>`:p}
+          ${l?o`<span class="nfc-badge"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:p}
+          ${c?o`<span class="priority-badge"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:p}
+        </span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    `}_renderBulkBar(t,e){let i=this._bulkSelected.size,a=t.length>0&&t.every(l=>this._bulkSelected.has(this._bulkKey(l)));return o`
       <div class="bulk-bar">
         <label class="bulk-selectall">
-          <input type="checkbox" .checked=${r} @change=${()=>this._bulkSelectAll(e)} />
-          ${s("bulk_select_all",t)}
+          <input type="checkbox" .checked=${a} @change=${()=>this._bulkSelectAll(t)} />
+          ${s("bulk_select_all",e)}
         </label>
-        <span class="bulk-count">${s("bulk_n_selected",t).replace("{n}",String(i))}</span>
+        <span class="bulk-count">${s("bulk_n_selected",e).replace("{n}",String(i))}</span>
         <span class="bulk-actions">
           <ha-button appearance="filled" .disabled=${i===0||this._actionLoading}
-            @click=${()=>this._bulkComplete(e)}>
-            <ha-icon icon="mdi:check"></ha-icon> ${s("complete",t)}
+            @click=${()=>this._bulkComplete(t)}>
+            <ha-icon icon="mdi:check"></ha-icon> ${s("complete",e)}
           </ha-button>
           <ha-button appearance="plain" .disabled=${i===0||this._actionLoading}
-            @click=${()=>this._bulkArchive(e)}>
-            <ha-icon icon="mdi:archive-outline"></ha-icon> ${s("archive",t)}
+            @click=${()=>this._bulkArchive(t)}>
+            <ha-icon icon="mdi:archive-outline"></ha-icon> ${s("archive",e)}
           </ha-button>
         </span>
       </div>
-    `}_renderGroupedTasks(e,t){let i=new Map,r=s("unassigned",t);for(let d of e){let h=[];this._groupByMode==="area"?h=[(d.area_id?this.hass?.areas?.[d.area_id]?.name:null)||r]:this._groupByMode==="user"?h=[(d.responsible_user_id?this._userService?.getUserName(d.responsible_user_id):null)||r]:this._groupByMode==="group"&&(h=d.group_names.length>0?d.group_names:[r]);for(let g of h)i.has(g)||i.set(g,[]),i.get(g).push(d)}let l=[...i.entries()].sort(([d],[h])=>d===r&&h!==r?1:h===r&&d!==r?-1:d.localeCompare(h)),c=this._groupByMode==="area"?"mdi:map-marker-outline":this._groupByMode==="group"?"mdi:folder-outline":"mdi:account-outline";return o`
-      ${l.map(([d,h])=>o`
+    `}_renderGroupedTasks(t,e){let i=new Map,a=s("unassigned",e);for(let d of t){let u=[];this._groupByMode==="area"?u=[(d.area_id?this.hass?.areas?.[d.area_id]?.name:null)||a]:this._groupByMode==="user"?u=[(d.responsible_user_id?this._userService?.getUserName(d.responsible_user_id):null)||a]:this._groupByMode==="group"&&(u=d.group_names.length>0?d.group_names:[a]);for(let g of u)i.has(g)||i.set(g,[]),i.get(g).push(d)}let l=[...i.entries()].sort(([d],[u])=>d===a&&u!==a?1:u===a&&d!==a?-1:d.localeCompare(u)),c=this._groupByMode==="area"?"mdi:map-marker-outline":this._groupByMode==="group"?"mdi:folder-outline":"mdi:account-outline";return o`
+      ${l.map(([d,u])=>o`
         <details class="group-section" open>
           <summary class="group-section-header">
             <ha-icon icon="${c}"></ha-icon>
             <span>${d}</span>
-            <span class="group-section-count">(${h.length})</span>
+            <span class="group-section-count">(${u.length})</span>
           </summary>
           <div class="task-table${this._bulkMode?" bulk":""}">
-            ${h.map(g=>this._renderOverviewRow(g))}
+            ${u.map(g=>this._renderOverviewRow(g))}
           </div>
         </details>
       `)}
-    `}_warrantyLabel(e,t,i){return e.kind==="expired"?s("warranty_expired",i):e.kind==="expiring"?s("warranty_expires_in",i).replace("{days}",String(e.days??0)):s("warranty_valid_until",i).replace("{date}",V(t,i))}_renderWarrantyMeta(e,t){let i=Lt(e);return o`<p class="meta">${s("warranty",t)}:
-      <span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,e,t)}</span></p>`}_renderAllObjects(){let e=this._lang,t=this._isOperator,i=this._objectViewMode==="table"&&!this.narrow,r=this._objects.filter(g=>g.object.archived).length,l=g=>{let m=1/0;for(let v of g.tasks){let f=v.days_until_due;f!=null&&f<m&&(m=f)}return m},c=this._objects.filter(g=>this._showArchived||!g.object.archived);this._objectSortMode==="alphabetical"?c.sort((g,m)=>g.object.name.localeCompare(m.object.name)):this._objectSortMode==="task_count"?c.sort((g,m)=>m.tasks.length-g.tasks.length||g.object.name.localeCompare(m.object.name)):c.sort((g,m)=>l(g)-l(m)||g.object.name.localeCompare(m.object.name));let d=()=>{let g=new Map;for(let m of c){let v=m.object.area_id,f=v?this.hass?.areas?.[v]?.name||s("unassigned",e):s("no_area",e);g.has(f)||g.set(f,[]),g.get(f).push(m)}return new Map([...g.entries()].sort(([m],[v])=>m.localeCompare(v)))},h=g=>{let m=g.tasks.some(v=>v.status==="overdue"||v.status==="triggered");return o`
+    `}_warrantyLabel(t,e,i){return t.kind==="expired"?s("warranty_expired",i):t.kind==="expiring"?s("warranty_expires_in",i).replace("{days}",String(t.days??0)):s("warranty_valid_until",i).replace("{date}",V(e,i))}_renderWarrantyMeta(t,e){let i=Le(t);return o`<p class="meta">${s("warranty",e)}:
+      <span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,t,e)}</span></p>`}_renderAllObjects(){let t=this._lang,e=this._isOperator,i=this._objectViewMode==="table"&&!this.narrow,a=this._objects.filter(g=>g.object.archived).length,l=g=>{let m=1/0;for(let v of g.tasks){let f=v.days_until_due;f!=null&&f<m&&(m=f)}return m},c=this._objects.filter(g=>this._showArchived||!g.object.archived);this._objectSortMode==="alphabetical"?c.sort((g,m)=>g.object.name.localeCompare(m.object.name)):this._objectSortMode==="task_count"?c.sort((g,m)=>m.tasks.length-g.tasks.length||g.object.name.localeCompare(m.object.name)):c.sort((g,m)=>l(g)-l(m)||g.object.name.localeCompare(m.object.name));let d=()=>{let g=new Map;for(let m of c){let v=m.object.area_id,f=v?this.hass?.areas?.[v]?.name||s("unassigned",t):s("no_area",t);g.has(f)||g.set(f,[]),g.get(f).push(m)}return new Map([...g.entries()].sort(([m],[v])=>m.localeCompare(v)))},u=g=>{let m=g.tasks.some(v=>v.status==="overdue"||v.status==="triggered");return o`
         <div class="object-card${m?" object-card-overdue":""}" @click=${()=>this._showObject(g.entry_id)}>
-          ${m?o`<span class="overdue-dot" title="${s("has_overdue",e)}"></span>`:u}
+          ${m?o`<span class="overdue-dot" title="${s("has_overdue",t)}"></span>`:p}
           <div class="object-card-header">
             <span class="object-card-name">${g.object.name}</span>
-            ${g.object.document_count?o`<span class="doc-badge" title="${g.object.document_count} ${s("documents",e)}">
+            ${g.object.document_count?o`<span class="doc-badge" title="${g.object.document_count} ${s("documents",t)}">
                   <ha-icon icon="mdi:paperclip"></ha-icon>${g.object.document_count}
-                </span>`:u}
-            <span class="object-card-count">${g.tasks.length} ${s("tasks_lower",e)}</span>
+                </span>`:p}
+            <span class="object-card-count">${g.tasks.length} ${s("tasks_lower",t)}</span>
           </div>
-          ${g.object.manufacturer||g.object.model?o`<div class="object-card-meta">${[g.object.manufacturer,g.object.model].filter(Boolean).join(" ")}</div>`:u}
-          ${g.tasks.length===0?o`<div class="object-card-empty">${s("no_tasks_yet",e)}</div>`:u}
+          ${g.object.manufacturer||g.object.model?o`<div class="object-card-meta">${[g.object.manufacturer,g.object.model].filter(Boolean).join(" ")}</div>`:p}
+          ${g.tasks.length===0?o`<div class="object-card-empty">${s("no_tasks_yet",t)}</div>`:p}
         </div>
       `};return o`
       <div class="breadcrumb">
         <ha-icon-button @click=${()=>this._showOverview()}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
-        <span>${s("all_objects",e)}</span>
+        <span>${s("all_objects",t)}</span>
       </div>
       <div class="filter-bar">
         <label class="filter-field">
-          <span class="filter-label">${s("sort_label",e)}</span>
+          <span class="filter-label">${s("sort_label",t)}</span>
           <select
             .value=${this._objectSortMode}
             @change=${g=>{this._objectSortMode=g.target.value,localStorage.setItem("maintenance_supporter_object_sort",this._objectSortMode)}}
           >
-            <option value="alphabetical" ?selected=${this._objectSortMode==="alphabetical"}>${s("sort_alphabetical",e)}</option>
-            <option value="due_soonest" ?selected=${this._objectSortMode==="due_soonest"}>${s("sort_due_soonest",e)}</option>
-            <option value="task_count" ?selected=${this._objectSortMode==="task_count"}>${s("sort_task_count",e)}</option>
+            <option value="alphabetical" ?selected=${this._objectSortMode==="alphabetical"}>${s("sort_alphabetical",t)}</option>
+            <option value="due_soonest" ?selected=${this._objectSortMode==="due_soonest"}>${s("sort_due_soonest",t)}</option>
+            <option value="task_count" ?selected=${this._objectSortMode==="task_count"}>${s("sort_task_count",t)}</option>
           </select>
         </label>
-        ${this.narrow?u:o`
-          <div class="view-toggle" role="group" aria-label="${s("view_mode_label",e)}">
+        ${this.narrow?p:o`
+          <div class="view-toggle" role="group" aria-label="${s("view_mode_label",t)}">
             <button
               class="view-toggle-btn${i?"":" active"}"
-              title="${s("view_cards",e)}"
+              title="${s("view_cards",t)}"
               @click=${()=>this._setObjectViewMode("cards")}
             ><ha-icon icon="mdi:view-grid-outline"></ha-icon></button>
             <button
               class="view-toggle-btn${i?" active":""}"
-              title="${s("view_table",e)}"
+              title="${s("view_table",t)}"
               @click=${()=>this._setObjectViewMode("table")}
             ><ha-icon icon="mdi:table"></ha-icon></button>
           </div>
         `}
-        ${i?u:o`
+        ${i?p:o`
         <label class="filter-field">
-          <span class="filter-label">${s("group_by_label",e)}</span>
+          <span class="filter-label">${s("group_by_label",t)}</span>
           <select
             .value=${this._groupByMode}
             @change=${g=>{this._groupByMode=g.target.value,localStorage.setItem("maintenance_supporter_groupby",this._groupByMode)}}
           >
-            <option value="none" ?selected=${this._groupByMode==="none"}>${s("groupby_none",e)}</option>
-            <option value="area" ?selected=${this._groupByMode==="area"}>${s("groupby_area",e)}</option>
+            <option value="none" ?selected=${this._groupByMode==="none"}>${s("groupby_none",t)}</option>
+            <option value="area" ?selected=${this._groupByMode==="area"}>${s("groupby_area",t)}</option>
           </select>
         </label>
         `}
-        ${t?u:o`
+        ${e?p:o`
           <ha-button
             @click=${()=>this.shadowRoot.querySelector("maintenance-object-dialog")?.openCreate()}
           >
-            ${s("new_object",e)}
+            ${s("new_object",t)}
           </ha-button>
         `}
         <ha-button appearance="plain" @click=${()=>this._exportObjectsCsv()}>
-          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${s("settings_export_csv",e)}
+          <ha-icon icon="mdi:file-delimited-outline"></ha-icon> ${s("settings_export_csv",t)}
         </ha-button>
-        ${r>0?o`
+        ${a>0?o`
           <ha-button
             class="archived-toggle ${this._showArchived?"active":""}"
             @click=${()=>{this._showArchived=!this._showArchived}}
           >
             <ha-icon icon="mdi:archive-outline"></ha-icon>
-            ${this._showArchived?s("hide_archived",e):`${s("show_archived",e)} (${r})`}
+            ${this._showArchived?s("hide_archived",t):`${s("show_archived",t)} (${a})`}
           </ha-button>
-        `:u}
+        `:p}
       </div>
       ${i?this._renderObjectsTable(c):this._groupByMode==="area"?o`
           ${[...d().entries()].map(([g,m])=>o`
@@ -7266,72 +7302,72 @@ ${d?`<div class="sub">${d}</div>`:""}
                 <span>${g}</span>
                 <span class="group-section-count">(${m.length})</span>
               </summary>
-              <div class="objects-grid">${m.map(h)}</div>
+              <div class="objects-grid">${m.map(u)}</div>
             </details>
           `)}
-        `:o`<div class="objects-grid">${c.map(h)}</div>`}
-    `}_setObjectViewMode(e){this._objectViewMode=e,localStorage.setItem("maintenance_supporter_object_view",e)}async _exportObjectsCsv(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects/csv"}),t=new Date().toISOString().slice(0,10);ot(e.csv,`maintenance_objects_${t}.csv`,"text/csv;charset=utf-8")}catch{this._showToast(s("action_error",this._lang))}}_renderObjectsTable(e){let t=this._lang,i=this._objectsTableColumns;return o`
+        `:o`<div class="objects-grid">${c.map(u)}</div>`}
+    `}_setObjectViewMode(t){this._objectViewMode=t,localStorage.setItem("maintenance_supporter_object_view",t)}async _exportObjectsCsv(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects/csv"}),e=new Date().toISOString().slice(0,10);oe(t.csv,`maintenance_objects_${e}.csv`,"text/csv;charset=utf-8")}catch{this._showToast(s("action_error",this._lang))}}_renderObjectsTable(t){let e=this._lang,i=this._objectsTableColumns;return o`
       <div class="objects-table-wrap">
         <table class="objects-table">
           <thead>
             <tr>
-              ${i.map(r=>{let l=Se.find(d=>d.key===r),c=l&&l.key!=="actions"?s(l.labelKey,t):"";return o`<th class="oc-${r}">${c}</th>`})}
+              ${i.map(a=>{let l=St.find(d=>d.key===a),c=l&&l.key!=="actions"?s(l.labelKey,e):"";return o`<th class="oc-${a}">${c}</th>`})}
             </tr>
           </thead>
           <tbody>
-            ${e.map(r=>o`
-              <tr class="objects-table-row" @click=${()=>this._showObject(r.entry_id)}>
-                ${i.map(l=>this._renderObjectCell(l,r,t))}
+            ${t.map(a=>o`
+              <tr class="objects-table-row" @click=${()=>this._showObject(a.entry_id)}>
+                ${i.map(l=>this._renderObjectCell(l,a,e))}
               </tr>
             `)}
           </tbody>
         </table>
       </div>
-    `}_renderObjectCell(e,t,i){let r=t.object;switch(e){case"name":return o`<td class="oc-name">
-          <span class="objects-table-name">${r.name}</span>
-          ${r.document_count?o`<span class="doc-badge" title="${r.document_count} ${s("documents",i)}">
-                <ha-icon icon="mdi:paperclip"></ha-icon>${r.document_count}
-              </span>`:u}
-        </td>`;case"manufacturer":return o`<td class="oc-manufacturer">${r.manufacturer||"\u2014"}</td>`;case"model":return o`<td class="oc-model">${r.model||"\u2014"}</td>`;case"serial_number":return o`<td class="oc-serial_number">${r.serial_number||"\u2014"}</td>`;case"installation_date":return o`<td class="oc-installation_date">${r.installation_date?V(r.installation_date,i):"\u2014"}</td>`;case"warranty_expiry":return o`<td class="oc-warranty_expiry">${this._renderWarrantyCell(r.warranty_expiry,i)}</td>`;case"area_id":{let l=r.area_id?this.hass?.areas?.[r.area_id]?.name||r.area_id:"\u2014";return o`<td class="oc-area_id">${l}</td>`}case"documentation_url":return o`<td class="oc-documentation_url">${r.documentation_url&&/^https?:\/\//i.test(r.documentation_url)?o`<a href=${r.documentation_url} target="_blank" rel="noopener noreferrer"
-                @click=${l=>l.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`:"\u2014"}</td>`;case"notes":return o`<td class="oc-notes" title=${r.notes||""}>${r.notes||"\u2014"}</td>`;case"task_count":return o`<td class="oc-task_count">${t.tasks.length}</td>`;case"actions":return o`<td class="oc-actions">
-          <mwc-icon-button title="${s("qr_code",i)}" @click=${l=>{l.stopPropagation(),this._openQrForObject(t.entry_id,r.name)}}>
+    `}_renderObjectCell(t,e,i){let a=e.object;switch(t){case"name":return o`<td class="oc-name">
+          <span class="objects-table-name">${a.name}</span>
+          ${a.document_count?o`<span class="doc-badge" title="${a.document_count} ${s("documents",i)}">
+                <ha-icon icon="mdi:paperclip"></ha-icon>${a.document_count}
+              </span>`:p}
+        </td>`;case"manufacturer":return o`<td class="oc-manufacturer">${a.manufacturer||"\u2014"}</td>`;case"model":return o`<td class="oc-model">${a.model||"\u2014"}</td>`;case"serial_number":return o`<td class="oc-serial_number">${a.serial_number||"\u2014"}</td>`;case"installation_date":return o`<td class="oc-installation_date">${a.installation_date?V(a.installation_date,i):"\u2014"}</td>`;case"warranty_expiry":return o`<td class="oc-warranty_expiry">${this._renderWarrantyCell(a.warranty_expiry,i)}</td>`;case"area_id":{let l=a.area_id?this.hass?.areas?.[a.area_id]?.name||a.area_id:"\u2014";return o`<td class="oc-area_id">${l}</td>`}case"documentation_url":return o`<td class="oc-documentation_url">${a.documentation_url&&/^https?:\/\//i.test(a.documentation_url)?o`<a href=${a.documentation_url} target="_blank" rel="noopener noreferrer"
+                @click=${l=>l.stopPropagation()}><ha-icon icon="mdi:file-document-outline"></ha-icon></a>`:"\u2014"}</td>`;case"notes":return o`<td class="oc-notes" title=${a.notes||""}>${a.notes||"\u2014"}</td>`;case"task_count":return o`<td class="oc-task_count">${e.tasks.length}</td>`;case"actions":return o`<td class="oc-actions">
+          <mwc-icon-button title="${s("qr_code",i)}" @click=${l=>{l.stopPropagation(),this._openQrForObject(e.entry_id,a.name)}}>
             <ha-icon icon="mdi:qrcode"></ha-icon>
           </mwc-icon-button>
-        </td>`;default:return o`<td></td>`}}_renderWarrantyCell(e,t){let i=Lt(e);return i.kind==="none"?o`<span class="warranty-none">—</span>`:o`<span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,e,t)}</span>`}async _onSettingsChanged(){await this._loadData()}_renderGroupsSection(){if(!this._features.groups)return u;let e=Object.entries(this._groups),t=this._lang;return o`
+        </td>`;default:return o`<td></td>`}}_renderWarrantyCell(t,e){let i=Le(t);return i.kind==="none"?o`<span class="warranty-none">—</span>`:o`<span class="warranty-chip warranty-${i.kind}">${this._warrantyLabel(i,t,e)}</span>`}async _onSettingsChanged(){await this._loadData()}_renderGroupsSection(){if(!this._features.groups)return p;let t=Object.entries(this._groups),e=this._lang;return o`
       <div class="groups-section">
         <div class="groups-header">
-          <h3>${s("groups",t)}</h3>
+          <h3>${s("groups",e)}</h3>
           <ha-button appearance="plain" @click=${()=>this._openGroupCreate()}>
-            ${s("new_group",t)}
+            ${s("new_group",e)}
           </ha-button>
         </div>
-        ${e.length===0?o`<div class="hint">${s("no_groups",t)}</div>`:o`
+        ${t.length===0?o`<div class="hint">${s("no_groups",e)}</div>`:o`
             <div class="groups-grid">
-              ${e.map(([i,r])=>{let l=r.task_refs.map(c=>this._getTask(c.entry_id,c.task_id)?.name).filter(Boolean);return o`
+              ${t.map(([i,a])=>{let l=a.task_refs.map(c=>this._getTask(c.entry_id,c.task_id)?.name).filter(Boolean);return o`
                   <div class="group-card">
                     <div class="group-card-head">
-                      <div class="group-card-name">${r.name}</div>
+                      <div class="group-card-name">${a.name}</div>
                       <div class="group-card-actions">
-                        <mwc-icon-button title="${s("edit",t)}" @click=${()=>this._openGroupEdit(i)}>
+                        <mwc-icon-button title="${s("edit",e)}" @click=${()=>this._openGroupEdit(i)}>
                           <ha-svg-icon path="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"></ha-svg-icon>
                         </mwc-icon-button>
-                        <mwc-icon-button title="${s("delete",t)}" @click=${()=>this._deleteGroup(i,r.name)}>
+                        <mwc-icon-button title="${s("delete",e)}" @click=${()=>this._deleteGroup(i,a.name)}>
                           <ha-svg-icon path="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"></ha-svg-icon>
                         </mwc-icon-button>
                       </div>
                     </div>
-                    ${r.description?o`<div class="group-card-desc">${r.description}</div>`:u}
+                    ${a.description?o`<div class="group-card-desc">${a.description}</div>`:p}
                     <div class="group-card-tasks">
-                      ${l.length>0?l.map(c=>o`<span class="group-task-chip">${c}</span>`):o`<span style="font-size:12px;color:var(--secondary-text-color)">${s("no_tasks_short",t)}</span>`}
+                      ${l.length>0?l.map(c=>o`<span class="group-task-chip">${c}</span>`):o`<span style="font-size:12px;color:var(--secondary-text-color)">${s("no_tasks_short",e)}</span>`}
                     </div>
                   </div>
                 `})}
             </div>
           `}
       </div>
-    `}_openGroupCreate(){this.shadowRoot.querySelector("maintenance-group-dialog")?.openCreate()}_openGroupEdit(e){let t=this._groups[e];t&&this.shadowRoot.querySelector("maintenance-group-dialog")?.openEdit(e,t)}async _deleteGroup(e,t){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(i?await i.confirm({title:s("delete_group",this._lang),message:s("delete_group_confirm",this._lang).replace("{name}",t),confirmText:s("delete",this._lang)}):confirm(`${s("delete_group_confirm",this._lang).replace("{name}",t)}`))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/delete",group_id:e}),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_renderBudgetBar(){let e=this._budget;if(!e)return u;let t=this._lang,i=e.currency_symbol||ye,r=[];return e.monthly_budget>0&&r.push({label:s("budget_monthly",t),spent:e.monthly_spent,budget:e.monthly_budget}),e.yearly_budget>0&&r.push({label:s("budget_yearly",t),spent:e.yearly_spent,budget:e.yearly_budget}),r.length===0?u:o`
+    `}_openGroupCreate(){this.shadowRoot.querySelector("maintenance-group-dialog")?.openCreate()}_openGroupEdit(t){let e=this._groups[t];e&&this.shadowRoot.querySelector("maintenance-group-dialog")?.openEdit(t,e)}async _deleteGroup(t,e){let i=this.shadowRoot.querySelector("maintenance-confirm-dialog");if(i?await i.confirm({title:s("delete_group",this._lang),message:s("delete_group_confirm",this._lang).replace("{name}",e),confirmText:s("delete",this._lang)}):confirm(`${s("delete_group_confirm",this._lang).replace("{name}",e)}`))try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/group/delete",group_id:t}),await this._loadData()}catch{this._showToast(s("action_error",this._lang))}}_renderBudgetBar(){let t=this._budget;if(!t)return p;let e=this._lang,i=t.currency_symbol||yt,a=[];return t.monthly_budget>0&&a.push({label:s("budget_monthly",e),spent:t.monthly_spent,budget:t.monthly_budget}),t.yearly_budget>0&&a.push({label:s("budget_yearly",e),spent:t.yearly_spent,budget:t.yearly_budget}),a.length===0?p:o`
       <div class="budget-bars">
-        ${r.map(l=>{let c=Math.min(100,Math.max(0,l.spent/l.budget*100)),d=c>=100?"var(--error-color, #f44336)":c>=e.alert_threshold_pct?"var(--warning-color, #ff9800)":"var(--success-color, #4caf50)";return o`
+        ${a.map(l=>{let c=Math.min(100,Math.max(0,l.spent/l.budget*100)),d=c>=100?"var(--error-color, #f44336)":c>=t.alert_threshold_pct?"var(--warning-color, #ff9800)":"var(--success-color, #4caf50)";return o`
             <div class="budget-item">
               <div class="budget-label">
                 <span>${l.label}</span>
@@ -7343,93 +7379,93 @@ ${d?`<div class="sub">${d}</div>`:""}
             </div>
           `})}
       </div>
-    `}_renderOverviewRow(e){let t=this._lang,i=e.schedule_type==="time_based"&&e.interval_days&&e.interval_days>0,r=0,l=Xe.ok,c=!1;if(i&&e.days_until_due!==null){let v=rt(e.interval_days,e.days_until_due,e.interval_unit);r=v.pct,c=v.overflow,e.status==="overdue"?l=Xe.overdue:e.status==="due_soon"&&(l=Xe.due_soon)}let d=e.area_id?this.hass?.areas?.[e.area_id]?.name:null,h=e.responsible_user_id?this._userService?.getUserName(e.responsible_user_id):null,g=e.group_names.length>0||d||h,m=this._bulkMode&&this._bulkSelected.has(this._bulkKey(e));return o`
-      <div class="task-row${e.enabled?"":" task-disabled"}${m?" bulk-selected":""}">
+    `}_renderOverviewRow(t){let e=this._lang,i=t.schedule_type==="time_based"&&t.interval_days&&t.interval_days>0,a=0,l=Xt.ok,c=!1;if(i&&t.days_until_due!==null){let v=re(t.interval_days,t.days_until_due,t.interval_unit);a=v.pct,c=v.overflow,t.status==="overdue"?l=Xt.overdue:t.status==="due_soon"&&(l=Xt.due_soon)}let d=t.area_id?this.hass?.areas?.[t.area_id]?.name:null,u=t.responsible_user_id?this._userService?.getUserName(t.responsible_user_id):null,g=t.group_names.length>0||d||u,m=this._bulkMode&&this._bulkSelected.has(this._bulkKey(t));return o`
+      <div class="task-row${t.enabled?"":" task-disabled"}${m?" bulk-selected":""}">
         ${this._bulkMode?o`
           <label class="cell bulk-check" @click=${v=>v.stopPropagation()}>
-            <input type="checkbox" .checked=${m} @change=${()=>this._toggleBulkRow(e)} />
+            <input type="checkbox" .checked=${m} @change=${()=>this._toggleBulkRow(t)} />
           </label>
-        `:u}
+        `:p}
         <span class="cell-badges">
-          ${this._statusBadge(!!e.archived,e.is_done,e.status)}
-          ${e.enabled?u:o`<span class="badge-disabled">${s("disabled",t)}</span>`}
-          ${e.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",t)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:u}
-          ${e.priority==="high"?o`<span class="priority-badge priority-high" title="${s("priority_high",t)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:u}
-          ${e.priority==="low"?o`<span class="priority-badge priority-low" title="${s("priority_low",t)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>`:u}
+          ${this._statusBadge(!!t.archived,t.is_done,t.status)}
+          ${t.enabled?p:o`<span class="badge-disabled">${s("disabled",e)}</span>`}
+          ${t.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",e)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:p}
+          ${t.priority==="high"?o`<span class="priority-badge priority-high" title="${s("priority_high",e)}"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>`:p}
+          ${t.priority==="low"?o`<span class="priority-badge priority-low" title="${s("priority_low",e)}"><ha-icon icon="mdi:chevron-double-down"></ha-icon></span>`:p}
         </span>
-        <span class="cell object-name" @click=${v=>{v.stopPropagation(),this._showObject(e.entry_id)}}>${e.object_name}</span>
-        <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,e.task_id)}>${e.task_name}</span>
+        <span class="cell object-name" @click=${v=>{v.stopPropagation(),this._showObject(t.entry_id)}}>${t.object_name}</span>
+        <span class="cell task-name" @click=${()=>this._showTask(t.entry_id,t.task_id)}>${t.task_name}</span>
         <span class="task-sub${g?"":" task-sub-empty"}">
-          ${e.group_names.length>0?o`
-            <span class="sub-chip" title="${s("groups",t)}">
-              <ha-icon icon="mdi:folder-outline"></ha-icon>${e.group_names.join(", ")}
-            </span>`:u}
+          ${t.group_names.length>0?o`
+            <span class="sub-chip" title="${s("groups",e)}">
+              <ha-icon icon="mdi:folder-outline"></ha-icon>${t.group_names.join(", ")}
+            </span>`:p}
           ${d?o`
             <span class="sub-chip">
               <ha-icon icon="mdi:map-marker-outline"></ha-icon>${d}
-            </span>`:u}
-          ${h?o`
-            <span class="sub-chip" title="${s("responsible_user",t)}">
-              <ha-icon icon="mdi:account-outline"></ha-icon>${h}
-            </span>`:u}
-          ${(e.labels||[]).map(v=>o`
-            <span class="sub-chip label-chip" title="${s("labels",t)}">
+            </span>`:p}
+          ${u?o`
+            <span class="sub-chip" title="${s("responsible_user",e)}">
+              <ha-icon icon="mdi:account-outline"></ha-icon>${u}
+            </span>`:p}
+          ${(t.labels||[]).map(v=>o`
+            <span class="sub-chip label-chip" title="${s("labels",e)}">
               <ha-icon icon="mdi:tag-outline"></ha-icon>${v}
             </span>`)}
         </span>
-        <span class="cell type">${s(e.type,t)}</span>
-        <span class="due-cell" @click=${()=>this._showTask(e.entry_id,e.task_id)}>
-          <span class="due-text">${Te(e.days_until_due,t)}</span>
-          ${i?o`<div class="days-bar"><div class="days-bar-fill${c?" overflow":""}" style="width:${r}%;background:${l}"></div></div>`:u}
-          ${e.trigger_config?Pt(e):!i&&e.trigger_active?o`<span style="color:var(--maint-triggered-color);font-weight:600">⚡</span>`:u}
-          ${zt(e,this._miniStatsData,this._lang)}
+        <span class="cell type">${s(t.type,e)}</span>
+        <span class="due-cell" @click=${()=>this._showTask(t.entry_id,t.task_id)}>
+          <span class="due-text">${Et(t.days_until_due,e)}</span>
+          ${i?o`<div class="days-bar"><div class="days-bar-fill${c?" overflow":""}" style="width:${a}%;background:${l}"></div></div>`:p}
+          ${t.trigger_config?ze(t):!i&&t.trigger_active?o`<span style="color:var(--maint-triggered-color);font-weight:600">⚡</span>`:p}
+          ${Pe(t,this._miniStatsData,this._lang)}
         </span>
         <span class="row-actions">
-          <mwc-icon-button class="btn-complete" title="${s("complete",t)}" @click=${v=>{v.stopPropagation(),this._openCompleteDialogForRow(e)}}>
+          <mwc-icon-button class="btn-complete" title="${s("complete",e)}" @click=${v=>{v.stopPropagation(),this._openCompleteDialogForRow(t)}}>
             <ha-icon icon="mdi:check"></ha-icon>
           </mwc-icon-button>
-          <mwc-icon-button class="btn-skip" title="${s("skip",t)}" .disabled=${this._actionLoading} @click=${v=>{v.stopPropagation(),this._promptSkipTask(e.entry_id,e.task_id)}}>
+          <mwc-icon-button class="btn-skip" title="${s("skip",e)}" .disabled=${this._actionLoading} @click=${v=>{v.stopPropagation(),this._promptSkipTask(t.entry_id,t.task_id)}}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </mwc-icon-button>
         </span>
       </div>
-    `}_openCompleteDialogForRow(e){let i=this._objects.find(r=>r.entry_id===e.entry_id)?.tasks.find(r=>r.id===e.task_id);this._openCompleteDialog(e.entry_id,e.task_id,e.task_name,this._features.checklists?i?.checklist:void 0,this._features.adaptive&&!!i?.adaptive_config?.enabled)}_renderObjectDetail(){if(!this._selectedEntryId)return u;let e=this._getObject(this._selectedEntryId);if(!e)return o`<p>Object not found.</p>`;let t=e.object,i=this._lang,r=this._isOperator,l=e.tasks.filter(d=>d.archived).length,c=e.tasks.filter(d=>this._showArchived||!d.archived);return o`
+    `}_openCompleteDialogForRow(t){let i=this._objects.find(a=>a.entry_id===t.entry_id)?.tasks.find(a=>a.id===t.task_id);this._openCompleteDialog(t.entry_id,t.task_id,t.task_name,this._features.checklists?i?.checklist:void 0,this._features.adaptive&&!!i?.adaptive_config?.enabled)}_renderObjectDetail(){if(!this._selectedEntryId)return p;let t=this._getObject(this._selectedEntryId);if(!t)return o`<p>Object not found.</p>`;let e=t.object,i=this._lang,a=this._isOperator,l=t.tasks.filter(d=>d.archived).length,c=t.tasks.filter(d=>this._showArchived||!d.archived);return o`
       <div class="detail-section">
         <div class="detail-header">
-          <h2>${t.name}</h2>
+          <h2>${e.name}</h2>
           <div class="action-buttons">
-            ${r?u:o`
-              <ha-button appearance="plain" @click=${()=>{this.shadowRoot.querySelector("maintenance-object-dialog")?.openEdit(e.entry_id,t)}}>${s("edit",i)}</ha-button>
-              <ha-button appearance="filled" @click=${()=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openCreate(e.entry_id)}}>${s("add_task",i)}</ha-button>
-              <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${()=>this._duplicateObject(e.entry_id)}>
+            ${a?p:o`
+              <ha-button appearance="plain" @click=${()=>{this.shadowRoot.querySelector("maintenance-object-dialog")?.openEdit(t.entry_id,e)}}>${s("edit",i)}</ha-button>
+              <ha-button appearance="filled" @click=${()=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openCreate(t.entry_id)}}>${s("add_task",i)}</ha-button>
+              <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${()=>this._duplicateObject(t.entry_id)}>
                 <ha-icon icon="mdi:content-copy"></ha-icon> ${s("duplicate",i)}
               </ha-button>
-              <ha-button appearance="plain" @click=${()=>this._toggleArchiveObject(e.entry_id,!!t.archived)}>
-                <ha-icon icon="${t.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
-                ${t.archived?s("unarchive_object",i):s("archive_object",i)}
+              <ha-button appearance="plain" @click=${()=>this._toggleArchiveObject(t.entry_id,!!e.archived)}>
+                <ha-icon icon="${e.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
+                ${e.archived?s("unarchive_object",i):s("archive_object",i)}
               </ha-button>
-              <ha-button variant="danger" appearance="plain" @click=${()=>this._deleteObject(e.entry_id)}>${s("delete",i)}</ha-button>
+              <ha-button variant="danger" appearance="plain" @click=${()=>this._deleteObject(t.entry_id)}>${s("delete",i)}</ha-button>
             `}
-            <ha-button appearance="plain" @click=${()=>this._openQrForObject(e.entry_id,t.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${s("qr_code",i)}</ha-button>
-            <ha-button appearance="plain" @click=${()=>this._printObjectReport(e.entry_id)}><ha-icon icon="mdi:file-document-outline"></ha-icon> ${s("report_button",i)}</ha-button>
+            <ha-button appearance="plain" @click=${()=>this._openQrForObject(t.entry_id,e.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${s("qr_code",i)}</ha-button>
+            <ha-button appearance="plain" @click=${()=>this._printObjectReport(t.entry_id)}><ha-icon icon="mdi:file-document-outline"></ha-icon> ${s("report_button",i)}</ha-button>
           </div>
         </div>
-        ${t.manufacturer||t.model?o`<p class="meta">${[t.manufacturer,t.model].filter(Boolean).join(" ")}</p>`:u}
-        ${t.serial_number?o`<p class="meta">${s("serial_number_label",i)}: ${t.serial_number}</p>`:u}
-        ${t.documentation_url&&/^https?:\/\//i.test(t.documentation_url)?o`<p class="meta">${s("documentation_url_label",i)}:
-              <a href=${t.documentation_url} target="_blank" rel="noopener noreferrer">${t.documentation_url}</a>
-            </p>`:u}
-        ${t.installation_date?o`<p class="meta">${s("installed",i)}: ${V(t.installation_date,i)}</p>`:u}
-        ${t.warranty_expiry?this._renderWarrantyMeta(t.warranty_expiry,i):u}
-        ${t.notes?o`<div class="object-notes">
+        ${e.manufacturer||e.model?o`<p class="meta">${[e.manufacturer,e.model].filter(Boolean).join(" ")}</p>`:p}
+        ${e.serial_number?o`<p class="meta">${s("serial_number_label",i)}: ${e.serial_number}</p>`:p}
+        ${e.documentation_url&&/^https?:\/\//i.test(e.documentation_url)?o`<p class="meta">${s("documentation_url_label",i)}:
+              <a href=${e.documentation_url} target="_blank" rel="noopener noreferrer">${e.documentation_url}</a>
+            </p>`:p}
+        ${e.installation_date?o`<p class="meta">${s("installed",i)}: ${V(e.installation_date,i)}</p>`:p}
+        ${e.warranty_expiry?this._renderWarrantyMeta(e.warranty_expiry,i):p}
+        ${e.notes?o`<div class="object-notes">
               <div class="object-notes-label">${s("object_notes_label",i)}</div>
-              <div class="object-notes-body">${t.notes}</div>
-            </div>`:u}
+              <div class="object-notes-body">${e.notes}</div>
+            </div>`:p}
 
         <maintenance-documents-section
           .hass=${this.hass}
-          .entryId=${e.entry_id}
-          .canWrite=${!r}
+          .entryId=${t.entry_id}
+          .canWrite=${!a}
         ></maintenance-documents-section>
 
         <h3>${s("tasks",i)} (${c.length})${l>0?o`
@@ -7440,37 +7476,37 @@ ${d?`<div class="sub">${d}</div>`:""}
           >
             <ha-icon icon="mdi:archive-outline"></ha-icon>
             ${this._showArchived?s("hide_archived",i):`${s("show_archived",i)} (${l})`}
-          </ha-button>`:u}</h3>
-        ${e.tasks.length===0?o`<div class="empty-state-centered">
+          </ha-button>`:p}</h3>
+        ${t.tasks.length===0?o`<div class="empty-state-centered">
               <p class="empty">${s("no_tasks_yet",i)}</p>
-              <ha-button appearance="filled" @click=${()=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openCreate(e.entry_id)}}>${s("add_first_task",i)}</ha-button>
-            </div>`:o`<div class="task-table">${[...c].sort((d,h)=>{let g={overdue:0,triggered:1,due_soon:2,ok:3};return(g[d.status]??9)-(g[h.status]??9)||(d.days_until_due??99999)-(h.days_until_due??99999)}).map(d=>o`
+              <ha-button appearance="filled" @click=${()=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openCreate(t.entry_id)}}>${s("add_first_task",i)}</ha-button>
+            </div>`:o`<div class="task-table">${[...c].sort((d,u)=>{let g={overdue:0,triggered:1,due_soon:2,ok:3};return(g[d.status]??9)-(g[u.status]??9)||(d.days_until_due??99999)-(u.days_until_due??99999)}).map(d=>o`
               <div class="task-row${d.enabled?"":" task-disabled"}">
                 <span class="cell-badges">
                   ${this._statusBadge(!!d.archived,!!d.is_done,d.status)}
-                  ${d.enabled?u:o`<span class="badge-disabled">${s("disabled",i)}</span>`}
-                  ${d.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",i)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:u}
+                  ${d.enabled?p:o`<span class="badge-disabled">${s("disabled",i)}</span>`}
+                  ${d.nfc_tag_id?o`<span class="nfc-badge" title="${s("nfc_linked",i)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>`:p}
                 </span>
-                <span class="cell task-name" @click=${()=>this._showTask(e.entry_id,d.id)}>${d.name}</span>
-                <span class="task-sub${d.responsible_user_id?"":" task-sub-empty"}">${Ot(d,h=>this._userService?.getUserName(h)??null)}</span>
+                <span class="cell task-name" @click=${()=>this._showTask(t.entry_id,d.id)}>${d.name}</span>
+                <span class="task-sub${d.responsible_user_id?"":" task-sub-empty"}">${Oe(d,u=>this._userService?.getUserName(u)??null)}</span>
                 <span class="cell type">${s(d.type,i)}</span>
-                <span class="due-cell" @click=${()=>this._showTask(e.entry_id,d.id)}>
-                  <span class="due-text">${Te(d.days_until_due,i)}</span>
-                  ${d.trigger_config?Pt(d):u}
-                  ${zt(d,this._miniStatsData,this._lang)}
+                <span class="due-cell" @click=${()=>this._showTask(t.entry_id,d.id)}>
+                  <span class="due-text">${Et(d.days_until_due,i)}</span>
+                  ${d.trigger_config?ze(d):p}
+                  ${Pe(d,this._miniStatsData,this._lang)}
                 </span>
                 <span class="row-actions">
-                  <mwc-icon-button class="btn-complete" title="${s("complete",i)}" @click=${h=>{h.stopPropagation(),this._openCompleteDialog(e.entry_id,d.id,d.name,this._features.checklists?d.checklist:void 0,this._features.adaptive&&!!d.adaptive_config?.enabled)}}>
+                  <mwc-icon-button class="btn-complete" title="${s("complete",i)}" @click=${u=>{u.stopPropagation(),this._openCompleteDialog(t.entry_id,d.id,d.name,this._features.checklists?d.checklist:void 0,this._features.adaptive&&!!d.adaptive_config?.enabled)}}>
                     <ha-icon icon="mdi:check"></ha-icon>
                   </mwc-icon-button>
-                  <mwc-icon-button class="btn-skip" title="${s("skip",i)}" .disabled=${this._actionLoading} @click=${h=>{h.stopPropagation(),this._promptSkipTask(e.entry_id,d.id)}}>
+                  <mwc-icon-button class="btn-skip" title="${s("skip",i)}" .disabled=${this._actionLoading} @click=${u=>{u.stopPropagation(),this._promptSkipTask(t.entry_id,d.id)}}>
                     <ha-icon icon="mdi:skip-next"></ha-icon>
                   </mwc-icon-button>
                 </span>
               </div>
             `)}</div>`}
       </div>
-    `}_toggleMoreMenu(){if(this._moreMenuOpen=!this._moreMenuOpen,this._moreMenuOpen){let e=()=>{this._moreMenuOpen=!1,document.removeEventListener("click",e)};setTimeout(()=>document.addEventListener("click",e,{once:!0}),0)}}_closeMoreMenu(){this._moreMenuOpen=!1}get _sparklineCtx(){return{lang:this._lang,detailStatsData:this._detailStatsData,hasStatsService:!!this._statsService,isCounterEntity:e=>this._isCounterEntity(e),rangeDays:this._chartRangeDays,setRangeDays:e=>this._setChartRange(e),hideOutliers:this._hideOutliers,setHideOutliers:e=>this._setHideOutliers(e)}}_toggleSection(e){let t=new Set(this._collapsedSections);t.has(e)?t.delete(e):t.add(e),this._collapsedSections=t;try{localStorage.setItem("msp-collapsed-sections",JSON.stringify([...t]))}catch{}}_historyCtx(){return{lang:this._lang,hass:this.hass,filter:this._historyFilter,search:this._historySearch,currencySymbol:this._budget?.currency_symbol||ye,setFilter:e=>{this._historyFilter=e},setSearch:e=>{this._historySearch=e},openEdit:e=>this._openHistoryEdit(e)}}_taskDetailCtx(){let e=this._selectedEntryId,t=this._selectedTaskId,i=this._getObject(e);return{lang:this._lang,hass:this.hass,entryId:e,taskId:t,objectName:i?.object.name||"",objectDocUrl:i?.object?.documentation_url??null,isOperator:this._isOperator,actionLoading:this._actionLoading,moreMenuOpen:this._moreMenuOpen,activeTab:this._activeTab,features:this._features,currencySymbol:this._budget?.currency_symbol||ye,collapsedSections:this._collapsedSections,costDurationToggle:this._costDurationToggle,suggestionDismissed:this._dismissedSuggestions.has(`${e}_${t}`),sparkline:this._sparklineCtx,history:this._historyCtx(),getUserName:r=>this._userService?.getUserName(r)??null,setActiveTab:r=>{this._activeTab=r},toggleSection:r=>this._toggleSection(r),setCostDurationToggle:r=>{this._costDurationToggle=r},showTaskView:()=>{this._view="task"},showObject:()=>this._showObject(e),toggleMoreMenu:()=>this._toggleMoreMenu(),closeMoreMenu:()=>this._closeMoreMenu(),openEdit:r=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openEdit(e,r)},openComplete:r=>this._openCompleteDialog(e,t,r.name,this._features.checklists?r.checklist:void 0,this._features.adaptive&&!!r.adaptive_config?.enabled),promptSkip:()=>this._promptSkipTask(e,t),toggleArchive:r=>this._toggleArchiveTask(e,t,r),openQr:r=>this._openQrForTask(e,t,i?.object.name||"",r),duplicateTask:()=>this._duplicateTask(e,t),promptReset:()=>this._promptResetTask(e,t),snoozeTask:()=>this._snoozeTask(e,t),deleteTask:()=>this._deleteTask(e,t),applySuggestion:r=>this._applySuggestion(e,t,r),reanalyze:()=>this._reanalyzeInterval(e,t),dismissSuggestion:()=>this._dismissSuggestion(e,t),openSeasonalOverrides:r=>this._openSeasonalOverrides(r)}}_renderTaskDetail(){if(!this._selectedEntryId||!this._selectedTaskId)return u;let e=this._getTask(this._selectedEntryId,this._selectedTaskId);return e?zi(e,this._taskDetailCtx()):o`<p>Task not found.</p>`}_openHistoryEdit(e){if(!this._selectedEntryId||!this._selectedTaskId)return;let t={entry_id:this._selectedEntryId,task_id:this._selectedTaskId,original_timestamp:e.timestamp,type:e.type,timestamp:e.timestamp,notes:e.notes??null,cost:e.cost??null,duration:e.duration??null,completed_by:e.completed_by??null};this.shadowRoot?.querySelector("maintenance-history-edit-dialog")?.openEdit(t)}};E.styles=[at,li],p([y({attribute:!1})],E.prototype,"hass",2),p([y({type:Boolean,reflect:!0})],E.prototype,"narrow",2),p([y({attribute:!1})],E.prototype,"panel",2),p([_()],E.prototype,"_objects",2),p([_()],E.prototype,"_stats",2),p([_()],E.prototype,"_view",2),p([_()],E.prototype,"_selectedEntryId",2),p([_()],E.prototype,"_selectedTaskId",2),p([_()],E.prototype,"_filterStatus",2),p([_()],E.prototype,"_filterUser",2),p([_()],E.prototype,"_unsub",2),p([_()],E.prototype,"_chartRangeDays",2),p([_()],E.prototype,"_hideOutliers",2),p([_()],E.prototype,"_historyFilter",2),p([_()],E.prototype,"_budget",2),p([_()],E.prototype,"_groups",2),p([_()],E.prototype,"_detailStatsData",2),p([_()],E.prototype,"_miniStatsData",2),p([_()],E.prototype,"_features",2),p([_()],E.prototype,"_adminPanelUserIds",2),p([_()],E.prototype,"_operatorWriteEnabled",2),p([_()],E.prototype,"_defaultWarningDays",2),p([_()],E.prototype,"_actionLoading",2),p([_()],E.prototype,"_moreMenuOpen",2),p([_()],E.prototype,"_toastMessage",2),p([_()],E.prototype,"_toastUndo",2),p([_()],E.prototype,"_overviewTab",2),p([_()],E.prototype,"_activeTab",2),p([_()],E.prototype,"_costDurationToggle",2),p([_()],E.prototype,"_historySearch",2),p([_()],E.prototype,"_sortMode",2),p([_()],E.prototype,"_objectSortMode",2),p([_()],E.prototype,"_groupByMode",2),p([_()],E.prototype,"_objectViewMode",2),p([_()],E.prototype,"_objectsTableColumns",2),p([_()],E.prototype,"_showArchived",2),p([_()],E.prototype,"_bulkMode",2),p([_()],E.prototype,"_bulkSelected",2),p([_()],E.prototype,"_collapsedSections",2),p([_()],E.prototype,"_paletteOpen",2),p([_()],E.prototype,"_paletteQuery",2),p([_()],E.prototype,"_paletteActive",2),p([_()],E.prototype,"_templateGalleryOpen",2),p([_()],E.prototype,"_templates",2),p([_()],E.prototype,"_templateCategories",2),p([_()],E.prototype,"_templateBusy",2),E=p([si("maintenance-supporter-panel")],E);export{E as MaintenanceSupporterPanel};
+    `}_toggleMoreMenu(){if(this._moreMenuOpen=!this._moreMenuOpen,this._moreMenuOpen){let t=()=>{this._moreMenuOpen=!1,document.removeEventListener("click",t)};setTimeout(()=>document.addEventListener("click",t,{once:!0}),0)}}_closeMoreMenu(){this._moreMenuOpen=!1}get _sparklineCtx(){return{lang:this._lang,detailStatsData:this._detailStatsData,hasStatsService:!!this._statsService,isCounterEntity:t=>this._isCounterEntity(t),rangeDays:this._chartRangeDays,setRangeDays:t=>this._setChartRange(t),hideOutliers:this._hideOutliers,setHideOutliers:t=>this._setHideOutliers(t)}}_toggleSection(t){let e=new Set(this._collapsedSections);e.has(t)?e.delete(t):e.add(t),this._collapsedSections=e;try{localStorage.setItem("msp-collapsed-sections",JSON.stringify([...e]))}catch{}}_historyCtx(){return{lang:this._lang,hass:this.hass,filter:this._historyFilter,search:this._historySearch,currencySymbol:this._budget?.currency_symbol||yt,setFilter:t=>{this._historyFilter=t},setSearch:t=>{this._historySearch=t},openEdit:t=>this._openHistoryEdit(t)}}_taskDetailCtx(){let t=this._selectedEntryId,e=this._selectedTaskId,i=this._getObject(t);return{lang:this._lang,hass:this.hass,entryId:t,taskId:e,objectName:i?.object.name||"",objectDocUrl:i?.object?.documentation_url??null,isOperator:this._isOperator,actionLoading:this._actionLoading,moreMenuOpen:this._moreMenuOpen,activeTab:this._activeTab,features:this._features,currencySymbol:this._budget?.currency_symbol||yt,collapsedSections:this._collapsedSections,costDurationToggle:this._costDurationToggle,suggestionDismissed:this._dismissedSuggestions.has(`${t}_${e}`),sparkline:this._sparklineCtx,history:this._historyCtx(),getUserName:a=>this._userService?.getUserName(a)??null,setActiveTab:a=>{this._activeTab=a},toggleSection:a=>this._toggleSection(a),setCostDurationToggle:a=>{this._costDurationToggle=a},showTaskView:()=>{this._view="task"},showObject:()=>this._showObject(t),toggleMoreMenu:()=>this._toggleMoreMenu(),closeMoreMenu:()=>this._closeMoreMenu(),openEdit:a=>{this.shadowRoot.querySelector("maintenance-task-dialog")?.openEdit(t,a)},openComplete:a=>this._openCompleteDialog(t,e,a.name,this._features.checklists?a.checklist:void 0,this._features.adaptive&&!!a.adaptive_config?.enabled),promptSkip:()=>this._promptSkipTask(t,e),toggleArchive:a=>this._toggleArchiveTask(t,e,a),openQr:a=>this._openQrForTask(t,e,i?.object.name||"",a),duplicateTask:()=>this._duplicateTask(t,e),promptReset:()=>this._promptResetTask(t,e),snoozeTask:()=>this._snoozeTask(t,e),deleteTask:()=>this._deleteTask(t,e),applySuggestion:a=>this._applySuggestion(t,e,a),reanalyze:()=>this._reanalyzeInterval(t,e),dismissSuggestion:()=>this._dismissSuggestion(t,e),openSeasonalOverrides:a=>this._openSeasonalOverrides(a)}}_renderTaskDetail(){if(!this._selectedEntryId||!this._selectedTaskId)return p;let t=this._getTask(this._selectedEntryId,this._selectedTaskId);return t?Pi(t,this._taskDetailCtx()):o`<p>Task not found.</p>`}_openHistoryEdit(t){if(!this._selectedEntryId||!this._selectedTaskId)return;let e={entry_id:this._selectedEntryId,task_id:this._selectedTaskId,original_timestamp:t.timestamp,type:t.type,timestamp:t.timestamp,notes:t.notes??null,cost:t.cost??null,duration:t.duration??null,completed_by:t.completed_by??null};this.shadowRoot?.querySelector("maintenance-history-edit-dialog")?.openEdit(e)}};T.styles=[ae,li],h([y({attribute:!1})],T.prototype,"hass",2),h([y({type:Boolean,reflect:!0})],T.prototype,"narrow",2),h([y({attribute:!1})],T.prototype,"panel",2),h([_()],T.prototype,"_objects",2),h([_()],T.prototype,"_stats",2),h([_()],T.prototype,"_view",2),h([_()],T.prototype,"_selectedEntryId",2),h([_()],T.prototype,"_selectedTaskId",2),h([_()],T.prototype,"_filterStatus",2),h([_()],T.prototype,"_filterUser",2),h([_()],T.prototype,"_unsub",2),h([_()],T.prototype,"_chartRangeDays",2),h([_()],T.prototype,"_hideOutliers",2),h([_()],T.prototype,"_historyFilter",2),h([_()],T.prototype,"_budget",2),h([_()],T.prototype,"_groups",2),h([_()],T.prototype,"_detailStatsData",2),h([_()],T.prototype,"_miniStatsData",2),h([_()],T.prototype,"_features",2),h([_()],T.prototype,"_adminPanelUserIds",2),h([_()],T.prototype,"_operatorWriteEnabled",2),h([_()],T.prototype,"_defaultWarningDays",2),h([_()],T.prototype,"_actionLoading",2),h([_()],T.prototype,"_moreMenuOpen",2),h([_()],T.prototype,"_toastMessage",2),h([_()],T.prototype,"_toastUndo",2),h([_()],T.prototype,"_overviewTab",2),h([_()],T.prototype,"_activeTab",2),h([_()],T.prototype,"_costDurationToggle",2),h([_()],T.prototype,"_historySearch",2),h([_()],T.prototype,"_sortMode",2),h([_()],T.prototype,"_objectSortMode",2),h([_()],T.prototype,"_groupByMode",2),h([_()],T.prototype,"_objectViewMode",2),h([_()],T.prototype,"_objectsTableColumns",2),h([_()],T.prototype,"_showArchived",2),h([_()],T.prototype,"_bulkMode",2),h([_()],T.prototype,"_bulkSelected",2),h([_()],T.prototype,"_virtStart",2),h([_()],T.prototype,"_virtEnd",2),h([_()],T.prototype,"_collapsedSections",2),h([_()],T.prototype,"_paletteOpen",2),h([_()],T.prototype,"_paletteQuery",2),h([_()],T.prototype,"_paletteActive",2),h([_()],T.prototype,"_templateGalleryOpen",2),h([_()],T.prototype,"_templates",2),h([_()],T.prototype,"_templateCategories",2),h([_()],T.prototype,"_templateBusy",2),T=h([si("maintenance-supporter-panel")],T);export{T as MaintenanceSupporterPanel};
 /*! Bundled license information:
 
 @lit/reactive-element/css-tag.js:
