@@ -18,7 +18,23 @@ see [EXAMPLES.md](EXAMPLES.md).
 ### Object Detail
 ![Object Detail](images/object-detail.png)
 
+### Today View
+The panel's default landing tab — what needs attention now, bucketed into
+*Overdue / Due today / This week* with one-tap complete.
+
+![Today view](images/today-view.png)
+
+### Objects Table
+The *All Objects* view as a sortable table with configurable columns and CSV
+export. Warranty chips show all three states: green *valid until*, amber
+*expires in N days*, red *expired*.
+
+![Objects table](images/objects-table.png)
+
 ### Complete Dialog
+Checklist steps, optional notes / cost / duration, and a completion photo
+(camera capture on mobile).
+
 ![Complete Dialog](images/complete-dialog.png)
 
 ### Task History
@@ -42,7 +58,7 @@ see [EXAMPLES.md](EXAMPLES.md).
 ### Calendar Tab (panel — 1.5.0+)
 ![Calendar tab](images/calendar-tab.png)
 
-Window chips (7 / 14 / 30 days, plus *1 year* since 1.5.2), per-event source icon (clock = time-based, trending-up = sensor-based), prediction-confidence pill (green / amber / red, 1.5.1+), and projected recurrences at 55 % opacity.
+Window chips (7 / 14 / 30 days, *1 year*, plus past windows −30d/−90d for reviewing what was done), per-event source icon (clock = time-based, trending-up = sensor-based), prediction-confidence pill (green / amber / red, 1.5.1+), and projected recurrences at 55 % opacity.
 
 #### Real vs projected events
 
