@@ -245,11 +245,17 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
 
+      # Headed Chromium under xvfb, NOT headless: the HA frontend never
+      # finishes rendering the custom panel in headless-shell on the runner
+      # (every beforeEach timed out on "panel should render" — see the
+      # 2026-07-05 diagnosis), while the identical spec passes 4/4 in ~19s
+      # against the same HA image with a full Chromium (the local
+      # run-local.sh setup). xvfb + --headed reproduces that proven setup.
       - name: Run E2E lifecycle (panel)
         working-directory: e2e
         env:
           E2E_HA_URL: http://localhost:8123
-        run: npm test -- specs/lifecycle.spec.ts
+        run: xvfb-run --auto-servernum npm test -- specs/lifecycle.spec.ts --headed
 
       - name: Upload Playwright report + traces on failure
         if: failure()
