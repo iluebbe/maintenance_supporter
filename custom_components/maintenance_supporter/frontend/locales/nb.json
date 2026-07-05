@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres",
   "auto_complete_on_recovery_help": "Registrerer en fullføring (setter sist utført) når utløseren løser seg selv — f.eks. salt etterfylt, filter byttet.",
   "doc_search": "Søk i dokumenter…",
-  "doc_search_none": "Ingen samsvarende dokumenter"
+  "doc_search_none": "Ingen samsvarende dokumenter",
+  "link_device_optional": "Koble til eksisterende enhet (valgfritt)",
+  "parent_object_optional": "Overordnet objekt (valgfritt)",
+  "parent_none": "(Ingen overordnet)"
 }

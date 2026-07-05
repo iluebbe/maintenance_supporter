@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Terminer automatiquement quand le capteur se rétablit",
   "auto_complete_on_recovery_help": "Enregistre une exécution (met à jour la dernière réalisation) lorsque le déclencheur se résout de lui-même — p. ex. sel rechargé, filtre remplacé.",
   "doc_search": "Rechercher des documents…",
-  "doc_search_none": "Aucun document correspondant"
+  "doc_search_none": "Aucun document correspondant",
+  "link_device_optional": "Lier à un appareil existant (optionnel)",
+  "parent_object_optional": "Objet parent (optionnel)",
+  "parent_none": "(Aucun parent)"
 }

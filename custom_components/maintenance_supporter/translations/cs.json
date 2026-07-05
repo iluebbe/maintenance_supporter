@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Celkem úkolů"
+      },
+      "next_due": {
+        "name": "{task_name} Příští termín"
       }
     },
     "calendar": {

@@ -16,6 +16,7 @@ from ..const import (
     MAX_DATE_LENGTH,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ICON_LENGTH,
+    MAX_ID_LENGTH,
     MAX_INTERVAL_DAYS,
     MAX_META_LENGTH,
     MAX_NAME_LENGTH,
@@ -56,6 +57,8 @@ _OBJECT_STR_LIMITS: dict[str, int] = {
     "warranty_expiry": MAX_DATE_LENGTH,  # (#67)
     "documentation_url": MAX_URL_LENGTH,  # v1.4.0 #43
     "notes": MAX_TEXT_LENGTH,  # v1.4.10 #46
+    "ha_device_id": MAX_ID_LENGTH,  # 2.19: link to an existing HA device
+    "parent_entry_id": MAX_ID_LENGTH,  # 2.19: parent object (via_device)
 }
 
 _GROUP_STR_LIMITS: dict[str, int] = {

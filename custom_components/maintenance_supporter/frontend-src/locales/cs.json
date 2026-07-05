@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru",
   "auto_complete_on_recovery_help": "Zaznamená dokončení (nastaví poslední provedení), jakmile se spouštěč sám vyřeší — např. doplněná sůl, vyměněný filtr.",
   "doc_search": "Hledat dokumenty…",
-  "doc_search_none": "Žádné odpovídající dokumenty"
+  "doc_search_none": "Žádné odpovídající dokumenty",
+  "link_device_optional": "Propojit s existujícím zařízením (volitelné)",
+  "parent_object_optional": "Nadřazený objekt (volitelné)",
+  "parent_none": "(Žádný nadřazený)"
 }

@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen",
   "auto_complete_on_recovery_help": "Verbucht eine Wartung (setzt „zuletzt durchgeführt“), sobald sich der Auslöser von selbst auflöst — z. B. Salz nachgefüllt, Filter getauscht.",
   "doc_search": "Dokumente durchsuchen…",
-  "doc_search_none": "Keine passenden Dokumente"
+  "doc_search_none": "Keine passenden Dokumente",
+  "link_device_optional": "Mit bestehendem Gerät verknüpfen (optional)",
+  "parent_object_optional": "Übergeordnetes Objekt (optional)",
+  "parent_none": "(Kein übergeordnetes Objekt)"
 }

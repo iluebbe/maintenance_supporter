@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Łącznie zadań"
+      },
+      "next_due": {
+        "name": "{task_name} Następny termin"
       }
     },
     "calendar": {

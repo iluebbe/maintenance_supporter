@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "कुल कार्य"
+      },
+      "next_due": {
+        "name": "{task_name} अगली नियत तिथि"
       }
     },
     "calendar": {

@@ -26,6 +26,12 @@ class MaintenanceObject:
     warranty_expiry: str | None = None  # ISO YYYY-MM-DD: warranty expiry date (#67)
     documentation_url: str | None = None  # v1.4.0: link to PDF manual / vendor page (#43)
     notes: str | None = None  # v1.4.10: free-form notes — part numbers, procedures (#46)
+    # 2.19: attach to an EXISTING HA device — the object's task entities land
+    # on that device's page instead of creating an own virtual device.
+    ha_device_id: str | None = None
+    # 2.19: another maintenance object's entry_id as parent — the object's
+    # device nests under it (HA via_device hierarchy).
+    parent_entry_id: str | None = None
     task_ids: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -41,6 +47,8 @@ class MaintenanceObject:
             "warranty_expiry": self.warranty_expiry,
             "documentation_url": self.documentation_url,
             "notes": self.notes,
+            "ha_device_id": self.ha_device_id,
+            "parent_entry_id": self.parent_entry_id,
             "task_ids": self.task_ids,
         }
 
@@ -58,6 +66,8 @@ class MaintenanceObject:
             warranty_expiry=data.get("warranty_expiry"),
             documentation_url=data.get("documentation_url"),
             notes=data.get("notes"),
+            ha_device_id=data.get("ha_device_id"),
+            parent_entry_id=data.get("parent_entry_id"),
             task_ids=data.get("task_ids", []),
         )
 

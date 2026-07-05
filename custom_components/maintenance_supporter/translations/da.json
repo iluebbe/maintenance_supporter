@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Opgaver i alt"
+      },
+      "next_due": {
+        "name": "{task_name} Næste forfald"
       }
     },
     "calendar": {

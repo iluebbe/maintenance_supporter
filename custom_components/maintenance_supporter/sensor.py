@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import date, datetime, time
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import (
@@ -19,8 +20,10 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_ADVANCED_SCHEDULE_TIME,
     CONF_OBJECT,
     CONF_TASKS,
     DEFAULT_ENTITY_LOGIC,
@@ -93,6 +96,12 @@ async def async_setup_entry(
         MaintenanceSensor(coordinator, task_id)
         for task_id in tasks
     ]
+    # Companion timestamp sensor per task (disabled by default): the raw
+    # next-due instant for tile/entities cards with the relative time-format
+    # display options ("in 2 days"), template automations, etc.
+    entities.extend(
+        MaintenanceNextDueSensor(coordinator, task_id) for task_id in tasks
+    )
 
     async_add_entities(entities)
     _LOGGER.debug(
@@ -436,6 +445,74 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
     def _compute_live_status(task: dict[str, Any]) -> str:
         """Compute task status from coordinator data dict (mirrors MaintenanceTask.status)."""
         return compute_status_from_task_dict(task)
+
+
+class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
+    """Timestamp sensor for a task's next due instant.
+
+    Companion to the per-task status sensor, `disabled by default
+    <https://developers.home-assistant.io/docs/core/entity/#registry-properties>`_
+    so the extra entity costs nothing unless the user wants it. Once enabled
+    it powers HA's relative time-format display options ("in 2 days") on
+    tile/entities cards and plain timestamp automations.
+
+    The instant is the task's next-due date at local midnight — or at the
+    task's ``schedule_time`` when the time-of-day feature is enabled,
+    mirroring the calendar entity's timed events.
+    """
+
+    _attr_translation_key = "next_due"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self,
+        coordinator: MaintenanceCoordinator,
+        task_id: str,
+    ) -> None:
+        """Initialize the next-due sensor."""
+        super().__init__(coordinator, task_id)
+        obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
+        task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
+        object_slug = slugify_object_name(obj_data.get("name", "unknown"))
+        self._attr_unique_id = (
+            f"maintenance_supporter_{object_slug}_{task_id}_next_due"
+        )
+        self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
+
+    @property
+    def native_value(self) -> datetime | None:
+        """The next due instant, or None (manual / archived / done tasks)."""
+        task = self._task_data
+        if not task:
+            return None
+        if task.get("_status") == MaintenanceStatus.ARCHIVED:
+            return None
+        raw = task.get("_next_due")
+        if not raw:
+            return None
+        try:
+            due = date.fromisoformat(raw)
+        except (ValueError, TypeError):
+            return None
+
+        at = time(0, 0)
+        schedule_time = task.get("schedule_time")
+        if schedule_time and self._schedule_time_enabled():
+            try:
+                hh, mm = str(schedule_time).split(":", 1)
+                at = time(int(hh), int(mm))
+            except (ValueError, TypeError):
+                at = time(0, 0)  # malformed -> midnight, like the calendar
+        return datetime.combine(due, at, tzinfo=dt_util.DEFAULT_TIME_ZONE)
+
+    def _schedule_time_enabled(self) -> bool:
+        """Global advanced flag — same lookup as the calendar entity."""
+        for ce in self.coordinator.hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID:
+                opts = ce.options or ce.data
+                return bool(opts.get(CONF_ADVANCED_SCHEDULE_TIME, False))
+        return False
 
 
 class MaintenanceSummarySensor(

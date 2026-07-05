@@ -138,6 +138,11 @@ def _build_export_object(
             # (these were added in v1.4.0/v1.4.10 but missed here until #67).
             "documentation_url": obj_data.get("documentation_url"),
             "notes": obj_data.get("notes"),
+            # 2.19: device link / parent hierarchy. Instance-specific ids —
+            # meaningful when restoring on the SAME instance; dangling values
+            # on a foreign instance are harmless (device_info falls back).
+            "ha_device_id": obj_data.get("ha_device_id"),
+            "parent_entry_id": obj_data.get("parent_entry_id"),
         },
         "tasks": tasks,
         "documents": documents,

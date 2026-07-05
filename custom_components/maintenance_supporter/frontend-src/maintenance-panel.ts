@@ -1411,6 +1411,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       </div>
       <maintenance-object-dialog
         .hass=${this.hass}
+        .objects=${this._objects}
         @object-saved=${this._onDialogEvent}
       ></maintenance-object-dialog>
       <maintenance-task-dialog

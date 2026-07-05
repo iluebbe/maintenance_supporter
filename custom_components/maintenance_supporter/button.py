@@ -30,6 +30,8 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+PARALLEL_UPDATES = 0
+
 # Per-task action buttons. The English suffix is also used in the entity_id /
 # friendly name when the task has a custom entity_slug (mirrors binary_sensor's
 # "{slug} overdue" convention).

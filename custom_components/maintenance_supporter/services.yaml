@@ -217,3 +217,124 @@ add_task:
       selector:
         text:
           multiline: true
+
+update_task:
+  name: Update Task
+  description: Update the common fields of an existing maintenance task. Only the provided fields change.
+  fields:
+    entry_id:
+      name: Object
+      description: The maintenance object the task belongs to.
+      required: true
+      selector:
+        config_entry:
+          integration: maintenance_supporter
+    task_id:
+      name: Task ID
+      description: The id of the task to update (see list_tasks).
+      required: true
+      selector:
+        text:
+    name:
+      name: Name
+      description: New name of the task.
+      selector:
+        text:
+    task_type:
+      name: Task type
+      description: Category (cleaning, inspection, replacement, calibration, service, reading, custom).
+      selector:
+        text:
+    schedule_type:
+      name: Schedule type
+      description: time_based (interval), sensor_based, one_time or manual.
+      selector:
+        text:
+    interval_days:
+      name: Interval
+      description: Interval length between occurrences, combined with interval_unit.
+      selector:
+        number:
+          min: 1
+          max: 3650
+          mode: box
+    interval_unit:
+      name: Interval unit
+      description: days, weeks, months or years.
+      selector:
+        select:
+          options: ["days", "weeks", "months", "years"]
+    due_date:
+      name: Due date
+      description: Due date for one-time tasks (YYYY-MM-DD).
+      selector:
+        date:
+    schedule:
+      name: Schedule (calendar recurrence)
+      description: "Nested recurrence object for the calendar kinds, e.g. {\"kind\": \"day_of_month\", \"day\": -1, \"business\": true}. Takes precedence over the flat fields."
+      selector:
+        object:
+    warning_days:
+      name: Warning days
+      description: Days before due when the task turns due-soon.
+      selector:
+        number:
+          min: 0
+          max: 365
+          mode: box
+    enabled:
+      name: Enabled
+      description: Whether the task is active.
+      selector:
+        boolean:
+    notes:
+      name: Notes
+      description: Free-form notes on the task.
+      selector:
+        text:
+    priority:
+      name: Priority
+      description: low, normal or high.
+      selector:
+        select:
+          options: ["low", "normal", "high"]
+    labels:
+      name: Labels
+      description: List of tags for filtering and reporting.
+      selector:
+        object:
+
+delete_task:
+  name: Delete Task
+  description: Delete a maintenance task including its history. This cannot be undone — consider archiving via the panel instead.
+  fields:
+    entry_id:
+      name: Object
+      description: The maintenance object the task belongs to.
+      required: true
+      selector:
+        config_entry:
+          integration: maintenance_supporter
+    task_id:
+      name: Task ID
+      description: The id of the task to delete (see list_tasks).
+      required: true
+      selector:
+        text:
+
+list_tasks:
+  name: List Tasks
+  description: Return a snapshot of active maintenance tasks (id, name, status, next due) for automations, scripts and voice. Supports filtering by object and status.
+  fields:
+    entry_id:
+      name: Object
+      description: Only return tasks of this maintenance object.
+      selector:
+        config_entry:
+          integration: maintenance_supporter
+    status:
+      name: Status
+      description: Only return tasks with this status.
+      selector:
+        select:
+          options: ["ok", "due_soon", "overdue", "triggered"]

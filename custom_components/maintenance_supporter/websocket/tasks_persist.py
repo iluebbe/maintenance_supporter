@@ -133,3 +133,54 @@ async def async_create_task_simple(
     await async_persist_task(hass, entry, task_data)
     return task_data["id"]
 
+
+_UPDATABLE_FLAT_FIELDS = (
+    "name", "type", "interval_days", "interval_unit", "due_date",
+    "warning_days", "enabled", "notes", "priority", "labels",
+)
+
+
+async def async_update_task_simple(
+    hass: HomeAssistant,
+    *,
+    entry_id: str,
+    task_id: str,
+    updates: dict[str, Any],
+) -> None:
+    """Patch the common task fields and persist; the service-facing edit path.
+
+    Mirror of :func:`async_create_task_simple` for edits — a focused subset of
+    the ``task/update`` WS field set for automations/scripts/voice. Present
+    keys in *updates* overwrite; absent keys are untouched. Recurrence changes
+    (flat fields or a nested ``schedule``) go through
+    :func:`normalize_task_storage`, so partial edits keep the unit/anchor
+    semantics of the storage model (issue #58 class).
+
+    Raises ValueError for an unknown entry/task or an empty name.
+    """
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+        raise ValueError(f"No maintenance object found for entry_id {entry_id!r}")
+
+    new_data = dict(entry.data)
+    new_tasks = dict(new_data.get(CONF_TASKS, {}))
+    if task_id not in new_tasks:
+        raise ValueError(f"No task {task_id!r} in {entry.title!r}")
+
+    task = dict(new_tasks[task_id])
+    for key in _UPDATABLE_FLAT_FIELDS:
+        if key in updates and updates[key] is not None:
+            task[key] = updates[key]
+    if isinstance(task.get("name"), str):
+        task["name"] = task["name"].strip()
+        if not task["name"]:
+            raise ValueError("Name must not be empty")
+    if updates.get("schedule_type") is not None:
+        task["schedule_type"] = updates["schedule_type"]
+    if updates.get("schedule"):
+        task["schedule"] = updates["schedule"]
+
+    new_tasks[task_id] = normalize_task_storage(task)
+    new_data[CONF_TASKS] = new_tasks
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    await hass.config_entries.async_reload(entry_id)

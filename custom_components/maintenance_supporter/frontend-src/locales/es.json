@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Completar automáticamente cuando el sensor se recupere",
   "auto_complete_on_recovery_help": "Registra una finalización (fija la última realización) cuando el disparador se resuelve solo — p. ej., sal rellenada, filtro cambiado.",
   "doc_search": "Buscar documentos…",
-  "doc_search_none": "Ningún documento coincidente"
+  "doc_search_none": "Ningún documento coincidente",
+  "link_device_optional": "Vincular a dispositivo existente (opcional)",
+  "parent_object_optional": "Objeto principal (opcional)",
+  "parent_none": "(Sin objeto principal)"
 }
