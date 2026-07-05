@@ -57,13 +57,13 @@ exposes everything it needs (56+ WS commands, entity introspection, documents).
 Guardrails: confirm before every write, never invent intervals silently, keep
 the token handling safe, and prefer proposing over auto-applying.
 
-### 💡 Shared maintenance — multiple assignees + rotation
-Assign a task to several household members and rotate responsibility
-automatically on each completion (round-robin, least-completed, or random).
-Builds directly on the existing per-user assignment, per-user notification
-routing, and operator mode — the missing piece for families, shared homes,
-and hotels. The "currently responsible" user stays a single pointer so all
-existing per-user notifications and badges keep working.
+### ✅ Shared maintenance — multiple assignees + rotation
+**Shipped.** Assign a task to several household members (`assignee_pool`) and
+rotate responsibility automatically on each completion — round-robin,
+least-completed, or random. The "currently responsible" user stays a single
+pointer (`responsible_user_id`) so all existing per-user notifications and
+badges keep working. Set via the panel task dialog + the options-flow edit
+step.
 
 ### ✅ Native To-do entity
 **Shipped.** A single global `todo.maintenance` list entity aggregates every
