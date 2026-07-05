@@ -25,6 +25,8 @@
   "skipped": "Omitida",
   "missed": "Missed",
   "reset": "Restablecer",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "Cancelar",
   "bulk_select": "Seleccionar",
   "bulk_select_all": "Seleccionar todo",

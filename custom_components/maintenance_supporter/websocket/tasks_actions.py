@@ -238,3 +238,37 @@ async def ws_reset_task(
     )
     connection.send_result(msg["id"], {"success": True})
 
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/task/snooze",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@websocket_api.async_response
+async def ws_snooze_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Snooze a task's notifications for the configured snooze duration.
+
+    Surfaces the existing notification-action snooze on the panel. Suppresses
+    due-soon/overdue/triggered reminders for ``snooze_duration_hours`` — it does
+    not change the task's schedule or state.
+    """
+    from .. import DOMAIN, NOTIFICATION_MANAGER_KEY
+
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if nm is None:
+        connection.send_error(msg["id"], "unavailable", "Notifications not configured")
+        return
+    nm.snooze_task(msg["entry_id"], msg["task_id"])
+    connection.send_result(msg["id"], {"success": True})
+

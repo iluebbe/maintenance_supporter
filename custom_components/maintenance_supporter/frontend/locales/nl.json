@@ -25,6 +25,8 @@
   "skipped": "Overgeslagen",
   "missed": "Missed",
   "reset": "Resetten",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "Annuleren",
   "bulk_select": "Selecteren",
   "bulk_select_all": "Alles selecteren",

@@ -25,6 +25,8 @@
   "skipped": "Пропущено",
   "missed": "Missed",
   "reset": "Сбросить",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "Отмена",
   "bulk_select": "Выбрать",
   "bulk_select_all": "Выбрать все",

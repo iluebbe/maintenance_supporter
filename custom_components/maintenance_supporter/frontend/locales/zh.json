@@ -26,6 +26,8 @@
   "skipped": "已跳过",
   "missed": "Missed",
   "reset": "重置",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "取消",
   "bulk_select": "选择",
   "bulk_select_all": "全选",

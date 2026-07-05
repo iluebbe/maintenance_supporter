@@ -33,6 +33,7 @@ from custom_components.maintenance_supporter.websocket.tasks import (
     ws_quick_complete_task,
     ws_reset_task,
     ws_skip_task,
+    ws_snooze_task,
     ws_update_history_entry,
     ws_update_task,
 )
@@ -1871,3 +1872,39 @@ async def test_reset_task_not_found_c97(
         "task_id": "nonexistent_task_id_zzz",
     })
     conn.send_error.assert_called_once()
+
+
+async def test_snooze_task_suppresses_notifications(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """task/snooze marks the task's notification keys snoozed."""
+    from custom_components.maintenance_supporter import (
+        DOMAIN,
+        NOTIFICATION_MANAGER_KEY,
+    )
+
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_snooze_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/snooze",
+        "entry_id": object_entry.entry_id, "task_id": TASK_ID_1,
+    })
+    conn.send_result.assert_called_once()
+
+    nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
+    key = f"{object_entry.entry_id}_{TASK_ID_1}_overdue"
+    assert nm._is_snoozed(key)
+
+
+async def test_snooze_task_not_found(
+    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+) -> None:
+    """task/snooze on an unknown task errors."""
+    await setup_integration(hass, global_entry, object_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_snooze_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/snooze",
+        "entry_id": object_entry.entry_id, "task_id": "nope_zzz",
+    })
+    conn.send_error.assert_called_once()
+    assert conn.send_error.call_args[0][1] == "not_found"

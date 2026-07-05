@@ -12,6 +12,7 @@ from .tasks_actions import (
     ws_quick_complete_task,
     ws_reset_task,
     ws_skip_task,
+    ws_snooze_task,
 )
 from .tasks_crud import (
     async_delete_task,
@@ -64,6 +65,7 @@ __all__ = [
     "ws_quick_complete_task",
     "ws_reset_task",
     "ws_skip_task",
+    "ws_snooze_task",
     "ws_unarchive_task",
     "ws_update_history_entry",
     "ws_update_task",

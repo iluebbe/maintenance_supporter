@@ -1247,6 +1247,22 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._resetTask(entryId, taskId, result.value || undefined);
   }
 
+  private async _snoozeTask(entryId: string, taskId: string): Promise<void> {
+    this._actionLoading = true;
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/snooze",
+        entry_id: entryId,
+        task_id: taskId,
+      });
+      this._showToast(t("snoozed", this._lang));
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
   private _dismissSuggestion(entryId?: string, taskId?: string): void {
     if (entryId && taskId) {
       this._dismissedSuggestions.add(`${entryId}_${taskId}`);
@@ -2463,6 +2479,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
                   <div class="popup-menu-item" @click=${() => this._duplicateTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("duplicate", L)}</div>
                   <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
+                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._snoozeTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("snooze", L)}</div>
                   <div class="popup-menu-divider"></div>
                   <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
                 </div>
