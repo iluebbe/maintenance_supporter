@@ -204,6 +204,11 @@ class TaskCrudMixin:
                     updated_task["rotation_strategy"] = rot
                 else:
                     updated_task.pop("rotation_strategy", None)
+                ecd = user_input.get("earliest_completion_days")
+                if ecd is not None and ecd != "":
+                    updated_task["earliest_completion_days"] = int(ecd)
+                else:
+                    updated_task.pop("earliest_completion_days", None)
                 resp_user = user_input.get(CONF_RESPONSIBLE_USER_ID, "")
                 if resp_user:
                     updated_task[CONF_RESPONSIBLE_USER_ID] = resp_user
@@ -288,6 +293,14 @@ class TaskCrudMixin:
         pool_options = [o for o in user_options if o["value"]]
         pool_default = task.get("assignee_pool", [])
         rotation_default = task.get("rotation_strategy", "")
+        # Completion window (optional): only carry a default when one is stored,
+        # so the NumberSelector renders empty for the "no restriction" case.
+        ecd_stored = task.get("earliest_completion_days")
+        ecd_key = (
+            vol.Optional("earliest_completion_days")
+            if ecd_stored is None
+            else vol.Optional("earliest_completion_days", default=ecd_stored)
+        )
 
         # Prefill the recurrence from whichever storage shape this task uses
         # (flat v2.6.x or nested `schedule`). Reading raw flat keys here would
@@ -374,6 +387,11 @@ class TaskCrudMixin:
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    ecd_key: selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     vol.Optional(
