@@ -171,9 +171,9 @@ export const calendarStyles = css`
     background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
     border: 1px solid var(--divider-color);
   }
-  .cal-conf-high   { color: #4caf50; border-color: #4caf5044; }
-  .cal-conf-medium { color: #f9a825; border-color: #f9a82544; }
-  .cal-conf-low    { color: #d32f2f; border-color: #d32f2f44; }
+  .cal-conf-high   { color: var(--success-color, #4caf50); border-color: #4caf5044; }
+  .cal-conf-medium { color: var(--warning-color, #f9a825); border-color: #f9a82544; }
+  .cal-conf-low    { color: var(--error-color, #d32f2f); border-color: #d32f2f44; }
   .cal-event-cost {
     font-size: 12px;
     color: var(--secondary-text-color);
