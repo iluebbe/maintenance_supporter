@@ -1,0 +1,69 @@
+# Troubleshooting & Known Limitations
+
+## Troubleshooting
+
+### Trigger Not Activating
+
+1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID, and confirm the source entity has a usable state there
+2. Check per-entity availability (`available`, `unavailable`, `missing`) — this is the `trigger_entity_state` live value shown on the task in the panel (it comes from the WebSocket `subscribe` feed, not from a sensor attribute)
+3. For threshold triggers with `trigger_for_minutes` > 0, the condition must hold continuously for that duration
+4. For compound triggers, check each sub-condition's status individually on the task in the panel
+
+### Notifications Not Arriving
+
+1. Verify `notifications_enabled` is `true` and `notify_service` is set to a valid service (e.g., `notify.mobile_app_phone`)
+2. Check quiet hours — notifications are suppressed between `quiet_hours_start` and `quiet_hours_end`
+3. Check `max_notifications_per_day` — set to 0 for unlimited
+4. Use **Test Notification** in the global options to verify the service works
+5. Check the per-status enable toggles (`notify_due_soon_enabled`, etc.)
+
+### Sidebar Panel Not Visible
+
+1. Ensure `panel_enabled` is `true` in global settings
+2. **Restart Home Assistant** — panel registration requires a restart
+3. Clear browser cache (Ctrl+Shift+F5) after restart
+
+### Dashboard Strategy: "Timeout waiting for strategy element ll-strategy-dashboard-maintenance-supporter to be registered"
+
+Symptom: the strategy entry shows up under **Settings → Dashboards → Add dashboard → Community dashboards**, but clicking it does nothing or throws the timeout error in the browser console.
+
+Cause: the browser cached the old `index.html` from before the integration was updated, so it still references the old strategy module URL.
+
+Fix: **hard-reload the browser** (`Ctrl+Shift+F5` or `Cmd+Shift+R` on macOS). This drops the cached HTML and loads the current strategy bundle. A regular `F5` is not enough — the browser will reuse the cached page.
+
+### Mobile Action Buttons Missing
+
+1. Enable action buttons in **Notification Actions** settings (`action_complete_enabled`, etc.)
+2. Verify you are using the HA Companion App (action buttons require the mobile app notification platform)
+
+### Debug Logging
+
+Add to `configuration.yaml` and restart:
+
+```yaml
+logger:
+  logs:
+    custom_components.maintenance_supporter: debug
+```
+
+
+## Known Limitations
+
+- **Adaptive scheduling**: EWA requires 2+ completions, suggestions appear after 3+, Weibull analysis requires 5+ completions, seasonal adjustment requires 6+ months of history spread across different months
+- **Sensor prediction**: Degradation rate analysis requires 10+ hourly recorder data points (approximately 10+ hours of data)
+- **Runtime trigger**: Accumulated hours are persisted every 5 minutes. Up to 5 minutes of runtime may be lost on an unclean shutdown or crash
+- **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
+- **Threshold debounce**: `trigger_for_minutes` timers are persisted and restored across HA restarts; however, the remaining duration is computed from wall-clock time, so large NTP jumps could cause premature or delayed triggering
+- **Budget tracking**: Numeric values only — the currency symbol is set in **General Settings** (1.4.9+, previously under Budget Settings; default: €). **17 currencies** supported (1.4.8+): EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH
+- **History pruning**: Maximum 500 history entries per task. Oldest entries are automatically removed when the limit is reached
+- **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
+
+
+## Uninstalling
+
+1. Go to **Settings > Devices & Services > Maintenance Supporter**
+2. Click the three-dot menu on each object entry and the global entry, then select **Delete**
+3. Remove the `custom_components/maintenance_supporter/` directory from your HA config folder
+4. Restart Home Assistant
+
+> **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting this integration's entities (in the UI you can pick the Maintenance Supporter device or select the entities directly — they follow the `sensor.<object>_<task>` naming described under [Entity naming](#entity-naming)).

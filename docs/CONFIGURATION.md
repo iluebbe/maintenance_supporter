@@ -74,6 +74,10 @@ Visible only when `notifications_enabled` is `true`.
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
 
+| `reminder_lead_days` (2.17+) | list[int] | `[]` | each 0–365, max 10 | Extra lead-time reminders: one additional reminder fires on each day where a task's days-until-due matches a listed value (e.g. `[14, 3, 0]` = 14 days before, 3 days before, and on the due date). Empty = off. Honours quiet hours, vacation mode, snooze, per-user routing, and the daily limit |
+| `warranty_reminder_enabled` (2.17+) | bool | `false` | — | Remind once when an object's `warranty_expiry` is exactly `warranty_reminder_days` away |
+| `warranty_reminder_days` (2.17+) | int | 30 | 1–365 | Lead time for the warranty reminder |
+
 Also exposed: a **"Send test"** button next to the notify service field. It calls `maintenance_supporter/global/test_notification` and surfaces the backend message as a toast — useful for verifying the notify service without waiting for a real due event.
 
 ### Notification Actions
@@ -152,14 +156,14 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
 | `name` | string | *(required)* | — | Display name of the task |
-| `type` | enum | `custom` | — | Category: `cleaning`, `inspection`, `replacement`, `calibration`, `service`, `custom` |
+| `type` | enum | `custom` | — | Category: `cleaning`, `inspection`, `replacement`, `calibration`, `service`, `reading` (record a value — meter readings, level checks; 2.18+), `custom` |
 | `enabled` | bool | `true` | — | Whether the task is active. Disabled tasks always show `ok` |
 | `schedule_type` | enum | `time_based` | — | Scheduling mode: `time_based`, `sensor_based`, `one_time`, `manual`. The calendar kinds `weekdays`, `nth_weekday`, `day_of_month` are configured via the nested `schedule` object (below) — they can't be expressed by the flat fields — and are reported back under their own `schedule_type` value |
 | `interval_days` | int | 30 | 1–3650 | Interval length between maintenance cycles, combined with `interval_unit` (time-based and sensor-based) |
 | `interval_unit` | enum | `days` | — | Unit for `interval_days`: `days`, `weeks`, `months`, `years`. Months/years use real calendar arithmetic (last-day clamping, leap years). Only values other than `days` change pre-2.6.0 behaviour |
 | `due_date` | date | *(none)* | — | Due date for a `one_time` task. The task stays active until completed, then becomes **done** (`is_done` — hidden from the card, shown as *Completed* in the panel; distinct from the **archived** retire-state, see *Archive & Retention*). Required for `one_time`; ignored for other modes |
 | `interval_anchor` | enum | `completion` | — | How the next due date is computed: `completion` (from completion date) or `planned` (from planned date, prevents schedule drift) |
-| `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length). The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. |
+| `schedule` | object | *(derived)* | — | Nested recurrence object — the canonical storage form since v2.7. Calendar kinds (only expressible here): `{"kind": "weekdays", "weekdays": [0,3]}` (0=Mon … 6=Sun), `{"kind": "nth_weekday", "nth": 1, "weekday": 5, "months": [1,4,7,10]}` (nth 1–5 or -1=last; e.g. "1st Saturday"; `months` optional), `{"kind": "day_of_month", "day": 15}` (1–31, clamped to month length; `day: -1` = **last day of the month**, add `"business": true` to roll a weekend date back to Friday — 2.18+, #83). Every calendar kind also accepts `"offset": ±N` (clamped ±15) to shift the computed date, e.g. `{"kind": "day_of_month", "day": -1, "business": true, "offset": -2}` = *two days before the last business day*. The flat `schedule_type`/`interval_days`/`interval_unit`/`due_date` above are still accepted on create/import for the `time_based`/`one_time` kinds and are always echoed in API responses; the nested `schedule` is echoed alongside them. |
 | `schedule_time` | string (HH:MM) | *(none)* | `00:00–23:59` | Optional time-of-day at which the task flips from `due_soon` to `overdue` on the due date. Requires the `advanced_schedule_time_visible` feature flag. Available on `time_based` tasks only. Interpreted in HA's configured timezone. Empty/unset → midnight semantic (historical behaviour). |
 | `warning_days` | int | 7 | 0–365 | Days before due date when status changes to `due_soon`. Per-task minimum is `0` (`0` = warn only on the due date itself); the global `default_warning_days` has a minimum of `1` |
 | `last_performed` | date | *(none)* | — | Date the task was last completed. When unset, `next_due` is anchored on `created_at` (set to today on creation), so the task transitions to OVERDUE after `interval_days` instead of being due "today" forever. |
@@ -167,6 +171,11 @@ Tasks are created within an object's options flow via **Add Task** or managed vi
 | `notes` | string | `""` | — | General notes about the task |
 | `documentation_url` | string | `""` | — | URL to external documentation or manual |
 | `responsible_user_id` | string | `""` | — | HA user ID of the person responsible for this task |
+| `assignee_pool` (2.17+) | list[string] | `[]` | max 25 | HA user IDs sharing this task. With ≥2 members and a `rotation_strategy`, `responsible_user_id` advances to the next member on every completion |
+| `rotation_strategy` (2.17+) | enum | *(none)* | `round_robin` / `least_completed` / `random` | How the responsible user rotates after each completion. Unset = no rotation |
+| `priority` (2.17+) | enum | `normal` | `low` / `normal` / `high` | Triage priority, shown as a badge (▲/▼) on task rows |
+| `labels` (2.17+) | list[string] | `[]` | each ≤40 chars, max 25 | Cross-cutting tags (e.g. `safety`, `seasonal`) shown as chips and searchable in the command palette. Entered comma-separated in the UIs |
+| `earliest_completion_days` (2.17+) | int | *(none)* | 0–3650 | Completion window: the task may only be completed within this many days of its due date (0 = only on/after the due date). Unset = complete any time. The WS complete paths return `too_early`; the To-do check-off silently refuses |
 | `custom_icon` | string (mdi) | `""` | — | Custom `mdi:` icon for the task's entities, overriding the type-based default. Max 100 chars. Picked via the icon selector in the task dialog |
 | `nfc_tag_id` | string | `""` | — | NFC tag identifier linked to the task (scanning the tag opens / completes it). Max 256 chars; checked for uniqueness — re-using a tag already linked to another task is rejected on save |
 | `entity_slug` | string | `""` | — | Override for the slug used in this task's `entity_id`s. Must match `[a-z0-9_]+` (lowercase letters, digits, underscores), max 64 chars. When unset, the slug is derived from the object and task names |
