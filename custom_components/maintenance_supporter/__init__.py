@@ -319,6 +319,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Maintenance Supporter integration."""
     hass.data.setdefault(DOMAIN, {})
 
+    # "Business day" scheduling (the day-of-month `business` flag) follows the
+    # user's Workday integration when one is configured — public holidays and
+    # custom working weekdays instead of the plain Mon-Fri rule (#83 follow-up).
+    from .helpers.workday import async_setup_business_days
+
+    async_setup_business_days(hass)
+
     # Create the notification manager (shared across all entries)
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = NotificationManager(hass)
 

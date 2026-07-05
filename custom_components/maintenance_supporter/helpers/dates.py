@@ -12,6 +12,8 @@ import calendar
 from collections.abc import Iterator
 from datetime import date, timedelta
 
+from .workday import is_business_day
+
 INTERVAL_UNITS = ("days", "weeks", "months", "years")
 
 
@@ -144,14 +146,22 @@ def next_day_of_month(
 
 
 def roll_back_to_business_day(d: date) -> date:
-    """Roll a weekend date back to the preceding Friday (Mon-Fri unchanged).
+    """Roll a date back to the preceding business day (business days unchanged).
 
     Used by the day-of-month schedule's ``business`` flag (#83): "last business
-    day of the month" = last day rolled back past Sat/Sun. Public holidays are
-    out of scope (HA has no locale-independent holiday source here).
+    day of the month" = last day rolled back past non-business days. What
+    counts as a business day comes from :mod:`.workday`: plain Mon-Fri by
+    default, or the user's Workday integration configuration (public holidays,
+    custom working weekdays) when one is set up.
+
+    Bounded: a pathological provider that never yields a business day within
+    two weeks returns *d* unchanged rather than walking off into the past.
     """
-    while d.weekday() >= 5:  # 5=Sat, 6=Sun
-        d -= timedelta(days=1)
+    candidate = d
+    for _ in range(14):
+        if is_business_day(candidate):
+            return candidate
+        candidate -= timedelta(days=1)
     return d
 
 

@@ -48,7 +48,8 @@ still check things off. Tasks also appear in a native **To-do list**, so
 
 **"Read the utility meters at the end of every month."**
 The *Reading* task type is made for recording values, and the schedule
-supports *last day of the month*, *last business day*, and ±N-day offsets.
+supports *last day of the month*, *last business day* (public-holiday-aware
+when HA's Workday integration is set up), and ±N-day offsets.
 Attach a photo of the meter display when completing — it lands in the task's
 history.
 
