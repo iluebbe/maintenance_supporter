@@ -26,6 +26,8 @@
   "skipped": "スキップ済み",
   "missed": "Missed",
   "reset": "リセット",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "キャンセル",
   "bulk_select": "選択",
   "bulk_select_all": "すべて選択",

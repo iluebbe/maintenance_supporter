@@ -423,6 +423,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_quick_complete_task,
         ws_reset_task,
         ws_skip_task,
+        ws_snooze_task,
         ws_unarchive_task,
         ws_update_history_entry,
         ws_update_task,
@@ -457,6 +458,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_quick_complete_task)
     websocket_api.async_register_command(hass, ws_skip_task)
     websocket_api.async_register_command(hass, ws_reset_task)
+    websocket_api.async_register_command(hass, ws_snooze_task)
     websocket_api.async_register_command(hass, ws_update_history_entry)
     websocket_api.async_register_command(hass, ws_get_templates)
     websocket_api.async_register_command(hass, ws_export_data)

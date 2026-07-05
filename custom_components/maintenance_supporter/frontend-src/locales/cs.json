@@ -25,6 +25,8 @@
   "skipped": "Přeskočeno",
   "missed": "Missed",
   "reset": "Reset",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "Zrušit",
   "bulk_select": "Vybrat",
   "bulk_select_all": "Vybrat vše",

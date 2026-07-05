@@ -26,6 +26,8 @@
   "skipped": "Ohitettu",
   "missed": "Missed",
   "reset": "Nollaa",
+  "snooze": "Snooze",
+  "snoozed": "Snoozed",
   "cancel": "Peruuta",
   "bulk_select": "Valitse",
   "bulk_select_all": "Valitse kaikki",
