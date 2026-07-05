@@ -2,7 +2,65 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.17.0] - 2026-07-05
+
+A feature wave: eight roadmap items ship at once, plus two long-planned panel
+refactors and a full test-coverage audit with remediation. No breaking changes.
+
+### ✨ New
+
+- **Task priority** — each task can be Low / Normal / High. Editable in the task
+  dialog and both config-flow surfaces, shown as a compact badge on the task row
+  (▲ high / ▼ low), and exposed via the WS API. Localized in all 18 languages.
+- **Labels / tags** — lightweight comma-separated tags per task (e.g. safety,
+  seasonal) shown as chips on task rows and searchable in the command palette.
+- **Completion photos** — attach a photo when completing a task (camera capture
+  supported); stored via the documents engine (deduplicated, backup-safe) and
+  shown as a thumbnail in the task's history timeline.
+- **Native To-do entity** — a global `todo.maintenance` list mirrors every
+  active task (due state ⇢ needs-action); checking an item off completes the
+  task. Works with the To-do card and Assist/voice.
+- **Shared maintenance & rotation** — assign a task to several household
+  members (an assignee pool) and rotate responsibility on each completion:
+  round-robin, least-completed, or random. All per-user notifications keep
+  working (the responsible person stays a single pointer).
+- **Missed status + completion window** — skipping an overdue task records it
+  as *Missed* (distinct from a deliberate skip) for honest history; an optional
+  per-task *earliest completion* window blocks signing tasks off too early
+  (WS returns `too_early`; the To-do check-off respects it too).
+- **Multiple lead-time reminders** — an opt-in list (e.g. 14 / 3 / 0 days
+  before due) fires one extra reminder on each matching day, honouring quiet
+  hours, vacation mode, snooze, per-user routing, and the daily limit.
+- **Warranty-expiry reminders** — opt-in: get notified once, N days before an
+  object's warranty runs out (default 30, configurable 1–365).
+- **Snooze from the panel** — the notification snooze is now also available in
+  the task ⋮ menu.
+
+### ⚡ Panel performance & internals
+
+- **Virtualized task table** — above 120 rows only the visible window is in
+  the DOM (honest scrollbar via spacers); a hidden sizer row pins the shared
+  subgrid columns so nothing jitters while scrolling. Verified live with ~300
+  tasks: 36 DOM rows, byte-identical column widths at top/middle/end.
+- **Task-detail modularized** — the panel's largest render cluster moved to
+  `renderers/task-detail.ts` (panel shrank ~2.9k → ~2.5k lines); dialogs stay
+  panel-owned by design.
+- **Parity by construction (values)** — task-field enums and numeric bounds
+  (priority, anchors, rotation, warning/completion-window ranges) now come
+  from one `helpers/task_fields` source consumed by the WS schemas, sanitizer,
+  and every config-flow selector, with tripwires pinning the panel dialog.
+- **Dark-mode tokens** — the last hardcoded status colours route through HA
+  theme variables (a test blocks bare colours from reappearing).
+
+### ✅ Test hardening (coverage audit)
+
+- A systematic audit mapped every user story against the test suites; all ten
+  identified gaps were closed: a permission-enforcement matrix over all 59 WS
+  commands (frozen tier inventory + escalation-boundary proofs), daily-tick
+  scheduling wrappers, To-do × completion-window, the completion dialog's
+  exact payloads (incl. photo), bulk actions, command palette, Today view,
+  virtualized-table rendering, QR deep-link routing, and the vacation/calendar
+  Lovelace cards. Suites now at ~2,400 backend + 205 frontend tests.
 
 ### 🐛 Fixes
 
@@ -13,12 +71,6 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Dialogs opened from the dashboard strategy** (a lazily-loaded chunk) now load
   the user's locale, so the popup is localized instead of falling back to English
   while the rest of the integration is translated.
-
-### ✨ New
-
-- **Task priority** — each task can be Low / Normal / High. Editable in the task
-  dialog and both config-flow surfaces, shown as a compact badge on the task row
-  (▲ high / ▼ low), and exposed via the WS API. Localized in all 18 languages.
 
 ## [2.16.0] - 2026-07-05
 
