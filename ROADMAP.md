@@ -83,6 +83,26 @@ so rate-limiting, quiet hours, and bundling apply automatically.
 
 ## Next (under consideration)
 
+### 💡 End-of-month scheduling (last day / last business day / ±N offset)
+Requested in [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
+Extend the calendar schedule kinds with **last day of the month**, **last
+working/business day of the month**, and a general **±N-day offset** on
+calendar schedules — so cases like "the day before the last day of the month"
+or "two days before the last working day" work without bespoke UI special
+cases. Useful for monthly routines, reporting periods, billing cycles, and
+meter readings. Builds on the nested `schedule` model (`helpers/schedule.py`,
+kinds weekdays / nth_weekday / day_of_month) — a natural `last_day` /
+`last_business_day` kind plus an `offset_days` field.
+
+### 💡 "Meter reading" task type
+Also from [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
+A dedicated task type for recording a value at a regular interval — meter
+readings aren't cleaning/inspection/replacement/calibration/service. Start as
+a new `MaintenanceTypeEnum` value (clearer in the UI, own icon); later it can
+grow reading-specific fields on completion (recorded value, unit,
+previous-value comparison / delta history), which pairs naturally with the
+existing completion dialog and history timeline.
+
 ### ✅ Priority levels
 **Shipped.** An explicit priority per task (low / normal / high) to sharpen
 triage when many tasks are due at once — a priority badge in the panel, carried
