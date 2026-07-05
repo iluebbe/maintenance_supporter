@@ -65,12 +65,13 @@ routing, and operator mode — the missing piece for families, shared homes,
 and hotels. The "currently responsible" user stays a single pointer so all
 existing per-user notifications and badges keep working.
 
-### 💡 Native To-do entity
-Expose due/overdue tasks as a Home Assistant `todo` list entity, so
-maintenance appears in the native **To-do** dashboard card and can be managed
-by **Assist/voice** ("what maintenance is due?", "mark the filter change
-done"). Complements — does not replace — the panel and the Lovelace card.
-Optional per-assignee lists pair with rotation above.
+### ✅ Native To-do entity
+**Shipped.** A single global `todo.maintenance` list entity aggregates every
+active task; item status mirrors due state (due/overdue/triggered →
+needs-action, otherwise completed), and checking an item off completes the
+task. Appears in the native **To-do** card and is reachable via
+**Assist/voice**. Complements — does not replace — the panel and the Lovelace
+card. Optional per-assignee lists can pair with rotation later.
 
 ### 💡 Multiple reminders per task + overdue escalation
 Beyond the single "warning days" threshold: configure several lead-time
