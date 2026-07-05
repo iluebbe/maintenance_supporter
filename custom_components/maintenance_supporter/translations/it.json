@@ -167,7 +167,10 @@
           "weekday": "Giorno della settimana",
           "day": "Giorno del mese",
           "warning_days": "Giorni di avviso prima della scadenza",
-          "go_back": "Indietro"
+          "go_back": "Indietro",
+          "last_day": "Ultimo giorno del mese",
+          "business": "Solo giorni lavorativi",
+          "offset": "Scostamento (giorni)"
         },
         "data_description": {
           "weekdays": "L'attività si ripete in ogni giorno della settimana selezionato.",
@@ -175,7 +178,10 @@
           "weekday": "Il giorno della settimana per la regola dell'n-esimo giorno (es. sabato).",
           "day": "Giorno del mese (1-31; limitato alla durata del mese).",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
-          "go_back": "Tornare alla creazione dell'attività senza salvare."
+          "go_back": "Tornare alla creazione dell'attività senza salvare.",
+          "last_day": "Sostituisce il numero del giorno: scadenza l'ultimo giorno del mese.",
+          "business": "Riporta una data nel weekend al venerdì precedente (es. ultimo giorno lavorativo).",
+          "offset": "Sposta la data calcolata di ±N giorni (es. -2 = due giorni prima)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Giorno del mese",
           "last_performed": "Ultima esecuzione",
           "warning_days": "Giorni di avviso prima della scadenza",
-          "go_back": "Indietro"
+          "go_back": "Indietro",
+          "last_day": "Ultimo giorno del mese",
+          "business": "Solo giorni lavorativi",
+          "offset": "Scostamento (giorni)"
         },
         "data_description": {
           "weekdays": "L'attività si ripete in ogni giorno della settimana selezionato.",
@@ -919,7 +928,10 @@
           "day": "Giorno del mese (1-31; limitato alla durata del mese).",
           "last_performed": "Quando è stata eseguita l'ultima volta questa manutenzione. Lascia vuoto se mai eseguita.",
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
-          "go_back": "Tornare al menu principale senza salvare."
+          "go_back": "Tornare al menu principale senza salvare.",
+          "last_day": "Sostituisce il numero del giorno: scadenza l'ultimo giorno del mese.",
+          "business": "Riporta una data nel weekend al venerdì precedente (es. ultimo giorno lavorativo).",
+          "offset": "Sposta la data calcolata di ±N giorni (es. -2 = due giorni prima)."
         }
       },
       "opt_manual": {

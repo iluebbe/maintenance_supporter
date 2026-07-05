@@ -29,6 +29,7 @@ from .dates import (
     next_nth_weekday,
     next_weekday_in_set,
     parse_iso_date,
+    roll_back_to_business_day,
 )
 
 # Recurrence kinds. Phase 2 covers the v2.6.x set; the calendar kinds
@@ -48,6 +49,25 @@ _CALENDAR_KINDS = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
 # absurd data (a task untouched for >2000 cycles falls back to the last step).
 _MAX_PLANNED_STEPS = 2000
 
+# (#83) offset bound: ±15 days covers every sensible "N days before/after the
+# pattern date" case without letting a bogus payload shift schedules by years.
+_MAX_OFFSET_DAYS = 15
+
+
+def _sanitize_offset(raw: object) -> int:
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        return 0
+    return max(-_MAX_OFFSET_DAYS, min(raw, _MAX_OFFSET_DAYS))
+
+
+def _sanitize_day(raw: object) -> int | None:
+    """day 1..31, or -1 = last day of the month; anything else -> None."""
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        return None
+    if raw == -1 or 1 <= raw <= 31:
+        return raw
+    return None
+
 
 @dataclass(frozen=True)
 class Schedule:
@@ -62,8 +82,11 @@ class Schedule:
     weekdays: tuple[int, ...] = ()    # weekdays kind: 0=Mon … 6=Sun
     nth: int | None = None            # nth_weekday kind: 1..5, or -1 = last
     weekday: int | None = None        # nth_weekday kind: 0=Mon … 6=Sun
-    day: int | None = None            # day_of_month kind: 1..31 (clamped)
+    day: int | None = None            # day_of_month kind: 1..31 (clamped), -1 = last day
     months: tuple[int, ...] = ()      # nth_weekday/day_of_month: restrict months (1..12)
+    # (#83) end-of-month scheduling extras — calendar kinds only:
+    business: bool = False            # day_of_month: roll a weekend date back to Friday
+    offset_days: int = 0              # shift the computed occurrence by ±N days
 
     @classmethod
     def from_legacy(
@@ -148,7 +171,34 @@ class Schedule:
         return add_interval(last_performed, every, self.unit)
 
     def _calendar_occurrence(self, ref: date, *, inclusive: bool) -> date | None:
-        """Next occurrence of a calendar kind on/after ``ref``."""
+        """Next EFFECTIVE occurrence of a calendar kind on/after ``ref``.
+
+        (#83) The effective date is the base pattern date, optionally rolled
+        back to a business day (``business``, day_of_month only), then shifted
+        by ``offset_days``. Bases are searched from ``ref - offset`` so the
+        shifted result still lands on/after ``ref``; when the business
+        rollback pushes a candidate before ``ref``, the next base is tried
+        (bounded — a rollback moves at most 2 days).
+        """
+        offset = timedelta(days=self.offset_days)
+        search = ref - offset
+        search_inclusive = inclusive
+        for _ in range(6):
+            base = self._base_occurrence(search, inclusive=search_inclusive)
+            if base is None:
+                return None
+            effective = base
+            if self.business and self.kind == KIND_DAY_OF_MONTH:
+                effective = roll_back_to_business_day(effective)
+            effective = effective + offset
+            if (effective >= ref) if inclusive else (effective > ref):
+                return effective
+            search = base
+            search_inclusive = False  # strictly after the base just tried
+        return None
+
+    def _base_occurrence(self, ref: date, *, inclusive: bool) -> date | None:
+        """Next base pattern date of a calendar kind on/after ``ref``."""
         months = self.months or None
         if self.kind == KIND_WEEKDAYS:
             return next_weekday_in_set(ref, self.weekdays, inclusive=inclusive)
@@ -204,6 +254,10 @@ class Schedule:
             d["day"] = self.day
             if self.months:
                 d["months"] = list(self.months)
+            if self.business:
+                d["business"] = True
+        if self.kind in _CALENDAR_KINDS and self.offset_days:
+            d["offset"] = self.offset_days
         return d
 
     @classmethod
@@ -220,19 +274,26 @@ class Schedule:
                 anchor=d.get("anchor") or "completion",
             )
         if kind == KIND_WEEKDAYS:
-            return cls(kind=KIND_WEEKDAYS, weekdays=tuple(d.get("weekdays") or ()))
+            return cls(
+                kind=KIND_WEEKDAYS,
+                weekdays=tuple(d.get("weekdays") or ()),
+                offset_days=_sanitize_offset(d.get("offset")),
+            )
         if kind == KIND_NTH_WEEKDAY:
             return cls(
                 kind=KIND_NTH_WEEKDAY,
                 nth=d.get("nth"),
                 weekday=d.get("weekday"),
                 months=tuple(d.get("months") or ()),
+                offset_days=_sanitize_offset(d.get("offset")),
             )
         if kind == KIND_DAY_OF_MONTH:
             return cls(
                 kind=KIND_DAY_OF_MONTH,
-                day=d.get("day"),
+                day=_sanitize_day(d.get("day")),
                 months=tuple(d.get("months") or ()),
+                business=d.get("business") is True,
+                offset_days=_sanitize_offset(d.get("offset")),
             )
         return cls(kind=KIND_MANUAL)
 

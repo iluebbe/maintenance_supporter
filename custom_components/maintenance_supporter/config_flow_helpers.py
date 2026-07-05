@@ -79,6 +79,23 @@ def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Sch
                 )
             )
         )
+        # (#83) end-of-month options: "last day" overrides the day number;
+        # "business" rolls a weekend date back to Friday.
+        fields[vol.Optional("last_day", default=cur.get("last_day", False))] = (
+            selector.BooleanSelector()
+        )
+        fields[vol.Optional("business", default=cur.get("business", False))] = (
+            selector.BooleanSelector()
+        )
+    # (#83) ±N-day shift of the computed occurrence, on every calendar kind
+    # ("two days before the last working day" = last_day + business + offset -2).
+    fields[vol.Optional("offset", default=cur.get("offset", 0))] = (
+        selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=-15, max=15, step=1, mode=selector.NumberSelectorMode.BOX
+            )
+        )
+    )
     return vol.Schema(fields)
 
 
@@ -86,17 +103,28 @@ def schedule_from_calendar_input(
     kind: str, user_input: dict[str, Any]
 ) -> dict[str, Any] | None:
     """Build the nested `schedule` dict from a calendar step's user_input."""
+    def _with_offset(schedule: dict[str, Any]) -> dict[str, Any]:
+        offset = int(user_input.get("offset", 0) or 0)
+        if offset:
+            schedule["offset"] = offset
+        return schedule
+
     if kind == KIND_WEEKDAYS:
         days = sorted(int(d) for d in user_input.get("weekdays", []))
-        return {"kind": KIND_WEEKDAYS, "weekdays": days} if days else None
+        return _with_offset({"kind": KIND_WEEKDAYS, "weekdays": days}) if days else None
     if kind == KIND_NTH_WEEKDAY:
-        return {
+        return _with_offset({
             "kind": KIND_NTH_WEEKDAY,
             "nth": int(user_input["nth"]),
             "weekday": int(user_input["weekday"]),
-        }
+        })
     if kind == KIND_DAY_OF_MONTH:
-        return {"kind": KIND_DAY_OF_MONTH, "day": int(user_input.get("day", 1))}
+        # (#83) "last day" wins over the day number; business rolls back weekends.
+        day = -1 if user_input.get("last_day") else int(user_input.get("day", 1))
+        schedule: dict[str, Any] = {"kind": KIND_DAY_OF_MONTH, "day": day}
+        if user_input.get("business"):
+            schedule["business"] = True
+        return _with_offset(schedule)
     return None
 
 
@@ -108,7 +136,10 @@ def calendar_current(task: dict[str, Any]) -> dict[str, Any]:
         "weekdays": [str(d) for d in s.weekdays],
         "nth": str(s.nth) if s.nth is not None else "1",
         "weekday": str(s.weekday) if s.weekday is not None else "5",
-        "day": s.day or 1,
+        "day": s.day if (s.day or 0) >= 1 else 1,
+        "last_day": s.day == -1,
+        "business": s.business,
+        "offset": s.offset_days,
     }
 
 

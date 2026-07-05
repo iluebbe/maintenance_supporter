@@ -167,7 +167,10 @@
           "weekday": "Veckodag",
           "day": "Dag i månaden",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "last_day": "Sista dagen i månaden",
+          "business": "Endast vardagar",
+          "offset": "Förskjutning (dagar)"
         },
         "data_description": {
           "weekdays": "Uppgiften upprepas varje vald veckodag.",
@@ -175,7 +178,10 @@
           "weekday": "Veckodagen för regeln om n:te veckodagen (t.ex. lördag).",
           "day": "Dag i månaden (1-31; begränsad till månadens längd).",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
-          "go_back": "Återgå till uppgiftsskapande utan att spara."
+          "go_back": "Återgå till uppgiftsskapande utan att spara.",
+          "last_day": "Åsidosätter dagnumret: förfaller månadens sista dag.",
+          "business": "Flyttar ett helgdatum tillbaka till fredagen före (t.ex. sista vardagen).",
+          "offset": "Förskjuter det beräknade datumet med ±N dagar (t.ex. -2 = två dagar före)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Dag i månaden",
           "last_performed": "Senast utförd",
           "warning_days": "Dagar för varning före förfall",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "last_day": "Sista dagen i månaden",
+          "business": "Endast vardagar",
+          "offset": "Förskjutning (dagar)"
         },
         "data_description": {
           "weekdays": "Uppgiften upprepas varje vald veckodag.",
@@ -919,7 +928,10 @@
           "day": "Dag i månaden (1-31; begränsad till månadens längd).",
           "last_performed": "När detta underhåll senast utfördes. Lämna tomt om aldrig.",
           "warning_days": "Antal dagar före förfallodagen då en varning visas.",
-          "go_back": "Återgå till huvudmenyn utan att spara."
+          "go_back": "Återgå till huvudmenyn utan att spara.",
+          "last_day": "Åsidosätter dagnumret: förfaller månadens sista dag.",
+          "business": "Flyttar ett helgdatum tillbaka till fredagen före (t.ex. sista vardagen).",
+          "offset": "Förskjuter det beräknade datumet med ±N dagar (t.ex. -2 = två dagar före)."
         }
       },
       "opt_manual": {

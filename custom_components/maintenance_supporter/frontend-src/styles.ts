@@ -177,6 +177,7 @@ interface RecurrenceLike {
   schedule?: {
     kind?: string; every?: number | null; unit?: string;
     weekdays?: number[]; nth?: number; weekday?: number; day?: number;
+    business?: boolean; offset?: number;
   } | null;
   interval_days?: number | null;
   interval_unit?: string | null;
@@ -189,16 +190,24 @@ interface RecurrenceLike {
  *  day_of_month / one_time / manual. Used by the panel, card, and quick-actions. */
 export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
   const s = task.schedule;
+  // (#83) ±N-day shift suffix shared by the calendar kinds.
+  const off = s?.offset ? ` ${s.offset > 0 ? "+" : "−"}${Math.abs(s.offset)}d` : "";
   switch (s?.kind) {
     case "weekdays":
-      return (s.weekdays || []).map((d) => weekdayName(d, lang, "short")).join(" & ") || "—";
+      return ((s.weekdays || []).map((d) => weekdayName(d, lang, "short")).join(" & ") || "—") + off;
     case "nth_weekday": {
       if (s.weekday == null || s.nth == null) return "—";
       const ord = s.nth === -1 ? t("ord_last", lang) : t("ord_" + s.nth, lang);
-      return `${ord} ${weekdayName(s.weekday, lang, "long")}`;
+      return `${ord} ${weekdayName(s.weekday, lang, "long")}${off}`;
     }
-    case "day_of_month":
-      return s.day != null ? `${t("day_word", lang)} ${s.day}` : "—";
+    case "day_of_month": {
+      if (s.day == null) return "—";
+      // (#83) -1 = last day of the month; business rolls weekends back to Friday.
+      const base = s.day === -1
+        ? t(s.business ? "last_business_day_month" : "last_day_month", lang)
+        : `${t("day_word", lang)} ${s.day}`;
+      return base + off;
+    }
     case "one_time":
       return task.due_date ? formatDate(task.due_date, lang) : t("one_time", lang);
     case "manual":

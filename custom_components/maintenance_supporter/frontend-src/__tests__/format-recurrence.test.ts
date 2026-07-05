@@ -25,6 +25,24 @@ describe("formatRecurrence", () => {
   it("day_of_month → 'Day 15'", () => {
     expect(formatRecurrence({ schedule: { kind: "day_of_month", day: 15 } }, "en")).to.equal("Day 15");
   });
+  it("(#83) day -1 → 'Last day of month'", () => {
+    expect(formatRecurrence({ schedule: { kind: "day_of_month", day: -1 } }, "en"))
+      .to.equal("Last day of month");
+  });
+  it("(#83) day -1 + business → 'Last business day'", () => {
+    expect(formatRecurrence({ schedule: { kind: "day_of_month", day: -1, business: true } }, "en"))
+      .to.equal("Last business day");
+  });
+  it("(#83) negative offset renders as a −Nd suffix", () => {
+    expect(formatRecurrence(
+      { schedule: { kind: "day_of_month", day: -1, business: true, offset: -2 } }, "en",
+    )).to.equal("Last business day −2d");
+  });
+  it("(#83) positive offset on nth_weekday", () => {
+    expect(formatRecurrence(
+      { schedule: { kind: "nth_weekday", nth: 1, weekday: 5, offset: 2 } }, "en",
+    )).to.equal("1st Saturday +2d");
+  });
   it("manual → 'Manual'", () => {
     expect(formatRecurrence({ schedule: { kind: "manual" } }, "en")).to.equal("Manual");
   });
