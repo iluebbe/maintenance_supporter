@@ -123,8 +123,9 @@ Smaller, high-frequency wins first; each ships independently.
   object with its tasks as a starting point.
 - ✅ **Undo toast instead of confirm dialogs** (v2.14.0) — low-risk actions
   (complete, skip, archive) execute immediately with a few seconds of "Undo".
-- 💡 **Snooze in the panel** — snoozing currently exists only as a notification
-  action; surface it on task rows and the task detail. **Deferred.**
+- ✅ **Snooze in the panel** — a "Snooze" item in the task more-menu routes to
+  the existing NotificationManager snooze (suppresses reminders for
+  `snooze_duration_hours`), via a new `task/snooze` WS command.
 - ✅ **Bulk actions** (v2.15.0) — Select mode with checkboxes + bulk bar to
   complete/archive many tasks at once.
 
