@@ -1096,6 +1096,16 @@ async def async_setup_entry(
         if cleaned_data is not entry.data:
             hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
 
+        # Reconcile the entry.data <-> Store split (journey I1): drop store
+        # state orphaned by a crash between the two writes of a deletion.
+        pruned = store.prune_orphans(set(entry.data.get(CONF_TASKS, {})))
+        if pruned:
+            _LOGGER.info(
+                "Pruned %d orphaned task state(s) from store for %s",
+                pruned, entry.title,
+            )
+            await store.async_save()
+
         coordinator = MaintenanceCoordinator(hass, entry, store)
         entry.runtime_data = MaintenanceSupporterData(
             coordinator=coordinator, store=store

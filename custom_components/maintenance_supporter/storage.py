@@ -109,6 +109,22 @@ class MaintenanceStore:
         """Remove all state for a deleted task."""
         self._data.get("tasks", {}).pop(task_id, None)
 
+    def prune_orphans(self, valid_task_ids: set[str]) -> int:
+        """Drop task states whose ids are not in *valid_task_ids*.
+
+        Boot-time reconciliation for the entry.data <-> Store split (journey
+        I1): a crash between the ConfigEntry write and the Store save on a
+        task deletion leaves the dynamic state orphaned forever — the merge
+        only iterates entry.data tasks, so orphans are invisible but
+        accumulate. Returns the number of pruned states; the caller decides
+        whether to save.
+        """
+        tasks = self._data.get("tasks", {})
+        orphaned = [tid for tid in tasks if tid not in valid_task_ids]
+        for tid in orphaned:
+            del tasks[tid]
+        return len(orphaned)
+
     # --- last_performed ---
 
     def get_last_performed(self, task_id: str) -> str | None:
