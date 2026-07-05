@@ -138,6 +138,7 @@ export interface MaintenanceTask {
   labels?: string[];
   assignee_pool?: string[];
   rotation_strategy?: string | null;
+  earliest_completion_days?: number | null;
   // v1.3.0: completion-action + quick-complete (gated by completion_actions feature)
   on_complete_action?: {
     service: string;                          // "domain.service"

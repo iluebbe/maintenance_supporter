@@ -16,6 +16,7 @@ from ..const import (
     MAX_ID_LENGTH,
     MAX_TEXT_LENGTH,
 )
+from ..models.maintenance_task import MaintenanceTask
 from . import (
     _get_runtime_data,
 )
@@ -23,6 +24,22 @@ from . import (
 # ---------------------------------------------------------------------------
 # Task Actions (Complete / Skip / Reset)
 # ---------------------------------------------------------------------------
+
+
+def _completion_blocked(rd: Any, task_id: str) -> bool:
+    """True iff the task's completion window forbids completing it right now.
+
+    Uses the coordinator's merged (live) task data so ``last_performed`` /
+    ``next_due`` reflect the Store, not the stale config entry.
+    """
+    coordinator = getattr(rd, "coordinator", None)
+    if coordinator is None:
+        return False
+    merged = coordinator._get_merged_tasks_data()
+    td = merged.get(task_id)
+    if not td:
+        return False
+    return not MaintenanceTask.from_dict(td).can_complete_now
 
 
 @websocket_api.websocket_command(
@@ -64,6 +81,13 @@ async def ws_complete_task(
     entry = hass.config_entries.async_get_entry(msg["entry_id"])
     if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
         connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
+    if _completion_blocked(rd, msg["task_id"]):
+        connection.send_error(
+            msg["id"], "too_early",
+            "Task can only be completed closer to its due date",
+        )
         return
 
     await rd.coordinator.complete_maintenance(
@@ -110,6 +134,13 @@ async def ws_quick_complete_task(
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
 
+    if _completion_blocked(rd, msg["task_id"]):
+        connection.send_error(
+            msg["id"], "too_early",
+            "Task can only be completed closer to its due date",
+        )
+        return
+
     defaults = task.get("quick_complete_defaults") or {}
     if not isinstance(defaults, dict) or not defaults:
         # Frontend fallback: open the normal complete dialog so the user
@@ -136,6 +167,9 @@ async def ws_quick_complete_task(
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("reason"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        # Record the skipped cycle as MISSED (was due, never done) rather than a
+        # deliberate skip — clearer history + compliance views.
+        vol.Optional("as_missed", default=False): bool,
     }
 )
 @websocket_api.async_response
@@ -158,6 +192,7 @@ async def ws_skip_task(
     await rd.coordinator.skip_maintenance(
         task_id=msg["task_id"],
         reason=msg.get("reason"),
+        as_missed=msg.get("as_missed", False),
     )
     connection.send_result(msg["id"], {"success": True})
 

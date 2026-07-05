@@ -26,7 +26,7 @@ export interface HistoryContext {
   openEdit: (entry: HistoryEntry) => void;
 }
 
-const _FILTER_TYPES = ["completed", "skipped", "reset", "triggered"] as const;
+const _FILTER_TYPES = ["completed", "skipped", "missed", "reset", "triggered"] as const;
 
 export function renderHistoryFilters(task: MaintenanceTask, ctx: HistoryContext) {
   const L = ctx.lang;

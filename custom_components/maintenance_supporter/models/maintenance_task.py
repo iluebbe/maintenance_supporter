@@ -40,6 +40,9 @@ class MaintenanceTask:
     interval_days: int | None = None
     interval_unit: str = "days"  # days | weeks | months | years (calendar-aware)
     warning_days: int = DEFAULT_WARNING_DAYS
+    # Completion window: max days *before* the due date a task may be completed.
+    # None = no restriction (complete any time). 0 = only on/after the due date.
+    earliest_completion_days: int | None = None
     last_performed: str | None = None  # ISO format YYYY-MM-DD
     created_at: str | None = None  # ISO date: fallback anchor for next_due when last_performed is None
     interval_anchor: str = "completion"  # "completion" or "planned"
@@ -202,6 +205,21 @@ class MaintenanceTask:
         return MaintenanceStatus.OK
 
     @property
+    def can_complete_now(self) -> bool:
+        """Whether completion is currently allowed by the completion window.
+
+        A task with ``earliest_completion_days`` set may only be completed once
+        it's within that many days of its due date (or overdue). Tasks without
+        a schedule (``days_until_due is None``) are always completable.
+        """
+        if self.earliest_completion_days is None:
+            return True
+        days = self.days_until_due
+        if days is None:
+            return True
+        return days <= self.earliest_completion_days
+
+    @property
     def is_done(self) -> bool:
         """True for a completed one-time task (done; never re-arms).
 
@@ -338,8 +356,13 @@ class MaintenanceTask:
             notes=f"Reset to {reset_date.isoformat()}",
         )
 
-    def skip(self, reason: str | None = None) -> None:
-        """Skip the current maintenance cycle."""
+    def skip(self, reason: str | None = None, *, as_missed: bool = False) -> None:
+        """Skip the current maintenance cycle.
+
+        ``as_missed=True`` records the cycle as MISSED (was due and never done)
+        rather than a deliberate SKIPPED — clearer history + compliance views.
+        The cycle restarts either way.
+        """
         # Save current next_due as anchor for planned mode before resetting
         if self.interval_anchor == "planned" and self.next_due is not None:
             self.last_planned_due = self.next_due.isoformat()
@@ -349,7 +372,7 @@ class MaintenanceTask:
         self._trigger_active = False
 
         self.add_history_entry(
-            entry_type=HistoryEntryType.SKIPPED,
+            entry_type=HistoryEntryType.MISSED if as_missed else HistoryEntryType.SKIPPED,
             notes=reason,
         )
 
@@ -433,6 +456,8 @@ class MaintenanceTask:
             data["priority"] = self.priority
         if self.labels:
             data["labels"] = self.labels
+        if self.earliest_completion_days is not None:
+            data["earliest_completion_days"] = self.earliest_completion_days
         if self.archived_at is not None:
             data["archived_at"] = self.archived_at
         if self.archived_reason is not None:
@@ -471,6 +496,7 @@ class MaintenanceTask:
             due_date=sched["due_date"],
             schedule_raw=data.get("schedule") if isinstance(data.get("schedule"), dict) else None,
             warning_days=data.get("warning_days", DEFAULT_WARNING_DAYS),
+            earliest_completion_days=data.get("earliest_completion_days"),
             last_performed=data.get("last_performed"),
             created_at=data.get("created_at"),
             interval_anchor=sched["interval_anchor"],

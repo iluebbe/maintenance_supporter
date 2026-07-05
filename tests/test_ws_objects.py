@@ -353,6 +353,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "labels": ["safety", "seasonal"],
         "assignee_pool": ["user-a", "user-b"],
         "rotation_strategy": "round_robin",
+        "earliest_completion_days": 14,
         # v1.3.0 — missing until issue #50
         "on_complete_action": {
             "service": "input_boolean.toggle",
@@ -410,6 +411,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "notes", "documentation_url",
         "entity_slug", "custom_icon", "nfc_tag_id", "priority",
         "checklist", "labels", "assignee_pool", "rotation_strategy",
+        "earliest_completion_days",
         "on_complete_action", "quick_complete_defaults",
     ]
     missing: list[str] = [

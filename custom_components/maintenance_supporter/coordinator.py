@@ -1095,6 +1095,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         task_id: str,
         reason: str | None = None,
+        as_missed: bool = False,
     ) -> None:
         """Skip the current maintenance cycle for a task."""
         merged = self._get_merged_tasks_data()
@@ -1103,7 +1104,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
 
         task = MaintenanceTask.from_dict(merged[task_id])
-        task.skip(reason=reason)
+        # Skipping an already-overdue task means it lapsed → record it as MISSED
+        # (not a deliberate skip). An explicit as_missed=True always wins.
+        missed = as_missed or task.status == MaintenanceStatus.OVERDUE
+        task.skip(reason=reason, as_missed=missed)
 
         await self._persist_and_signal_task_change(task_id, task)
 
