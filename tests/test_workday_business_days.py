@@ -232,3 +232,39 @@ async def test_setup_clears_provider_without_workday_entry(hass) -> None:
     set_business_day_provider(lambda _d: False)  # stale provider from before
     async_setup_business_days(hass)
     assert is_business_day(date(2027, 7, 30)) is True  # Fri, plain rule again
+
+
+def test_builder_survives_unknown_country(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An unresolvable country/subdiv logs a warning and skips holidays."""
+    mod = ModuleType("holidays")
+
+    def country_holidays(country: str, subdiv: str | None = None) -> object:
+        raise KeyError(f"unknown country {country}")
+
+    mod.country_holidays = country_holidays  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "holidays", mod)
+
+    fn = build_provider_from_workday_options(
+        {"country": "XX-NOPE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
+         "excludes": ["sat", "sun", "holiday"]}
+    )
+    assert fn is not None
+    # No calendar → plain weekday semantics.
+    assert fn(date(2027, 7, 30)) is True  # Fri
+    assert fn(date(2027, 7, 31)) is False  # Sat
+
+
+def test_builder_ignores_malformed_override_dates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Garbage in add_holidays is skipped; a NAME in remove_holidays matches."""
+    _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
+    fn = build_provider_from_workday_options(
+        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
+         "excludes": ["sat", "sun", "holiday"],
+         "add_holidays": ["not-a-date", None],
+         "remove_holidays": ["also-not-a-date"]}
+    )
+    assert fn is not None
+    assert fn(date(2027, 12, 23)) is True  # garbage add ignored
+    assert fn(_XMAS) is False  # real holiday still excluded

@@ -36,7 +36,7 @@ try:  # pragma: no cover - exercised only on cores without the framework
     from homeassistant.components.sensor import SensorDeviceClass
     from homeassistant.helpers.automation import DomainSpec
     from homeassistant.helpers.trigger import make_entity_target_state_trigger
-except ImportError:  # HA core too old for purpose-specific triggers
+except ImportError:  # pragma: no cover - only on cores without the framework
     TRIGGERS: dict[str, type[Trigger]] = {}
 else:
     _TASK_SENSOR_SPECS: dict[str, DomainSpec] = {

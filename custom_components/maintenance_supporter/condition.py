@@ -22,7 +22,7 @@ try:  # pragma: no cover - exercised only on cores without the framework
     from homeassistant.components.sensor import SensorDeviceClass
     from homeassistant.helpers.automation import DomainSpec
     from homeassistant.helpers.condition import make_entity_state_condition
-except ImportError:  # HA core too old for purpose-specific conditions
+except ImportError:  # pragma: no cover - only on cores without the framework
     CONDITIONS: dict[str, type[Condition]] = {}
 else:
     _TASK_SENSOR_SPECS: dict[str, DomainSpec] = {
