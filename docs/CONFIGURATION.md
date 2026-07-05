@@ -8,7 +8,9 @@ All configuration is done through the Home Assistant UI — there is no YAML con
 
 ## Global Settings
 
-Accessible via **Settings > Devices & Services > Maintenance Supporter > Configure** (the global entry), or via the **Settings tab** in the sidebar panel.
+Accessible via **Settings > Devices & Services > Maintenance Supporter > Configure** (the global entry), or via the **Settings tab** in the sidebar panel:
+
+![Panel settings tab](images/settings-view.png)
 
 ### General Settings
 
@@ -149,7 +151,9 @@ Each maintenance object is a separate config entry. Accessible via **Settings > 
 
 ## Per-Task Settings
 
-Tasks are created within an object's options flow via **Add Task** or managed via **Manage Tasks**.
+Tasks are created within an object's options flow via **Add Task** or managed via **Manage Tasks** — or directly in the panel's task dialog:
+
+![Task dialog (reading type, end-of-month schedule)](images/task-dialog-schedule.png)
 
 ### Basic Task Fields
 
@@ -212,7 +216,9 @@ With `interval_anchor = completion` (the default), the schedule drifts whenever 
 
 ### Completion Actions (1.3.0+)
 
-Available when `advanced_completion_actions_visible` is enabled globally. Configured per task in the **task dialog** under two collapsible sections.
+Available when `advanced_completion_actions_visible` is enabled globally. Configured per task in the **task dialog** under two collapsible sections:
+
+![On-complete action editor](images/task-dialog-action.png)
 
 **On-complete action** — fires an HA service call when the task is completed (any path: manual, complete-QR, quick-complete, mobile action). Failures are logged and swallowed; never blocks the completion from being recorded.
 
@@ -323,6 +329,10 @@ Triggers are configured per task when `schedule_type` is `sensor_based` or when 
 | `trigger_type` | enum | *(required)* | Trigger type: `threshold`, `counter`, `state_change`, `runtime`, `compound` |
 | `entity_logic` | enum | `any` | Multi-entity aggregation: `any` (one entity suffices) or `all` (all must match) |
 
+A multi-entity threshold in the task dialog — one rule watching several sensors:
+
+![Multi-entity trigger](images/multi-entity-trigger.png)
+
 ### Threshold Trigger
 
 Activates when a sensor value crosses above or below a limit.
@@ -375,6 +385,8 @@ Combines multiple trigger conditions with AND/OR logic.
 | `conditions` | list | *(required)* | List of trigger conditions, each with its own type, entity, and parameters |
 
 Each condition in the list is a complete trigger configuration (entity, type, type-specific parameters). Nested compound triggers are not supported.
+
+![Compound trigger](images/compound-trigger.png)
 
 ---
 

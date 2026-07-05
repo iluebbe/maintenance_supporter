@@ -109,6 +109,8 @@ Example for a **filter swap on the Roborock vacuum**: stick the lightning-bolt Q
 
 If you forget to pre-fill the defaults, the QR scan falls back to the normal complete dialog so you're never stuck.
 
+![QR dialog](images/qr-dialog.png)
+
 ### Object documentation URL (1.4.0+) — keep the manual within reach
 
 Each object can carry a link to its PDF manual / vendor page / setup guide. Set it once via *Edit Object → Manual / documentation URL* (right under *Serial number*). The link then renders as a clickable line in:
@@ -192,6 +194,8 @@ automation:
 > **Note:** Mobile notification actions (Complete, Skip, Snooze) are handled automatically by the integration when enabled in Notification Actions settings. The automation above is only needed for custom follow-up actions.
 
 ### Lovelace Card
+
+![Lovelace card](images/lovelace-card.png)
 
 When you add the card from the Lovelace card picker (1.0.45+), it auto-fills with sensible defaults — `filter_status: ["overdue", "triggered", "due_soon"]` + `max_items: 10` — so the first impression is "the 10 things that need attention" rather than every task. The visual editor exposes status chips, an object multi-checkbox, an HA-native entity picker, and the usual show_header / show_actions / compact / max_items toggles.
 
