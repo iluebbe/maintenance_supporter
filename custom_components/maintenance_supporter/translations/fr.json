@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Aucune tâche de maintenance trouvée pour l'entité {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Une tâche de maintenance est devenue en retard",
+      "description": "Se déclenche lorsque le statut d'une tâche de maintenance passe à en retard.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Une tâche de maintenance arrive à échéance",
+      "description": "Se déclenche lorsqu'une tâche de maintenance entre dans sa fenêtre d'avertissement.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Un déclencheur de capteur s'est activé",
+      "description": "Se déclenche lorsqu'une tâche de maintenance basée sur un capteur s'active.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Une tâche de maintenance est revenue à OK",
+      "description": "Se déclenche lorsqu'une tâche de maintenance ne nécessite plus d'attention.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Une tâche de maintenance est en retard",
+      "description": "Vérifie si une tâche de maintenance est en retard.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Une tâche de maintenance arrive à échéance",
+      "description": "Vérifie si une tâche de maintenance est dans sa fenêtre d'avertissement.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Un déclencheur de capteur est actif",
+      "description": "Vérifie si une tâche de maintenance basée sur un capteur est déclenchée.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Une tâche de maintenance nécessite une attention",
+      "description": "Vérifie si une tâche de maintenance est en retard ou déclenchée.",
+      "fields": {
+        "behavior": {
+          "name": "Comportement"
+        },
+        "for": {
+          "name": "Pendant"
+        }
+      }
+    }
   }
 }

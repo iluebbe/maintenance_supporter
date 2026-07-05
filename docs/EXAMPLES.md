@@ -147,13 +147,18 @@ Bundled notifications (multiple due tasks for the same object) honour `object_na
 
 ### Automation: Notify on Overdue Task
 
+On HA 2026.7+ the easiest way is the new automation editor: pick the trigger
+**"A maintenance task became overdue"**, target the task (or a whole object /
+area / the entire home), and add your notify action — no YAML needed. The
+same building block in YAML:
+
 ```yaml
 automation:
   - alias: "Notify when maintenance is overdue"
-    trigger:
-      - platform: state
-        entity_id: sensor.family_car_oil_change
-        to: "overdue"
+    triggers:
+      - trigger: maintenance_supporter.task_became_overdue
+        target:
+          entity_id: sensor.family_car_oil_change
     action:
       - service: notify.mobile_app_phone
         data:

@@ -301,6 +301,31 @@ Each sensor entity exposes attributes grouped by function. Only stable values ar
 - `maintenance_supporter_task_skipped` — fired when a task is skipped. Payload includes the optional `reason`
 - `maintenance_supporter_task_reset` — fired when a task's `last_performed` is reset to a specific date. Payload includes that `date`
 
+### Automation triggers & conditions (HA 2026.7+)
+
+On Home Assistant 2026.7+ the integration contributes **purpose-specific
+building blocks** to the new intent-based automation editor — no entity
+naming or event names to know, localized in all 18 languages:
+
+- **Triggers**: *A maintenance task became overdue*, *…became due soon*,
+  *A sensor trigger activated*, *A maintenance task returned to OK* — each
+  targetable at the whole home, an area, an object (device), or a single task,
+  with the standard *for* duration and behavior options
+- **Conditions**: *A maintenance task is overdue / is due soon /
+  is triggered / needs attention* (the last covers overdue **or** triggered)
+
+In YAML the same blocks read naturally:
+
+```yaml
+triggers:
+  - trigger: maintenance_supporter.task_became_overdue
+    target:
+      entity_id: sensor.family_car_oil_change
+```
+
+On older cores these building blocks simply don't appear; the events and
+binary sensors above keep working unchanged.
+
 ### Services
 
 See the [Services](#services) table below for available service calls. For the full WebSocket API (49 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).

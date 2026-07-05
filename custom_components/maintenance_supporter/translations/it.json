@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Nessuna attività di manutenzione trovata per l'entità {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Un'attività di manutenzione è scaduta",
+      "description": "Si attiva quando lo stato di un'attività di manutenzione passa a scaduta.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Un'attività di manutenzione scade a breve",
+      "description": "Si attiva quando un'attività di manutenzione entra nella finestra di avviso.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Un trigger del sensore si è attivato",
+      "description": "Si attiva quando un'attività di manutenzione basata su sensori si attiva.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Un'attività di manutenzione è tornata OK",
+      "description": "Si attiva quando un'attività di manutenzione non richiede più attenzione.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Un'attività di manutenzione è scaduta",
+      "description": "Verifica se un'attività di manutenzione è scaduta.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Un'attività di manutenzione scade a breve",
+      "description": "Verifica se un'attività di manutenzione è nella finestra di avviso.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Un trigger del sensore è attivo",
+      "description": "Verifica se un'attività di manutenzione basata su sensori è attivata.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Un'attività di manutenzione richiede attenzione",
+      "description": "Verifica se un'attività di manutenzione è scaduta o attivata.",
+      "fields": {
+        "behavior": {
+          "name": "Comportamento"
+        },
+        "for": {
+          "name": "Per"
+        }
+      }
+    }
   }
 }

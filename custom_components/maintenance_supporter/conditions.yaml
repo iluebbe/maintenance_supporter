@@ -1,0 +1,23 @@
+.condition_common: &condition_common
+  target:
+    entity:
+      - domain: sensor
+        integration: maintenance_supporter
+        device_class: enum
+  fields:
+    behavior:
+      required: true
+      default: any
+      selector:
+        automation_behavior:
+          mode: condition
+    for:
+      required: true
+      default: 00:00:00
+      selector:
+        duration:
+
+task_is_overdue: *condition_common
+task_is_due_soon: *condition_common
+task_is_triggered: *condition_common
+task_needs_attention: *condition_common

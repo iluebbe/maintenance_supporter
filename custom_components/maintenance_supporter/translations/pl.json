@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Nie znaleziono zadania konserwacji dla encji {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Zadanie konserwacji stało się zaległe",
+      "description": "Wyzwala się, gdy status zadania konserwacji zmienia się na zaległe.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Zadanie konserwacji wkrótce wymagane",
+      "description": "Wyzwala się, gdy zadanie konserwacji wchodzi w okno ostrzeżenia.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Wyzwalacz czujnika został aktywowany",
+      "description": "Wyzwala się, gdy zadanie konserwacji oparte na czujnikach się aktywuje.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Zadanie konserwacji wróciło do stanu OK",
+      "description": "Wyzwala się, gdy zadanie konserwacji nie wymaga już uwagi.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Zadanie konserwacji jest zaległe",
+      "description": "Sprawdza, czy zadanie konserwacji jest zaległe.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Zadanie konserwacji wkrótce wymagane",
+      "description": "Sprawdza, czy zadanie konserwacji jest w oknie ostrzeżenia.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Wyzwalacz czujnika jest aktywny",
+      "description": "Sprawdza, czy zadanie konserwacji oparte na czujnikach jest aktywowane.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Zadanie konserwacji wymaga uwagi",
+      "description": "Sprawdza, czy zadanie konserwacji jest zaległe lub aktywowane.",
+      "fields": {
+        "behavior": {
+          "name": "Zachowanie"
+        },
+        "for": {
+          "name": "Przez"
+        }
+      }
+    }
   }
 }

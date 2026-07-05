@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "找不到实体 {entity_id} 的维护任务。"
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "维护任务已逾期",
+      "description": "当维护任务的状态变为逾期时触发。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "维护任务即将到期",
+      "description": "当维护任务进入其提醒窗口时触发。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "传感器触发器已激活",
+      "description": "当基于传感器的维护任务被激活时触发。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "维护任务恢复正常",
+      "description": "当维护任务不再需要关注时触发。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "维护任务已逾期",
+      "description": "检测维护任务是否已逾期。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "维护任务即将到期",
+      "description": "检测维护任务是否处于提醒窗口内。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "传感器触发器处于激活状态",
+      "description": "检测基于传感器的维护任务是否已被触发。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "维护任务需要关注",
+      "description": "检测维护任务是否已逾期或被触发。",
+      "fields": {
+        "behavior": {
+          "name": "行为"
+        },
+        "for": {
+          "name": "持续时间"
+        }
+      }
+    }
   }
 }

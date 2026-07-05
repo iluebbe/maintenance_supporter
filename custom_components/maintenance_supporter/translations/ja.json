@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "エンティティ {entity_id} のメンテナンスタスクが見つかりません。"
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "メンテナンスタスクが期限切れになった",
+      "description": "メンテナンスタスクのステータスが期限切れに変わったときにトリガーされます。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "メンテナンスタスクの期限が近い",
+      "description": "メンテナンスタスクが警告期間に入ったときにトリガーされます。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "センサートリガーが作動した",
+      "description": "センサーベースのメンテナンスタスクが作動したときにトリガーされます。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "メンテナンスタスクが正常に戻った",
+      "description": "メンテナンスタスクが注意を必要としなくなったときにトリガーされます。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "メンテナンスタスクが期限切れである",
+      "description": "メンテナンスタスクが期限切れかどうかをテストします。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "メンテナンスタスクの期限が近い",
+      "description": "メンテナンスタスクが警告期間内かどうかをテストします。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "センサートリガーが作動中である",
+      "description": "センサーベースのメンテナンスタスクが作動しているかどうかをテストします。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "メンテナンスタスクが注意を必要としている",
+      "description": "メンテナンスタスクが期限切れまたは作動中かどうかをテストします。",
+      "fields": {
+        "behavior": {
+          "name": "動作"
+        },
+        "for": {
+          "name": "継続時間"
+        }
+      }
+    }
   }
 }

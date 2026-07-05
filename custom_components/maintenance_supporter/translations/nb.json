@@ -1612,5 +1612,105 @@
     "no_task_for_entity": {
       "message": "Ingen vedlikeholdsoppgave funnet for enhet {entity_id}."
     }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "En vedlikeholdsoppgave ble forfalt",
+      "description": "Utløses når statusen til en vedlikeholdsoppgave endres til forfalt.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "En vedlikeholdsoppgave forfaller snart",
+      "description": "Utløses når en vedlikeholdsoppgave går inn i varslingsvinduet sitt.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "En sensorutløser ble aktivert",
+      "description": "Utløses når en sensorbasert vedlikeholdsoppgave aktiveres.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "En vedlikeholdsoppgave er OK igjen",
+      "description": "Utløses når en vedlikeholdsoppgave ikke lenger trenger oppmerksomhet.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "En vedlikeholdsoppgave er forfalt",
+      "description": "Tester om en vedlikeholdsoppgave er forfalt.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "En vedlikeholdsoppgave forfaller snart",
+      "description": "Tester om en vedlikeholdsoppgave er i varslingsvinduet sitt.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "En sensorutløser er aktiv",
+      "description": "Tester om en sensorbasert vedlikeholdsoppgave er utløst.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "En vedlikeholdsoppgave trenger oppmerksomhet",
+      "description": "Tester om en vedlikeholdsoppgave er forfalt eller utløst.",
+      "fields": {
+        "behavior": {
+          "name": "Atferd"
+        },
+        "for": {
+          "name": "I"
+        }
+      }
+    }
   }
 }

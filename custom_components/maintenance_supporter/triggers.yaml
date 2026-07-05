@@ -1,0 +1,23 @@
+.trigger_common: &trigger_common
+  target:
+    entity:
+      - domain: sensor
+        integration: maintenance_supporter
+        device_class: enum
+  fields:
+    behavior:
+      required: true
+      default: each
+      selector:
+        automation_behavior:
+          mode: trigger
+    for:
+      required: true
+      default: 00:00:00
+      selector:
+        duration:
+
+task_became_overdue: *trigger_common
+task_became_due_soon: *trigger_common
+sensor_trigger_activated: *trigger_common
+task_became_ok: *trigger_common
