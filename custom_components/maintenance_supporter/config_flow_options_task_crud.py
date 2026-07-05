@@ -50,6 +50,11 @@ from .helpers.global_options import get_default_warning_days
 from .helpers.schedule import (
     read_legacy_fields,
 )
+from .helpers.task_fields import (
+    EARLIEST_COMPLETION_RANGE,
+    TASK_PRIORITIES,
+    WARNING_DAYS_RANGE,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -386,12 +391,12 @@ class TaskCrudMixin:
                         default=task.get("warning_days", get_default_warning_days(self.hass)),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     ecd_key: selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     vol.Optional(
@@ -440,7 +445,7 @@ class TaskCrudMixin:
                     icon_key: selector.IconSelector(),
                     vol.Optional(CONF_TASK_PRIORITY, default=task.get(CONF_TASK_PRIORITY, "normal")): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=["low", "normal", "high"],
+                            options=list(TASK_PRIORITIES),
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="task_priority",
                         )

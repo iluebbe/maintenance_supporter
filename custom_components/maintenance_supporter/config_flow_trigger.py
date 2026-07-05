@@ -60,6 +60,7 @@ from .const import (
     TriggerType,
 )
 from .helpers.global_options import get_default_warning_days
+from .helpers.task_fields import WARNING_DAYS_RANGE
 
 # Domains allowed for trigger entity selection.
 # Includes all domains from entity_attributes.DOMAIN_ATTRIBUTE_MAP plus
@@ -474,7 +475,7 @@ class TriggerConfigMixin:
                 default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                 )
             ),
         })
@@ -581,7 +582,7 @@ class TriggerConfigMixin:
                 default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                 )
             ),
         })
@@ -697,7 +698,7 @@ class TriggerConfigMixin:
                 default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                 )
             ),
         })
@@ -812,7 +813,7 @@ class TriggerConfigMixin:
                 default=get_default_warning_days(self.hass),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                 )
             ),
         })

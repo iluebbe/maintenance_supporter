@@ -24,6 +24,7 @@ from ..const import (
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
 )
+from .task_fields import EARLIEST_COMPLETION_RANGE
 
 # Per-field cap for task dicts. Values mirror the voluptuous schemas in
 # websocket/tasks.py so an admin who reaches the same field through the UI
@@ -101,7 +102,8 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(ecd, int) or isinstance(ecd, bool):
             task_data.pop("earliest_completion_days", None)
         else:
-            task_data["earliest_completion_days"] = max(0, min(ecd, 3650))
+            lo, hi = EARLIEST_COMPLETION_RANGE
+            task_data["earliest_completion_days"] = max(lo, min(ecd, hi))
 
     cl = task_data.get("checklist")
     if cl is not None:
