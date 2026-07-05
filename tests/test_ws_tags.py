@@ -177,3 +177,58 @@ async def test_ws_list_tags_name_fallback_to_id(
     result = conn.send_result.call_args[0][1]
     assert result["tags"][0]["name"] == "tag-no-name"  # Fallback to id
     assert result["tags"][1]["name"] == "My Tag"
+
+
+async def test_ws_list_tags_resolves_name_from_entity_registry(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """Post-restart shape: storage items have NO name (HA strips it on save
+    and keeps it in the entity registry) — the handler must resolve it there,
+    like HA's own tag/list does. Regression for the forum report "names show
+    only until I restart, then they only show up as UUIDs".
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    await setup_integration(hass, global_entry)
+
+    ent_reg = er.async_get(hass)
+    entry = ent_reg.async_get_or_create(
+        "tag", "tag", "tag-restart-1", original_name="Tag tag-restart-1"
+    )
+    ent_reg.async_update_entity(entry.entity_id, name="Washer NFC")
+
+    # Storage after a restart: id only, no name key.
+    hass.data["tag"] = MagicMock()
+    hass.data["tag"].async_items.return_value = [{"id": "tag-restart-1"}]
+
+    conn = _mock_connection()
+    await call_ws_handler(ws_list_tags, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/tags/list",
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["tags"] == [{"id": "tag-restart-1", "name": "Washer NFC"}]
+
+
+async def test_ws_list_tags_falls_back_to_original_name(
+    hass: HomeAssistant, global_entry: MockConfigEntry,
+) -> None:
+    """A tag never renamed by the user resolves to its original name."""
+    from homeassistant.helpers import entity_registry as er
+
+    await setup_integration(hass, global_entry)
+
+    ent_reg = er.async_get(hass)
+    ent_reg.async_get_or_create(
+        "tag", "tag", "tag-restart-2", original_name="Tag tag-restart-2"
+    )
+    hass.data["tag"] = MagicMock()
+    hass.data["tag"].async_items.return_value = [{"id": "tag-restart-2"}]
+
+    conn = _mock_connection()
+    await call_ws_handler(ws_list_tags, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/tags/list",
+    })
+
+    result = conn.send_result.call_args[0][1]
+    assert result["tags"] == [{"id": "tag-restart-2", "name": "Tag tag-restart-2"}]
