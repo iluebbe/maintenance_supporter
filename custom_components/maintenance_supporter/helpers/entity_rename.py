@@ -131,3 +131,52 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
             runtime[new_id] = runtime.pop(old_id)
             changed = True
     return changed
+
+
+def migrate_object_unique_ids(
+    hass: Any, entry: Any, old_name: str | None, new_name: str | None
+) -> int:
+    """Rewrite per-task entity unique_ids after an object RENAME.
+
+    Same dual-storage bug class as the trigger rewrites above, but for our
+    own entities: every per-task unique_id embeds the object's NAME SLUG
+    (``maintenance_supporter_{slug}_{task_id}[_suffix]``). Without this
+    migration a rename orphans all registry entries on the next reload —
+    the entities come back under NEW unique_ids (and new entity_ids), while
+    dashboards and automations keep pointing at the now-unavailable old ones.
+
+    Rewrites in place, preserving entity_ids, history, and user
+    customisations. Returns the number of migrated entries. A slug collision
+    (another object already using the new unique_id) is logged and skipped
+    rather than raised — the reload then falls back to fresh entities for
+    just that entry, which matches the pre-migration behaviour.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    from ..const import slugify_object_name
+
+    old_slug = slugify_object_name(old_name or "")
+    new_slug = slugify_object_name(new_name or "")
+    if not old_slug or not new_slug or old_slug == new_slug:
+        return 0
+
+    old_prefix = f"maintenance_supporter_{old_slug}_"
+    new_prefix = f"maintenance_supporter_{new_slug}_"
+    ent_reg = er.async_get(hass)
+    migrated = 0
+    for reg_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        uid = reg_entry.unique_id or ""
+        if not uid.startswith(old_prefix):
+            continue
+        new_uid = new_prefix + uid[len(old_prefix):]
+        try:
+            ent_reg.async_update_entity(reg_entry.entity_id, new_unique_id=new_uid)
+            migrated += 1
+        except ValueError:
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "unique_id %s already taken while renaming %r -> %r; leaving %s",
+                new_uid, old_name, new_name, reg_entry.entity_id,
+            )
+    return migrated

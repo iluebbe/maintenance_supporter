@@ -46,6 +46,14 @@ class ObjectSettingsMixin:
 
             new_data = dict(self.config_entry.data)
             obj = dict(new_data.get(CONF_OBJECT, {}))
+            # Migrate name-slug-based unique_ids BEFORE overwriting the name
+            # (see helpers.entity_rename.migrate_object_unique_ids).
+            from .helpers.entity_rename import migrate_object_unique_ids
+
+            migrate_object_unique_ids(
+                self.hass, self.config_entry,
+                obj.get("name"), user_input.get(CONF_OBJECT_NAME, obj.get("name")),
+            )
             obj[CONF_OBJECT_NAME] = user_input.get(CONF_OBJECT_NAME, obj.get("name"))
             obj[CONF_OBJECT_MANUFACTURER] = user_input.get(CONF_OBJECT_MANUFACTURER)
             obj[CONF_OBJECT_MODEL] = user_input.get(CONF_OBJECT_MODEL)

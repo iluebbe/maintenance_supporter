@@ -384,6 +384,11 @@ async def ws_update_object(
     obj = dict(new_data.get(CONF_OBJECT, {}))
 
     if "name" in msg:
+        # Per-task unique_ids embed the object's name slug — migrate the
+        # entity registry on rename or the next reload orphans every entity.
+        from ..helpers.entity_rename import migrate_object_unique_ids
+
+        migrate_object_unique_ids(hass, entry, obj.get(CONF_OBJECT_NAME), msg["name"])
         obj[CONF_OBJECT_NAME] = msg["name"]
     if "area_id" in msg:
         obj[CONF_OBJECT_AREA] = msg["area_id"]
