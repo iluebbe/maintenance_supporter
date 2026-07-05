@@ -39,4 +39,25 @@ describe("i18n runtime loader", () => {
     await ensureLocale("xx"); // unsupported → no fetch, stays on English
     expect(isLocaleLoaded("xx")).to.be.false;
   });
+
+  it("shares the locale store across bundle copies via window (German-panel/English-dialog regression)", () => {
+    // maintenance-card.js is loaded on EVERY page (extra_module_url) and its
+    // custom-element definitions win first — so a dialog inside the panel
+    // executes the CARD bundle's copy of styles.ts. If each copy had its own
+    // module-scoped store, the panel's locale load would never reach the
+    // dialog: German panel, English "Edit Task" dialog (the v2.17.0 bug).
+    // Guard: the store is window-scoped, so writing to the global (as another
+    // bundle copy would) is immediately visible to this copy's t().
+    const g = (window as unknown as {
+      __msLocales?: { store: Record<string, Record<string, string>> };
+    }).__msLocales;
+    expect(g, "window.__msLocales must back the locale store").to.exist;
+    g!.store.pt = { loading: "A carregar (from another bundle copy)" };
+    try {
+      expect(t("loading", "pt")).to.equal("A carregar (from another bundle copy)");
+      expect(isLocaleLoaded("pt")).to.be.true;
+    } finally {
+      delete g!.store.pt;
+    }
+  });
 });

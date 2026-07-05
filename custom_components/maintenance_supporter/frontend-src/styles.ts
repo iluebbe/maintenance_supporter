@@ -44,7 +44,28 @@ interface Translations {
 // users" pitfall. Steady-state t() is the same sync lookup as before.
 const DEFAULT_LANG = "en";
 
-const STORE: Record<string, Translations> = { en: EN as Translations };
+// The locale store MUST be shared across bundle copies of this module.
+// maintenance-card.js is loaded globally (extra_module_url) and defines the
+// dialog custom elements first-wins — so a <maintenance-task-dialog> inside
+// the panel runs the CARD bundle's copy of this module. With a module-scoped
+// store, the panel's ensureLocale() fills only the PANEL copy and the dialog
+// stays English while the rest of the panel is localized (v2.17.0 regression,
+// invisible before the runtime-locale split because every bundle inlined all
+// languages). One window-scoped store + inflight map keeps every copy reading
+// and writing the same tables.
+interface LocaleGlobals {
+  store: Record<string, Translations>;
+  inflight: Record<string, Promise<void>>;
+}
+const _localeGlobals: LocaleGlobals = (() => {
+  const w = window as unknown as { __msLocales?: LocaleGlobals };
+  if (!w.__msLocales) w.__msLocales = { store: {}, inflight: {} };
+  return w.__msLocales;
+})();
+
+const STORE = _localeGlobals.store;
+// Each copy guarantees the bundled English fallback is present.
+if (!STORE.en) STORE.en = EN as Translations;
 
 /** Languages available as runtime-loaded JSON. Keep in sync with locales/. */
 const SUPPORTED_LANGS = new Set<string>([
@@ -55,7 +76,7 @@ const SUPPORTED_LANGS = new Set<string>([
 /** Served base for the runtime locale files (mirrors LOCALES_URL in const.py). */
 const LOCALES_BASE = "/maintenance_supporter_locales";
 
-const _localeInflight: Record<string, Promise<void>> = {};
+const _localeInflight = _localeGlobals.inflight;
 
 /** Normalize an HA language code to our 2-letter table key. */
 function normLang(lang?: string): string {
@@ -89,10 +110,16 @@ export function ensureLocale(lang?: string): Promise<void> {
     _localeInflight[l] = fetch(`${LOCALES_BASE}/${l}.json`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data) STORE[l] = data as Translations;
+        if (data) {
+          STORE[l] = data as Translations;
+        } else {
+          // Don't make one failed fetch sticky for the whole page session —
+          // the next ensureLocale() call retries.
+          delete _localeInflight[l];
+        }
       })
       .catch(() => {
-        /* keep the bundled English fallback */
+        delete _localeInflight[l];
       });
   }
   return _localeInflight[l];
