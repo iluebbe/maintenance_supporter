@@ -1,11 +1,18 @@
 /** Fresh-HA demo seed + dark-mode documentation screenshots.
  *
  * Boots against the throwaway ha-shots instance (port 8131): onboards HA,
- * adds the integration, seeds a realistic demo dataset (mixed statuses, rich
- * history with costs, priorities, labels, checklists, warranties, calendar
- * kinds), switches the theme to dark, and captures the documentation
- * screenshots (desktop + mobile) into docs/images/. Temporary tool — rerun
- * any time the docs imagery needs refreshing.
+ * adds the integration, seeds a realistic English demo dataset (mixed
+ * statuses, rich history with costs, priorities, labels, checklists,
+ * warranties, calendar kinds, sensor triggers with 30 days of imported
+ * statistics, two demo users with rotation, an uploaded PDF manual),
+ * switches the theme to dark, and captures the full documentation
+ * screenshot set (desktop + mobile) into docs/images/.
+ *
+ * Companion config: docker/.shots-config/configuration.yaml must define the
+ * template sensors referenced below (hvac_airflow, pump_pressure,
+ * pump_runtime, smoke_detector_*_battery, water_meter) and
+ * input_boolean.pool_pump_power. Temporary tool — rerun any time the docs
+ * imagery needs refreshing.
  */
 import { chromium } from "@playwright/test";
 import fs from "fs";
@@ -21,6 +28,9 @@ const LOG = new URL("./shots-demo.log", import.meta.url);
 fs.writeFileSync(LOG, "");
 const log = (...a) => { const line = a.map((x) => typeof x === "string" ? x : JSON.stringify(x)).join(" "); fs.appendFileSync(LOG, line + String.fromCharCode(10)); console.log(line); };
 process.on("unhandledRejection", (e) => { log("UNHANDLED", String(e && e.stack || e)); process.exit(2); });
+// The docker playwright-server browser can wedge silently (evaluate that
+// never resolves) — a watchdog turns a silent hang into a loggable failure.
+const watchdog = setTimeout(() => { log("WATCHDOG: run exceeded 10 minutes — aborting"); process.exit(3); }, 10 * 60e3);
 
 const j = (r) => r.json();
 const iso = (offsetDays) => { const d = new Date(Date.now() + offsetDays * 864e5); return d.toISOString().slice(0, 10); };
@@ -82,6 +92,28 @@ async function ensureIntegration(token) {
   await new Promise((r) => setTimeout(r, 5000));
 }
 
+// A tiny but structurally complete one-page PDF ("Owner's Manual") so the
+// documents section has a real file entry with a plausible size.
+function minimalPdf(title) {
+  const content = `BT /F1 24 Tf 72 770 Td (${title}) Tj ET`;
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let body = "%PDF-1.4\n";
+  const offsets = [];
+  objs.forEach((o, i) => { offsets.push(body.length); body += `${i + 1} 0 obj ${o} endobj\n`; });
+  const xref = body.length;
+  body += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`
+    + offsets.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("")
+    + `trailer << /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  // Pad with comment lines so the file size reads like a real manual (~2.4 MB).
+  return body + ("%" + "x".repeat(1023) + "\n").repeat(2400);
+}
+
 // ── Demo dataset ─────────────────────────────────────────────────────────────
 
 function history(everyDays, count, { cost = [25, 60], dur = [15, 45], lastDaysAgo }) {
@@ -105,8 +137,9 @@ const IMPORT = {
       object: { name: "HVAC System", manufacturer: "Daikin", model: "Altherma 3", area_id: null,
         installation_date: iso(-900), warranty_expiry: iso(500), notes: "Filter size: 500x300mm, MERV 13" },
       tasks: [
-        { name: "Filter Replacement", type: "replacement", schedule_type: "time_based", interval_days: 90,
+        { name: "Filter Replacement", type: "replacement", schedule_type: "sensor_based",
           warning_days: 14, last_performed: iso(-84),
+          trigger_config: { type: "threshold", entity_id: "sensor.hvac_airflow", trigger_below: 60 },
           checklist: ["Turn off the unit", "Vacuum the filter compartment", "Insert new filter (airflow arrow up)", "Reset the filter counter"],
           history: history(90, 6, { cost: [18, 30], dur: [10, 20], lastDaysAgo: 84 }) },
         { name: "Duct Inspection", type: "inspection", schedule_type: "time_based", interval_days: 365,
@@ -136,7 +169,17 @@ const IMPORT = {
           history: history(30, 8, { cost: [0, 5], dur: [15, 25], lastDaysAgo: 44 }) },
         { name: "Pressure Check", type: "inspection", schedule_type: "time_based", interval_days: 7,
           warning_days: 2, last_performed: iso(-3),
+          trigger_config: { type: "threshold", entity_id: "sensor.pump_pressure", trigger_above: 1.5 },
           history: history(7, 10, { cost: [0, 2], dur: [5, 8], lastDaysAgo: 3 }) },
+        // Compound trigger demo: service when EITHER 200h runtime is reached
+        // OR the filter pressure climbs past 1.5 bar.
+        { name: "Pump Service", type: "service", schedule_type: "sensor_based",
+          warning_days: 7, last_performed: iso(-120),
+          trigger_config: { type: "compound", compound_logic: "OR", conditions: [
+            { type: "runtime", entity_id: "sensor.pump_runtime", entity_ids: ["sensor.pump_runtime"], trigger_runtime_hours: 200 },
+            { type: "threshold", entity_id: "sensor.pump_pressure", entity_ids: ["sensor.pump_pressure"], trigger_above: 1.5 },
+          ] },
+          history: history(180, 2, { cost: [60, 90], dur: [45, 60], lastDaysAgo: 120 }) },
       ],
     },
     {
@@ -161,8 +204,18 @@ const IMPORT = {
         { name: "Backflush", type: "cleaning", schedule_type: "time_based", interval_days: 7,
           warning_days: 2, last_performed: iso(-4),
           history: history(7, 12, { cost: [0, 2], dur: [5, 10], lastDaysAgo: 4 }) },
+      ],
+    },
+    {
+      object: { name: "Utility Meters", manufacturer: "Stadtwerke", model: "Basement meter cabinet",
+        notes: "Water + electricity readings go into the utility spreadsheet" },
+      tasks: [
+        // Reading task type + end-of-month scheduling (last business day).
         { name: "Water Meter Reading", type: "reading",
           schedule: { kind: "day_of_month", day: -1, business: true }, warning_days: 3,
+          last_performed: iso(-28) },
+        { name: "Electricity Meter Reading", type: "reading",
+          schedule: { kind: "day_of_month", day: -1 }, warning_days: 3,
           last_performed: iso(-28) },
       ],
     },
@@ -173,20 +226,29 @@ const IMPORT = {
           schedule: { kind: "nth_weekday", nth: 1, weekday: 5 }, warning_days: 2,
           last_performed: iso(-26),
           history: history(30, 5, { cost: [0, 1], dur: [10, 12], lastDaysAgo: 26 }) },
-        { name: "Battery Replacement", type: "replacement", schedule_type: "time_based",
-          interval_days: 365, interval_unit: "days", warning_days: 30, last_performed: iso(-340),
+        // Multi-entity threshold demo: replace batteries when ANY detector
+        // battery drops below 15 %.
+        { name: "Battery Replacement", type: "replacement", schedule_type: "sensor_based",
+          warning_days: 30, last_performed: iso(-340),
+          trigger_config: { type: "threshold",
+            entity_id: "sensor.smoke_detector_hall_battery",
+            entity_ids: ["sensor.smoke_detector_hall_battery", "sensor.smoke_detector_kitchen_battery"],
+            entity_logic: "any", trigger_below: 15 },
           history: history(365, 2, { cost: [18, 25], dur: [20, 25], lastDaysAgo: 340 }) },
       ],
     },
   ],
 };
 
-// Post-import patches: priority/labels aren't part of the import whitelist.
+// Post-import patches: priority/labels/actions aren't part of the import
+// whitelist — applied via task/update after import.
 const PATCHES = [
-  { object: "HVAC System", task: "Filter Replacement", set: { priority: "high", labels: ["air quality", "seasonal"] } },
+  { object: "HVAC System", task: "Filter Replacement", set: { priority: "high", labels: ["air quality", "seasonal"],
+    quick_complete_defaults: { notes: "Standard filter swap", cost: 24.9, duration: 15 } } },
   { object: "Smoke Detectors", task: "Test Buttons", set: { priority: "high", labels: ["safety"] } },
   { object: "Smoke Detectors", task: "Battery Replacement", set: { priority: "high", labels: ["safety"] } },
-  { object: "Pool Pump", task: "Impeller Cleaning", set: { labels: ["summer"] } },
+  { object: "Pool Pump", task: "Impeller Cleaning", set: { labels: ["summer"],
+    on_complete_action: { service: "input_boolean.turn_on", target: { entity_id: "input_boolean.pool_pump_power" } } } },
   { object: "Espresso Machine", task: "Descaling", set: { labels: ["kitchen"] } },
   { object: "Family Car", task: "Oil Change", set: { priority: "high" } },
   { object: "Washing Machine", task: "Door Seal Wipe", set: { priority: "low" } },
@@ -209,23 +271,73 @@ await ctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("msp-overview-tab", "dashboard");
 }, { t: token, ha: HA });
 const p = await ctx.newPage();
+log("PAGE OPEN");
 await p.goto(HA + "/lovelace", { waitUntil: "domcontentloaded" });
 await p.waitForTimeout(6000);
 
 // Seed via WS from inside the page.
+log("SEED START");
 const seed = await p.evaluate(async ({ importPayload, patches }) => {
   const hass = document.querySelector("home-assistant").hass;
   const send = (m) => hass.connection.sendMessagePromise(m);
+
+  // Demo household members → user badges + rotation in the shots.
+  const anna = await send({ type: "config/auth/create", name: "Anna", group_ids: ["system-users"] });
+  const ben = await send({ type: "config/auth/create", name: "Ben", group_ids: ["system-users"] });
+  const annaId = anna.user.id, benId = ben.user.id;
+
+  // 30 days of hourly recorder statistics so trigger sparklines have a real
+  // curve: airflow degrading 95% → ~54% (below the 60% threshold →
+  // TRIGGERED), pump pressure oscillating 1.1–1.4 bar (ok), pump runtime
+  // climbing 118h → 187h, detector batteries slowly draining 97% → ~78%.
+  const hourMs = 3600e3;
+  const nowH = Math.floor(Date.now() / hourMs) * hourMs;
+  const series = { airflow: [], pressure: [], runtime: [], battHall: [], battKitchen: [] };
+  for (let i = 30 * 24; i >= 1; i--) {
+    const start = new Date(nowH - i * hourMs).toISOString();
+    const tPos = 1 - i / (30 * 24); // 0 → 1 over the window
+    const push = (arr, v, digits = 1) => {
+      const r = Math.round(v * 10 ** digits) / 10 ** digits;
+      arr.push({ start, mean: r, min: r, max: r });
+    };
+    push(series.airflow, 95 - 41 * tPos + 2.5 * Math.sin(i / 5));
+    push(series.pressure, 1.15 + 0.22 * Math.sin(i / 9) + 0.08 * Math.sin(i / 3.1), 2);
+    push(series.runtime, 118 + 69.5 * tPos);
+    push(series.battHall, 97 - 19 * tPos, 0);
+    push(series.battKitchen, 98 - 17 * tPos, 0);
+  }
+  const importStats = (statistic_id, unit, stats) => send({
+    type: "recorder/import_statistics",
+    metadata: { has_mean: true, has_sum: false, name: null, source: "recorder", statistic_id, unit_of_measurement: unit },
+    stats,
+  });
+  await importStats("sensor.hvac_airflow", "%", series.airflow);
+  await importStats("sensor.pump_pressure", "bar", series.pressure);
+  await importStats("sensor.pump_runtime", "h", series.runtime);
+  await importStats("sensor.smoke_detector_hall_battery", "%", series.battHall);
+  await importStats("sensor.smoke_detector_kitchen_battery", "%", series.battKitchen);
+
+  // Route user assignments through the patch list (ids only known now).
+  patches.push(
+    { object: "HVAC System", task: "Filter Replacement", set: { responsible_user_id: annaId } },
+    { object: "Family Car", task: "Oil Change", set: { responsible_user_id: benId } },
+    { object: "Smoke Detectors", task: "Test Buttons", set: { responsible_user_id: annaId } },
+    { object: "Washing Machine", task: "Door Seal Wipe", set: {
+      responsible_user_id: annaId, assignee_pool: [annaId, benId], rotation_strategy: "round_robin" } },
+    { object: "Espresso Machine", task: "Descaling", set: { responsible_user_id: benId } },
+  );
+
   const imp = await send({ type: "maintenance_supporter/json/import", json_content: JSON.stringify(importPayload) });
   // Dark theme for everyone.
   await hass.callService("frontend", "set_theme", { name: "default", mode: "dark" });
   // Budget + features for richer screenshots.
   await send({ type: "maintenance_supporter/global/update", settings: {
     advanced_budget_visible: true, advanced_checklists_visible: true,
+    advanced_completion_actions_visible: true,
     budget_monthly: 150.0, budget_yearly: 1500.0, budget_alerts_enabled: true,
     budget_currency: "EUR", panel_enabled: true,
   } });
-  // Apply priority/label patches.
+  // Apply patches (priority / labels / users / actions).
   const objs = await send({ type: "maintenance_supporter/objects" });
   let patched = 0;
   for (const patch of patches) {
@@ -235,11 +347,36 @@ const seed = await p.evaluate(async ({ importPayload, patches }) => {
     await send({ type: "maintenance_supporter/task/update", entry_id: o.entry_id, task_id: t2.id, ...patch.set });
     patched++;
   }
-  return { import: imp, patched, objects: objs.objects.length };
+  const car = objs.objects.find((x) => x.object.name === "Family Car");
+  const oil = car && car.tasks.find((x) => x.name === "Oil Change");
+  return { patched, objects: objs.objects.length, carEntry: car && car.entry_id, oilTaskId: oil && oil.id };
 }, { importPayload: IMPORT, patches: PATCHES });
-log("SEED", JSON.stringify(seed).slice(0, 300));
+log("SEED OK", JSON.stringify(seed));
 
-await p.waitForTimeout(2500);
+// Documents: upload a PDF manual to the Family Car + add a web link, and
+// link the manual to the Oil Change task (page 12).
+log("DOCUMENTS");
+const fd = new FormData();
+fd.append("entry_id", seed.carEntry);
+fd.append("title", "Owner's Manual");
+fd.append("tags", "manual");
+fd.append("file", new Blob([minimalPdf("Skoda Octavia - Owner's Manual")], { type: "application/pdf" }), "octavia-owners-manual.pdf");
+const up = await fetch(REST + "/api/maintenance_supporter/document/upload", {
+  method: "POST", headers: { Authorization: "Bearer " + token }, body: fd,
+}).then(j);
+log("DOC UPLOADED", JSON.stringify(up).slice(0, 200));
+await p.evaluate(async ({ entryId, docId, taskId }) => {
+  const hass = document.querySelector("home-assistant").hass;
+  const send = (m) => hass.connection.sendMessagePromise(m);
+  await send({ type: "maintenance_supporter/documents/add_link", entry_id: entryId,
+    url: "https://www.skoda-auto.com/service/maintenance", title: "Service schedule (web)", tags: ["service"] });
+  if (docId && taskId) {
+    await send({ type: "maintenance_supporter/documents/update", doc_id: docId,
+      task_ids: [taskId], task_pages: { [taskId]: 12 } });
+  }
+}, { entryId: seed.carEntry, docId: up.doc_id || (up.doc && up.doc.doc_id) || up.id, taskId: seed.oilTaskId });
+
+await p.waitForTimeout(6000); // let the coordinator evaluate the new triggers
 
 // ── Screenshots (desktop) ────────────────────────────────────────────────────
 fs.mkdirSync(OUT, { recursive: true });
@@ -250,6 +387,13 @@ const deepFindPanel = `
       for (const k of (el.children || [])) st.push(k); } return o; };
   window.__panel = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-PANEL")[0];
 `;
+
+const failures = [];
+async function step(name, fn) {
+  log("STEP", name);
+  try { await fn(); log("OK", name); }
+  catch (e) { failures.push(name); log("FAIL", name, String(e && e.message || e).slice(0, 300)); }
+}
 
 async function openPanel(tab) {
   await p.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
@@ -264,76 +408,295 @@ async function openPanel(tab) {
   }
 }
 
-async function shot(name) {
-  await p.screenshot({ path: OUT + name });
+async function shot(name, page = p) {
+  await page.screenshot({ path: OUT + name });
   log("SHOT", name);
 }
 
-// 1. Dashboard overview
-await openPanel("dashboard");
-await shot("overview.png");
+// Open the task dialog in edit mode for a named task, optionally scrolling a
+// section heading into view (matched by rendered text).
+async function openTaskDialog(objName, taskName, scrollToText) {
+  await p.evaluate(({ finder, objName, taskName, scrollToText }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === objName);
+    const t2 = o.tasks.find((x) => x.name === taskName);
+    const dlg = panel.shadowRoot.querySelector("maintenance-task-dialog");
+    dlg.openEdit(o.entry_id, t2);
+    if (scrollToText) {
+      // The action + quick-complete sections are collapsed <details> — open
+      // the matching one and scroll its summary into view.
+      setTimeout(() => {
+        for (const sum of dlg.shadowRoot.querySelectorAll("details > summary")) {
+          if (new RegExp(scrollToText, "i").test(sum.textContent || "")) {
+            sum.parentElement.open = true;
+            sum.scrollIntoView({ block: "start" });
+          }
+        }
+      }, 900);
+    }
+  }, { finder: deepFindPanel, objName, taskName, scrollToText: scrollToText || null });
+  await p.waitForTimeout(2000);
+}
+
+async function closeDialogs() {
+  await p.keyboard.press("Escape");
+  await p.waitForTimeout(500);
+}
+
+// 1. Dashboard overview — sparklines, user badges, priorities, Triggered KPI
+await step("overview.png", async () => {
+  await openPanel("dashboard");
+  await p.waitForTimeout(2500); // mini-sparkline stats fetch
+  await shot("overview.png");
+});
 
 // 2. Today view
-await openPanel("today");
-await shot("today-view.png");
+await step("today-view.png", async () => {
+  await openPanel("today");
+  await shot("today-view.png");
+});
 
-// 3. Calendar tab
-await openPanel("calendar");
-await p.waitForTimeout(1500);
-await shot("calendar-tab.png");
+// 3. Calendar tab (30-day window: real + projected events)
+await step("calendar-tab.png", async () => {
+  await openPanel("calendar");
+  await p.waitForTimeout(1500);
+  await shot("calendar-tab.png");
+});
 
-// 4. Object detail (Family Car — warranty chip + tasks + docs section)
-await openPanel("dashboard");
-const nav = await p.evaluate(({ finder }) => {
-  eval(finder);
-  const panel = window.__panel;
-  const car = panel._objects.find((o) => o.object.name === "Family Car");
-  panel._showObject(car.entry_id);
-  return car.entry_id;
-}, { finder: deepFindPanel });
-await p.waitForTimeout(2000);
-await shot("object-detail.png");
+// 4. Object detail (Family Car — warranty chip + tasks + documents section)
+await step("object-detail.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const car = panel._objects.find((o) => o.object.name === "Family Car");
+    panel._showObject(car.entry_id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2500);
+  await shot("object-detail.png");
+});
 
-// 5. Task detail (Espresso Descaling — rich history → KPI + chart)
-await p.evaluate(({ finder }) => {
-  eval(finder);
-  const panel = window.__panel;
-  const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
-  const t2 = o.tasks.find((x) => x.name === "Descaling");
-  panel._showTask(o.entry_id, t2.id);
-}, { finder: deepFindPanel });
-await p.waitForTimeout(2500);
-await shot("task-detail.png");
+// 4b. Documents section (scrolled into view on the object detail page)
+await step("documents-section.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const root = window.__panel.shadowRoot;
+    const docs = root.querySelector("maintenance-documents-section");
+    if (docs) docs.scrollIntoView({ block: "start" });
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(800);
+  await shot("documents-section.png");
+});
 
-// 6. Task history tab
-await p.evaluate(({ finder }) => { eval(finder); window.__panel._activeTab = "history"; }, { finder: deepFindPanel });
-await p.waitForTimeout(1200);
-await shot("task-history.png");
+// 5. Task detail (HVAC Filter Replacement — TRIGGERED, sparkline, checklist)
+await step("task-detail.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "HVAC System");
+    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    panel._showTask(o.entry_id, t2.id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(3000);
+  await shot("task-detail.png");
+});
 
-// 7. Complete dialog (HVAC Filter Replacement — checklist + photo picker)
-await openPanel("dashboard");
-await p.evaluate(({ finder }) => {
-  eval(finder);
-  const panel = window.__panel;
-  const o = panel._objects.find((x) => x.object.name === "HVAC System");
-  const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
-  panel._openCompleteDialog(o.entry_id, t2.id, t2.name, t2.checklist, false);
-}, { finder: deepFindPanel });
-await p.waitForTimeout(1200);
-await shot("complete-dialog.png");
-await p.keyboard.press("Escape");
+// 6. Task history tab (Espresso Descaling — rich cost history + chart)
+await step("task-history.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
+    const t2 = o.tasks.find((x) => x.name === "Descaling");
+    panel._showTask(o.entry_id, t2.id);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2000);
+  await p.evaluate(({ finder }) => { eval(finder); window.__panel._activeTab = "history"; }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("task-history.png");
+});
 
-// 8. Objects table view
-await p.evaluate(({ finder }) => {
-  eval(finder);
-  const panel = window.__panel;
-  panel._view = "all_objects";
-  panel._objectViewMode = "table";
-}, { finder: deepFindPanel });
-await p.waitForTimeout(1500);
-await shot("objects-table.png");
+// 7. Complete dialog (HVAC Filter Replacement — checklist + notes/cost/photo)
+await step("complete-dialog.png", async () => {
+  await openPanel("dashboard");
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "HVAC System");
+    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    panel._openCompleteDialog(o.entry_id, t2.id, t2.name, t2.checklist, false);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("complete-dialog.png");
+  await closeDialogs();
+});
+
+// 8. Objects table (warranty chips green/amber/red, sortable columns)
+await step("objects-table.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    panel._view = "all_objects";
+    panel._objectViewMode = "table";
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(1500);
+  await shot("objects-table.png");
+});
+
+// 9. Settings tab (features, notifications, budget)
+await step("settings-view.png", async () => {
+  await openPanel("settings");
+  await p.waitForTimeout(2000);
+  await shot("settings-view.png");
+});
+
+// 10. Task dialog — Reading type + end-of-month schedule (last business day)
+await step("task-dialog-schedule.png", async () => {
+  await openPanel("dashboard");
+  await openTaskDialog("Utility Meters", "Water Meter Reading");
+  await shot("task-dialog-schedule.png");
+  await closeDialogs();
+});
+
+// 11. Multi-entity trigger (Smoke Detectors battery — ANY-of-two threshold)
+await step("multi-entity-trigger.png", async () => {
+  await openTaskDialog("Smoke Detectors", "Battery Replacement", "trigger");
+  await shot("multi-entity-trigger.png");
+  await closeDialogs();
+});
+
+// 12. Compound trigger (Pump Service — runtime OR pressure)
+await step("compound-trigger.png", async () => {
+  await openTaskDialog("Pool Pump", "Pump Service", "trigger");
+  await shot("compound-trigger.png");
+  await closeDialogs();
+});
+
+// 13. Completion action editor (Impeller Cleaning — turn pump back on)
+await step("task-dialog-action.png", async () => {
+  await openTaskDialog("Pool Pump", "Impeller Cleaning", "on complete");
+  await shot("task-dialog-action.png");
+  await closeDialogs();
+});
+
+// 14. Quick-complete defaults (Filter Replacement)
+await step("task-dialog-quick-complete.png", async () => {
+  await openTaskDialog("HVAC System", "Filter Replacement", "quick-complete");
+  await shot("task-dialog-quick-complete.png");
+  await closeDialogs();
+});
+
+// 15. QR dialog (Family Car Oil Change)
+await step("qr-dialog.png", async () => {
+  await p.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "Family Car");
+    const t2 = o.tasks.find((x) => x.name === "Oil Change");
+    panel._openQrForTask(o.entry_id, t2.id, "Family Car", t2.name);
+  }, { finder: deepFindPanel });
+  await p.waitForTimeout(2000);
+  await shot("qr-dialog.png");
+  await closeDialogs();
+});
+
+// 16. Entity attributes — Developer tools -> States with a task sensor
+// selected (HA 2026.6's more-info dialog no longer shows an attributes panel).
+await step("entity-attributes.png", async () => {
+  await p.goto(HA + "/developer-tools/state", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(6000);
+  await p.evaluate(() => {
+    const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+      while (st.length && n < 200000) { const el = st.pop(); n++; if (!el) continue;
+        if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+        for (const k of (el.children || [])) st.push(k); } return o; };
+    const hass = document.querySelector("home-assistant").hass;
+    const id = Object.keys(hass.states).find((k) => k.startsWith("sensor.") && k.includes("oil_change"));
+    const devState = deep((el) => el.tagName === "DEVELOPER-TOOLS-STATE")[0];
+    devState._entityIdChanged({ detail: { value: id } });
+  });
+  await p.waitForTimeout(2500);
+  await shot("entity-attributes.png");
+});
+
+// 17. Lovelace card — a dedicated storage-mode dashboard (saving the default
+// config has no effect: HA 2026 renders its auto home dashboard on /lovelace).
+await step("lovelace-card.png", async () => {
+  await p.evaluate(async () => {
+    const hass = document.querySelector("home-assistant").hass;
+    const send = (m) => hass.connection.sendMessagePromise(m);
+    const dashboards = await send({ type: "lovelace/dashboards/list" });
+    if (!dashboards.some((d) => d.url_path === "demo-cards")) {
+      await send({ type: "lovelace/dashboards/create", url_path: "demo-cards", title: "Demo",
+        require_admin: false, show_in_sidebar: true, mode: "storage" });
+    }
+    await send({ type: "lovelace/config/save", url_path: "demo-cards",
+      config: { views: [{ title: "Cards", path: "cards", cards: [
+        { type: "custom:maintenance-supporter-card", show_header: true, show_actions: true,
+          filter_status: ["overdue", "triggered", "due_soon"], max_items: 8 },
+      ] }] } });
+  });
+  await p.goto(HA + "/demo-cards", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(8000);
+  // Clip to the card so the shot isn't a mostly-empty dashboard.
+  const rect = await p.evaluate(() => {
+    const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+        if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+        for (const k of (el.children || [])) st.push(k); } return o; };
+    const card = deep((el) => el.tagName === "MAINTENANCE-SUPPORTER-CARD")[0];
+    if (!card) return null;
+    const r = card.getBoundingClientRect();
+    return { x: Math.max(0, r.x - 16), y: Math.max(0, r.y - 16), width: Math.min(r.width + 32, 1600), height: Math.min(r.height + 32, 1000) };
+  });
+  if (!rect || rect.width < 100) throw new Error("card not rendered");
+  await p.screenshot({ path: OUT + "lovelace-card.png", clip: rect });
+  log("SHOT lovelace-card.png (clipped)");
+});
+
+// 18. HA-native calendar entity (month view)
+await step("calendar.png", async () => {
+  await p.goto(HA + "/calendar", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(6000);
+  await shot("calendar.png");
+});
+
+// 19. Native To-do list entity
+await step("todo-list.png", async () => {
+  await p.goto(HA + "/todo", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(6000);
+  await shot("todo-list.png");
+});
+
+// 20. Config flow (integration options via Settings → Integrations)
+await step("config-flow.png", async () => {
+  await p.goto(HA + "/config/integrations/integration/maintenance_supporter", { waitUntil: "domcontentloaded" });
+  await p.waitForTimeout(5000);
+  const clicked = await p.evaluate(() => {
+    const deep = (pred) => { const st = [document.documentElement]; const o = []; let n = 0;
+      while (st.length && n < 80000) { const el = st.pop(); n++; if (!el) continue;
+        if (pred(el)) o.push(el); if (el.shadowRoot) st.push(el.shadowRoot);
+        for (const k of (el.children || [])) st.push(k); } return o; };
+    // The global settings entry (unique per install) carries the gear-icon
+    // configure button; object entries do too — the first is fine.
+    const label = (el) => (el.getAttribute && (el.getAttribute("aria-label") || el.getAttribute("label") || el.title) || "") + " " + (el.textContent || "");
+    const cand = deep((el) => ["HA-BUTTON", "MWC-BUTTON", "HA-ICON-BUTTON"].includes(el.tagName) && /configur|options/i.test(label(el)));
+    if (cand[0]) { cand[0].click(); return true; }
+    return false;
+  });
+  if (!clicked) throw new Error("no configure button found");
+  await p.waitForTimeout(3500);
+  await shot("config-flow.png");
+  await closeDialogs();
+});
 
 // ── Mobile shots ────────────────────────────────────────────────────────────
+// NOTE: creating a second context on a long-lived playwright-server can wedge
+// silently (observed 2026-07-05). If mobile steps hang, restart the
+// playwright-server container and run e2e/shots-fix.mjs, which shoots mobile
+// first on a fresh connection.
 const mctx = await b.newContext({ viewport: { width: 400, height: 860 }, colorScheme: "dark", isMobile: true, hasTouch: true });
 await mctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("hassTokens", JSON.stringify({
@@ -343,21 +706,26 @@ await mctx.addInitScript(({ t, ha }) => {
   localStorage.setItem("msp-overview-tab", "today");
 }, { t: token, ha: HA });
 const mp = await mctx.newPage();
-await mp.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
-await mp.waitForTimeout(6000);
-await mp.screenshot({ path: OUT + "mobile-overview.png" });
-log("SHOT mobile-overview.png");
 
-await mp.evaluate(({ finder }) => {
-  eval(finder);
-  const panel = window.__panel;
-  const o = panel._objects.find((x) => x.object.name === "Pool Pump");
-  const t2 = o.tasks.find((x) => x.name === "Impeller Cleaning");
-  panel._showTask(o.entry_id, t2.id);
-}, { finder: deepFindPanel });
-await mp.waitForTimeout(2500);
-await mp.screenshot({ path: OUT + "mobile-task.png" });
-log("SHOT mobile-task.png");
+await step("mobile-overview.png", async () => {
+  await mp.goto(HA + "/maintenance-supporter", { waitUntil: "domcontentloaded" });
+  await mp.waitForTimeout(6000);
+  await shot("mobile-overview.png", mp);
+});
 
-log("DONE");
+await step("mobile-task.png", async () => {
+  await mp.evaluate(({ finder }) => {
+    eval(finder);
+    const panel = window.__panel;
+    const o = panel._objects.find((x) => x.object.name === "HVAC System");
+    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    panel._showTask(o.entry_id, t2.id);
+  }, { finder: deepFindPanel });
+  await mp.waitForTimeout(3000);
+  await shot("mobile-task.png", mp);
+});
+
+log(failures.length ? "DONE WITH FAILURES: " + failures.join(", ") : "DONE ALL OK");
+clearTimeout(watchdog);
 await b.close();
+process.exit(failures.length ? 1 : 0);

@@ -12,10 +12,19 @@ see [EXAMPLES.md](EXAMPLES.md).
 |:-:|:-:|:-:|
 | ![Overview](images/overview.png) | ![Task Detail](images/task-detail.png) | ![Mobile](images/mobile-overview.png) |
 
+The dashboard shows live status KPIs, monthly/yearly budget bars, priority
+markers, labels, per-user assignment badges, and mini-sparklines for
+sensor-triggered tasks. The task detail page adds the full trigger chart
+(current value vs. threshold over 7d–1y), KPI tiles, and the cost & duration
+history chart.
+
 <details>
 <summary>More screenshots</summary>
 
 ### Object Detail
+Warranty status chip, free-form notes, the documents section (uploaded PDF
+manual + web link), and the object's tasks with assignment badges.
+
 ![Object Detail](images/object-detail.png)
 
 ### Today View
@@ -27,7 +36,8 @@ The panel's default landing tab — what needs attention now, bucketed into
 ### Objects Table
 The *All Objects* view as a sortable table with configurable columns and CSV
 export. Warranty chips show all three states: green *valid until*, amber
-*expires in N days*, red *expired*.
+*expires in N days*, red *expired*. The paperclip badge counts attached
+documents.
 
 ![Objects table](images/objects-table.png)
 
@@ -38,63 +48,102 @@ Checklist steps, optional notes / cost / duration, and a completion photo
 ![Complete Dialog](images/complete-dialog.png)
 
 ### Task History
+Every completion with cost, duration, and notes — inline-editable, searchable,
+with completion photos when attached.
+
 ![Task History](images/task-history.png)
 
+### Settings Tab
+Feature toggles (advanced features are hidden until enabled), panel access
+delegation, notification / budget / vacation sections — all editable in-panel
+by admins.
+
+![Settings tab](images/settings-view.png)
+
+### Task Dialog — Reading Type + End-of-Month Scheduling (2.18+)
+The *Reading* task type for recording meter values, scheduled for the *last
+business day of the month* with an optional ±N-day offset.
+
+![Task dialog with reading type and end-of-month schedule](images/task-dialog-schedule.png)
+
 ### Multi-Entity Trigger
+One threshold watching several entities — here *replace the batteries when ANY
+detector battery drops below 15 %*.
+
 ![Multi-Entity Trigger](images/multi-entity-trigger.png)
 
 ### Compound Trigger
+Multiple conditions joined with AND/OR — here *service the pump after 200 h
+runtime OR when filter pressure exceeds 1.5 bar*.
+
 ![Compound Trigger](images/compound-trigger.png)
 
 ### QR Codes
+Per-task QR pair: *view* opens the task, *complete* records the completion.
+Download as PNG/SVG or print; URL modes for LAN, external URL, or the
+Companion app.
+
 ![QR Code](images/qr-dialog.png)
 
-### Actionable Notifications
-![Actionable Notification](images/notification-actions.png)
-
 ### Lovelace Card
+The `custom:maintenance-supporter-card` on a regular dashboard, filtered to
+actionable tasks.
+
 ![Lovelace Card](images/lovelace-card.png)
 
 ### Calendar Tab (panel — 1.5.0+)
 ![Calendar tab](images/calendar-tab.png)
 
-Window chips (7 / 14 / 30 days, *1 year*, plus past windows −30d/−90d for reviewing what was done), per-event source icon (clock = time-based, trending-up = sensor-based), prediction-confidence pill (green / amber / red, 1.5.1+), and projected recurrences at 55 % opacity.
+Window chips (7 / 14 / 30 days, *1 year*, plus past windows −30d/−90d for
+reviewing what was done), per-event source icon (clock = time-based,
+trending-up = sensor-based), per-event average cost, and a prediction-confidence
+pill (green / amber / red, 1.5.1+) on sensor-predicted events. Time-based
+recurring tasks additionally project up to 5 future occurrences into the window
+at 55 % opacity — hypothetical cycles assuming you stay on schedule.
 
-#### Real vs projected events
+### Calendar (HA-native entity)
+The integration's calendar entity in Home Assistant's own calendar panel —
+every task due date as an event.
 
-![Calendar projection demo](images/calendar-tab-projection-demo.png)
-
-The faded *every 7 days* rows (May 21, 28) are projected — hypothetical future cycles assuming the user stays on schedule. The full-opacity rows (May 22 HVAC amber medium-confidence, May 25 Brake Pad red low-confidence) are real upcoming events sourced from sensor predictions.
-
-### Calendar (HA-native entity, all-time)
 ![Calendar entity](images/calendar.png)
 
+### Native To-do List (2.17+)
+The `todo.maintenance` entity mirrors every active task; checking an item off
+completes the task — including via Assist/voice.
+
+![To-do list](images/todo-list.png)
+
 ### Sensor Attributes
+Each task is a sensor — the more-info dialog shows schedule, trigger, and
+statistics attributes for use in templates and automations.
+
 ![Sensor Attributes](images/entity-attributes.png)
 
 ### Configuration
+Every object is a config entry with a native HA options flow (Settings →
+Devices & Services → Configure) — manage tasks and object settings without the
+panel; the global entry mirrors the panel's settings for those who prefer the
+native HA UI.
+
 ![Configuration](images/config-flow.png)
 
 ### Mobile Task Detail
 ![Mobile Task Detail](images/mobile-task.png)
 
-### On-Complete Action — Service Picker (1.3.1+)
-![On-Complete Action — empty state](images/task-dialog-action-section-empty.png)
+### On-Complete Action (1.3.0+)
+Run any HA service when the task is completed — here *turn the pool pump back
+on after impeller cleaning*. Picking a service with a schema renders the data
+fields automatically (sliders, pickers); services without one fall back to a
+JSON textfield. The *Validate configuration* button tests the wiring before
+saving.
 
-### On-Complete Action — Schema-Driven Form (1.3.1+)
-Pick a service like `light.turn_on` and the data fields render automatically from the service schema (sliders, color pickers, etc.) — no JSON typing.
-
-![On-Complete Action — light.turn_on with ha-form](images/task-dialog-action-form-light.png)
-
-### On-Complete Action — JSON Fallback (1.3.1+)
-For services without a schema (e.g. `button.press` or custom integrations), the data field falls back to a JSON textfield.
-
-![On-Complete Action — JSON fallback](images/task-dialog-action-form-fallback.png)
+![On-Complete Action](images/task-dialog-action.png)
 
 ### Quick-Complete Defaults (1.3.0+)
-Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt **quick-complete QR** records the completion in one tap, no dialog.
+Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
+**quick-complete QR** records the completion in one tap, no dialog.
 
-![Quick-Complete Defaults](images/task-dialog-quick-complete-defaults.png)
+![Quick-Complete Defaults](images/task-dialog-quick-complete.png)
 
 </details>
 
