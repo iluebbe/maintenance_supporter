@@ -1,8 +1,8 @@
-var rt=Object.defineProperty;var hi=Object.getOwnPropertyDescriptor;var y=(a,i,e)=>()=>{if(e)throw e[0];try{return a&&(i=a(a=0)),i}catch(t){throw e=[t],t}};var ui=(a,i)=>{for(var e in i)rt(a,e,{get:i[e],enumerable:!0})};var c=(a,i,e,t)=>{for(var r=t>1?void 0:t?hi(i,e):i,o=a.length-1,l;o>=0;o--)(l=a[o])&&(r=(t?l(i,e,r):l(r))||r);return t&&r&&rt(i,e,r),r};var be,ye,je,st,oe,at,k,ot,Pe,ze=y(()=>{be=globalThis,ye=be.ShadowRoot&&(be.ShadyCSS===void 0||be.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,je=Symbol(),st=new WeakMap,oe=class{constructor(i,e,t){if(this._$cssResult$=!0,t!==je)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=i,this.t=e}get styleSheet(){let i=this.o,e=this.t;if(ye&&i===void 0){let t=e!==void 0&&e.length===1;t&&(i=st.get(e)),i===void 0&&((this.o=i=new CSSStyleSheet).replaceSync(this.cssText),t&&st.set(e,i))}return i}toString(){return this.cssText}},at=a=>new oe(typeof a=="string"?a:a+"",void 0,je),k=(a,...i)=>{let e=a.length===1?a[0]:i.reduce((t,r,o)=>t+(l=>{if(l._$cssResult$===!0)return l.cssText;if(typeof l=="number")return l;throw Error("Value passed to 'css' function must be a 'css' function result: "+l+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(r)+a[o+1],a[0]);return new oe(e,a,je)},ot=(a,i)=>{if(ye)a.adoptedStyleSheets=i.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(let e of i){let t=document.createElement("style"),r=be.litNonce;r!==void 0&&t.setAttribute("nonce",r),t.textContent=e.cssText,a.appendChild(t)}},Pe=ye?a=>a:a=>a instanceof CSSStyleSheet?(i=>{let e="";for(let t of i.cssRules)e+=t.cssText;return at(e)})(a):a});var _i,gi,mi,fi,vi,bi,xe,nt,yi,xi,ne,le,$e,lt,q,ce=y(()=>{ze();ze();({is:_i,defineProperty:gi,getOwnPropertyDescriptor:mi,getOwnPropertyNames:fi,getOwnPropertySymbols:vi,getPrototypeOf:bi}=Object),xe=globalThis,nt=xe.trustedTypes,yi=nt?nt.emptyScript:"",xi=xe.reactiveElementPolyfillSupport,ne=(a,i)=>a,le={toAttribute(a,i){switch(i){case Boolean:a=a?yi:null;break;case Object:case Array:a=a==null?a:JSON.stringify(a)}return a},fromAttribute(a,i){let e=a;switch(i){case Boolean:e=a!==null;break;case Number:e=a===null?null:Number(a);break;case Object:case Array:try{e=JSON.parse(a)}catch{e=null}}return e}},$e=(a,i)=>!_i(a,i),lt={attribute:!0,type:String,converter:le,reflect:!1,useDefault:!1,hasChanged:$e};Symbol.metadata??=Symbol("metadata"),xe.litPropertyMetadata??=new WeakMap;q=class extends HTMLElement{static addInitializer(i){this._$Ei(),(this.l??=[]).push(i)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(i,e=lt){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(i)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(i,e),!e.noAccessor){let t=Symbol(),r=this.getPropertyDescriptor(i,t,e);r!==void 0&&gi(this.prototype,i,r)}}static getPropertyDescriptor(i,e,t){let{get:r,set:o}=mi(this.prototype,i)??{get(){return this[e]},set(l){this[e]=l}};return{get:r,set(l){let d=r?.call(this);o?.call(this,l),this.requestUpdate(i,d,t)},configurable:!0,enumerable:!0}}static getPropertyOptions(i){return this.elementProperties.get(i)??lt}static _$Ei(){if(this.hasOwnProperty(ne("elementProperties")))return;let i=bi(this);i.finalize(),i.l!==void 0&&(this.l=[...i.l]),this.elementProperties=new Map(i.elementProperties)}static finalize(){if(this.hasOwnProperty(ne("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(ne("properties"))){let e=this.properties,t=[...fi(e),...vi(e)];for(let r of t)this.createProperty(r,e[r])}let i=this[Symbol.metadata];if(i!==null){let e=litPropertyMetadata.get(i);if(e!==void 0)for(let[t,r]of e)this.elementProperties.set(t,r)}this._$Eh=new Map;for(let[e,t]of this.elementProperties){let r=this._$Eu(e,t);r!==void 0&&this._$Eh.set(r,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(i){let e=[];if(Array.isArray(i)){let t=new Set(i.flat(1/0).reverse());for(let r of t)e.unshift(Pe(r))}else i!==void 0&&e.push(Pe(i));return e}static _$Eu(i,e){let t=e.attribute;return t===!1?void 0:typeof t=="string"?t:typeof i=="string"?i.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(i=>this.enableUpdating=i),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(i=>i(this))}addController(i){(this._$EO??=new Set).add(i),this.renderRoot!==void 0&&this.isConnected&&i.hostConnected?.()}removeController(i){this._$EO?.delete(i)}_$E_(){let i=new Map,e=this.constructor.elementProperties;for(let t of e.keys())this.hasOwnProperty(t)&&(i.set(t,this[t]),delete this[t]);i.size>0&&(this._$Ep=i)}createRenderRoot(){let i=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return ot(i,this.constructor.elementStyles),i}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(i=>i.hostConnected?.())}enableUpdating(i){}disconnectedCallback(){this._$EO?.forEach(i=>i.hostDisconnected?.())}attributeChangedCallback(i,e,t){this._$AK(i,t)}_$ET(i,e){let t=this.constructor.elementProperties.get(i),r=this.constructor._$Eu(i,t);if(r!==void 0&&t.reflect===!0){let o=(t.converter?.toAttribute!==void 0?t.converter:le).toAttribute(e,t.type);this._$Em=i,o==null?this.removeAttribute(r):this.setAttribute(r,o),this._$Em=null}}_$AK(i,e){let t=this.constructor,r=t._$Eh.get(i);if(r!==void 0&&this._$Em!==r){let o=t.getPropertyOptions(r),l=typeof o.converter=="function"?{fromAttribute:o.converter}:o.converter?.fromAttribute!==void 0?o.converter:le;this._$Em=r;let d=l.fromAttribute(e,o.type);this[r]=d??this._$Ej?.get(r)??d,this._$Em=null}}requestUpdate(i,e,t,r=!1,o){if(i!==void 0){let l=this.constructor;if(r===!1&&(o=this[i]),t??=l.getPropertyOptions(i),!((t.hasChanged??$e)(o,e)||t.useDefault&&t.reflect&&o===this._$Ej?.get(i)&&!this.hasAttribute(l._$Eu(i,t))))return;this.C(i,e,t)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(i,e,{useDefault:t,reflect:r,wrapped:o},l){t&&!(this._$Ej??=new Map).has(i)&&(this._$Ej.set(i,l??e??this[i]),o!==!0||l!==void 0)||(this._$AL.has(i)||(this.hasUpdated||t||(e=void 0),this._$AL.set(i,e)),r===!0&&this._$Em!==i&&(this._$Eq??=new Set).add(i))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(e){Promise.reject(e)}let i=this.scheduleUpdate();return i!=null&&await i,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[r,o]of this._$Ep)this[r]=o;this._$Ep=void 0}let t=this.constructor.elementProperties;if(t.size>0)for(let[r,o]of t){let{wrapped:l}=o,d=this[r];l!==!0||this._$AL.has(r)||d===void 0||this.C(r,void 0,o,d)}}let i=!1,e=this._$AL;try{i=this.shouldUpdate(e),i?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(t){throw i=!1,this._$EM(),t}i&&this._$AE(e)}willUpdate(i){}_$AE(i){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(i)),this.updated(i)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(i){return!0}update(i){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(i){}firstUpdated(i){}};q.elementStyles=[],q.shadowRootOptions={mode:"open"},q[ne("elementProperties")]=new Map,q[ne("finalized")]=new Map,xi?.({ReactiveElement:q}),(xe.reactiveElementVersions??=[]).push("2.1.2")});function bt(a,i){if(!We(a)||!a.hasOwnProperty("raw"))throw Error("invalid template strings array");return dt!==void 0?dt.createHTML(i):i}function ee(a,i,e=a,t){if(i===J)return i;let r=t!==void 0?e._$Co?.[t]:e._$Cl,o=he(i)?void 0:i._$litDirective$;return r?.constructor!==o&&(r?._$AO?.(!1),o===void 0?r=void 0:(r=new o(a),r._$AT(a,e,t)),t!==void 0?(e._$Co??=[])[t]=r:e._$Cl=r),r!==void 0&&(i=ee(a,r._$AS(a,i.values),r,t)),i}var Fe,ct,we,dt,mt,B,ft,$i,Y,pe,he,We,wi,Ne,de,pt,ht,G,ut,_t,vt,Ve,n,ie,ur,J,u,gt,K,ki,ue,Me,_e,te,qe,De,Ue,Oe,Ei,yt,ke=y(()=>{Fe=globalThis,ct=a=>a,we=Fe.trustedTypes,dt=we?we.createPolicy("lit-html",{createHTML:a=>a}):void 0,mt="$lit$",B=`lit$${Math.random().toFixed(9).slice(2)}$`,ft="?"+B,$i=`<${ft}>`,Y=document,pe=()=>Y.createComment(""),he=a=>a===null||typeof a!="object"&&typeof a!="function",We=Array.isArray,wi=a=>We(a)||typeof a?.[Symbol.iterator]=="function",Ne=`[ 	
+var st=Object.defineProperty;var hi=Object.getOwnPropertyDescriptor;var y=(a,s,e)=>()=>{if(e)throw e[0];try{return a&&(s=a(a=0)),s}catch(t){throw e=[t],t}};var ui=(a,s)=>{for(var e in s)st(a,e,{get:s[e],enumerable:!0})};var c=(a,s,e,t)=>{for(var i=t>1?void 0:t?hi(s,e):s,o=a.length-1,l;o>=0;o--)(l=a[o])&&(i=(t?l(s,e,i):l(i))||i);return t&&i&&st(s,e,i),i};var be,ye,je,rt,oe,at,k,ot,Pe,ze=y(()=>{be=globalThis,ye=be.ShadowRoot&&(be.ShadyCSS===void 0||be.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,je=Symbol(),rt=new WeakMap,oe=class{constructor(s,e,t){if(this._$cssResult$=!0,t!==je)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=s,this.t=e}get styleSheet(){let s=this.o,e=this.t;if(ye&&s===void 0){let t=e!==void 0&&e.length===1;t&&(s=rt.get(e)),s===void 0&&((this.o=s=new CSSStyleSheet).replaceSync(this.cssText),t&&rt.set(e,s))}return s}toString(){return this.cssText}},at=a=>new oe(typeof a=="string"?a:a+"",void 0,je),k=(a,...s)=>{let e=a.length===1?a[0]:s.reduce((t,i,o)=>t+(l=>{if(l._$cssResult$===!0)return l.cssText;if(typeof l=="number")return l;throw Error("Value passed to 'css' function must be a 'css' function result: "+l+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(i)+a[o+1],a[0]);return new oe(e,a,je)},ot=(a,s)=>{if(ye)a.adoptedStyleSheets=s.map(e=>e instanceof CSSStyleSheet?e:e.styleSheet);else for(let e of s){let t=document.createElement("style"),i=be.litNonce;i!==void 0&&t.setAttribute("nonce",i),t.textContent=e.cssText,a.appendChild(t)}},Pe=ye?a=>a:a=>a instanceof CSSStyleSheet?(s=>{let e="";for(let t of s.cssRules)e+=t.cssText;return at(e)})(a):a});var _i,gi,mi,fi,vi,bi,xe,nt,yi,xi,ne,le,$e,lt,q,ce=y(()=>{ze();ze();({is:_i,defineProperty:gi,getOwnPropertyDescriptor:mi,getOwnPropertyNames:fi,getOwnPropertySymbols:vi,getPrototypeOf:bi}=Object),xe=globalThis,nt=xe.trustedTypes,yi=nt?nt.emptyScript:"",xi=xe.reactiveElementPolyfillSupport,ne=(a,s)=>a,le={toAttribute(a,s){switch(s){case Boolean:a=a?yi:null;break;case Object:case Array:a=a==null?a:JSON.stringify(a)}return a},fromAttribute(a,s){let e=a;switch(s){case Boolean:e=a!==null;break;case Number:e=a===null?null:Number(a);break;case Object:case Array:try{e=JSON.parse(a)}catch{e=null}}return e}},$e=(a,s)=>!_i(a,s),lt={attribute:!0,type:String,converter:le,reflect:!1,useDefault:!1,hasChanged:$e};Symbol.metadata??=Symbol("metadata"),xe.litPropertyMetadata??=new WeakMap;q=class extends HTMLElement{static addInitializer(s){this._$Ei(),(this.l??=[]).push(s)}static get observedAttributes(){return this.finalize(),this._$Eh&&[...this._$Eh.keys()]}static createProperty(s,e=lt){if(e.state&&(e.attribute=!1),this._$Ei(),this.prototype.hasOwnProperty(s)&&((e=Object.create(e)).wrapped=!0),this.elementProperties.set(s,e),!e.noAccessor){let t=Symbol(),i=this.getPropertyDescriptor(s,t,e);i!==void 0&&gi(this.prototype,s,i)}}static getPropertyDescriptor(s,e,t){let{get:i,set:o}=mi(this.prototype,s)??{get(){return this[e]},set(l){this[e]=l}};return{get:i,set(l){let d=i?.call(this);o?.call(this,l),this.requestUpdate(s,d,t)},configurable:!0,enumerable:!0}}static getPropertyOptions(s){return this.elementProperties.get(s)??lt}static _$Ei(){if(this.hasOwnProperty(ne("elementProperties")))return;let s=bi(this);s.finalize(),s.l!==void 0&&(this.l=[...s.l]),this.elementProperties=new Map(s.elementProperties)}static finalize(){if(this.hasOwnProperty(ne("finalized")))return;if(this.finalized=!0,this._$Ei(),this.hasOwnProperty(ne("properties"))){let e=this.properties,t=[...fi(e),...vi(e)];for(let i of t)this.createProperty(i,e[i])}let s=this[Symbol.metadata];if(s!==null){let e=litPropertyMetadata.get(s);if(e!==void 0)for(let[t,i]of e)this.elementProperties.set(t,i)}this._$Eh=new Map;for(let[e,t]of this.elementProperties){let i=this._$Eu(e,t);i!==void 0&&this._$Eh.set(i,e)}this.elementStyles=this.finalizeStyles(this.styles)}static finalizeStyles(s){let e=[];if(Array.isArray(s)){let t=new Set(s.flat(1/0).reverse());for(let i of t)e.unshift(Pe(i))}else s!==void 0&&e.push(Pe(s));return e}static _$Eu(s,e){let t=e.attribute;return t===!1?void 0:typeof t=="string"?t:typeof s=="string"?s.toLowerCase():void 0}constructor(){super(),this._$Ep=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this._$Em=null,this._$Ev()}_$Ev(){this._$ES=new Promise(s=>this.enableUpdating=s),this._$AL=new Map,this._$E_(),this.requestUpdate(),this.constructor.l?.forEach(s=>s(this))}addController(s){(this._$EO??=new Set).add(s),this.renderRoot!==void 0&&this.isConnected&&s.hostConnected?.()}removeController(s){this._$EO?.delete(s)}_$E_(){let s=new Map,e=this.constructor.elementProperties;for(let t of e.keys())this.hasOwnProperty(t)&&(s.set(t,this[t]),delete this[t]);s.size>0&&(this._$Ep=s)}createRenderRoot(){let s=this.shadowRoot??this.attachShadow(this.constructor.shadowRootOptions);return ot(s,this.constructor.elementStyles),s}connectedCallback(){this.renderRoot??=this.createRenderRoot(),this.enableUpdating(!0),this._$EO?.forEach(s=>s.hostConnected?.())}enableUpdating(s){}disconnectedCallback(){this._$EO?.forEach(s=>s.hostDisconnected?.())}attributeChangedCallback(s,e,t){this._$AK(s,t)}_$ET(s,e){let t=this.constructor.elementProperties.get(s),i=this.constructor._$Eu(s,t);if(i!==void 0&&t.reflect===!0){let o=(t.converter?.toAttribute!==void 0?t.converter:le).toAttribute(e,t.type);this._$Em=s,o==null?this.removeAttribute(i):this.setAttribute(i,o),this._$Em=null}}_$AK(s,e){let t=this.constructor,i=t._$Eh.get(s);if(i!==void 0&&this._$Em!==i){let o=t.getPropertyOptions(i),l=typeof o.converter=="function"?{fromAttribute:o.converter}:o.converter?.fromAttribute!==void 0?o.converter:le;this._$Em=i;let d=l.fromAttribute(e,o.type);this[i]=d??this._$Ej?.get(i)??d,this._$Em=null}}requestUpdate(s,e,t,i=!1,o){if(s!==void 0){let l=this.constructor;if(i===!1&&(o=this[s]),t??=l.getPropertyOptions(s),!((t.hasChanged??$e)(o,e)||t.useDefault&&t.reflect&&o===this._$Ej?.get(s)&&!this.hasAttribute(l._$Eu(s,t))))return;this.C(s,e,t)}this.isUpdatePending===!1&&(this._$ES=this._$EP())}C(s,e,{useDefault:t,reflect:i,wrapped:o},l){t&&!(this._$Ej??=new Map).has(s)&&(this._$Ej.set(s,l??e??this[s]),o!==!0||l!==void 0)||(this._$AL.has(s)||(this.hasUpdated||t||(e=void 0),this._$AL.set(s,e)),i===!0&&this._$Em!==s&&(this._$Eq??=new Set).add(s))}async _$EP(){this.isUpdatePending=!0;try{await this._$ES}catch(e){Promise.reject(e)}let s=this.scheduleUpdate();return s!=null&&await s,!this.isUpdatePending}scheduleUpdate(){return this.performUpdate()}performUpdate(){if(!this.isUpdatePending)return;if(!this.hasUpdated){if(this.renderRoot??=this.createRenderRoot(),this._$Ep){for(let[i,o]of this._$Ep)this[i]=o;this._$Ep=void 0}let t=this.constructor.elementProperties;if(t.size>0)for(let[i,o]of t){let{wrapped:l}=o,d=this[i];l!==!0||this._$AL.has(i)||d===void 0||this.C(i,void 0,o,d)}}let s=!1,e=this._$AL;try{s=this.shouldUpdate(e),s?(this.willUpdate(e),this._$EO?.forEach(t=>t.hostUpdate?.()),this.update(e)):this._$EM()}catch(t){throw s=!1,this._$EM(),t}s&&this._$AE(e)}willUpdate(s){}_$AE(s){this._$EO?.forEach(e=>e.hostUpdated?.()),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(s)),this.updated(s)}_$EM(){this._$AL=new Map,this.isUpdatePending=!1}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this._$ES}shouldUpdate(s){return!0}update(s){this._$Eq&&=this._$Eq.forEach(e=>this._$ET(e,this[e])),this._$EM()}updated(s){}firstUpdated(s){}};q.elementStyles=[],q.shadowRootOptions={mode:"open"},q[ne("elementProperties")]=new Map,q[ne("finalized")]=new Map,xi?.({ReactiveElement:q}),(xe.reactiveElementVersions??=[]).push("2.1.2")});function bt(a,s){if(!We(a)||!a.hasOwnProperty("raw"))throw Error("invalid template strings array");return dt!==void 0?dt.createHTML(s):s}function ee(a,s,e=a,t){if(s===J)return s;let i=t!==void 0?e._$Co?.[t]:e._$Cl,o=he(s)?void 0:s._$litDirective$;return i?.constructor!==o&&(i?._$AO?.(!1),o===void 0?i=void 0:(i=new o(a),i._$AT(a,e,t)),t!==void 0?(e._$Co??=[])[t]=i:e._$Cl=i),i!==void 0&&(s=ee(a,i._$AS(a,s.values),i,t)),s}var Fe,ct,we,dt,mt,B,ft,$i,Y,pe,he,We,wi,Ne,de,pt,ht,G,ut,_t,vt,Ve,n,ie,us,J,u,gt,K,ki,ue,Me,_e,te,qe,De,Ue,Oe,Ei,yt,ke=y(()=>{Fe=globalThis,ct=a=>a,we=Fe.trustedTypes,dt=we?we.createPolicy("lit-html",{createHTML:a=>a}):void 0,mt="$lit$",B=`lit$${Math.random().toFixed(9).slice(2)}$`,ft="?"+B,$i=`<${ft}>`,Y=document,pe=()=>Y.createComment(""),he=a=>a===null||typeof a!="object"&&typeof a!="function",We=Array.isArray,wi=a=>We(a)||typeof a?.[Symbol.iterator]=="function",Ne=`[ 	
 \f\r]`,de=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,pt=/-->/g,ht=/>/g,G=RegExp(`>|${Ne}(?:([^\\s"'>=/]+)(${Ne}*=${Ne}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`,"g"),ut=/'/g,_t=/"/g,vt=/^(?:script|style|textarea|title)$/i,Ve=a=>(i,...e)=>({_$litType$:a,strings:i,values:e}),n=Ve(1),ie=Ve(2),ur=Ve(3),J=Symbol.for("lit-noChange"),u=Symbol.for("lit-nothing"),gt=new WeakMap,K=Y.createTreeWalker(Y,129);ki=(a,i)=>{let e=a.length-1,t=[],r,o=i===2?"<svg>":i===3?"<math>":"",l=de;for(let d=0;d<e;d++){let p=a[d],g,b,m=-1,x=0;for(;x<p.length&&(l.lastIndex=x,b=l.exec(p),b!==null);)x=l.lastIndex,l===de?b[1]==="!--"?l=pt:b[1]!==void 0?l=ht:b[2]!==void 0?(vt.test(b[2])&&(r=RegExp("</"+b[2],"g")),l=G):b[3]!==void 0&&(l=G):l===G?b[0]===">"?(l=r??de,m=-1):b[1]===void 0?m=-2:(m=l.lastIndex-b[2].length,g=b[1],l=b[3]===void 0?G:b[3]==='"'?_t:ut):l===_t||l===ut?l=G:l===pt||l===ht?l=de:(l=G,r=void 0);let v=l===G&&a[d+1].startsWith("/>")?" ":"";o+=l===de?p+$i:m>=0?(t.push(g),p.slice(0,m)+mt+p.slice(m)+B+v):p+B+(m===-2?d:v)}return[bt(a,o+(a[e]||"<?>")+(i===2?"</svg>":i===3?"</math>":"")),t]},ue=class a{constructor({strings:i,_$litType$:e},t){let r;this.parts=[];let o=0,l=0,d=i.length-1,p=this.parts,[g,b]=ki(i,e);if(this.el=a.createElement(g,t),K.currentNode=this.el.content,e===2||e===3){let m=this.el.content.firstChild;m.replaceWith(...m.childNodes)}for(;(r=K.nextNode())!==null&&p.length<d;){if(r.nodeType===1){if(r.hasAttributes())for(let m of r.getAttributeNames())if(m.endsWith(mt)){let x=b[l++],v=r.getAttribute(m).split(B),w=/([.?@])?(.*)/.exec(x);p.push({type:1,index:o,name:w[2],strings:v,ctor:w[1]==="."?qe:w[1]==="?"?De:w[1]==="@"?Ue:te}),r.removeAttribute(m)}else m.startsWith(B)&&(p.push({type:6,index:o}),r.removeAttribute(m));if(vt.test(r.tagName)){let m=r.textContent.split(B),x=m.length-1;if(x>0){r.textContent=we?we.emptyScript:"";for(let v=0;v<x;v++)r.append(m[v],pe()),K.nextNode(),p.push({type:2,index:++o});r.append(m[x],pe())}}}else if(r.nodeType===8)if(r.data===ft)p.push({type:2,index:o});else{let m=-1;for(;(m=r.data.indexOf(B,m+1))!==-1;)p.push({type:7,index:o}),m+=B.length-1}o++}}static createElement(i,e){let t=Y.createElement("template");return t.innerHTML=i,t}};Me=class{constructor(i,e){this._$AV=[],this._$AN=void 0,this._$AD=i,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(i){let{el:{content:e},parts:t}=this._$AD,r=(i?.creationScope??Y).importNode(e,!0);K.currentNode=r;let o=K.nextNode(),l=0,d=0,p=t[0];for(;p!==void 0;){if(l===p.index){let g;p.type===2?g=new _e(o,o.nextSibling,this,i):p.type===1?g=new p.ctor(o,p.name,p.strings,this,i):p.type===6&&(g=new Oe(o,this,i)),this._$AV.push(g),p=t[++d]}l!==p?.index&&(o=K.nextNode(),l++)}return K.currentNode=Y,r}p(i){let e=0;for(let t of this._$AV)t!==void 0&&(t.strings!==void 0?(t._$AI(i,t,e),e+=t.strings.length-2):t._$AI(i[e])),e++}},_e=class a{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(i,e,t,r){this.type=2,this._$AH=u,this._$AN=void 0,this._$AA=i,this._$AB=e,this._$AM=t,this.options=r,this._$Cv=r?.isConnected??!0}get parentNode(){let i=this._$AA.parentNode,e=this._$AM;return e!==void 0&&i?.nodeType===11&&(i=e.parentNode),i}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(i,e=this){i=ee(this,i,e),he(i)?i===u||i==null||i===""?(this._$AH!==u&&this._$AR(),this._$AH=u):i!==this._$AH&&i!==J&&this._(i):i._$litType$!==void 0?this.$(i):i.nodeType!==void 0?this.T(i):wi(i)?this.k(i):this._(i)}O(i){return this._$AA.parentNode.insertBefore(i,this._$AB)}T(i){this._$AH!==i&&(this._$AR(),this._$AH=this.O(i))}_(i){this._$AH!==u&&he(this._$AH)?this._$AA.nextSibling.data=i:this.T(Y.createTextNode(i)),this._$AH=i}$(i){let{values:e,_$litType$:t}=i,r=typeof t=="number"?this._$AC(i):(t.el===void 0&&(t.el=ue.createElement(bt(t.h,t.h[0]),this.options)),t);if(this._$AH?._$AD===r)this._$AH.p(e);else{let o=new Me(r,this),l=o.u(this.options);o.p(e),this.T(l),this._$AH=o}}_$AC(i){let e=gt.get(i.strings);return e===void 0&&gt.set(i.strings,e=new ue(i)),e}k(i){We(this._$AH)||(this._$AH=[],this._$AR());let e=this._$AH,t,r=0;for(let o of i)r===e.length?e.push(t=new a(this.O(pe()),this.O(pe()),this,this.options)):t=e[r],t._$AI(o),r++;r<e.length&&(this._$AR(t&&t._$AB.nextSibling,r),e.length=r)}_$AR(i=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);i!==this._$AB;){let t=ct(i).nextSibling;ct(i).remove(),i=t}}setConnected(i){this._$AM===void 0&&(this._$Cv=i,this._$AP?.(i))}},te=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(i,e,t,r,o){this.type=1,this._$AH=u,this._$AN=void 0,this.element=i,this.name=e,this._$AM=r,this.options=o,t.length>2||t[0]!==""||t[1]!==""?(this._$AH=Array(t.length-1).fill(new String),this.strings=t):this._$AH=u}_$AI(i,e=this,t,r){let o=this.strings,l=!1;if(o===void 0)i=ee(this,i,e,0),l=!he(i)||i!==this._$AH&&i!==J,l&&(this._$AH=i);else{let d=i,p,g;for(i=o[0],p=0;p<o.length-1;p++)g=ee(this,d[t+p],e,p),g===J&&(g=this._$AH[p]),l||=!he(g)||g!==this._$AH[p],g===u?i=u:i!==u&&(i+=(g??"")+o[p+1]),this._$AH[p]=g}l&&!r&&this.j(i)}j(i){i===u?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,i??"")}},qe=class extends te{constructor(){super(...arguments),this.type=3}j(i){this.element[this.name]=i===u?void 0:i}},De=class extends te{constructor(){super(...arguments),this.type=4}j(i){this.element.toggleAttribute(this.name,!!i&&i!==u)}},Ue=class extends te{constructor(i,e,t,r,o){super(i,e,t,r,o),this.type=5}_$AI(i,e=this){if((i=ee(this,i,e,0)??u)===J)return;let t=this._$AH,r=i===u&&t!==u||i.capture!==t.capture||i.once!==t.once||i.passive!==t.passive,o=i!==u&&(t===u||r);r&&this.element.removeEventListener(this.name,this,t),o&&this.element.addEventListener(this.name,this,i),this._$AH=i}handleEvent(i){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,i):this._$AH.handleEvent(i)}},Oe=class{constructor(i,e,t){this.element=i,this.type=6,this._$AN=void 0,this._$AM=e,this.options=t}get _$AU(){return this._$AM._$AU}_$AI(i){ee(this,i)}},Ei=Fe.litHtmlPolyfillSupport;Ei?.(ue,_e),(Fe.litHtmlVersions??=[]).push("3.3.2");yt=(a,i,e)=>{let t=e?.renderBefore??i,r=t._$litPart$;if(r===void 0){let o=e?.renderBefore??null;t._$litPart$=r=new _e(i.insertBefore(pe(),o),o,void 0,e??{})}return r._$AI(a),r}});var Be,$,Ai,xt=y(()=>{ce();ce();ke();ke();Be=globalThis,$=class extends q{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let i=super.createRenderRoot();return this.renderOptions.renderBefore??=i.firstChild,i}update(i){let e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(i),this._$Do=yt(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return J}};$._$litElement$=!0,$.finalized=!0,Be.litElementHydrateSupport?.({LitElement:$});Ai=Be.litElementPolyfillSupport;Ai?.({LitElement:$});(Be.litElementVersions??=[]).push("4.2.2")});var $t=y(()=>{});var T=y(()=>{ce();ke();xt();$t()});var wt=y(()=>{});function f(a){return(i,e)=>typeof e=="object"?Ti(a,i,e):((t,r,o)=>{let l=r.hasOwnProperty(o);return r.constructor.createProperty(o,t),l?Object.getOwnPropertyDescriptor(r,o):void 0})(a,i,e)}var Si,Ti,Ge=y(()=>{ce();Si={attribute:!0,type:String,converter:le,reflect:!1,hasChanged:$e},Ti=(a=Si,i,e)=>{let{kind:t,metadata:r}=e,o=globalThis.litPropertyMetadata.get(r);if(o===void 0&&globalThis.litPropertyMetadata.set(r,o=new Map),t==="setter"&&((a=Object.create(a)).wrapped=!0),o.set(e.name,a),t==="accessor"){let{name:l}=e;return{set(d){let p=i.get.call(this);i.set.call(this,d),this.requestUpdate(l,p,a,!0,d)},init(d){return d!==void 0&&this.C(l,void 0,a,d),d}}}if(t==="setter"){let{name:l}=e;return function(d){let p=this[l];i.call(this,d),this.requestUpdate(l,p,a,!0,d)}}throw Error("Unsupported decorator location: "+t)}});function h(a){return f({...a,state:!0,attribute:!1})}var kt=y(()=>{Ge();});var Et=y(()=>{});var re=y(()=>{});var At=y(()=>{re();});var St=y(()=>{re();});var Tt=y(()=>{re();});var Ct=y(()=>{re();});var It=y(()=>{re();});var j=y(()=>{wt();Ge();kt();Et();At();St();Tt();Ct();It()});var Ht,Lt=y(()=>{Ht={maintenance:"Maintenance",objects:"Objects",tasks:"Tasks",overdue:"Overdue",due_soon:"Due Soon",triggered:"Triggered",trigger_replaced:"Trigger replaced",ok:"OK",all:"All",new_object:"+ New Object",templates_from:"From template",templates_title:"Start from a template",templates_task_count:"{n} tasks",template_created:"Created from template",onboard_hint:"Add your first object to start tracking maintenance.",edit:"Edit",duplicate:"Duplicate",task_duplicated:"Task duplicated",object_duplicated:"Object duplicated",delete:"Delete",add_task:"+ Add Task",complete:"Complete",completed:"Completed",skip:"Skip",skipped:"Skipped",reset:"Reset",cancel:"Cancel",bulk_select:"Select",bulk_select_all:"Select all",bulk_n_selected:"{n} selected",bulk_completed:"{n} tasks completed",bulk_archived:"{n} tasks archived",completing:"Completing\u2026",interval:"Interval",warning:"Warning",last_performed:"Last performed",next_due:"Next due",days_until_due:"Days until due",avg_duration:"Avg duration",trigger:"Trigger",trigger_type:"Trigger type",threshold_above:"Upper limit",threshold_below:"Lower limit",threshold:"Threshold",counter:"Counter",state_change:"State change",runtime:"Runtime",runtime_hours:"Target runtime (hours)",target_value:"Target value",baseline:"Baseline",target_changes:"Target changes",for_minutes:"For (minutes)",time_based:"Time-based",sensor_based:"Sensor-based",manual:"Manual",one_time:"One-time",weekdays:"Weekdays",nth_weekday:"Nth weekday of month",day_of_month:"Day of month",recurrence_on_days:"Repeat on",recurrence_occurrence:"Occurrence",recurrence_weekday:"Weekday",recurrence_day:"Day of month (1\u201331)",ord_1:"1st",ord_2:"2nd",ord_3:"3rd",ord_4:"4th",ord_5:"5th",ord_last:"Last",day_word:"Day",interval_value:"Interval",interval_unit:"Unit",unit_days:"Days",unit_weeks:"Weeks",unit_months:"Months",unit_years:"Years",due_date:"Due date",cleaning:"Cleaning",inspection:"Inspection",replacement:"Replacement",calibration:"Calibration",service:"Service",custom:"Custom",history:"History",cost:"Cost",report_button:"Report",report_title:"Maintenance report",report_generated:"Generated",report_times_done:"Done",report_total_cost:"Total cost",report_every:"every {n} {unit}",report_notes:"Notes",report_col_type:"Type",report_col_status:"Status",report_col_schedule:"Schedule",duration:"Duration",both:"Both",trigger_val:"Trigger value",complete_title:"Complete: ",checklist:"Checklist",checklist_steps_optional:"Checklist steps (optional)",checklist_placeholder:`Clean filter
+\f\r"'\`<>=]|("|')|))|$)`,"g"),ut=/'/g,_t=/"/g,vt=/^(?:script|style|textarea|title)$/i,Ve=a=>(s,...e)=>({_$litType$:a,strings:s,values:e}),n=Ve(1),ie=Ve(2),us=Ve(3),J=Symbol.for("lit-noChange"),u=Symbol.for("lit-nothing"),gt=new WeakMap,K=Y.createTreeWalker(Y,129);ki=(a,s)=>{let e=a.length-1,t=[],i,o=s===2?"<svg>":s===3?"<math>":"",l=de;for(let d=0;d<e;d++){let p=a[d],g,b,m=-1,x=0;for(;x<p.length&&(l.lastIndex=x,b=l.exec(p),b!==null);)x=l.lastIndex,l===de?b[1]==="!--"?l=pt:b[1]!==void 0?l=ht:b[2]!==void 0?(vt.test(b[2])&&(i=RegExp("</"+b[2],"g")),l=G):b[3]!==void 0&&(l=G):l===G?b[0]===">"?(l=i??de,m=-1):b[1]===void 0?m=-2:(m=l.lastIndex-b[2].length,g=b[1],l=b[3]===void 0?G:b[3]==='"'?_t:ut):l===_t||l===ut?l=G:l===pt||l===ht?l=de:(l=G,i=void 0);let v=l===G&&a[d+1].startsWith("/>")?" ":"";o+=l===de?p+$i:m>=0?(t.push(g),p.slice(0,m)+mt+p.slice(m)+B+v):p+B+(m===-2?d:v)}return[bt(a,o+(a[e]||"<?>")+(s===2?"</svg>":s===3?"</math>":"")),t]},ue=class a{constructor({strings:s,_$litType$:e},t){let i;this.parts=[];let o=0,l=0,d=s.length-1,p=this.parts,[g,b]=ki(s,e);if(this.el=a.createElement(g,t),K.currentNode=this.el.content,e===2||e===3){let m=this.el.content.firstChild;m.replaceWith(...m.childNodes)}for(;(i=K.nextNode())!==null&&p.length<d;){if(i.nodeType===1){if(i.hasAttributes())for(let m of i.getAttributeNames())if(m.endsWith(mt)){let x=b[l++],v=i.getAttribute(m).split(B),w=/([.?@])?(.*)/.exec(x);p.push({type:1,index:o,name:w[2],strings:v,ctor:w[1]==="."?qe:w[1]==="?"?De:w[1]==="@"?Ue:te}),i.removeAttribute(m)}else m.startsWith(B)&&(p.push({type:6,index:o}),i.removeAttribute(m));if(vt.test(i.tagName)){let m=i.textContent.split(B),x=m.length-1;if(x>0){i.textContent=we?we.emptyScript:"";for(let v=0;v<x;v++)i.append(m[v],pe()),K.nextNode(),p.push({type:2,index:++o});i.append(m[x],pe())}}}else if(i.nodeType===8)if(i.data===ft)p.push({type:2,index:o});else{let m=-1;for(;(m=i.data.indexOf(B,m+1))!==-1;)p.push({type:7,index:o}),m+=B.length-1}o++}}static createElement(s,e){let t=Y.createElement("template");return t.innerHTML=s,t}};Me=class{constructor(s,e){this._$AV=[],this._$AN=void 0,this._$AD=s,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(s){let{el:{content:e},parts:t}=this._$AD,i=(s?.creationScope??Y).importNode(e,!0);K.currentNode=i;let o=K.nextNode(),l=0,d=0,p=t[0];for(;p!==void 0;){if(l===p.index){let g;p.type===2?g=new _e(o,o.nextSibling,this,s):p.type===1?g=new p.ctor(o,p.name,p.strings,this,s):p.type===6&&(g=new Oe(o,this,s)),this._$AV.push(g),p=t[++d]}l!==p?.index&&(o=K.nextNode(),l++)}return K.currentNode=Y,i}p(s){let e=0;for(let t of this._$AV)t!==void 0&&(t.strings!==void 0?(t._$AI(s,t,e),e+=t.strings.length-2):t._$AI(s[e])),e++}},_e=class a{get _$AU(){return this._$AM?._$AU??this._$Cv}constructor(s,e,t,i){this.type=2,this._$AH=u,this._$AN=void 0,this._$AA=s,this._$AB=e,this._$AM=t,this.options=i,this._$Cv=i?.isConnected??!0}get parentNode(){let s=this._$AA.parentNode,e=this._$AM;return e!==void 0&&s?.nodeType===11&&(s=e.parentNode),s}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(s,e=this){s=ee(this,s,e),he(s)?s===u||s==null||s===""?(this._$AH!==u&&this._$AR(),this._$AH=u):s!==this._$AH&&s!==J&&this._(s):s._$litType$!==void 0?this.$(s):s.nodeType!==void 0?this.T(s):wi(s)?this.k(s):this._(s)}O(s){return this._$AA.parentNode.insertBefore(s,this._$AB)}T(s){this._$AH!==s&&(this._$AR(),this._$AH=this.O(s))}_(s){this._$AH!==u&&he(this._$AH)?this._$AA.nextSibling.data=s:this.T(Y.createTextNode(s)),this._$AH=s}$(s){let{values:e,_$litType$:t}=s,i=typeof t=="number"?this._$AC(s):(t.el===void 0&&(t.el=ue.createElement(bt(t.h,t.h[0]),this.options)),t);if(this._$AH?._$AD===i)this._$AH.p(e);else{let o=new Me(i,this),l=o.u(this.options);o.p(e),this.T(l),this._$AH=o}}_$AC(s){let e=gt.get(s.strings);return e===void 0&&gt.set(s.strings,e=new ue(s)),e}k(s){We(this._$AH)||(this._$AH=[],this._$AR());let e=this._$AH,t,i=0;for(let o of s)i===e.length?e.push(t=new a(this.O(pe()),this.O(pe()),this,this.options)):t=e[i],t._$AI(o),i++;i<e.length&&(this._$AR(t&&t._$AB.nextSibling,i),e.length=i)}_$AR(s=this._$AA.nextSibling,e){for(this._$AP?.(!1,!0,e);s!==this._$AB;){let t=ct(s).nextSibling;ct(s).remove(),s=t}}setConnected(s){this._$AM===void 0&&(this._$Cv=s,this._$AP?.(s))}},te=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(s,e,t,i,o){this.type=1,this._$AH=u,this._$AN=void 0,this.element=s,this.name=e,this._$AM=i,this.options=o,t.length>2||t[0]!==""||t[1]!==""?(this._$AH=Array(t.length-1).fill(new String),this.strings=t):this._$AH=u}_$AI(s,e=this,t,i){let o=this.strings,l=!1;if(o===void 0)s=ee(this,s,e,0),l=!he(s)||s!==this._$AH&&s!==J,l&&(this._$AH=s);else{let d=s,p,g;for(s=o[0],p=0;p<o.length-1;p++)g=ee(this,d[t+p],e,p),g===J&&(g=this._$AH[p]),l||=!he(g)||g!==this._$AH[p],g===u?s=u:s!==u&&(s+=(g??"")+o[p+1]),this._$AH[p]=g}l&&!i&&this.j(s)}j(s){s===u?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,s??"")}},qe=class extends te{constructor(){super(...arguments),this.type=3}j(s){this.element[this.name]=s===u?void 0:s}},De=class extends te{constructor(){super(...arguments),this.type=4}j(s){this.element.toggleAttribute(this.name,!!s&&s!==u)}},Ue=class extends te{constructor(s,e,t,i,o){super(s,e,t,i,o),this.type=5}_$AI(s,e=this){if((s=ee(this,s,e,0)??u)===J)return;let t=this._$AH,i=s===u&&t!==u||s.capture!==t.capture||s.once!==t.once||s.passive!==t.passive,o=s!==u&&(t===u||i);i&&this.element.removeEventListener(this.name,this,t),o&&this.element.addEventListener(this.name,this,s),this._$AH=s}handleEvent(s){typeof this._$AH=="function"?this._$AH.call(this.options?.host??this.element,s):this._$AH.handleEvent(s)}},Oe=class{constructor(s,e,t){this.element=s,this.type=6,this._$AN=void 0,this._$AM=e,this.options=t}get _$AU(){return this._$AM._$AU}_$AI(s){ee(this,s)}},Ei=Fe.litHtmlPolyfillSupport;Ei?.(ue,_e),(Fe.litHtmlVersions??=[]).push("3.3.2");yt=(a,s,e)=>{let t=e?.renderBefore??s,i=t._$litPart$;if(i===void 0){let o=e?.renderBefore??null;t._$litPart$=i=new _e(s.insertBefore(pe(),o),o,void 0,e??{})}return i._$AI(a),i}});var Be,$,Ai,xt=y(()=>{ce();ce();ke();ke();Be=globalThis,$=class extends q{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){let s=super.createRenderRoot();return this.renderOptions.renderBefore??=s.firstChild,s}update(s){let e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(s),this._$Do=yt(e,this.renderRoot,this.renderOptions)}connectedCallback(){super.connectedCallback(),this._$Do?.setConnected(!0)}disconnectedCallback(){super.disconnectedCallback(),this._$Do?.setConnected(!1)}render(){return J}};$._$litElement$=!0,$.finalized=!0,Be.litElementHydrateSupport?.({LitElement:$});Ai=Be.litElementPolyfillSupport;Ai?.({LitElement:$});(Be.litElementVersions??=[]).push("4.2.2")});var $t=y(()=>{});var T=y(()=>{ce();ke();xt();$t()});var wt=y(()=>{});function f(a){return(s,e)=>typeof e=="object"?Ti(a,s,e):((t,i,o)=>{let l=i.hasOwnProperty(o);return i.constructor.createProperty(o,t),l?Object.getOwnPropertyDescriptor(i,o):void 0})(a,s,e)}var Si,Ti,Ge=y(()=>{ce();Si={attribute:!0,type:String,converter:le,reflect:!1,hasChanged:$e},Ti=(a=Si,s,e)=>{let{kind:t,metadata:i}=e,o=globalThis.litPropertyMetadata.get(i);if(o===void 0&&globalThis.litPropertyMetadata.set(i,o=new Map),t==="setter"&&((a=Object.create(a)).wrapped=!0),o.set(e.name,a),t==="accessor"){let{name:l}=e;return{set(d){let p=s.get.call(this);s.set.call(this,d),this.requestUpdate(l,p,a,!0,d)},init(d){return d!==void 0&&this.C(l,void 0,a,d),d}}}if(t==="setter"){let{name:l}=e;return function(d){let p=this[l];s.call(this,d),this.requestUpdate(l,p,a,!0,d)}}throw Error("Unsupported decorator location: "+t)}});function h(a){return f({...a,state:!0,attribute:!1})}var kt=y(()=>{Ge();});var Et=y(()=>{});var se=y(()=>{});var At=y(()=>{se();});var St=y(()=>{se();});var Tt=y(()=>{se();});var Ct=y(()=>{se();});var It=y(()=>{se();});var j=y(()=>{wt();Ge();kt();Et();At();St();Tt();Ct();It()});var Ht,Lt=y(()=>{Ht={maintenance:"Maintenance",objects:"Objects",tasks:"Tasks",overdue:"Overdue",due_soon:"Due Soon",triggered:"Triggered",trigger_replaced:"Trigger replaced",ok:"OK",all:"All",new_object:"+ New Object",templates_from:"From template",templates_title:"Start from a template",templates_task_count:"{n} tasks",template_created:"Created from template",onboard_hint:"Add your first object to start tracking maintenance.",edit:"Edit",duplicate:"Duplicate",task_duplicated:"Task duplicated",object_duplicated:"Object duplicated",delete:"Delete",add_task:"+ Add Task",complete:"Complete",completed:"Completed",skip:"Skip",skipped:"Skipped",reset:"Reset",cancel:"Cancel",bulk_select:"Select",bulk_select_all:"Select all",bulk_n_selected:"{n} selected",bulk_completed:"{n} tasks completed",bulk_archived:"{n} tasks archived",completing:"Completing\u2026",interval:"Interval",warning:"Warning",last_performed:"Last performed",next_due:"Next due",days_until_due:"Days until due",avg_duration:"Avg duration",trigger:"Trigger",trigger_type:"Trigger type",threshold_above:"Upper limit",threshold_below:"Lower limit",threshold:"Threshold",counter:"Counter",state_change:"State change",runtime:"Runtime",runtime_hours:"Target runtime (hours)",target_value:"Target value",baseline:"Baseline",target_changes:"Target changes",for_minutes:"For (minutes)",time_based:"Time-based",sensor_based:"Sensor-based",manual:"Manual",one_time:"One-time",weekdays:"Weekdays",nth_weekday:"Nth weekday of month",day_of_month:"Day of month",recurrence_on_days:"Repeat on",recurrence_occurrence:"Occurrence",recurrence_weekday:"Weekday",recurrence_day:"Day of month (1\u201331)",ord_1:"1st",ord_2:"2nd",ord_3:"3rd",ord_4:"4th",ord_5:"5th",ord_last:"Last",day_word:"Day",interval_value:"Interval",interval_unit:"Unit",unit_days:"Days",unit_weeks:"Weeks",unit_months:"Months",unit_years:"Years",due_date:"Due date",cleaning:"Cleaning",inspection:"Inspection",replacement:"Replacement",calibration:"Calibration",service:"Service",custom:"Custom",history:"History",cost:"Cost",report_button:"Report",report_title:"Maintenance report",report_generated:"Generated",report_times_done:"Done",report_total_cost:"Total cost",report_every:"every {n} {unit}",report_notes:"Notes",report_col_type:"Type",report_col_status:"Status",report_col_schedule:"Schedule",duration:"Duration",both:"Both",trigger_val:"Trigger value",complete_title:"Complete: ",checklist:"Checklist",checklist_steps_optional:"Checklist steps (optional)",checklist_placeholder:`Clean filter
 Replace seal
-Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"{field}: too long (max {n} characters)",err_too_short:"{field}: too short (min {n} characters)",err_value_too_high:"{field}: too large (max {n})",err_value_too_low:"{field}: too small (min {n})",err_required:"{field}: required",err_wrong_type:"{field}: wrong type (expected: {type})",err_invalid_choice:"{field}: not an allowed value",err_invalid_value:"{field}: invalid value",feat_schedule_time:"Time-of-day scheduling",feat_schedule_time_desc:"Tasks become overdue at a specific time of day instead of midnight.",schedule_time_optional:"Due at time (optional, HH:MM)",schedule_time_help:"Empty = midnight (default). HA timezone.",at_time:"at",notes_optional:"Notes (optional)",cost_optional:"Cost (optional)",duration_minutes:"Duration in minutes (optional)",days:"days",day:"day",today:"Today",d_overdue:"d overdue",no_tasks:"No maintenance tasks yet. Create an object to get started.",no_tasks_short:"No tasks",no_history:"No history entries yet.",show_all:"Show all",cost_duration_chart:"Cost & Duration",installed:"Installed",confirm_delete_object:"Delete this object and all its tasks?",confirm_delete_task:"Delete this task?",min:"Min",max:"Max",save:"Save",saving:"Saving\u2026",edit_task:"Edit Task",new_task:"New Maintenance Task",task_name:"Task name",maintenance_type:"Maintenance type",priority:"Priority",labels:"Labels",labels_placeholder:"e.g. safety, seasonal, tenant-visible",labels_help:"Comma-separated tags for filtering and reporting.",priority_low:"Low",priority_normal:"Normal",priority_high:"High",schedule_type:"Schedule type",interval_days:"Interval (days)",warning_days:"Warning days",last_performed_optional:"Last performed (optional)",interval_anchor:"Interval anchor",anchor_completion:"From completion date",anchor_planned:"From planned date (no drift)",edit_object:"Edit Object",name:"Name",manufacturer_optional:"Manufacturer (optional)",model_optional:"Model (optional)",serial_number_optional:"Serial number (optional)",serial_number_label:"S/N",documentation_url_label:"Manual",object_notes_label:"Notes",sort_due_date:"Due date",sort_object:"Object name",sort_type:"Type",sort_task_name:"Task name",all_objects:"All objects",tasks_lower:"tasks",no_tasks_yet:"No tasks yet",add_first_task:"Add first task",trigger_configuration:"Trigger Configuration",entity_id:"Entity ID",comma_separated:"comma-separated",entity_logic:"Entity logic",entity_logic_any:"Any entity triggers",entity_logic_all:"All entities must trigger",entities:"entities",attribute_optional:"Attribute (optional, blank = state)",use_entity_state:"Use entity state (no attribute)",trigger_above:"Trigger above",trigger_below:"Trigger below",for_at_least_minutes:"For at least (minutes)",safety_interval_days:"Safety interval (days, optional)",safety_interval:"Safety interval (optional)",delta_mode:"Delta mode",from_state_optional:"From state (optional)",to_state_optional:"To state (optional)",documentation_url_optional:"Documentation URL (optional)",object_notes_optional:"Notes (optional)",nfc_tag_id_optional:"NFC Tag ID (optional)",nfc_tags_empty_help:"No NFC tags registered in Home Assistant yet.",nfc_tags_open_settings:"Open Tags settings",nfc_tags_refresh:"Refresh",environmental_entity_optional:"Environmental sensor (optional)",environmental_entity_helper:"e.g. sensor.outdoor_temperature \u2014 adjusts the interval based on environmental conditions",environmental_attribute_optional:"Environmental attribute (optional)",nfc_tag_id:"NFC Tag ID",nfc_linked:"NFC tag linked",nfc_link_hint:"Click to link NFC tag",responsible_user:"Responsible User",no_user_assigned:"(No user assigned)",all_users:"All Users",my_tasks:"My Tasks",tab_calendar:"Calendar",cal_no_events:"No maintenance",cal_window_7:"7 days",cal_window_14:"14 days",cal_window_30:"30 days",cal_window_365:"1 year",cal_every_n_days:"every {n} days",cal_source_time:"Time-based",cal_source_time_adaptive:"Time-based (adaptive)",cal_source_sensor:"Sensor-based",cal_predicted:"predicted",cal_confidence_high:"high confidence",cal_confidence_medium:"medium confidence",cal_confidence_low:"low confidence",budget_monthly:"Monthly budget",budget_yearly:"Yearly budget",groups:"Groups",new_group:"New group",edit_group:"Edit group",no_groups:"No groups yet",delete_group:"Delete group",delete_group_confirm:"Delete group '{name}'?",group_select_tasks:"Select tasks",group_name_required:"Name is required",description_optional:"Description (optional)",selected:"Selected",loading_chart:"Loading chart data...",hide_outliers:"Hide outliers (sensor glitches)",was_maintenance_needed:"Was this maintenance needed?",feedback_needed:"Needed",feedback_not_needed:"Not needed",feedback_not_sure:"Not sure",suggested_interval:"Suggested interval",apply_suggestion:"Apply",reanalyze:"Re-analyze",reanalyze_result:"New analysis",reanalyze_insufficient_data:"Not enough data to produce a recommendation",data_points:"data points",dismiss_suggestion:"Dismiss",confidence_low:"Low",confidence_medium:"Medium",confidence_high:"High",recommended:"recommended",seasonal_awareness:"Seasonal Awareness",edit_seasonal_overrides:"Edit seasonal factors",seasonal_overrides_title:"Seasonal factors (override)",seasonal_overrides_hint:"Factor per month (0.1\u20135.0). Empty = learned automatically.",seasonal_override_invalid:"Invalid value",seasonal_override_range:"Factor must be between 0.1 and 5.0",clear_all:"Clear all",seasonal_chart_title:"Seasonal Factors",seasonal_learned:"Learned",seasonal_manual:"Manual",month_jan:"Jan",month_feb:"Feb",month_mar:"Mar",month_apr:"Apr",month_may:"May",month_jun:"Jun",month_jul:"Jul",month_aug:"Aug",month_sep:"Sep",month_oct:"Oct",month_nov:"Nov",month_dec:"Dec",sensor_prediction:"Sensor Prediction",degradation_trend:"Trend",trend_rising:"Rising",trend_falling:"Falling",trend_stable:"Stable",trend_insufficient_data:"Insufficient data",days_until_threshold:"Days until threshold",threshold_exceeded:"Threshold exceeded",environmental_adjustment:"Environmental factor",sensor_prediction_urgency:"Sensor predicts threshold in ~{days} days",day_short:"day",weibull_reliability_curve:"Reliability Curve",weibull_failure_probability:"Failure Probability",weibull_r_squared:"Fit R\xB2",beta_early_failures:"Early Failures",beta_random_failures:"Random Failures",beta_wear_out:"Wear-out",beta_highly_predictable:"Highly Predictable",confidence_interval:"Confidence Interval",confidence_conservative:"Conservative",confidence_aggressive:"Optimistic",current_interval_marker:"Current interval",recommended_marker:"Recommended",characteristic_life:"Characteristic life",chart_mini_sparkline:"Trend sparkline",chart_history:"Cost and duration history",chart_seasonal:"Seasonal factors, 12 months",chart_weibull:"Weibull reliability curve",chart_sparkline:"Sensor trigger value chart",days_progress:"Days progress",qr_code:"QR Code",qr_generating:"Generating QR code\u2026",qr_error:"Failed to generate QR code.",qr_error_no_url:"No HA URL configured. Please set an external or internal URL in Settings \u2192 System \u2192 Network.",save_error:"Failed to save. Please try again.",qr_print:"Print",qr_download:"Download SVG",qr_action:"Action on scan",qr_action_view:"View maintenance info",qr_action_complete:"Mark maintenance as complete",qr_url_mode:"Link type",qr_mode_companion:"Companion App",qr_mode_local:"Local (mDNS)",qr_mode_server:"Server URL",overview:"Overview",analysis:"Analysis",recent_activities:"Recent Activities",search_notes:"Search notes",avg_cost:"Avg Cost",no_advanced_features:"No advanced features enabled",no_advanced_features_hint:"Enable \u201CAdaptive Intervals\u201D or \u201CSeasonal Patterns\u201D in the integration settings to see analysis data here.",analysis_not_enough_data:"Not enough data for analysis yet.",analysis_not_enough_data_hint:"Weibull analysis requires at least 5 completed maintenances; seasonal patterns become visible after 6+ data points per month.",analysis_manual_task_hint:"Manual tasks without an interval do not generate analysis data.",completions:"completions",current:"Current",shorter:"Shorter",longer:"Longer",normal:"Normal",disabled:"Disabled",compound_logic:"Compound logic",compound:"Compound (multiple conditions)",compound_logic_and:"AND \u2014 all conditions must trigger",compound_logic_or:"OR \u2014 any condition triggers",compound_help:"Combine several sensor conditions into one trigger.",compound_no_conditions:"No conditions yet \u2014 add at least one.",compound_add_condition:"Add condition",compound_condition:"Condition",compound_remove_condition:"Remove condition",card_title:"Title",card_show_header:"Show header with statistics",card_show_actions:"Show action buttons",card_compact:"Compact mode",card_max_items:"Max items (0 = all)",card_filter_status:"Filter by status",card_filter_status_help:"Empty = show all statuses.",card_filter_objects:"Filter by objects",card_filter_objects_help:"Empty = show all objects.",card_filter_entities:"Filter by entities (entity_ids)",card_filter_entities_help:"Pick sensor / binary_sensor entities from this integration. Empty = all.",card_loading_objects:"Loading objects\u2026",card_load_error:"Could not load objects \u2014 check the WebSocket connection.",card_no_tasks_title:"No maintenance tasks yet",card_no_tasks_cta:"\u2192 Create one in the Maintenance panel",no_objects:"No objects yet.",action_error:"Action failed. Please try again.",area_id_optional:"Area (optional)",installation_date_optional:"Installation date (optional)",warranty_expiry_optional:"Warranty expiry (optional)",warranty:"Warranty",warranty_valid_until:"valid until {date}",warranty_expires_in:"expires in {days} days",warranty_expired:"expired",cal_past_windows:"Past windows",cal_forward_windows:"Forward windows",history_edit_title:"Edit history entry",history_edit_timestamp:"Timestamp",manufacturer:"Manufacturer",model:"Model",area:"Area",actions:"Actions",view_mode_label:"View",view_cards:"Card view",view_table:"Table view",objects_table_columns_label:"Objects table columns",objects_table_columns_hint:"Choose which columns appear in the objects table view.",custom_icon_optional:"Icon (optional, e.g. mdi:wrench)",task_enabled:"Task enabled",skip_reason_prompt:"Skip this task?",reason_optional:"Reason (optional)",reset_date_prompt:"Mark task as performed?",reset_date_optional:"Last performed date (optional, defaults to today)",notes_label:"Notes",documentation_label:"Documentation",no_nfc_tag:"\u2014 No tag \u2014",dashboard:"Dashboard",tab_today:"Today",palette_placeholder:"Search objects and tasks\u2026",palette_no_results:"No matches",palette_hint:"\u2191\u2193 to navigate \xB7 Enter to open \xB7 Esc to close",today_all_caught_up:"All caught up! Nothing due this week.",today_overdue:"Overdue",today_due_today:"Due today",today_this_week:"This week",settings:"Settings",settings_features:"Advanced Features",settings_features_desc:"Enable or disable advanced features. Disabling hides them from the UI but does not delete data.",feat_adaptive:"Adaptive Scheduling",feat_adaptive_desc:"Learn optimal intervals from maintenance history",feat_predictions:"Sensor Predictions",feat_predictions_desc:"Predict trigger dates from sensor degradation",feat_seasonal:"Seasonal Adjustments",feat_seasonal_desc:"Adjust intervals based on seasonal patterns",feat_environmental:"Environmental Correlation",feat_environmental_desc:"Correlate intervals with temperature/humidity",feat_budget:"Budget Tracking",feat_budget_desc:"Track monthly and yearly maintenance spending",feat_groups:"Task Groups",feat_groups_desc:"Organize tasks into logical groups",feat_checklists:"Checklists",feat_checklists_desc:"Multi-step procedures for task completion",settings_general:"General",settings_default_warning:"Default warning days",settings_panel_enabled:"Sidebar panel",settings_panel_title:"Sidebar panel title",settings_notifications:"Notifications",settings_notify_service:"Notification service",test_notification:"Test notification",send_test:"Send test",testing:"Sending\u2026",test_notification_success:"Test notification sent",test_notification_failed:"Test notification failed",settings_notify_due_soon:"Notify when due soon",settings_notify_overdue:"Notify when overdue",settings_notify_triggered:"Notify when triggered",settings_interval_hours:"Repeat interval (hours, 0 = once)",settings_quiet_hours:"Quiet hours",settings_quiet_start:"Start",settings_quiet_end:"End",settings_max_per_day:"Max notifications per day (0 = unlimited)",settings_bundling:"Bundle notifications",settings_bundle_threshold:"Bundle threshold",settings_actions:"Mobile Action Buttons",settings_action_complete:"Show 'Complete' button",settings_action_skip:"Show 'Skip' button",settings_action_snooze:"Show 'Snooze' button",settings_weekly_digest:"Weekly digest",settings_weekly_digest_hint:"A single summary notification on Monday morning when tasks are due.",settings_warranty_reminder:"Warranty expiry reminder",settings_warranty_reminder_days:"Days before expiry",settings_warranty_reminder_hint:"Notify once when an object's warranty is this many days from expiring.",settings_snooze_hours:"Snooze duration (hours)",settings_budget:"Budget",settings_currency:"Currency",settings_budget_monthly:"Monthly budget",settings_budget_yearly:"Yearly budget",settings_budget_alerts:"Budget alerts",settings_budget_threshold:"Alert threshold (%)",settings_import_export:"Import / Export",settings_export_json:"Export JSON",settings_export_yaml:"Export YAML",settings_export_csv:"Export CSV",settings_import_csv:"Import CSV",settings_import_placeholder:"Paste JSON or CSV content here\u2026",settings_import_btn:"Import",settings_import_success:"{count} objects imported successfully.",settings_export_success:"Export downloaded.",settings_saved:"Setting saved.",settings_include_history:"Include history",sort_alphabetical:"Alphabetical",sort_due_soonest:"Due soonest",sort_task_count:"Task count",sort_area:"Area",sort_assigned_user:"Assigned user",sort_group:"Group",groupby_none:"No grouping",groupby_area:"By area",groupby_group:"By group",groupby_user:"By user",filter_label:"Filter",user_label:"User",sort_label:"Sort",group_by_label:"Group by",state_value_help:'Use the HA state value (usually lowercase, e.g. "on"/"off"). Case is normalised on save.',target_changes_help:"Number of matching transitions before the trigger fires (default: 1).",qr_print_title:"Print QR codes",qr_print_desc:"Generate a printable page of QR codes to cut out and stick on your equipment.",qr_print_load:"Load objects",qr_print_filter:"Filter",qr_print_objects:"Objects",qr_print_actions:"Actions",qr_print_url_mode:"Link type",qr_print_estimate:"Estimated QR codes",qr_print_over_limit:"cap is 200, narrow the filter",qr_print_generate:"Generate QR codes",qr_print_generating:"Generating\u2026",qr_print_ready:"QR codes ready",qr_print_print_button:"Print",qr_print_empty:"Nothing to generate",qr_action_skip:"Skip",vacation_title:"Vacation mode",vacation_active:"active",vacation_ended:"ended",vacation_desc:"Plan a vacation: notifications are paused during the period plus a buffer of days. You can opt specific tasks back in.",vacation_enable:"Enable vacation mode",vacation_start:"Start",vacation_end:"End",vacation_buffer:"Buffer (days)",vacation_exempt_title:"Notify anyway during vacation",vacation_exempt_desc:"Pick tasks that should still notify during vacation (e.g. critical pool chemistry).",vacation_load_tasks:"Load tasks",vacation_preview_btn:"Show preview",vacation_preview_affected:"tasks affected",vacation_event_due_soon:"becomes due soon",vacation_event_overdue:"becomes overdue",vacation_event_triggered_est:"sensor trigger possible",vacation_sensor_based:"(sensor-based)",vacation_action_notify:"Notify anyway",vacation_action_unsilence:"Silence again",vacation_marked_complete:"Marked complete",vacation_marked_skip:"Skipped",vacation_end_now:"End vacation now",add:"Add",show_stats:"Show stats + graphs",hide_stats:"Hide stats",adaptive_no_data:"Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",suggestion_applied:"Suggested interval applied",vacation_mode:"Vacation mode",vacation_status_active:"Active now",vacation_status_scheduled:"Scheduled",vacation_status_inactive:"Inactive",vacation_end_now_confirm:"End vacation immediately?",vacation_exempt_count:"exempt",vacation_advanced:"Advanced\u2026",vacation_open_panel:"Open in panel",enable:"Enable",saved:"Saved",budget_monthly_set:"Set monthly",budget_yearly_set:"Set yearly",budget_advanced:"Currency, alerts\u2026",budget_open_panel:"Open in panel",groups_empty:"No groups yet.",group_new_placeholder:"Add group\u2026",group_delete_confirm:'Delete group "{name}"?',groups_manage_tasks:"Manage task assignments\u2026",groups_open_panel:"Open in panel",unassigned:"Unassigned",no_area:"No area",has_overdue:"Has overdue tasks",object:"Object",settings_panel_access:"Panel access",settings_panel_access_desc:"Admins always have full access. To delegate create, edit and delete to specific non-admins, switch this on and pick them below \u2014 everyone else sees only Complete and Skip.",settings_operator_write:"Allow selected users to create, edit & delete",settings_operator_write_desc:"Off: only admins can change content. On: the selected users below get full access too.",no_non_admin_users:"No non-admin users found. Add some in Settings \u2192 People.",owner_label:"Owner",feat_completion_actions:"Completion actions",feat_completion_actions_desc:"Per-task HA action on complete + quick-complete QR with pre-set values.",on_complete_action_title:"On complete: trigger HA action (optional)",on_complete_action_desc:"Calls an HA service when the task is completed \u2014 e.g. reset a counter on the device.",on_complete_action_service:"Service",on_complete_action_target:"Target entity",on_complete_action_target_hint:"Note: the entity domain must match the service \u2014 e.g. 'button.press' only works on button.*, 'counter.increment' only on counter.*, 'input_button.press' only on input_button.* etc. On a mismatch the action will silently fail (HA logs 'Referenced entities ... missing or not currently available').",on_complete_action_data:"Data (JSON, optional)",on_complete_action_test:"Validate configuration",on_complete_action_test_success:"\u2713 Configuration valid (action will fire only on task completion)",on_complete_action_test_failed:"Failed",quick_complete_defaults_title:"Quick-complete defaults (for QR scans, optional)",quick_complete_defaults_desc:"Pre-set values for quick-complete QR scans. Without these, the QR opens the complete dialog.",quick_complete_defaults_notes:"Notes",quick_complete_defaults_cost:"Cost",quick_complete_defaults_duration:"Duration (minutes)",quick_complete_defaults_feedback_none:"No feedback",quick_complete_defaults_feedback_needed:"Was needed",quick_complete_defaults_feedback_not_needed:"Not needed",quick_complete_success:"Quickly marked complete",show_all_objects:"Show all objects",show_all_tasks:"Clear filter \u2014 show all tasks",filter_to_overdue:"Filter task list to overdue only",filter_to_due_soon:"Filter task list to due-soon only",filter_to_triggered:"Filter task list to triggered only",open_task:"Open task",show_details:"Show history + stats",hide_details:"Hide details",history_empty:"No history yet.",history_edit_button:"Edit entry",total_cost:"Total cost",times_performed:"Performed",older_entries:"older",open_in_panel:"Open in Maintenance panel",skip_reason:"Skip reason (optional)",reset_to_date:"Reset last_performed to",delete_task_confirm:"Delete this task and its history?",delete_object_confirm:"Delete this object and all its tasks?",loading:"Loading\u2026",archive:"Archive",undo:"Undo",task_archived:"Task archived",object_archived:"Object archived",unarchive:"Unarchive",archived:"Archived",show_archived:"Show archived",hide_archived:"Hide archived",confirm_archive_object:"Archive this object and its tasks? They keep their history and can be unarchived later.",settings_archive:"Archive & Retention",settings_archive_desc:"Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",settings_archive_oneoff_days:"Auto-archive completed one-off tasks after (days, 0 = off)",settings_delete_archived_oneoff_days:"Auto-delete archived one-off tasks after (days, 0 = never)",archive_object:"Archive object",unarchive_object:"Unarchive object",documents:"Documents",documents_empty:"No documents yet.",doc_upload:"Upload file",doc_uploading:"Uploading\u2026",doc_add_link:"Add link",doc_link_url:"URL (https://\u2026)",doc_link_title:"Title (optional)",doc_open:"Open",doc_delete_confirm:'Delete "{name}"?',doc_too_large:"File is too large (max 25 MB).",doc_upload_failed:"Upload failed.",completion_photo_optional:"Completion photo (optional)",add_photo:"Add photo",uploading:"Uploading\u2026",remove:"Remove",doc_deduped:"Already stored elsewhere \u2014 shared, no extra space used.",doc_dup_in_object:"This file is already attached to this object.",doc_link_invalid:"Only http/https links are allowed.",doc_cat_manual:"Manual",doc_cat_warranty:"Warranty",doc_cat_invoice:"Invoice",doc_cat_spare_parts:"Spare parts",doc_cat_photo:"Photo",doc_cat_other:"Other",doc_link_badge:"Link",doc_storage_title:"Document storage",doc_storage_saved:"Saved via deduplication",doc_storage_refresh:"Refresh",doc_download:"Download",doc_close:"Close",doc_camera:"Take photo",doc_drop_hint:"Drop files here",doc_task_none:"No documents linked to this task.",doc_link_existing:"Link a document\u2026",doc_attach:"Link",doc_unlink:"Unlink",doc_page:"Page",chart_range_7d:"7d",chart_range_30d:"30d",chart_range_90d:"90d",chart_range_1y:"1y",chart_since_service:"since last service",chart_no_stats:"No long-term statistics for this entity \u2014 showing maintenance-event values only",auto_complete_on_recovery:"Auto-complete when the sensor recovers",auto_complete_on_recovery_help:"Records a completion (sets last performed) when the trigger clears itself \u2014 e.g. salt refilled, filter replaced.",doc_search:"Search documents\u2026",doc_search_none:"No matching documents"}});function Je(a){return(a||Ye).substring(0,2).toLowerCase()}function s(a,i){let e=Je(i);return ge[e]?.[a]??ge.en[a]??a}function Se(a){let i=Je(a);return i===Ye||i in ge}function Te(a){let i=Je(a);return i===Ye||i in ge||!Ii.has(i)?Promise.resolve():(i in Ke||(Ke[i]=fetch(`${Li}/${i}.json`).then(e=>e.ok?e.json():null).then(e=>{e&&(ge[i]=e)}).catch(()=>{})),Ke[i])}function jt(a){let i=(a||"en").substring(0,2).toLowerCase();return{de:"de-DE",en:"en-US",nl:"nl-NL",fr:"fr-FR",it:"it-IT",es:"es-ES",pt:"pt-PT",ru:"ru-RU",uk:"uk-UA",zh:"zh-CN",da:"da-DK",fi:"fi-FI",nb:"nb-NO",ja:"ja-JP",hi:"hi-IN"}[i]??"en-US"}function Z(a,i){if(!a)return"\u2014";try{let e=a.includes("T")?a:a+"T00:00:00";return new Date(e).toLocaleDateString(jt(i),{day:"2-digit",month:"2-digit",year:"numeric"})}catch{return a}}function Pt(a,i){if(!a)return"\u2014";try{let e=jt(i),t=new Date(a);return t.toLocaleDateString(e,{day:"2-digit",month:"2-digit",year:"numeric"})+" "+t.toLocaleTimeString(e,{hour:"2-digit",minute:"2-digit"})}catch{return a}}function Rt(a,i,e){return a==null?"\u2014":`${a} ${s("unit_"+(i||"days"),e)}`}function Ae(a,i,e="long"){let t=(i||"en").substring(0,2);return new Date(Date.UTC(2024,0,1+a)).toLocaleDateString(t,{weekday:e,timeZone:"UTC"})}function zt(a,i){let e=a.schedule;switch(e?.kind){case"weekdays":return(e.weekdays||[]).map(t=>Ae(t,i,"short")).join(" & ")||"\u2014";case"nth_weekday":return e.weekday==null||e.nth==null?"\u2014":`${e.nth===-1?s("ord_last",i):s("ord_"+e.nth,i)} ${Ae(e.weekday,i,"long")}`;case"day_of_month":return e.day!=null?`${s("day_word",i)} ${e.day}`:"\u2014";case"one_time":return a.due_date?Z(a.due_date,i):s("one_time",i);case"manual":return s("manual",i);case"interval":return Rt(e.every,e.unit,i)}return a.schedule_type==="one_time"?a.due_date?Z(a.due_date,i):s("one_time",i):a.schedule_type==="manual"?s("manual",i):a.schedule_type==="sensor_based"?s("sensor_based",i):a.interval_days!=null?Rt(a.interval_days,a.interval_unit,i):"\u2014"}function Nt(a,i){a.currentTarget.dispatchEvent(new CustomEvent("hass-more-info",{detail:{entityId:i},bubbles:!0,composed:!0}))}var se,Ye,ge,Ii,Li,Ke,Ce,C=y(()=>{"use strict";T();Lt();se={ok:"var(--success-color, #4caf50)",due_soon:"var(--warning-color, #ff9800)",overdue:"var(--error-color, #f44336)",triggered:"#ff5722",archived:"var(--disabled-color, #9e9e9e)"},Ye="en",ge={en:Ht},Ii=new Set(["de","nl","fr","it","es","pt","ru","uk","pl","cs","sv","zh","da","fi","nb","ja","hi"]),Li="/maintenance_supporter_locales",Ke={};Ce=k`
+Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"{field}: too long (max {n} characters)",err_too_short:"{field}: too short (min {n} characters)",err_value_too_high:"{field}: too large (max {n})",err_value_too_low:"{field}: too small (min {n})",err_required:"{field}: required",err_wrong_type:"{field}: wrong type (expected: {type})",err_invalid_choice:"{field}: not an allowed value",err_invalid_value:"{field}: invalid value",feat_schedule_time:"Time-of-day scheduling",feat_schedule_time_desc:"Tasks become overdue at a specific time of day instead of midnight.",schedule_time_optional:"Due at time (optional, HH:MM)",schedule_time_help:"Empty = midnight (default). HA timezone.",at_time:"at",notes_optional:"Notes (optional)",cost_optional:"Cost (optional)",duration_minutes:"Duration in minutes (optional)",days:"days",day:"day",today:"Today",d_overdue:"d overdue",no_tasks:"No maintenance tasks yet. Create an object to get started.",no_tasks_short:"No tasks",no_history:"No history entries yet.",show_all:"Show all",cost_duration_chart:"Cost & Duration",installed:"Installed",confirm_delete_object:"Delete this object and all its tasks?",confirm_delete_task:"Delete this task?",min:"Min",max:"Max",save:"Save",saving:"Saving\u2026",edit_task:"Edit Task",new_task:"New Maintenance Task",task_name:"Task name",maintenance_type:"Maintenance type",priority:"Priority",labels:"Labels",labels_placeholder:"e.g. safety, seasonal, tenant-visible",labels_help:"Comma-separated tags for filtering and reporting.",priority_low:"Low",priority_normal:"Normal",priority_high:"High",schedule_type:"Schedule type",interval_days:"Interval (days)",warning_days:"Warning days",last_performed_optional:"Last performed (optional)",interval_anchor:"Interval anchor",anchor_completion:"From completion date",anchor_planned:"From planned date (no drift)",edit_object:"Edit Object",name:"Name",manufacturer_optional:"Manufacturer (optional)",model_optional:"Model (optional)",serial_number_optional:"Serial number (optional)",serial_number_label:"S/N",documentation_url_label:"Manual",object_notes_label:"Notes",sort_due_date:"Due date",sort_object:"Object name",sort_type:"Type",sort_task_name:"Task name",all_objects:"All objects",tasks_lower:"tasks",no_tasks_yet:"No tasks yet",add_first_task:"Add first task",trigger_configuration:"Trigger Configuration",entity_id:"Entity ID",comma_separated:"comma-separated",entity_logic:"Entity logic",entity_logic_any:"Any entity triggers",entity_logic_all:"All entities must trigger",entities:"entities",attribute_optional:"Attribute (optional, blank = state)",use_entity_state:"Use entity state (no attribute)",trigger_above:"Trigger above",trigger_below:"Trigger below",for_at_least_minutes:"For at least (minutes)",safety_interval_days:"Safety interval (days, optional)",safety_interval:"Safety interval (optional)",delta_mode:"Delta mode",from_state_optional:"From state (optional)",to_state_optional:"To state (optional)",documentation_url_optional:"Documentation URL (optional)",object_notes_optional:"Notes (optional)",nfc_tag_id_optional:"NFC Tag ID (optional)",nfc_tags_empty_help:"No NFC tags registered in Home Assistant yet.",nfc_tags_open_settings:"Open Tags settings",nfc_tags_refresh:"Refresh",environmental_entity_optional:"Environmental sensor (optional)",environmental_entity_helper:"e.g. sensor.outdoor_temperature \u2014 adjusts the interval based on environmental conditions",environmental_attribute_optional:"Environmental attribute (optional)",nfc_tag_id:"NFC Tag ID",nfc_linked:"NFC tag linked",nfc_link_hint:"Click to link NFC tag",responsible_user:"Responsible User",shared_with:"Shared with (rotation)",shared_with_help:"Pick multiple people to share this task; the responsible person rotates on each completion.",rotation_strategy:"Rotation",rotation_none:"No rotation",rotation_round_robin:"Round-robin",rotation_least_completed:"Least completed",rotation_random:"Random",no_user_assigned:"(No user assigned)",all_users:"All Users",my_tasks:"My Tasks",tab_calendar:"Calendar",cal_no_events:"No maintenance",cal_window_7:"7 days",cal_window_14:"14 days",cal_window_30:"30 days",cal_window_365:"1 year",cal_every_n_days:"every {n} days",cal_source_time:"Time-based",cal_source_time_adaptive:"Time-based (adaptive)",cal_source_sensor:"Sensor-based",cal_predicted:"predicted",cal_confidence_high:"high confidence",cal_confidence_medium:"medium confidence",cal_confidence_low:"low confidence",budget_monthly:"Monthly budget",budget_yearly:"Yearly budget",groups:"Groups",new_group:"New group",edit_group:"Edit group",no_groups:"No groups yet",delete_group:"Delete group",delete_group_confirm:"Delete group '{name}'?",group_select_tasks:"Select tasks",group_name_required:"Name is required",description_optional:"Description (optional)",selected:"Selected",loading_chart:"Loading chart data...",hide_outliers:"Hide outliers (sensor glitches)",was_maintenance_needed:"Was this maintenance needed?",feedback_needed:"Needed",feedback_not_needed:"Not needed",feedback_not_sure:"Not sure",suggested_interval:"Suggested interval",apply_suggestion:"Apply",reanalyze:"Re-analyze",reanalyze_result:"New analysis",reanalyze_insufficient_data:"Not enough data to produce a recommendation",data_points:"data points",dismiss_suggestion:"Dismiss",confidence_low:"Low",confidence_medium:"Medium",confidence_high:"High",recommended:"recommended",seasonal_awareness:"Seasonal Awareness",edit_seasonal_overrides:"Edit seasonal factors",seasonal_overrides_title:"Seasonal factors (override)",seasonal_overrides_hint:"Factor per month (0.1\u20135.0). Empty = learned automatically.",seasonal_override_invalid:"Invalid value",seasonal_override_range:"Factor must be between 0.1 and 5.0",clear_all:"Clear all",seasonal_chart_title:"Seasonal Factors",seasonal_learned:"Learned",seasonal_manual:"Manual",month_jan:"Jan",month_feb:"Feb",month_mar:"Mar",month_apr:"Apr",month_may:"May",month_jun:"Jun",month_jul:"Jul",month_aug:"Aug",month_sep:"Sep",month_oct:"Oct",month_nov:"Nov",month_dec:"Dec",sensor_prediction:"Sensor Prediction",degradation_trend:"Trend",trend_rising:"Rising",trend_falling:"Falling",trend_stable:"Stable",trend_insufficient_data:"Insufficient data",days_until_threshold:"Days until threshold",threshold_exceeded:"Threshold exceeded",environmental_adjustment:"Environmental factor",sensor_prediction_urgency:"Sensor predicts threshold in ~{days} days",day_short:"day",weibull_reliability_curve:"Reliability Curve",weibull_failure_probability:"Failure Probability",weibull_r_squared:"Fit R\xB2",beta_early_failures:"Early Failures",beta_random_failures:"Random Failures",beta_wear_out:"Wear-out",beta_highly_predictable:"Highly Predictable",confidence_interval:"Confidence Interval",confidence_conservative:"Conservative",confidence_aggressive:"Optimistic",current_interval_marker:"Current interval",recommended_marker:"Recommended",characteristic_life:"Characteristic life",chart_mini_sparkline:"Trend sparkline",chart_history:"Cost and duration history",chart_seasonal:"Seasonal factors, 12 months",chart_weibull:"Weibull reliability curve",chart_sparkline:"Sensor trigger value chart",days_progress:"Days progress",qr_code:"QR Code",qr_generating:"Generating QR code\u2026",qr_error:"Failed to generate QR code.",qr_error_no_url:"No HA URL configured. Please set an external or internal URL in Settings \u2192 System \u2192 Network.",save_error:"Failed to save. Please try again.",qr_print:"Print",qr_download:"Download SVG",qr_action:"Action on scan",qr_action_view:"View maintenance info",qr_action_complete:"Mark maintenance as complete",qr_url_mode:"Link type",qr_mode_companion:"Companion App",qr_mode_local:"Local (mDNS)",qr_mode_server:"Server URL",overview:"Overview",analysis:"Analysis",recent_activities:"Recent Activities",search_notes:"Search notes",avg_cost:"Avg Cost",no_advanced_features:"No advanced features enabled",no_advanced_features_hint:"Enable \u201CAdaptive Intervals\u201D or \u201CSeasonal Patterns\u201D in the integration settings to see analysis data here.",analysis_not_enough_data:"Not enough data for analysis yet.",analysis_not_enough_data_hint:"Weibull analysis requires at least 5 completed maintenances; seasonal patterns become visible after 6+ data points per month.",analysis_manual_task_hint:"Manual tasks without an interval do not generate analysis data.",completions:"completions",current:"Current",shorter:"Shorter",longer:"Longer",normal:"Normal",disabled:"Disabled",compound_logic:"Compound logic",compound:"Compound (multiple conditions)",compound_logic_and:"AND \u2014 all conditions must trigger",compound_logic_or:"OR \u2014 any condition triggers",compound_help:"Combine several sensor conditions into one trigger.",compound_no_conditions:"No conditions yet \u2014 add at least one.",compound_add_condition:"Add condition",compound_condition:"Condition",compound_remove_condition:"Remove condition",card_title:"Title",card_show_header:"Show header with statistics",card_show_actions:"Show action buttons",card_compact:"Compact mode",card_max_items:"Max items (0 = all)",card_filter_status:"Filter by status",card_filter_status_help:"Empty = show all statuses.",card_filter_objects:"Filter by objects",card_filter_objects_help:"Empty = show all objects.",card_filter_entities:"Filter by entities (entity_ids)",card_filter_entities_help:"Pick sensor / binary_sensor entities from this integration. Empty = all.",card_loading_objects:"Loading objects\u2026",card_load_error:"Could not load objects \u2014 check the WebSocket connection.",card_no_tasks_title:"No maintenance tasks yet",card_no_tasks_cta:"\u2192 Create one in the Maintenance panel",no_objects:"No objects yet.",action_error:"Action failed. Please try again.",area_id_optional:"Area (optional)",installation_date_optional:"Installation date (optional)",warranty_expiry_optional:"Warranty expiry (optional)",warranty:"Warranty",warranty_valid_until:"valid until {date}",warranty_expires_in:"expires in {days} days",warranty_expired:"expired",cal_past_windows:"Past windows",cal_forward_windows:"Forward windows",history_edit_title:"Edit history entry",history_edit_timestamp:"Timestamp",manufacturer:"Manufacturer",model:"Model",area:"Area",actions:"Actions",view_mode_label:"View",view_cards:"Card view",view_table:"Table view",objects_table_columns_label:"Objects table columns",objects_table_columns_hint:"Choose which columns appear in the objects table view.",custom_icon_optional:"Icon (optional, e.g. mdi:wrench)",task_enabled:"Task enabled",skip_reason_prompt:"Skip this task?",reason_optional:"Reason (optional)",reset_date_prompt:"Mark task as performed?",reset_date_optional:"Last performed date (optional, defaults to today)",notes_label:"Notes",documentation_label:"Documentation",no_nfc_tag:"\u2014 No tag \u2014",dashboard:"Dashboard",tab_today:"Today",palette_placeholder:"Search objects and tasks\u2026",palette_no_results:"No matches",palette_hint:"\u2191\u2193 to navigate \xB7 Enter to open \xB7 Esc to close",today_all_caught_up:"All caught up! Nothing due this week.",today_overdue:"Overdue",today_due_today:"Due today",today_this_week:"This week",settings:"Settings",settings_features:"Advanced Features",settings_features_desc:"Enable or disable advanced features. Disabling hides them from the UI but does not delete data.",feat_adaptive:"Adaptive Scheduling",feat_adaptive_desc:"Learn optimal intervals from maintenance history",feat_predictions:"Sensor Predictions",feat_predictions_desc:"Predict trigger dates from sensor degradation",feat_seasonal:"Seasonal Adjustments",feat_seasonal_desc:"Adjust intervals based on seasonal patterns",feat_environmental:"Environmental Correlation",feat_environmental_desc:"Correlate intervals with temperature/humidity",feat_budget:"Budget Tracking",feat_budget_desc:"Track monthly and yearly maintenance spending",feat_groups:"Task Groups",feat_groups_desc:"Organize tasks into logical groups",feat_checklists:"Checklists",feat_checklists_desc:"Multi-step procedures for task completion",settings_general:"General",settings_default_warning:"Default warning days",settings_panel_enabled:"Sidebar panel",settings_panel_title:"Sidebar panel title",settings_notifications:"Notifications",settings_notify_service:"Notification service",test_notification:"Test notification",send_test:"Send test",testing:"Sending\u2026",test_notification_success:"Test notification sent",test_notification_failed:"Test notification failed",settings_notify_due_soon:"Notify when due soon",settings_notify_overdue:"Notify when overdue",settings_notify_triggered:"Notify when triggered",settings_interval_hours:"Repeat interval (hours, 0 = once)",settings_quiet_hours:"Quiet hours",settings_quiet_start:"Start",settings_quiet_end:"End",settings_max_per_day:"Max notifications per day (0 = unlimited)",settings_bundling:"Bundle notifications",settings_bundle_threshold:"Bundle threshold",settings_actions:"Mobile Action Buttons",settings_action_complete:"Show 'Complete' button",settings_action_skip:"Show 'Skip' button",settings_action_snooze:"Show 'Snooze' button",settings_weekly_digest:"Weekly digest",settings_weekly_digest_hint:"A single summary notification on Monday morning when tasks are due.",settings_warranty_reminder:"Warranty expiry reminder",settings_warranty_reminder_days:"Days before expiry",settings_warranty_reminder_hint:"Notify once when an object's warranty is this many days from expiring.",settings_snooze_hours:"Snooze duration (hours)",settings_budget:"Budget",settings_currency:"Currency",settings_budget_monthly:"Monthly budget",settings_budget_yearly:"Yearly budget",settings_budget_alerts:"Budget alerts",settings_budget_threshold:"Alert threshold (%)",settings_import_export:"Import / Export",settings_export_json:"Export JSON",settings_export_yaml:"Export YAML",settings_export_csv:"Export CSV",settings_import_csv:"Import CSV",settings_import_placeholder:"Paste JSON or CSV content here\u2026",settings_import_btn:"Import",settings_import_success:"{count} objects imported successfully.",settings_export_success:"Export downloaded.",settings_saved:"Setting saved.",settings_include_history:"Include history",sort_alphabetical:"Alphabetical",sort_due_soonest:"Due soonest",sort_task_count:"Task count",sort_area:"Area",sort_assigned_user:"Assigned user",sort_group:"Group",groupby_none:"No grouping",groupby_area:"By area",groupby_group:"By group",groupby_user:"By user",filter_label:"Filter",user_label:"User",sort_label:"Sort",group_by_label:"Group by",state_value_help:'Use the HA state value (usually lowercase, e.g. "on"/"off"). Case is normalised on save.',target_changes_help:"Number of matching transitions before the trigger fires (default: 1).",qr_print_title:"Print QR codes",qr_print_desc:"Generate a printable page of QR codes to cut out and stick on your equipment.",qr_print_load:"Load objects",qr_print_filter:"Filter",qr_print_objects:"Objects",qr_print_actions:"Actions",qr_print_url_mode:"Link type",qr_print_estimate:"Estimated QR codes",qr_print_over_limit:"cap is 200, narrow the filter",qr_print_generate:"Generate QR codes",qr_print_generating:"Generating\u2026",qr_print_ready:"QR codes ready",qr_print_print_button:"Print",qr_print_empty:"Nothing to generate",qr_action_skip:"Skip",vacation_title:"Vacation mode",vacation_active:"active",vacation_ended:"ended",vacation_desc:"Plan a vacation: notifications are paused during the period plus a buffer of days. You can opt specific tasks back in.",vacation_enable:"Enable vacation mode",vacation_start:"Start",vacation_end:"End",vacation_buffer:"Buffer (days)",vacation_exempt_title:"Notify anyway during vacation",vacation_exempt_desc:"Pick tasks that should still notify during vacation (e.g. critical pool chemistry).",vacation_load_tasks:"Load tasks",vacation_preview_btn:"Show preview",vacation_preview_affected:"tasks affected",vacation_event_due_soon:"becomes due soon",vacation_event_overdue:"becomes overdue",vacation_event_triggered_est:"sensor trigger possible",vacation_sensor_based:"(sensor-based)",vacation_action_notify:"Notify anyway",vacation_action_unsilence:"Silence again",vacation_marked_complete:"Marked complete",vacation_marked_skip:"Skipped",vacation_end_now:"End vacation now",add:"Add",show_stats:"Show stats + graphs",hide_stats:"Hide stats",adaptive_no_data:"Not enough completion history yet for adaptive analysis. Complete this task a few more times to unlock interval recommendations and reliability charts.",suggestion_applied:"Suggested interval applied",vacation_mode:"Vacation mode",vacation_status_active:"Active now",vacation_status_scheduled:"Scheduled",vacation_status_inactive:"Inactive",vacation_end_now_confirm:"End vacation immediately?",vacation_exempt_count:"exempt",vacation_advanced:"Advanced\u2026",vacation_open_panel:"Open in panel",enable:"Enable",saved:"Saved",budget_monthly_set:"Set monthly",budget_yearly_set:"Set yearly",budget_advanced:"Currency, alerts\u2026",budget_open_panel:"Open in panel",groups_empty:"No groups yet.",group_new_placeholder:"Add group\u2026",group_delete_confirm:'Delete group "{name}"?',groups_manage_tasks:"Manage task assignments\u2026",groups_open_panel:"Open in panel",unassigned:"Unassigned",no_area:"No area",has_overdue:"Has overdue tasks",object:"Object",settings_panel_access:"Panel access",settings_panel_access_desc:"Admins always have full access. To delegate create, edit and delete to specific non-admins, switch this on and pick them below \u2014 everyone else sees only Complete and Skip.",settings_operator_write:"Allow selected users to create, edit & delete",settings_operator_write_desc:"Off: only admins can change content. On: the selected users below get full access too.",no_non_admin_users:"No non-admin users found. Add some in Settings \u2192 People.",owner_label:"Owner",feat_completion_actions:"Completion actions",feat_completion_actions_desc:"Per-task HA action on complete + quick-complete QR with pre-set values.",on_complete_action_title:"On complete: trigger HA action (optional)",on_complete_action_desc:"Calls an HA service when the task is completed \u2014 e.g. reset a counter on the device.",on_complete_action_service:"Service",on_complete_action_target:"Target entity",on_complete_action_target_hint:"Note: the entity domain must match the service \u2014 e.g. 'button.press' only works on button.*, 'counter.increment' only on counter.*, 'input_button.press' only on input_button.* etc. On a mismatch the action will silently fail (HA logs 'Referenced entities ... missing or not currently available').",on_complete_action_data:"Data (JSON, optional)",on_complete_action_test:"Validate configuration",on_complete_action_test_success:"\u2713 Configuration valid (action will fire only on task completion)",on_complete_action_test_failed:"Failed",quick_complete_defaults_title:"Quick-complete defaults (for QR scans, optional)",quick_complete_defaults_desc:"Pre-set values for quick-complete QR scans. Without these, the QR opens the complete dialog.",quick_complete_defaults_notes:"Notes",quick_complete_defaults_cost:"Cost",quick_complete_defaults_duration:"Duration (minutes)",quick_complete_defaults_feedback_none:"No feedback",quick_complete_defaults_feedback_needed:"Was needed",quick_complete_defaults_feedback_not_needed:"Not needed",quick_complete_success:"Quickly marked complete",show_all_objects:"Show all objects",show_all_tasks:"Clear filter \u2014 show all tasks",filter_to_overdue:"Filter task list to overdue only",filter_to_due_soon:"Filter task list to due-soon only",filter_to_triggered:"Filter task list to triggered only",open_task:"Open task",show_details:"Show history + stats",hide_details:"Hide details",history_empty:"No history yet.",history_edit_button:"Edit entry",total_cost:"Total cost",times_performed:"Performed",older_entries:"older",open_in_panel:"Open in Maintenance panel",skip_reason:"Skip reason (optional)",reset_to_date:"Reset last_performed to",delete_task_confirm:"Delete this task and its history?",delete_object_confirm:"Delete this object and all its tasks?",loading:"Loading\u2026",archive:"Archive",undo:"Undo",task_archived:"Task archived",object_archived:"Object archived",unarchive:"Unarchive",archived:"Archived",show_archived:"Show archived",hide_archived:"Hide archived",confirm_archive_object:"Archive this object and its tasks? They keep their history and can be unarchived later.",settings_archive:"Archive & Retention",settings_archive_desc:"Retire completed one-off tasks without deleting them. Archived items are hidden and inert but keep their history and cost.",settings_archive_oneoff_days:"Auto-archive completed one-off tasks after (days, 0 = off)",settings_delete_archived_oneoff_days:"Auto-delete archived one-off tasks after (days, 0 = never)",archive_object:"Archive object",unarchive_object:"Unarchive object",documents:"Documents",documents_empty:"No documents yet.",doc_upload:"Upload file",doc_uploading:"Uploading\u2026",doc_add_link:"Add link",doc_link_url:"URL (https://\u2026)",doc_link_title:"Title (optional)",doc_open:"Open",doc_delete_confirm:'Delete "{name}"?',doc_too_large:"File is too large (max 25 MB).",doc_upload_failed:"Upload failed.",completion_photo_optional:"Completion photo (optional)",add_photo:"Add photo",uploading:"Uploading\u2026",remove:"Remove",doc_deduped:"Already stored elsewhere \u2014 shared, no extra space used.",doc_dup_in_object:"This file is already attached to this object.",doc_link_invalid:"Only http/https links are allowed.",doc_cat_manual:"Manual",doc_cat_warranty:"Warranty",doc_cat_invoice:"Invoice",doc_cat_spare_parts:"Spare parts",doc_cat_photo:"Photo",doc_cat_other:"Other",doc_link_badge:"Link",doc_storage_title:"Document storage",doc_storage_saved:"Saved via deduplication",doc_storage_refresh:"Refresh",doc_download:"Download",doc_close:"Close",doc_camera:"Take photo",doc_drop_hint:"Drop files here",doc_task_none:"No documents linked to this task.",doc_link_existing:"Link a document\u2026",doc_attach:"Link",doc_unlink:"Unlink",doc_page:"Page",chart_range_7d:"7d",chart_range_30d:"30d",chart_range_90d:"90d",chart_range_1y:"1y",chart_since_service:"since last service",chart_no_stats:"No long-term statistics for this entity \u2014 showing maintenance-event values only",auto_complete_on_recovery:"Auto-complete when the sensor recovers",auto_complete_on_recovery_help:"Records a completion (sets last performed) when the trigger clears itself \u2014 e.g. salt refilled, filter replaced.",doc_search:"Search documents\u2026",doc_search_none:"No matching documents"}});function Je(a){return(a||Ye).substring(0,2).toLowerCase()}function r(a,s){let e=Je(s);return ge[e]?.[a]??ge.en[a]??a}function Se(a){let s=Je(a);return s===Ye||s in ge}function Te(a){let s=Je(a);return s===Ye||s in ge||!Ii.has(s)?Promise.resolve():(s in Ke||(Ke[s]=fetch(`${Li}/${s}.json`).then(e=>e.ok?e.json():null).then(e=>{e&&(ge[s]=e)}).catch(()=>{})),Ke[s])}function jt(a){let s=(a||"en").substring(0,2).toLowerCase();return{de:"de-DE",en:"en-US",nl:"nl-NL",fr:"fr-FR",it:"it-IT",es:"es-ES",pt:"pt-PT",ru:"ru-RU",uk:"uk-UA",zh:"zh-CN",da:"da-DK",fi:"fi-FI",nb:"nb-NO",ja:"ja-JP",hi:"hi-IN"}[s]??"en-US"}function Z(a,s){if(!a)return"\u2014";try{let e=a.includes("T")?a:a+"T00:00:00";return new Date(e).toLocaleDateString(jt(s),{day:"2-digit",month:"2-digit",year:"numeric"})}catch{return a}}function Pt(a,s){if(!a)return"\u2014";try{let e=jt(s),t=new Date(a);return t.toLocaleDateString(e,{day:"2-digit",month:"2-digit",year:"numeric"})+" "+t.toLocaleTimeString(e,{hour:"2-digit",minute:"2-digit"})}catch{return a}}function Rt(a,s,e){return a==null?"\u2014":`${a} ${r("unit_"+(s||"days"),e)}`}function Ae(a,s,e="long"){let t=(s||"en").substring(0,2);return new Date(Date.UTC(2024,0,1+a)).toLocaleDateString(t,{weekday:e,timeZone:"UTC"})}function zt(a,s){let e=a.schedule;switch(e?.kind){case"weekdays":return(e.weekdays||[]).map(t=>Ae(t,s,"short")).join(" & ")||"\u2014";case"nth_weekday":return e.weekday==null||e.nth==null?"\u2014":`${e.nth===-1?r("ord_last",s):r("ord_"+e.nth,s)} ${Ae(e.weekday,s,"long")}`;case"day_of_month":return e.day!=null?`${r("day_word",s)} ${e.day}`:"\u2014";case"one_time":return a.due_date?Z(a.due_date,s):r("one_time",s);case"manual":return r("manual",s);case"interval":return Rt(e.every,e.unit,s)}return a.schedule_type==="one_time"?a.due_date?Z(a.due_date,s):r("one_time",s):a.schedule_type==="manual"?r("manual",s):a.schedule_type==="sensor_based"?r("sensor_based",s):a.interval_days!=null?Rt(a.interval_days,a.interval_unit,s):"\u2014"}function Nt(a,s){a.currentTarget.dispatchEvent(new CustomEvent("hass-more-info",{detail:{entityId:s},bubbles:!0,composed:!0}))}var re,Ye,ge,Ii,Li,Ke,Ce,C=y(()=>{"use strict";T();Lt();re={ok:"var(--success-color, #4caf50)",due_soon:"var(--warning-color, #ff9800)",overdue:"var(--error-color, #f44336)",triggered:"#ff5722",archived:"var(--disabled-color, #9e9e9e)"},Ye="en",ge={en:Ht},Ii=new Set(["de","nl","fr","it","es","pt","ru","uk","pl","cs","sv","zh","da","fi","nb","ja","hi"]),Li="/maintenance_supporter_locales",Ke={};Ce=k`
   :host {
     --maint-ok-color: var(--success-color, #4caf50);
     --maint-due-soon-color: var(--warning-color, #ff9800);
@@ -1125,17 +1125,17 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     .stat-item { min-width: 60px; }
     .stat-value { font-size: 20px; }
   }
-`});function ji(a,i){let e=Ri[a];if(!e)return a;let t=s(e,i);return t&&t!==e?t:a}function Pi(a){let e=a.match(/data\['([^']+)'\]/)?.[1],t;return(t=a.match(/length of value must be at most (\d+)/))?{field:e,rule:"too_long",param:t[1]}:(t=a.match(/length of value must be at least (\d+)/))?{field:e,rule:"too_short",param:t[1]}:(t=a.match(/value must be at most (\S+)/))?{field:e,rule:"value_too_high",param:t[1]}:(t=a.match(/value must be at least (\S+)/))?{field:e,rule:"value_too_low",param:t[1]}:/required key not provided/.test(a)?{field:e,rule:"required"}:(t=a.match(/expected (\w+)/))?{field:e,rule:"wrong_type",param:t[1]}:/value must be one of/.test(a)?{field:e,rule:"invalid_choice"}:/not a valid value/.test(a)?{field:e,rule:"invalid_value"}:{field:e,rule:"unknown"}}function I(a,i,e){if(e=e??s("action_error",i),typeof a=="string")return a;if(typeof a!="object"||a===null)return e;let t=a,r=t.message||t.error?.message||"";if(!r)return e;let o=Pi(r),l=o.field?ji(o.field,i):"",d=p=>s(p,i).replace("{field}",l).replace("{n}",o.param??"");switch(o.rule){case"too_long":return d("err_too_long");case"too_short":return d("err_too_short");case"value_too_high":return d("err_value_too_high");case"value_too_low":return d("err_value_too_low");case"required":return d("err_required");case"wrong_type":return d("err_wrong_type").replace("{type}",o.param??"");case"invalid_choice":return d("err_invalid_choice");case"invalid_value":return d("err_invalid_value");default:return r||e}}var Ri,Q=y(()=>{"use strict";C();Ri={name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",group_name:"name",group_description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_for_minutes:"trigger_for_minutes"}});var E,Ze=y(()=>{"use strict";T();j();C();Q();E=class extends ${constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState={},this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1)}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _onPhotoInput(e){let t=e.target,r=t.files?.[0];if(t.value="",!!r){this._photoUploading=!0,this._error="";try{let o=new FormData;o.append("entry_id",this.entryId),o.append("tags","photo"),o.append("file",r,r.name);let l=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:o});if(!l.ok){this._error=l.status===413?s("doc_too_large",this.lang):s("doc_upload_failed",this.lang);return}let d=await l.json();d.id&&(this._photoDocId=d.id,this._photoPreview=URL.createObjectURL(r))}catch{this._error=s("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(e.notes=this._notes),this._cost){let t=parseFloat(this._cost);!isNaN(t)&&t>=0&&(e.cost=t)}if(this._duration){let t=parseInt(this._duration,10);!isNaN(t)&&t>=0&&(e.duration=t)}this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photoDocId&&(e.photo_doc_id=this._photoDocId),await this.hass.connection.sendMessagePromise(e),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(e){this._error=I(e,this.lang,s("save_error",this.lang))}finally{this._loading=!1}}_close(){this._open=!1}render(){if(!this._open)return n``;let e=this.lang||this.hass?.language||"en";return n`
+`});function ji(a,s){let e=Ri[a];if(!e)return a;let t=r(e,s);return t&&t!==e?t:a}function Pi(a){let e=a.match(/data\['([^']+)'\]/)?.[1],t;return(t=a.match(/length of value must be at most (\d+)/))?{field:e,rule:"too_long",param:t[1]}:(t=a.match(/length of value must be at least (\d+)/))?{field:e,rule:"too_short",param:t[1]}:(t=a.match(/value must be at most (\S+)/))?{field:e,rule:"value_too_high",param:t[1]}:(t=a.match(/value must be at least (\S+)/))?{field:e,rule:"value_too_low",param:t[1]}:/required key not provided/.test(a)?{field:e,rule:"required"}:(t=a.match(/expected (\w+)/))?{field:e,rule:"wrong_type",param:t[1]}:/value must be one of/.test(a)?{field:e,rule:"invalid_choice"}:/not a valid value/.test(a)?{field:e,rule:"invalid_value"}:{field:e,rule:"unknown"}}function I(a,s,e){if(e=e??r("action_error",s),typeof a=="string")return a;if(typeof a!="object"||a===null)return e;let t=a,i=t.message||t.error?.message||"";if(!i)return e;let o=Pi(i),l=o.field?ji(o.field,s):"",d=p=>r(p,s).replace("{field}",l).replace("{n}",o.param??"");switch(o.rule){case"too_long":return d("err_too_long");case"too_short":return d("err_too_short");case"value_too_high":return d("err_value_too_high");case"value_too_low":return d("err_value_too_low");case"required":return d("err_required");case"wrong_type":return d("err_wrong_type").replace("{type}",o.param??"");case"invalid_choice":return d("err_invalid_choice");case"invalid_value":return d("err_invalid_value");default:return i||e}}var Ri,Q=y(()=>{"use strict";C();Ri={name:"name",task_type:"maintenance_type",schedule_type:"schedule_type",interval_days:"interval_days",interval_anchor:"interval_anchor",warning_days:"warning_days",last_performed:"last_performed_optional",notes:"notes_optional",documentation_url:"documentation_url_optional",custom_icon:"custom_icon_optional",nfc_tag_id:"nfc_tag_id_optional",responsible_user_id:"responsible_user",entity_slug:"entity_slug",entity_id:"entity_id",area_id:"area_id_optional",manufacturer:"manufacturer_optional",model:"model_optional",serial_number:"serial_number_optional",installation_date:"installation_date_optional",warranty_expiry:"warranty_expiry_optional",checklist:"checklist_steps_optional",reason:"reason",feedback:"feedback",cost:"cost",duration:"duration",description:"description_optional",group_name:"name",group_description:"description_optional",environmental_entity:"environmental_entity_optional",environmental_attribute:"environmental_attribute_optional",trigger_above:"trigger_above",trigger_below:"trigger_below",trigger_for_minutes:"trigger_for_minutes"}});var E,Ze=y(()=>{"use strict";T();j();C();Q();E=class extends ${constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState={},this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1)}_toggleCheck(e){let t=String(e);this._checklistState={...this._checklistState,[t]:!this._checklistState[t]}}_setFeedback(e){this._feedback=e}async _onPhotoInput(e){let t=e.target,i=t.files?.[0];if(t.value="",!!i){this._photoUploading=!0,this._error="";try{let o=new FormData;o.append("entry_id",this.entryId),o.append("tags","photo"),o.append("file",i,i.name);let l=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:o});if(!l.ok){this._error=l.status===413?r("doc_too_large",this.lang):r("doc_upload_failed",this.lang);return}let d=await l.json();d.id&&(this._photoDocId=d.id,this._photoPreview=URL.createObjectURL(i))}catch{this._error=r("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let e={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(e.notes=this._notes),this._cost){let t=parseFloat(this._cost);!isNaN(t)&&t>=0&&(e.cost=t)}if(this._duration){let t=parseInt(this._duration,10);!isNaN(t)&&t>=0&&(e.duration=t)}this.checklist.length>0&&(e.checklist_state=this._checklistState),this.adaptiveEnabled&&(e.feedback=this._feedback),this._photoDocId&&(e.photo_doc_id=this._photoDocId),await this.hass.connection.sendMessagePromise(e),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(e){this._error=I(e,this.lang,r("save_error",this.lang))}finally{this._loading=!1}}_close(){this._open=!1}render(){if(!this._open)return n``;let e=this.lang||this.hass?.language||"en";return n`
       <ha-dialog open @closed=${this._close}>
-        <div class="dialog-title">${s("complete_title",e)}${this.taskName}</div>
+        <div class="dialog-title">${r("complete_title",e)}${this.taskName}</div>
         <div class="content">
           ${this._error?n`<div class="error">${this._error}</div>`:u}
           ${this.checklist.length>0?n`
             <div class="checklist-section">
-              <label class="checklist-label">${s("checklist",e)}</label>
-              ${this.checklist.map((t,r)=>n`
-                <label class="checklist-item" @click=${()=>this._toggleCheck(r)}>
-                  <input type="checkbox" .checked=${!!this._checklistState[String(r)]} />
+              <label class="checklist-label">${r("checklist",e)}</label>
+              ${this.checklist.map((t,i)=>n`
+                <label class="checklist-item" @click=${()=>this._toggleCheck(i)}>
+                  <input type="checkbox" .checked=${!!this._checklistState[String(i)]} />
                   <span>${t}</span>
                 </label>
               `)}
@@ -1148,34 +1148,34 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                only sees the title + Cancel/Complete buttons — the original
                bug report. Native inputs always render. -->
           <label class="field">
-            <span class="field-label">${s("notes_optional",e)}</span>
+            <span class="field-label">${r("notes_optional",e)}</span>
             <input type="text" class="field-input"
               .value=${this._notes}
               @input=${t=>this._notes=t.target.value} />
           </label>
           <label class="field">
-            <span class="field-label">${s("cost_optional",e)}</span>
+            <span class="field-label">${r("cost_optional",e)}</span>
             <input type="number" step="0.01" min="0" class="field-input"
               .value=${this._cost}
               @input=${t=>this._cost=t.target.value} />
           </label>
           <label class="field">
-            <span class="field-label">${s("duration_minutes",e)}</span>
+            <span class="field-label">${r("duration_minutes",e)}</span>
             <input type="number" step="1" min="0" class="field-input"
               .value=${this._duration}
               @input=${t=>this._duration=t.target.value} />
           </label>
           <div class="field">
-            <span class="field-label">${s("completion_photo_optional",e)}</span>
+            <span class="field-label">${r("completion_photo_optional",e)}</span>
             ${this._photoPreview?n`
                 <div class="photo-preview">
                   <img src=${this._photoPreview} alt="" />
                   <button type="button" class="photo-remove" @click=${this._removePhoto}
-                    title="${s("remove",e)}">✕</button>
+                    title="${r("remove",e)}">✕</button>
                 </div>`:n`
                 <label class="photo-pick">
                   <ha-icon icon="mdi:camera"></ha-icon>
-                  <span>${this._photoUploading?s("uploading",e):s("add_photo",e)}</span>
+                  <span>${this._photoUploading?r("uploading",e):r("add_photo",e)}</span>
                   <input type="file" accept="image/*" capture="environment"
                     ?disabled=${this._photoUploading}
                     @change=${this._onPhotoInput} />
@@ -1183,33 +1183,33 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
           </div>
           ${this.adaptiveEnabled?n`
             <div class="feedback-section">
-              <label class="feedback-label">${s("was_maintenance_needed",e)}</label>
+              <label class="feedback-label">${r("was_maintenance_needed",e)}</label>
               <div class="feedback-buttons">
                 <button
                   class="feedback-btn ${this._feedback==="needed"?"selected":""}"
                   @click=${()=>this._setFeedback("needed")}
-                >${s("feedback_needed",e)}</button>
+                >${r("feedback_needed",e)}</button>
                 <button
                   class="feedback-btn ${this._feedback==="not_needed"?"selected":""}"
                   @click=${()=>this._setFeedback("not_needed")}
-                >${s("feedback_not_needed",e)}</button>
+                >${r("feedback_not_needed",e)}</button>
                 <button
                   class="feedback-btn ${this._feedback==="not_sure"?"selected":""}"
                   @click=${()=>this._setFeedback("not_sure")}
-                >${s("feedback_not_sure",e)}</button>
+                >${r("feedback_not_sure",e)}</button>
               </div>
             </div>
           `:u}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${r("cancel",e)}
           </ha-button>
           <ha-button
             @click=${this._complete}
             .disabled=${this._loading}
           >
-            ${this._loading?s("completing",e):s("complete",e)}
+            ${this._loading?r("completing",e):r("complete",e)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -1404,74 +1404,74 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       color: var(--secondary-text-color);
       font-style: italic;
     }
-  `,c([f()],L.prototype,"label",2),c([f()],L.prototype,"value",2),c([f()],L.prototype,"placeholder",2),c([f()],L.prototype,"type",2),c([f({type:Boolean})],L.prototype,"required",2),c([f({type:Boolean})],L.prototype,"disabled",2),c([f()],L.prototype,"step",2),c([f()],L.prototype,"min",2),c([f()],L.prototype,"max",2),c([f()],L.prototype,"pattern",2),c([f()],L.prototype,"helper",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",L)});var S,Mt=y(()=>{"use strict";T();j();C();Q();Qe();S=class extends ${constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._entryId=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._error="",this._open=!0}openEdit(e,t){this._entryId=e,this._name=t.name||"",this._manufacturer=t.manufacturer||"",this._model=t.model||"",this._serialNumber=t.serial_number||"",this._areaId=t.area_id||"",this._installationDate=t.installation_date||"",this._warrantyExpiry=t.warranty_expiry||"",this._documentationUrl=t.documentation_url||"",this._notes=t.notes||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(e){this._error=I(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}render(){if(!this._open)return n``;let e=this._lang,t=this._entryId?s("edit_object",e):s("new_object",e);return n`
+  `,c([f()],L.prototype,"label",2),c([f()],L.prototype,"value",2),c([f()],L.prototype,"placeholder",2),c([f()],L.prototype,"type",2),c([f({type:Boolean})],L.prototype,"required",2),c([f({type:Boolean})],L.prototype,"disabled",2),c([f()],L.prototype,"step",2),c([f()],L.prototype,"min",2),c([f()],L.prototype,"max",2),c([f()],L.prototype,"pattern",2),c([f()],L.prototype,"helper",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",L)});var S,Mt=y(()=>{"use strict";T();j();C();Q();Qe();S=class extends ${constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._entryId=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._error="",this._open=!0}openEdit(e,t){this._entryId=e,this._name=t.name||"",this._manufacturer=t.manufacturer||"",this._model=t.model||"",this._serialNumber=t.serial_number||"",this._areaId=t.area_id||"",this._installationDate=t.installation_date||"",this._warrantyExpiry=t.warranty_expiry||"",this._documentationUrl=t.documentation_url||"",this._notes=t.notes||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(e){this._error=I(e,this._lang,r("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}render(){if(!this._open)return n``;let e=this._lang,t=this._entryId?r("edit_object",e):r("new_object",e);return n`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t}</div>
         <div class="content">
           ${this._error?n`<div class="error">${this._error}</div>`:u}
           <ms-textfield
-            label="${s("name",e)}"
+            label="${r("name",e)}"
             required
             .value=${this._name}
-            @input=${r=>this._name=r.target.value}
+            @input=${i=>this._name=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("manufacturer_optional",e)}"
+            label="${r("manufacturer_optional",e)}"
             .value=${this._manufacturer}
-            @input=${r=>this._manufacturer=r.target.value}
+            @input=${i=>this._manufacturer=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("model_optional",e)}"
+            label="${r("model_optional",e)}"
             .value=${this._model}
-            @input=${r=>this._model=r.target.value}
+            @input=${i=>this._model=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("serial_number_optional",e)}"
+            label="${r("serial_number_optional",e)}"
             .value=${this._serialNumber}
-            @input=${r=>this._serialNumber=r.target.value}
+            @input=${i=>this._serialNumber=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("documentation_url_optional",e)}"
+            label="${r("documentation_url_optional",e)}"
             type="url"
             .value=${this._documentationUrl}
-            @input=${r=>this._documentationUrl=r.target.value}
+            @input=${i=>this._documentationUrl=i.target.value}
           ></ms-textfield>
           <ha-area-picker
             .hass=${this.hass}
-            label="${s("area_id_optional",e)}"
+            label="${r("area_id_optional",e)}"
             .value=${this._areaId}
-            @value-changed=${r=>this._areaId=r.detail.value||""}
+            @value-changed=${i=>this._areaId=i.detail.value||""}
           ></ha-area-picker>
           <ms-textfield
-            label="${s("installation_date_optional",e)}"
+            label="${r("installation_date_optional",e)}"
             type="date"
             .value=${this._installationDate}
-            @input=${r=>this._installationDate=r.target.value}
+            @input=${i=>this._installationDate=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("warranty_expiry_optional",e)}"
+            label="${r("warranty_expiry_optional",e)}"
             type="date"
             .value=${this._warrantyExpiry}
-            @input=${r=>this._warrantyExpiry=r.target.value}
+            @input=${i=>this._warrantyExpiry=i.target.value}
           ></ms-textfield>
           <label class="textarea-field">
-            <span class="textarea-label">${s("object_notes_optional",e)}</span>
+            <span class="textarea-label">${r("object_notes_optional",e)}</span>
             <textarea
               rows="3"
               .value=${this._notes}
-              @input=${r=>this._notes=r.target.value}
+              @input=${i=>this._notes=i.target.value}
             ></textarea>
           </label>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",this._lang)}
+            ${r("cancel",this._lang)}
           </ha-button>
           <ha-button
             @click=${this._save}
             .disabled=${this._loading||!this._name.trim()}
           >
-            ${this._loading?s("saving",this._lang):s("save",this._lang)}
+            ${this._loading?r("saving",this._lang):r("save",this._lang)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -1516,25 +1516,25 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-  `,c([f({attribute:!1})],S.prototype,"hass",2),c([h()],S.prototype,"_open",2),c([h()],S.prototype,"_loading",2),c([h()],S.prototype,"_error",2),c([h()],S.prototype,"_name",2),c([h()],S.prototype,"_manufacturer",2),c([h()],S.prototype,"_model",2),c([h()],S.prototype,"_serialNumber",2),c([h()],S.prototype,"_areaId",2),c([h()],S.prototype,"_installationDate",2),c([h()],S.prototype,"_warrantyExpiry",2),c([h()],S.prototype,"_documentationUrl",2),c([h()],S.prototype,"_notes",2),c([h()],S.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",S)});var Ie,qt=y(()=>{"use strict";Ie=class{constructor(i){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=i}updateHass(i){this.hass=i}async getUsers(i=!1){let e=Date.now();if(!i&&this.usersCache&&e-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=t.users,this.cacheTimestamp=e,this.usersCache}catch(t){return console.error("Failed to fetch users:",t),this.usersCache||[]}}async assignUser(i,e,t){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:i,task_id:e,user_id:t})}async getTasksByUser(i){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:i})).tasks}getUserName(i){return!i||!this.usersCache?null:this.usersCache.find(t=>t.id===i)?.name||null}getUser(i){return!i||!this.usersCache?null:this.usersCache.find(e=>e.id===i)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(i){return i?i===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}}});function Ui(){return{entityIds:"",type:"threshold",above:"",below:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:""}}function Oi(a){return{entityIds:(a.entity_ids||(a.entity_id?[a.entity_id]:[])).join(", "),type:a.type||"threshold",above:a.trigger_above?.toString()??"",below:a.trigger_below?.toString()??"",forMinutes:a.trigger_for_minutes?.toString()??"0",targetValue:a.trigger_target_value?.toString()??"",deltaMode:a.trigger_delta_mode||!1,fromState:a.trigger_from_state||"",toState:a.trigger_to_state||"",targetChanges:a.trigger_target_changes?.toString()??"",runtimeHours:a.trigger_runtime_hours?.toString()??""}}function Fi(a){let i=a.entityIds.split(",").map(t=>t.trim()).filter(Boolean);if(i.length===0)return null;let e={entity_id:i[0],entity_ids:i,type:a.type};if(a.type==="threshold"){let t=parseFloat(a.above);isNaN(t)||(e.trigger_above=t);let r=parseFloat(a.below);isNaN(r)||(e.trigger_below=r);let o=parseInt(a.forMinutes,10);isNaN(o)||(e.trigger_for_minutes=o)}else if(a.type==="counter"){let t=parseFloat(a.targetValue);isNaN(t)||(e.trigger_target_value=t),e.trigger_delta_mode=a.deltaMode}else if(a.type==="state_change"){a.fromState&&(e.trigger_from_state=a.fromState),a.toState&&(e.trigger_to_state=a.toState);let t=parseInt(a.targetChanges,10);isNaN(t)||(e.trigger_target_changes=t)}else if(a.type==="runtime"){let t=parseFloat(a.runtimeHours);isNaN(t)||(e.trigger_runtime_hours=t)}return e}function Wi(a){return Array.from({length:7},(i,e)=>Ae(e,a,"short"))}var zi,Ni,Mi,qi,Dt,Di,_,Ut=y(()=>{"use strict";T();j();C();qt();Q();Qe();zi=["cleaning","inspection","replacement","calibration","service","custom"],Ni=["low","normal","high"],Mi=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],qi=["weekdays","nth_weekday","day_of_month"],Dt=["threshold","counter","state_change","runtime"],Di=[...Dt,"compound"];_=class extends ${constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerForMinutes="0";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._availableTags=[];this._responsibleUserId=null;this._availableUsers=[];this._checklistText="";this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._userService=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}async openCreate(e,t){this._entryId=e,this._taskId=null,this._error="",!e&&t&&t.length>0?(this._objectChoices=t.map(r=>({entry_id:r.entry_id,name:r.object.name})).sort((r,o)=>r.name.localeCompare(o.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}async openEdit(e,t){this._entryId=e,this._taskId=t.id,this._error="",this._name=t.name,this._type=t.type,this._scheduleType=t.schedule_type,this._intervalDays=t.interval_days!=null?String(t.interval_days):"",this._intervalUnit=t.interval_unit||"days",this._dueDate=t.due_date||"";let r=t.schedule;this._weekdays=r?.kind==="weekdays"?[...r.weekdays??[]]:[],this._nth=r?.kind==="nth_weekday"?String(r.nth??1):"1",this._nthWeekday=r?.kind==="nth_weekday"?String(r.weekday??5):"5",this._domDay=r?.kind==="day_of_month"?String(r.day??1):"1",this._warningDays=t.warning_days.toString(),this._intervalAnchor=t.interval_anchor||"completion",this._notes=t.notes||"",this._documentationUrl=t.documentation_url||"",this._customIcon=t.custom_icon||"",this._priority=t.priority||"normal",this._labels=(t.labels||[]).join(", "),this._enabled=t.enabled!==!1,this._lastPerformed=t.last_performed||"",this._nfcTagId=t.nfc_tag_id||"",this._responsibleUserId=t.responsible_user_id||null,this._checklistText=(t.checklist||[]).join(`
-`),this._scheduleTime=t.schedule_time||"";let o=t.on_complete_action;if(o&&o.service){this._actionService=o.service;let p=o.target?.entity_id;this._actionTargetEntity=Array.isArray(p)?p[0]||"":p||"",this._actionData=o.data&&typeof o.data=="object"?{...o.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let l=t.quick_complete_defaults;this._qcNotes=l?.notes||"",this._qcCost=l?.cost!=null?String(l.cost):"",this._qcDuration=l?.duration!=null?String(l.duration):"",this._qcFeedback=l?.feedback||"";let d=t.adaptive_config||{};if(this._environmentalEntity=d.environmental_entity||"",this._environmentalAttribute=d.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,t.trigger_config){let p=t.trigger_config;this._triggerEntityId=p.entity_id||"",this._triggerEntityIds=p.entity_ids||(p.entity_id?[p.entity_id]:[]),this._triggerEntityLogic=p.entity_logic||"any",this._triggerAttribute=p.attribute||"",this._triggerType=p.type||"threshold",this._triggerAbove=p.trigger_above?.toString()||"",this._triggerBelow=p.trigger_below?.toString()||"",this._triggerForMinutes=p.trigger_for_minutes?.toString()||"0",this._triggerTargetValue=p.trigger_target_value?.toString()||"",this._triggerDeltaMode=p.trigger_delta_mode||!1,this._autoCompleteOnRecovery=p.auto_complete_on_recovery||!1,this._triggerFromState=p.trigger_from_state||"",this._triggerToState=p.trigger_to_state||"",this._triggerTargetChanges=p.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=p.trigger_runtime_hours?.toString()||"",p.type==="compound"?(this._compoundLogic=p.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(p.conditions||[]).map(Oi)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._responsibleUserId=null,this._checklistText="",this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerForMinutes="0",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new Ie(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(e){console.error("Failed to load users:",e),this._availableUsers=[]}}async _testAction(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[t,r]=e.split(".");if(!this.hass?.services?.[t]?.[r]){this._actionTestResult="error",this._actionTestError=`Service "${e}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let o=this._actionTargetEntity.trim();if(o){let l=o.split(".")[0];if(l!==t&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(t)){this._actionTestResult="error",this._actionTestError=`Service "${e}" only works on ${t}.* entities; entity "${o}" is in ${l}.* \u2014 pick a service that matches the entity domain (e.g. ${l}.${r})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[o]){this._actionTestResult="error",this._actionTestError=`Target entity "${o}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let e=JSON.parse(this._actionDataJsonFallback);if(e&&typeof e=="object"&&!Array.isArray(e))return e}catch{}return{...this._actionData}}_serviceSchema(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e))return null;let[t,r]=e.split("."),o=this.hass?.services?.[t]?.[r]?.fields;return!o||Object.keys(o).length===0?null:Object.entries(o).map(([l,d])=>({name:l,required:!!d.required,selector:d.selector||{text:{}}}))}_renderCompletionActionsSection(e){if(!this.completionActionsEnabled)return u;let t=this._serviceSchema();return n`
+  `,c([f({attribute:!1})],S.prototype,"hass",2),c([h()],S.prototype,"_open",2),c([h()],S.prototype,"_loading",2),c([h()],S.prototype,"_error",2),c([h()],S.prototype,"_name",2),c([h()],S.prototype,"_manufacturer",2),c([h()],S.prototype,"_model",2),c([h()],S.prototype,"_serialNumber",2),c([h()],S.prototype,"_areaId",2),c([h()],S.prototype,"_installationDate",2),c([h()],S.prototype,"_warrantyExpiry",2),c([h()],S.prototype,"_documentationUrl",2),c([h()],S.prototype,"_notes",2),c([h()],S.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",S)});var Ie,qt=y(()=>{"use strict";Ie=class{constructor(s){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=s}updateHass(s){this.hass=s}async getUsers(s=!1){let e=Date.now();if(!s&&this.usersCache&&e-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=t.users,this.cacheTimestamp=e,this.usersCache}catch(t){return console.error("Failed to fetch users:",t),this.usersCache||[]}}async assignUser(s,e,t){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:s,task_id:e,user_id:t})}async getTasksByUser(s){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:s})).tasks}getUserName(s){return!s||!this.usersCache?null:this.usersCache.find(t=>t.id===s)?.name||null}getUser(s){return!s||!this.usersCache?null:this.usersCache.find(e=>e.id===s)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(s){return s?s===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}}});function Ui(){return{entityIds:"",type:"threshold",above:"",below:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:""}}function Oi(a){return{entityIds:(a.entity_ids||(a.entity_id?[a.entity_id]:[])).join(", "),type:a.type||"threshold",above:a.trigger_above?.toString()??"",below:a.trigger_below?.toString()??"",forMinutes:a.trigger_for_minutes?.toString()??"0",targetValue:a.trigger_target_value?.toString()??"",deltaMode:a.trigger_delta_mode||!1,fromState:a.trigger_from_state||"",toState:a.trigger_to_state||"",targetChanges:a.trigger_target_changes?.toString()??"",runtimeHours:a.trigger_runtime_hours?.toString()??""}}function Fi(a){let s=a.entityIds.split(",").map(t=>t.trim()).filter(Boolean);if(s.length===0)return null;let e={entity_id:s[0],entity_ids:s,type:a.type};if(a.type==="threshold"){let t=parseFloat(a.above);isNaN(t)||(e.trigger_above=t);let i=parseFloat(a.below);isNaN(i)||(e.trigger_below=i);let o=parseInt(a.forMinutes,10);isNaN(o)||(e.trigger_for_minutes=o)}else if(a.type==="counter"){let t=parseFloat(a.targetValue);isNaN(t)||(e.trigger_target_value=t),e.trigger_delta_mode=a.deltaMode}else if(a.type==="state_change"){a.fromState&&(e.trigger_from_state=a.fromState),a.toState&&(e.trigger_to_state=a.toState);let t=parseInt(a.targetChanges,10);isNaN(t)||(e.trigger_target_changes=t)}else if(a.type==="runtime"){let t=parseFloat(a.runtimeHours);isNaN(t)||(e.trigger_runtime_hours=t)}return e}function Wi(a){return Array.from({length:7},(s,e)=>Ae(e,a,"short"))}var zi,Ni,Mi,qi,Dt,Di,_,Ut=y(()=>{"use strict";T();j();C();qt();Q();Qe();zi=["cleaning","inspection","replacement","calibration","service","custom"],Ni=["low","normal","high"],Mi=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],qi=["weekdays","nth_weekday","day_of_month"],Dt=["threshold","counter","state_change","runtime"],Di=[...Dt,"compound"];_=class extends ${constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerForMinutes="0";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._availableTags=[];this._responsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._userService=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}async openCreate(e,t){this._entryId=e,this._taskId=null,this._error="",!e&&t&&t.length>0?(this._objectChoices=t.map(i=>({entry_id:i.entry_id,name:i.object.name})).sort((i,o)=>i.name.localeCompare(o.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}async openEdit(e,t){this._entryId=e,this._taskId=t.id,this._error="",this._name=t.name,this._type=t.type,this._scheduleType=t.schedule_type,this._intervalDays=t.interval_days!=null?String(t.interval_days):"",this._intervalUnit=t.interval_unit||"days",this._dueDate=t.due_date||"";let i=t.schedule;this._weekdays=i?.kind==="weekdays"?[...i.weekdays??[]]:[],this._nth=i?.kind==="nth_weekday"?String(i.nth??1):"1",this._nthWeekday=i?.kind==="nth_weekday"?String(i.weekday??5):"5",this._domDay=i?.kind==="day_of_month"?String(i.day??1):"1",this._warningDays=t.warning_days.toString(),this._intervalAnchor=t.interval_anchor||"completion",this._notes=t.notes||"",this._documentationUrl=t.documentation_url||"",this._customIcon=t.custom_icon||"",this._priority=t.priority||"normal",this._labels=(t.labels||[]).join(", "),this._enabled=t.enabled!==!1,this._lastPerformed=t.last_performed||"",this._nfcTagId=t.nfc_tag_id||"",this._responsibleUserId=t.responsible_user_id||null,this._assigneePool=[...t.assignee_pool||[]],this._rotationStrategy=t.rotation_strategy||"",this._checklistText=(t.checklist||[]).join(`
+`),this._scheduleTime=t.schedule_time||"";let o=t.on_complete_action;if(o&&o.service){this._actionService=o.service;let p=o.target?.entity_id;this._actionTargetEntity=Array.isArray(p)?p[0]||"":p||"",this._actionData=o.data&&typeof o.data=="object"?{...o.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let l=t.quick_complete_defaults;this._qcNotes=l?.notes||"",this._qcCost=l?.cost!=null?String(l.cost):"",this._qcDuration=l?.duration!=null?String(l.duration):"",this._qcFeedback=l?.feedback||"";let d=t.adaptive_config||{};if(this._environmentalEntity=d.environmental_entity||"",this._environmentalAttribute=d.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,t.trigger_config){let p=t.trigger_config;this._triggerEntityId=p.entity_id||"",this._triggerEntityIds=p.entity_ids||(p.entity_id?[p.entity_id]:[]),this._triggerEntityLogic=p.entity_logic||"any",this._triggerAttribute=p.attribute||"",this._triggerType=p.type||"threshold",this._triggerAbove=p.trigger_above?.toString()||"",this._triggerBelow=p.trigger_below?.toString()||"",this._triggerForMinutes=p.trigger_for_minutes?.toString()||"0",this._triggerTargetValue=p.trigger_target_value?.toString()||"",this._triggerDeltaMode=p.trigger_delta_mode||!1,this._autoCompleteOnRecovery=p.auto_complete_on_recovery||!1,this._triggerFromState=p.trigger_from_state||"",this._triggerToState=p.trigger_to_state||"",this._triggerTargetChanges=p.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=p.trigger_runtime_hours?.toString()||"",p.type==="compound"?(this._compoundLogic=p.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(p.conditions||[]).map(Oi)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerForMinutes="0",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new Ie(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(e){console.error("Failed to load users:",e),this._availableUsers=[]}}_toggleAssignee(e){this._assigneePool=this._assigneePool.includes(e)?this._assigneePool.filter(t=>t!==e):[...this._assigneePool,e]}async _testAction(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[t,i]=e.split(".");if(!this.hass?.services?.[t]?.[i]){this._actionTestResult="error",this._actionTestError=`Service "${e}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let o=this._actionTargetEntity.trim();if(o){let l=o.split(".")[0];if(l!==t&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(t)){this._actionTestResult="error",this._actionTestError=`Service "${e}" only works on ${t}.* entities; entity "${o}" is in ${l}.* \u2014 pick a service that matches the entity domain (e.g. ${l}.${i})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[o]){this._actionTestResult="error",this._actionTestError=`Target entity "${o}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let e=JSON.parse(this._actionDataJsonFallback);if(e&&typeof e=="object"&&!Array.isArray(e))return e}catch{}return{...this._actionData}}_serviceSchema(){let e=this._actionService.trim();if(!e||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(e))return null;let[t,i]=e.split("."),o=this.hass?.services?.[t]?.[i]?.fields;return!o||Object.keys(o).length===0?null:Object.entries(o).map(([l,d])=>({name:l,required:!!d.required,selector:d.selector||{text:{}}}))}_renderCompletionActionsSection(e){if(!this.completionActionsEnabled)return u;let t=this._serviceSchema();return n`
       <details class="ca-section">
-        <summary>${s("on_complete_action_title",e)}</summary>
-        <p class="field-help">${s("on_complete_action_desc",e)}</p>
+        <summary>${r("on_complete_action_title",e)}</summary>
+        <p class="field-help">${r("on_complete_action_desc",e)}</p>
         <ha-service-picker
           .hass=${this.hass}
           .value=${this._actionService}
-          @value-changed=${r=>{this._actionService=r.detail.value||"";let o=this._serviceSchema();if(o){let l=new Set(o.map(d=>d.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([d])=>l.has(d)))}}}
+          @value-changed=${i=>{this._actionService=i.detail.value||"";let o=this._serviceSchema();if(o){let l=new Set(o.map(d=>d.name));this._actionData=Object.fromEntries(Object.entries(this._actionData).filter(([d])=>l.has(d)))}}}
         ></ha-service-picker>
         <ha-form
           .hass=${this.hass}
           .schema=${[{name:"target_entity",selector:{entity:{}}}]}
           .data=${{target_entity:this._actionTargetEntity}}
-          .computeLabel=${()=>s("on_complete_action_target",e)}
-          @value-changed=${r=>{let o=r.detail.value;this._actionTargetEntity=o.target_entity||""}}
+          .computeLabel=${()=>r("on_complete_action_target",e)}
+          @value-changed=${i=>{let o=i.detail.value;this._actionTargetEntity=o.target_entity||""}}
         ></ha-form>
         <p class="field-help ca-domain-hint">
-          ${s("on_complete_action_target_hint",e)}
+          ${r("on_complete_action_target_hint",e)}
         </p>
         ${t?n`
               <ha-form
@@ -1542,104 +1542,104 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
                 .hass=${this.hass}
                 .schema=${t}
                 .data=${this._actionData}
-                @value-changed=${r=>{this._actionData={...r.detail.value}}}
+                @value-changed=${i=>{this._actionData={...i.detail.value}}}
               ></ha-form>
             `:n`
               <ms-textfield
-                label="${s("on_complete_action_data",e)}"
+                label="${r("on_complete_action_data",e)}"
                 placeholder="{}"
                 .value=${this._actionDataJsonFallback}
-                @input=${r=>{this._actionDataJsonFallback=r.target.value}}
+                @input=${i=>{this._actionDataJsonFallback=i.target.value}}
               ></ms-textfield>
             `}
         <div class="ca-test-row">
           <button type="button" ?disabled=${this._actionTesting||!this._actionService}
             @click=${this._testAction}>
-            ${this._actionTesting?"\u2026":s("on_complete_action_test",e)}
+            ${this._actionTesting?"\u2026":r("on_complete_action_test",e)}
           </button>
-          ${this._actionTestResult==="ok"?n`<span class="ca-test-ok">${s("on_complete_action_test_success",e)}</span>`:u}
+          ${this._actionTestResult==="ok"?n`<span class="ca-test-ok">${r("on_complete_action_test_success",e)}</span>`:u}
           ${this._actionTestResult==="error"?n`<div class="ca-test-error-block">
-                <span class="ca-test-error">${s("on_complete_action_test_failed",e)}</span>
+                <span class="ca-test-error">${r("on_complete_action_test_failed",e)}</span>
                 ${this._actionTestError?n`<div class="ca-test-error-detail">${this._actionTestError}</div>`:u}
               </div>`:u}
         </div>
       </details>
 
       <details class="ca-section">
-        <summary>${s("quick_complete_defaults_title",e)}</summary>
-        <p class="field-help">${s("quick_complete_defaults_desc",e)}</p>
+        <summary>${r("quick_complete_defaults_title",e)}</summary>
+        <p class="field-help">${r("quick_complete_defaults_desc",e)}</p>
         <ms-textfield
-          label="${s("quick_complete_defaults_notes",e)}"
+          label="${r("quick_complete_defaults_notes",e)}"
           .value=${this._qcNotes}
-          @input=${r=>{this._qcNotes=r.target.value}}
+          @input=${i=>{this._qcNotes=i.target.value}}
         ></ms-textfield>
         <ms-textfield
-          label="${s("quick_complete_defaults_cost",e)}"
+          label="${r("quick_complete_defaults_cost",e)}"
           type="number" min="0" step="0.01"
           .value=${this._qcCost}
-          @input=${r=>{this._qcCost=r.target.value}}
+          @input=${i=>{this._qcCost=i.target.value}}
         ></ms-textfield>
         <ms-textfield
-          label="${s("quick_complete_defaults_duration",e)}"
+          label="${r("quick_complete_defaults_duration",e)}"
           type="number" min="0" step="1"
           .value=${this._qcDuration}
-          @input=${r=>{this._qcDuration=r.target.value}}
+          @input=${i=>{this._qcDuration=i.target.value}}
         ></ms-textfield>
         <select class="qc-feedback"
           .value=${this._qcFeedback}
-          @change=${r=>{this._qcFeedback=r.target.value}}>
-          <option value="">${s("quick_complete_defaults_feedback_none",e)}</option>
-          <option value="needed">${s("quick_complete_defaults_feedback_needed",e)}</option>
-          <option value="not_needed">${s("quick_complete_defaults_feedback_not_needed",e)}</option>
+          @change=${i=>{this._qcFeedback=i.target.value}}>
+          <option value="">${r("quick_complete_defaults_feedback_none",e)}</option>
+          <option value="needed">${r("quick_complete_defaults_feedback_needed",e)}</option>
+          <option value="not_needed">${r("quick_complete_defaults_feedback_not_needed",e)}</option>
         </select>
       </details>
-    `}async _loadTags(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=e.tags||[]}catch{this._availableTags=[]}}async _fetchEntityAttributes(e){if(!e||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e});this._entityDomain=t.domain||"",this._suggestedAttributes=t.suggested_attributes||[],this._availableAttributes=t.available_attributes||[]}catch{this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{let e={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:parseInt(this._warningDays,10)||7};if(this._taskId&&(e.task_id=this._taskId),this._scheduleType==="one_time"?(e.due_date=this._dueDate||null,e.interval_days=null):qi.includes(this._scheduleType)?(e.schedule=this._buildSchedule(),e.interval_days=null,this._taskId&&(e.due_date=null)):(this._taskId&&(e.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(e.interval_days=parseInt(this._intervalDays,10),e.interval_unit=this._intervalUnit,e.interval_anchor=this._intervalAnchor):this._taskId&&(e.interval_days=null,e.interval_anchor="completion")),e.notes=this._notes||null,e.documentation_url=this._documentationUrl||null,e.custom_icon=this._customIcon||null,e.priority=this._priority,e.labels=this._labels.split(",").map(l=>l.trim()).filter(Boolean),e.enabled=this._enabled,e.last_performed=this._lastPerformed||null,e.nfc_tag_id=this._nfcTagId||null,e.responsible_user_id=this._responsibleUserId,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let l=this._compoundConditions.map(Fi).filter(d=>d!==null);if(l.length>0){let d={type:"compound",compound_logic:this._compoundLogic,conditions:l};this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),e.trigger_config=d}else this._taskId&&(e.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let l=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],d={entity_id:l[0],entity_ids:l,type:this._triggerType};if(this._triggerAttribute&&(d.attribute=this._triggerAttribute),this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),l.length>1&&(d.entity_logic=this._triggerEntityLogic),this._triggerType==="threshold"){if(this._triggerAbove){let p=parseFloat(this._triggerAbove);isNaN(p)||(d.trigger_above=p)}if(this._triggerBelow){let p=parseFloat(this._triggerBelow);isNaN(p)||(d.trigger_below=p)}if(this._triggerForMinutes){let p=parseInt(this._triggerForMinutes,10);isNaN(p)||(d.trigger_for_minutes=p)}}else if(this._triggerType==="counter"){if(this._triggerTargetValue){let p=parseFloat(this._triggerTargetValue);isNaN(p)||(d.trigger_target_value=p)}d.trigger_delta_mode=this._triggerDeltaMode}else if(this._triggerType==="state_change"){if(this._triggerFromState&&(d.trigger_from_state=this._triggerFromState),this._triggerToState&&(d.trigger_to_state=this._triggerToState),this._triggerTargetChanges){let p=parseInt(this._triggerTargetChanges,10);isNaN(p)||(d.trigger_target_changes=p)}}else if(this._triggerType==="runtime"&&this._triggerRuntimeHours){let p=parseFloat(this._triggerRuntimeHours);isNaN(p)||(d.trigger_runtime_hours=p)}e.trigger_config=d}else this._taskId&&(e.trigger_config=null);if(this.scheduleTimeEnabled&&this._scheduleType==="time_based"){let l=this._scheduleTime.trim();e.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(l)?l:null}if(this.checklistsEnabled){let l=this._checklistText.split(`
-`).map(d=>d.trim()).filter(Boolean).slice(0,100);e.checklist=l.length?l:null}if(this.completionActionsEnabled){let l=this._actionService.trim();if(l&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(l)){let b={service:l},m=this._actionTargetEntity.trim();m&&(b.target={entity_id:m});let x=this._buildActionData();Object.keys(x).length>0&&(b.data=x),e.on_complete_action=b}else e.on_complete_action=null;let d={};this._qcNotes.trim()&&(d.notes=this._qcNotes.trim());let p=parseFloat(this._qcCost);!isNaN(p)&&p>=0&&(d.cost=p);let g=parseInt(this._qcDuration,10);!isNaN(g)&&g>=0&&(d.duration=g),this._qcFeedback&&(d.feedback=this._qcFeedback),e.quick_complete_defaults=Object.keys(d).length?d:null}let t=await this.hass.connection.sendMessagePromise(e),r=this._taskId||t?.task_id,o=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(r&&this._scheduleType==="sensor_based"&&o)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:r,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(e){this._error=I(e,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return u;let e=this._lang,t=this._triggerType==="compound";return n`
-      <h3>${s("trigger_configuration",e)}</h3>
+    `}async _loadTags(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=e.tags||[]}catch{this._availableTags=[]}}async _fetchEntityAttributes(e){if(!e||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:e});this._entityDomain=t.domain||"",this._suggestedAttributes=t.suggested_attributes||[],this._availableAttributes=t.available_attributes||[]}catch{this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{let e={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:parseInt(this._warningDays,10)||7};if(this._taskId&&(e.task_id=this._taskId),this._scheduleType==="one_time"?(e.due_date=this._dueDate||null,e.interval_days=null):qi.includes(this._scheduleType)?(e.schedule=this._buildSchedule(),e.interval_days=null,this._taskId&&(e.due_date=null)):(this._taskId&&(e.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(e.interval_days=parseInt(this._intervalDays,10),e.interval_unit=this._intervalUnit,e.interval_anchor=this._intervalAnchor):this._taskId&&(e.interval_days=null,e.interval_anchor="completion")),e.notes=this._notes||null,e.documentation_url=this._documentationUrl||null,e.custom_icon=this._customIcon||null,e.priority=this._priority,e.labels=this._labels.split(",").map(l=>l.trim()).filter(Boolean),e.enabled=this._enabled,e.last_performed=this._lastPerformed||null,e.nfc_tag_id=this._nfcTagId||null,e.responsible_user_id=this._responsibleUserId,e.assignee_pool=this._assigneePool,e.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let l=this._compoundConditions.map(Fi).filter(d=>d!==null);if(l.length>0){let d={type:"compound",compound_logic:this._compoundLogic,conditions:l};this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),e.trigger_config=d}else this._taskId&&(e.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let l=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],d={entity_id:l[0],entity_ids:l,type:this._triggerType};if(this._triggerAttribute&&(d.attribute=this._triggerAttribute),this._autoCompleteOnRecovery&&(d.auto_complete_on_recovery=!0),l.length>1&&(d.entity_logic=this._triggerEntityLogic),this._triggerType==="threshold"){if(this._triggerAbove){let p=parseFloat(this._triggerAbove);isNaN(p)||(d.trigger_above=p)}if(this._triggerBelow){let p=parseFloat(this._triggerBelow);isNaN(p)||(d.trigger_below=p)}if(this._triggerForMinutes){let p=parseInt(this._triggerForMinutes,10);isNaN(p)||(d.trigger_for_minutes=p)}}else if(this._triggerType==="counter"){if(this._triggerTargetValue){let p=parseFloat(this._triggerTargetValue);isNaN(p)||(d.trigger_target_value=p)}d.trigger_delta_mode=this._triggerDeltaMode}else if(this._triggerType==="state_change"){if(this._triggerFromState&&(d.trigger_from_state=this._triggerFromState),this._triggerToState&&(d.trigger_to_state=this._triggerToState),this._triggerTargetChanges){let p=parseInt(this._triggerTargetChanges,10);isNaN(p)||(d.trigger_target_changes=p)}}else if(this._triggerType==="runtime"&&this._triggerRuntimeHours){let p=parseFloat(this._triggerRuntimeHours);isNaN(p)||(d.trigger_runtime_hours=p)}e.trigger_config=d}else this._taskId&&(e.trigger_config=null);if(this.scheduleTimeEnabled&&this._scheduleType==="time_based"){let l=this._scheduleTime.trim();e.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(l)?l:null}if(this.checklistsEnabled){let l=this._checklistText.split(`
+`).map(d=>d.trim()).filter(Boolean).slice(0,100);e.checklist=l.length?l:null}if(this.completionActionsEnabled){let l=this._actionService.trim();if(l&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(l)){let b={service:l},m=this._actionTargetEntity.trim();m&&(b.target={entity_id:m});let x=this._buildActionData();Object.keys(x).length>0&&(b.data=x),e.on_complete_action=b}else e.on_complete_action=null;let d={};this._qcNotes.trim()&&(d.notes=this._qcNotes.trim());let p=parseFloat(this._qcCost);!isNaN(p)&&p>=0&&(d.cost=p);let g=parseInt(this._qcDuration,10);!isNaN(g)&&g>=0&&(d.duration=g),this._qcFeedback&&(d.feedback=this._qcFeedback),e.quick_complete_defaults=Object.keys(d).length?d:null}let t=await this.hass.connection.sendMessagePromise(e),i=this._taskId||t?.task_id,o=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(i&&this._scheduleType==="sensor_based"&&o)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:i,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(e){this._error=I(e,this._lang,r("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return u;let e=this._lang,t=this._triggerType==="compound";return n`
+      <h3>${r("trigger_configuration",e)}</h3>
       <div class="select-row">
-        <label>${s("trigger_type",e)}</label>
+        <label>${r("trigger_type",e)}</label>
         <select
           .value=${this._triggerType}
-          @change=${r=>this._triggerType=r.target.value}
+          @change=${i=>this._triggerType=i.target.value}
         >
-          ${Di.map(r=>n`<option value=${r} ?selected=${r===this._triggerType}>${s(r,e)}</option>`)}
+          ${Di.map(i=>n`<option value=${i} ?selected=${i===this._triggerType}>${r(i,e)}</option>`)}
         </select>
       </div>
       ${t?this._renderCompoundEditor():n`
         <ms-textfield
-          label="${s("entity_id",e)} (${s("comma_separated",e)})"
+          label="${r("entity_id",e)} (${r("comma_separated",e)})"
           .value=${this._triggerEntityIds.length>0?this._triggerEntityIds.join(", "):this._triggerEntityId}
-          @input=${r=>{let l=r.target.value.split(",").map(d=>d.trim()).filter(Boolean);this._triggerEntityId=l[0]||"",this._triggerEntityIds=l,l[0]&&this._fetchEntityAttributes(l[0])}}
+          @input=${i=>{let l=i.target.value.split(",").map(d=>d.trim()).filter(Boolean);this._triggerEntityId=l[0]||"",this._triggerEntityIds=l,l[0]&&this._fetchEntityAttributes(l[0])}}
         ></ms-textfield>
         ${this._triggerEntityIds.length>1?n`
           <div class="select-row">
-            <label>${s("entity_logic",e)}</label>
+            <label>${r("entity_logic",e)}</label>
             <select
               .value=${this._triggerEntityLogic}
-              @change=${r=>this._triggerEntityLogic=r.target.value}
+              @change=${i=>this._triggerEntityLogic=i.target.value}
             >
-              <option value="any" ?selected=${this._triggerEntityLogic==="any"}>${s("entity_logic_any",e)}</option>
-              <option value="all" ?selected=${this._triggerEntityLogic==="all"}>${s("entity_logic_all",e)}</option>
+              <option value="any" ?selected=${this._triggerEntityLogic==="any"}>${r("entity_logic_any",e)}</option>
+              <option value="all" ?selected=${this._triggerEntityLogic==="all"}>${r("entity_logic_all",e)}</option>
             </select>
           </div>
         `:u}
         ${this._availableAttributes.length>0?n`
             <div class="select-row">
-              <label>${s("attribute_optional",e)}</label>
+              <label>${r("attribute_optional",e)}</label>
               <select
                 .value=${this._triggerAttribute}
-                @change=${r=>this._triggerAttribute=r.target.value}
+                @change=${i=>this._triggerAttribute=i.target.value}
               >
-                <option value="" ?selected=${!this._triggerAttribute}>${s("use_entity_state",e)}</option>
-                ${this._suggestedAttributes.map(r=>n`<option value=${r} ?selected=${r===this._triggerAttribute}>${r} ★</option>`)}
-                ${this._availableAttributes.filter(r=>!this._suggestedAttributes.includes(r.name)).map(r=>n`<option value=${r.name} ?selected=${r.name===this._triggerAttribute}>${r.name}${r.numeric?"":" (non-numeric)"}</option>`)}
+                <option value="" ?selected=${!this._triggerAttribute}>${r("use_entity_state",e)}</option>
+                ${this._suggestedAttributes.map(i=>n`<option value=${i} ?selected=${i===this._triggerAttribute}>${i} ★</option>`)}
+                ${this._availableAttributes.filter(i=>!this._suggestedAttributes.includes(i.name)).map(i=>n`<option value=${i.name} ?selected=${i.name===this._triggerAttribute}>${i.name}${i.numeric?"":" (non-numeric)"}</option>`)}
               </select>
             </div>
           `:n`
             <ms-textfield
-              label="${s("attribute_optional",e)}"
+              label="${r("attribute_optional",e)}"
               .value=${this._triggerAttribute}
-              @input=${r=>this._triggerAttribute=r.target.value}
+              @input=${i=>this._triggerAttribute=i.target.value}
             ></ms-textfield>
           `}
         ${this._renderTriggerTypeFields()}
@@ -1648,148 +1648,148 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
         <input
           type="checkbox"
           .checked=${this._autoCompleteOnRecovery}
-          @change=${r=>this._autoCompleteOnRecovery=r.target.checked}
+          @change=${i=>this._autoCompleteOnRecovery=i.target.checked}
         />
-        ${s("auto_complete_on_recovery",e)}
+        ${r("auto_complete_on_recovery",e)}
       </label>
-      <div class="field-help">${s("auto_complete_on_recovery_help",e)}</div>
+      <div class="field-help">${r("auto_complete_on_recovery_help",e)}</div>
       <ms-textfield
-        label="${s("safety_interval",e)}"
+        label="${r("safety_interval",e)}"
         type="number"
         .value=${this._intervalDays}
-        @input=${r=>this._intervalDays=r.target.value}
+        @input=${i=>this._intervalDays=i.target.value}
       ></ms-textfield>
       ${this._intervalDays?this._renderUnitSelect():u}
-    `}_patchCondition(e,t){this._compoundConditions=this._compoundConditions.map((r,o)=>o===e?{...r,...t}:r)}_addCondition(){this._compoundConditions=[...this._compoundConditions,Ui()]}_removeCondition(e){this._compoundConditions=this._compoundConditions.filter((t,r)=>r!==e)}_renderCompoundEditor(){let e=this._lang;return n`
+    `}_patchCondition(e,t){this._compoundConditions=this._compoundConditions.map((i,o)=>o===e?{...i,...t}:i)}_addCondition(){this._compoundConditions=[...this._compoundConditions,Ui()]}_removeCondition(e){this._compoundConditions=this._compoundConditions.filter((t,i)=>i!==e)}_renderCompoundEditor(){let e=this._lang;return n`
       <div class="select-row">
-        <label>${s("compound_logic",e)}</label>
+        <label>${r("compound_logic",e)}</label>
         <select
           .value=${this._compoundLogic}
           @change=${t=>this._compoundLogic=t.target.value}
         >
-          <option value="AND" ?selected=${this._compoundLogic==="AND"}>${s("compound_logic_and",e)}</option>
-          <option value="OR" ?selected=${this._compoundLogic==="OR"}>${s("compound_logic_or",e)}</option>
+          <option value="AND" ?selected=${this._compoundLogic==="AND"}>${r("compound_logic_and",e)}</option>
+          <option value="OR" ?selected=${this._compoundLogic==="OR"}>${r("compound_logic_or",e)}</option>
         </select>
       </div>
-      <div class="field-help">${s("compound_help",e)}</div>
-      ${this._compoundConditions.length===0?n`<div class="field-help">${s("compound_no_conditions",e)}</div>`:this._compoundConditions.map((t,r)=>this._renderCondition(t,r))}
+      <div class="field-help">${r("compound_help",e)}</div>
+      ${this._compoundConditions.length===0?n`<div class="field-help">${r("compound_no_conditions",e)}</div>`:this._compoundConditions.map((t,i)=>this._renderCondition(t,i))}
       <button type="button" class="secondary-btn" @click=${()=>this._addCondition()}>
-        + ${s("compound_add_condition",e)}
+        + ${r("compound_add_condition",e)}
       </button>
-    `}_renderCondition(e,t){let r=this._lang,o=t+1;return n`
+    `}_renderCondition(e,t){let i=this._lang,o=t+1;return n`
       <div class="compound-condition">
         <div class="compound-condition-head">
-          <span class="compound-condition-title">${s("compound_condition",r)} ${o}</span>
+          <span class="compound-condition-title">${r("compound_condition",i)} ${o}</span>
           <button
             type="button"
             class="icon-btn"
-            title="${s("compound_remove_condition",r)}"
+            title="${r("compound_remove_condition",i)}"
             @click=${()=>this._removeCondition(t)}
           >✕</button>
         </div>
         <ms-textfield
-          label="${s("entity_id",r)} (${s("comma_separated",r)})"
+          label="${r("entity_id",i)} (${r("comma_separated",i)})"
           .value=${e.entityIds}
           @input=${l=>this._patchCondition(t,{entityIds:l.target.value})}
         ></ms-textfield>
         <div class="select-row">
-          <label>${s("trigger_type",r)}</label>
+          <label>${r("trigger_type",i)}</label>
           <select
             .value=${e.type}
             @change=${l=>this._patchCondition(t,{type:l.target.value})}
           >
-            ${Dt.map(l=>n`<option value=${l} ?selected=${l===e.type}>${s(l,r)}</option>`)}
+            ${Dt.map(l=>n`<option value=${l} ?selected=${l===e.type}>${r(l,i)}</option>`)}
           </select>
         </div>
         ${this._renderConditionTypeFields(e,t)}
       </div>
-    `}_renderConditionTypeFields(e,t){let r=this._lang;return e.type==="threshold"?n`
-        <ms-textfield label="${s("trigger_above",r)}" type="number" .value=${e.above}
+    `}_renderConditionTypeFields(e,t){let i=this._lang;return e.type==="threshold"?n`
+        <ms-textfield label="${r("trigger_above",i)}" type="number" .value=${e.above}
           @input=${o=>this._patchCondition(t,{above:o.target.value})}></ms-textfield>
-        <ms-textfield label="${s("trigger_below",r)}" type="number" .value=${e.below}
+        <ms-textfield label="${r("trigger_below",i)}" type="number" .value=${e.below}
           @input=${o=>this._patchCondition(t,{below:o.target.value})}></ms-textfield>
-        <ms-textfield label="${s("for_minutes",r)}" type="number" .value=${e.forMinutes}
+        <ms-textfield label="${r("for_minutes",i)}" type="number" .value=${e.forMinutes}
           @input=${o=>this._patchCondition(t,{forMinutes:o.target.value})}></ms-textfield>
       `:e.type==="counter"?n`
-        <ms-textfield label="${s("target_value",r)}" type="number" .value=${e.targetValue}
+        <ms-textfield label="${r("target_value",i)}" type="number" .value=${e.targetValue}
           @input=${o=>this._patchCondition(t,{targetValue:o.target.value})}></ms-textfield>
         <label>
           <input type="checkbox" .checked=${e.deltaMode}
             @change=${o=>this._patchCondition(t,{deltaMode:o.target.checked})} />
-          ${s("delta_mode",r)}
+          ${r("delta_mode",i)}
         </label>
       `:e.type==="state_change"?n`
-        <ms-textfield label="${s("from_state_optional",r)}" .value=${e.fromState}
+        <ms-textfield label="${r("from_state_optional",i)}" .value=${e.fromState}
           @input=${o=>this._patchCondition(t,{fromState:o.target.value})}></ms-textfield>
-        <ms-textfield label="${s("to_state_optional",r)}" .value=${e.toState}
+        <ms-textfield label="${r("to_state_optional",i)}" .value=${e.toState}
           @input=${o=>this._patchCondition(t,{toState:o.target.value})}></ms-textfield>
-        <ms-textfield label="${s("target_changes",r)}" type="number" .value=${e.targetChanges}
+        <ms-textfield label="${r("target_changes",i)}" type="number" .value=${e.targetChanges}
           @input=${o=>this._patchCondition(t,{targetChanges:o.target.value})}></ms-textfield>
       `:e.type==="runtime"?n`
-        <ms-textfield label="${s("runtime_hours",r)}" type="number" .value=${e.runtimeHours}
+        <ms-textfield label="${r("runtime_hours",i)}" type="number" .value=${e.runtimeHours}
           @input=${o=>this._patchCondition(t,{runtimeHours:o.target.value})}></ms-textfield>
       `:u}_renderUnitSelect(){let e=this._lang;return n`
       <div class="select-row">
-        <label>${s("interval_unit",e)}</label>
+        <label>${r("interval_unit",e)}</label>
         <select
           .value=${this._intervalUnit}
           @change=${t=>this._intervalUnit=t.target.value}
         >
-          ${["days","weeks","months","years"].map(t=>n`<option value=${t} ?selected=${t===this._intervalUnit}>${s("unit_"+t,e)}</option>`)}
+          ${["days","weeks","months","years"].map(t=>n`<option value=${t} ?selected=${t===this._intervalUnit}>${r("unit_"+t,e)}</option>`)}
         </select>
       </div>`}_toggleWeekday(e){this._weekdays=this._weekdays.includes(e)?this._weekdays.filter(t=>t!==e):[...this._weekdays,e]}_buildSchedule(){return this._scheduleType==="weekdays"?{kind:"weekdays",weekdays:[...this._weekdays].sort((e,t)=>e-t)}:this._scheduleType==="nth_weekday"?{kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)}:{kind:"day_of_month",day:parseInt(this._domDay,10)||1}}_renderCalendarFields(){let e=this._lang,t=Wi(e);if(this._scheduleType==="weekdays")return n`
-        <label class="field-label">${s("recurrence_on_days",e)}</label>
+        <label class="field-label">${r("recurrence_on_days",e)}</label>
         <div class="weekday-chips">
-          ${t.map((r,o)=>n`
+          ${t.map((i,o)=>n`
             <button
               type="button"
               class="weekday-chip ${this._weekdays.includes(o)?"selected":""}"
               @click=${()=>this._toggleWeekday(o)}
-            >${r}</button>`)}
-        </div>`;if(this._scheduleType==="nth_weekday"){let r=[["1",s("ord_1",e)],["2",s("ord_2",e)],["3",s("ord_3",e)],["4",s("ord_4",e)],["5",s("ord_5",e)],["-1",s("ord_last",e)]];return n`
+            >${i}</button>`)}
+        </div>`;if(this._scheduleType==="nth_weekday"){let i=[["1",r("ord_1",e)],["2",r("ord_2",e)],["3",r("ord_3",e)],["4",r("ord_4",e)],["5",r("ord_5",e)],["-1",r("ord_last",e)]];return n`
         <div class="select-row">
-          <label>${s("recurrence_occurrence",e)}</label>
+          <label>${r("recurrence_occurrence",e)}</label>
           <select .value=${this._nth} @change=${o=>this._nth=o.target.value}>
-            ${r.map(([o,l])=>n`<option value=${o} ?selected=${o===this._nth}>${l}</option>`)}
+            ${i.map(([o,l])=>n`<option value=${o} ?selected=${o===this._nth}>${l}</option>`)}
           </select>
         </div>
         <div class="select-row">
-          <label>${s("recurrence_weekday",e)}</label>
+          <label>${r("recurrence_weekday",e)}</label>
           <select .value=${this._nthWeekday} @change=${o=>this._nthWeekday=o.target.value}>
             ${t.map((o,l)=>n`<option value=${String(l)} ?selected=${String(l)===this._nthWeekday}>${o}</option>`)}
           </select>
         </div>`}return this._scheduleType==="day_of_month"?n`
         <ms-textfield
-          label="${s("recurrence_day",e)}"
+          label="${r("recurrence_day",e)}"
           type="number"
           min="1"
           max="31"
           .value=${this._domDay}
-          @input=${r=>this._domDay=r.target.value}
+          @input=${i=>this._domDay=i.target.value}
         ></ms-textfield>`:u}_renderTriggerTypeFields(){let e=this._lang;return this._triggerType==="threshold"?n`
         <ms-textfield
-          label="${s("trigger_above",e)}"
+          label="${r("trigger_above",e)}"
           type="number"
           step="any"
           .value=${this._triggerAbove}
           @input=${t=>this._triggerAbove=t.target.value}
         ></ms-textfield>
         <ms-textfield
-          label="${s("trigger_below",e)}"
+          label="${r("trigger_below",e)}"
           type="number"
           step="any"
           .value=${this._triggerBelow}
           @input=${t=>this._triggerBelow=t.target.value}
         ></ms-textfield>
         <ms-textfield
-          label="${s("for_at_least_minutes",e)}"
+          label="${r("for_at_least_minutes",e)}"
           type="number"
           .value=${this._triggerForMinutes}
           @input=${t=>this._triggerForMinutes=t.target.value}
         ></ms-textfield>
       `:this._triggerType==="counter"?n`
         <ms-textfield
-          label="${s("target_value",e)}"
+          label="${r("target_value",e)}"
           type="number"
           step="any"
           .value=${this._triggerTargetValue}
@@ -1801,223 +1801,249 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             .checked=${this._triggerDeltaMode}
             @change=${t=>this._triggerDeltaMode=t.target.checked}
           />
-          ${s("delta_mode",e)}
+          ${r("delta_mode",e)}
         </label>
       `:this._triggerType==="state_change"?n`
         <ms-textfield
-          label="${s("from_state_optional",e)}"
+          label="${r("from_state_optional",e)}"
           .value=${this._triggerFromState}
           @input=${t=>this._triggerFromState=t.target.value}
         ></ms-textfield>
-        <div class="field-help">${s("state_value_help",e)}</div>
+        <div class="field-help">${r("state_value_help",e)}</div>
         <ms-textfield
-          label="${s("to_state_optional",e)}"
+          label="${r("to_state_optional",e)}"
           .value=${this._triggerToState}
           @input=${t=>this._triggerToState=t.target.value}
         ></ms-textfield>
         <ms-textfield
-          label="${s("target_changes",e)}"
+          label="${r("target_changes",e)}"
           type="number"
           min="1"
           .value=${this._triggerTargetChanges}
           @input=${t=>this._triggerTargetChanges=t.target.value}
         ></ms-textfield>
-        <div class="field-help">${s("target_changes_help",e)}</div>
+        <div class="field-help">${r("target_changes_help",e)}</div>
       `:this._triggerType==="runtime"?n`
         <ms-textfield
-          label="${s("runtime_hours",e)}"
+          label="${r("runtime_hours",e)}"
           type="number"
           step="1"
           .value=${this._triggerRuntimeHours}
           @input=${t=>this._triggerRuntimeHours=t.target.value}
         ></ms-textfield>
-      `:u}render(){if(!this._open)return n``;let e=this._lang,t=this._taskId?s("edit_task",e):s("new_task",e);return n`
+      `:u}render(){if(!this._open)return n``;let e=this._lang,t=this._taskId?r("edit_task",e):r("new_task",e);return n`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t}</div>
         <div class="content">
           ${this._error?n`<div class="error">${this._error}</div>`:u}
           ${this._objectChoices.length>0?n`
             <div class="select-row">
-              <label>${s("object",e)}</label>
+              <label>${r("object",e)}</label>
               <select
                 .value=${this._entryId}
-                @change=${r=>this._entryId=r.target.value}
+                @change=${i=>this._entryId=i.target.value}
               >
-                ${this._objectChoices.map(r=>n`<option value=${r.entry_id} ?selected=${r.entry_id===this._entryId}>${r.name}</option>`)}
+                ${this._objectChoices.map(i=>n`<option value=${i.entry_id} ?selected=${i.entry_id===this._entryId}>${i.name}</option>`)}
               </select>
             </div>
           `:u}
           <ms-textfield
-            label="${s("task_name",e)}"
+            label="${r("task_name",e)}"
             required
             .value=${this._name}
-            @input=${r=>this._name=r.target.value}
+            @input=${i=>this._name=i.target.value}
           ></ms-textfield>
           <div class="select-row">
-            <label>${s("maintenance_type",e)}</label>
+            <label>${r("maintenance_type",e)}</label>
             <select
               .value=${this._type}
-              @change=${r=>this._type=r.target.value}
+              @change=${i=>this._type=i.target.value}
             >
-              ${zi.map(r=>n`<option value=${r} ?selected=${r===this._type}>${s(r,e)}</option>`)}
+              ${zi.map(i=>n`<option value=${i} ?selected=${i===this._type}>${r(i,e)}</option>`)}
             </select>
           </div>
           <div class="select-row">
-            <label>${s("priority",e)}</label>
+            <label>${r("priority",e)}</label>
             <select
               .value=${this._priority}
-              @change=${r=>this._priority=r.target.value}
+              @change=${i=>this._priority=i.target.value}
             >
-              ${Ni.map(r=>n`<option value=${r} ?selected=${r===this._priority}>${s("priority_"+r,e)}</option>`)}
+              ${Ni.map(i=>n`<option value=${i} ?selected=${i===this._priority}>${r("priority_"+i,e)}</option>`)}
             </select>
           </div>
           <div class="field">
-            <label>${s("labels",e)}</label>
+            <label>${r("labels",e)}</label>
             <input
               type="text"
               .value=${this._labels}
-              placeholder="${s("labels_placeholder",e)}"
-              @input=${r=>this._labels=r.target.value}
+              placeholder="${r("labels_placeholder",e)}"
+              @input=${i=>this._labels=i.target.value}
             />
-            <div class="field-help">${s("labels_help",e)}</div>
+            <div class="field-help">${r("labels_help",e)}</div>
           </div>
           <div class="select-row">
-            <label>${s("schedule_type",e)}</label>
+            <label>${r("schedule_type",e)}</label>
             <select
               .value=${this._scheduleType}
-              @change=${r=>this._scheduleType=r.target.value}
+              @change=${i=>this._scheduleType=i.target.value}
             >
-              ${Mi.map(r=>n`<option value=${r} ?selected=${r===this._scheduleType}>${s(r,e)}</option>`)}
+              ${Mi.map(i=>n`<option value=${i} ?selected=${i===this._scheduleType}>${r(i,e)}</option>`)}
             </select>
           </div>
           ${this._scheduleType==="time_based"?n`
                 <ms-textfield
-                  label="${s("interval_value",e)}"
+                  label="${r("interval_value",e)}"
                   type="number"
                   .value=${this._intervalDays}
-                  @input=${r=>this._intervalDays=r.target.value}
+                  @input=${i=>this._intervalDays=i.target.value}
                 ></ms-textfield>
                 ${this._renderUnitSelect()}
                 <div class="select-row">
-                  <label>${s("interval_anchor",e)}</label>
+                  <label>${r("interval_anchor",e)}</label>
                   <select
                     .value=${this._intervalAnchor}
-                    @change=${r=>this._intervalAnchor=r.target.value}
+                    @change=${i=>this._intervalAnchor=i.target.value}
                   >
-                    <option value="completion" ?selected=${this._intervalAnchor==="completion"}>${s("anchor_completion",e)}</option>
-                    <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${s("anchor_planned",e)}</option>
+                    <option value="completion" ?selected=${this._intervalAnchor==="completion"}>${r("anchor_completion",e)}</option>
+                    <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${r("anchor_planned",e)}</option>
                   </select>
                 </div>
                 ${this.scheduleTimeEnabled?n`
                   <ms-textfield
-                    label="${s("schedule_time_optional",e)}"
+                    label="${r("schedule_time_optional",e)}"
                     type="time"
                     .value=${this._scheduleTime}
-                    helper="${s("schedule_time_help",e)}"
-                    @input=${r=>this._scheduleTime=r.target.value}
+                    helper="${r("schedule_time_help",e)}"
+                    @input=${i=>this._scheduleTime=i.target.value}
                   ></ms-textfield>
                 `:u}
               `:u}
           ${this._renderCalendarFields()}
           ${this._scheduleType==="one_time"?n`
                 <ms-textfield
-                  label="${s("due_date",e)}"
+                  label="${r("due_date",e)}"
                   type="date"
                   .value=${this._dueDate}
-                  @input=${r=>this._dueDate=r.target.value}
+                  @input=${i=>this._dueDate=i.target.value}
                 ></ms-textfield>
               `:u}
           <ms-textfield
-            label="${s("warning_days",e)}"
+            label="${r("warning_days",e)}"
             type="number"
             .value=${this._warningDays}
-            @input=${r=>this._warningDays=r.target.value}
+            @input=${i=>this._warningDays=i.target.value}
           ></ms-textfield>
           ${this.checklistsEnabled?n`
-            <h3>${s("checklist_steps_optional",e)}</h3>
+            <h3>${r("checklist_steps_optional",e)}</h3>
             <textarea
               id="checklist-textarea"
               class="checklist-textarea"
               rows="5"
-              placeholder="${s("checklist_placeholder",e)}"
+              placeholder="${r("checklist_placeholder",e)}"
               .value=${this._checklistText}
-              @input=${r=>this._checklistText=r.target.value}
+              @input=${i=>this._checklistText=i.target.value}
             ></textarea>
-            <div class="field-help">${s("checklist_help",e)}</div>
+            <div class="field-help">${r("checklist_help",e)}</div>
           `:u}
           <ms-textfield
-            label="${s("last_performed_optional",e)}"
+            label="${r("last_performed_optional",e)}"
             type="date"
             .value=${this._lastPerformed}
-            @input=${r=>this._lastPerformed=r.target.value}
+            @input=${i=>this._lastPerformed=i.target.value}
           ></ms-textfield>
           <div class="select-row">
-            <label>${s("responsible_user",e)}</label>
+            <label>${r("responsible_user",e)}</label>
             <select
               .value=${this._responsibleUserId||""}
-              @change=${r=>{let o=r.target.value;this._responsibleUserId=o||null}}
+              @change=${i=>{let o=i.target.value;this._responsibleUserId=o||null}}
             >
-              <option value="" ?selected=${!this._responsibleUserId}>${s("no_user_assigned",e)}</option>
-              ${this._availableUsers.map(r=>n`<option value=${r.id} ?selected=${r.id===this._responsibleUserId}>${r.name}</option>`)}
+              <option value="" ?selected=${!this._responsibleUserId}>${r("no_user_assigned",e)}</option>
+              ${this._availableUsers.map(i=>n`<option value=${i.id} ?selected=${i.id===this._responsibleUserId}>${i.name}</option>`)}
             </select>
           </div>
+          ${this._availableUsers.length>=2?n`
+            <div class="field">
+              <label>${r("shared_with",e)}</label>
+              <div class="field-help">${r("shared_with_help",e)}</div>
+              <div class="assignee-pool">
+                ${this._availableUsers.map(i=>n`
+                  <label class="pool-item">
+                    <input type="checkbox"
+                      .checked=${this._assigneePool.includes(i.id)}
+                      @change=${()=>this._toggleAssignee(i.id)} />
+                    <span>${i.name}</span>
+                  </label>`)}
+              </div>
+            </div>
+            ${this._assigneePool.length>=2?n`
+              <div class="select-row">
+                <label>${r("rotation_strategy",e)}</label>
+                <select
+                  .value=${this._rotationStrategy}
+                  @change=${i=>this._rotationStrategy=i.target.value}
+                >
+                  <option value="" ?selected=${!this._rotationStrategy}>${r("rotation_none",e)}</option>
+                  ${["round_robin","least_completed","random"].map(i=>n`<option value=${i} ?selected=${i===this._rotationStrategy}>${r("rotation_"+i,e)}</option>`)}
+                </select>
+              </div>`:u}
+          `:u}
           ${this._renderTriggerFields()}
           ${this._scheduleType==="sensor_based"?n`
             <ms-textfield
-              label="${s("environmental_entity_optional",e)}"
-              helper="${s("environmental_entity_helper",e)}"
+              label="${r("environmental_entity_optional",e)}"
+              helper="${r("environmental_entity_helper",e)}"
               .value=${this._environmentalEntity}
-              @input=${r=>this._environmentalEntity=r.target.value.trim()}
+              @input=${i=>this._environmentalEntity=i.target.value.trim()}
             ></ms-textfield>
             ${this._environmentalEntity?n`
               <ms-textfield
-                label="${s("environmental_attribute_optional",e)}"
+                label="${r("environmental_attribute_optional",e)}"
                 .value=${this._environmentalAttribute}
-                @input=${r=>this._environmentalAttribute=r.target.value.trim()}
+                @input=${i=>this._environmentalAttribute=i.target.value.trim()}
               ></ms-textfield>
             `:u}
           `:u}
           <ms-textfield
-            label="${s("notes_optional",e)}"
+            label="${r("notes_optional",e)}"
             .value=${this._notes}
-            @input=${r=>this._notes=r.target.value}
+            @input=${i=>this._notes=i.target.value}
           ></ms-textfield>
           <ms-textfield
-            label="${s("documentation_url_optional",e)}"
+            label="${r("documentation_url_optional",e)}"
             .value=${this._documentationUrl}
-            @input=${r=>this._documentationUrl=r.target.value}
+            @input=${i=>this._documentationUrl=i.target.value}
           ></ms-textfield>
           <ha-icon-picker
             .hass=${this.hass}
-            label="${s("custom_icon_optional",e)}"
+            label="${r("custom_icon_optional",e)}"
             .value=${this._customIcon}
-            @value-changed=${r=>this._customIcon=r.detail.value||""}
+            @value-changed=${i=>this._customIcon=i.detail.value||""}
           ></ha-icon-picker>
           ${this._availableTags.length>0?n`
               <div class="select-row">
-                <label>${s("nfc_tag_id_optional",e)}</label>
+                <label>${r("nfc_tag_id_optional",e)}</label>
                 <select
                   .value=${this._nfcTagId}
-                  @change=${r=>this._nfcTagId=r.target.value}
+                  @change=${i=>this._nfcTagId=i.target.value}
                 >
-                  <option value="" ?selected=${!this._nfcTagId}>${s("no_nfc_tag",e)}</option>
-                  ${this._availableTags.map(r=>n`<option value=${r.id} ?selected=${r.id===this._nfcTagId}>${r.name}</option>`)}
+                  <option value="" ?selected=${!this._nfcTagId}>${r("no_nfc_tag",e)}</option>
+                  ${this._availableTags.map(i=>n`<option value=${i.id} ?selected=${i.id===this._nfcTagId}>${i.name}</option>`)}
                 </select>
                 <button type="button" class="link-button" @click=${this._loadTags}
-                  title="${s("nfc_tags_refresh",e)}">↻</button>
+                  title="${r("nfc_tags_refresh",e)}">↻</button>
               </div>
             `:n`
               <ms-textfield
-                label="${s("nfc_tag_id_optional",e)}"
+                label="${r("nfc_tag_id_optional",e)}"
                 .value=${this._nfcTagId}
-                @input=${r=>this._nfcTagId=r.target.value}
+                @input=${i=>this._nfcTagId=i.target.value}
               ></ms-textfield>
               <div class="field-help">
-                ${s("nfc_tags_empty_help",e)}
-                <a href="/config/tags">${s("nfc_tags_open_settings",e)}</a>
+                ${r("nfc_tags_empty_help",e)}
+                <a href="/config/tags">${r("nfc_tags_open_settings",e)}</a>
                 ·
                 <button type="button" class="link-button" @click=${this._loadTags}>
-                  ${s("nfc_tags_refresh",e)}
+                  ${r("nfc_tags_refresh",e)}
                 </button>
               </div>
             `}
@@ -2025,19 +2051,19 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
             <input
               type="checkbox"
               .checked=${this._enabled}
-              @change=${r=>this._enabled=r.target.checked}
+              @change=${i=>this._enabled=i.target.checked}
             />
-            ${s("task_enabled",e)}
+            ${r("task_enabled",e)}
           </label>
           ${this._renderCompletionActionsSection(e)}
         </div>
         <div class="dialog-actions">
-          <ha-button appearance="plain" @click=${this._close}>${s("cancel",e)}</ha-button>
+          <ha-button appearance="plain" @click=${this._close}>${r("cancel",e)}</ha-button>
           <ha-button
             @click=${this._save}
             .disabled=${this._loading||!this._name.trim()}
           >
-            ${this._loading?s("saving",e):s("save",e)}
+            ${this._loading?r("saving",e):r("save",e)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -2169,6 +2195,24 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       flex-direction: column;
       gap: 4px;
     }
+    .assignee-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin-top: 4px;
+    }
+    .pool-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pool-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
     .select-row label {
       font-size: 12px;
       color: var(--secondary-text-color);
@@ -2215,48 +2259,48 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       font-size: 14px;
       cursor: pointer;
     }
-  `,c([f({attribute:!1})],_.prototype,"hass",2),c([f({type:Boolean,attribute:"checklists-enabled"})],_.prototype,"checklistsEnabled",2),c([f({type:Boolean,attribute:"schedule-time-enabled"})],_.prototype,"scheduleTimeEnabled",2),c([f({type:Boolean,attribute:"completion-actions-enabled"})],_.prototype,"completionActionsEnabled",2),c([f({type:Number,attribute:"default-warning-days"})],_.prototype,"defaultWarningDays",2),c([h()],_.prototype,"_open",2),c([h()],_.prototype,"_loading",2),c([h()],_.prototype,"_error",2),c([h()],_.prototype,"_entryId",2),c([h()],_.prototype,"_taskId",2),c([h()],_.prototype,"_objectChoices",2),c([h()],_.prototype,"_name",2),c([h()],_.prototype,"_type",2),c([h()],_.prototype,"_scheduleType",2),c([h()],_.prototype,"_intervalDays",2),c([h()],_.prototype,"_intervalUnit",2),c([h()],_.prototype,"_dueDate",2),c([h()],_.prototype,"_warningDays",2),c([h()],_.prototype,"_intervalAnchor",2),c([h()],_.prototype,"_weekdays",2),c([h()],_.prototype,"_nth",2),c([h()],_.prototype,"_nthWeekday",2),c([h()],_.prototype,"_domDay",2),c([h()],_.prototype,"_notes",2),c([h()],_.prototype,"_documentationUrl",2),c([h()],_.prototype,"_customIcon",2),c([h()],_.prototype,"_priority",2),c([h()],_.prototype,"_labels",2),c([h()],_.prototype,"_enabled",2),c([h()],_.prototype,"_triggerEntityId",2),c([h()],_.prototype,"_triggerEntityIds",2),c([h()],_.prototype,"_triggerEntityLogic",2),c([h()],_.prototype,"_triggerAttribute",2),c([h()],_.prototype,"_triggerType",2),c([h()],_.prototype,"_triggerAbove",2),c([h()],_.prototype,"_triggerBelow",2),c([h()],_.prototype,"_triggerForMinutes",2),c([h()],_.prototype,"_triggerTargetValue",2),c([h()],_.prototype,"_triggerDeltaMode",2),c([h()],_.prototype,"_autoCompleteOnRecovery",2),c([h()],_.prototype,"_triggerFromState",2),c([h()],_.prototype,"_triggerToState",2),c([h()],_.prototype,"_triggerTargetChanges",2),c([h()],_.prototype,"_triggerRuntimeHours",2),c([h()],_.prototype,"_compoundLogic",2),c([h()],_.prototype,"_compoundConditions",2),c([h()],_.prototype,"_suggestedAttributes",2),c([h()],_.prototype,"_availableAttributes",2),c([h()],_.prototype,"_entityDomain",2),c([h()],_.prototype,"_lastPerformed",2),c([h()],_.prototype,"_nfcTagId",2),c([h()],_.prototype,"_availableTags",2),c([h()],_.prototype,"_responsibleUserId",2),c([h()],_.prototype,"_availableUsers",2),c([h()],_.prototype,"_checklistText",2),c([h()],_.prototype,"_scheduleTime",2),c([h()],_.prototype,"_actionService",2),c([h()],_.prototype,"_actionTargetEntity",2),c([h()],_.prototype,"_actionData",2),c([h()],_.prototype,"_actionDataJsonFallback",2),c([h()],_.prototype,"_actionTesting",2),c([h()],_.prototype,"_actionTestResult",2),c([h()],_.prototype,"_actionTestError",2),c([h()],_.prototype,"_qcNotes",2),c([h()],_.prototype,"_qcCost",2),c([h()],_.prototype,"_qcDuration",2),c([h()],_.prototype,"_qcFeedback",2),c([h()],_.prototype,"_environmentalEntity",2),c([h()],_.prototype,"_environmentalAttribute",2);customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",_)});var U,Ot=y(()=>{"use strict";T();j();C();Q();U=class extends ${constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null}get _lang(){return this.hass?.language||"en"}openEdit(e){this._draft={...e},this._originalSnapshot={...e},this._error="",this._open=!0}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(e,t){this._draft&&(this._draft={...this._draft,[e]:t})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let e={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(e.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(e.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(e.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(e.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(e.completed_by=this._draft.completed_by),Object.keys(e).filter(r=>!["type","entry_id","task_id","original_timestamp"].includes(r)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(e),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=I(e,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return u;let e=this._lang,t=this._draft;return n`
+  `,c([f({attribute:!1})],_.prototype,"hass",2),c([f({type:Boolean,attribute:"checklists-enabled"})],_.prototype,"checklistsEnabled",2),c([f({type:Boolean,attribute:"schedule-time-enabled"})],_.prototype,"scheduleTimeEnabled",2),c([f({type:Boolean,attribute:"completion-actions-enabled"})],_.prototype,"completionActionsEnabled",2),c([f({type:Number,attribute:"default-warning-days"})],_.prototype,"defaultWarningDays",2),c([h()],_.prototype,"_open",2),c([h()],_.prototype,"_loading",2),c([h()],_.prototype,"_error",2),c([h()],_.prototype,"_entryId",2),c([h()],_.prototype,"_taskId",2),c([h()],_.prototype,"_objectChoices",2),c([h()],_.prototype,"_name",2),c([h()],_.prototype,"_type",2),c([h()],_.prototype,"_scheduleType",2),c([h()],_.prototype,"_intervalDays",2),c([h()],_.prototype,"_intervalUnit",2),c([h()],_.prototype,"_dueDate",2),c([h()],_.prototype,"_warningDays",2),c([h()],_.prototype,"_intervalAnchor",2),c([h()],_.prototype,"_weekdays",2),c([h()],_.prototype,"_nth",2),c([h()],_.prototype,"_nthWeekday",2),c([h()],_.prototype,"_domDay",2),c([h()],_.prototype,"_notes",2),c([h()],_.prototype,"_documentationUrl",2),c([h()],_.prototype,"_customIcon",2),c([h()],_.prototype,"_priority",2),c([h()],_.prototype,"_labels",2),c([h()],_.prototype,"_enabled",2),c([h()],_.prototype,"_triggerEntityId",2),c([h()],_.prototype,"_triggerEntityIds",2),c([h()],_.prototype,"_triggerEntityLogic",2),c([h()],_.prototype,"_triggerAttribute",2),c([h()],_.prototype,"_triggerType",2),c([h()],_.prototype,"_triggerAbove",2),c([h()],_.prototype,"_triggerBelow",2),c([h()],_.prototype,"_triggerForMinutes",2),c([h()],_.prototype,"_triggerTargetValue",2),c([h()],_.prototype,"_triggerDeltaMode",2),c([h()],_.prototype,"_autoCompleteOnRecovery",2),c([h()],_.prototype,"_triggerFromState",2),c([h()],_.prototype,"_triggerToState",2),c([h()],_.prototype,"_triggerTargetChanges",2),c([h()],_.prototype,"_triggerRuntimeHours",2),c([h()],_.prototype,"_compoundLogic",2),c([h()],_.prototype,"_compoundConditions",2),c([h()],_.prototype,"_suggestedAttributes",2),c([h()],_.prototype,"_availableAttributes",2),c([h()],_.prototype,"_entityDomain",2),c([h()],_.prototype,"_lastPerformed",2),c([h()],_.prototype,"_nfcTagId",2),c([h()],_.prototype,"_availableTags",2),c([h()],_.prototype,"_responsibleUserId",2),c([h()],_.prototype,"_assigneePool",2),c([h()],_.prototype,"_rotationStrategy",2),c([h()],_.prototype,"_availableUsers",2),c([h()],_.prototype,"_checklistText",2),c([h()],_.prototype,"_scheduleTime",2),c([h()],_.prototype,"_actionService",2),c([h()],_.prototype,"_actionTargetEntity",2),c([h()],_.prototype,"_actionData",2),c([h()],_.prototype,"_actionDataJsonFallback",2),c([h()],_.prototype,"_actionTesting",2),c([h()],_.prototype,"_actionTestResult",2),c([h()],_.prototype,"_actionTestError",2),c([h()],_.prototype,"_qcNotes",2),c([h()],_.prototype,"_qcCost",2),c([h()],_.prototype,"_qcDuration",2),c([h()],_.prototype,"_qcFeedback",2),c([h()],_.prototype,"_environmentalEntity",2),c([h()],_.prototype,"_environmentalAttribute",2);customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",_)});var U,Ot=y(()=>{"use strict";T();j();C();Q();U=class extends ${constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null}get _lang(){return this.hass?.language||"en"}openEdit(e){this._draft={...e},this._originalSnapshot={...e},this._error="",this._open=!0}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(e,t){this._draft&&(this._draft={...this._draft,[e]:t})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let e={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(e.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(e.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(e.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(e.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(e.completed_by=this._draft.completed_by),Object.keys(e).filter(i=>!["type","entry_id","task_id","original_timestamp"].includes(i)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(e),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=I(e,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return u;let e=this._lang,t=this._draft;return n`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
-        <h2>${s("history_edit_title",e)||"Edit history entry"}</h2>
+        <h2>${r("history_edit_title",e)||"Edit history entry"}</h2>
         <div class="entry-type">
           <ha-icon icon="mdi:tag-outline"></ha-icon>
-          <span>${s(t.type,e)||t.type}</span>
+          <span>${r(t.type,e)||t.type}</span>
         </div>
         <label>
-          <span>${s("history_edit_timestamp",e)||"Timestamp"}</span>
+          <span>${r("history_edit_timestamp",e)||"Timestamp"}</span>
           <input type="datetime-local"
             .value=${t.timestamp.length>=16?t.timestamp.slice(0,16):t.timestamp}
-            @change=${r=>{let o=r.target.value;this._set("timestamp",o.length===16?`${o}:00`:o)}} />
+            @change=${i=>{let o=i.target.value;this._set("timestamp",o.length===16?`${o}:00`:o)}} />
         </label>
         <label>
-          <span>${s("notes_label",e)}</span>
+          <span>${r("notes_label",e)}</span>
           <textarea
             rows="3"
-            @input=${r=>{let o=r.target.value;this._set("notes",o||null)}}
+            @input=${i=>{let o=i.target.value;this._set("notes",o||null)}}
             .value=${t.notes??""}></textarea>
         </label>
         <div class="row">
           <label>
-            <span>${s("cost",e)||"Cost"}</span>
+            <span>${r("cost",e)||"Cost"}</span>
             <input type="number" min="0" step="0.01"
               .value=${t.cost!=null?String(t.cost):""}
-              @input=${r=>{let o=r.target.value;this._set("cost",o?Number(o):null)}} />
+              @input=${i=>{let o=i.target.value;this._set("cost",o?Number(o):null)}} />
           </label>
           <label>
-            <span>${s("duration",e)||"Duration (min)"}</span>
+            <span>${r("duration",e)||"Duration (min)"}</span>
             <input type="number" min="0"
               .value=${t.duration!=null?String(t.duration):""}
-              @input=${r=>{let o=r.target.value;this._set("duration",o?Number(o):null)}} />
+              @input=${i=>{let o=i.target.value;this._set("duration",o?Number(o):null)}} />
           </label>
         </div>
         ${this._error?n`<div class="error">${this._error}</div>`:u}
         <div class="actions">
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
-            ${s("cancel",e)||"Cancel"}
+            ${r("cancel",e)||"Cancel"}
           </button>
           <button class="save" @click=${this._save} ?disabled=${this._saving}>
-            ${this._saving?s("saving",e)||"Saving\u2026":s("save",e)||"Save"}
+            ${this._saving?r("saving",e)||"Saving\u2026":r("save",e)||"Save"}
           </button>
         </div>
       </div>
@@ -2322,7 +2366,7 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
       background: rgba(211,47,47,0.1);
       border-radius: 6px;
     }
-  `,c([f({attribute:!1})],U.prototype,"hass",2),c([h()],U.prototype,"_open",2),c([h()],U.prototype,"_saving",2),c([h()],U.prototype,"_error",2),c([h()],U.prototype,"_draft",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",U)});function ae(a){return a.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function Ft(a){return!a.startsWith("data:image/svg+xml,")&&!a.startsWith("data:image/png;base64,")?"":ae(a)}function Vi(a){return a.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var H,Wt=y(()=>{"use strict";T();j();C();H=class extends ${constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(e,t){this._entryId=e,this._taskId=null,this._objectName=t,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(e,t,r,o){this._entryId=e,this._taskId=t,this._objectName=r,this._taskName=o,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let t={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(t.task_id=this._taskId);let r=[this.hass.connection.sendMessagePromise({...t,action:"view"})];this._taskId&&r.push(this.hass.connection.sendMessagePromise({...t,action:"complete"}));let o=await Promise.all(r);if(e!==this._generateSeq)return;this._viewResult=o[0],o.length>1&&(this._completeResult=o[1])}catch(t){if(e!==this._generateSeq)return;let r=t?.code,o=t?.message;this._error=r==="no_url"||typeof o=="string"&&o.includes("No Home Assistant URL")?s("qr_error_no_url",this.lang):s("qr_error",this.lang)}finally{e===this._generateSeq&&(this._loading=!1)}}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,t=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,r=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),o=window.open("","_blank","width=600,height=500");if(!o)return;let l=this.lang||"en",d=ae(t),p=ae(r),g=!!this._completeResult,b=ae(s("qr_action_view",l)),m=ae(s("qr_action_complete",l));o.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+  `,c([f({attribute:!1})],U.prototype,"hass",2),c([h()],U.prototype,"_open",2),c([h()],U.prototype,"_saving",2),c([h()],U.prototype,"_error",2),c([h()],U.prototype,"_draft",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",U)});function ae(a){return a.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function Ft(a){return!a.startsWith("data:image/svg+xml,")&&!a.startsWith("data:image/png;base64,")?"":ae(a)}function Vi(a){return a.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var H,Wt=y(()=>{"use strict";T();j();C();H=class extends ${constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(e,t){this._entryId=e,this._taskId=null,this._objectName=t,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(e,t,i,o){this._entryId=e,this._taskId=t,this._objectName=i,this._taskName=o,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let e=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let t={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(t.task_id=this._taskId);let i=[this.hass.connection.sendMessagePromise({...t,action:"view"})];this._taskId&&i.push(this.hass.connection.sendMessagePromise({...t,action:"complete"}));let o=await Promise.all(i);if(e!==this._generateSeq)return;this._viewResult=o[0],o.length>1&&(this._completeResult=o[1])}catch(t){if(e!==this._generateSeq)return;let i=t?.code,o=t?.message;this._error=i==="no_url"||typeof o=="string"&&o.includes("No Home Assistant URL")?r("qr_error_no_url",this.lang):r("qr_error",this.lang)}finally{e===this._generateSeq&&(this._loading=!1)}}_setUrlMode(e){this._urlMode!==e&&(this._urlMode=e,this._generate())}_print(){if(!this._viewResult)return;let e=this._viewResult,t=e.label.task_name?`${e.label.object_name} \u2014 ${e.label.task_name}`:e.label.object_name,i=[e.label.manufacturer,e.label.model].filter(Boolean).join(" "),o=window.open("","_blank","width=600,height=500");if(!o)return;let l=this.lang||"en",d=ae(t),p=ae(i),g=!!this._completeResult,b=ae(r("qr_action_view",l)),m=ae(r("qr_action_complete",l));o.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>${d}</title>
 <style>
   body{font-family:sans-serif;text-align:center;padding:20px}
@@ -2348,11 +2392,11 @@ ${p?`<div class="sub">${p}</div>`:""}
 </div>
 <div class="url">${ae(this._viewResult.url)}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
-</body></html>`),o.document.close()}_downloadSvg(e,t){let r=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),o=new Blob([r],{type:"image/svg+xml"}),l=URL.createObjectURL(o),d=document.createElement("a");d.href=l;let p=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;d.download=`qr-${Vi(p)}-${t}.svg`,d.click(),URL.revokeObjectURL(l)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return n``;let e=this.lang||this.hass?.language||"en",t=this._taskName?`${s("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${s("qr_code",e)}: ${this._objectName}`,r=!!this._viewResult;return n`
+</body></html>`),o.document.close()}_downloadSvg(e,t){let i=decodeURIComponent(e.svg_data_uri.replace("data:image/svg+xml,","")),o=new Blob([i],{type:"image/svg+xml"}),l=URL.createObjectURL(o),d=document.createElement("a");d.href=l;let p=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;d.download=`qr-${Vi(p)}-${t}.svg`,d.click(),URL.revokeObjectURL(l)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return n``;let e=this.lang||this.hass?.language||"en",t=this._taskName?`${r("qr_code",e)}: ${this._objectName} \u2014 ${this._taskName}`:`${r("qr_code",e)}: ${this._objectName}`,i=!!this._viewResult;return n`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${t}</div>
         <div class="content">
-          ${this._loading?n`<div class="loading">${s("qr_generating",e)}</div>`:this._error?n`<div class="error">${this._error}</div>`:r?n`
+          ${this._loading?n`<div class="loading">${r("qr_generating",e)}</div>`:this._error?n`<div class="error">${this._error}</div>`:i?n`
                     <div class="qr-pair">
                       <div class="qr-item">
                         <img
@@ -2360,11 +2404,11 @@ ${p?`<div class="sub">${p}</div>`:""}
                           src="${this._viewResult.svg_data_uri}"
                           alt="QR Info"
                         />
-                        <div class="qr-item-label">${s("qr_action_view",e)}</div>
+                        <div class="qr-item-label">${r("qr_action_view",e)}</div>
                         <button class="dl-btn"
                           @click=${()=>this._downloadSvg(this._viewResult,"info")}>
                           <ha-icon icon="mdi:download"></ha-icon>
-                          ${s("qr_download",e)}
+                          ${r("qr_download",e)}
                         </button>
                       </div>
                       ${this._completeResult?n`
@@ -2374,11 +2418,11 @@ ${p?`<div class="sub">${p}</div>`:""}
                                 src="${this._completeResult.svg_data_uri}"
                                 alt="QR Complete"
                               />
-                              <div class="qr-item-label">${s("qr_action_complete",e)}</div>
+                              <div class="qr-item-label">${r("qr_action_complete",e)}</div>
                               <button class="dl-btn"
                                 @click=${()=>this._downloadSvg(this._completeResult,"complete")}>
                                 <ha-icon icon="mdi:download"></ha-icon>
-                                ${s("qr_download",e)}
+                                ${r("qr_download",e)}
                               </button>
                             </div>
                           `:u}
@@ -2386,26 +2430,26 @@ ${p?`<div class="sub">${p}</div>`:""}
                     <div class="url-display">${this._viewResult.url}</div>
                   `:u}
           <div class="action-row">
-            <label>${s("qr_url_mode",e)}</label>
+            <label>${r("qr_url_mode",e)}</label>
             <div class="action-toggle">
               <button class="toggle-btn ${this._urlMode==="companion"?"active":""}"
-                @click=${()=>this._setUrlMode("companion")}>${s("qr_mode_companion",e)}</button>
+                @click=${()=>this._setUrlMode("companion")}>${r("qr_mode_companion",e)}</button>
               <button class="toggle-btn ${this._urlMode==="local"?"active":""}"
-                @click=${()=>this._setUrlMode("local")}>${s("qr_mode_local",e)}</button>
+                @click=${()=>this._setUrlMode("local")}>${r("qr_mode_local",e)}</button>
               <button class="toggle-btn ${this._urlMode==="server"?"active":""}"
-                @click=${()=>this._setUrlMode("server")}>${s("qr_mode_server",e)}</button>
+                @click=${()=>this._setUrlMode("server")}>${r("qr_mode_server",e)}</button>
             </div>
           </div>
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>
-            ${s("cancel",e)}
+            ${r("cancel",e)}
           </ha-button>
           <ha-button
             @click=${this._print}
-            .disabled=${!r}
+            .disabled=${!i}
           >
-            ${s("qr_print",e)}
+            ${r("qr_print",e)}
           </ha-button>
         </div>
       </ha-dialog>
@@ -2527,25 +2571,25 @@ ${p?`<div class="sub">${p}</div>`:""}
       color: var(--text-primary-color, #fff);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
-  `,c([f({attribute:!1})],H.prototype,"hass",2),c([f()],H.prototype,"lang",2),c([h()],H.prototype,"_open",2),c([h()],H.prototype,"_loading",2),c([h()],H.prototype,"_error",2),c([h()],H.prototype,"_viewResult",2),c([h()],H.prototype,"_completeResult",2),c([h()],H.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",H)});function Vt(a,i){let e=a.interval_analysis,t=e?.weibull_beta,r=e?.weibull_eta;if(t==null||r==null||r<=0)return u;let o=a.interval_days??0,l=a.suggested_interval??o;return n`
+  `,c([f({attribute:!1})],H.prototype,"hass",2),c([f()],H.prototype,"lang",2),c([h()],H.prototype,"_open",2),c([h()],H.prototype,"_loading",2),c([h()],H.prototype,"_error",2),c([h()],H.prototype,"_viewResult",2),c([h()],H.prototype,"_completeResult",2),c([h()],H.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",H)});function Vt(a,s){let e=a.interval_analysis,t=e?.weibull_beta,i=e?.weibull_eta;if(t==null||i==null||i<=0)return u;let o=a.interval_days??0,l=a.suggested_interval??o;return n`
     <div class="weibull-section">
       <div class="weibull-title">
         <ha-svg-icon aria-hidden="true" path="M3,14L3.5,14.07L8.07,9.5C7.89,8.85 8.06,8.11 8.59,7.59C9.37,6.8 10.63,6.8 11.41,7.59C11.94,8.11 12.11,8.85 11.93,9.5L14.5,12.07L15,12C15.18,12 15.35,12 15.5,12.07L19.07,8.5C19,8.35 19,8.18 19,8A2,2 0 0,1 21,6A2,2 0 0,1 23,8A2,2 0 0,1 21,10C20.82,10 20.65,10 20.5,9.93L16.93,13.5C17,13.65 17,13.82 17,14A2,2 0 0,1 15,16A2,2 0 0,1 13,14L13.07,13.5L10.5,10.93C10.18,11 9.82,11 9.5,10.93L4.93,15.5L5,16A2,2 0 0,1 3,18A2,2 0 0,1 1,16A2,2 0 0,1 3,14Z"></ha-svg-icon>
-        ${s("weibull_reliability_curve",i)}
-        ${Bi(t,i)}
+        ${r("weibull_reliability_curve",s)}
+        ${Bi(t,s)}
       </div>
-      ${Gi(t,r,o,l,i)}
-      ${Ki(e,i)}
-      ${e?.confidence_interval_low!=null?Yi(e,a,i):u}
+      ${Gi(t,i,o,l,s)}
+      ${Ki(e,s)}
+      ${e?.confidence_interval_low!=null?Yi(e,a,s):u}
     </div>
-  `}function Bi(a,i){let e,t,r;return a<.8?(e="early_failures",t="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",r="beta_early_failures"):a<=1.2?(e="random_failures",t="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",r="beta_random_failures"):a<=3.5?(e="wear_out",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",r="beta_wear_out"):(e="highly_predictable",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",r="beta_highly_predictable"),n`
+  `}function Bi(a,s){let e,t,i;return a<.8?(e="early_failures",t="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",i="beta_early_failures"):a<=1.2?(e="random_failures",t="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",i="beta_random_failures"):a<=3.5?(e="wear_out",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",i="beta_wear_out"):(e="highly_predictable",t="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",i="beta_highly_predictable"),n`
     <span class="beta-badge ${e}">
       <ha-svg-icon path="${t}"></ha-svg-icon>
-      ${s(r,i)} (\u03B2=${a.toFixed(2)})
+      ${r(i,s)} (\u03B2=${a.toFixed(2)})
     </span>
-  `}function Gi(a,i,e,t,r){let v=Math.max(e,t,i,1)*1.3,w=50,M=[];for(let R=0;R<=w;R++){let P=R/w*v,ci=1-Math.exp(-Math.pow(P/i,a)),di=32+P/v*260,pi=136-ci*128;M.push([di,pi])}let me=M.map(([R,P])=>`${R.toFixed(1)},${P.toFixed(1)}`).join(" "),Re="M32,136 "+M.map(([R,P])=>`L${R.toFixed(1)},${P.toFixed(1)}`).join(" ")+` L${M[w][0].toFixed(1)},136 Z`,X=32+e/v*260,fe=1-Math.exp(-Math.pow(e/i,a)),ve=136-fe*128,ni=((1-fe)*100).toFixed(0),it=32+t/v*260,li=[0,.25,.5,.75,1];return n`
+  `}function Gi(a,s,e,t,i){let v=Math.max(e,t,s,1)*1.3,w=50,M=[];for(let R=0;R<=w;R++){let P=R/w*v,ci=1-Math.exp(-Math.pow(P/s,a)),di=32+P/v*260,pi=136-ci*128;M.push([di,pi])}let me=M.map(([R,P])=>`${R.toFixed(1)},${P.toFixed(1)}`).join(" "),Re="M32,136 "+M.map(([R,P])=>`L${R.toFixed(1)},${P.toFixed(1)}`).join(" ")+` L${M[w][0].toFixed(1)},136 Z`,X=32+e/v*260,fe=1-Math.exp(-Math.pow(e/s,a)),ve=136-fe*128,ni=((1-fe)*100).toFixed(0),it=32+t/v*260,li=[0,.25,.5,.75,1];return n`
     <div class="weibull-chart">
-      <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_weibull",r)}">
+      <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${r("chart_weibull",i)}">
         ${li.map(R=>{let P=136-R*128;return ie`
             <line x1="${32}" y1="${P.toFixed(1)}" x2="${292}" y2="${P.toFixed(1)}"
               stroke="var(--divider-color)" stroke-width="0.5" stroke-dasharray="${R===.5?"4,3":u}" />
@@ -2582,27 +2626,27 @@ ${p?`<div class="sub">${p}</div>`:""}
       </svg>
     </div>
     <div class="chart-legend">
-      <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${s("weibull_failure_probability",r)}</span>
-      ${e>0?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${s("current_interval_marker",r)}</span>`:u}
-      ${t>0&&t!==e?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${s("recommended_marker",r)}</span>`:u}
+      <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${r("weibull_failure_probability",i)}</span>
+      ${e>0?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${r("current_interval_marker",i)}</span>`:u}
+      ${t>0&&t!==e?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${r("recommended_marker",i)}</span>`:u}
     </div>
-  `}function Ki(a,i){return n`
+  `}function Ki(a,s){return n`
     <div class="weibull-info-row">
       <div class="weibull-info-item">
-        <span>${s("characteristic_life",i)}</span>
-        <span class="weibull-info-value">${Math.round(a.weibull_eta)} ${s("days",i)}</span>
+        <span>${r("characteristic_life",s)}</span>
+        <span class="weibull-info-value">${Math.round(a.weibull_eta)} ${r("days",s)}</span>
       </div>
       ${a.weibull_r_squared!=null?n`
         <div class="weibull-info-item">
-          <span>${s("weibull_r_squared",i)}</span>
+          <span>${r("weibull_r_squared",s)}</span>
           <span class="weibull-info-value">${a.weibull_r_squared.toFixed(3)}</span>
         </div>
       `:u}
     </div>
-  `}function Yi(a,i,e){let t=a.confidence_interval_low,r=a.confidence_interval_high,o=i.suggested_interval??i.interval_days??0,l=i.interval_days??0,d=Math.max(0,t-5),g=r+5-d,b=(t-d)/g*100,m=(r-t)/g*100,x=(o-d)/g*100,v=l>0?(l-d)/g*100:-1;return n`
+  `}function Yi(a,s,e){let t=a.confidence_interval_low,i=a.confidence_interval_high,o=s.suggested_interval??s.interval_days??0,l=s.interval_days??0,d=Math.max(0,t-5),g=i+5-d,b=(t-d)/g*100,m=(i-t)/g*100,x=(o-d)/g*100,v=l>0?(l-d)/g*100:-1;return n`
     <div class="confidence-range">
       <div class="confidence-range-title">
-        ${s("confidence_interval",e)}: ${o} ${s("days",e)} (${t}\u2013${r})
+        ${r("confidence_interval",e)}: ${o} ${r("days",e)} (${t}\u2013${i})
       </div>
       <div class="confidence-bar">
         <div class="confidence-fill" style="left:${b.toFixed(1)}%;width:${m.toFixed(1)}%"></div>
@@ -2610,128 +2654,128 @@ ${p?`<div class="sub">${p}</div>`:""}
         <div class="confidence-marker recommended" style="left:${x.toFixed(1)}%"></div>
       </div>
       <div class="confidence-labels">
-        <span class="confidence-text low">${s("confidence_conservative",e)} (${t}${s("days",e).charAt(0)})</span>
-        <span class="confidence-text high">${s("confidence_aggressive",e)} (${r}${s("days",e).charAt(0)})</span>
+        <span class="confidence-text low">${r("confidence_conservative",e)} (${t}${r("days",e).charAt(0)})</span>
+        <span class="confidence-text high">${r("confidence_aggressive",e)} (${i}${r("days",e).charAt(0)})</span>
       </div>
     </div>
-  `}var Bt=y(()=>{"use strict";T();C()});function Gt(a,i,e){let t=a.degradation_trend!=null&&a.degradation_trend!=="insufficient_data",r=a.days_until_threshold!=null,o=a.environmental_factor!=null&&a.environmental_factor!==1;if(!t&&!r&&!o)return u;let l=a.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":a.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return n`
+  `}var Bt=y(()=>{"use strict";T();C()});function Gt(a,s,e){let t=a.degradation_trend!=null&&a.degradation_trend!=="insufficient_data",i=a.days_until_threshold!=null,o=a.environmental_factor!=null&&a.environmental_factor!==1;if(!t&&!i&&!o)return u;let l=a.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":a.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return n`
     <div class="prediction-section">
       ${a.sensor_prediction_urgency?n`
         <div class="prediction-urgency-banner">
           <ha-svg-icon path="M1,21H23L12,2L1,21M12,18A1,1 0 0,1 11,17A1,1 0 0,1 12,16A1,1 0 0,1 13,17A1,1 0 0,1 12,18M13,15H11V10H13V15Z"></ha-svg-icon>
-          ${s("sensor_prediction_urgency",i).replace("{days}",String(Math.round(a.days_until_threshold||0)))}
+          ${r("sensor_prediction_urgency",s).replace("{days}",String(Math.round(a.days_until_threshold||0)))}
         </div>
       `:u}
       <div class="prediction-title">
         <ha-svg-icon path="M2,2V4H7V2H2M22,2V4H13V2H22M7,7V9H2V7H7M22,7V9H13V7H22M7,12V14H2V12H7M22,12V14H13V12H22M7,17V19H2V17H7M22,17V19H13V17H22M9,2V19L12,22L15,19V2H9M11,4H13V17.17L12,18.17L11,17.17V4Z"></ha-svg-icon>
-        ${s("sensor_prediction",i)}
+        ${r("sensor_prediction",s)}
       </div>
       <div class="prediction-grid">
         ${t?n`
           <div class="prediction-item">
             <ha-svg-icon path="${l}"></ha-svg-icon>
-            <span class="prediction-label">${s("degradation_trend",i)}</span>
-            <span class="prediction-value ${a.degradation_trend}">${s("trend_"+a.degradation_trend,i)}</span>
-            ${a.degradation_rate!=null?n`<span class="prediction-rate">${a.degradation_rate>0?"+":""}${Math.abs(a.degradation_rate)>=10?Math.round(a.degradation_rate).toLocaleString():a.degradation_rate.toFixed(1)} ${a.trigger_entity_info?.unit_of_measurement||""}/${s("day_short",i)}</span>`:u}
+            <span class="prediction-label">${r("degradation_trend",s)}</span>
+            <span class="prediction-value ${a.degradation_trend}">${r("trend_"+a.degradation_trend,s)}</span>
+            ${a.degradation_rate!=null?n`<span class="prediction-rate">${a.degradation_rate>0?"+":""}${Math.abs(a.degradation_rate)>=10?Math.round(a.degradation_rate).toLocaleString():a.degradation_rate.toFixed(1)} ${a.trigger_entity_info?.unit_of_measurement||""}/${r("day_short",s)}</span>`:u}
           </div>
         `:u}
-        ${r?n`
+        ${i?n`
           <div class="prediction-item">
             <ha-svg-icon path="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z"></ha-svg-icon>
-            <span class="prediction-label">${s("days_until_threshold",i)}</span>
-            <span class="prediction-value prediction-days${a.days_until_threshold===0?" exceeded":a.sensor_prediction_urgency?" urgent":""}">${a.days_until_threshold===0?s("threshold_exceeded",i):"~"+Math.round(a.days_until_threshold)+" "+s("days",i)}</span>
-            ${a.threshold_prediction_date?n`<span class="prediction-date">${Z(a.threshold_prediction_date,i)}</span>`:u}
+            <span class="prediction-label">${r("days_until_threshold",s)}</span>
+            <span class="prediction-value prediction-days${a.days_until_threshold===0?" exceeded":a.sensor_prediction_urgency?" urgent":""}">${a.days_until_threshold===0?r("threshold_exceeded",s):"~"+Math.round(a.days_until_threshold)+" "+r("days",s)}</span>
+            ${a.threshold_prediction_date?n`<span class="prediction-date">${Z(a.threshold_prediction_date,s)}</span>`:u}
             ${a.threshold_prediction_confidence?n`<span class="confidence-dot ${a.threshold_prediction_confidence}"></span>`:u}
           </div>
         `:u}
         ${o&&e.environmental?n`
           <div class="prediction-item">
             <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
-            <span class="prediction-label">${s("environmental_adjustment",i)}</span>
+            <span class="prediction-label">${r("environmental_adjustment",s)}</span>
             <span class="prediction-value">${a.environmental_factor.toFixed(2)}x</span>
             ${a.environmental_entity?n`<span class="prediction-entity entity-link" @click=${d=>Nt(d,a.environmental_entity)}>${a.environmental_entity}</span>`:u}
           </div>
         `:u}
       </div>
     </div>
-  `}var Kt=y(()=>{"use strict";T();C()});function Yt(a,i,e,t){let r=Math.max(a||1,i);return n`
+  `}var Kt=y(()=>{"use strict";T();C()});function Yt(a,s,e,t){let i=Math.max(a||1,s);return n`
     <div class="interval-comparison">
       <div class="interval-bar">
         <div class="interval-label">
-          ${s("current",t)}: ${a??"\u2014"} ${a!=null?s("days",t):""}
+          ${r("current",t)}: ${a??"\u2014"} ${a!=null?r("days",t):""}
         </div>
         <div class="interval-visual current"
-          style="width: ${a!=null?Math.min(a/r*100,100):0}%"></div>
+          style="width: ${a!=null?Math.min(a/i*100,100):0}%"></div>
       </div>
       <div class="interval-bar">
         <div class="interval-label">
-          ${s("recommended",t)}: ${i} ${s("days",t)}
-          <span class="confidence-badge ${e}">${s(`confidence_${e}`,t)}</span>
+          ${r("recommended",t)}: ${s} ${r("days",t)}
+          <span class="confidence-badge ${e}">${r(`confidence_${e}`,t)}</span>
         </div>
         <div class="interval-visual suggested"
-          style="width: ${Math.min(i/r*100,100)}%"></div>
+          style="width: ${Math.min(s/i*100,100)}%"></div>
       </div>
     </div>
-  `}var Jt=y(()=>{"use strict";T();C()});function Qt(a,i,e){if(!e.seasonal||!a.seasonal_factor||a.seasonal_factor===1)return u;let t=Zt.map(d=>s(d,i)),r=new Date().getMonth(),o=a.seasonal_factors||a.interval_analysis?.seasonal_factors||null,l=o&&o.length===12?o:t.map((d,p)=>{let g=a.seasonal_factor||1,b=Math.sin((p-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,g+b))});return n`
+  `}var Jt=y(()=>{"use strict";T();C()});function Qt(a,s,e){if(!e.seasonal||!a.seasonal_factor||a.seasonal_factor===1)return u;let t=Zt.map(d=>r(d,s)),i=new Date().getMonth(),o=a.seasonal_factors||a.interval_analysis?.seasonal_factors||null,l=o&&o.length===12?o:t.map((d,p)=>{let g=a.seasonal_factor||1,b=Math.sin((p-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,g+b))});return n`
     <div class="seasonal-card-compact">
-      <h4>${s("seasonal_awareness",i)}</h4>
+      <h4>${r("seasonal_awareness",s)}</h4>
       <div class="seasonal-mini-chart">
         ${l.map((d,p)=>{let g=d*40,b=d<.9?"low":d>1.1?"high":"normal";return n`
-            <div class="seasonal-bar ${b} ${p===r?"current":""}"
+            <div class="seasonal-bar ${b} ${p===i?"current":""}"
                  style="height: ${g}px"
                  title="${t[p]}: ${d.toFixed(2)}x">
             </div>
           `})}
       </div>
       <div class="seasonal-legend">
-        <span class="legend-item"><span class="dot low"></span> ${s("shorter",i)||"K\xFCrzer"}</span>
-        <span class="legend-item"><span class="dot normal"></span> ${s("normal",i)||"Normal"}</span>
-        <span class="legend-item"><span class="dot high"></span> ${s("longer",i)||"L\xE4nger"}</span>
+        <span class="legend-item"><span class="dot low"></span> ${r("shorter",s)||"K\xFCrzer"}</span>
+        <span class="legend-item"><span class="dot normal"></span> ${r("normal",s)||"Normal"}</span>
+        <span class="legend-item"><span class="dot high"></span> ${r("longer",s)||"L\xE4nger"}</span>
       </div>
     </div>
-  `}function Xt(a,i){return Ji(a,i)}function Ji(a,i){let e=a.seasonal_factors??a.interval_analysis?.seasonal_factors;if(!e||e.length!==12)return u;let t=a.interval_analysis?.seasonal_reason,r=new Date().getMonth(),o=300,l=100,d=8,g=l-d-4,b=Math.max(...e,1.5),m=o/12,x=m*.65,v=d+g-1/b*g;return n`
+  `}function Xt(a,s){return Ji(a,s)}function Ji(a,s){let e=a.seasonal_factors??a.interval_analysis?.seasonal_factors;if(!e||e.length!==12)return u;let t=a.interval_analysis?.seasonal_reason,i=new Date().getMonth(),o=300,l=100,d=8,g=l-d-4,b=Math.max(...e,1.5),m=o/12,x=m*.65,v=d+g-1/b*g;return n`
     <div class="seasonal-chart">
       <div class="seasonal-chart-title">
         <ha-svg-icon aria-hidden="true" path="M17.75 4.09L15.22 6.03L16.13 9.09L13.5 7.28L10.87 9.09L11.78 6.03L9.25 4.09L12.44 4L13.5 1L14.56 4L17.75 4.09M21.25 11L19.61 12.25L20.2 14.23L18.5 13.06L16.8 14.23L17.39 12.25L15.75 11L17.81 10.95L18.5 9L19.19 10.95L21.25 11M18.97 15.95C19.8 15.87 20.69 17.05 20.16 17.8C19.84 18.25 19.5 18.67 19.08 19.07C15.17 23 8.84 23 4.94 19.07C1.03 15.17 1.03 8.83 4.94 4.93C5.34 4.53 5.76 4.17 6.21 3.85C6.96 3.32 8.14 4.21 8.06 5.04C7.79 7.9 8.75 10.87 10.95 13.06C13.14 15.26 16.1 16.22 18.97 15.95Z"></ha-svg-icon>
-        ${s("seasonal_chart_title",i)}
-        ${t?n`<span class="source-tag">${t==="learned"?s("seasonal_learned",i):s("seasonal_manual",i)}</span>`:u}
+        ${r("seasonal_chart_title",s)}
+        ${t?n`<span class="source-tag">${t==="learned"?r("seasonal_learned",s):r("seasonal_manual",s)}</span>`:u}
       </div>
-      <svg viewBox="0 0 ${o} ${l}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_seasonal",i)}">
+      <svg viewBox="0 0 ${o} ${l}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${r("chart_seasonal",s)}">
         <line x1="0" y1="${v.toFixed(1)}" x2="${o}" y2="${v.toFixed(1)}"
           stroke="var(--divider-color)" stroke-width="1" stroke-dasharray="4,3" />
-        ${e.map((w,M)=>{let me=w/b*g,Re=M*m+(m-x)/2,X=d+g-me,fe=M===r,ve=w<1?"var(--success-color, #4caf50)":w>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return ie`
+        ${e.map((w,M)=>{let me=w/b*g,Re=M*m+(m-x)/2,X=d+g-me,fe=M===i,ve=w<1?"var(--success-color, #4caf50)":w>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return ie`
             <rect x="${Re.toFixed(1)}" y="${X.toFixed(1)}"
               width="${x.toFixed(1)}" height="${me.toFixed(1)}"
               fill="${ve}" opacity="${fe?1:.5}" rx="2" />
           `})}
       </svg>
       <div class="seasonal-labels">
-        ${Zt.map((w,M)=>n`<span class="seasonal-label ${M===r?"active-month":""}">${s(w,i)}</span>`)}
+        ${Zt.map((w,M)=>n`<span class="seasonal-label ${M===i?"active-month":""}">${r(w,s)}</span>`)}
       </div>
     </div>
-  `}var Zt,ei=y(()=>{"use strict";T();C();Zt=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"]});var A,ti=y(()=>{"use strict";T();j();C();Q();Bt();Kt();Jt();ei();A=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._toast="";this._featuresLoaded=!1}get _lang(){return this.hass?.language||"en"}async openFor(e,t){this._entryId=e,this._taskId=t,this._error="",this._showSkip=!1,this._showReset=!1,this._showAdaptive=!1,this._skipReason="",this._resetDate=new Date().toISOString().slice(0,10),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){if(!this._featuresLoaded)try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});e?.features&&(this._features={...this._features,...e.features}),this._featuresLoaded=!0}catch{}}close(){this._open=!1,this._task=null,this._error=""}async _loadTask(){if(!(!this._entryId||!this._taskId))try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._objectName=e.object?.name||"";let t=(e.tasks||[]).find(r=>r.id===this._taskId);this._task=t??null}catch(e){this._error=I(e,this._lang)}}async _runWs(e){this._busy=!0,this._error="";try{return await this.hass.connection.sendMessagePromise(e),this._busy=!1,!0}catch(t){return this._error=I(t,this._lang),this._busy=!1,!1}}_notifyChanged(e){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:e},bubbles:!0,composed:!0}))}_onComplete(){!this._entryId||!this._taskId||!this._task||Promise.resolve().then(()=>(z(),O)).then(({openCompleteDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,checklist:this._task.checklist||[],adaptive_enabled:!!this._task.adaptive_config?.enabled})&&(this._notifyChanged("complete"),this.close())})}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})&&(this._notifyChanged("reset"),this.close())}_onEdit(){!this._entryId||!this._taskId||Promise.resolve().then(()=>(z(),O)).then(({openEditTaskDialog:e})=>{e(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||Promise.resolve().then(()=>(z(),O)).then(({openQrDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId)return;let e=s("delete_task_confirm",this._lang)||`Delete "${this._task?.name}"?`;if(!window.confirm(e))return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let e=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",e),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})&&(this._toast=s("suggestion_applied",this._lang)||"Applied",this._notifyChanged("apply_suggestion"),await this._loadTask(),setTimeout(()=>{this._toast=""},2500))}async _reanalyzeInterval(){if(!(!this._entryId||!this._taskId)){this._busy=!0,this._error="";try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});this._toast=e.recommended_interval?`${s("reanalyze_result",this._lang)||"Recomputed"}: ${e.recommended_interval}d (${e.data_points} pts)`:s("reanalyze_insufficient_data",this._lang)||"Not enough data",await this._loadTask(),setTimeout(()=>{this._toast=""},3500)}catch(e){this._error=I(e,this._lang)}finally{this._busy=!1}}}_onEditHistoryEntry(e){!this._entryId||!this._taskId||Promise.resolve().then(()=>(z(),O)).then(({openHistoryEditDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,original_timestamp:e.timestamp,type:e.type,timestamp:e.timestamp,notes:e.notes??null,cost:e.cost??null,duration:e.duration??null,completed_by:e.completed_by??null})})}_renderRecommendation(e){if(!this._features.adaptive||!e.suggested_interval||e.suggested_interval===e.interval_days)return u;let t=this._lang;return n`
+  `}var Zt,ei=y(()=>{"use strict";T();C();Zt=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"]});var A,ti=y(()=>{"use strict";T();j();C();Q();Bt();Kt();Jt();ei();A=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._toast="";this._featuresLoaded=!1}get _lang(){return this.hass?.language||"en"}async openFor(e,t){this._entryId=e,this._taskId=t,this._error="",this._showSkip=!1,this._showReset=!1,this._showAdaptive=!1,this._skipReason="",this._resetDate=new Date().toISOString().slice(0,10),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){if(!this._featuresLoaded)try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});e?.features&&(this._features={...this._features,...e.features}),this._featuresLoaded=!0}catch{}}close(){this._open=!1,this._task=null,this._error=""}async _loadTask(){if(!(!this._entryId||!this._taskId))try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._objectName=e.object?.name||"";let t=(e.tasks||[]).find(i=>i.id===this._taskId);this._task=t??null}catch(e){this._error=I(e,this._lang)}}async _runWs(e){this._busy=!0,this._error="";try{return await this.hass.connection.sendMessagePromise(e),this._busy=!1,!0}catch(t){return this._error=I(t,this._lang),this._busy=!1,!1}}_notifyChanged(e){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:e},bubbles:!0,composed:!0}))}_onComplete(){!this._entryId||!this._taskId||!this._task||Promise.resolve().then(()=>(z(),O)).then(({openCompleteDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,checklist:this._task.checklist||[],adaptive_enabled:!!this._task.adaptive_config?.enabled})&&(this._notifyChanged("complete"),this.close())})}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})&&(this._notifyChanged("reset"),this.close())}_onEdit(){!this._entryId||!this._taskId||Promise.resolve().then(()=>(z(),O)).then(({openEditTaskDialog:e})=>{e(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||Promise.resolve().then(()=>(z(),O)).then(({openQrDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId)return;let e=r("delete_task_confirm",this._lang)||`Delete "${this._task?.name}"?`;if(!window.confirm(e))return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let e=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",e),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})&&(this._toast=r("suggestion_applied",this._lang)||"Applied",this._notifyChanged("apply_suggestion"),await this._loadTask(),setTimeout(()=>{this._toast=""},2500))}async _reanalyzeInterval(){if(!(!this._entryId||!this._taskId)){this._busy=!0,this._error="";try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});this._toast=e.recommended_interval?`${r("reanalyze_result",this._lang)||"Recomputed"}: ${e.recommended_interval}d (${e.data_points} pts)`:r("reanalyze_insufficient_data",this._lang)||"Not enough data",await this._loadTask(),setTimeout(()=>{this._toast=""},3500)}catch(e){this._error=I(e,this._lang)}finally{this._busy=!1}}}_onEditHistoryEntry(e){!this._entryId||!this._taskId||Promise.resolve().then(()=>(z(),O)).then(({openHistoryEditDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,original_timestamp:e.timestamp,type:e.type,timestamp:e.timestamp,notes:e.notes??null,cost:e.cost??null,duration:e.duration??null,completed_by:e.completed_by??null})})}_renderRecommendation(e){if(!this._features.adaptive||!e.suggested_interval||e.suggested_interval===e.interval_days)return u;let t=this._lang;return n`
       <div class="recommendation-card">
-        <h4>${s("suggested_interval",t)}</h4>
+        <h4>${r("suggested_interval",t)}</h4>
         ${Yt(e.interval_days,e.suggested_interval,e.interval_confidence||"medium",t)}
         <div class="recommendation-actions">
           <button class="btn primary"
             @click=${this._applySuggestion} ?disabled=${this._busy}>
             <ha-icon icon="mdi:check"></ha-icon>
-            ${s("apply_suggestion",t)}
+            ${r("apply_suggestion",t)}
           </button>
           <button class="btn"
             @click=${this._reanalyzeInterval} ?disabled=${this._busy}>
             <ha-icon icon="mdi:refresh"></ha-icon>
-            ${s("reanalyze",t)}
+            ${r("reanalyze",t)}
           </button>
         </div>
       </div>
-    `}_renderAdaptive(e){let t=this._lang,r=this._features.adaptive&&e.suggested_interval&&e.suggested_interval!==e.interval_days,o=e.degradation_trend!=null&&e.degradation_trend!=="insufficient_data"||e.days_until_threshold!=null||e.environmental_factor!=null&&e.environmental_factor!==1,l=this._features.adaptive&&e.interval_analysis?.weibull_beta!=null&&e.interval_analysis?.weibull_eta!=null,d=this._features.seasonal&&e.seasonal_factor&&e.seasonal_factor!==1;return!r&&!o&&!l&&!d?n`<div class="adaptive-empty">
-        ${s("adaptive_no_data",t)||"Not enough completion history yet for adaptive analysis."}
+    `}_renderAdaptive(e){let t=this._lang,i=this._features.adaptive&&e.suggested_interval&&e.suggested_interval!==e.interval_days,o=e.degradation_trend!=null&&e.degradation_trend!=="insufficient_data"||e.days_until_threshold!=null||e.environmental_factor!=null&&e.environmental_factor!==1,l=this._features.adaptive&&e.interval_analysis?.weibull_beta!=null&&e.interval_analysis?.weibull_eta!=null,d=this._features.seasonal&&e.seasonal_factor&&e.seasonal_factor!==1;return!i&&!o&&!l&&!d?n`<div class="adaptive-empty">
+        ${r("adaptive_no_data",t)||"Not enough completion history yet for adaptive analysis."}
       </div>`:n`
       <div class="adaptive-stack">
         ${this._toast?n`<div class="toast">${this._toast}</div>`:u}
-        ${r?this._renderRecommendation(e):u}
+        ${i?this._renderRecommendation(e):u}
         ${o?Gt(e,t,this._features):u}
         ${l?Vt(e,t):u}
         ${d?n`
@@ -2739,35 +2783,35 @@ ${p?`<div class="sub">${p}</div>`:""}
           ${e.seasonal_factors?.length===12||e.interval_analysis?.seasonal_factors?.length===12?Xt(e,t):u}
         `:u}
       </div>
-    `}_renderDetails(e){let t=this._lang,r=e.history||[],o=r.filter(p=>p.type==="completed"),l=o.reduce((p,g)=>p+(typeof g.cost=="number"?g.cost:0),0),d=(()=>{let p=o.map(g=>typeof g.duration=="number"?g.duration:null).filter(g=>g!=null);return p.length?Math.round(p.reduce((g,b)=>g+b,0)/p.length):null})();return n`
+    `}_renderDetails(e){let t=this._lang,i=e.history||[],o=i.filter(p=>p.type==="completed"),l=o.reduce((p,g)=>p+(typeof g.cost=="number"?g.cost:0),0),d=(()=>{let p=o.map(g=>typeof g.duration=="number"?g.duration:null).filter(g=>g!=null);return p.length?Math.round(p.reduce((g,b)=>g+b,0)/p.length):null})();return n`
       <div class="details">
         <div class="stats-grid">
           <div class="stat">
-            <span class="stat-label">${s("times_performed",t)||"Performed"}</span>
+            <span class="stat-label">${r("times_performed",t)||"Performed"}</span>
             <span class="stat-value">${o.length}</span>
           </div>
           <div class="stat">
-            <span class="stat-label">${s("total_cost",t)||"Total cost"}</span>
+            <span class="stat-label">${r("total_cost",t)||"Total cost"}</span>
             <span class="stat-value">${l.toFixed(2)}</span>
           </div>
           <div class="stat">
-            <span class="stat-label">${s("avg_duration",t)||"Avg duration"}</span>
+            <span class="stat-label">${r("avg_duration",t)||"Avg duration"}</span>
             <span class="stat-value">${d!=null?`${d}m`:"\u2014"}</span>
           </div>
         </div>
         <div class="history-header">
-          <strong>${s("history",t)||"History"}</strong>
-          <span class="history-count">${r.length}</span>
+          <strong>${r("history",t)||"History"}</strong>
+          <span class="history-count">${i.length}</span>
         </div>
-        ${r.length===0?n`<div class="history-empty">${s("history_empty",t)||"No history yet."}</div>`:n`
+        ${i.length===0?n`<div class="history-empty">${r("history_empty",t)||"No history yet."}</div>`:n`
               <div class="history-list">
-                ${[...r].reverse().slice(0,20).map(p=>{let g=["completed","reset","skipped"].includes(p.type);return n`
+                ${[...i].reverse().slice(0,20).map(p=>{let g=["completed","reset","skipped"].includes(p.type);return n`
                     <div class="history-entry">
                       <div class="history-line">
-                        <span class="history-type type-${p.type}">${s(p.type,t)}</span>
+                        <span class="history-type type-${p.type}">${r(p.type,t)}</span>
                         <span class="history-date">${Pt(p.timestamp,t)}</span>
                         ${g?n`<button class="history-edit"
-                                   title="${s("history_edit_button",t)||"Edit"}"
+                                   title="${r("history_edit_button",t)||"Edit"}"
                                    @click=${()=>this._onEditHistoryEntry(p)}>
                               <ha-icon icon="mdi:pencil"></ha-icon>
                             </button>`:u}
@@ -2779,26 +2823,26 @@ ${p?`<div class="sub">${p}</div>`:""}
                           </div>`:u}
                     </div>
                   `})}
-                ${r.length>20?n`<div class="history-more">… +${r.length-20} ${s("older_entries",t)||"older"}</div>`:u}
+                ${i.length>20?n`<div class="history-more">… +${i.length-20} ${r("older_entries",t)||"older"}</div>`:u}
               </div>
             `}
       </div>
-    `}render(){if(!this._open)return u;let e=this._lang,t=this._task,r=this.hass?.user?.is_admin??!0;return n`
+    `}render(){if(!this._open)return u;let e=this._lang,t=this._task,i=this.hass?.user?.is_admin??!0;return n`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
         ${t?n`
               <div class="header">
                 <div class="title">
-                  <span class="status-dot" style="background: ${se[t.status]||"#ccc"}"></span>
+                  <span class="status-dot" style="background: ${re[t.status]||"#ccc"}"></span>
                   <span class="task-name">${t.name}</span>
                 </div>
                 <div class="object">
                   <button class="link-inline" @click=${()=>{this._entryId&&Promise.resolve().then(()=>(z(),O)).then(({openObjectQuickActions:o})=>{o(this._entryId),this.close()})}}>${this._objectName}</button>
                 </div>
                 <div class="quick-info">
-                  ${t.next_due?n`<span><strong>${s("next_due",e)||"Next due"}:</strong> ${Z(t.next_due,e)}</span>`:u}
-                  ${t.last_performed?n`<span><strong>${s("last_performed",e)||"Last"}:</strong> ${Z(t.last_performed,e)}</span>`:u}
-                  ${t.schedule?.kind&&!["manual","one_time"].includes(t.schedule.kind)||t.interval_days!=null?n`<span><strong>${s("interval",e)||"Interval"}:</strong> ${zt(t,e)}</span>`:u}
+                  ${t.next_due?n`<span><strong>${r("next_due",e)||"Next due"}:</strong> ${Z(t.next_due,e)}</span>`:u}
+                  ${t.last_performed?n`<span><strong>${r("last_performed",e)||"Last"}:</strong> ${Z(t.last_performed,e)}</span>`:u}
+                  ${t.schedule?.kind&&!["manual","one_time"].includes(t.schedule.kind)||t.interval_days!=null?n`<span><strong>${r("interval",e)||"Interval"}:</strong> ${zt(t,e)}</span>`:u}
                 </div>
               </div>
 
@@ -2806,29 +2850,29 @@ ${p?`<div class="sub">${p}</div>`:""}
 
               ${this._showSkip?n`
                     <div class="inline-form">
-                      <label>${s("skip_reason",e)||"Skip reason (optional)"}</label>
+                      <label>${r("skip_reason",e)||"Skip reason (optional)"}</label>
                       <input type="text" .value=${this._skipReason}
                         @input=${o=>{this._skipReason=o.target.value}} />
                       <div class="inline-actions">
                         <button class="btn cancel" @click=${()=>{this._showSkip=!1}} ?disabled=${this._busy}>
-                          ${s("cancel",e)||"Cancel"}
+                          ${r("cancel",e)||"Cancel"}
                         </button>
                         <button class="btn primary" @click=${this._onSkipConfirm} ?disabled=${this._busy}>
-                          ${s("skip",e)||"Skip"}
+                          ${r("skip",e)||"Skip"}
                         </button>
                       </div>
                     </div>
                   `:this._showReset?n`
                     <div class="inline-form">
-                      <label>${s("reset_to_date",e)||"Reset last_performed to"}</label>
+                      <label>${r("reset_to_date",e)||"Reset last_performed to"}</label>
                       <input type="date" .value=${this._resetDate}
                         @input=${o=>{this._resetDate=o.target.value}} />
                       <div class="inline-actions">
                         <button class="btn cancel" @click=${()=>{this._showReset=!1}} ?disabled=${this._busy}>
-                          ${s("cancel",e)||"Cancel"}
+                          ${r("cancel",e)||"Cancel"}
                         </button>
                         <button class="btn primary" @click=${this._onResetConfirm} ?disabled=${this._busy}>
-                          ${s("reset",e)||"Reset"}
+                          ${r("reset",e)||"Reset"}
                         </button>
                       </div>
                     </div>
@@ -2836,47 +2880,47 @@ ${p?`<div class="sub">${p}</div>`:""}
                     <div class="actions primary-row">
                       <button class="btn primary" @click=${this._onComplete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:check"></ha-icon>
-                        ${s("complete",e)||"Complete"}
+                        ${r("complete",e)||"Complete"}
                       </button>
                       <button class="btn" @click=${()=>{this._showSkip=!0}} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:skip-next"></ha-icon>
-                        ${s("skip",e)||"Skip"}
+                        ${r("skip",e)||"Skip"}
                       </button>
                       <button class="btn" @click=${()=>{this._showReset=!0}} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:restart"></ha-icon>
-                        ${s("reset",e)||"Reset"}
+                        ${r("reset",e)||"Reset"}
                       </button>
                     </div>
-                    ${r?n`
+                    ${i?n`
                           <div class="actions secondary-row">
                             <button class="btn ghost" @click=${this._onEdit} ?disabled=${this._busy}>
                               <ha-icon icon="mdi:pencil"></ha-icon>
-                              ${s("edit",e)||"Edit"}
+                              ${r("edit",e)||"Edit"}
                             </button>
                             <button class="btn ghost" @click=${this._onQr} ?disabled=${this._busy}>
                               <ha-icon icon="mdi:qrcode"></ha-icon>
-                              ${s("qr_code",e)||"QR"}
+                              ${r("qr_code",e)||"QR"}
                             </button>
                             <button class="btn ghost"
                               @click=${t.archived?this._onUnarchive:this._onArchive}
                               ?disabled=${this._busy}>
                               <ha-icon icon="${t.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
-                              ${t.archived?s("unarchive",e)||"Unarchive":s("archive",e)||"Archive"}
+                              ${t.archived?r("unarchive",e)||"Unarchive":r("archive",e)||"Archive"}
                             </button>
                             <button class="btn ghost danger" @click=${this._onDelete} ?disabled=${this._busy}>
                               <ha-icon icon="mdi:delete"></ha-icon>
-                              ${s("delete",e)||"Delete"}
+                              ${r("delete",e)||"Delete"}
                             </button>
                           </div>
                         `:u}
                     <div class="details-toggle">
                       <button class="link" @click=${()=>{this._showDetails=!this._showDetails}}>
                         <ha-icon icon="${this._showDetails?"mdi:chevron-up":"mdi:chevron-down"}"></ha-icon>
-                        ${this._showDetails?s("hide_details",e)||"Hide details":s("show_details",e)||"Show history + stats"}
+                        ${this._showDetails?r("hide_details",e)||"Hide details":r("show_details",e)||"Show history + stats"}
                       </button>
                       ${this._features.adaptive||this._features.seasonal||this._features.environmental?n`<button class="link" @click=${()=>{this._showAdaptive=!this._showAdaptive}}>
                             <ha-icon icon="${this._showAdaptive?"mdi:chart-line":"mdi:chart-line-variant"}"></ha-icon>
-                            ${this._showAdaptive?s("hide_stats",e)||"Hide stats":s("show_stats",e)||"Show stats + graphs"}
+                            ${this._showAdaptive?r("hide_stats",e)||"Hide stats":r("show_stats",e)||"Show stats + graphs"}
                           </button>`:u}
                     </div>
                     ${this._showDetails?this._renderDetails(t):u}
@@ -2884,11 +2928,11 @@ ${p?`<div class="sub">${p}</div>`:""}
                     <div class="footer">
                       <button class="link" @click=${this._onOpenInPanel}>
                         <ha-icon icon="mdi:open-in-new"></ha-icon>
-                        ${s("open_in_panel",e)||"Open in Maintenance panel"}
+                        ${r("open_in_panel",e)||"Open in Maintenance panel"}
                       </button>
                     </div>
                   `}
-            `:n`<div class="loading">${s("loading",e)||"Loading\u2026"}</div>`}
+            `:n`<div class="loading">${r("loading",e)||"Loading\u2026"}</div>`}
       </div>
     `}};A.styles=[Ce,k`
     :host { display: contents; }
@@ -3070,39 +3114,39 @@ ${p?`<div class="sub">${p}</div>`:""}
     .weibull-section, .seasonal-card-compact { max-width: 100%; }
     .weibull-chart svg { max-width: 100%; height: auto; }
     .details-toggle { gap: 12px; flex-wrap: wrap; }
-  `],c([f({attribute:!1})],A.prototype,"hass",2),c([h()],A.prototype,"_open",2),c([h()],A.prototype,"_entryId",2),c([h()],A.prototype,"_taskId",2),c([h()],A.prototype,"_task",2),c([h()],A.prototype,"_objectName",2),c([h()],A.prototype,"_busy",2),c([h()],A.prototype,"_error",2),c([h()],A.prototype,"_showSkip",2),c([h()],A.prototype,"_showReset",2),c([h()],A.prototype,"_showDetails",2),c([h()],A.prototype,"_showAdaptive",2),c([h()],A.prototype,"_skipReason",2),c([h()],A.prototype,"_resetDate",2),c([h()],A.prototype,"_features",2),c([h()],A.prototype,"_toast",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",A)});var N,ii=y(()=>{"use strict";T();j();C();Q();N=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error=""}get _lang(){return this.hass?.language||"en"}async openFor(e){this._entryId=e,this._error="",this._open=!0,await this._load()}close(){this._open=!1,this._data=null,this._error=""}async _load(){if(this._entryId)try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._data=e}catch(e){this._error=I(e,this._lang)}}_onEditObject(){!this._entryId||!this._data||Promise.resolve().then(()=>(z(),O)).then(({openEditObjectDialog:e})=>{e(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&Promise.resolve().then(()=>(z(),O)).then(({openCreateTaskDialog:e})=>{e(),this.close()})}async _onDelete(){if(!this._entryId||!this._data)return;let e=s("delete_object_confirm",this._lang)||`Delete "${this._data.object.name}" and all its tasks?`;if(window.confirm(e)){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=I(t,this._lang)}finally{this._busy=!1}}}async _onArchiveObject(){if(!this._entryId||!this._data)return;let e=!!this._data.object.archived;if(!e){let t=s("confirm_archive_object",this._lang)||"Archive this object and its tasks?";if(!window.confirm(t))return}this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:e?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=I(t,this._lang)}finally{this._busy=!1}}_onTaskClick(e){this._entryId&&Promise.resolve().then(()=>(z(),O)).then(({openTaskQuickActions:t})=>{t(this._entryId,e)})}render(){if(!this._open)return u;let e=this._lang,t=this._data,r=t?.object,o=t?.tasks||[],l=this.hass?.user?.is_admin??!0;return n`
+  `],c([f({attribute:!1})],A.prototype,"hass",2),c([h()],A.prototype,"_open",2),c([h()],A.prototype,"_entryId",2),c([h()],A.prototype,"_taskId",2),c([h()],A.prototype,"_task",2),c([h()],A.prototype,"_objectName",2),c([h()],A.prototype,"_busy",2),c([h()],A.prototype,"_error",2),c([h()],A.prototype,"_showSkip",2),c([h()],A.prototype,"_showReset",2),c([h()],A.prototype,"_showDetails",2),c([h()],A.prototype,"_showAdaptive",2),c([h()],A.prototype,"_skipReason",2),c([h()],A.prototype,"_resetDate",2),c([h()],A.prototype,"_features",2),c([h()],A.prototype,"_toast",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",A)});var N,ii=y(()=>{"use strict";T();j();C();Q();N=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error=""}get _lang(){return this.hass?.language||"en"}async openFor(e){this._entryId=e,this._error="",this._open=!0,await this._load()}close(){this._open=!1,this._data=null,this._error=""}async _load(){if(this._entryId)try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._data=e}catch(e){this._error=I(e,this._lang)}}_onEditObject(){!this._entryId||!this._data||Promise.resolve().then(()=>(z(),O)).then(({openEditObjectDialog:e})=>{e(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&Promise.resolve().then(()=>(z(),O)).then(({openCreateTaskDialog:e})=>{e(),this.close()})}async _onDelete(){if(!this._entryId||!this._data)return;let e=r("delete_object_confirm",this._lang)||`Delete "${this._data.object.name}" and all its tasks?`;if(window.confirm(e)){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=I(t,this._lang)}finally{this._busy=!1}}}async _onArchiveObject(){if(!this._entryId||!this._data)return;let e=!!this._data.object.archived;if(!e){let t=r("confirm_archive_object",this._lang)||"Archive this object and its tasks?";if(!window.confirm(t))return}this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:e?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=I(t,this._lang)}finally{this._busy=!1}}_onTaskClick(e){this._entryId&&Promise.resolve().then(()=>(z(),O)).then(({openTaskQuickActions:t})=>{t(this._entryId,e)})}render(){if(!this._open)return u;let e=this._lang,t=this._data,i=t?.object,o=t?.tasks||[],l=this.hass?.user?.is_admin??!0;return n`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
-        ${t&&r?n`
+        ${t&&i?n`
               <div class="header">
-                <div class="title">${r.name}</div>
-                ${this._renderMetaRow(r)}
+                <div class="title">${i.name}</div>
+                ${this._renderMetaRow(i)}
               </div>
 
               ${this._error?n`<div class="error">${this._error}</div>`:u}
 
               <div class="tasks-section">
                 <div class="section-header">
-                  <strong>${s("tasks",e)||"Tasks"}</strong>
+                  <strong>${r("tasks",e)||"Tasks"}</strong>
                   <span class="count">${o.length}</span>
                 </div>
-                ${o.length===0?n`<div class="empty">${s("no_tasks",e)||"No tasks yet."}</div>`:n`
+                ${o.length===0?n`<div class="empty">${r("no_tasks",e)||"No tasks yet."}</div>`:n`
                       <div class="task-list">
                         ${o.map(d=>n`
                           <div class="task-row" @click=${()=>this._onTaskClick(d.id)}>
-                            <span class="status-dot" style="background: ${se[d.status]||"#ccc"}"></span>
+                            <span class="status-dot" style="background: ${re[d.status]||"#ccc"}"></span>
                             <span class="task-name">${d.name}</span>
-                            <span class="task-status">${s(d.status||"ok",e)}</span>
+                            <span class="task-status">${r(d.status||"ok",e)}</span>
                           </div>
                         `)}
                       </div>
                     `}
               </div>
 
-              ${r.notes?n`
+              ${i.notes?n`
                     <div class="notes-section">
-                      <strong>${s("object_notes_label",e)}</strong>
-                      <div class="notes-body">${r.notes}</div>
+                      <strong>${r("object_notes_label",e)}</strong>
+                      <div class="notes-body">${i.notes}</div>
                     </div>
                   `:u}
 
@@ -3110,27 +3154,27 @@ ${p?`<div class="sub">${p}</div>`:""}
                     <div class="actions">
                       <button class="btn primary" @click=${this._onAddTask} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:plus"></ha-icon>
-                        ${s("add_task",e)||"Add task"}
+                        ${r("add_task",e)||"Add task"}
                       </button>
                       <button class="btn" @click=${this._onEditObject} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:pencil"></ha-icon>
-                        ${s("edit",e)||"Edit"}
+                        ${r("edit",e)||"Edit"}
                       </button>
                       <button class="btn" @click=${this._onArchiveObject} ?disabled=${this._busy}>
-                        <ha-icon icon="${r.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
-                        ${r.archived?s("unarchive_object",e)||"Unarchive object":s("archive_object",e)||"Archive object"}
+                        <ha-icon icon="${i.archived?"mdi:archive-arrow-up-outline":"mdi:archive-outline"}"></ha-icon>
+                        ${i.archived?r("unarchive_object",e)||"Unarchive object":r("archive_object",e)||"Archive object"}
                       </button>
                       <button class="btn danger" @click=${this._onDelete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:delete"></ha-icon>
-                        ${s("delete",e)||"Delete"}
+                        ${r("delete",e)||"Delete"}
                       </button>
                     </div>
                   `:u}
-            `:n`<div class="loading">${s("loading",e)||"Loading\u2026"}</div>`}
+            `:n`<div class="loading">${r("loading",e)||"Loading\u2026"}</div>`}
       </div>
-    `}_renderMetaRow(e){let t=this._lang,r=[];return e.area_id&&r.push([s("area",t),e.area_id]),e.manufacturer&&r.push([s("manufacturer",t),e.manufacturer]),e.model&&r.push([s("model",t),e.model]),e.serial_number&&r.push([s("serial_number_label",t),e.serial_number]),e.installation_date&&r.push([s("installed",t),e.installation_date]),e.warranty_expiry&&r.push([s("warranty",t),e.warranty_expiry]),e.documentation_url&&r.push([s("documentation_url_label",t),e.documentation_url]),r.length===0?u:n`
+    `}_renderMetaRow(e){let t=this._lang,i=[];return e.area_id&&i.push([r("area",t),e.area_id]),e.manufacturer&&i.push([r("manufacturer",t),e.manufacturer]),e.model&&i.push([r("model",t),e.model]),e.serial_number&&i.push([r("serial_number_label",t),e.serial_number]),e.installation_date&&i.push([r("installed",t),e.installation_date]),e.warranty_expiry&&i.push([r("warranty",t),e.warranty_expiry]),e.documentation_url&&i.push([r("documentation_url_label",t),e.documentation_url]),i.length===0?u:n`
       <div class="meta">
-        ${r.map(([o,l])=>n`
+        ${i.map(([o,l])=>n`
             <div class="meta-item">
               <span class="meta-label">${o}</span>
               <span class="meta-value">${/^https?:\/\//i.test(l)?n`<a href="${l}" target="_blank" rel="noopener noreferrer">${l}</a>`:l}</span>
@@ -3196,45 +3240,45 @@ ${p?`<div class="sub">${p}</div>`:""}
     .btn ha-icon { --mdc-icon-size: 16px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
     .error { padding: 8px; border-radius: 6px; background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
-  `,c([f({attribute:!1})],N.prototype,"hass",2),c([h()],N.prototype,"_open",2),c([h()],N.prototype,"_entryId",2),c([h()],N.prototype,"_data",2),c([h()],N.prototype,"_busy",2),c([h()],N.prototype,"_error",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",N)});var O={};ui(O,{openCompleteDialog:()=>ar,openCreateObjectDialog:()=>Xe,openCreateTaskDialog:()=>et,openEditObjectDialog:()=>ir,openEditTaskDialog:()=>rr,openHistoryEditDialog:()=>sr,openObjectQuickActions:()=>nr,openQrDialog:()=>or,openTaskQuickActions:()=>tt});function He(){return document.querySelector("home-assistant")?.hass}function F(a){let i=document.body.querySelector(a);return i||(i=document.createElement(a),document.body.appendChild(i)),i}function W(a){let i=He();if(!i)return!1;a.hass=i;let e=i.language||"en";return Se(e)||Te(e).then(()=>{a.requestUpdate?.()}),!0}function oi(a){return Le||(Le=a.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(i=>({features:i.features??ri.features,defaultWarningDays:i.general?.default_warning_days??7})).catch(()=>ri),Le)}function Xe(){let a=F(si);return W(a)?(a.openCreate(),!0):!1}function ir(a,i){let e=F(si);return W(e)?(e.openEdit(a,i),!0):!1}function et(){let a=F(ai);if(!W(a))return!1;let i=He();return i?((async()=>{let e=await oi(i),t=a;t.checklistsEnabled=e.features.checklists,t.scheduleTimeEnabled=e.features.schedule_time,t.completionActionsEnabled=e.features.completion_actions,t.defaultWarningDays=e.defaultWarningDays,t.openCreate()})(),!0):!1}function rr(a,i){let e=F(ai);if(!W(e))return!1;let t=He();return t?((async()=>{try{let[r,o]=await Promise.all([t.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:a}),oi(t)]),l=(r.tasks||[]).find(p=>p.id===i);if(!l){console.warn(`openEditTaskDialog: task ${i} not found in entry ${a}`);return}let d=e;d.checklistsEnabled=o.features.checklists,d.scheduleTimeEnabled=o.features.schedule_time,d.completionActionsEnabled=o.features.completion_actions,d.defaultWarningDays=o.defaultWarningDays,await d.openEdit(a,l)}catch(r){console.warn("openEditTaskDialog: failed to load task/features",r)}})(),!0):!1}function sr(a){let i=F(Zi);return W(i)?(i.openEdit(a),!0):!1}function ar(a){let i=F(Qi);return W(i)?(i.entryId=a.entry_id,i.taskId=a.task_id,i.taskName=a.task_name,i.checklist=a.checklist??[],i.adaptiveEnabled=!!a.adaptive_enabled,i.lang=He()?.language||"en",i.open(),!0):!1}function or(a){let i=F(Xi);return W(i)?(i.openForTask(a.entry_id,a.task_id,a.object_name,a.task_name),!0):!1}function tt(a,i){let e=F(er);return W(e)?(e.openFor(a,i),!0):!1}function nr(a){let i=F(tr);return W(i)?(i.openFor(a),!0):!1}var si,ai,Zi,Qi,Xi,er,tr,ri,Le,z=y(()=>{"use strict";Mt();Ut();Ze();Ot();Wt();ti();ii();C();si="maintenance-object-dialog",ai="maintenance-task-dialog",Zi="maintenance-history-edit-dialog",Qi="maintenance-complete-dialog",Xi="maintenance-qr-dialog",er="maintenance-task-quick-actions-dialog",tr="maintenance-object-quick-actions-dialog";ri={features:{adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1},defaultWarningDays:7},Le=null});T();j();C();T();j();C();var Hi=["overdue","triggered","due_soon","ok"],D=class extends ${constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._objects=[];this._loadingObjects=!0;this._loadError=!1;this._objectsLoaded=!1;this._onEntitiesChanged=e=>{this._valueChanged("entity_ids",e.detail.value||[])}}get _lang(){return this.hass?.language||"en"}setConfig(e){this._config={...e}}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._objectsLoaded&&(this._objectsLoaded=!0,this._loadObjects())}async _loadObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._objects=e.objects||[],this._loadError=!1}catch{this._objects=[],this._loadError=!0}this._loadingObjects=!1}_valueChanged(e,t){let r={...this._config,[e]:t};Array.isArray(t)&&t.length===0&&delete r[e],this._config=r,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:r}}))}_toggleStatus(e,t){let r=new Set(this._config.filter_status||[]);t?r.add(e):r.delete(e),this._valueChanged("filter_status",[...r])}_toggleObject(e,t){let r=new Set(this._config.filter_objects||[]);t?r.add(e):r.delete(e),this._valueChanged("filter_objects",[...r])}render(){let e=this._lang,t=new Set(this._config.filter_status||[]),r=new Set(this._config.filter_objects||[]),o=[...this._objects].map(d=>d.object.name).sort((d,p)=>d.localeCompare(p)),l=[];for(let d of this._objects)for(let p of d.tasks)p.sensor_entity_id&&l.push(p.sensor_entity_id),p.binary_sensor_entity_id&&l.push(p.binary_sensor_entity_id);return n`
+  `,c([f({attribute:!1})],N.prototype,"hass",2),c([h()],N.prototype,"_open",2),c([h()],N.prototype,"_entryId",2),c([h()],N.prototype,"_data",2),c([h()],N.prototype,"_busy",2),c([h()],N.prototype,"_error",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",N)});var O={};ui(O,{openCompleteDialog:()=>as,openCreateObjectDialog:()=>Xe,openCreateTaskDialog:()=>et,openEditObjectDialog:()=>is,openEditTaskDialog:()=>ss,openHistoryEditDialog:()=>rs,openObjectQuickActions:()=>ns,openQrDialog:()=>os,openTaskQuickActions:()=>tt});function He(){return document.querySelector("home-assistant")?.hass}function F(a){let s=document.body.querySelector(a);return s||(s=document.createElement(a),document.body.appendChild(s)),s}function W(a){let s=He();if(!s)return!1;a.hass=s;let e=s.language||"en";return Se(e)||Te(e).then(()=>{a.requestUpdate?.()}),!0}function oi(a){return Le||(Le=a.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(s=>({features:s.features??si.features,defaultWarningDays:s.general?.default_warning_days??7})).catch(()=>si),Le)}function Xe(){let a=F(ri);return W(a)?(a.openCreate(),!0):!1}function is(a,s){let e=F(ri);return W(e)?(e.openEdit(a,s),!0):!1}function et(){let a=F(ai);if(!W(a))return!1;let s=He();return s?((async()=>{let e=await oi(s),t=a;t.checklistsEnabled=e.features.checklists,t.scheduleTimeEnabled=e.features.schedule_time,t.completionActionsEnabled=e.features.completion_actions,t.defaultWarningDays=e.defaultWarningDays,t.openCreate()})(),!0):!1}function ss(a,s){let e=F(ai);if(!W(e))return!1;let t=He();return t?((async()=>{try{let[i,o]=await Promise.all([t.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:a}),oi(t)]),l=(i.tasks||[]).find(p=>p.id===s);if(!l){console.warn(`openEditTaskDialog: task ${s} not found in entry ${a}`);return}let d=e;d.checklistsEnabled=o.features.checklists,d.scheduleTimeEnabled=o.features.schedule_time,d.completionActionsEnabled=o.features.completion_actions,d.defaultWarningDays=o.defaultWarningDays,await d.openEdit(a,l)}catch(i){console.warn("openEditTaskDialog: failed to load task/features",i)}})(),!0):!1}function rs(a){let s=F(Zi);return W(s)?(s.openEdit(a),!0):!1}function as(a){let s=F(Qi);return W(s)?(s.entryId=a.entry_id,s.taskId=a.task_id,s.taskName=a.task_name,s.checklist=a.checklist??[],s.adaptiveEnabled=!!a.adaptive_enabled,s.lang=He()?.language||"en",s.open(),!0):!1}function os(a){let s=F(Xi);return W(s)?(s.openForTask(a.entry_id,a.task_id,a.object_name,a.task_name),!0):!1}function tt(a,s){let e=F(es);return W(e)?(e.openFor(a,s),!0):!1}function ns(a){let s=F(ts);return W(s)?(s.openFor(a),!0):!1}var ri,ai,Zi,Qi,Xi,es,ts,si,Le,z=y(()=>{"use strict";Mt();Ut();Ze();Ot();Wt();ti();ii();C();ri="maintenance-object-dialog",ai="maintenance-task-dialog",Zi="maintenance-history-edit-dialog",Qi="maintenance-complete-dialog",Xi="maintenance-qr-dialog",es="maintenance-task-quick-actions-dialog",ts="maintenance-object-quick-actions-dialog";si={features:{adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1},defaultWarningDays:7},Le=null});T();j();C();T();j();C();var Hi=["overdue","triggered","due_soon","ok"],D=class extends ${constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._objects=[];this._loadingObjects=!0;this._loadError=!1;this._objectsLoaded=!1;this._onEntitiesChanged=e=>{this._valueChanged("entity_ids",e.detail.value||[])}}get _lang(){return this.hass?.language||"en"}setConfig(e){this._config={...e}}updated(e){super.updated(e),e.has("hass")&&this.hass&&!this._objectsLoaded&&(this._objectsLoaded=!0,this._loadObjects())}async _loadObjects(){try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"});this._objects=e.objects||[],this._loadError=!1}catch{this._objects=[],this._loadError=!0}this._loadingObjects=!1}_valueChanged(e,t){let i={...this._config,[e]:t};Array.isArray(t)&&t.length===0&&delete i[e],this._config=i,this.dispatchEvent(new CustomEvent("config-changed",{detail:{config:i}}))}_toggleStatus(e,t){let i=new Set(this._config.filter_status||[]);t?i.add(e):i.delete(e),this._valueChanged("filter_status",[...i])}_toggleObject(e,t){let i=new Set(this._config.filter_objects||[]);t?i.add(e):i.delete(e),this._valueChanged("filter_objects",[...i])}render(){let e=this._lang,t=new Set(this._config.filter_status||[]),i=new Set(this._config.filter_objects||[]),o=[...this._objects].map(d=>d.object.name).sort((d,p)=>d.localeCompare(p)),l=[];for(let d of this._objects)for(let p of d.tasks)p.sensor_entity_id&&l.push(p.sensor_entity_id),p.binary_sensor_entity_id&&l.push(p.binary_sensor_entity_id);return n`
       <div class="editor">
         <ha-textfield
-          label="${s("card_title",e)}"
+          label="${r("card_title",e)}"
           .value=${this._config.title||""}
           @input=${d=>this._valueChanged("title",d.target.value)}
         ></ha-textfield>
 
         <!-- Status filter (chip row) -->
         <div class="field">
-          <div class="field-label">${s("card_filter_status",e)}</div>
+          <div class="field-label">${r("card_filter_status",e)}</div>
           <div class="chip-row">
             ${Hi.map(d=>n`
               <label class="chip ${t.has(d)?"active":""}">
                 <input type="checkbox"
                   .checked=${t.has(d)}
                   @change=${p=>this._toggleStatus(d,p.target.checked)} />
-                ${s(d,e)}
+                ${r(d,e)}
               </label>
             `)}
           </div>
-          <div class="field-help">${s("card_filter_status_help",e)}</div>
+          <div class="field-help">${r("card_filter_status_help",e)}</div>
         </div>
 
         <!-- Object filter (multi-checkbox) -->
         <div class="field">
-          <div class="field-label">${s("card_filter_objects",e)}</div>
-          ${this._loadingObjects?n`<div class="field-help">${s("card_loading_objects",e)}</div>`:this._loadError?n`<div class="field-help error-text">${s("card_load_error",e)}</div>`:o.length===0?n`<div class="field-help">${s("no_objects",e)}</div>`:n`
+          <div class="field-label">${r("card_filter_objects",e)}</div>
+          ${this._loadingObjects?n`<div class="field-help">${r("card_loading_objects",e)}</div>`:this._loadError?n`<div class="field-help error-text">${r("card_load_error",e)}</div>`:o.length===0?n`<div class="field-help">${r("no_objects",e)}</div>`:n`
                 <div class="object-list">
                   ${o.map(d=>n`
                     <label class="object-row">
                       <input type="checkbox"
-                        .checked=${r.has(d)}
+                        .checked=${i.has(d)}
                         @change=${p=>this._toggleObject(d,p.target.checked)} />
                       <span>${d}</span>
                     </label>
                   `)}
                 </div>
-                <div class="field-help">${s("card_filter_objects_help",e)}</div>
+                <div class="field-help">${r("card_filter_objects_help",e)}</div>
               `}
         </div>
 
@@ -3242,7 +3286,7 @@ ${p?`<div class="sub">${p}</div>`:""}
              sensor + binary_sensor entities via includeEntities so the picker
              stays usable on installs with thousands of entities. -->
         <div class="field">
-          <div class="field-label">${s("card_filter_entities",e)}</div>
+          <div class="field-label">${r("card_filter_entities",e)}</div>
           <ha-entities-picker
             .hass=${this.hass}
             .value=${this._config.entity_ids||[]}
@@ -3250,24 +3294,24 @@ ${p?`<div class="sub">${p}</div>`:""}
             .includeEntities=${l}
             @value-changed=${this._onEntitiesChanged}
           ></ha-entities-picker>
-          <div class="field-help">${s("card_filter_entities_help",e)}</div>
+          <div class="field-help">${r("card_filter_entities_help",e)}</div>
         </div>
 
-        <ha-formfield label="${s("card_show_header",e)}">
+        <ha-formfield label="${r("card_show_header",e)}">
           <ha-switch
             .checked=${this._config.show_header!==!1}
             @change=${d=>this._valueChanged("show_header",d.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
-        <ha-formfield label="${s("card_show_actions",e)}">
+        <ha-formfield label="${r("card_show_actions",e)}">
           <ha-switch
             .checked=${this._config.show_actions!==!1}
             @change=${d=>this._valueChanged("show_actions",d.target.checked)}
           ></ha-switch>
         </ha-formfield>
 
-        <ha-formfield label="${s("card_compact",e)}">
+        <ha-formfield label="${r("card_compact",e)}">
           <ha-switch
             .checked=${this._config.compact||!1}
             @change=${d=>this._valueChanged("compact",d.target.checked)}
@@ -3275,7 +3319,7 @@ ${p?`<div class="sub">${p}</div>`:""}
         </ha-formfield>
 
         <ha-textfield
-          label="${s("card_max_items",e)}"
+          label="${r("card_max_items",e)}"
           type="number"
           .value=${String(this._config.max_items||0)}
           @input=${d=>this._valueChanged("max_items",parseInt(d.target.value,10)||0)}
@@ -3352,12 +3396,12 @@ ${p?`<div class="sub">${p}</div>`:""}
       cursor: pointer;
     }
     .object-row input { cursor: pointer; }
-  `,c([f({attribute:!1})],D.prototype,"hass",2),c([h()],D.prototype,"_config",2),c([h()],D.prototype,"_objects",2),c([h()],D.prototype,"_loadingObjects",2),c([h()],D.prototype,"_loadError",2);customElements.get("maintenance-supporter-card-editor")||customElements.define("maintenance-supporter-card-editor",D);Ze();z();var V=class extends ${constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._objects=[];this._stats=null;this._unsub=null;this._dataLoaded=!1;this._lastConnection=null;this._onCompleted=async()=>{await this._loadData()}}get _lang(){return this.hass?.language||"en"}static getConfigElement(){return document.createElement("maintenance-supporter-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-card",show_header:!0,show_actions:!0,filter_status:["overdue","triggered","due_soon"],max_items:10}}setConfig(e){this._config=e}getCardSize(){return 3}connectedCallback(){super.connectedCallback()}disconnectedCallback(){super.disconnectedCallback(),this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._lastConnection=null}updated(e){super.updated(e);let t=this.hass?.language;if(t&&!Se(t)&&Te(t).then(()=>this.requestUpdate()),e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){try{let[e,t]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);this._objects=e.objects,this._stats=t}catch{}}async _subscribe(){try{let e=await this.hass.connection.subscribeMessage(t=>{let r=t;this._objects=r.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){e();return}this._unsub=e}catch{}}get _flatTasks(){let e=[],{filter_status:t,filter_objects:r,entity_ids:o,filter_due_min_days:l,filter_due_max_days:d,max_items:p}=this._config,g=o?.length?new Set(o):null,b=l!==void 0||d!==void 0;for(let x of this._objects)if(!(r?.length&&!r.includes(x.object.name))){for(let v of x.tasks)if(!v.is_done&&!(v.archived||x.object.archived)&&!(t?.length&&!t.includes(v.status))&&!(g&&!(v.sensor_entity_id&&g.has(v.sensor_entity_id)||v.binary_sensor_entity_id&&g.has(v.binary_sensor_entity_id)))){if(b){let w=v.days_until_due;if(w==null||l!==void 0&&w<l||d!==void 0&&w>d)continue}e.push({entry_id:x.entry_id,object_name:x.object.name,task:v})}}let m={overdue:0,triggered:1,due_soon:2,ok:3};return e.sort((x,v)=>{let w=(m[x.task.status]??9)-(m[v.task.status]??9);return w!==0?w:(x.task.days_until_due??1/0)-(v.task.days_until_due??1/0)}),p&&p>0?e.slice(0,p):e}_openTaskDetail(e,t){tt(e,t)}render(){let e=this._lang,t=this._config.title||s("maintenance",e),r=this._config.show_header!==!1,o=this._config.show_actions!==!1,l=this._config.compact||!1,d=this._flatTasks,p=this._stats;return n`
+  `,c([f({attribute:!1})],D.prototype,"hass",2),c([h()],D.prototype,"_config",2),c([h()],D.prototype,"_objects",2),c([h()],D.prototype,"_loadingObjects",2),c([h()],D.prototype,"_loadError",2);customElements.get("maintenance-supporter-card-editor")||customElements.define("maintenance-supporter-card-editor",D);Ze();z();var V=class extends ${constructor(){super(...arguments);this._config={type:"custom:maintenance-supporter-card"};this._objects=[];this._stats=null;this._unsub=null;this._dataLoaded=!1;this._lastConnection=null;this._onCompleted=async()=>{await this._loadData()}}get _lang(){return this.hass?.language||"en"}static getConfigElement(){return document.createElement("maintenance-supporter-card-editor")}static getStubConfig(){return{type:"custom:maintenance-supporter-card",show_header:!0,show_actions:!0,filter_status:["overdue","triggered","due_soon"],max_items:10}}setConfig(e){this._config=e}getCardSize(){return 3}connectedCallback(){super.connectedCallback()}disconnectedCallback(){super.disconnectedCallback(),this._unsub&&(this._unsub(),this._unsub=null),this._dataLoaded=!1,this._lastConnection=null}updated(e){super.updated(e);let t=this.hass?.language;if(t&&!Se(t)&&Te(t).then(()=>this.requestUpdate()),e.has("hass")&&this.hass){if(!this._dataLoaded)this._dataLoaded=!0,this._lastConnection=this.hass.connection,this._loadData(),this._subscribe();else if(this.hass.connection!==this._lastConnection){if(this._lastConnection=this.hass.connection,this._unsub){try{this._unsub()}catch{}this._unsub=null}this._subscribe(),this._loadData()}}}async _loadData(){try{let[e,t]=await Promise.all([this.hass.connection.sendMessagePromise({type:"maintenance_supporter/objects"}),this.hass.connection.sendMessagePromise({type:"maintenance_supporter/statistics"})]);this._objects=e.objects,this._stats=t}catch{}}async _subscribe(){try{let e=await this.hass.connection.subscribeMessage(t=>{let i=t;this._objects=i.objects},{type:"maintenance_supporter/subscribe"});if(!this.isConnected){e();return}this._unsub=e}catch{}}get _flatTasks(){let e=[],{filter_status:t,filter_objects:i,entity_ids:o,filter_due_min_days:l,filter_due_max_days:d,max_items:p}=this._config,g=o?.length?new Set(o):null,b=l!==void 0||d!==void 0;for(let x of this._objects)if(!(i?.length&&!i.includes(x.object.name))){for(let v of x.tasks)if(!v.is_done&&!(v.archived||x.object.archived)&&!(t?.length&&!t.includes(v.status))&&!(g&&!(v.sensor_entity_id&&g.has(v.sensor_entity_id)||v.binary_sensor_entity_id&&g.has(v.binary_sensor_entity_id)))){if(b){let w=v.days_until_due;if(w==null||l!==void 0&&w<l||d!==void 0&&w>d)continue}e.push({entry_id:x.entry_id,object_name:x.object.name,task:v})}}let m={overdue:0,triggered:1,due_soon:2,ok:3};return e.sort((x,v)=>{let w=(m[x.task.status]??9)-(m[v.task.status]??9);return w!==0?w:(x.task.days_until_due??1/0)-(v.task.days_until_due??1/0)}),p&&p>0?e.slice(0,p):e}_openTaskDetail(e,t){tt(e,t)}render(){let e=this._lang,t=this._config.title||r("maintenance",e),i=this._config.show_header!==!1,o=this._config.show_actions!==!1,l=this._config.compact||!1,d=this._flatTasks,p=this._stats;return n`
       <ha-card>
         <div class="card-header">
           <h1>${t}</h1>
           <div class="header-right">
-            ${r&&p?n`
+            ${i&&p?n`
                   <div class="header-stats">
                     ${p.overdue>0?n`<span class="badge overdue">${p.overdue}</span>`:u}
                     ${p.due_soon>0?n`<span class="badge due_soon">${p.due_soon}</span>`:u}
@@ -3367,14 +3411,14 @@ ${p?`<div class="sub">${p}</div>`:""}
             ${o?n`
                   <mwc-icon-button
                     class="hdr-add"
-                    title="${s("new_object",e)}"
+                    title="${r("new_object",e)}"
                     @click=${()=>Xe()}
                   >
                     <ha-icon icon="mdi:plus-box"></ha-icon>
                   </mwc-icon-button>
                   <mwc-icon-button
                     class="hdr-add"
-                    title="${s("add_task",e)}"
+                    title="${r("add_task",e)}"
                     @click=${()=>et()}
                   >
                     <ha-icon icon="mdi:playlist-plus"></ha-icon>
@@ -3383,26 +3427,26 @@ ${p?`<div class="sub">${p}</div>`:""}
           </div>
         </div>
         ${d.length===0?n`<div class="empty-card">
-              <div>${s("card_no_tasks_title",e)}</div>
-              <a class="empty-link" href="/maintenance-supporter">${s("card_no_tasks_cta",e)}</a>
+              <div>${r("card_no_tasks_title",e)}</div>
+              <a class="empty-link" href="/maintenance-supporter">${r("card_no_tasks_cta",e)}</a>
             </div>`:n`
               <div class="task-list ${l?"compact":""}">
                 ${d.map(({entry_id:g,object_name:b,task:m})=>n`
                     <div class="task-item clickable"
                          @click=${()=>this._openTaskDetail(g,m.id)}
-                         title="${s("open_task",e)||"Open task"}">
-                      <div class="status-dot" style="background: ${se[m.status]||"#ccc"}"></div>
+                         title="${r("open_task",e)||"Open task"}">
+                      <div class="status-dot" style="background: ${re[m.status]||"#ccc"}"></div>
                       <div class="task-info">
                         <div class="task-name">${m.name}</div>
-                        ${l?u:n`<div class="task-meta">${b} · ${s(m.type,e)}</div>`}
+                        ${l?u:n`<div class="task-meta">${b} · ${r(m.type,e)}</div>`}
                       </div>
                       <div class="task-due">
-                        ${m.days_until_due!==null&&m.days_until_due!==void 0?m.days_until_due<0?n`<span class="overdue-text">${Math.abs(m.days_until_due)}${e.startsWith("de")?"T":"d"}</span>`:m.days_until_due===0?s("today",e):`${m.days_until_due}${e.startsWith("de")?"T":"d"}`:m.trigger_active?"\u26A1":"\u2014"}
+                        ${m.days_until_due!==null&&m.days_until_due!==void 0?m.days_until_due<0?n`<span class="overdue-text">${Math.abs(m.days_until_due)}${e.startsWith("de")?"T":"d"}</span>`:m.days_until_due===0?r("today",e):`${m.days_until_due}${e.startsWith("de")?"T":"d"}`:m.trigger_active?"\u26A1":"\u2014"}
                       </div>
                       ${o?n`
                             <mwc-icon-button
                               class="complete-btn"
-                              title="${s("complete",e)}"
+                              title="${r("complete",e)}"
                               @click=${x=>{x.stopPropagation();let v=this.shadowRoot.querySelector("maintenance-complete-dialog");v.entryId=g,v.taskId=m.id,v.taskName=m.name,v.checklist=m.checklist||[],v.adaptiveEnabled=!!m.adaptive_config?.enabled,v.lang=e,v.open()}}
                             >
                               <ha-icon icon="mdi:check"></ha-icon>

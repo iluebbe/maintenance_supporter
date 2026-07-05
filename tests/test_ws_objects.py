@@ -351,6 +351,8 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "priority": "high",
         "checklist": ["Step 1", "Step 2"],
         "labels": ["safety", "seasonal"],
+        "assignee_pool": ["user-a", "user-b"],
+        "rotation_strategy": "round_robin",
         # v1.3.0 — missing until issue #50
         "on_complete_action": {
             "service": "input_boolean.toggle",
@@ -407,7 +409,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "last_performed", "schedule_time",
         "notes", "documentation_url",
         "entity_slug", "custom_icon", "nfc_tag_id", "priority",
-        "checklist", "labels",
+        "checklist", "labels", "assignee_pool", "rotation_strategy",
         "on_complete_action", "quick_complete_defaults",
     ]
     missing: list[str] = [
@@ -973,6 +975,35 @@ async def test_ws_update_task_clears_labels(
     entry = hass.config_entries.async_get_entry(object_config_entry.entry_id)
     assert entry is not None
     assert not entry.data[CONF_TASKS][task_id].get("labels")
+
+
+async def test_ws_create_task_persists_rotation(
+    hass: HomeAssistant, global_config_entry, object_config_entry
+) -> None:
+    """task/create accepts assignee_pool + rotation_strategy and they round-trip."""
+    from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
+
+    await setup_integration(hass, global_config_entry, object_config_entry)
+    conn = _mock_connection()
+    await call_ws_handler(ws_create_task, hass, conn, {
+        "id": 1, "type": "maintenance_supporter/task/create",
+        "entry_id": object_config_entry.entry_id,
+        "name": "Shared Task",
+        "assignee_pool": ["user-a", "user-b", "user-a"],
+        "rotation_strategy": "round_robin",
+    })
+    task_id = conn.send_result.call_args[0][1]["task_id"]
+
+    conn2 = _mock_connection()
+    await call_ws_handler(ws_get_object, hass, conn2, {
+        "id": 2, "type": "maintenance_supporter/object",
+        "entry_id": object_config_entry.entry_id,
+    })
+    created = next(
+        t for t in conn2.send_result.call_args[0][1]["tasks"] if t["id"] == task_id
+    )
+    assert created["assignee_pool"] == ["user-a", "user-b"]  # deduped
+    assert created["rotation_strategy"] == "round_robin"
 
 
 def test_build_task_summary_compound_trigger_entity_enrichment(hass: HomeAssistant) -> None:

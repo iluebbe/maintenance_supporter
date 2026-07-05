@@ -20,6 +20,7 @@ from .const import (
     CONF_ADVANCED_SCHEDULE_TIME,
     CONF_OBJECT,
     CONF_RESPONSIBLE_USER_ID,
+    CONF_TASK_ASSIGNEE_POOL,
     CONF_TASK_DOCUMENTATION_URL,
     CONF_TASK_DUE_DATE,
     CONF_TASK_ENABLED,
@@ -33,6 +34,7 @@ from .const import (
     CONF_TASK_NFC_TAG,
     CONF_TASK_NOTES,
     CONF_TASK_PRIORITY,
+    CONF_TASK_ROTATION_STRATEGY,
     CONF_TASK_SCHEDULE_TIME,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -40,6 +42,7 @@ from .const import (
     DEFAULT_INTERVAL_DAYS,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
+    ROTATION_STRATEGIES,
     MaintenanceTypeEnum,
     ScheduleType,
 )
@@ -191,6 +194,16 @@ class TaskCrudMixin:
                     updated_task[CONF_TASK_LAST_PERFORMED] = str(
                         user_input[CONF_TASK_LAST_PERFORMED]
                     )
+                pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
+                if pool:
+                    updated_task["assignee_pool"] = pool
+                else:
+                    updated_task.pop("assignee_pool", None)
+                rot = user_input.get(CONF_TASK_ROTATION_STRATEGY, "")
+                if rot:
+                    updated_task["rotation_strategy"] = rot
+                else:
+                    updated_task.pop("rotation_strategy", None)
                 resp_user = user_input.get(CONF_RESPONSIBLE_USER_ID, "")
                 if resp_user:
                     updated_task[CONF_RESPONSIBLE_USER_ID] = resp_user
@@ -271,6 +284,10 @@ class TaskCrudMixin:
         user_id_key = vol.Optional(
             CONF_RESPONSIBLE_USER_ID, default=user_id_default
         )
+        # Rotation pool options = the real users (no empty sentinel).
+        pool_options = [o for o in user_options if o["value"]]
+        pool_default = task.get("assignee_pool", [])
+        rotation_default = task.get("rotation_strategy", "")
 
         # Prefill the recurrence from whichever storage shape this task uses
         # (flat v2.6.x or nested `schedule`). Reading raw flat keys here would
@@ -377,6 +394,30 @@ class TaskCrudMixin:
                             options=user_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         )
+                    ),
+                    **(
+                        {
+                            vol.Optional(
+                                CONF_TASK_ASSIGNEE_POOL, default=pool_default
+                            ): selector.SelectSelector(
+                                selector.SelectSelectorConfig(
+                                    options=pool_options,
+                                    mode=selector.SelectSelectorMode.LIST,
+                                    multiple=True,
+                                )
+                            ),
+                            vol.Optional(
+                                CONF_TASK_ROTATION_STRATEGY, default=rotation_default
+                            ): selector.SelectSelector(
+                                selector.SelectSelectorConfig(
+                                    options=["", *ROTATION_STRATEGIES],
+                                    mode=selector.SelectSelectorMode.DROPDOWN,
+                                    translation_key="rotation_strategy",
+                                )
+                            ),
+                        }
+                        if len(pool_options) >= 2
+                        else dict[Any, Any]()
                     ),
                     icon_key: selector.IconSelector(),
                     vol.Optional(CONF_TASK_PRIORITY, default=task.get(CONF_TASK_PRIORITY, "normal")): selector.SelectSelector(

@@ -114,6 +114,15 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     if lb is not None:
         task_data["labels"] = sanitize_labels(lb)
 
+    if task_data.get("assignee_pool") is not None:
+        task_data["assignee_pool"] = sanitize_assignee_pool(task_data["assignee_pool"])
+
+    rs = task_data.get("rotation_strategy")
+    if rs is not None:
+        from ..const import ROTATION_STRATEGIES
+        if rs not in ROTATION_STRATEGIES:
+            task_data.pop("rotation_strategy", None)
+
     # v1.3.0: per-task on_complete_action — embedded HA service-call config.
     # Strict shape: {service: "domain.name", target?: dict, data?: dict}.
     # Drops the field entirely on any structural problem; the action layer
@@ -154,6 +163,23 @@ def sanitize_labels(value: object) -> list[str]:
             seen.add(v)
             out.append(v)
     return out[:MAX_LABELS]
+
+
+def sanitize_assignee_pool(value: object) -> list[str]:
+    """Clean an assignee pool: str user-ids, trimmed, deduped, ≤ MAX_ASSIGNEE_POOL."""
+    if not isinstance(value, list):
+        return []
+    from ..const import MAX_ASSIGNEE_POOL
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            continue
+        v = item.strip()[:MAX_META_LENGTH]
+        if v and v not in seen:
+            seen.add(v)
+            out.append(v)
+    return out[:MAX_ASSIGNEE_POOL]
 
 
 # ─── v1.3.0: completion-action helpers ──────────────────────────────────

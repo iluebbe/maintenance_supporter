@@ -135,6 +135,8 @@ def _build_task_summary(
         "archived_at": task_data.get("archived_at"),
         "archived_reason": task_data.get("archived_reason"),
         "responsible_user_id": task_data.get("responsible_user_id"),
+        "assignee_pool": task_data.get("assignee_pool", []),
+        "rotation_strategy": task_data.get("rotation_strategy"),
         "entity_slug": task_data.get("entity_slug"),
         # Auto-derived entity_ids for this task's sensor + binary_sensor.
         # Lookup via entity registry by unique_id so we get the actual
