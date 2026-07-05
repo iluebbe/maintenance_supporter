@@ -71,7 +71,9 @@ class MaintenanceTask:
     archived_reason: str | None = None
 
     # --- User Assignment ---
-    responsible_user_id: str | None = None  # HA user UUID
+    responsible_user_id: str | None = None  # HA user UUID (current pointer)
+    assignee_pool: list[str] = field(default_factory=list)  # HA user UUIDs
+    rotation_strategy: str | None = None  # round_robin | least_completed | random
 
     # --- Checklist ---
     checklist: list[str] = field(default_factory=list)
@@ -288,6 +290,41 @@ class MaintenanceTask:
             photo_doc_id=photo_doc_id,
         )
 
+        # Shared tasks: rotate the "currently responsible" pointer to the next
+        # assignee for the coming cycle (after this completion is recorded, so
+        # least_completed sees it).
+        self.advance_rotation()
+
+    def advance_rotation(self) -> None:
+        """Advance ``responsible_user_id`` to the next pool member.
+
+        No-op unless a rotation strategy is set and the pool has ≥2 members.
+        - ``round_robin``: next after the current pointer (wraps).
+        - ``least_completed``: the pool member credited with the fewest
+          completions in history (tie-break by pool order).
+        - ``random``: a random *other* member (falls back to the pool if the
+          current pointer is the only entry left).
+        """
+        pool = [u for u in self.assignee_pool if u]
+        if len(pool) < 2 or not self.rotation_strategy:
+            return
+        current = self.responsible_user_id
+        if self.rotation_strategy == "round_robin":
+            idx = pool.index(current) if current in pool else -1
+            self.responsible_user_id = pool[(idx + 1) % len(pool)]
+        elif self.rotation_strategy == "least_completed":
+            counts = dict.fromkeys(pool, 0)
+            for h in self.history:
+                who = h.get("completed_by")
+                if who in counts:
+                    counts[who] += 1
+            self.responsible_user_id = min(pool, key=lambda u: counts[u])
+        elif self.rotation_strategy == "random":
+            import random
+
+            others = [u for u in pool if u != current] or pool
+            self.responsible_user_id = random.choice(others)
+
     def reset(self, reset_date: date | None = None) -> None:
         """Reset last performed to a specific date."""
         if reset_date is None:
@@ -402,6 +439,10 @@ class MaintenanceTask:
             data["archived_reason"] = self.archived_reason
         if self.responsible_user_id is not None:
             data["responsible_user_id"] = self.responsible_user_id
+        if self.assignee_pool:
+            data["assignee_pool"] = self.assignee_pool
+        if self.rotation_strategy:
+            data["rotation_strategy"] = self.rotation_strategy
         if self.checklist:
             data["checklist"] = self.checklist
         if self.adaptive_config is not None:
@@ -445,6 +486,8 @@ class MaintenanceTask:
             archived_at=data.get("archived_at"),
             archived_reason=data.get("archived_reason"),
             responsible_user_id=data.get("responsible_user_id"),
+            assignee_pool=data.get("assignee_pool", []),
+            rotation_strategy=data.get("rotation_strategy"),
             checklist=data.get("checklist", []),
             adaptive_config=data.get("adaptive_config"),
             history=data.get("history", []),

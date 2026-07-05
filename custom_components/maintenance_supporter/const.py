@@ -262,6 +262,13 @@ CONF_TASK_PRIORITY = "priority"
 # Config-flow-only field: comma-separated labels text, parsed into the
 # persisted ``labels`` list by the task-base handler.
 CONF_TASK_LABELS_TEXT = "labels_text"
+CONF_TASK_ASSIGNEE_POOL = "assignee_pool"
+CONF_TASK_ROTATION_STRATEGY = "rotation_strategy"
+
+# Rotation strategies for shared tasks: advance the "currently responsible"
+# pointer on each completion. None/"" = no rotation (single-assignee behaviour).
+ROTATION_STRATEGIES = ("round_robin", "least_completed", "random")
+MAX_ASSIGNEE_POOL = 25
 
 # --- Config Keys: User Assignment ---
 CONF_RESPONSIBLE_USER_ID = "responsible_user_id"

@@ -22,6 +22,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
+    MAX_ASSIGNEE_POOL,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
     MAX_DATE_LENGTH,
@@ -36,6 +37,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
+    ROTATION_STRATEGIES,
     HistoryEntryType,
 )
 from ..helpers.dates import INTERVAL_UNITS
@@ -78,6 +80,8 @@ from .tasks_validation import (
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("assignee_pool"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None),
+        vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGIES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
@@ -188,6 +192,11 @@ async def ws_create_task(
         task_data["documentation_url"] = msg["documentation_url"]
     if msg.get("responsible_user_id") is not None:
         task_data["responsible_user_id"] = msg["responsible_user_id"]
+    if msg.get("assignee_pool"):
+        from ..helpers.sanitize import sanitize_assignee_pool
+        task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
+    if msg.get("rotation_strategy"):
+        task_data["rotation_strategy"] = msg["rotation_strategy"]
     if msg.get("entity_slug") is not None:
         slug = msg["entity_slug"]
         if not re.fullmatch(r"[a-z0-9_]+", slug):
@@ -270,6 +279,8 @@ async def ws_create_task(
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
+        vol.Optional("assignee_pool"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None),
+        vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGIES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
@@ -378,6 +389,8 @@ async def ws_update_task(
         "notes": "notes",
         "documentation_url": "documentation_url",
         "responsible_user_id": "responsible_user_id",
+        "assignee_pool": "assignee_pool",
+        "rotation_strategy": "rotation_strategy",
         "entity_slug": "entity_slug",
         "custom_icon": "custom_icon",
         "nfc_tag_id": "nfc_tag_id",
@@ -419,12 +432,15 @@ async def ws_update_task(
     from ..helpers.sanitize import (
         cap_action_field,
         cap_quick_complete_defaults_field,
+        sanitize_assignee_pool,
         sanitize_labels,
     )
     cap_action_field(task)
     cap_quick_complete_defaults_field(task)
     if "labels" in task:
         task["labels"] = sanitize_labels(task["labels"])
+    if "assignee_pool" in task:
+        task["assignee_pool"] = sanitize_assignee_pool(task["assignee_pool"])
 
     # Clear stale trigger runtime in Store only when trigger fundamentally changes
     if "trigger_config" in msg:

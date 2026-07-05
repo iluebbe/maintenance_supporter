@@ -156,6 +156,8 @@ export class MaintenanceTaskDialog extends LitElement {
 
   // User assignment
   @state() private _responsibleUserId: string | null = null;
+  @state() private _assigneePool: string[] = [];
+  @state() private _rotationStrategy = "";
   @state() private _availableUsers: HAUser[] = [];
 
   // Checklist (newline-separated steps, one per line)
@@ -244,6 +246,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
     this._responsibleUserId = task.responsible_user_id || null;
+    this._assigneePool = [...(task.assignee_pool || [])];
+    this._rotationStrategy = task.rotation_strategy || "";
 
     this._checklistText = (task.checklist || []).join("\n");
     this._scheduleTime = task.schedule_time || "";
@@ -333,6 +337,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = "";
     this._nfcTagId = "";
     this._responsibleUserId = null;
+    this._assigneePool = [];
+    this._rotationStrategy = "";
     this._checklistText = "";
     this._scheduleTime = "";
     this._environmentalEntity = "";
@@ -386,6 +392,12 @@ export class MaintenanceTaskDialog extends LitElement {
       console.error("Failed to load users:", error);
       this._availableUsers = [];
     }
+  }
+
+  private _toggleAssignee(userId: string): void {
+    this._assigneePool = this._assigneePool.includes(userId)
+      ? this._assigneePool.filter((u) => u !== userId)
+      : [...this._assigneePool, userId];
   }
 
   // v1.3.0: fire the configured action immediately so the user can verify
@@ -696,6 +708,11 @@ export class MaintenanceTaskDialog extends LitElement {
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
       data.responsible_user_id = this._responsibleUserId;
+      data.assignee_pool = this._assigneePool;
+      data.rotation_strategy =
+        this._assigneePool.length >= 2 && this._rotationStrategy
+          ? this._rotationStrategy
+          : null;
 
       if (this._scheduleType === "sensor_based" && this._triggerType === "compound") {
         // Compound: a group of conditions joined by AND/OR. Each condition
@@ -1366,6 +1383,34 @@ export class MaintenanceTaskDialog extends LitElement {
               )}
             </select>
           </div>
+          ${this._availableUsers.length >= 2 ? html`
+            <div class="field">
+              <label>${t("shared_with", L)}</label>
+              <div class="field-help">${t("shared_with_help", L)}</div>
+              <div class="assignee-pool">
+                ${this._availableUsers.map((user) => html`
+                  <label class="pool-item">
+                    <input type="checkbox"
+                      .checked=${this._assigneePool.includes(user.id)}
+                      @change=${() => this._toggleAssignee(user.id)} />
+                    <span>${user.name}</span>
+                  </label>`)}
+              </div>
+            </div>
+            ${this._assigneePool.length >= 2 ? html`
+              <div class="select-row">
+                <label>${t("rotation_strategy", L)}</label>
+                <select
+                  .value=${this._rotationStrategy}
+                  @change=${(e: Event) => (this._rotationStrategy = (e.target as HTMLSelectElement).value)}
+                >
+                  <option value="" ?selected=${!this._rotationStrategy}>${t("rotation_none", L)}</option>
+                  ${["round_robin", "least_completed", "random"].map(
+                    (key) => html`<option value=${key} ?selected=${key === this._rotationStrategy}>${t("rotation_" + key, L)}</option>`
+                  )}
+                </select>
+              </div>` : nothing}
+          ` : nothing}
           ${this._renderTriggerFields()}
           ${this._scheduleType === "sensor_based" ? html`
             <ms-textfield
@@ -1582,6 +1627,24 @@ export class MaintenanceTaskDialog extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 4px;
+    }
+    .assignee-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin-top: 4px;
+    }
+    .pool-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pool-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
     }
     .select-row label {
       font-size: 12px;
