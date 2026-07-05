@@ -1110,6 +1110,7 @@
               "replacement": "更换",
               "calibration": "校准",
               "service": "服务",
+              "reading": "读数",
               "custom": "自定义"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "更换",
         "calibration": "校准",
         "service": "服务",
+        "reading": "读数",
         "custom": "自定义"
       }
     },

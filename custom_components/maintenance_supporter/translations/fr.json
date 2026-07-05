@@ -1110,6 +1110,7 @@
               "replacement": "Remplacement",
               "calibration": "Calibrage",
               "service": "Service",
+              "reading": "Relevé",
               "custom": "Personnalisé"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Remplacement",
         "calibration": "Calibrage",
         "service": "Service",
+        "reading": "Relevé",
         "custom": "Personnalisé"
       }
     },

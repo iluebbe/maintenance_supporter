@@ -1110,6 +1110,7 @@
               "replacement": "Vaihto",
               "calibration": "Kalibrointi",
               "service": "Huolto",
+              "reading": "Lukema",
               "custom": "Mukautettu"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Vaihto",
         "calibration": "Kalibrointi",
         "service": "Huolto",
+        "reading": "Lukema",
         "custom": "Mukautettu"
       }
     },

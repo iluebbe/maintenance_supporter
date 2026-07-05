@@ -121,7 +121,7 @@ export interface TaskSchedule {
 export interface MaintenanceTask {
   id: string;
   name: string;
-  type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "custom"
+  type: string; // "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom"
   enabled: boolean;
   schedule_type: string; // "time_based" | "sensor_based" | "one_time" | "manual" | calendar kind
   interval_days?: number | null;

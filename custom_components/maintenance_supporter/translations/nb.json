@@ -1110,6 +1110,7 @@
               "replacement": "Utskifting",
               "calibration": "Kalibrering",
               "service": "Service",
+              "reading": "Avlesning",
               "custom": "Egendefinert"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Utskifting",
         "calibration": "Kalibrering",
         "service": "Service",
+        "reading": "Avlesning",
         "custom": "Egendefinert"
       }
     },
