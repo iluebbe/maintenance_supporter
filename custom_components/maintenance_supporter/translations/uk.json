@@ -1110,6 +1110,7 @@
               "replacement": "Заміна",
               "calibration": "Калібрування",
               "service": "Сервіс",
+              "reading": "Показання",
               "custom": "Власний"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Заміна",
         "calibration": "Калібрування",
         "service": "Сервіс",
+        "reading": "Показання",
         "custom": "Власний"
       }
     },

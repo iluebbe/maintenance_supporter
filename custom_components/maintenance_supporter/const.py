@@ -438,6 +438,9 @@ class MaintenanceTypeEnum(StrEnum):
     REPLACEMENT = "replacement"
     CALIBRATION = "calibration"
     SERVICE = "service"
+    # Record a value / take a reading (meter readings, level checks, spot
+    # measurements) — requested in Discussion #83, generalised beyond meters.
+    READING = "reading"
     CUSTOM = "custom"
 
 

@@ -9,7 +9,7 @@ import { UserService } from "../user-service";
 import { describeWsError } from "../ws-errors";
 import "./ms-textfield";
 
-const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "custom"];
+const MAINTENANCE_TYPE_KEYS = ["cleaning", "inspection", "replacement", "calibration", "service", "reading", "custom"];
 const PRIORITY_KEYS = ["low", "normal", "high"];
 const SCHEDULE_TYPE_KEYS = ["time_based", "weekdays", "nth_weekday", "day_of_month", "sensor_based", "one_time", "manual"];
 const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month"];

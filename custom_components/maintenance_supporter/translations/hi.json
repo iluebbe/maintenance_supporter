@@ -1110,6 +1110,7 @@
               "replacement": "प्रतिस्थापन",
               "calibration": "अंशांकन",
               "service": "सर्विस",
+              "reading": "रीडिंग",
               "custom": "कस्टम"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "प्रतिस्थापन",
         "calibration": "अंशांकन",
         "service": "सर्विस",
+        "reading": "रीडिंग",
         "custom": "कस्टम"
       }
     },

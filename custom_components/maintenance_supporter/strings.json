@@ -1110,6 +1110,7 @@
               "replacement": "Replacement",
               "calibration": "Calibration",
               "service": "Service",
+              "reading": "Reading",
               "custom": "Custom"
             }
           },
@@ -1456,6 +1457,7 @@
         "replacement": "Replacement",
         "calibration": "Calibration",
         "service": "Service",
+        "reading": "Reading",
         "custom": "Custom"
       }
     },

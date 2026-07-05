@@ -56,6 +56,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Austausch",
         "calibration": "Kalibrierung",
         "service": "Service",
+        "reading": "Ablesung",
         "custom": "Benutzerdefiniert",
     },
     "nl": {
@@ -73,6 +74,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Vervanging",
         "calibration": "Kalibratie",
         "service": "Service",
+        "reading": "Aflezing",
         "custom": "Aangepast",
     },
     "fr": {
@@ -90,6 +92,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Remplacement",
         "calibration": "Calibration",
         "service": "Service",
+        "reading": "Relevé",
         "custom": "Personnalisé",
     },
     "it": {
@@ -107,6 +110,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Sostituzione",
         "calibration": "Calibrazione",
         "service": "Servizio",
+        "reading": "Lettura",
         "custom": "Personalizzato",
     },
     "es": {
@@ -124,6 +128,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Reemplazo",
         "calibration": "Calibración",
         "service": "Servicio",
+        "reading": "Lectura",
         "custom": "Personalizado",
     },
     "en": {
@@ -141,6 +146,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Replacement",
         "calibration": "Calibration",
         "service": "Service",
+        "reading": "Reading",
         "custom": "Custom",
     },
     "ru": {
@@ -158,6 +164,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Замена",
         "calibration": "Калибровка",
         "service": "Обслуживание",
+        "reading": "Показания",
         "custom": "Пользовательский",
     },
     "uk": {
@@ -175,6 +182,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Заміна",
         "calibration": "Калібрування",
         "service": "Сервіс",
+        "reading": "Показання",
         "custom": "Власний",
     },
     "pt": {
@@ -192,6 +200,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "Substituição",
         "calibration": "Calibração",
         "service": "Serviço",
+        "reading": "Leitura",
         "custom": "Personalizado",
     },
     "zh": {
@@ -209,6 +218,7 @@ _CAL_STRINGS: dict[str, dict[str, str]] = {
         "replacement": "更换",
         "calibration": "校准",
         "service": "服务",
+        "reading": "读数",
         "custom": "自定义",
     },
 }

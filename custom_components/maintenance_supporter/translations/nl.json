@@ -1110,6 +1110,7 @@
               "replacement": "Vervanging",
               "calibration": "Kalibratie",
               "service": "Service",
+              "reading": "Aflezing",
               "custom": "Aangepast"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Vervanging",
         "calibration": "Kalibratie",
         "service": "Service",
+        "reading": "Aflezing",
         "custom": "Aangepast"
       }
     },

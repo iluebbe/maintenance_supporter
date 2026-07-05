@@ -1110,6 +1110,7 @@
               "replacement": "Byte",
               "calibration": "Kalibrering",
               "service": "Service",
+              "reading": "Avläsning",
               "custom": "Anpassad"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Byte",
         "calibration": "Kalibrering",
         "service": "Service",
+        "reading": "Avläsning",
         "custom": "Anpassad"
       }
     },

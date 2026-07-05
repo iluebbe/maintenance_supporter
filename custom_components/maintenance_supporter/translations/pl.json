@@ -1110,6 +1110,7 @@
               "replacement": "Wymiana",
               "calibration": "Kalibracja",
               "service": "Serwis",
+              "reading": "Odczyt",
               "custom": "Niestandardowe"
             }
           },
@@ -1390,6 +1391,7 @@
         "replacement": "Wymiana",
         "calibration": "Kalibracja",
         "service": "Serwis",
+        "reading": "Odczyt",
         "custom": "Niestandardowe"
       }
     },
