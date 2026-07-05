@@ -439,6 +439,8 @@
   "settings_max_per_day": "Max meldingen per dag (0 = onbeperkt)",
   "settings_bundling": "Meldingen bundelen",
   "settings_bundle_threshold": "Bundeldrempel",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Mobiele actieknoppen",
   "settings_action_complete": "Knop 'Voltooid' tonen",
   "settings_action_skip": "Knop 'Overslaan' tonen",

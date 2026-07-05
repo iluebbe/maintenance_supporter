@@ -440,6 +440,8 @@
   "settings_max_per_day": "Max. Benachrichtigungen pro Tag (0 = unbegrenzt)",
   "settings_bundling": "Benachrichtigungen bündeln",
   "settings_bundle_threshold": "Bündelungsschwelle",
+  "settings_reminder_leads": "Zusätzliche Erinnerungen (Tage vor Fälligkeit)",
+  "settings_reminder_leads_hint": "Kommagetrennte Vorlaufzeiten, z. B. 14, 3, 0 — am jeweiligen Tag wird eine zusätzliche Erinnerung gesendet. Leer = aus.",
   "settings_actions": "Mobile Aktionsbuttons",
   "settings_action_complete": "\"Erledigt\"-Button anzeigen",
   "settings_action_skip": "\"Überspringen\"-Button anzeigen",

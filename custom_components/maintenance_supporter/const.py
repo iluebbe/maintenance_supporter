@@ -195,6 +195,12 @@ CONF_WEEKLY_DIGEST_ENABLED = "weekly_digest_enabled"
 CONF_WARRANTY_REMINDER_ENABLED = "warranty_reminder_enabled"
 CONF_WARRANTY_REMINDER_DAYS = "warranty_reminder_days"
 DEFAULT_WARRANTY_REMINDER_DAYS = 30
+# Multiple lead-time reminders: list of days-before-due at which an extra
+# reminder fires (e.g. [14, 3, 0]). Empty = feature off (single warning_days
+# threshold behaviour unchanged). Checked by a daily tick, not the
+# status-change path.
+CONF_REMINDER_LEAD_DAYS = "reminder_lead_days"
+MAX_REMINDER_LEADS = 10
 
 # --- Panel ---
 PANEL_NAME = "maintenance-supporter"

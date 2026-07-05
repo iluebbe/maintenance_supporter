@@ -440,6 +440,8 @@
   "settings_max_per_day": "Maks. notifikationer pr. dag (0 = ubegrænset)",
   "settings_bundling": "Saml notifikationer",
   "settings_bundle_threshold": "Samlingstærskel",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Mobile handlingsknapper",
   "settings_action_complete": "Vis 'Fuldfør'-knap",
   "settings_action_skip": "Vis 'Spring over'-knap",

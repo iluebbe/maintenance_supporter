@@ -54,6 +54,7 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_REMINDER_LEAD_DAYS,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
@@ -69,6 +70,7 @@ from ..const import (
     DOMAIN,
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
+    MAX_REMINDER_LEADS,
     SIGNAL_NEW_OBJECT_ENTRY,
     TIME_HHMMSS_PATTERN,
 )
@@ -165,6 +167,8 @@ def _build_full_settings(
             "bundle_threshold": options.get(CONF_NOTIFICATION_BUNDLE_THRESHOLD, 2),
             # v1.4.0 (#44): default keeps backwards-compatible per-status titles
             "title_style": options.get(CONF_NOTIFICATION_TITLE_STYLE, "default"),
+            # Multiple lead-time reminders (days before due); [] = off.
+            "reminder_lead_days": options.get(CONF_REMINDER_LEAD_DAYS, []),
         },
         "actions": {
             "complete_enabled": options.get(CONF_ACTION_COMPLETE_ENABLED, False),
@@ -509,6 +513,19 @@ async def ws_update_global_settings(
             if len(cleaned) >= 50:
                 break
         filtered[CONF_ADMIN_PANEL_USER_IDS] = cleaned
+
+    # Multiple lead-time reminders: keep only ints within 0..365, dedupe, sort
+    # descending (furthest lead first), cap the list. Empty list is valid — it
+    # turns the feature off.
+    if CONF_REMINDER_LEAD_DAYS in filtered:
+        raw_leads = filtered[CONF_REMINDER_LEAD_DAYS]
+        leads: list[int] = []
+        for v in raw_leads:
+            if isinstance(v, bool) or not isinstance(v, int):
+                continue
+            if 0 <= v <= 365 and v not in leads:
+                leads.append(v)
+        filtered[CONF_REMINDER_LEAD_DAYS] = sorted(leads, reverse=True)[:MAX_REMINDER_LEADS]
 
     # (#67): objects_table_columns — keep only known column keys, preserve the
     # caller's order, dedupe. An empty/invalid result falls back to the default

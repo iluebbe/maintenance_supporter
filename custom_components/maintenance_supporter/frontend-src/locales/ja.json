@@ -440,6 +440,8 @@
   "settings_max_per_day": "1日あたりの最大通知数（0＝無制限）",
   "settings_bundling": "通知をまとめる",
   "settings_bundle_threshold": "まとめるしきい値",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "モバイル操作ボタン",
   "settings_action_complete": "「完了」ボタンを表示",
   "settings_action_skip": "「スキップ」ボタンを表示",

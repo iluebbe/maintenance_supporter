@@ -440,6 +440,8 @@
   "settings_max_per_day": "Maks varsler per dag (0 = ubegrenset)",
   "settings_bundling": "Samle varsler",
   "settings_bundle_threshold": "Samlingsterskel",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Handlingsknapper på mobil",
   "settings_action_complete": "Vis «Fullfør»-knapp",
   "settings_action_skip": "Vis «Hopp over»-knapp",

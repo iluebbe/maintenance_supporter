@@ -439,6 +439,8 @@
   "settings_max_per_day": "Max notifikationer per dag (0 = obegränsat)",
   "settings_bundling": "Bunta notifikationer",
   "settings_bundle_threshold": "Buntningströskel",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Mobila åtgärdsknappar",
   "settings_action_complete": "Visa 'Slutför'-knapp",
   "settings_action_skip": "Visa 'Hoppa över'-knapp",

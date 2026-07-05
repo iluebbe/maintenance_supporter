@@ -60,6 +60,7 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_REMINDER_LEAD_DAYS,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
@@ -131,6 +132,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_WEEKLY_DIGEST_ENABLED, bool),
     SettingSpec(CONF_WARRANTY_REMINDER_ENABLED, bool),
     SettingSpec(CONF_WARRANTY_REMINDER_DAYS, int, int_range=(1, 365)),
+    # List of days-before-due (bespoke int-list sanitiser in the WS handler).
+    SettingSpec(CONF_REMINDER_LEAD_DAYS, list),
     # Budget
     SettingSpec(CONF_BUDGET_MONTHLY, float, float_range=(0.0, 10_000_000.0)),
     SettingSpec(CONF_BUDGET_YEARLY, float, float_range=(0.0, 100_000_000.0)),

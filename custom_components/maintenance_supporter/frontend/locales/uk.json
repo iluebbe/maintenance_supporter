@@ -439,6 +439,8 @@
   "settings_max_per_day": "Макс. сповіщень на день (0 = без обмежень)",
   "settings_bundling": "Групувати сповіщення",
   "settings_bundle_threshold": "Поріг групування",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Кнопки дій у мобільних сповіщеннях",
   "settings_action_complete": "Показувати кнопку «Виконати»",
   "settings_action_skip": "Показувати кнопку «Пропустити»",
