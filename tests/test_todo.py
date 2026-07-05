@@ -122,3 +122,86 @@ async def test_todo_complete_completes_task(hass: HomeAssistant) -> None:
     merged = rd.coordinator._get_merged_tasks_data()  # type: ignore[union-attr]
     history = merged[TASK_ID_1].get("history", [])
     assert any(h["type"] == HistoryEntryType.COMPLETED for h in history)
+
+
+def _task_history(obj) -> list[dict]:
+    rd = obj.runtime_data
+    merged = rd.coordinator._get_merged_tasks_data()
+    return merged[TASK_ID_1].get("history", [])
+
+
+async def test_todo_checkoff_blocked_inside_completion_window(
+    hass: HomeAssistant,
+) -> None:
+    """Audit gap #5: the to-do surface is reachable from Assist/voice — the
+    easiest place for an accidental double-completion. A task whose
+    ``earliest_completion_days`` window forbids completing now must NOT gain a
+    history entry when its item is (re-)marked completed."""
+    from homeassistant.util import dt as dt_util
+
+    lp = dt_util.now().date().isoformat()  # completed today → due in 30 days
+    obj = _object(hass, {
+        TASK_ID_1: build_task_data(
+            name="Windowed Task", last_performed=lp, interval_days=30,
+        ) | {"earliest_completion_days": 0},  # only on/after the due date
+    })
+    await setup_integration(hass, _global(hass), obj)
+    todo = _todo(hass)
+
+    item = next(i for i in todo.todo_items if i.summary == "Pool Pump: Windowed Task")
+    before = len(_task_history(obj))
+    item.status = TodoItemStatus.COMPLETED
+    await todo.async_update_todo_item(item)
+
+    # Silently refused: no new completion recorded, cycle unchanged.
+    assert len(_task_history(obj)) == before
+    assert not any(
+        h["type"] == HistoryEntryType.COMPLETED for h in _task_history(obj)
+    )
+
+
+async def test_todo_uncheck_is_noop(hass: HomeAssistant) -> None:
+    """Un-checking (back to needs_action) must not reset or mutate the task —
+    a maintenance cycle can't be 'un-completed' from the to-do card."""
+    obj = _object(hass, {
+        TASK_ID_1: build_task_data(
+            name="Overdue Task", last_performed="2020-01-01", interval_days=30,
+        ),
+    })
+    await setup_integration(hass, _global(hass), obj)
+    todo = _todo(hass)
+
+    item = next(i for i in todo.todo_items if i.summary == "Pool Pump: Overdue Task")
+    assert item.status == TodoItemStatus.NEEDS_ACTION
+    before = list(_task_history(obj))
+    lp_before = obj.runtime_data.coordinator._get_merged_tasks_data()[TASK_ID_1].get("last_performed")
+
+    item.status = TodoItemStatus.NEEDS_ACTION  # "uncheck" / no-op update
+    await todo.async_update_todo_item(item)
+
+    merged = obj.runtime_data.coordinator._get_merged_tasks_data()
+    assert _task_history(obj) == before
+    assert merged[TASK_ID_1].get("last_performed") == lp_before
+
+
+async def test_todo_item_summary_and_due_date_match_task(
+    hass: HomeAssistant,
+) -> None:
+    """The item mirrors the task: 'Object: Task' summary + next_due as due."""
+    from datetime import date, timedelta
+
+    from homeassistant.util import dt as dt_util
+
+    lp = (dt_util.now().date() - timedelta(days=10)).isoformat()
+    obj = _object(hass, {
+        TASK_ID_1: build_task_data(
+            name="Mirrored", last_performed=lp, interval_days=30,
+        ),
+    })
+    await setup_integration(hass, _global(hass), obj)
+    todo = _todo(hass)
+
+    item = next(i for i in todo.todo_items if i.summary == "Pool Pump: Mirrored")
+    expected_due = date.fromisoformat(lp) + timedelta(days=30)
+    assert item.due == expected_due
+    assert item.uid == f"{obj.entry_id}:{TASK_ID_1}"
