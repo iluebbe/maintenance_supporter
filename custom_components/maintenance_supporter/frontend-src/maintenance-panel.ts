@@ -2,7 +2,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDateTime, formatDueDays, formatInterval, formatRecurrence } from "./styles";
+import { sharedStyles, STATUS_COLORS, STATUS_ICONS, DEFAULT_CURRENCY_SYMBOL, t, ensureLocale, isLocaleLoaded, formatDate, formatDueDays, formatInterval, formatRecurrence } from "./styles";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -51,15 +51,11 @@ import "./components/seasonal-overrides-dialog";
 import type { SeasonalOverridesDialog } from "./components/seasonal-overrides-dialog";
 import "./components/group-dialog";
 import type { MaintenanceGroupDialog } from "./components/group-dialog";
-import { renderTriggerSection, type SparklineContext } from "./renderers/sparkline";
-import { renderPredictionSection } from "./renderers/prediction";
-import { renderWeibullSection } from "./renderers/weibull";
-import { renderRecommendationBars } from "./renderers/recommendation";
+import { type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
-import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./renderers/seasonal";
-import { renderCostDurationCard } from "./renderers/charts";
-import { renderTriggerProgress, renderMiniSparkline, renderDaysProgress } from "./renderers/progress";
-import { renderHistoryFilters, renderHistoryList, type HistoryContext } from "./renderers/history";
+import { renderTriggerProgress, renderMiniSparkline } from "./renderers/progress";
+import { type HistoryContext } from "./renderers/history";
+import { renderTaskDetail, renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
 
 type View = "overview" | "object" | "task" | "all_objects";
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
@@ -2408,7 +2404,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   ${task.nfc_tag_id ? html`<span class="nfc-badge" title="${t("nfc_linked", L)}"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${task.name}</span>
-                <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${this._renderUserBadge(task)}</span>
+                <span class="task-sub${task.responsible_user_id ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   <span class="due-text">${formatDueDays(task.days_until_due, L)}</span>
@@ -2434,63 +2430,6 @@ export class MaintenanceSupporterPanel extends LitElement {
   /**
    * Render compact task header with status chip and action buttons.
    */
-  private _renderTaskHeader(task: MaintenanceTask) {
-    const L = this._lang;
-    const obj = this._getObject(this._selectedEntryId!);
-    const objName = obj?.object.name || "";
-    const isOperator = this._isOperator;
-
-    // Determine status chip — use the backend-computed status. A completed
-    // one-time task is shown as archived ("done") rather than its raw "ok".
-    const statusClass = task.archived ? "archived" : (task.is_done ? "done" : (task.status === "due_soon" ? "warning" : (task.status || "ok")));
-    const statusText = task.archived ? t("archived", L) : (task.is_done ? t("completed", L) : t(task.status || "ok", L));
-
-    return html`
-      <div class="task-header">
-        <div class="task-header-title">
-          <span class="task-name-breadcrumb" @click=${() => this._view = "task"}>${task.name}</span>
-          <span class="breadcrumb-separator">·</span>
-          <span class="object-name-breadcrumb" @click=${() => this._showObject(this._selectedEntryId!)}>${objName}</span>
-          <span class="status-chip ${statusClass}">${statusText}</span>
-          ${this._renderUserBadge(task)}
-          ${task.nfc_tag_id
-            ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
-            : !isOperator ? html`<span class="nfc-badge unlinked" title="${t("nfc_link_hint", L)}"
-                @click=${() => { this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>
-                <ha-icon icon="mdi:nfc-variant"></ha-icon>
-              </span>` : nothing
-          }
-        </div>
-        <div class="task-header-actions">
-          <ha-button appearance="filled" @click=${() => this._openCompleteDialog(this._selectedEntryId!, this._selectedTaskId!, task.name, this._features.checklists ? task.checklist : undefined, this._features.adaptive && !!task.adaptive_config?.enabled)}>${t("complete", L)}</ha-button>
-          <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._promptSkipTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("skip", L)}</ha-button>
-          ${!isOperator ? html`
-            <ha-button appearance="plain" @click=${() => this._toggleArchiveTask(this._selectedEntryId!, this._selectedTaskId!, !!task.archived)}>
-              <ha-icon icon="${task.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
-              ${task.archived ? t("unarchive", L) : t("archive", L)}
-            </ha-button>
-          ` : nothing}
-          <ha-button appearance="plain" @click=${() => { const objData = this._getObject(this._selectedEntryId!)?.object; this._openQrForTask(this._selectedEntryId!, this._selectedTaskId!, objData?.name || "", task.name); }}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
-          ${!isOperator ? html`
-            <div class="more-menu-wrapper">
-              <ha-icon-button .disabled=${this._actionLoading} .path=${"M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"} @click=${this._toggleMoreMenu}></ha-icon-button>
-              ${this._moreMenuOpen ? html`
-                <div class="popup-menu" @click=${(e: Event) => e.stopPropagation()}>
-                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(this._selectedEntryId!, task); }}>${t("edit", L)}</div>
-                  <div class="popup-menu-item" @click=${() => this._duplicateTask(this._selectedEntryId!, this._selectedTaskId!)}>${t("duplicate", L)}</div>
-                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._promptResetTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("reset", L)}</div>
-                  <div class="popup-menu-item" @click=${() => { this._closeMoreMenu(); this._snoozeTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("snooze", L)}</div>
-                  <div class="popup-menu-divider"></div>
-                  <div class="popup-menu-item danger" @click=${() => { this._closeMoreMenu(); this._deleteTask(this._selectedEntryId!, this._selectedTaskId!); }}>${t("delete", L)}</div>
-                </div>
-              ` : nothing}
-            </div>
-          ` : nothing}
-        </div>
-      </div>
-    `;
-  }
-
   private _toggleMoreMenu(): void {
     this._moreMenuOpen = !this._moreMenuOpen;
     if (this._moreMenuOpen) {
@@ -2504,59 +2443,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._moreMenuOpen = false;
   }
 
-  /**
-   * Render user badge for a task (if responsible user is assigned).
-   */
-  private _renderUserBadge(task: MaintenanceTask) {
-    if (!task.responsible_user_id || !this._userService) {
-      return nothing;
-    }
-
-    const userName = this._userService.getUserName(task.responsible_user_id);
-    if (!userName) return nothing;
-
-    return html`
-      <span class="user-badge">
-        <ha-icon icon="mdi:account"></ha-icon>
-        ${userName}
-      </span>
-    `;
-  }
-
-  /**
-   * Render tab bar for navigation.
-   */
-  private _renderTabBar() {
-    const L = this._lang;
-    return html`
-      <div class="tab-bar">
-        <div class="tab ${this._activeTab === "overview" ? "active" : ""}" @click=${() => this._activeTab = "overview"}>
-          ${t("overview", L)}
-        </div>
-        <div class="tab ${this._activeTab === "history" ? "active" : ""}" @click=${() => this._activeTab = "history"}>
-          ${t("history", L)}
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * Render tab content based on active tab.
-   */
-  private _renderTabContent(task: MaintenanceTask) {
-    switch (this._activeTab) {
-      case "overview":
-        return this._renderOverviewTab(task);
-      case "history":
-        return this._renderHistoryTab(task);
-      default:
-        return nothing;
-    }
-  }
-
-  /**
-   * Render Overview Tab content.
-   */
   private get _sparklineCtx(): SparklineContext {
     return {
       lang: this._lang,
@@ -2577,102 +2463,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     try { localStorage.setItem("msp-collapsed-sections", JSON.stringify([...next])); } catch { /* private mode */ }
   }
 
-  /** Wrap a task-detail analysis card in a collapsible section. The section
-   *  header owns the title (the wrapped card's own title is hidden via CSS —
-   *  `.collapsible-body` — so it isn't shown twice). Remembered per key. */
-  private _collapsible(key: string, titleKey: string, body: unknown) {
-    const collapsed = this._collapsedSections.has(key);
-    return html`
-      <div class="collapsible ${collapsed ? "collapsed" : ""}">
-        <button class="collapsible-head" @click=${() => this._toggleSection(key)}
-          aria-expanded=${collapsed ? "false" : "true"}>
-          <ha-icon icon="${collapsed ? "mdi:chevron-right" : "mdi:chevron-down"}"></ha-icon>
-          <span>${t(titleKey, this._lang)}</span>
-        </button>
-        ${collapsed ? nothing : html`<div class="collapsible-body">${body}</div>`}
-      </div>
-    `;
-  }
-
-  private _renderOverviewTab(task: MaintenanceTask) {
-    const L = this._lang;
-
-    // Check if we have recommendation / seasonal content
-    const hasRecommendation = this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days;
-    const hasSeasonal = this._features.seasonal && task.seasonal_factor && task.seasonal_factor !== 1.0;
-    const hasLeftColumn = hasRecommendation || hasSeasonal;
-
-    // Analysis content: Weibull/Seasonal expanded (only when data is available)
-    const hasWeibullData = this._features.adaptive
-      && task.interval_analysis?.weibull_beta != null
-      && task.interval_analysis?.weibull_eta != null;
-    const hasSeasonalData = this._features.seasonal
-      && (task.seasonal_factors?.length === 12
-        || task.interval_analysis?.seasonal_factors?.length === 12);
-
-    return html`
-      <div class="tab-content overview-tab">
-        ${this._renderKPIBar(task)}
-        ${this._renderTaskMeta(task)}
-        ${renderDaysProgress(task, this._lang)}
-        ${renderTriggerSection(task, this._sparklineCtx)}
-        ${renderPredictionSection(task, L, this._features)}
-        <div class="two-column-layout ${hasLeftColumn ? '' : 'single-column'}">
-          ${hasLeftColumn ? html`
-            <div class="left-column">
-              ${this._renderRecommendationCard(task)}
-              ${renderSeasonalCardCompact(task, L, this._features)}
-            </div>
-          ` : nothing}
-          <div class="right-column">
-            ${renderCostDurationCard(task, L, this._costDurationToggle, (v) => { this._costDurationToggle = v; })}
-          </div>
-        </div>
-        ${hasWeibullData
-          ? this._collapsible("weibull", "weibull_reliability_curve", renderWeibullSection(task, L))
-          : nothing}
-        ${hasSeasonalData
-          ? this._collapsible("seasonal", "seasonal_chart_title", html`
-              ${renderSeasonalCardExpanded(task, L)}
-              <div class="seasonal-actions">
-                <ha-button appearance="plain" @click=${() => this._openSeasonalOverrides(task)}>
-                  ${t("edit_seasonal_overrides", L)}
-                </ha-button>
-              </div>
-            `)
-          : nothing}
-        ${this._renderChecklistCard(task)}
-        ${this._renderRecentActivities(task)}
-      </div>
-    `;
-  }
-
-  /**
-   * Read-only preview of the configured checklist steps so users can see
-   * the steps without having to open the Edit or Complete dialog. Only
-   * rendered when the Checklists feature is enabled and steps are set.
-   */
-  private _renderChecklistCard(task: MaintenanceTask) {
-    if (!this._features.checklists) return nothing;
-    const items = task.checklist || [];
-    if (items.length === 0) return nothing;
-    const L = this._lang;
-    return html`
-      <div class="checklist-preview-card">
-        <div class="checklist-preview-header">
-          <ha-icon icon="mdi:format-list-checks"></ha-icon>
-          <span>${t("checklist", L)} (${items.length})</span>
-        </div>
-        <ol class="checklist-preview-list">
-          ${items.map((item) => html`<li>${item}</li>`)}
-        </ol>
-      </div>
-    `;
-  }
-
-  /**
-   * Render History Tab content.
-   */
   /** Build the context the history renderers need from panel state. */
   private _historyCtx(): HistoryContext {
     return {
@@ -2687,203 +2477,60 @@ export class MaintenanceSupporterPanel extends LitElement {
     };
   }
 
-  private _renderHistoryTab(task: MaintenanceTask) {
-    const ctx = this._historyCtx();
-    return html`
-      <div class="tab-content history-tab">
-        ${renderHistoryFilters(task, ctx)}
-        ${renderHistoryList(task, ctx)}
-      </div>
-    `;
-  }
-
-  /**
-   * Render task notes, task documentation URL, and (since v1.4.1) the parent
-   * object's documentation_url for quick access to the device manual without
-   * having to navigate back to the object detail.
-   */
-  private _renderTaskMeta(task: MaintenanceTask) {
-    const safeTaskUrl = task.documentation_url && /^https?:\/\//i.test(task.documentation_url)
-      ? task.documentation_url : null;
-    // v1.4.1: pull the parent object's documentation_url too. Tasks live
-    // inside an object that owns the device's manual, so showing it on the
-    // task page is the natural follow-up to v1.4.0 #43.
-    const parentObj = this._selectedEntryId ? this._getObject(this._selectedEntryId) : undefined;
-    const objUrl = parentObj?.object?.documentation_url;
-    const safeObjUrl = objUrl && /^https?:\/\//i.test(objUrl) ? objUrl : null;
-    if (!task.notes && !safeTaskUrl && !safeObjUrl) return nothing;
-    const L = this._lang;
-    return html`
-      <div class="task-meta-card">
-        ${task.notes ? html`
-          <div class="task-meta-row">
-            <ha-icon icon="mdi:note-text-outline"></ha-icon>
-            <span class="task-meta-notes">${task.notes}</span>
-          </div>
-        ` : nothing}
-        ${safeTaskUrl ? html`
-          <div class="task-meta-row task-meta-link">
-            <ha-icon icon="mdi:open-in-new"></ha-icon>
-            <a href="${safeTaskUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_label", L)}</a>
-          </div>
-        ` : nothing}
-        ${safeObjUrl ? html`
-          <div class="task-meta-row task-meta-link">
-            <ha-icon icon="mdi:book-open-variant"></ha-icon>
-            <a href="${safeObjUrl}" target="_blank" rel="noopener noreferrer">${t("documentation_url_label", L)} (${parentObj?.object?.name || ""})</a>
-          </div>
-        ` : nothing}
-      </div>
-    `;
-  }
-
-  /**
-   * Render KPI bar with 7 cards.
-   */
-  private _renderKPIBar(task: MaintenanceTask) {
-    const L = this._lang;
-    const avgCost = task.times_performed > 0 ? task.total_cost / task.times_performed : 0;
-    const daysClass = task.days_until_due !== null && task.days_until_due !== undefined
-      ? (task.days_until_due < 0 ? "overdue" : (task.days_until_due <= task.warning_days ? "warning" : ""))
-      : "";
-
-    return html`
-      <div class="kpi-bar">
-        <div class="kpi-card">
-          <div class="kpi-label">${t("next_due", L)}</div>
-          <div class="kpi-value">${task.next_due ? formatDate(task.next_due, L) : "—"}</div>
-          ${this._features.schedule_time && task.schedule_time
-            ? html`<div class="kpi-subtext">${t("at_time", L)} ${task.schedule_time}</div>`
-            : nothing}
-        </div>
-        <div class="kpi-card ${daysClass}">
-          <div class="kpi-label">${t("days_until_due", L)}</div>
-          <div class="kpi-value-large">${task.days_until_due !== null && task.days_until_due !== undefined ? task.days_until_due : "—"}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">${t("interval", L)}</div>
-          <div class="kpi-value">${formatRecurrence(task, L)}</div>
-          ${this._features.adaptive && task.suggested_interval && task.suggested_interval !== task.interval_days ? html`
-            <div class="kpi-subtext">${t("recommended", L)}: ${task.suggested_interval}${task.interval_analysis?.confidence_interval_low != null ? ` (${task.interval_analysis.confidence_interval_low}–${task.interval_analysis.confidence_interval_high})` : ""}</div>
-          ` : nothing}
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">${t("warning", L)}</div>
-          <div class="kpi-value">${task.warning_days} ${t("days", L)}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">${t("last_performed", L)}</div>
-          <div class="kpi-value">${task.last_performed ? formatDate(task.last_performed, L) : "—"}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">${t("avg_cost", L)}</div>
-          <div class="kpi-value">${avgCost.toFixed(0)} ${this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL}</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">${t("avg_duration", L)}</div>
-          <div class="kpi-value">${task.average_duration ? task.average_duration.toFixed(0) : "—"} min</div>
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * Placeholder methods for components to be implemented.
-   */
-  private _renderRecommendationCard(task: MaintenanceTask) {
-    const L = this._lang;
-
-    if (!this._features.adaptive || !task.suggested_interval
-        || task.suggested_interval === task.interval_days) {
-      return nothing;
-    }
-    if (this._selectedEntryId && this._selectedTaskId
-        && this._dismissedSuggestions.has(`${this._selectedEntryId}_${this._selectedTaskId}`)) {
-      return nothing;
-    }
-
-    const suggested = task.suggested_interval;
-    return html`
-      <div class="recommendation-card">
-        <h4>${t("suggested_interval", L)}</h4>
-        ${renderRecommendationBars(
-          task.interval_days, suggested,
-          task.interval_confidence || "medium", L,
-        )}
-        <div class="recommendation-actions">
-          <ha-button appearance="filled"
-            @click=${() => this._applySuggestion(this._selectedEntryId!, this._selectedTaskId!, suggested)}>
-            ${t("apply_suggestion", L)}
-          </ha-button>
-          <ha-button appearance="plain"
-            @click=${() => this._reanalyzeInterval(this._selectedEntryId!, this._selectedTaskId!)}>
-            ${t("reanalyze", L)}
-          </ha-button>
-          <ha-button appearance="plain"
-            @click=${() => this._dismissSuggestion(this._selectedEntryId!, this._selectedTaskId!)}>
-            ${t("dismiss_suggestion", L)}
-          </ha-button>
-        </div>
-      </div>
-    `;
-  }
-
-  private _renderRecentActivities(task: MaintenanceTask) {
-    const L = this._lang;
-    const recent = task.history.slice(-3).reverse();
-
-    if (recent.length === 0) {
-      return nothing;
-    }
-
-    const getIcon = (type: string) => {
-      switch (type) {
-        case "completed": return "✓";
-        case "triggered": return "⊗";
-        case "skipped": return "↷";
-        case "reset": return "↺";
-        default: return "·";
-      }
+  /** Build the context the task-detail renderers need from panel state.
+   *  Dialog-opening callbacks stay panel-side (the dialogs live in THIS
+   *  shadow root), so the extracted module never touches a dialog itself. */
+  private _taskDetailCtx(): TaskDetailContext {
+    const entryId = this._selectedEntryId!;
+    const taskId = this._selectedTaskId!;
+    const obj = this._getObject(entryId);
+    return {
+      lang: this._lang,
+      hass: this.hass,
+      entryId,
+      taskId,
+      objectName: obj?.object.name || "",
+      objectDocUrl: obj?.object?.documentation_url ?? null,
+      isOperator: this._isOperator,
+      actionLoading: this._actionLoading,
+      moreMenuOpen: this._moreMenuOpen,
+      activeTab: this._activeTab,
+      features: this._features,
+      currencySymbol: this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL,
+      collapsedSections: this._collapsedSections,
+      costDurationToggle: this._costDurationToggle,
+      suggestionDismissed: this._dismissedSuggestions.has(`${entryId}_${taskId}`),
+      sparkline: this._sparklineCtx,
+      history: this._historyCtx(),
+      getUserName: (id) => this._userService?.getUserName(id) ?? null,
+      setActiveTab: (tab) => { this._activeTab = tab; },
+      toggleSection: (key) => this._toggleSection(key),
+      setCostDurationToggle: (v) => { this._costDurationToggle = v; },
+      showTaskView: () => { this._view = "task"; },
+      showObject: () => this._showObject(entryId),
+      toggleMoreMenu: () => this._toggleMoreMenu(),
+      closeMoreMenu: () => this._closeMoreMenu(),
+      openEdit: (tk) => { this.shadowRoot!.querySelector<MaintenanceTaskDialog>("maintenance-task-dialog")?.openEdit(entryId, tk); },
+      openComplete: (tk) => this._openCompleteDialog(entryId, taskId, tk.name, this._features.checklists ? tk.checklist : undefined, this._features.adaptive && !!tk.adaptive_config?.enabled),
+      promptSkip: () => this._promptSkipTask(entryId, taskId),
+      toggleArchive: (archived) => this._toggleArchiveTask(entryId, taskId, archived),
+      openQr: (taskName) => this._openQrForTask(entryId, taskId, obj?.object.name || "", taskName),
+      duplicateTask: () => this._duplicateTask(entryId, taskId),
+      promptReset: () => this._promptResetTask(entryId, taskId),
+      snoozeTask: () => this._snoozeTask(entryId, taskId),
+      deleteTask: () => this._deleteTask(entryId, taskId),
+      applySuggestion: (interval) => this._applySuggestion(entryId, taskId, interval),
+      reanalyze: () => this._reanalyzeInterval(entryId, taskId),
+      dismissSuggestion: () => this._dismissSuggestion(entryId, taskId),
+      openSeasonalOverrides: (tk) => this._openSeasonalOverrides(tk),
     };
-
-    return html`
-      <div class="recent-activities">
-        <h3>${t("recent_activities", L)}</h3>
-        ${recent.map(entry => html`
-          <div class="activity-item">
-            <span class="activity-icon">${getIcon(entry.type)}</span>
-            <span class="activity-date">${formatDateTime(entry.timestamp, L)}</span>
-            <span class="activity-note">${entry.notes || "—"}</span>
-            ${entry.cost ? html`<span class="activity-badge">${entry.cost.toFixed(0)}${this._budget?.currency_symbol || DEFAULT_CURRENCY_SYMBOL}</span>` : nothing}
-            ${entry.duration ? html`<span class="activity-badge">${entry.duration}min</span>` : nothing}
-          </div>
-        `)}
-        <div class="activity-show-all">
-          <ha-button appearance="plain" @click=${() => this._activeTab = "history"}>${t("show_all", L)} →</ha-button>
-        </div>
-      </div>
-    `;
   }
 
   private _renderTaskDetail() {
     if (!this._selectedEntryId || !this._selectedTaskId) return nothing;
     const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
     if (!task) return html`<p>Task not found.</p>`;
-    const L = this._lang;
-
-    return html`
-      <div class="detail-section">
-        ${this._renderTaskHeader(task)}
-        ${this._renderTabBar()}
-        ${this._renderTabContent(task)}
-        <maintenance-task-documents
-          .hass=${this.hass}
-          .entryId=${this._selectedEntryId}
-          .taskId=${this._selectedTaskId}
-          .canWrite=${!this._isOperator}
-        ></maintenance-task-documents>
-      </div>
-    `;
+    return renderTaskDetail(task, this._taskDetailCtx());
   }
 
   /** v2.2.0: open the in-place history-edit dialog for the given entry.
