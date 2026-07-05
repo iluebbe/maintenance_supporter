@@ -67,7 +67,10 @@ jobs:
     needs: [syntax-check, lint]
     strategy:
       matrix:
-        python-version: ["3.13", "3.14"]
+        # HA 2026.7 requires Python >= 3.14.2 — a 3.13 leg silently resolves
+        # an OLDER homeassistant via pip's python_requires filtering and then
+        # type-checks against stale stubs (bit us on helpers.automation).
+        python-version: ["3.14"]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
