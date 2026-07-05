@@ -2,6 +2,74 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.19.0] - 2026-07-05
+
+Deeper Home Assistant integration — the new automation editor, device
+attachment, full task CRUD from automations — plus three found-and-fixed
+lifecycle bugs and a new journey-test family that hunts exactly that class.
+No breaking changes.
+
+### ✨ New
+
+- **Automation-editor building blocks (HA 2026.7+)** — the integration
+  contributes purpose-specific triggers and conditions to the new intent-based
+  automation editor: *"A maintenance task became overdue / became due soon /
+  returned to OK"*, *"A sensor trigger activated"*, and conditions *is overdue /
+  is due soon / is triggered / needs attention*. Targetable at the whole home,
+  an area, an object, or a single task; localized in all 18 languages. Older
+  cores are unaffected (the platform no-ops there).
+- **Attach objects to existing HA devices** — link an object to a device
+  another integration provides: its task entities appear on that device's
+  page instead of an own virtual device (the owning integration's metadata
+  stays untouched). Plus **object hierarchy**: nest objects under each other
+  (the anode rod under the water heater) via HA's native device hierarchy.
+  Editable in the object dialog; cycles are rejected; round-trips through
+  JSON export/import.
+- **Full task CRUD services** — `update_task`, `delete_task` and `list_tasks`
+  (returns a response; filterable by object and status) join
+  `add_object`/`add_task`: manage everything from automations, scripts and
+  voice.
+- **Next-due timestamp sensor** per task (`device_class: timestamp`,
+  disabled by default) — enables relative time-format displays ("in 2 days")
+  on tile/entities cards and plain timestamp automations.
+- **Readable activity timeline** — lifecycle events render as localized
+  logbook entries ("Oil Change (Family Car) was completed — 95 €, 45 min"),
+  attached to the task's sensor entity.
+- **Quality scale: Silver** — honest per-rule self-assessment in
+  `quality_scale.yaml`, declared in the manifest.
+
+### 🐛 Fixed
+
+- **Task rotation never actually rotated** (broken since its 2.17 release):
+  the advanced *"whose turn is it"* pointer was never persisted and evaporated
+  immediately. Completions of shared tasks now move responsibility for real.
+- **Renaming an object orphaned all of its entities** on the next restart
+  (dashboards/automations pointed at unavailable old entity ids). Renames now
+  migrate the entity registry in place — entity ids, history and
+  customisations survive. All three rename paths covered (panel, options
+  flow, reconfigure).
+- **NFC tag names degraded to their UUIDs after a restart** in the task
+  dialog's tag picker (HA keeps tag names in the entity registry, not the tag
+  store). Names now resolve like HA's own tag list does. Thanks @mnestor for
+  the report!
+- **Deleted HA users now leave assignee pools** — previously a deleted
+  household member stayed in the rotation forever (and `least_completed`
+  would keep picking the ghost). Pools are pruned at startup, rotations that
+  drop below two members dissolve, and responsibility hands over to the
+  surviving members.
+- Crash-resilience hardening: orphaned task state from an interrupted
+  deletion is pruned at boot, and a completion that crashes mid-persist can
+  no longer double-advance a rotation.
+
+### 🧪 Internals
+
+- New **journey-test family** (`docs/design/user-journeys.md`): realistic
+  multi-step user stories — mutations, corrections, retirement, multi-user,
+  persistence crashes — each crossing a simulated restart. It found three of
+  the bugs above on its first day.
+- CI: hassfest manifest ordering fixed; the Python 3.13 test leg removed
+  (HA 2026.7 requires ≥ 3.14.2 — pip silently resolved an older HA there).
+
 ## [2.18.1] - 2026-07-05
 
 ### 🐛 Fixed
