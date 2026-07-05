@@ -14,6 +14,7 @@ from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from .calendar import MaintenanceCalendar
+    from .todo import MaintenanceTodoList
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -77,6 +78,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.entry = entry
         self._store = store
         self._calendar_entity: MaintenanceCalendar | None = None
+        self._todo_entity: MaintenanceTodoList | None = None
         self._previous_statuses: dict[str, str] = {}  # task_id -> status
 
         # Trigger completion cooldown tracking
@@ -418,6 +420,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._calendar_entity is not None and self._calendar_entity.hass is not None:
             self._calendar_entity.invalidate_cache()
             self._calendar_entity.async_write_ha_state()
+
+        # Repaint the to-do list if registered and added to hass
+        if self._todo_entity is not None and self._todo_entity.hass is not None:
+            self._todo_entity.refresh()
 
         return result
 
@@ -1222,3 +1228,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def register_calendar_entity(self, calendar_entity: MaintenanceCalendar) -> None:
         """Register the calendar entity for state updates."""
         self._calendar_entity = calendar_entity
+
+    def register_todo_entity(self, todo_entity: MaintenanceTodoList) -> None:
+        """Register the global to-do list entity for state updates."""
+        self._todo_entity = todo_entity

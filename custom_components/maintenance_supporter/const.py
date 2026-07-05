@@ -22,6 +22,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
     Platform.CALENDAR,
+    Platform.TODO,
 ]
 
 # --- Unique IDs ---
