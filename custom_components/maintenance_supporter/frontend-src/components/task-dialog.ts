@@ -118,6 +118,10 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _nth = "1";          // "1".."5" or "-1" (last)
   @state() private _nthWeekday = "5";   // Saturday
   @state() private _domDay = "1";
+  // (#83) end-of-month options: last day / business-day rollback / ±N offset.
+  @state() private _domLastDay = false;
+  @state() private _domBusiness = false;
+  @state() private _calOffset = "0";
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
@@ -235,7 +239,10 @@ export class MaintenanceTaskDialog extends LitElement {
     this._weekdays = sched?.kind === "weekdays" ? [...(sched.weekdays ?? [])] : [];
     this._nth = sched?.kind === "nth_weekday" ? String(sched.nth ?? 1) : "1";
     this._nthWeekday = sched?.kind === "nth_weekday" ? String(sched.weekday ?? 5) : "5";
-    this._domDay = sched?.kind === "day_of_month" ? String(sched.day ?? 1) : "1";
+    this._domDay = sched?.kind === "day_of_month" && (sched.day ?? 1) >= 1 ? String(sched.day ?? 1) : "1";
+    this._domLastDay = sched?.kind === "day_of_month" && sched.day === -1;
+    this._domBusiness = sched?.kind === "day_of_month" && sched.business === true;
+    this._calOffset = sched?.offset ? String(sched.offset) : "0";
     this._warningDays = task.warning_days.toString();
     this._earliestCompletionDays =
       task.earliest_completion_days != null ? String(task.earliest_completion_days) : "";
@@ -332,6 +339,9 @@ export class MaintenanceTaskDialog extends LitElement {
     this._nth = "1";
     this._nthWeekday = "5";
     this._domDay = "1";
+    this._domLastDay = false;
+    this._domBusiness = false;
+    this._calOffset = "0";
     this._notes = "";
     this._documentationUrl = "";
     this._customIcon = "";
@@ -1094,17 +1104,28 @@ export class MaintenanceTaskDialog extends LitElement {
 
   /** Build the nested `schedule` object for the selected calendar kind. */
   private _buildSchedule(): Record<string, unknown> {
+    const withOffset = (schedule: Record<string, unknown>) => {
+      const off = parseInt(this._calOffset, 10) || 0;
+      if (off) schedule.offset = Math.max(-15, Math.min(off, 15));
+      return schedule;
+    };
     if (this._scheduleType === "weekdays") {
-      return { kind: "weekdays", weekdays: [...this._weekdays].sort((a, b) => a - b) };
+      return withOffset({ kind: "weekdays", weekdays: [...this._weekdays].sort((a, b) => a - b) });
     }
     if (this._scheduleType === "nth_weekday") {
-      return {
+      return withOffset({
         kind: "nth_weekday",
         nth: parseInt(this._nth, 10),
         weekday: parseInt(this._nthWeekday, 10),
-      };
+      });
     }
-    return { kind: "day_of_month", day: parseInt(this._domDay, 10) || 1 };
+    // (#83) "last day" wins over the day number; business rolls weekends back.
+    const schedule: Record<string, unknown> = {
+      kind: "day_of_month",
+      day: this._domLastDay ? -1 : (parseInt(this._domDay, 10) || 1),
+    };
+    if (this._domBusiness) schedule.business = true;
+    return withOffset(schedule);
   }
 
   /** Per-kind field groups for the calendar recurrence kinds. */
@@ -1121,7 +1142,8 @@ export class MaintenanceTaskDialog extends LitElement {
               class="weekday-chip ${this._weekdays.includes(i) ? "selected" : ""}"
               @click=${() => this._toggleWeekday(i)}
             >${name}</button>`)}
-        </div>`;
+        </div>
+        ${this._renderCalOffsetField()}`;
     }
     if (this._scheduleType === "nth_weekday") {
       const nths: Array<[string, string]> = [
@@ -1140,20 +1162,48 @@ export class MaintenanceTaskDialog extends LitElement {
           <select .value=${this._nthWeekday} @change=${(e: Event) => (this._nthWeekday = (e.target as HTMLSelectElement).value)}>
             ${days.map((name, i) => html`<option value=${String(i)} ?selected=${String(i) === this._nthWeekday}>${name}</option>`)}
           </select>
-        </div>`;
+        </div>
+        ${this._renderCalOffsetField()}`;
     }
     if (this._scheduleType === "day_of_month") {
       return html`
-        <ms-textfield
-          label="${t("recurrence_day", L)}"
-          type="number"
-          min="1"
-          max="31"
-          .value=${this._domDay}
-          @input=${(e: Event) => (this._domDay = (e.target as HTMLInputElement).value)}
-        ></ms-textfield>`;
+        ${this._domLastDay ? nothing : html`
+          <ms-textfield
+            label="${t("recurrence_day", L)}"
+            type="number"
+            min="1"
+            max="31"
+            .value=${this._domDay}
+            @input=${(e: Event) => (this._domDay = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>`}
+        <label class="checkbox-row">
+          <input type="checkbox" .checked=${this._domLastDay}
+            @change=${(e: Event) => (this._domLastDay = (e.target as HTMLInputElement).checked)} />
+          <span>${t("recurrence_last_day", L)}</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" .checked=${this._domBusiness}
+            @change=${(e: Event) => (this._domBusiness = (e.target as HTMLInputElement).checked)} />
+          <span>${t("recurrence_business_day", L)}</span>
+        </label>
+        ${this._renderCalOffsetField()}`;
     }
     return nothing;
+  }
+
+  /** (#83) ±N-day shift shared by all calendar kinds. */
+  private _renderCalOffsetField() {
+    const L = this._lang;
+    return html`
+      <ms-textfield
+        label="${t("recurrence_offset", L)}"
+        helper="${t("recurrence_offset_help", L)}"
+        type="number"
+        min="-15"
+        max="15"
+        .value=${this._calOffset}
+        @input=${(e: Event) => (this._calOffset = (e.target as HTMLInputElement).value)}
+      ></ms-textfield>`;
   }
 
   private _renderTriggerTypeFields() {
@@ -1646,6 +1696,19 @@ export class MaintenanceTaskDialog extends LitElement {
       flex-wrap: wrap;
       gap: 6px 14px;
       margin-top: 4px;
+    }
+    .checkbox-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      margin: 2px 0;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
     }
     .pool-item {
       display: inline-flex;

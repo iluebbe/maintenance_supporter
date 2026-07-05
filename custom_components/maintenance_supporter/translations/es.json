@@ -167,7 +167,10 @@
           "weekday": "Día de la semana",
           "day": "Día del mes",
           "warning_days": "Días de aviso antes del vencimiento",
-          "go_back": "Volver"
+          "go_back": "Volver",
+          "last_day": "Último día del mes",
+          "business": "Solo días laborables",
+          "offset": "Desplazamiento (días)"
         },
         "data_description": {
           "weekdays": "La tarea se repite cada día de la semana seleccionado.",
@@ -175,7 +178,10 @@
           "weekday": "El día de la semana para la regla del n-ésimo día (p. ej., sábado).",
           "day": "Día del mes (1-31; ajustado a la duración del mes).",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
-          "go_back": "Volver a la creación de tareas sin guardar."
+          "go_back": "Volver a la creación de tareas sin guardar.",
+          "last_day": "Anula el número de día: vence el último día del mes.",
+          "business": "Retrocede una fecha de fin de semana al viernes anterior (p. ej., último día laborable).",
+          "offset": "Desplaza la fecha calculada ±N días (p. ej., -2 = dos días antes)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Día del mes",
           "last_performed": "Última realización",
           "warning_days": "Días de aviso antes del vencimiento",
-          "go_back": "Volver"
+          "go_back": "Volver",
+          "last_day": "Último día del mes",
+          "business": "Solo días laborables",
+          "offset": "Desplazamiento (días)"
         },
         "data_description": {
           "weekdays": "La tarea se repite cada día de la semana seleccionado.",
@@ -919,7 +928,10 @@
           "day": "Día del mes (1-31; ajustado a la duración del mes).",
           "last_performed": "Cuándo se realizó por última vez este mantenimiento. Déjelo vacío si nunca se ha hecho.",
           "warning_days": "Número de días antes de la fecha de vencimiento para mostrar una advertencia.",
-          "go_back": "Volver al menú principal sin guardar."
+          "go_back": "Volver al menú principal sin guardar.",
+          "last_day": "Anula el número de día: vence el último día del mes.",
+          "business": "Retrocede una fecha de fin de semana al viernes anterior (p. ej., último día laborable).",
+          "offset": "Desplaza la fecha calculada ±N días (p. ej., -2 = dos días antes)."
         }
       },
       "opt_manual": {

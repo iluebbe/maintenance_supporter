@@ -167,7 +167,10 @@
           "weekday": "Weekdag",
           "day": "Dag van de maand",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "last_day": "Laatste dag van de maand",
+          "business": "Alleen werkdagen",
+          "offset": "Verschuiving (dagen)"
         },
         "data_description": {
           "weekdays": "De taak herhaalt zich op elke geselecteerde weekdag.",
@@ -175,7 +178,10 @@
           "weekday": "De weekdag voor de regel van de n-de weekdag (bijv. zaterdag).",
           "day": "Dag van de maand (1-31; begrensd tot de lengte van de maand).",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
-          "go_back": "Terug naar taakaanmaak zonder op te slaan."
+          "go_back": "Terug naar taakaanmaak zonder op te slaan.",
+          "last_day": "Overschrijft het dagnummer: de taak vervalt op de laatste dag van de maand.",
+          "business": "Weekenddatums terugzetten naar de vrijdag ervoor (bijv. laatste werkdag).",
+          "offset": "Verschuift de berekende datum met ±N dagen (bijv. -2 = twee dagen eerder)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Dag van de maand",
           "last_performed": "Laatst uitgevoerd",
           "warning_days": "Waarschuwingsdagen voor deadline",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "last_day": "Laatste dag van de maand",
+          "business": "Alleen werkdagen",
+          "offset": "Verschuiving (dagen)"
         },
         "data_description": {
           "weekdays": "De taak herhaalt zich op elke geselecteerde weekdag.",
@@ -919,7 +928,10 @@
           "day": "Dag van de maand (1-31; begrensd tot de lengte van de maand).",
           "last_performed": "Wanneer dit onderhoud voor het laatst is uitgevoerd. Laat leeg indien nooit.",
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen.",
-          "go_back": "Terug naar het hoofdmenu zonder op te slaan."
+          "go_back": "Terug naar het hoofdmenu zonder op te slaan.",
+          "last_day": "Overschrijft het dagnummer: de taak vervalt op de laatste dag van de maand.",
+          "business": "Weekenddatums terugzetten naar de vrijdag ervoor (bijv. laatste werkdag).",
+          "offset": "Verschuift de berekende datum met ±N dagen (bijv. -2 = twee dagen eerder)."
         }
       },
       "opt_manual": {

@@ -167,7 +167,10 @@
           "weekday": "Dia da semana",
           "day": "Dia do mês",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "last_day": "Último dia do mês",
+          "business": "Apenas dias úteis",
+          "offset": "Deslocamento (dias)"
         },
         "data_description": {
           "weekdays": "A tarefa repete-se em cada dia da semana selecionado.",
@@ -175,7 +178,10 @@
           "weekday": "O dia da semana para a regra do n-ésimo dia (por ex., sábado).",
           "day": "Dia do mês (1-31; limitado à duração do mês).",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
-          "go_back": "Regressar à criação da tarefa sem guardar."
+          "go_back": "Regressar à criação da tarefa sem guardar.",
+          "last_day": "Substitui o número do dia: vence no último dia do mês.",
+          "business": "Recuar uma data de fim de semana para a sexta-feira anterior (ex.: último dia útil).",
+          "offset": "Desloca a data calculada em ±N dias (ex.: -2 = dois dias antes)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Dia do mês",
           "last_performed": "Última execução",
           "warning_days": "Dias de aviso antes do vencimento",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "last_day": "Último dia do mês",
+          "business": "Apenas dias úteis",
+          "offset": "Deslocamento (dias)"
         },
         "data_description": {
           "weekdays": "A tarefa repete-se em cada dia da semana selecionado.",
@@ -919,7 +928,10 @@
           "day": "Dia do mês (1-31; limitado à duração do mês).",
           "last_performed": "Quando esta manutenção foi executada pela última vez. Deixe vazio se nunca.",
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
-          "go_back": "Regressar ao menu principal sem guardar."
+          "go_back": "Regressar ao menu principal sem guardar.",
+          "last_day": "Substitui o número do dia: vence no último dia do mês.",
+          "business": "Recuar uma data de fim de semana para a sexta-feira anterior (ex.: último dia útil).",
+          "offset": "Desloca a data calculada em ±N dias (ex.: -2 = dois dias antes)."
         }
       },
       "opt_manual": {

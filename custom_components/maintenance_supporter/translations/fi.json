@@ -167,7 +167,10 @@
           "weekday": "Viikonpäivä",
           "day": "Kuukaudenpäivä",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "last_day": "Kuukauden viimeinen päivä",
+          "business": "Vain arkipäivät",
+          "offset": "Siirtymä (päivää)"
         },
         "data_description": {
           "weekdays": "Tehtävä toistuu jokaisena valittuna viikonpäivänä.",
@@ -175,7 +178,10 @@
           "weekday": "Viikonpäivä n:nnen viikonpäivän säännölle (esim. lauantai).",
           "day": "Kuukaudenpäivä (1–31; rajataan kuukauden pituuteen).",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
-          "go_back": "Palaa tehtävän luontiin tallentamatta."
+          "go_back": "Palaa tehtävän luontiin tallentamatta.",
+          "last_day": "Ohittaa päivänumeron: erääntyy kuukauden viimeisenä päivänä.",
+          "business": "Siirtää viikonlopun päivämäärän edeltävään perjantaihin (esim. viimeinen arkipäivä).",
+          "offset": "Siirtää laskettua päivämäärää ±N päivää (esim. -2 = kaksi päivää aiemmin)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Kuukaudenpäivä",
           "last_performed": "Viimeksi suoritettu",
           "warning_days": "Varoituspäivät ennen eräpäivää",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "last_day": "Kuukauden viimeinen päivä",
+          "business": "Vain arkipäivät",
+          "offset": "Siirtymä (päivää)"
         },
         "data_description": {
           "weekdays": "Tehtävä toistuu jokaisena valittuna viikonpäivänä.",
@@ -919,7 +928,10 @@
           "day": "Kuukaudenpäivä (1–31; rajataan kuukauden pituuteen).",
           "last_performed": "Milloin tämä huolto suoritettiin viimeksi. Jätä tyhjäksi, jos sitä ei ole koskaan tehty.",
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
-          "go_back": "Palaa päävalikkoon tallentamatta."
+          "go_back": "Palaa päävalikkoon tallentamatta.",
+          "last_day": "Ohittaa päivänumeron: erääntyy kuukauden viimeisenä päivänä.",
+          "business": "Siirtää viikonlopun päivämäärän edeltävään perjantaihin (esim. viimeinen arkipäivä).",
+          "offset": "Siirtää laskettua päivämäärää ±N päivää (esim. -2 = kaksi päivää aiemmin)."
         }
       },
       "opt_manual": {

@@ -167,7 +167,10 @@
           "weekday": "Weekday",
           "day": "Day of month",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "last_day": "Last day of the month",
+          "business": "Business days only",
+          "offset": "Offset (days)"
         },
         "data_description": {
           "weekdays": "The task repeats on each selected weekday.",
@@ -175,7 +178,10 @@
           "weekday": "The weekday for the nth-weekday rule (e.g. Saturday).",
           "day": "Day of the month (1-31; clamped to the month's length).",
           "warning_days": "Number of days before the due date to show a warning.",
-          "go_back": "Return to task creation without saving."
+          "go_back": "Return to task creation without saving.",
+          "last_day": "Overrides the day number: the task is due on the month's last day.",
+          "business": "Roll a weekend date back to the preceding Friday (e.g. last business day).",
+          "offset": "Shift the computed date by ±N days (e.g. -2 = two days before)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Day of month",
           "last_performed": "Last performed",
           "warning_days": "Warning days before due",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "last_day": "Last day of the month",
+          "business": "Business days only",
+          "offset": "Offset (days)"
         },
         "data_description": {
           "weekdays": "The task repeats on each selected weekday.",
@@ -919,7 +928,10 @@
           "day": "Day of the month (1-31; clamped to the month's length).",
           "last_performed": "When this maintenance was last performed. Leave empty if never done.",
           "warning_days": "Number of days before the due date to show a warning.",
-          "go_back": "Return to the main menu without saving."
+          "go_back": "Return to the main menu without saving.",
+          "last_day": "Overrides the day number: the task is due on the month's last day.",
+          "business": "Roll a weekend date back to the preceding Friday (e.g. last business day).",
+          "offset": "Shift the computed date by ±N days (e.g. -2 = two days before)."
         }
       },
       "opt_manual": {

@@ -167,7 +167,10 @@
           "weekday": "Den v týdnu",
           "day": "Den v měsíci",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "last_day": "Poslední den v měsíci",
+          "business": "Pouze pracovní dny",
+          "offset": "Posun (dny)"
         },
         "data_description": {
           "weekdays": "Úkol se opakuje v každý vybraný den v týdnu.",
@@ -175,7 +178,10 @@
           "weekday": "Den v týdnu pro pravidlo n-tého dne v týdnu (např. sobota).",
           "day": "Den v měsíci (1-31; omezeno na délku měsíce).",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
-          "go_back": "Návrat k vytvoření úkolu bez uložení."
+          "go_back": "Návrat k vytvoření úkolu bez uložení.",
+          "last_day": "Přepíše číslo dne: splatnost poslední den v měsíci.",
+          "business": "Posune víkendové datum zpět na předchozí pátek (např. poslední pracovní den).",
+          "offset": "Posune vypočtené datum o ±N dní (např. -2 = dva dny předem)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Den v měsíci",
           "last_performed": "Naposledy provedeno",
           "warning_days": "Dny upozornění před termínem",
-          "go_back": "Zpět"
+          "go_back": "Zpět",
+          "last_day": "Poslední den v měsíci",
+          "business": "Pouze pracovní dny",
+          "offset": "Posun (dny)"
         },
         "data_description": {
           "weekdays": "Úkol se opakuje v každý vybraný den v týdnu.",
@@ -919,7 +928,10 @@
           "day": "Den v měsíci (1-31; omezeno na délku měsíce).",
           "last_performed": "Kdy byla tato údržba naposledy provedena. Ponechte prázdné, pokud nikdy.",
           "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
-          "go_back": "Návrat do hlavní nabídky bez uložení."
+          "go_back": "Návrat do hlavní nabídky bez uložení.",
+          "last_day": "Přepíše číslo dne: splatnost poslední den v měsíci.",
+          "business": "Posune víkendové datum zpět na předchozí pátek (např. poslední pracovní den).",
+          "offset": "Posune vypočtené datum o ±N dní (např. -2 = dva dny předem)."
         }
       },
       "opt_manual": {

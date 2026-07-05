@@ -128,17 +128,31 @@ def next_day_of_month(
 ) -> date | None:
     """Next ``day``-of-month occurrence on/after ``ref`` (day clamped to month).
 
-    ``day`` 1..31 is clamped to the month's length (e.g. 31 → Feb 28/29).
-    Optionally restricted to ``months``.
+    ``day`` 1..31 is clamped to the month's length (e.g. 31 → Feb 28/29);
+    ``day == -1`` means the LAST day of the month (#83). Optionally restricted
+    to ``months``.
     """
     for year, month in _iter_months(ref.year, ref.month):
         if months and month not in months:
             continue
-        clamped = min(day, calendar.monthrange(year, month)[1])
+        month_len = calendar.monthrange(year, month)[1]
+        clamped = month_len if day == -1 else min(day, month_len)
         candidate = date(year, month, clamped)
         if candidate >= ref if inclusive else candidate > ref:
             return candidate
     return None
+
+
+def roll_back_to_business_day(d: date) -> date:
+    """Roll a weekend date back to the preceding Friday (Mon-Fri unchanged).
+
+    Used by the day-of-month schedule's ``business`` flag (#83): "last business
+    day of the month" = last day rolled back past Sat/Sun. Public holidays are
+    out of scope (HA has no locale-independent holiday source here).
+    """
+    while d.weekday() >= 5:  # 5=Sat, 6=Sun
+        d -= timedelta(days=1)
+    return d
 
 
 def interval_span_days(n: int | None, unit: str = "days") -> int:

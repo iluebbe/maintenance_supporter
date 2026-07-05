@@ -114,8 +114,12 @@ export interface TaskSchedule {
   weekdays?: number[];
   nth?: number;       // 1..5, or -1 = last
   weekday?: number;
-  day?: number;       // 1..31
+  day?: number;       // 1..31, or -1 = last day of the month (#83)
   months?: number[];
+  /** (#83) day_of_month only: roll a weekend date back to Friday. */
+  business?: boolean;
+  /** (#83) shift the computed occurrence by ±N days (clamped ±15). */
+  offset?: number;
 }
 
 export interface MaintenanceTask {

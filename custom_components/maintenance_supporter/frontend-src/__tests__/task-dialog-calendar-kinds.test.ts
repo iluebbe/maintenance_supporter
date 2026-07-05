@@ -95,4 +95,32 @@ describe("task-dialog calendar kinds (Phase 4)", () => {
     const chips = el.shadowRoot!.querySelectorAll(".weekday-chip");
     expect(chips.length).to.equal(7);
   });
+
+  it("(#83) create sends last business day with -2 offset", async () => {
+    const { el, sent } = await mountDialog();
+    (el as any)._name = "EOM";
+    (el as any)._scheduleType = "day_of_month";
+    (el as any)._domLastDay = true;
+    (el as any)._domBusiness = true;
+    (el as any)._calOffset = "-2";
+    await (el as any)._save();
+    const msg = sent.find((m: any) => m.type === "maintenance_supporter/task/create");
+    expect(msg.schedule).to.deep.equal({
+      kind: "day_of_month", day: -1, business: true, offset: -2,
+    });
+  });
+
+  it("(#83) edit hydrates last-day/business/offset from the stored schedule", async () => {
+    const { el } = await mountDialog();
+    (el as any).openEdit("e1", {
+      id: "t1", name: "EOM", type: "custom", enabled: true,
+      warning_days: 7, history: [],
+      schedule: { kind: "day_of_month", day: -1, business: true, offset: -2 },
+      schedule_type: "day_of_month",
+    });
+    await el.updateComplete;
+    expect((el as any)._domLastDay).to.equal(true);
+    expect((el as any)._domBusiness).to.equal(true);
+    expect((el as any)._calOffset).to.equal("-2");
+  });
 });

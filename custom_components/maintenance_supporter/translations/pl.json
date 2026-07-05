@@ -167,7 +167,10 @@
           "weekday": "Dzień tygodnia",
           "day": "Dzień miesiąca",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "last_day": "Ostatni dzień miesiąca",
+          "business": "Tylko dni robocze",
+          "offset": "Przesunięcie (dni)"
         },
         "data_description": {
           "weekdays": "Zadanie powtarza się w każdy wybrany dzień tygodnia.",
@@ -175,7 +178,10 @@
           "weekday": "Dzień tygodnia dla reguły n-tego dnia tygodnia (np. sobota).",
           "day": "Dzień miesiąca (1-31; ograniczony do długości miesiąca).",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
-          "go_back": "Wróć do tworzenia zadania bez zapisywania."
+          "go_back": "Wróć do tworzenia zadania bez zapisywania.",
+          "last_day": "Nadpisuje numer dnia: termin przypada na ostatni dzień miesiąca.",
+          "business": "Cofa datę weekendową do poprzedzającego piątku (np. ostatni dzień roboczy).",
+          "offset": "Przesuwa obliczoną datę o ±N dni (np. -2 = dwa dni wcześniej)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Dzień miesiąca",
           "last_performed": "Ostatnio wykonano",
           "warning_days": "Dni ostrzeżenia przed terminem",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "last_day": "Ostatni dzień miesiąca",
+          "business": "Tylko dni robocze",
+          "offset": "Przesunięcie (dni)"
         },
         "data_description": {
           "weekdays": "Zadanie powtarza się w każdy wybrany dzień tygodnia.",
@@ -919,7 +928,10 @@
           "day": "Dzień miesiąca (1-31; ograniczony do długości miesiąca).",
           "last_performed": "Kiedy ostatnio wykonano tę konserwację. Pozostaw puste, jeśli nigdy.",
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
-          "go_back": "Wróć do menu głównego bez zapisywania."
+          "go_back": "Wróć do menu głównego bez zapisywania.",
+          "last_day": "Nadpisuje numer dnia: termin przypada na ostatni dzień miesiąca.",
+          "business": "Cofa datę weekendową do poprzedzającego piątku (np. ostatni dzień roboczy).",
+          "offset": "Przesuwa obliczoną datę o ±N dni (np. -2 = dwa dni wcześniej)."
         }
       },
       "opt_manual": {

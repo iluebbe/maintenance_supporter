@@ -167,7 +167,10 @@
           "weekday": "Ukedag",
           "day": "Dag i måneden",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "last_day": "Siste dag i måneden",
+          "business": "Kun virkedager",
+          "offset": "Forskyvning (dager)"
         },
         "data_description": {
           "weekdays": "Oppgaven gjentas på hver valgte ukedag.",
@@ -175,7 +178,10 @@
           "weekday": "Ukedagen for regelen om n-te ukedag (f.eks. lørdag).",
           "day": "Dag i måneden (1–31; begrenses til månedens lengde).",
           "warning_days": "Antall dager før forfallsdatoen for å vise et varsel.",
-          "go_back": "Gå tilbake til oppgaveopprettelse uten å lagre."
+          "go_back": "Gå tilbake til oppgaveopprettelse uten å lagre.",
+          "last_day": "Overstyrer dagnummeret: forfaller på månedens siste dag.",
+          "business": "Ruller en helgedato tilbake til fredagen før (f.eks. siste virkedag).",
+          "offset": "Forskyver den beregnede datoen med ±N dager (f.eks. -2 = to dager før)."
         }
       },
       "sensor_select": {
@@ -910,7 +916,10 @@
           "day": "Dag i måneden",
           "last_performed": "Sist utført",
           "warning_days": "Varseldager før forfall",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "last_day": "Siste dag i måneden",
+          "business": "Kun virkedager",
+          "offset": "Forskyvning (dager)"
         },
         "data_description": {
           "weekdays": "Oppgaven gjentas på hver valgte ukedag.",
@@ -919,7 +928,10 @@
           "day": "Dag i måneden (1–31; begrenses til månedens lengde).",
           "last_performed": "Når dette vedlikeholdet sist ble utført. La feltet stå tomt hvis det aldri er gjort.",
           "warning_days": "Antall dager før forfallsdatoen for å vise et varsel.",
-          "go_back": "Gå tilbake til hovedmenyen uten å lagre."
+          "go_back": "Gå tilbake til hovedmenyen uten å lagre.",
+          "last_day": "Overstyrer dagnummeret: forfaller på månedens siste dag.",
+          "business": "Ruller en helgedato tilbake til fredagen før (f.eks. siste virkedag).",
+          "offset": "Forskyver den beregnede datoen med ±N dager (f.eks. -2 = to dager før)."
         }
       },
       "opt_manual": {

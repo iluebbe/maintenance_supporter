@@ -167,7 +167,10 @@
           "weekday": "Wochentag",
           "day": "Tag des Monats",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "last_day": "Letzter Tag des Monats",
+          "business": "Nur Werktage",
+          "offset": "Versatz (Tage)"
         },
         "data_description": {
           "weekdays": "Die Aufgabe wiederholt sich an jedem ausgewählten Wochentag.",
@@ -175,7 +178,10 @@
           "weekday": "Der Wochentag für die Regel des n-ten Wochentags (z. B. Samstag).",
           "day": "Tag des Monats (1-31; auf die Länge des Monats begrenzt).",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, an denen eine Warnung angezeigt wird.",
-          "go_back": "Zur Aufgabenerstellung zurückkehren, ohne zu speichern."
+          "go_back": "Zur Aufgabenerstellung zurückkehren, ohne zu speichern.",
+          "last_day": "Übersteuert die Tagesnummer: fällig am letzten Tag des Monats.",
+          "business": "Wochenend-Termine auf den vorherigen Freitag vorziehen (z. B. letzter Werktag).",
+          "offset": "Verschiebt das berechnete Datum um ±N Tage (z. B. -2 = zwei Tage davor)."
         }
       },
       "sensor_select": {
@@ -817,7 +823,10 @@
           "day": "Tag des Monats",
           "last_performed": "Zuletzt durchgeführt",
           "warning_days": "Warntage vor Fälligkeit",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "last_day": "Letzter Tag des Monats",
+          "business": "Nur Werktage",
+          "offset": "Versatz (Tage)"
         },
         "data_description": {
           "weekdays": "Die Aufgabe wiederholt sich an jedem ausgewählten Wochentag.",
@@ -826,7 +835,10 @@
           "day": "Tag des Monats (1-31; auf die Länge des Monats begrenzt).",
           "last_performed": "Wann diese Wartung zuletzt durchgeführt wurde. Leer lassen, falls nie.",
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, an denen eine Warnung angezeigt wird.",
-          "go_back": "Zum Hauptmenü zurückkehren, ohne zu speichern."
+          "go_back": "Zum Hauptmenü zurückkehren, ohne zu speichern.",
+          "last_day": "Übersteuert die Tagesnummer: fällig am letzten Tag des Monats.",
+          "business": "Wochenend-Termine auf den vorherigen Freitag vorziehen (z. B. letzter Werktag).",
+          "offset": "Verschiebt das berechnete Datum um ±N Tage (z. B. -2 = zwei Tage davor)."
         }
       },
       "opt_manual": {
