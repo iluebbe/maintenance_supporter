@@ -58,7 +58,7 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 42 writable settings, each mapped to a concrete Python type.
+    # 45 writable settings, each mapped to a concrete Python type.
     assert len(ALLOWED_SETTING_KEYS) == 45
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
