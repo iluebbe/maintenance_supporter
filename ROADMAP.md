@@ -73,11 +73,13 @@ task. Appears in the native **To-do** card and is reachable via
 **Assist/voice**. Complements — does not replace — the panel and the Lovelace
 card. Optional per-assignee lists can pair with rotation later.
 
-### 💡 Multiple reminders per task + overdue escalation
-Beyond the single "warning days" threshold: configure several lead-time
-reminders (e.g. **14 days / 3 days / on the due date**) and an optional repeat
-cadence once a task is overdue. Runs through the existing notification manager,
-so rate-limiting, quiet hours, and bundling apply automatically.
+### ✅ Multiple reminders per task + overdue escalation
+**Shipped.** Configure several lead-time reminders via the
+`reminder_lead_days` list (e.g. **14 / 3 / 0** = 14 days, 3 days, and on the
+due date) in the panel notification settings; a daily check fires one extra
+reminder on each matching day, honouring quiet hours, vacation mode, snooze,
+per-user routing, and the daily limit. The overdue repeat cadence has existed
+all along via `notify_overdue_interval_hours`.
 
 ---
 
