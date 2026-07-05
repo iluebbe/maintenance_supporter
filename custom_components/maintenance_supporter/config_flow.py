@@ -379,6 +379,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         break
 
             if not errors:
+                # Migrate name-slug-based unique_ids BEFORE overwriting the
+                # name (see helpers.entity_rename.migrate_object_unique_ids).
+                from .helpers.entity_rename import migrate_object_unique_ids
+
+                migrate_object_unique_ids(
+                    self.hass, entry, obj_data.get("name"), name
+                )
                 obj_data["name"] = name
                 obj_data["area_id"] = user_input.get(CONF_OBJECT_AREA)
                 obj_data["manufacturer"] = user_input.get(CONF_OBJECT_MANUFACTURER)
