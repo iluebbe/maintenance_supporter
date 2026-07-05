@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.18.1] - 2026-07-05
+
+### 🐛 Fixed
+
+- **Command palette hotkey is now `/`** — the panel's Ctrl/Cmd+K listener
+  (since v2.15.0) shadowed Home Assistant's own global-search hotkey whenever
+  the panel was open. The palette now opens with `/` (GitHub/Discourse
+  convention; Shift+7 on a German layout works unchanged), never fires while
+  you're typing in a field, and Ctrl+K is left to Home Assistant.
+
 ## [2.18.0] - 2026-07-05
 
 Discussion #83 ships in full, plus an important localization fix for every
