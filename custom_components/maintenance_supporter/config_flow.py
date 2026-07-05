@@ -62,6 +62,7 @@ from .const import (
 from .helpers.global_options import get_default_warning_days
 from .helpers.i18n import normalize_language
 from .helpers.schedule import KIND_WEEKDAYS, normalize_task_storage
+from .helpers.task_fields import TASK_PRIORITIES, WARNING_DAYS_RANGE
 from .templates import (
     TEMPLATE_CATEGORIES,
     ObjectTemplate,
@@ -692,7 +693,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     vol.Optional(CONF_TASK_ICON): selector.IconSelector(),
                     vol.Optional(CONF_TASK_PRIORITY, default="normal"): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=["low", "normal", "high"],
+                            options=list(TASK_PRIORITIES),
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="task_priority",
                         )
@@ -796,7 +797,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                 )
             ),
             vol.Optional("go_back", default=False): selector.BooleanSelector(),
@@ -1056,7 +1057,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         default=get_default_warning_days(self.hass),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=0, max=365, step=1, mode=selector.NumberSelectorMode.BOX
+                            min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
                     vol.Optional(CONF_TASK_NOTES): selector.TextSelector(

@@ -111,6 +111,50 @@ def test_ts_priority_keys_match_enum() -> None:
     )
 
 
+def test_ts_rotation_strategies_match_const() -> None:
+    """The task-dialog's rotation dropdown options must equal the Python
+    ROTATION_STRATEGIES tuple (helpers/task_fields routes every Python surface
+    through it; the TS dialog is the one hand-written copy left)."""
+    from custom_components.maintenance_supporter.helpers.task_fields import (
+        ROTATION_STRATEGY_VALUES,
+    )
+
+    src = _TASK_DIALOG_TS.read_text(encoding="utf-8")
+    # The dropdown maps over an inline array: ["round_robin", ...].map(
+    m = re.search(r"\[((?:\s*\"[a-z_]+\",?)+)\]\.map\(\s*\n?\s*\(key\) [^\n]*rotation_", src)
+    assert m, "could not locate the rotation dropdown option array in task-dialog.ts"
+    ts_values = re.findall(r'"([a-z_]+)"', m.group(1))
+    assert ts_values == list(ROTATION_STRATEGY_VALUES), (
+        f"task-dialog rotation options {ts_values} drifted from "
+        f"ROTATION_STRATEGIES {list(ROTATION_STRATEGY_VALUES)}"
+    )
+
+
+def test_python_enum_surfaces_share_task_fields_source() -> None:
+    """Parity by construction (Python side): the WS schemas and every
+    config-flow priority selector must consume TASK_PRIORITIES /
+    INTERVAL_ANCHORS / the shared ranges from helpers/task_fields — no
+    re-hardcoded literal option lists. A literal reappearing here means a
+    surface was edited without the registry and can drift."""
+    cc = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter"
+    surfaces = [
+        cc / "websocket" / "tasks_crud.py",
+        cc / "config_flow.py",
+        cc / "config_flow_options_task_add.py",
+        cc / "config_flow_options_task_crud.py",
+    ]
+    offenders: list[str] = []
+    for path in surfaces:
+        src = path.read_text(encoding="utf-8")
+        if '"low", "normal", "high"' in src:
+            offenders.append(f"{path.name}: hardcoded priority list")
+        if '["completion", "planned"]' in src:
+            offenders.append(f"{path.name}: hardcoded anchor list")
+    assert not offenders, (
+        f"Task-field enums must come from helpers/task_fields: {offenders}"
+    )
+
+
 def test_ts_schedule_type_keys_cover_every_enum_value() -> None:
     """SCHEDULE_TYPE_KEYS mixes ScheduleType values with calendar kinds; it must
     at least offer every ScheduleType value so no schedule kind is unreachable."""
