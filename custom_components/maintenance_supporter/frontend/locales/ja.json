@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "センサー回復時に自動完了",
   "auto_complete_on_recovery_help": "トリガーが自然に解消されたとき（塩の補充、フィルター交換など）に完了を記録し、最終実施日を更新します。",
   "doc_search": "ドキュメントを検索…",
-  "doc_search_none": "一致するドキュメントはありません"
+  "doc_search_none": "一致するドキュメントはありません",
+  "link_device_optional": "既存のデバイスにリンク（任意）",
+  "parent_object_optional": "親オブジェクト（任意）",
+  "parent_none": "（親なし）"
 }

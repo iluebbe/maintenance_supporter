@@ -528,8 +528,13 @@ async def test_task_deletion_removes_entities(
 
     entity_reg = er.async_get(hass)
     entities_before = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
-    sensor_count_before = len([e for e in entities_before if e.domain == "sensor"])
-    assert sensor_count_before == 2
+    # One STATUS sensor per task; each task also registers a (default-
+    # disabled) next-due timestamp sensor since 2.19 — filter it out here.
+    status_sensors_before = [
+        e for e in entities_before
+        if e.domain == "sensor" and not e.unique_id.endswith("_next_due")
+    ]
+    assert len(status_sensors_before) == 2
 
     # Delete one task via WS
     conn = _mock_connection()
@@ -541,10 +546,16 @@ async def test_task_deletion_removes_entities(
     conn.send_result.assert_called_once()
     await hass.async_block_till_done()
 
-    # After reload, only 1 sensor entity should remain
+    # After reload, only the remaining task's sensors survive — the deleted
+    # task's status AND next-due sensor are both cleaned up (the `_{task_id}`
+    # unique-id segment match covers every per-task entity).
     entities_after = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
-    sensor_count_after = len([e for e in entities_after if e.domain == "sensor"])
-    assert sensor_count_after == 1
+    status_after = [
+        e for e in entities_after
+        if e.domain == "sensor" and not e.unique_id.endswith("_next_due")
+    ]
+    assert len(status_after) == 1
+    assert not any(TASK_ID_2 in e.unique_id for e in entities_after)
 
 
 # ─── Startup Grace Period ─────────────────────────────────────────────────

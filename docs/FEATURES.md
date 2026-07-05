@@ -182,6 +182,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Per-object documentation URL** (1.4.0+) — store a link to the PDF manual / vendor page on each object. Shown as a clickable link in the object-detail header *and* on every task-detail page belonging to that object (1.4.1+) so the manual is always one click away from any maintenance task
 - **Per-object notes** (1.4.10+) — free-form multiline notes attached to each object: part numbers, replacement procedures, settings reminders, "spare key in garage drawer". Rendered with `white-space: pre-wrap` so newlines and indentation survive intact
 - **Calendar tab** (1.5.0+) — rolling-list view of upcoming maintenance with a window chip toggle (**7 / 14 / 30 days, plus "1 year" since 1.5.2**; the year view collapses empty days so only the actually-eventful rows render). Time-based recurring tasks project up to 5 occurrences within the window at 55 % opacity to mark them as "hypothetical assuming you stay on schedule"; sensor-triggered tasks show only their current `next_due` since predicting the next sensor firing would be a guess. Each event row carries (1.5.1+): a small **source icon** — `mdi:clock-outline` for time-based or `mdi:trending-up` (HA primary color) for sensor-based — and, for sensor-based events, a *"predicted · {high|medium|low} confidence"* pill below the title (green / amber / red border) sourced from the `threshold_prediction_confidence` returned by the predictor. Visible in operator mode. Independent of the HA Calendar entity — stays inside the panel for the *"what's due soon?"* glance, with status pills and avg-cost per event
+- **Attach objects to existing HA devices** (2.19+): link an object to a device another integration already provides — its maintenance entities land on that device's page (the smart washing machine gets its descaling task right where its other entities live). **Object hierarchy**: nest objects under each other (anode rod under water heater) via HA's native device hierarchy
 - 13 object templates (car, motorcycle, HVAC, pool, washing machine, etc.)
 
 ### Sensor-Based Triggers
@@ -281,6 +282,7 @@ Pre-fill notes/cost/duration/feedback per task. Scanning the lightning-bolt
 - **Button** — one-press complete/skip/reset per task (`button.<object>_<task>_complete` / `_skip` / `_reset`)
 - **Calendar** — one global entity showing upcoming maintenance events for all tasks
 - **Document storage sensor** (2.11.0+) — one global entity `sensor.<config>_document_storage` (`device_class: data_size`) reporting the physical footprint of attached documents, with `dedup_savings_bytes`, `document_count`, and per-object / per-category breakdowns as attributes
+- **Next-due timestamp sensor** (2.19+) — one per task (`device_class: timestamp`), **disabled by default**; enable it for relative-time displays ("in 2 days") on tile/entities cards and plain timestamp automations. Honours the task's time-of-day when that feature is on
 
 ### Sensor Attributes
 
@@ -294,6 +296,10 @@ Each sensor entity exposes attributes grouped by function. Only stable values ar
 > **Live values via the WebSocket `subscribe` endpoint (not recorded as sensor attributes):** `trigger_current_value`, `trigger_entity_state` (per-entity availability), `degradation_rate`, `environmental_factor`, and other fast-changing trigger/prediction values. The panel and Lovelace card read these from the live subscription.
 
 ### Events
+
+All lifecycle events also render as readable, localized entries in HA's
+activity timeline (logbook) — *"Oil Change (Family Car) was completed —
+95 €, 45 min"* — attached to the task's sensor entity (2.19+).
 
 - `maintenance_supporter_trigger_activated` — fired when a sensor trigger condition becomes true
 - `maintenance_supporter_trigger_deactivated` — fired when a sensor trigger condition clears
@@ -328,7 +334,11 @@ binary sensors above keep working unchanged.
 
 ### Services
 
-See the [Services](#services) table below for available service calls. For the full WebSocket API (49 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+Full task CRUD from automations, scripts and voice (2.19+): `add_object`,
+`add_task`, `update_task`, `delete_task`, and `list_tasks` (returns a
+response — id, name, status, next due per task, filterable by object and
+status) join the long-standing `complete` / `skip` / `reset` /
+`export_data`. For the full WebSocket API (49 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 
 ## Data Updates

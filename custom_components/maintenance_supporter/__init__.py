@@ -59,9 +59,12 @@ from .const import (
     SERVICE_ADD_OBJECT,
     SERVICE_ADD_TASK,
     SERVICE_COMPLETE,
+    SERVICE_DELETE_TASK,
     SERVICE_EXPORT,
+    SERVICE_LIST_TASKS,
     SERVICE_RESET,
     SERVICE_SKIP,
+    SERVICE_UPDATE_TASK,
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
 )
@@ -157,6 +160,39 @@ SERVICE_ADD_TASK_SCHEMA = vol.Schema(
         vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
         vol.Optional("enabled"): cv.boolean,
         vol.Optional("notes"): cv.string,
+    }
+)
+
+SERVICE_UPDATE_TASK_SCHEMA = vol.Schema(
+    {
+        vol.Required("entry_id"): cv.string,
+        vol.Required("task_id"): cv.string,
+        vol.Optional("name"): vol.All(cv.string, vol.Length(min=1, max=255)),
+        vol.Optional("task_type"): cv.string,
+        vol.Optional("schedule_type"): cv.string,
+        vol.Optional("interval_days"): vol.All(vol.Coerce(int), vol.Range(min=1)),
+        vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
+        vol.Optional("due_date"): cv.string,
+        vol.Optional("schedule"): dict,
+        vol.Optional("warning_days"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("enabled"): cv.boolean,
+        vol.Optional("notes"): cv.string,
+        vol.Optional("priority"): vol.In(["low", "normal", "high"]),
+        vol.Optional("labels"): [cv.string],
+    }
+)
+
+SERVICE_DELETE_TASK_SCHEMA = vol.Schema(
+    {
+        vol.Required("entry_id"): cv.string,
+        vol.Required("task_id"): cv.string,
+    }
+)
+
+SERVICE_LIST_TASKS_SCHEMA = vol.Schema(
+    {
+        vol.Optional("entry_id"): cv.string,
+        vol.Optional("status"): vol.In(["ok", "due_soon", "overdue", "triggered"]),
     }
 )
 
@@ -502,6 +538,106 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         _handle_add_task,
         schema=SERVICE_ADD_TASK_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def _handle_update_task(call: ServiceCall) -> None:
+        """Handle update_task — patch the common fields of an existing task."""
+        from .websocket.tasks_persist import async_update_task_simple
+
+        updates = {
+            "name": call.data.get("name"),
+            "type": call.data.get("task_type"),
+            "schedule_type": call.data.get("schedule_type"),
+            "interval_days": call.data.get("interval_days"),
+            "interval_unit": call.data.get("interval_unit"),
+            "due_date": call.data.get("due_date"),
+            "schedule": call.data.get("schedule"),
+            "warning_days": call.data.get("warning_days"),
+            "enabled": call.data.get("enabled"),
+            "notes": call.data.get("notes"),
+            "priority": call.data.get("priority"),
+            "labels": call.data.get("labels"),
+        }
+        try:
+            await async_update_task_simple(
+                hass,
+                entry_id=call.data["entry_id"],
+                task_id=call.data["task_id"],
+                updates=updates,
+            )
+        except ValueError as err:
+            raise ServiceValidationError(str(err)) from err
+
+    async def _handle_delete_task(call: ServiceCall) -> None:
+        """Handle delete_task — remove a task and its side-state."""
+        from .websocket.tasks_crud import async_delete_task
+
+        entry_id = call.data["entry_id"]
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
+            raise ServiceValidationError(
+                f"No maintenance object found for entry_id {entry_id!r}"
+            )
+        if not await async_delete_task(hass, entry, call.data["task_id"]):
+            raise ServiceValidationError(
+                f"No task {call.data['task_id']!r} in {entry.title!r}"
+            )
+        await hass.config_entries.async_reload(entry_id)
+
+    async def _handle_list_tasks(call: ServiceCall) -> dict[str, Any]:
+        """Handle list_tasks — a queryable snapshot for automations/voice."""
+        wanted_entry = call.data.get("entry_id")
+        wanted_status = call.data.get("status")
+        tasks: list[dict[str, Any]] = []
+        for ce in hass.config_entries.async_entries(DOMAIN):
+            if ce.unique_id == GLOBAL_UNIQUE_ID:
+                continue
+            if wanted_entry and ce.entry_id != wanted_entry:
+                continue
+            rd = getattr(ce, "runtime_data", None)
+            coordinator = getattr(rd, "coordinator", None) if rd else None
+            if coordinator is None or not coordinator.data:
+                continue
+            object_name = ce.data.get(CONF_OBJECT, {}).get("name", ce.title)
+            for task_id, task in coordinator.data.get(CONF_TASKS, {}).items():
+                status = str(task.get("_status", ""))
+                if status == "archived":
+                    continue
+                if wanted_status and status != wanted_status:
+                    continue
+                tasks.append(
+                    {
+                        "entry_id": ce.entry_id,
+                        "task_id": task_id,
+                        "object_name": object_name,
+                        "name": task.get("name"),
+                        "status": status,
+                        "next_due": task.get("_next_due"),
+                        "days_until_due": task.get("_days_until_due"),
+                        "type": task.get("type"),
+                        "priority": task.get("priority", "normal"),
+                    }
+                )
+        return {"tasks": tasks, "count": len(tasks)}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_UPDATE_TASK,
+        _handle_update_task,
+        schema=SERVICE_UPDATE_TASK_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_DELETE_TASK,
+        _handle_delete_task,
+        schema=SERVICE_DELETE_TASK_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_LIST_TASKS,
+        _handle_list_tasks,
+        schema=SERVICE_LIST_TASKS_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )
 
     # Register WebSocket commands
@@ -1002,6 +1138,11 @@ async def _async_sync_obj_to_device(
     first creation (issue #48).
     """
     obj = entry.data.get(CONF_OBJECT, {}) or {}
+    if obj.get("ha_device_id"):
+        # Linked to an EXISTING device owned by another integration (2.19) —
+        # pushing our object metadata would overwrite that device's
+        # name/manufacturer/area. The owning integration stays authoritative.
+        return
     dev_reg = dr.async_get(hass)
     devices = dr.async_entries_for_config_entry(dev_reg, entry.entry_id)
     obj_name = obj.get("name")

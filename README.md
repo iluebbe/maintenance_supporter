@@ -149,6 +149,10 @@ bash scripts/init-dev.sh     # one-command Docker dev setup (login: dev/dev at :
 docker exec ha-maint sh -c "cd /config && python -m pytest tests/ -q"
 ```
 
+The integration tracks HA's [integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/)
+— currently **Silver**, with the per-rule self-assessment in
+[`quality_scale.yaml`](custom_components/maintenance_supporter/quality_scale.yaml).
+
 Details (faketime, demo data, e2e): [ARCHITECTURE.md → Development](docs/ARCHITECTURE.md#development--testing-infrastructure).
 
 ## Community

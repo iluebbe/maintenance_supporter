@@ -240,6 +240,8 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             "installation_date": obj_data.get("installation_date"),
             # (#67): warranty expiry — exposed for the asset table + detail view
             "warranty_expiry": obj_data.get("warranty_expiry"),
+            "ha_device_id": obj_data.get("ha_device_id"),
+            "parent_entry_id": obj_data.get("parent_entry_id"),
             # v1.4.0 (#43): expose to the frontend so the manual link
             # renders in the object detail header AND, since v1.4.1, on
             # every task detail page belonging to this object.

@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "传感器恢复时自动完成",
   "auto_complete_on_recovery_help": "当触发条件自行解除时（如已加盐、已更换滤芯），记录一次完成并更新上次执行日期。",
   "doc_search": "搜索文档…",
-  "doc_search_none": "没有匹配的文档"
+  "doc_search_none": "没有匹配的文档",
+  "link_device_optional": "关联到现有设备（可选）",
+  "parent_object_optional": "父对象（可选）",
+  "parent_none": "（无父对象）"
 }

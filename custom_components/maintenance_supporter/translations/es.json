@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Total de tareas"
+      },
+      "next_due": {
+        "name": "{task_name} Próximo vencimiento"
       }
     },
     "calendar": {

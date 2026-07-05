@@ -324,6 +324,10 @@ async def ws_import_json(
             # cap_object_fields and the frontend only renders http(s) doc URLs.
             "documentation_url": obj_data.get("documentation_url"),
             "notes": obj_data.get("notes"),
+            # 2.19: device link / parent hierarchy — same-instance restores
+            # keep them valid; stale ids degrade gracefully at read time.
+            "ha_device_id": obj_data.get("ha_device_id"),
+            "parent_entry_id": obj_data.get("parent_entry_id"),
             "task_ids": [],
         }
 

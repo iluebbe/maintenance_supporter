@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt",
   "auto_complete_on_recovery_help": "Registreert een voltooiing (stelt laatst uitgevoerd in) wanneer de trigger zichzelf oplost — bijv. zout bijgevuld, filter vervangen.",
   "doc_search": "Documenten zoeken…",
-  "doc_search_none": "Geen overeenkomende documenten"
+  "doc_search_none": "Geen overeenkomende documenten",
+  "link_device_optional": "Koppelen aan bestaand apparaat (optioneel)",
+  "parent_object_optional": "Bovenliggend object (optioneel)",
+  "parent_none": "(Geen bovenliggend object)"
 }

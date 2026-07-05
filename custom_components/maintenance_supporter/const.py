@@ -414,6 +414,9 @@ SERVICE_SKIP = "skip"
 SERVICE_EXPORT = "export_data"
 SERVICE_ADD_OBJECT = "add_object"
 SERVICE_ADD_TASK = "add_task"
+SERVICE_UPDATE_TASK = "update_task"
+SERVICE_DELETE_TASK = "delete_task"
+SERVICE_LIST_TASKS = "list_tasks"
 
 
 class MaintenanceStatus(StrEnum):

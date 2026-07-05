@@ -1,6 +1,6 @@
-import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l as J,m as U,n as X,o as Q,p as tt,q as et,r as it,s as k}from"./chunk-BCEGXGAK.js";import{a}from"./chunk-LO2NM3CE.js";var E=class extends ${constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1}_onInput(t){let e=t.target.value;this.value=e,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:e}}))}render(){return n`
+import{a as x,b as r,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l as J,m as D,n as X,o as Q,p as tt,q as et,r as it,s as k}from"./chunk-4JRCV4QS.js";import{a}from"./chunk-LO2NM3CE.js";var E=class extends ${constructor(){super(...arguments);this.label="";this.value="";this.placeholder="";this.type="text";this.required=!1;this.disabled=!1}_onInput(t){let e=t.target.value;this.value=e,this.dispatchEvent(new CustomEvent("input",{bubbles:!0,composed:!0,detail:{value:e}}))}render(){return r`
       <label class="field">
-        ${this.label?n`<span class="label">${this.label}${this.required?n`<span class="req">*</span>`:c}</span>`:c}
+        ${this.label?r`<span class="label">${this.label}${this.required?r`<span class="req">*</span>`:c}</span>`:c}
         <input
           .value=${this.value??""}
           .type=${this.type}
@@ -14,7 +14,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           @input=${this._onInput}
           @change=${this._onInput}
         />
-        ${this.helper?n`<span class="helper">${this.helper}</span>`:c}
+        ${this.helper?r`<span class="helper">${this.helper}</span>`:c}
       </label>
     `}};E.styles=x`
     :host { display: block; }
@@ -50,11 +50,11 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
       color: var(--secondary-text-color);
       font-style: italic;
     }
-  `,a([g()],E.prototype,"label",2),a([g()],E.prototype,"value",2),a([g()],E.prototype,"placeholder",2),a([g()],E.prototype,"type",2),a([g({type:Boolean})],E.prototype,"required",2),a([g({type:Boolean})],E.prototype,"disabled",2),a([g()],E.prototype,"step",2),a([g()],E.prototype,"min",2),a([g()],E.prototype,"max",2),a([g()],E.prototype,"pattern",2),a([g()],E.prototype,"helper",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",E);var b=class extends ${constructor(){super(...arguments);this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._entryId=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._error="",this._open=!0}openEdit(t,e){this._entryId=t,this._name=e.name||"",this._manufacturer=e.manufacturer||"",this._model=e.model||"",this._serialNumber=e.serial_number||"",this._areaId=e.area_id||"",this._installationDate=e.installation_date||"",this._warrantyExpiry=e.warranty_expiry||"",this._documentationUrl=e.documentation_url||"",this._notes=e.notes||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(t){this._error=k(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}render(){if(!this._open)return n``;let t=this._lang,e=this._entryId?s("edit_object",t):s("new_object",t);return n`
+  `,a([g()],E.prototype,"label",2),a([g()],E.prototype,"value",2),a([g()],E.prototype,"placeholder",2),a([g()],E.prototype,"type",2),a([g({type:Boolean})],E.prototype,"required",2),a([g({type:Boolean})],E.prototype,"disabled",2),a([g()],E.prototype,"step",2),a([g()],E.prototype,"min",2),a([g()],E.prototype,"max",2),a([g()],E.prototype,"pattern",2),a([g()],E.prototype,"helper",2);customElements.get("ms-textfield")||customElements.define("ms-textfield",E);var f=class extends ${constructor(){super(...arguments);this.objects=[];this._open=!1;this._loading=!1;this._error="";this._name="";this._manufacturer="";this._model="";this._serialNumber="";this._areaId="";this._installationDate="";this._warrantyExpiry="";this._documentationUrl="";this._notes="";this._haDeviceId="";this._parentEntryId="";this._entryId=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}openCreate(){this._entryId=null,this._name="",this._manufacturer="",this._model="",this._serialNumber="",this._areaId="",this._installationDate="",this._warrantyExpiry="",this._documentationUrl="",this._notes="",this._haDeviceId="",this._parentEntryId="",this._error="",this._open=!0}openEdit(t,e){this._entryId=t,this._name=e.name||"",this._manufacturer=e.manufacturer||"",this._model=e.model||"",this._serialNumber=e.serial_number||"",this._areaId=e.area_id||"",this._installationDate=e.installation_date||"",this._warrantyExpiry=e.warranty_expiry||"",this._documentationUrl=e.documentation_url||"",this._notes=e.notes||"",this._haDeviceId=e.ha_device_id||"",this._parentEntryId=e.parent_entry_id||"",this._error="",this._open=!0}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{this._entryId?await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/update",entry_id:this._entryId,name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}):await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/create",name:this._name,manufacturer:this._manufacturer||null,model:this._model||null,serial_number:this._serialNumber||null,area_id:this._areaId||null,installation_date:this._installationDate||null,warranty_expiry:this._warrantyExpiry||null,documentation_url:this._documentationUrl.trim()||null,notes:this._notes.trim()||null,ha_device_id:this._haDeviceId||null,parent_entry_id:this._parentEntryId||null}),this._open=!1,this.dispatchEvent(new CustomEvent("object-saved"))}catch(t){this._error=k(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_parentChoices(){return(this.objects||[]).filter(t=>t.entry_id!==this._entryId)}_close(){this._open=!1}render(){if(!this._open)return r``;let t=this._lang,e=this._entryId?s("edit_object",t):s("new_object",t);return r`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${e}</div>
         <div class="content">
-          ${this._error?n`<div class="error">${this._error}</div>`:c}
+          ${this._error?r`<div class="error">${this._error}</div>`:c}
           <ms-textfield
             label="${s("name",t)}"
             required
@@ -100,6 +100,29 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             .value=${this._warrantyExpiry}
             @input=${i=>this._warrantyExpiry=i.target.value}
           ></ms-textfield>
+          <ha-form
+            .hass=${this.hass}
+            .data=${{device:this._haDeviceId||void 0}}
+            .schema=${[{name:"device",selector:{device:{}}}]}
+            .computeLabel=${()=>s("link_device_optional",t)}
+            @value-changed=${i=>this._haDeviceId=i.detail.value?.device||""}
+          ></ha-form>
+          ${this._parentChoices().length?r`<label class="textarea-field">
+                <span class="textarea-label">${s("parent_object_optional",t)}</span>
+                <select
+                  class="parent-select"
+                  .value=${this._parentEntryId}
+                  @change=${i=>this._parentEntryId=i.target.value}
+                >
+                  <option value="" ?selected=${!this._parentEntryId}>
+                    ${s("parent_none",t)}
+                  </option>
+                  ${this._parentChoices().map(i=>r`<option
+                      value=${i.entry_id}
+                      ?selected=${this._parentEntryId===i.entry_id}
+                    >${i.object.name}</option>`)}
+                </select>
+              </label>`:c}
           <label class="textarea-field">
             <span class="textarea-label">${s("object_notes_optional",t)}</span>
             <textarea
@@ -121,7 +144,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           </ha-button>
         </div>
       </ha-dialog>
-    `}};b.styles=x`
+    `}};f.styles=x`
     .dialog-title {
       font-size: 18px;
       font-weight: 500;
@@ -158,12 +181,18 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
     .textarea-field textarea:focus {
       outline: none; border-color: var(--primary-color);
     }
+    .parent-select {
+      padding: 8px 10px; font-size: 14px; font-family: inherit;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
+    }
     .error {
       color: var(--error-color, #f44336);
       font-size: 13px;
     }
-  `,a([g({attribute:!1})],b.prototype,"hass",2),a([l()],b.prototype,"_open",2),a([l()],b.prototype,"_loading",2),a([l()],b.prototype,"_error",2),a([l()],b.prototype,"_name",2),a([l()],b.prototype,"_manufacturer",2),a([l()],b.prototype,"_model",2),a([l()],b.prototype,"_serialNumber",2),a([l()],b.prototype,"_areaId",2),a([l()],b.prototype,"_installationDate",2),a([l()],b.prototype,"_warrantyExpiry",2),a([l()],b.prototype,"_documentationUrl",2),a([l()],b.prototype,"_notes",2),a([l()],b.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",b);var V=class{constructor(d){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=d}updateHass(d){this.hass=d}async getUsers(d=!1){let t=Date.now();if(!d&&this.usersCache&&t-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=e.users,this.cacheTimestamp=t,this.usersCache}catch(e){return console.error("Failed to fetch users:",e),this.usersCache||[]}}async assignUser(d,t,e){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:d,task_id:t,user_id:e})}async getTasksByUser(d){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:d})).tasks}getUserName(d){return!d||!this.usersCache?null:this.usersCache.find(e=>e.id===d)?.name||null}getUser(d){return!d||!this.usersCache?null:this.usersCache.find(t=>t.id===d)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(d){return d?d===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}};var yt=["cleaning","inspection","replacement","calibration","service","reading","custom"],xt=["low","normal","high"],$t=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],kt=["weekdays","nth_weekday","day_of_month"],st=["threshold","counter","state_change","runtime"],wt=[...st,"compound"];function Et(){return{entityIds:"",type:"threshold",above:"",below:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:""}}function It(r){return{entityIds:(r.entity_ids||(r.entity_id?[r.entity_id]:[])).join(", "),type:r.type||"threshold",above:r.trigger_above?.toString()??"",below:r.trigger_below?.toString()??"",forMinutes:r.trigger_for_minutes?.toString()??"0",targetValue:r.trigger_target_value?.toString()??"",deltaMode:r.trigger_delta_mode||!1,fromState:r.trigger_from_state||"",toState:r.trigger_to_state||"",targetChanges:r.trigger_target_changes?.toString()??"",runtimeHours:r.trigger_runtime_hours?.toString()??""}}function Tt(r){let d=r.entityIds.split(",").map(e=>e.trim()).filter(Boolean);if(d.length===0)return null;let t={entity_id:d[0],entity_ids:d,type:r.type};if(r.type==="threshold"){let e=parseFloat(r.above);isNaN(e)||(t.trigger_above=e);let i=parseFloat(r.below);isNaN(i)||(t.trigger_below=i);let o=parseInt(r.forMinutes,10);isNaN(o)||(t.trigger_for_minutes=o)}else if(r.type==="counter"){let e=parseFloat(r.targetValue);isNaN(e)||(t.trigger_target_value=e),t.trigger_delta_mode=r.deltaMode}else if(r.type==="state_change"){r.fromState&&(t.trigger_from_state=r.fromState),r.toState&&(t.trigger_to_state=r.toState);let e=parseInt(r.targetChanges,10);isNaN(e)||(t.trigger_target_changes=e)}else if(r.type==="runtime"){let e=parseFloat(r.runtimeHours);isNaN(e)||(t.trigger_runtime_hours=e)}return t}function At(r){return Array.from({length:7},(d,t)=>Q(t,r,"short"))}var h=class extends ${constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._domLastDay=!1;this._domBusiness=!1;this._calOffset="0";this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerForMinutes="0";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._availableTags=[];this._responsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._userService=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}async openCreate(t,e){this._entryId=t,this._taskId=null,this._error="",!t&&e&&e.length>0?(this._objectChoices=e.map(i=>({entry_id:i.entry_id,name:i.object.name})).sort((i,o)=>i.name.localeCompare(o.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}async openEdit(t,e){this._entryId=t,this._taskId=e.id,this._error="",this._name=e.name,this._type=e.type,this._scheduleType=e.schedule_type,this._intervalDays=e.interval_days!=null?String(e.interval_days):"",this._intervalUnit=e.interval_unit||"days",this._dueDate=e.due_date||"";let i=e.schedule;this._weekdays=i?.kind==="weekdays"?[...i.weekdays??[]]:[],this._nth=i?.kind==="nth_weekday"?String(i.nth??1):"1",this._nthWeekday=i?.kind==="nth_weekday"?String(i.weekday??5):"5",this._domDay=i?.kind==="day_of_month"&&(i.day??1)>=1?String(i.day??1):"1",this._domLastDay=i?.kind==="day_of_month"&&i.day===-1,this._domBusiness=i?.kind==="day_of_month"&&i.business===!0,this._calOffset=i?.offset?String(i.offset):"0",this._warningDays=e.warning_days.toString(),this._earliestCompletionDays=e.earliest_completion_days!=null?String(e.earliest_completion_days):"",this._intervalAnchor=e.interval_anchor||"completion",this._notes=e.notes||"",this._documentationUrl=e.documentation_url||"",this._customIcon=e.custom_icon||"",this._priority=e.priority||"normal",this._labels=(e.labels||[]).join(", "),this._enabled=e.enabled!==!1,this._lastPerformed=e.last_performed||"",this._nfcTagId=e.nfc_tag_id||"",this._responsibleUserId=e.responsible_user_id||null,this._assigneePool=[...e.assignee_pool||[]],this._rotationStrategy=e.rotation_strategy||"",this._checklistText=(e.checklist||[]).join(`
-`),this._scheduleTime=e.schedule_time||"";let o=e.on_complete_action;if(o&&o.service){this._actionService=o.service;let p=o.target?.entity_id;this._actionTargetEntity=Array.isArray(p)?p[0]||"":p||"",this._actionData=o.data&&typeof o.data=="object"?{...o.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let u=e.quick_complete_defaults;this._qcNotes=u?.notes||"",this._qcCost=u?.cost!=null?String(u.cost):"",this._qcDuration=u?.duration!=null?String(u.duration):"",this._qcFeedback=u?.feedback||"";let _=e.adaptive_config||{};if(this._environmentalEntity=_.environmental_entity||"",this._environmentalAttribute=_.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,e.trigger_config){let p=e.trigger_config;this._triggerEntityId=p.entity_id||"",this._triggerEntityIds=p.entity_ids||(p.entity_id?[p.entity_id]:[]),this._triggerEntityLogic=p.entity_logic||"any",this._triggerAttribute=p.attribute||"",this._triggerType=p.type||"threshold",this._triggerAbove=p.trigger_above?.toString()||"",this._triggerBelow=p.trigger_below?.toString()||"",this._triggerForMinutes=p.trigger_for_minutes?.toString()||"0",this._triggerTargetValue=p.trigger_target_value?.toString()||"",this._triggerDeltaMode=p.trigger_delta_mode||!1,this._autoCompleteOnRecovery=p.auto_complete_on_recovery||!1,this._triggerFromState=p.trigger_from_state||"",this._triggerToState=p.trigger_to_state||"",this._triggerTargetChanges=p.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=p.trigger_runtime_hours?.toString()||"",p.type==="compound"?(this._compoundLogic=p.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(p.conditions||[]).map(It)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._domLastDay=!1,this._domBusiness=!1,this._calOffset="0",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerForMinutes="0",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new V(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(t){console.error("Failed to load users:",t),this._availableUsers=[]}}_toggleAssignee(t){this._assigneePool=this._assigneePool.includes(t)?this._assigneePool.filter(e=>e!==t):[...this._assigneePool,t]}async _testAction(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[e,i]=t.split(".");if(!this.hass?.services?.[e]?.[i]){this._actionTestResult="error",this._actionTestError=`Service "${t}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let o=this._actionTargetEntity.trim();if(o){let u=o.split(".")[0];if(u!==e&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(e)){this._actionTestResult="error",this._actionTestError=`Service "${t}" only works on ${e}.* entities; entity "${o}" is in ${u}.* \u2014 pick a service that matches the entity domain (e.g. ${u}.${i})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[o]){this._actionTestResult="error",this._actionTestError=`Target entity "${o}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let t=JSON.parse(this._actionDataJsonFallback);if(t&&typeof t=="object"&&!Array.isArray(t))return t}catch{}return{...this._actionData}}_serviceSchema(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t))return null;let[e,i]=t.split("."),o=this.hass?.services?.[e]?.[i]?.fields;return!o||Object.keys(o).length===0?null:Object.entries(o).map(([u,_])=>({name:u,required:!!_.required,selector:_.selector||{text:{}}}))}_renderCompletionActionsSection(t){if(!this.completionActionsEnabled)return c;let e=this._serviceSchema();return n`
+  `,a([g({attribute:!1})],f.prototype,"hass",2),a([g({attribute:!1})],f.prototype,"objects",2),a([l()],f.prototype,"_open",2),a([l()],f.prototype,"_loading",2),a([l()],f.prototype,"_error",2),a([l()],f.prototype,"_name",2),a([l()],f.prototype,"_manufacturer",2),a([l()],f.prototype,"_model",2),a([l()],f.prototype,"_serialNumber",2),a([l()],f.prototype,"_areaId",2),a([l()],f.prototype,"_installationDate",2),a([l()],f.prototype,"_warrantyExpiry",2),a([l()],f.prototype,"_documentationUrl",2),a([l()],f.prototype,"_notes",2),a([l()],f.prototype,"_haDeviceId",2),a([l()],f.prototype,"_parentEntryId",2),a([l()],f.prototype,"_entryId",2);customElements.get("maintenance-object-dialog")||customElements.define("maintenance-object-dialog",f);var V=class{constructor(d){this.usersCache=null;this.cacheTimestamp=0;this.CACHE_TTL_MS=6e4;this.hass=d}updateHass(d){this.hass=d}async getUsers(d=!1){let t=Date.now();if(!d&&this.usersCache&&t-this.cacheTimestamp<this.CACHE_TTL_MS)return this.usersCache;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/users/list"});return this.usersCache=e.users,this.cacheTimestamp=t,this.usersCache}catch(e){return console.error("Failed to fetch users:",e),this.usersCache||[]}}async assignUser(d,t,e){await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/assign_user",entry_id:d,task_id:t,user_id:e})}async getTasksByUser(d){return(await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tasks/by_user",user_id:d})).tasks}getUserName(d){return!d||!this.usersCache?null:this.usersCache.find(e=>e.id===d)?.name||null}getUser(d){return!d||!this.usersCache?null:this.usersCache.find(t=>t.id===d)||null}getCurrentUserId(){return this.hass.user?.id||null}isCurrentUser(d){return d?d===this.getCurrentUserId():!1}clearCache(){this.usersCache=null,this.cacheTimestamp=0}};var yt=["cleaning","inspection","replacement","calibration","service","reading","custom"],xt=["low","normal","high"],$t=["time_based","weekdays","nth_weekday","day_of_month","sensor_based","one_time","manual"],kt=["weekdays","nth_weekday","day_of_month"],st=["threshold","counter","state_change","runtime"],wt=[...st,"compound"];function Et(){return{entityIds:"",type:"threshold",above:"",below:"",forMinutes:"0",targetValue:"",deltaMode:!1,fromState:"",toState:"",targetChanges:"",runtimeHours:""}}function It(n){return{entityIds:(n.entity_ids||(n.entity_id?[n.entity_id]:[])).join(", "),type:n.type||"threshold",above:n.trigger_above?.toString()??"",below:n.trigger_below?.toString()??"",forMinutes:n.trigger_for_minutes?.toString()??"0",targetValue:n.trigger_target_value?.toString()??"",deltaMode:n.trigger_delta_mode||!1,fromState:n.trigger_from_state||"",toState:n.trigger_to_state||"",targetChanges:n.trigger_target_changes?.toString()??"",runtimeHours:n.trigger_runtime_hours?.toString()??""}}function Tt(n){let d=n.entityIds.split(",").map(e=>e.trim()).filter(Boolean);if(d.length===0)return null;let t={entity_id:d[0],entity_ids:d,type:n.type};if(n.type==="threshold"){let e=parseFloat(n.above);isNaN(e)||(t.trigger_above=e);let i=parseFloat(n.below);isNaN(i)||(t.trigger_below=i);let o=parseInt(n.forMinutes,10);isNaN(o)||(t.trigger_for_minutes=o)}else if(n.type==="counter"){let e=parseFloat(n.targetValue);isNaN(e)||(t.trigger_target_value=e),t.trigger_delta_mode=n.deltaMode}else if(n.type==="state_change"){n.fromState&&(t.trigger_from_state=n.fromState),n.toState&&(t.trigger_to_state=n.toState);let e=parseInt(n.targetChanges,10);isNaN(e)||(t.trigger_target_changes=e)}else if(n.type==="runtime"){let e=parseFloat(n.runtimeHours);isNaN(e)||(t.trigger_runtime_hours=e)}return t}function At(n){return Array.from({length:7},(d,t)=>Q(t,n,"short"))}var h=class extends ${constructor(){super(...arguments);this.checklistsEnabled=!1;this.scheduleTimeEnabled=!1;this.completionActionsEnabled=!1;this.defaultWarningDays=7;this._open=!1;this._loading=!1;this._error="";this._entryId="";this._taskId=null;this._objectChoices=[];this._name="";this._type="custom";this._scheduleType="time_based";this._intervalDays="30";this._intervalUnit="days";this._dueDate="";this._warningDays="7";this._earliestCompletionDays="";this._intervalAnchor="completion";this._weekdays=[];this._nth="1";this._nthWeekday="5";this._domDay="1";this._domLastDay=!1;this._domBusiness=!1;this._calOffset="0";this._notes="";this._documentationUrl="";this._customIcon="";this._priority="normal";this._labels="";this._enabled=!0;this._triggerEntityId="";this._triggerEntityIds=[];this._triggerEntityLogic="any";this._triggerAttribute="";this._triggerType="threshold";this._triggerAbove="";this._triggerBelow="";this._triggerForMinutes="0";this._triggerTargetValue="";this._triggerDeltaMode=!1;this._autoCompleteOnRecovery=!1;this._triggerFromState="";this._triggerToState="";this._triggerTargetChanges="";this._triggerRuntimeHours="";this._compoundLogic="AND";this._compoundConditions=[];this._suggestedAttributes=[];this._availableAttributes=[];this._entityDomain="";this._lastPerformed="";this._nfcTagId="";this._availableTags=[];this._responsibleUserId=null;this._assigneePool=[];this._rotationStrategy="";this._availableUsers=[];this._checklistText="";this._scheduleTime="";this._actionService="";this._actionTargetEntity="";this._actionData={};this._actionDataJsonFallback="";this._actionTesting=!1;this._actionTestResult="";this._actionTestError="";this._qcNotes="";this._qcCost="";this._qcDuration="";this._qcFeedback="";this._environmentalEntity="";this._environmentalAttribute="";this._environmentalInitial="";this._environmentalAttributeInitial="";this._userService=null}get _lang(){return this.hass?.language??navigator.language.split("-")[0]??"en"}async openCreate(t,e){this._entryId=t,this._taskId=null,this._error="",!t&&e&&e.length>0?(this._objectChoices=e.map(i=>({entry_id:i.entry_id,name:i.object.name})).sort((i,o)=>i.name.localeCompare(o.name)),this._entryId=this._objectChoices[0].entry_id):this._objectChoices=[],this._resetFields(),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}async openEdit(t,e){this._entryId=t,this._taskId=e.id,this._error="",this._name=e.name,this._type=e.type,this._scheduleType=e.schedule_type,this._intervalDays=e.interval_days!=null?String(e.interval_days):"",this._intervalUnit=e.interval_unit||"days",this._dueDate=e.due_date||"";let i=e.schedule;this._weekdays=i?.kind==="weekdays"?[...i.weekdays??[]]:[],this._nth=i?.kind==="nth_weekday"?String(i.nth??1):"1",this._nthWeekday=i?.kind==="nth_weekday"?String(i.weekday??5):"5",this._domDay=i?.kind==="day_of_month"&&(i.day??1)>=1?String(i.day??1):"1",this._domLastDay=i?.kind==="day_of_month"&&i.day===-1,this._domBusiness=i?.kind==="day_of_month"&&i.business===!0,this._calOffset=i?.offset?String(i.offset):"0",this._warningDays=e.warning_days.toString(),this._earliestCompletionDays=e.earliest_completion_days!=null?String(e.earliest_completion_days):"",this._intervalAnchor=e.interval_anchor||"completion",this._notes=e.notes||"",this._documentationUrl=e.documentation_url||"",this._customIcon=e.custom_icon||"",this._priority=e.priority||"normal",this._labels=(e.labels||[]).join(", "),this._enabled=e.enabled!==!1,this._lastPerformed=e.last_performed||"",this._nfcTagId=e.nfc_tag_id||"",this._responsibleUserId=e.responsible_user_id||null,this._assigneePool=[...e.assignee_pool||[]],this._rotationStrategy=e.rotation_strategy||"",this._checklistText=(e.checklist||[]).join(`
+`),this._scheduleTime=e.schedule_time||"";let o=e.on_complete_action;if(o&&o.service){this._actionService=o.service;let p=o.target?.entity_id;this._actionTargetEntity=Array.isArray(p)?p[0]||"":p||"",this._actionData=o.data&&typeof o.data=="object"?{...o.data}:{},this._actionDataJsonFallback=""}else this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="";let u=e.quick_complete_defaults;this._qcNotes=u?.notes||"",this._qcCost=u?.cost!=null?String(u.cost):"",this._qcDuration=u?.duration!=null?String(u.duration):"",this._qcFeedback=u?.feedback||"";let _=e.adaptive_config||{};if(this._environmentalEntity=_.environmental_entity||"",this._environmentalAttribute=_.environmental_attribute||"",this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute,e.trigger_config){let p=e.trigger_config;this._triggerEntityId=p.entity_id||"",this._triggerEntityIds=p.entity_ids||(p.entity_id?[p.entity_id]:[]),this._triggerEntityLogic=p.entity_logic||"any",this._triggerAttribute=p.attribute||"",this._triggerType=p.type||"threshold",this._triggerAbove=p.trigger_above?.toString()||"",this._triggerBelow=p.trigger_below?.toString()||"",this._triggerForMinutes=p.trigger_for_minutes?.toString()||"0",this._triggerTargetValue=p.trigger_target_value?.toString()||"",this._triggerDeltaMode=p.trigger_delta_mode||!1,this._autoCompleteOnRecovery=p.auto_complete_on_recovery||!1,this._triggerFromState=p.trigger_from_state||"",this._triggerToState=p.trigger_to_state||"",this._triggerTargetChanges=p.trigger_target_changes?.toString()||"",this._triggerRuntimeHours=p.trigger_runtime_hours?.toString()||"",p.type==="compound"?(this._compoundLogic=p.compound_logic==="OR"?"OR":"AND",this._compoundConditions=(p.conditions||[]).map(It)):(this._compoundLogic="AND",this._compoundConditions=[])}else this._resetTriggerFields();this._triggerEntityId&&this._fetchEntityAttributes(this._triggerEntityId),await Promise.all([this._loadUsers(),this._loadTags()]),this._open=!0}_resetFields(){this._name="",this._type="custom",this._scheduleType="time_based",this._intervalDays="30",this._intervalUnit="days",this._dueDate="",this._warningDays=String(this.defaultWarningDays),this._earliestCompletionDays="",this._intervalAnchor="completion",this._weekdays=[],this._nth="1",this._nthWeekday="5",this._domDay="1",this._domLastDay=!1,this._domBusiness=!1,this._calOffset="0",this._notes="",this._documentationUrl="",this._customIcon="",this._priority="normal",this._labels="",this._enabled=!0,this._lastPerformed="",this._nfcTagId="",this._responsibleUserId=null,this._assigneePool=[],this._rotationStrategy="",this._checklistText="",this._scheduleTime="",this._environmentalEntity="",this._environmentalAttribute="",this._environmentalInitial="",this._environmentalAttributeInitial="",this._actionService="",this._actionTargetEntity="",this._actionData={},this._actionDataJsonFallback="",this._actionTesting=!1,this._actionTestResult="",this._qcNotes="",this._qcCost="",this._qcDuration="",this._qcFeedback="",this._resetTriggerFields()}_resetTriggerFields(){this._triggerEntityId="",this._triggerEntityIds=[],this._triggerEntityLogic="any",this._triggerAttribute="",this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="",this._triggerType="threshold",this._triggerAbove="",this._triggerBelow="",this._triggerForMinutes="0",this._triggerTargetValue="",this._triggerDeltaMode=!1,this._autoCompleteOnRecovery=!1,this._triggerFromState="",this._triggerToState="",this._triggerTargetChanges="",this._triggerRuntimeHours="",this._compoundLogic="AND",this._compoundConditions=[]}async _loadUsers(){this._userService||(this._userService=new V(this.hass));try{this._availableUsers=await this._userService.getUsers()}catch(t){console.error("Failed to load users:",t),this._availableUsers=[]}}_toggleAssignee(t){this._assigneePool=this._assigneePool.includes(t)?this._assigneePool.filter(e=>e!==t):[...this._assigneePool,t]}async _testAction(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t)){this._actionTestResult="error",this._actionTestError="Invalid service format (expected 'domain.service')",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3);return}let[e,i]=t.split(".");if(!this.hass?.services?.[e]?.[i]){this._actionTestResult="error",this._actionTestError=`Service "${t}" is not registered in Home Assistant. Check spelling and that the integration providing it is loaded.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}let o=this._actionTargetEntity.trim();if(o){let u=o.split(".")[0];if(u!==e&&!new Set(["homeassistant","scene","notify","persistent_notification"]).has(e)){this._actionTestResult="error",this._actionTestError=`Service "${t}" only works on ${e}.* entities; entity "${o}" is in ${u}.* \u2014 pick a service that matches the entity domain (e.g. ${u}.${i})`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}if(!this.hass.states?.[o]){this._actionTestResult="error",this._actionTestError=`Target entity "${o}" not found in Home Assistant \u2014 the entity may have been renamed or its integration removed.`,setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},8e3);return}}this._actionTestResult="ok",setTimeout(()=>{this._actionTestResult="",this._actionTestError=""},5e3)}_buildActionData(){if(this._actionDataJsonFallback.trim())try{let t=JSON.parse(this._actionDataJsonFallback);if(t&&typeof t=="object"&&!Array.isArray(t))return t}catch{}return{...this._actionData}}_serviceSchema(){let t=this._actionService.trim();if(!t||!/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(t))return null;let[e,i]=t.split("."),o=this.hass?.services?.[e]?.[i]?.fields;return!o||Object.keys(o).length===0?null:Object.entries(o).map(([u,_])=>({name:u,required:!!_.required,selector:_.selector||{text:{}}}))}_renderCompletionActionsSection(t){if(!this.completionActionsEnabled)return c;let e=this._serviceSchema();return r`
       <details class="ca-section">
         <summary>${s("on_complete_action_title",t)}</summary>
         <p class="field-help">${s("on_complete_action_desc",t)}</p>
@@ -182,7 +211,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
         <p class="field-help ca-domain-hint">
           ${s("on_complete_action_target_hint",t)}
         </p>
-        ${e?n`
+        ${e?r`
               <ha-form
                 class="ca-data-form"
                 .hass=${this.hass}
@@ -190,7 +219,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                 .data=${this._actionData}
                 @value-changed=${i=>{this._actionData={...i.detail.value}}}
               ></ha-form>
-            `:n`
+            `:r`
               <ms-textfield
                 label="${s("on_complete_action_data",t)}"
                 placeholder="{}"
@@ -203,10 +232,10 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             @click=${this._testAction}>
             ${this._actionTesting?"\u2026":s("on_complete_action_test",t)}
           </button>
-          ${this._actionTestResult==="ok"?n`<span class="ca-test-ok">${s("on_complete_action_test_success",t)}</span>`:c}
-          ${this._actionTestResult==="error"?n`<div class="ca-test-error-block">
+          ${this._actionTestResult==="ok"?r`<span class="ca-test-ok">${s("on_complete_action_test_success",t)}</span>`:c}
+          ${this._actionTestResult==="error"?r`<div class="ca-test-error-block">
                 <span class="ca-test-error">${s("on_complete_action_test_failed",t)}</span>
-                ${this._actionTestError?n`<div class="ca-test-error-detail">${this._actionTestError}</div>`:c}
+                ${this._actionTestError?r`<div class="ca-test-error-detail">${this._actionTestError}</div>`:c}
               </div>`:c}
         </div>
       </details>
@@ -240,7 +269,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
         </select>
       </details>
     `}async _loadTags(){try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/tags/list"});this._availableTags=t.tags||[]}catch{this._availableTags=[]}}async _fetchEntityAttributes(t){if(!t||!this.hass){this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain="";return}try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/entity/attributes",entity_id:t});this._entityDomain=e.domain||"",this._suggestedAttributes=e.suggested_attributes||[],this._availableAttributes=e.available_attributes||[]}catch{this._suggestedAttributes=[],this._availableAttributes=[],this._entityDomain=""}}async _save(){if(!this._loading&&this._name.trim()){this._loading=!0,this._error="";try{let t={type:this._taskId?"maintenance_supporter/task/update":"maintenance_supporter/task/create",entry_id:this._entryId,name:this._name,task_type:this._type,schedule_type:this._scheduleType,warning_days:parseInt(this._warningDays,10)||7},e=this._earliestCompletionDays.trim();if(t.earliest_completion_days=e===""?null:Math.max(0,parseInt(e,10)||0),this._taskId&&(t.task_id=this._taskId),this._scheduleType==="one_time"?(t.due_date=this._dueDate||null,t.interval_days=null):kt.includes(this._scheduleType)?(t.schedule=this._buildSchedule(),t.interval_days=null,this._taskId&&(t.due_date=null)):(this._taskId&&(t.due_date=null),this._scheduleType!=="manual"&&this._intervalDays?(t.interval_days=parseInt(this._intervalDays,10),t.interval_unit=this._intervalUnit,t.interval_anchor=this._intervalAnchor):this._taskId&&(t.interval_days=null,t.interval_anchor="completion")),t.notes=this._notes||null,t.documentation_url=this._documentationUrl||null,t.custom_icon=this._customIcon||null,t.priority=this._priority,t.labels=this._labels.split(",").map(_=>_.trim()).filter(Boolean),t.enabled=this._enabled,t.last_performed=this._lastPerformed||null,t.nfc_tag_id=this._nfcTagId||null,t.responsible_user_id=this._responsibleUserId,t.assignee_pool=this._assigneePool,t.rotation_strategy=this._assigneePool.length>=2&&this._rotationStrategy?this._rotationStrategy:null,this._scheduleType==="sensor_based"&&this._triggerType==="compound"){let _=this._compoundConditions.map(Tt).filter(p=>p!==null);if(_.length>0){let p={type:"compound",compound_logic:this._compoundLogic,conditions:_};this._autoCompleteOnRecovery&&(p.auto_complete_on_recovery=!0),t.trigger_config=p}else this._taskId&&(t.trigger_config=null)}else if(this._scheduleType==="sensor_based"&&this._triggerEntityId){let _=this._triggerEntityIds.length>0?this._triggerEntityIds:[this._triggerEntityId],p={entity_id:_[0],entity_ids:_,type:this._triggerType};if(this._triggerAttribute&&(p.attribute=this._triggerAttribute),this._autoCompleteOnRecovery&&(p.auto_complete_on_recovery=!0),_.length>1&&(p.entity_logic=this._triggerEntityLogic),this._triggerType==="threshold"){if(this._triggerAbove){let m=parseFloat(this._triggerAbove);isNaN(m)||(p.trigger_above=m)}if(this._triggerBelow){let m=parseFloat(this._triggerBelow);isNaN(m)||(p.trigger_below=m)}if(this._triggerForMinutes){let m=parseInt(this._triggerForMinutes,10);isNaN(m)||(p.trigger_for_minutes=m)}}else if(this._triggerType==="counter"){if(this._triggerTargetValue){let m=parseFloat(this._triggerTargetValue);isNaN(m)||(p.trigger_target_value=m)}p.trigger_delta_mode=this._triggerDeltaMode}else if(this._triggerType==="state_change"){if(this._triggerFromState&&(p.trigger_from_state=this._triggerFromState),this._triggerToState&&(p.trigger_to_state=this._triggerToState),this._triggerTargetChanges){let m=parseInt(this._triggerTargetChanges,10);isNaN(m)||(p.trigger_target_changes=m)}}else if(this._triggerType==="runtime"&&this._triggerRuntimeHours){let m=parseFloat(this._triggerRuntimeHours);isNaN(m)||(p.trigger_runtime_hours=m)}t.trigger_config=p}else this._taskId&&(t.trigger_config=null);if(this.scheduleTimeEnabled&&this._scheduleType==="time_based"){let _=this._scheduleTime.trim();t.schedule_time=/^([01]\d|2[0-3]):[0-5]\d$/.test(_)?_:null}if(this.checklistsEnabled){let _=this._checklistText.split(`
-`).map(p=>p.trim()).filter(Boolean).slice(0,100);t.checklist=_.length?_:null}if(this.completionActionsEnabled){let _=this._actionService.trim();if(_&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(_)){let I={service:_},z=this._actionTargetEntity.trim();z&&(I.target={entity_id:z});let w=this._buildActionData();Object.keys(w).length>0&&(I.data=w),t.on_complete_action=I}else t.on_complete_action=null;let p={};this._qcNotes.trim()&&(p.notes=this._qcNotes.trim());let m=parseFloat(this._qcCost);!isNaN(m)&&m>=0&&(p.cost=m);let y=parseInt(this._qcDuration,10);!isNaN(y)&&y>=0&&(p.duration=y),this._qcFeedback&&(p.feedback=this._qcFeedback),t.quick_complete_defaults=Object.keys(p).length?p:null}let i=await this.hass.connection.sendMessagePromise(t),o=this._taskId||i?.task_id,u=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(o&&this._scheduleType==="sensor_based"&&u)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:o,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(t){this._error=k(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return c;let t=this._lang,e=this._triggerType==="compound";return n`
+`).map(p=>p.trim()).filter(Boolean).slice(0,100);t.checklist=_.length?_:null}if(this.completionActionsEnabled){let _=this._actionService.trim();if(_&&/^[a-z][a-z0-9_]*\.[a-z0-9_]+$/.test(_)){let I={service:_},z=this._actionTargetEntity.trim();z&&(I.target={entity_id:z});let w=this._buildActionData();Object.keys(w).length>0&&(I.data=w),t.on_complete_action=I}else t.on_complete_action=null;let p={};this._qcNotes.trim()&&(p.notes=this._qcNotes.trim());let m=parseFloat(this._qcCost);!isNaN(m)&&m>=0&&(p.cost=m);let y=parseInt(this._qcDuration,10);!isNaN(y)&&y>=0&&(p.duration=y),this._qcFeedback&&(p.feedback=this._qcFeedback),t.quick_complete_defaults=Object.keys(p).length?p:null}let i=await this.hass.connection.sendMessagePromise(t),o=this._taskId||i?.task_id,u=this._environmentalEntity!==this._environmentalInitial||this._environmentalAttribute!==this._environmentalAttributeInitial;if(o&&this._scheduleType==="sensor_based"&&u)try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/set_environmental_entity",entry_id:this._entryId,task_id:o,environmental_entity:this._environmentalEntity||null,environmental_attribute:this._environmentalAttribute||null}),this._environmentalInitial=this._environmentalEntity,this._environmentalAttributeInitial=this._environmentalAttribute}catch{}this._open=!1,this.dispatchEvent(new CustomEvent("task-saved"))}catch(t){this._error=k(t,this._lang,s("save_error",this._lang))}finally{this._loading=!1}}}_close(){this._open=!1}_renderTriggerFields(){if(this._scheduleType!=="sensor_based")return c;let t=this._lang,e=this._triggerType==="compound";return r`
       <h3>${s("trigger_configuration",t)}</h3>
       <div class="select-row">
         <label>${s("trigger_type",t)}</label>
@@ -248,16 +277,16 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           .value=${this._triggerType}
           @change=${i=>this._triggerType=i.target.value}
         >
-          ${wt.map(i=>n`<option value=${i} ?selected=${i===this._triggerType}>${s(i,t)}</option>`)}
+          ${wt.map(i=>r`<option value=${i} ?selected=${i===this._triggerType}>${s(i,t)}</option>`)}
         </select>
       </div>
-      ${e?this._renderCompoundEditor():n`
+      ${e?this._renderCompoundEditor():r`
         <ms-textfield
           label="${s("entity_id",t)} (${s("comma_separated",t)})"
           .value=${this._triggerEntityIds.length>0?this._triggerEntityIds.join(", "):this._triggerEntityId}
           @input=${i=>{let u=i.target.value.split(",").map(_=>_.trim()).filter(Boolean);this._triggerEntityId=u[0]||"",this._triggerEntityIds=u,u[0]&&this._fetchEntityAttributes(u[0])}}
         ></ms-textfield>
-        ${this._triggerEntityIds.length>1?n`
+        ${this._triggerEntityIds.length>1?r`
           <div class="select-row">
             <label>${s("entity_logic",t)}</label>
             <select
@@ -269,7 +298,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             </select>
           </div>
         `:c}
-        ${this._availableAttributes.length>0?n`
+        ${this._availableAttributes.length>0?r`
             <div class="select-row">
               <label>${s("attribute_optional",t)}</label>
               <select
@@ -277,11 +306,11 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                 @change=${i=>this._triggerAttribute=i.target.value}
               >
                 <option value="" ?selected=${!this._triggerAttribute}>${s("use_entity_state",t)}</option>
-                ${this._suggestedAttributes.map(i=>n`<option value=${i} ?selected=${i===this._triggerAttribute}>${i} ★</option>`)}
-                ${this._availableAttributes.filter(i=>!this._suggestedAttributes.includes(i.name)).map(i=>n`<option value=${i.name} ?selected=${i.name===this._triggerAttribute}>${i.name}${i.numeric?"":" (non-numeric)"}</option>`)}
+                ${this._suggestedAttributes.map(i=>r`<option value=${i} ?selected=${i===this._triggerAttribute}>${i} ★</option>`)}
+                ${this._availableAttributes.filter(i=>!this._suggestedAttributes.includes(i.name)).map(i=>r`<option value=${i.name} ?selected=${i.name===this._triggerAttribute}>${i.name}${i.numeric?"":" (non-numeric)"}</option>`)}
               </select>
             </div>
-          `:n`
+          `:r`
             <ms-textfield
               label="${s("attribute_optional",t)}"
               .value=${this._triggerAttribute}
@@ -306,7 +335,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
         @input=${i=>this._intervalDays=i.target.value}
       ></ms-textfield>
       ${this._intervalDays?this._renderUnitSelect():c}
-    `}_patchCondition(t,e){this._compoundConditions=this._compoundConditions.map((i,o)=>o===t?{...i,...e}:i)}_addCondition(){this._compoundConditions=[...this._compoundConditions,Et()]}_removeCondition(t){this._compoundConditions=this._compoundConditions.filter((e,i)=>i!==t)}_renderCompoundEditor(){let t=this._lang;return n`
+    `}_patchCondition(t,e){this._compoundConditions=this._compoundConditions.map((i,o)=>o===t?{...i,...e}:i)}_addCondition(){this._compoundConditions=[...this._compoundConditions,Et()]}_removeCondition(t){this._compoundConditions=this._compoundConditions.filter((e,i)=>i!==t)}_renderCompoundEditor(){let t=this._lang;return r`
       <div class="select-row">
         <label>${s("compound_logic",t)}</label>
         <select
@@ -318,11 +347,11 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
         </select>
       </div>
       <div class="field-help">${s("compound_help",t)}</div>
-      ${this._compoundConditions.length===0?n`<div class="field-help">${s("compound_no_conditions",t)}</div>`:this._compoundConditions.map((e,i)=>this._renderCondition(e,i))}
+      ${this._compoundConditions.length===0?r`<div class="field-help">${s("compound_no_conditions",t)}</div>`:this._compoundConditions.map((e,i)=>this._renderCondition(e,i))}
       <button type="button" class="secondary-btn" @click=${()=>this._addCondition()}>
         + ${s("compound_add_condition",t)}
       </button>
-    `}_renderCondition(t,e){let i=this._lang,o=e+1;return n`
+    `}_renderCondition(t,e){let i=this._lang,o=e+1;return r`
       <div class="compound-condition">
         <div class="compound-condition-head">
           <span class="compound-condition-title">${s("compound_condition",i)} ${o}</span>
@@ -344,19 +373,19 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             .value=${t.type}
             @change=${u=>this._patchCondition(e,{type:u.target.value})}
           >
-            ${st.map(u=>n`<option value=${u} ?selected=${u===t.type}>${s(u,i)}</option>`)}
+            ${st.map(u=>r`<option value=${u} ?selected=${u===t.type}>${s(u,i)}</option>`)}
           </select>
         </div>
         ${this._renderConditionTypeFields(t,e)}
       </div>
-    `}_renderConditionTypeFields(t,e){let i=this._lang;return t.type==="threshold"?n`
+    `}_renderConditionTypeFields(t,e){let i=this._lang;return t.type==="threshold"?r`
         <ms-textfield label="${s("trigger_above",i)}" type="number" .value=${t.above}
           @input=${o=>this._patchCondition(e,{above:o.target.value})}></ms-textfield>
         <ms-textfield label="${s("trigger_below",i)}" type="number" .value=${t.below}
           @input=${o=>this._patchCondition(e,{below:o.target.value})}></ms-textfield>
         <ms-textfield label="${s("for_minutes",i)}" type="number" .value=${t.forMinutes}
           @input=${o=>this._patchCondition(e,{forMinutes:o.target.value})}></ms-textfield>
-      `:t.type==="counter"?n`
+      `:t.type==="counter"?r`
         <ms-textfield label="${s("target_value",i)}" type="number" .value=${t.targetValue}
           @input=${o=>this._patchCondition(e,{targetValue:o.target.value})}></ms-textfield>
         <label>
@@ -364,50 +393,50 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             @change=${o=>this._patchCondition(e,{deltaMode:o.target.checked})} />
           ${s("delta_mode",i)}
         </label>
-      `:t.type==="state_change"?n`
+      `:t.type==="state_change"?r`
         <ms-textfield label="${s("from_state_optional",i)}" .value=${t.fromState}
           @input=${o=>this._patchCondition(e,{fromState:o.target.value})}></ms-textfield>
         <ms-textfield label="${s("to_state_optional",i)}" .value=${t.toState}
           @input=${o=>this._patchCondition(e,{toState:o.target.value})}></ms-textfield>
         <ms-textfield label="${s("target_changes",i)}" type="number" .value=${t.targetChanges}
           @input=${o=>this._patchCondition(e,{targetChanges:o.target.value})}></ms-textfield>
-      `:t.type==="runtime"?n`
+      `:t.type==="runtime"?r`
         <ms-textfield label="${s("runtime_hours",i)}" type="number" .value=${t.runtimeHours}
           @input=${o=>this._patchCondition(e,{runtimeHours:o.target.value})}></ms-textfield>
-      `:c}_renderUnitSelect(){let t=this._lang;return n`
+      `:c}_renderUnitSelect(){let t=this._lang;return r`
       <div class="select-row">
         <label>${s("interval_unit",t)}</label>
         <select
           .value=${this._intervalUnit}
           @change=${e=>this._intervalUnit=e.target.value}
         >
-          ${["days","weeks","months","years"].map(e=>n`<option value=${e} ?selected=${e===this._intervalUnit}>${s("unit_"+e,t)}</option>`)}
+          ${["days","weeks","months","years"].map(e=>r`<option value=${e} ?selected=${e===this._intervalUnit}>${s("unit_"+e,t)}</option>`)}
         </select>
-      </div>`}_toggleWeekday(t){this._weekdays=this._weekdays.includes(t)?this._weekdays.filter(e=>e!==t):[...this._weekdays,t]}_buildSchedule(){let t=i=>{let o=parseInt(this._calOffset,10)||0;return o&&(i.offset=Math.max(-15,Math.min(o,15))),i};if(this._scheduleType==="weekdays")return t({kind:"weekdays",weekdays:[...this._weekdays].sort((i,o)=>i-o)});if(this._scheduleType==="nth_weekday")return t({kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)});let e={kind:"day_of_month",day:this._domLastDay?-1:parseInt(this._domDay,10)||1};return this._domBusiness&&(e.business=!0),t(e)}_renderCalendarFields(){let t=this._lang,e=At(t);if(this._scheduleType==="weekdays")return n`
+      </div>`}_toggleWeekday(t){this._weekdays=this._weekdays.includes(t)?this._weekdays.filter(e=>e!==t):[...this._weekdays,t]}_buildSchedule(){let t=i=>{let o=parseInt(this._calOffset,10)||0;return o&&(i.offset=Math.max(-15,Math.min(o,15))),i};if(this._scheduleType==="weekdays")return t({kind:"weekdays",weekdays:[...this._weekdays].sort((i,o)=>i-o)});if(this._scheduleType==="nth_weekday")return t({kind:"nth_weekday",nth:parseInt(this._nth,10),weekday:parseInt(this._nthWeekday,10)});let e={kind:"day_of_month",day:this._domLastDay?-1:parseInt(this._domDay,10)||1};return this._domBusiness&&(e.business=!0),t(e)}_renderCalendarFields(){let t=this._lang,e=At(t);if(this._scheduleType==="weekdays")return r`
         <label class="field-label">${s("recurrence_on_days",t)}</label>
         <div class="weekday-chips">
-          ${e.map((i,o)=>n`
+          ${e.map((i,o)=>r`
             <button
               type="button"
               class="weekday-chip ${this._weekdays.includes(o)?"selected":""}"
               @click=${()=>this._toggleWeekday(o)}
             >${i}</button>`)}
         </div>
-        ${this._renderCalOffsetField()}`;if(this._scheduleType==="nth_weekday"){let i=[["1",s("ord_1",t)],["2",s("ord_2",t)],["3",s("ord_3",t)],["4",s("ord_4",t)],["5",s("ord_5",t)],["-1",s("ord_last",t)]];return n`
+        ${this._renderCalOffsetField()}`;if(this._scheduleType==="nth_weekday"){let i=[["1",s("ord_1",t)],["2",s("ord_2",t)],["3",s("ord_3",t)],["4",s("ord_4",t)],["5",s("ord_5",t)],["-1",s("ord_last",t)]];return r`
         <div class="select-row">
           <label>${s("recurrence_occurrence",t)}</label>
           <select .value=${this._nth} @change=${o=>this._nth=o.target.value}>
-            ${i.map(([o,u])=>n`<option value=${o} ?selected=${o===this._nth}>${u}</option>`)}
+            ${i.map(([o,u])=>r`<option value=${o} ?selected=${o===this._nth}>${u}</option>`)}
           </select>
         </div>
         <div class="select-row">
           <label>${s("recurrence_weekday",t)}</label>
           <select .value=${this._nthWeekday} @change=${o=>this._nthWeekday=o.target.value}>
-            ${e.map((o,u)=>n`<option value=${String(u)} ?selected=${String(u)===this._nthWeekday}>${o}</option>`)}
+            ${e.map((o,u)=>r`<option value=${String(u)} ?selected=${String(u)===this._nthWeekday}>${o}</option>`)}
           </select>
         </div>
-        ${this._renderCalOffsetField()}`}return this._scheduleType==="day_of_month"?n`
-        ${this._domLastDay?c:n`
+        ${this._renderCalOffsetField()}`}return this._scheduleType==="day_of_month"?r`
+        ${this._domLastDay?c:r`
           <ms-textfield
             label="${s("recurrence_day",t)}"
             type="number"
@@ -426,7 +455,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             @change=${i=>this._domBusiness=i.target.checked} />
           <span>${s("recurrence_business_day",t)}</span>
         </label>
-        ${this._renderCalOffsetField()}`:c}_renderCalOffsetField(){let t=this._lang;return n`
+        ${this._renderCalOffsetField()}`:c}_renderCalOffsetField(){let t=this._lang;return r`
       <ms-textfield
         label="${s("recurrence_offset",t)}"
         helper="${s("recurrence_offset_help",t)}"
@@ -435,7 +464,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
         max="15"
         .value=${this._calOffset}
         @input=${e=>this._calOffset=e.target.value}
-      ></ms-textfield>`}_renderTriggerTypeFields(){let t=this._lang;return this._triggerType==="threshold"?n`
+      ></ms-textfield>`}_renderTriggerTypeFields(){let t=this._lang;return this._triggerType==="threshold"?r`
         <ms-textfield
           label="${s("trigger_above",t)}"
           type="number"
@@ -456,7 +485,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           .value=${this._triggerForMinutes}
           @input=${e=>this._triggerForMinutes=e.target.value}
         ></ms-textfield>
-      `:this._triggerType==="counter"?n`
+      `:this._triggerType==="counter"?r`
         <ms-textfield
           label="${s("target_value",t)}"
           type="number"
@@ -472,7 +501,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           />
           ${s("delta_mode",t)}
         </label>
-      `:this._triggerType==="state_change"?n`
+      `:this._triggerType==="state_change"?r`
         <ms-textfield
           label="${s("from_state_optional",t)}"
           .value=${this._triggerFromState}
@@ -492,7 +521,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           @input=${e=>this._triggerTargetChanges=e.target.value}
         ></ms-textfield>
         <div class="field-help">${s("target_changes_help",t)}</div>
-      `:this._triggerType==="runtime"?n`
+      `:this._triggerType==="runtime"?r`
         <ms-textfield
           label="${s("runtime_hours",t)}"
           type="number"
@@ -500,19 +529,19 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           .value=${this._triggerRuntimeHours}
           @input=${e=>this._triggerRuntimeHours=e.target.value}
         ></ms-textfield>
-      `:c}render(){if(!this._open)return n``;let t=this._lang,e=this._taskId?s("edit_task",t):s("new_task",t);return n`
+      `:c}render(){if(!this._open)return r``;let t=this._lang,e=this._taskId?s("edit_task",t):s("new_task",t);return r`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${e}</div>
         <div class="content">
-          ${this._error?n`<div class="error">${this._error}</div>`:c}
-          ${this._objectChoices.length>0?n`
+          ${this._error?r`<div class="error">${this._error}</div>`:c}
+          ${this._objectChoices.length>0?r`
             <div class="select-row">
               <label>${s("object",t)}</label>
               <select
                 .value=${this._entryId}
                 @change=${i=>this._entryId=i.target.value}
               >
-                ${this._objectChoices.map(i=>n`<option value=${i.entry_id} ?selected=${i.entry_id===this._entryId}>${i.name}</option>`)}
+                ${this._objectChoices.map(i=>r`<option value=${i.entry_id} ?selected=${i.entry_id===this._entryId}>${i.name}</option>`)}
               </select>
             </div>
           `:c}
@@ -528,7 +557,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
               .value=${this._type}
               @change=${i=>this._type=i.target.value}
             >
-              ${yt.map(i=>n`<option value=${i} ?selected=${i===this._type}>${s(i,t)}</option>`)}
+              ${yt.map(i=>r`<option value=${i} ?selected=${i===this._type}>${s(i,t)}</option>`)}
             </select>
           </div>
           <div class="select-row">
@@ -537,7 +566,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
               .value=${this._priority}
               @change=${i=>this._priority=i.target.value}
             >
-              ${xt.map(i=>n`<option value=${i} ?selected=${i===this._priority}>${s("priority_"+i,t)}</option>`)}
+              ${xt.map(i=>r`<option value=${i} ?selected=${i===this._priority}>${s("priority_"+i,t)}</option>`)}
             </select>
           </div>
           <div class="field">
@@ -556,10 +585,10 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
               .value=${this._scheduleType}
               @change=${i=>this._scheduleType=i.target.value}
             >
-              ${$t.map(i=>n`<option value=${i} ?selected=${i===this._scheduleType}>${s(i,t)}</option>`)}
+              ${$t.map(i=>r`<option value=${i} ?selected=${i===this._scheduleType}>${s(i,t)}</option>`)}
             </select>
           </div>
-          ${this._scheduleType==="time_based"?n`
+          ${this._scheduleType==="time_based"?r`
                 <ms-textfield
                   label="${s("interval_value",t)}"
                   type="number"
@@ -577,7 +606,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                     <option value="planned" ?selected=${this._intervalAnchor==="planned"}>${s("anchor_planned",t)}</option>
                   </select>
                 </div>
-                ${this.scheduleTimeEnabled?n`
+                ${this.scheduleTimeEnabled?r`
                   <ms-textfield
                     label="${s("schedule_time_optional",t)}"
                     type="time"
@@ -588,7 +617,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                 `:c}
               `:c}
           ${this._renderCalendarFields()}
-          ${this._scheduleType==="one_time"?n`
+          ${this._scheduleType==="one_time"?r`
                 <ms-textfield
                   label="${s("due_date",t)}"
                   type="date"
@@ -609,7 +638,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             .value=${this._earliestCompletionDays}
             @input=${i=>this._earliestCompletionDays=i.target.value}
           ></ms-textfield>
-          ${this.checklistsEnabled?n`
+          ${this.checklistsEnabled?r`
             <h3>${s("checklist_steps_optional",t)}</h3>
             <textarea
               id="checklist-textarea"
@@ -634,15 +663,15 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
               @change=${i=>{let o=i.target.value;this._responsibleUserId=o||null}}
             >
               <option value="" ?selected=${!this._responsibleUserId}>${s("no_user_assigned",t)}</option>
-              ${this._availableUsers.map(i=>n`<option value=${i.id} ?selected=${i.id===this._responsibleUserId}>${i.name}</option>`)}
+              ${this._availableUsers.map(i=>r`<option value=${i.id} ?selected=${i.id===this._responsibleUserId}>${i.name}</option>`)}
             </select>
           </div>
-          ${this._availableUsers.length>=2?n`
+          ${this._availableUsers.length>=2?r`
             <div class="field">
               <label>${s("shared_with",t)}</label>
               <div class="field-help">${s("shared_with_help",t)}</div>
               <div class="assignee-pool">
-                ${this._availableUsers.map(i=>n`
+                ${this._availableUsers.map(i=>r`
                   <label class="pool-item">
                     <input type="checkbox"
                       .checked=${this._assigneePool.includes(i.id)}
@@ -651,7 +680,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                   </label>`)}
               </div>
             </div>
-            ${this._assigneePool.length>=2?n`
+            ${this._assigneePool.length>=2?r`
               <div class="select-row">
                 <label>${s("rotation_strategy",t)}</label>
                 <select
@@ -659,19 +688,19 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                   @change=${i=>this._rotationStrategy=i.target.value}
                 >
                   <option value="" ?selected=${!this._rotationStrategy}>${s("rotation_none",t)}</option>
-                  ${["round_robin","least_completed","random"].map(i=>n`<option value=${i} ?selected=${i===this._rotationStrategy}>${s("rotation_"+i,t)}</option>`)}
+                  ${["round_robin","least_completed","random"].map(i=>r`<option value=${i} ?selected=${i===this._rotationStrategy}>${s("rotation_"+i,t)}</option>`)}
                 </select>
               </div>`:c}
           `:c}
           ${this._renderTriggerFields()}
-          ${this._scheduleType==="sensor_based"?n`
+          ${this._scheduleType==="sensor_based"?r`
             <ms-textfield
               label="${s("environmental_entity_optional",t)}"
               helper="${s("environmental_entity_helper",t)}"
               .value=${this._environmentalEntity}
               @input=${i=>this._environmentalEntity=i.target.value.trim()}
             ></ms-textfield>
-            ${this._environmentalEntity?n`
+            ${this._environmentalEntity?r`
               <ms-textfield
                 label="${s("environmental_attribute_optional",t)}"
                 .value=${this._environmentalAttribute}
@@ -695,7 +724,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
             .value=${this._customIcon}
             @value-changed=${i=>this._customIcon=i.detail.value||""}
           ></ha-icon-picker>
-          ${this._availableTags.length>0?n`
+          ${this._availableTags.length>0?r`
               <div class="select-row">
                 <label>${s("nfc_tag_id_optional",t)}</label>
                 <select
@@ -703,12 +732,12 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                   @change=${i=>this._nfcTagId=i.target.value}
                 >
                   <option value="" ?selected=${!this._nfcTagId}>${s("no_nfc_tag",t)}</option>
-                  ${this._availableTags.map(i=>n`<option value=${i.id} ?selected=${i.id===this._nfcTagId}>${i.name}</option>`)}
+                  ${this._availableTags.map(i=>r`<option value=${i.id} ?selected=${i.id===this._nfcTagId}>${i.name}</option>`)}
                 </select>
                 <button type="button" class="link-button" @click=${this._loadTags}
                   title="${s("nfc_tags_refresh",t)}">↻</button>
               </div>
-            `:n`
+            `:r`
               <ms-textfield
                 label="${s("nfc_tag_id_optional",t)}"
                 .value=${this._nfcTagId}
@@ -948,15 +977,15 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
       font-size: 14px;
       cursor: pointer;
     }
-  `,a([g({attribute:!1})],h.prototype,"hass",2),a([g({type:Boolean,attribute:"checklists-enabled"})],h.prototype,"checklistsEnabled",2),a([g({type:Boolean,attribute:"schedule-time-enabled"})],h.prototype,"scheduleTimeEnabled",2),a([g({type:Boolean,attribute:"completion-actions-enabled"})],h.prototype,"completionActionsEnabled",2),a([g({type:Number,attribute:"default-warning-days"})],h.prototype,"defaultWarningDays",2),a([l()],h.prototype,"_open",2),a([l()],h.prototype,"_loading",2),a([l()],h.prototype,"_error",2),a([l()],h.prototype,"_entryId",2),a([l()],h.prototype,"_taskId",2),a([l()],h.prototype,"_objectChoices",2),a([l()],h.prototype,"_name",2),a([l()],h.prototype,"_type",2),a([l()],h.prototype,"_scheduleType",2),a([l()],h.prototype,"_intervalDays",2),a([l()],h.prototype,"_intervalUnit",2),a([l()],h.prototype,"_dueDate",2),a([l()],h.prototype,"_warningDays",2),a([l()],h.prototype,"_earliestCompletionDays",2),a([l()],h.prototype,"_intervalAnchor",2),a([l()],h.prototype,"_weekdays",2),a([l()],h.prototype,"_nth",2),a([l()],h.prototype,"_nthWeekday",2),a([l()],h.prototype,"_domDay",2),a([l()],h.prototype,"_domLastDay",2),a([l()],h.prototype,"_domBusiness",2),a([l()],h.prototype,"_calOffset",2),a([l()],h.prototype,"_notes",2),a([l()],h.prototype,"_documentationUrl",2),a([l()],h.prototype,"_customIcon",2),a([l()],h.prototype,"_priority",2),a([l()],h.prototype,"_labels",2),a([l()],h.prototype,"_enabled",2),a([l()],h.prototype,"_triggerEntityId",2),a([l()],h.prototype,"_triggerEntityIds",2),a([l()],h.prototype,"_triggerEntityLogic",2),a([l()],h.prototype,"_triggerAttribute",2),a([l()],h.prototype,"_triggerType",2),a([l()],h.prototype,"_triggerAbove",2),a([l()],h.prototype,"_triggerBelow",2),a([l()],h.prototype,"_triggerForMinutes",2),a([l()],h.prototype,"_triggerTargetValue",2),a([l()],h.prototype,"_triggerDeltaMode",2),a([l()],h.prototype,"_autoCompleteOnRecovery",2),a([l()],h.prototype,"_triggerFromState",2),a([l()],h.prototype,"_triggerToState",2),a([l()],h.prototype,"_triggerTargetChanges",2),a([l()],h.prototype,"_triggerRuntimeHours",2),a([l()],h.prototype,"_compoundLogic",2),a([l()],h.prototype,"_compoundConditions",2),a([l()],h.prototype,"_suggestedAttributes",2),a([l()],h.prototype,"_availableAttributes",2),a([l()],h.prototype,"_entityDomain",2),a([l()],h.prototype,"_lastPerformed",2),a([l()],h.prototype,"_nfcTagId",2),a([l()],h.prototype,"_availableTags",2),a([l()],h.prototype,"_responsibleUserId",2),a([l()],h.prototype,"_assigneePool",2),a([l()],h.prototype,"_rotationStrategy",2),a([l()],h.prototype,"_availableUsers",2),a([l()],h.prototype,"_checklistText",2),a([l()],h.prototype,"_scheduleTime",2),a([l()],h.prototype,"_actionService",2),a([l()],h.prototype,"_actionTargetEntity",2),a([l()],h.prototype,"_actionData",2),a([l()],h.prototype,"_actionDataJsonFallback",2),a([l()],h.prototype,"_actionTesting",2),a([l()],h.prototype,"_actionTestResult",2),a([l()],h.prototype,"_actionTestError",2),a([l()],h.prototype,"_qcNotes",2),a([l()],h.prototype,"_qcCost",2),a([l()],h.prototype,"_qcDuration",2),a([l()],h.prototype,"_qcFeedback",2),a([l()],h.prototype,"_environmentalEntity",2),a([l()],h.prototype,"_environmentalAttribute",2);customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",h);var v=class extends ${constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState={},this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1)}_toggleCheck(t){let e=String(t);this._checklistState={...this._checklistState,[e]:!this._checklistState[e]}}_setFeedback(t){this._feedback=t}async _onPhotoInput(t){let e=t.target,i=e.files?.[0];if(e.value="",!!i){this._photoUploading=!0,this._error="";try{let o=new FormData;o.append("entry_id",this.entryId),o.append("tags","photo"),o.append("file",i,i.name);let u=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:o});if(!u.ok){this._error=u.status===413?s("doc_too_large",this.lang):s("doc_upload_failed",this.lang);return}let _=await u.json();_.id&&(this._photoDocId=_.id,this._photoPreview=URL.createObjectURL(i))}catch{this._error=s("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let t={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(t.notes=this._notes),this._cost){let e=parseFloat(this._cost);!isNaN(e)&&e>=0&&(t.cost=e)}if(this._duration){let e=parseInt(this._duration,10);!isNaN(e)&&e>=0&&(t.duration=e)}this.checklist.length>0&&(t.checklist_state=this._checklistState),this.adaptiveEnabled&&(t.feedback=this._feedback),this._photoDocId&&(t.photo_doc_id=this._photoDocId),await this.hass.connection.sendMessagePromise(t),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(t){this._error=k(t,this.lang,s("save_error",this.lang))}finally{this._loading=!1}}_close(){this._open=!1}render(){if(!this._open)return n``;let t=this.lang||this.hass?.language||"en";return n`
+  `,a([g({attribute:!1})],h.prototype,"hass",2),a([g({type:Boolean,attribute:"checklists-enabled"})],h.prototype,"checklistsEnabled",2),a([g({type:Boolean,attribute:"schedule-time-enabled"})],h.prototype,"scheduleTimeEnabled",2),a([g({type:Boolean,attribute:"completion-actions-enabled"})],h.prototype,"completionActionsEnabled",2),a([g({type:Number,attribute:"default-warning-days"})],h.prototype,"defaultWarningDays",2),a([l()],h.prototype,"_open",2),a([l()],h.prototype,"_loading",2),a([l()],h.prototype,"_error",2),a([l()],h.prototype,"_entryId",2),a([l()],h.prototype,"_taskId",2),a([l()],h.prototype,"_objectChoices",2),a([l()],h.prototype,"_name",2),a([l()],h.prototype,"_type",2),a([l()],h.prototype,"_scheduleType",2),a([l()],h.prototype,"_intervalDays",2),a([l()],h.prototype,"_intervalUnit",2),a([l()],h.prototype,"_dueDate",2),a([l()],h.prototype,"_warningDays",2),a([l()],h.prototype,"_earliestCompletionDays",2),a([l()],h.prototype,"_intervalAnchor",2),a([l()],h.prototype,"_weekdays",2),a([l()],h.prototype,"_nth",2),a([l()],h.prototype,"_nthWeekday",2),a([l()],h.prototype,"_domDay",2),a([l()],h.prototype,"_domLastDay",2),a([l()],h.prototype,"_domBusiness",2),a([l()],h.prototype,"_calOffset",2),a([l()],h.prototype,"_notes",2),a([l()],h.prototype,"_documentationUrl",2),a([l()],h.prototype,"_customIcon",2),a([l()],h.prototype,"_priority",2),a([l()],h.prototype,"_labels",2),a([l()],h.prototype,"_enabled",2),a([l()],h.prototype,"_triggerEntityId",2),a([l()],h.prototype,"_triggerEntityIds",2),a([l()],h.prototype,"_triggerEntityLogic",2),a([l()],h.prototype,"_triggerAttribute",2),a([l()],h.prototype,"_triggerType",2),a([l()],h.prototype,"_triggerAbove",2),a([l()],h.prototype,"_triggerBelow",2),a([l()],h.prototype,"_triggerForMinutes",2),a([l()],h.prototype,"_triggerTargetValue",2),a([l()],h.prototype,"_triggerDeltaMode",2),a([l()],h.prototype,"_autoCompleteOnRecovery",2),a([l()],h.prototype,"_triggerFromState",2),a([l()],h.prototype,"_triggerToState",2),a([l()],h.prototype,"_triggerTargetChanges",2),a([l()],h.prototype,"_triggerRuntimeHours",2),a([l()],h.prototype,"_compoundLogic",2),a([l()],h.prototype,"_compoundConditions",2),a([l()],h.prototype,"_suggestedAttributes",2),a([l()],h.prototype,"_availableAttributes",2),a([l()],h.prototype,"_entityDomain",2),a([l()],h.prototype,"_lastPerformed",2),a([l()],h.prototype,"_nfcTagId",2),a([l()],h.prototype,"_availableTags",2),a([l()],h.prototype,"_responsibleUserId",2),a([l()],h.prototype,"_assigneePool",2),a([l()],h.prototype,"_rotationStrategy",2),a([l()],h.prototype,"_availableUsers",2),a([l()],h.prototype,"_checklistText",2),a([l()],h.prototype,"_scheduleTime",2),a([l()],h.prototype,"_actionService",2),a([l()],h.prototype,"_actionTargetEntity",2),a([l()],h.prototype,"_actionData",2),a([l()],h.prototype,"_actionDataJsonFallback",2),a([l()],h.prototype,"_actionTesting",2),a([l()],h.prototype,"_actionTestResult",2),a([l()],h.prototype,"_actionTestError",2),a([l()],h.prototype,"_qcNotes",2),a([l()],h.prototype,"_qcCost",2),a([l()],h.prototype,"_qcDuration",2),a([l()],h.prototype,"_qcFeedback",2),a([l()],h.prototype,"_environmentalEntity",2),a([l()],h.prototype,"_environmentalAttribute",2);customElements.get("maintenance-task-dialog")||customElements.define("maintenance-task-dialog",h);var v=class extends ${constructor(){super(...arguments);this.entryId="";this.taskId="";this.taskName="";this.lang="en";this.checklist=[];this.adaptiveEnabled=!1;this._open=!1;this._notes="";this._cost="";this._duration="";this._loading=!1;this._error="";this._checklistState={};this._feedback="needed";this._photoDocId="";this._photoPreview="";this._photoUploading=!1}open(){this._open||(this._open=!0,this._notes="",this._cost="",this._duration="",this._error="",this._checklistState={},this._feedback="needed",this._photoDocId="",this._photoPreview="",this._photoUploading=!1)}_toggleCheck(t){let e=String(t);this._checklistState={...this._checklistState,[e]:!this._checklistState[e]}}_setFeedback(t){this._feedback=t}async _onPhotoInput(t){let e=t.target,i=e.files?.[0];if(e.value="",!!i){this._photoUploading=!0,this._error="";try{let o=new FormData;o.append("entry_id",this.entryId),o.append("tags","photo"),o.append("file",i,i.name);let u=await fetch("/api/maintenance_supporter/document/upload",{method:"POST",headers:{Authorization:`Bearer ${this.hass.auth?.data?.access_token??""}`},body:o});if(!u.ok){this._error=u.status===413?s("doc_too_large",this.lang):s("doc_upload_failed",this.lang);return}let _=await u.json();_.id&&(this._photoDocId=_.id,this._photoPreview=URL.createObjectURL(i))}catch{this._error=s("doc_upload_failed",this.lang)}finally{this._photoUploading=!1}}}_removePhoto(){this._photoPreview&&URL.revokeObjectURL(this._photoPreview),this._photoDocId="",this._photoPreview=""}async _complete(){this._loading=!0,this._error="";try{let t={type:"maintenance_supporter/task/complete",entry_id:this.entryId,task_id:this.taskId};if(this._notes&&(t.notes=this._notes),this._cost){let e=parseFloat(this._cost);!isNaN(e)&&e>=0&&(t.cost=e)}if(this._duration){let e=parseInt(this._duration,10);!isNaN(e)&&e>=0&&(t.duration=e)}this.checklist.length>0&&(t.checklist_state=this._checklistState),this.adaptiveEnabled&&(t.feedback=this._feedback),this._photoDocId&&(t.photo_doc_id=this._photoDocId),await this.hass.connection.sendMessagePromise(t),this._open=!1,this.dispatchEvent(new CustomEvent("task-completed"))}catch(t){this._error=k(t,this.lang,s("save_error",this.lang))}finally{this._loading=!1}}_close(){this._open=!1}render(){if(!this._open)return r``;let t=this.lang||this.hass?.language||"en";return r`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${s("complete_title",t)}${this.taskName}</div>
         <div class="content">
-          ${this._error?n`<div class="error">${this._error}</div>`:c}
-          ${this.checklist.length>0?n`
+          ${this._error?r`<div class="error">${this._error}</div>`:c}
+          ${this.checklist.length>0?r`
             <div class="checklist-section">
               <label class="checklist-label">${s("checklist",t)}</label>
-              ${this.checklist.map((e,i)=>n`
+              ${this.checklist.map((e,i)=>r`
                 <label class="checklist-item" @click=${()=>this._toggleCheck(i)}>
                   <input type="checkbox" .checked=${!!this._checklistState[String(i)]} />
                   <span>${e}</span>
@@ -990,12 +1019,12 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
           </label>
           <div class="field">
             <span class="field-label">${s("completion_photo_optional",t)}</span>
-            ${this._photoPreview?n`
+            ${this._photoPreview?r`
                 <div class="photo-preview">
                   <img src=${this._photoPreview} alt="" />
                   <button type="button" class="photo-remove" @click=${this._removePhoto}
                     title="${s("remove",t)}">✕</button>
-                </div>`:n`
+                </div>`:r`
                 <label class="photo-pick">
                   <ha-icon icon="mdi:camera"></ha-icon>
                   <span>${this._photoUploading?s("uploading",t):s("add_photo",t)}</span>
@@ -1004,7 +1033,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
                     @change=${this._onPhotoInput} />
                 </label>`}
           </div>
-          ${this.adaptiveEnabled?n`
+          ${this.adaptiveEnabled?r`
             <div class="feedback-section">
               <label class="feedback-label">${s("was_maintenance_needed",t)}</label>
               <div class="feedback-buttons">
@@ -1175,7 +1204,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color);
     }
-  `,a([g({attribute:!1})],v.prototype,"hass",2),a([g()],v.prototype,"entryId",2),a([g()],v.prototype,"taskId",2),a([g()],v.prototype,"taskName",2),a([g()],v.prototype,"lang",2),a([g({type:Array})],v.prototype,"checklist",2),a([g({type:Boolean})],v.prototype,"adaptiveEnabled",2),a([l()],v.prototype,"_open",2),a([l()],v.prototype,"_notes",2),a([l()],v.prototype,"_cost",2),a([l()],v.prototype,"_duration",2),a([l()],v.prototype,"_loading",2),a([l()],v.prototype,"_error",2),a([l()],v.prototype,"_checklistState",2),a([l()],v.prototype,"_feedback",2),a([l()],v.prototype,"_photoDocId",2),a([l()],v.prototype,"_photoPreview",2),a([l()],v.prototype,"_photoUploading",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",v);var R=class extends ${constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null}get _lang(){return this.hass?.language||"en"}openEdit(t){this._draft={...t},this._originalSnapshot={...t},this._error="",this._open=!0}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(t,e){this._draft&&(this._draft={...this._draft,[t]:e})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let t={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(t.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(t.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(t.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(t.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(t.completed_by=this._draft.completed_by),Object.keys(t).filter(i=>!["type","entry_id","task_id","original_timestamp"].includes(i)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(t),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=k(t,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return c;let t=this._lang,e=this._draft;return n`
+  `,a([g({attribute:!1})],v.prototype,"hass",2),a([g()],v.prototype,"entryId",2),a([g()],v.prototype,"taskId",2),a([g()],v.prototype,"taskName",2),a([g()],v.prototype,"lang",2),a([g({type:Array})],v.prototype,"checklist",2),a([g({type:Boolean})],v.prototype,"adaptiveEnabled",2),a([l()],v.prototype,"_open",2),a([l()],v.prototype,"_notes",2),a([l()],v.prototype,"_cost",2),a([l()],v.prototype,"_duration",2),a([l()],v.prototype,"_loading",2),a([l()],v.prototype,"_error",2),a([l()],v.prototype,"_checklistState",2),a([l()],v.prototype,"_feedback",2),a([l()],v.prototype,"_photoDocId",2),a([l()],v.prototype,"_photoPreview",2),a([l()],v.prototype,"_photoUploading",2);customElements.get("maintenance-complete-dialog")||customElements.define("maintenance-complete-dialog",v);var R=class extends ${constructor(){super(...arguments);this._open=!1;this._saving=!1;this._error="";this._draft=null;this._originalSnapshot=null}get _lang(){return this.hass?.language||"en"}openEdit(t){this._draft={...t},this._originalSnapshot={...t},this._error="",this._open=!0}close(){this._open=!1,this._error="",this._draft=null,this._originalSnapshot=null}_set(t,e){this._draft&&(this._draft={...this._draft,[t]:e})}async _save(){if(!(!this._draft||!this._originalSnapshot)){this._saving=!0,this._error="";try{let t={type:"maintenance_supporter/task/history/update",entry_id:this._draft.entry_id,task_id:this._draft.task_id,original_timestamp:this._originalSnapshot.original_timestamp};if(this._draft.timestamp!==this._originalSnapshot.timestamp&&(t.timestamp=this._draft.timestamp),this._draft.notes!==this._originalSnapshot.notes&&(t.notes=this._draft.notes),this._draft.cost!==this._originalSnapshot.cost&&(t.cost=this._draft.cost),this._draft.duration!==this._originalSnapshot.duration&&(t.duration=this._draft.duration),this._draft.completed_by!==this._originalSnapshot.completed_by&&(t.completed_by=this._draft.completed_by),Object.keys(t).filter(i=>!["type","entry_id","task_id","original_timestamp"].includes(i)).length===0){this.close();return}await this.hass.connection.sendMessagePromise(t),this.dispatchEvent(new CustomEvent("history-entry-saved",{detail:{entry_id:this._draft.entry_id,task_id:this._draft.task_id,new_timestamp:this._draft.timestamp},bubbles:!0,composed:!0})),this.close()}catch(t){this._error=k(t,this._lang)}finally{this._saving=!1}}}render(){if(!this._open||!this._draft)return c;let t=this._lang,e=this._draft;return r`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
         <h2>${s("history_edit_title",t)||"Edit history entry"}</h2>
@@ -1210,7 +1239,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
               @input=${i=>{let o=i.target.value;this._set("duration",o?Number(o):null)}} />
           </label>
         </div>
-        ${this._error?n`<div class="error">${this._error}</div>`:c}
+        ${this._error?r`<div class="error">${this._error}</div>`:c}
         <div class="actions">
           <button class="cancel" @click=${this.close} ?disabled=${this._saving}>
             ${s("cancel",t)||"Cancel"}
@@ -1282,7 +1311,7 @@ import{a as x,b as n,c as M,d as c,e as $,f as g,g as l,i as W,j as s,k as Z,l a
       background: rgba(211,47,47,0.1);
       border-radius: 6px;
     }
-  `,a([g({attribute:!1})],R.prototype,"hass",2),a([l()],R.prototype,"_open",2),a([l()],R.prototype,"_saving",2),a([l()],R.prototype,"_error",2),a([l()],R.prototype,"_draft",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",R);function N(r){return r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function at(r){return!r.startsWith("data:image/svg+xml,")&&!r.startsWith("data:image/png;base64,")?"":N(r)}function Lt(r){return r.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var T=class extends ${constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(t,e){this._entryId=t,this._taskId=null,this._objectName=e,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(t,e,i,o){this._entryId=t,this._taskId=e,this._objectName=i,this._taskName=o,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let t=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let e={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(e.task_id=this._taskId);let i=[this.hass.connection.sendMessagePromise({...e,action:"view"})];this._taskId&&i.push(this.hass.connection.sendMessagePromise({...e,action:"complete"}));let o=await Promise.all(i);if(t!==this._generateSeq)return;this._viewResult=o[0],o.length>1&&(this._completeResult=o[1])}catch(e){if(t!==this._generateSeq)return;let i=e?.code,o=e?.message;this._error=i==="no_url"||typeof o=="string"&&o.includes("No Home Assistant URL")?s("qr_error_no_url",this.lang):s("qr_error",this.lang)}finally{t===this._generateSeq&&(this._loading=!1)}}_setUrlMode(t){this._urlMode!==t&&(this._urlMode=t,this._generate())}_print(){if(!this._viewResult)return;let t=this._viewResult,e=t.label.task_name?`${t.label.object_name} \u2014 ${t.label.task_name}`:t.label.object_name,i=[t.label.manufacturer,t.label.model].filter(Boolean).join(" "),o=window.open("","_blank","width=600,height=500");if(!o)return;let u=this.lang||"en",_=N(e),p=N(i),m=!!this._completeResult,y=N(s("qr_action_view",u)),I=N(s("qr_action_complete",u));o.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+  `,a([g({attribute:!1})],R.prototype,"hass",2),a([l()],R.prototype,"_open",2),a([l()],R.prototype,"_saving",2),a([l()],R.prototype,"_error",2),a([l()],R.prototype,"_draft",2);customElements.get("maintenance-history-edit-dialog")||customElements.define("maintenance-history-edit-dialog",R);function N(n){return n.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}function at(n){return!n.startsWith("data:image/svg+xml,")&&!n.startsWith("data:image/png;base64,")?"":N(n)}function Lt(n){return n.replace(/[/\\:*?"<>|#%]+/g,"").replace(/\s+/g,"-").toLowerCase().substring(0,100)}var T=class extends ${constructor(){super(...arguments);this.lang="en";this._open=!1;this._loading=!1;this._error="";this._viewResult=null;this._completeResult=null;this._urlMode="companion";this._entryId="";this._taskId=null;this._objectName="";this._taskName="";this._generateSeq=0}openForObject(t,e){this._entryId=t,this._taskId=null,this._objectName=e,this._taskName="",this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}openForTask(t,e,i,o){this._entryId=t,this._taskId=e,this._objectName=i,this._taskName=o,this._urlMode="companion",this._error="",this._viewResult=null,this._completeResult=null,this._open=!0,this._generate()}async _generate(){let t=++this._generateSeq;this._loading=!0,this._error="",this._viewResult=null,this._completeResult=null;try{let e={type:"maintenance_supporter/qr/generate",entry_id:this._entryId,url_mode:this._urlMode};this._taskId&&(e.task_id=this._taskId);let i=[this.hass.connection.sendMessagePromise({...e,action:"view"})];this._taskId&&i.push(this.hass.connection.sendMessagePromise({...e,action:"complete"}));let o=await Promise.all(i);if(t!==this._generateSeq)return;this._viewResult=o[0],o.length>1&&(this._completeResult=o[1])}catch(e){if(t!==this._generateSeq)return;let i=e?.code,o=e?.message;this._error=i==="no_url"||typeof o=="string"&&o.includes("No Home Assistant URL")?s("qr_error_no_url",this.lang):s("qr_error",this.lang)}finally{t===this._generateSeq&&(this._loading=!1)}}_setUrlMode(t){this._urlMode!==t&&(this._urlMode=t,this._generate())}_print(){if(!this._viewResult)return;let t=this._viewResult,e=t.label.task_name?`${t.label.object_name} \u2014 ${t.label.task_name}`:t.label.object_name,i=[t.label.manufacturer,t.label.model].filter(Boolean).join(" "),o=window.open("","_blank","width=600,height=500");if(!o)return;let u=this.lang||"en",_=N(e),p=N(i),m=!!this._completeResult,y=N(s("qr_action_view",u)),I=N(s("qr_action_complete",u));o.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>${_}</title>
 <style>
   body{font-family:sans-serif;text-align:center;padding:20px}
@@ -1308,11 +1337,11 @@ ${p?`<div class="sub">${p}</div>`:""}
 </div>
 <div class="url">${N(this._viewResult.url)}</div>
 <script>setTimeout(()=>window.print(),300)<\/script>
-</body></html>`),o.document.close()}_downloadSvg(t,e){let i=decodeURIComponent(t.svg_data_uri.replace("data:image/svg+xml,","")),o=new Blob([i],{type:"image/svg+xml"}),u=URL.createObjectURL(o),_=document.createElement("a");_.href=u;let p=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;_.download=`qr-${Lt(p)}-${e}.svg`,_.click(),URL.revokeObjectURL(u)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return n``;let t=this.lang||this.hass?.language||"en",e=this._taskName?`${s("qr_code",t)}: ${this._objectName} \u2014 ${this._taskName}`:`${s("qr_code",t)}: ${this._objectName}`,i=!!this._viewResult;return n`
+</body></html>`),o.document.close()}_downloadSvg(t,e){let i=decodeURIComponent(t.svg_data_uri.replace("data:image/svg+xml,","")),o=new Blob([i],{type:"image/svg+xml"}),u=URL.createObjectURL(o),_=document.createElement("a");_.href=u;let p=this._taskName?`${this._objectName}-${this._taskName}`:this._objectName;_.download=`qr-${Lt(p)}-${e}.svg`,_.click(),URL.revokeObjectURL(u)}_close(){this._open=!1,this._viewResult=null,this._completeResult=null,this._error="",this._loading=!1}render(){if(!this._open)return r``;let t=this.lang||this.hass?.language||"en",e=this._taskName?`${s("qr_code",t)}: ${this._objectName} \u2014 ${this._taskName}`:`${s("qr_code",t)}: ${this._objectName}`,i=!!this._viewResult;return r`
       <ha-dialog open @closed=${this._close}>
         <div class="dialog-title">${e}</div>
         <div class="content">
-          ${this._loading?n`<div class="loading">${s("qr_generating",t)}</div>`:this._error?n`<div class="error">${this._error}</div>`:i?n`
+          ${this._loading?r`<div class="loading">${s("qr_generating",t)}</div>`:this._error?r`<div class="error">${this._error}</div>`:i?r`
                     <div class="qr-pair">
                       <div class="qr-item">
                         <img
@@ -1327,7 +1356,7 @@ ${p?`<div class="sub">${p}</div>`:""}
                           ${s("qr_download",t)}
                         </button>
                       </div>
-                      ${this._completeResult?n`
+                      ${this._completeResult?r`
                             <div class="qr-item">
                               <img
                                 class="qr-image small"
@@ -1487,7 +1516,7 @@ ${p?`<div class="sub">${p}</div>`:""}
       color: var(--text-primary-color, #fff);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
-  `,a([g({attribute:!1})],T.prototype,"hass",2),a([g()],T.prototype,"lang",2),a([l()],T.prototype,"_open",2),a([l()],T.prototype,"_loading",2),a([l()],T.prototype,"_error",2),a([l()],T.prototype,"_viewResult",2),a([l()],T.prototype,"_completeResult",2),a([l()],T.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",T);function rt(r,d){let t=r.interval_analysis,e=t?.weibull_beta,i=t?.weibull_eta;if(e==null||i==null||i<=0)return c;let o=r.interval_days??0,u=r.suggested_interval??o;return n`
+  `,a([g({attribute:!1})],T.prototype,"hass",2),a([g()],T.prototype,"lang",2),a([l()],T.prototype,"_open",2),a([l()],T.prototype,"_loading",2),a([l()],T.prototype,"_error",2),a([l()],T.prototype,"_viewResult",2),a([l()],T.prototype,"_completeResult",2),a([l()],T.prototype,"_urlMode",2);customElements.get("maintenance-qr-dialog")||customElements.define("maintenance-qr-dialog",T);function rt(n,d){let t=n.interval_analysis,e=t?.weibull_beta,i=t?.weibull_eta;if(e==null||i==null||i<=0)return c;let o=n.interval_days??0,u=n.suggested_interval??o;return r`
     <div class="weibull-section">
       <div class="weibull-title">
         <ha-svg-icon aria-hidden="true" path="M3,14L3.5,14.07L8.07,9.5C7.89,8.85 8.06,8.11 8.59,7.59C9.37,6.8 10.63,6.8 11.41,7.59C11.94,8.11 12.11,8.85 11.93,9.5L14.5,12.07L15,12C15.18,12 15.35,12 15.5,12.07L19.07,8.5C19,8.35 19,8.18 19,8A2,2 0 0,1 21,6A2,2 0 0,1 23,8A2,2 0 0,1 21,10C20.82,10 20.65,10 20.5,9.93L16.93,13.5C17,13.65 17,13.82 17,14A2,2 0 0,1 15,16A2,2 0 0,1 13,14L13.07,13.5L10.5,10.93C10.18,11 9.82,11 9.5,10.93L4.93,15.5L5,16A2,2 0 0,1 3,18A2,2 0 0,1 1,16A2,2 0 0,1 3,14Z"></ha-svg-icon>
@@ -1496,14 +1525,14 @@ ${p?`<div class="sub">${p}</div>`:""}
       </div>
       ${Ht(e,i,o,u,d)}
       ${St(t,d)}
-      ${t?.confidence_interval_low!=null?Rt(t,r,d):c}
+      ${t?.confidence_interval_low!=null?Rt(t,n,d):c}
     </div>
-  `}function Ct(r,d){let t,e,i;return r<.8?(t="early_failures",e="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",i="beta_early_failures"):r<=1.2?(t="random_failures",e="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",i="beta_random_failures"):r<=3.5?(t="wear_out",e="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",i="beta_wear_out"):(t="highly_predictable",e="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",i="beta_highly_predictable"),n`
+  `}function Ct(n,d){let t,e,i;return n<.8?(t="early_failures",e="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z",i="beta_early_failures"):n<=1.2?(t="random_failures",e="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z",i="beta_random_failures"):n<=3.5?(t="wear_out",e="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12H12V6Z",i="beta_wear_out"):(t="highly_predictable",e="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z",i="beta_highly_predictable"),r`
     <span class="beta-badge ${t}">
       <ha-svg-icon path="${e}"></ha-svg-icon>
-      ${s(i,d)} (\u03B2=${r.toFixed(2)})
+      ${s(i,d)} (\u03B2=${n.toFixed(2)})
     </span>
-  `}function Ht(r,d,t,e,i){let w=Math.max(t,e,d,1)*1.3,H=50,S=[];for(let A=0;A<=H;A++){let L=A/H*w,vt=1-Math.exp(-Math.pow(L/d,r)),ft=32+L/w*260,bt=136-vt*128;S.push([ft,bt])}let D=S.map(([A,L])=>`${A.toFixed(1)},${L.toFixed(1)}`).join(" "),K="M32,136 "+S.map(([A,L])=>`L${A.toFixed(1)},${L.toFixed(1)}`).join(" ")+` L${S[H][0].toFixed(1)},136 Z`,q=32+t/w*260,j=1-Math.exp(-Math.pow(t/d,r)),O=136-j*128,mt=((1-j)*100).toFixed(0),Y=32+e/w*260,gt=[0,.25,.5,.75,1];return n`
+  `}function Ht(n,d,t,e,i){let w=Math.max(t,e,d,1)*1.3,H=50,S=[];for(let A=0;A<=H;A++){let L=A/H*w,vt=1-Math.exp(-Math.pow(L/d,n)),ft=32+L/w*260,bt=136-vt*128;S.push([ft,bt])}let U=S.map(([A,L])=>`${A.toFixed(1)},${L.toFixed(1)}`).join(" "),K="M32,136 "+S.map(([A,L])=>`L${A.toFixed(1)},${L.toFixed(1)}`).join(" ")+` L${S[H][0].toFixed(1)},136 Z`,q=32+t/w*260,j=1-Math.exp(-Math.pow(t/d,n)),O=136-j*128,mt=((1-j)*100).toFixed(0),Y=32+e/w*260,gt=[0,.25,.5,.75,1];return r`
     <div class="weibull-chart">
       <svg viewBox="0 0 ${300} ${160}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_weibull",i)}">
         ${gt.map(A=>{let L=136-A*128;return M`
@@ -1518,7 +1547,7 @@ ${p?`<div class="sub">${p}</div>`:""}
         <text x="${292}" y="${156}" fill="var(--secondary-text-color)" font-size="8" text-anchor="middle">${Math.round(w)}</text>
 
         <path d="${K}" fill="var(--primary-color, #03a9f4)" opacity="0.08" />
-        <polyline points="${D}" fill="none"
+        <polyline points="${U}" fill="none"
           stroke="var(--primary-color, #03a9f4)" stroke-width="2" />
 
         ${t>0?M`
@@ -1543,30 +1572,30 @@ ${p?`<div class="sub">${p}</div>`:""}
     </div>
     <div class="chart-legend">
       <span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4)"></span> ${s("weibull_failure_probability",i)}</span>
-      ${t>0?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${s("current_interval_marker",i)}</span>`:c}
-      ${e>0&&e!==t?n`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${s("recommended_marker",i)}</span>`:c}
+      ${t>0?r`<span class="legend-item"><span class="legend-swatch" style="background:var(--primary-color, #03a9f4); opacity:0.5"></span> ${s("current_interval_marker",i)}</span>`:c}
+      ${e>0&&e!==t?r`<span class="legend-item"><span class="legend-swatch" style="background:var(--success-color, #4caf50)"></span> ${s("recommended_marker",i)}</span>`:c}
     </div>
-  `}function St(r,d){return n`
+  `}function St(n,d){return r`
     <div class="weibull-info-row">
       <div class="weibull-info-item">
         <span>${s("characteristic_life",d)}</span>
-        <span class="weibull-info-value">${Math.round(r.weibull_eta)} ${s("days",d)}</span>
+        <span class="weibull-info-value">${Math.round(n.weibull_eta)} ${s("days",d)}</span>
       </div>
-      ${r.weibull_r_squared!=null?n`
+      ${n.weibull_r_squared!=null?r`
         <div class="weibull-info-item">
           <span>${s("weibull_r_squared",d)}</span>
-          <span class="weibull-info-value">${r.weibull_r_squared.toFixed(3)}</span>
+          <span class="weibull-info-value">${n.weibull_r_squared.toFixed(3)}</span>
         </div>
       `:c}
     </div>
-  `}function Rt(r,d,t){let e=r.confidence_interval_low,i=r.confidence_interval_high,o=d.suggested_interval??d.interval_days??0,u=d.interval_days??0,_=Math.max(0,e-5),m=i+5-_,y=(e-_)/m*100,I=(i-e)/m*100,z=(o-_)/m*100,w=u>0?(u-_)/m*100:-1;return n`
+  `}function Rt(n,d,t){let e=n.confidence_interval_low,i=n.confidence_interval_high,o=d.suggested_interval??d.interval_days??0,u=d.interval_days??0,_=Math.max(0,e-5),m=i+5-_,y=(e-_)/m*100,I=(i-e)/m*100,z=(o-_)/m*100,w=u>0?(u-_)/m*100:-1;return r`
     <div class="confidence-range">
       <div class="confidence-range-title">
         ${s("confidence_interval",t)}: ${o} ${s("days",t)} (${e}\u2013${i})
       </div>
       <div class="confidence-bar">
         <div class="confidence-fill" style="left:${y.toFixed(1)}%;width:${I.toFixed(1)}%"></div>
-        ${w>=0?n`<div class="confidence-marker current" style="left:${w.toFixed(1)}%"></div>`:c}
+        ${w>=0?r`<div class="confidence-marker current" style="left:${w.toFixed(1)}%"></div>`:c}
         <div class="confidence-marker recommended" style="left:${z.toFixed(1)}%"></div>
       </div>
       <div class="confidence-labels">
@@ -1574,12 +1603,12 @@ ${p?`<div class="sub">${p}</div>`:""}
         <span class="confidence-text high">${s("confidence_aggressive",t)} (${i}${s("days",t).charAt(0)})</span>
       </div>
     </div>
-  `}function nt(r,d,t){let e=r.degradation_trend!=null&&r.degradation_trend!=="insufficient_data",i=r.days_until_threshold!=null,o=r.environmental_factor!=null&&r.environmental_factor!==1;if(!e&&!i&&!o)return c;let u=r.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":r.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return n`
+  `}function nt(n,d,t){let e=n.degradation_trend!=null&&n.degradation_trend!=="insufficient_data",i=n.days_until_threshold!=null,o=n.environmental_factor!=null&&n.environmental_factor!==1;if(!e&&!i&&!o)return c;let u=n.degradation_trend==="rising"?"M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z":n.degradation_trend==="falling"?"M16,18L18.29,15.71L13.41,10.83L9.41,14.83L2,7.41L3.41,6L9.41,12L13.41,8L19.71,14.29L22,12V18H16Z":"M22,12L18,8V11H3V13H18V16L22,12Z";return r`
     <div class="prediction-section">
-      ${r.sensor_prediction_urgency?n`
+      ${n.sensor_prediction_urgency?r`
         <div class="prediction-urgency-banner">
           <ha-svg-icon path="M1,21H23L12,2L1,21M12,18A1,1 0 0,1 11,17A1,1 0 0,1 12,16A1,1 0 0,1 13,17A1,1 0 0,1 12,18M13,15H11V10H13V15Z"></ha-svg-icon>
-          ${s("sensor_prediction_urgency",d).replace("{days}",String(Math.round(r.days_until_threshold||0)))}
+          ${s("sensor_prediction_urgency",d).replace("{days}",String(Math.round(n.days_until_threshold||0)))}
         </div>
       `:c}
       <div class="prediction-title">
@@ -1587,41 +1616,41 @@ ${p?`<div class="sub">${p}</div>`:""}
         ${s("sensor_prediction",d)}
       </div>
       <div class="prediction-grid">
-        ${e?n`
+        ${e?r`
           <div class="prediction-item">
             <ha-svg-icon path="${u}"></ha-svg-icon>
             <span class="prediction-label">${s("degradation_trend",d)}</span>
-            <span class="prediction-value ${r.degradation_trend}">${s("trend_"+r.degradation_trend,d)}</span>
-            ${r.degradation_rate!=null?n`<span class="prediction-rate">${r.degradation_rate>0?"+":""}${Math.abs(r.degradation_rate)>=10?Math.round(r.degradation_rate).toLocaleString():r.degradation_rate.toFixed(1)} ${r.trigger_entity_info?.unit_of_measurement||""}/${s("day_short",d)}</span>`:c}
+            <span class="prediction-value ${n.degradation_trend}">${s("trend_"+n.degradation_trend,d)}</span>
+            ${n.degradation_rate!=null?r`<span class="prediction-rate">${n.degradation_rate>0?"+":""}${Math.abs(n.degradation_rate)>=10?Math.round(n.degradation_rate).toLocaleString():n.degradation_rate.toFixed(1)} ${n.trigger_entity_info?.unit_of_measurement||""}/${s("day_short",d)}</span>`:c}
           </div>
         `:c}
-        ${i?n`
+        ${i?r`
           <div class="prediction-item">
             <ha-svg-icon path="M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12.5,8H11V14L15.75,16.85L16.5,15.62L12.5,13.25V8M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72Z"></ha-svg-icon>
             <span class="prediction-label">${s("days_until_threshold",d)}</span>
-            <span class="prediction-value prediction-days${r.days_until_threshold===0?" exceeded":r.sensor_prediction_urgency?" urgent":""}">${r.days_until_threshold===0?s("threshold_exceeded",d):"~"+Math.round(r.days_until_threshold)+" "+s("days",d)}</span>
-            ${r.threshold_prediction_date?n`<span class="prediction-date">${U(r.threshold_prediction_date,d)}</span>`:c}
-            ${r.threshold_prediction_confidence?n`<span class="confidence-dot ${r.threshold_prediction_confidence}"></span>`:c}
+            <span class="prediction-value prediction-days${n.days_until_threshold===0?" exceeded":n.sensor_prediction_urgency?" urgent":""}">${n.days_until_threshold===0?s("threshold_exceeded",d):"~"+Math.round(n.days_until_threshold)+" "+s("days",d)}</span>
+            ${n.threshold_prediction_date?r`<span class="prediction-date">${D(n.threshold_prediction_date,d)}</span>`:c}
+            ${n.threshold_prediction_confidence?r`<span class="confidence-dot ${n.threshold_prediction_confidence}"></span>`:c}
           </div>
         `:c}
-        ${o&&t.environmental?n`
+        ${o&&t.environmental?r`
           <div class="prediction-item">
             <ha-svg-icon path="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4Z"></ha-svg-icon>
             <span class="prediction-label">${s("environmental_adjustment",d)}</span>
-            <span class="prediction-value">${r.environmental_factor.toFixed(2)}x</span>
-            ${r.environmental_entity?n`<span class="prediction-entity entity-link" @click=${_=>et(_,r.environmental_entity)}>${r.environmental_entity}</span>`:c}
+            <span class="prediction-value">${n.environmental_factor.toFixed(2)}x</span>
+            ${n.environmental_entity?r`<span class="prediction-entity entity-link" @click=${_=>et(_,n.environmental_entity)}>${n.environmental_entity}</span>`:c}
           </div>
         `:c}
       </div>
     </div>
-  `}function ot(r,d,t,e){let i=Math.max(r||1,d);return n`
+  `}function ot(n,d,t,e){let i=Math.max(n||1,d);return r`
     <div class="interval-comparison">
       <div class="interval-bar">
         <div class="interval-label">
-          ${s("current",e)}: ${r??"\u2014"} ${r!=null?s("days",e):""}
+          ${s("current",e)}: ${n??"\u2014"} ${n!=null?s("days",e):""}
         </div>
         <div class="interval-visual current"
-          style="width: ${r!=null?Math.min(r/i*100,100):0}%"></div>
+          style="width: ${n!=null?Math.min(n/i*100,100):0}%"></div>
       </div>
       <div class="interval-bar">
         <div class="interval-label">
@@ -1632,11 +1661,11 @@ ${p?`<div class="sub">${p}</div>`:""}
           style="width: ${Math.min(d/i*100,100)}%"></div>
       </div>
     </div>
-  `}var lt=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"];function dt(r,d,t){if(!t.seasonal||!r.seasonal_factor||r.seasonal_factor===1)return c;let e=lt.map(_=>s(_,d)),i=new Date().getMonth(),o=r.seasonal_factors||r.interval_analysis?.seasonal_factors||null,u=o&&o.length===12?o:e.map((_,p)=>{let m=r.seasonal_factor||1,y=Math.sin((p-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,m+y))});return n`
+  `}var lt=["month_jan","month_feb","month_mar","month_apr","month_may","month_jun","month_jul","month_aug","month_sep","month_oct","month_nov","month_dec"];function dt(n,d,t){if(!t.seasonal||!n.seasonal_factor||n.seasonal_factor===1)return c;let e=lt.map(_=>s(_,d)),i=new Date().getMonth(),o=n.seasonal_factors||n.interval_analysis?.seasonal_factors||null,u=o&&o.length===12?o:e.map((_,p)=>{let m=n.seasonal_factor||1,y=Math.sin((p-6)*Math.PI/6)*.3;return Math.max(.7,Math.min(1.3,m+y))});return r`
     <div class="seasonal-card-compact">
       <h4>${s("seasonal_awareness",d)}</h4>
       <div class="seasonal-mini-chart">
-        ${u.map((_,p)=>{let m=_*40,y=_<.9?"low":_>1.1?"high":"normal";return n`
+        ${u.map((_,p)=>{let m=_*40,y=_<.9?"low":_>1.1?"high":"normal";return r`
             <div class="seasonal-bar ${y} ${p===i?"current":""}"
                  style="height: ${m}px"
                  title="${e[p]}: ${_.toFixed(2)}x">
@@ -1649,27 +1678,27 @@ ${p?`<div class="sub">${p}</div>`:""}
         <span class="legend-item"><span class="dot high"></span> ${s("longer",d)||"L\xE4nger"}</span>
       </div>
     </div>
-  `}function ct(r,d){return Pt(r,d)}function Pt(r,d){let t=r.seasonal_factors??r.interval_analysis?.seasonal_factors;if(!t||t.length!==12)return c;let e=r.interval_analysis?.seasonal_reason,i=new Date().getMonth(),o=300,u=100,_=8,m=u-_-4,y=Math.max(...t,1.5),I=o/12,z=I*.65,w=_+m-1/y*m;return n`
+  `}function ct(n,d){return Pt(n,d)}function Pt(n,d){let t=n.seasonal_factors??n.interval_analysis?.seasonal_factors;if(!t||t.length!==12)return c;let e=n.interval_analysis?.seasonal_reason,i=new Date().getMonth(),o=300,u=100,_=8,m=u-_-4,y=Math.max(...t,1.5),I=o/12,z=I*.65,w=_+m-1/y*m;return r`
     <div class="seasonal-chart">
       <div class="seasonal-chart-title">
         <ha-svg-icon aria-hidden="true" path="M17.75 4.09L15.22 6.03L16.13 9.09L13.5 7.28L10.87 9.09L11.78 6.03L9.25 4.09L12.44 4L13.5 1L14.56 4L17.75 4.09M21.25 11L19.61 12.25L20.2 14.23L18.5 13.06L16.8 14.23L17.39 12.25L15.75 11L17.81 10.95L18.5 9L19.19 10.95L21.25 11M18.97 15.95C19.8 15.87 20.69 17.05 20.16 17.8C19.84 18.25 19.5 18.67 19.08 19.07C15.17 23 8.84 23 4.94 19.07C1.03 15.17 1.03 8.83 4.94 4.93C5.34 4.53 5.76 4.17 6.21 3.85C6.96 3.32 8.14 4.21 8.06 5.04C7.79 7.9 8.75 10.87 10.95 13.06C13.14 15.26 16.1 16.22 18.97 15.95Z"></ha-svg-icon>
         ${s("seasonal_chart_title",d)}
-        ${e?n`<span class="source-tag">${e==="learned"?s("seasonal_learned",d):s("seasonal_manual",d)}</span>`:c}
+        ${e?r`<span class="source-tag">${e==="learned"?s("seasonal_learned",d):s("seasonal_manual",d)}</span>`:c}
       </div>
       <svg viewBox="0 0 ${o} ${u}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${s("chart_seasonal",d)}">
         <line x1="0" y1="${w.toFixed(1)}" x2="${o}" y2="${w.toFixed(1)}"
           stroke="var(--divider-color)" stroke-width="1" stroke-dasharray="4,3" />
-        ${t.map((H,S)=>{let D=H/y*m,K=S*I+(I-z)/2,q=_+m-D,j=S===i,O=H<1?"var(--success-color, #4caf50)":H>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return M`
+        ${t.map((H,S)=>{let U=H/y*m,K=S*I+(I-z)/2,q=_+m-U,j=S===i,O=H<1?"var(--success-color, #4caf50)":H>1?"var(--warning-color, #ff9800)":"var(--secondary-text-color)";return M`
             <rect x="${K.toFixed(1)}" y="${q.toFixed(1)}"
-              width="${z.toFixed(1)}" height="${D.toFixed(1)}"
+              width="${z.toFixed(1)}" height="${U.toFixed(1)}"
               fill="${O}" opacity="${j?1:.5}" rx="2" />
           `})}
       </svg>
       <div class="seasonal-labels">
-        ${lt.map((H,S)=>n`<span class="seasonal-label ${S===i?"active-month":""}">${s(H,d)}</span>`)}
+        ${lt.map((H,S)=>r`<span class="seasonal-label ${S===i?"active-month":""}">${s(H,d)}</span>`)}
       </div>
     </div>
-  `}var f=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._toast="";this._featuresLoaded=!1}get _lang(){return this.hass?.language||"en"}async openFor(t,e){this._entryId=t,this._taskId=e,this._error="",this._showSkip=!1,this._showReset=!1,this._showAdaptive=!1,this._skipReason="",this._resetDate=new Date().toISOString().slice(0,10),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){if(!this._featuresLoaded)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});t?.features&&(this._features={...this._features,...t.features}),this._featuresLoaded=!0}catch{}}close(){this._open=!1,this._task=null,this._error=""}async _loadTask(){if(!(!this._entryId||!this._taskId))try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._objectName=t.object?.name||"";let e=(t.tasks||[]).find(i=>i.id===this._taskId);this._task=e??null}catch(t){this._error=k(t,this._lang)}}async _runWs(t){this._busy=!0,this._error="";try{return await this.hass.connection.sendMessagePromise(t),this._busy=!1,!0}catch(e){return this._error=k(e,this._lang),this._busy=!1,!1}}_notifyChanged(t){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:t},bubbles:!0,composed:!0}))}_onComplete(){!this._entryId||!this._taskId||!this._task||import("./dialog-mount-XQBURIOO.js").then(({openCompleteDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,checklist:this._task.checklist||[],adaptive_enabled:!!this._task.adaptive_config?.enabled})&&(this._notifyChanged("complete"),this.close())})}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})&&(this._notifyChanged("reset"),this.close())}_onEdit(){!this._entryId||!this._taskId||import("./dialog-mount-XQBURIOO.js").then(({openEditTaskDialog:t})=>{t(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||import("./dialog-mount-XQBURIOO.js").then(({openQrDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId)return;let t=s("delete_task_confirm",this._lang)||`Delete "${this._task?.name}"?`;if(!window.confirm(t))return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let t=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",t),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})&&(this._toast=s("suggestion_applied",this._lang)||"Applied",this._notifyChanged("apply_suggestion"),await this._loadTask(),setTimeout(()=>{this._toast=""},2500))}async _reanalyzeInterval(){if(!(!this._entryId||!this._taskId)){this._busy=!0,this._error="";try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});this._toast=t.recommended_interval?`${s("reanalyze_result",this._lang)||"Recomputed"}: ${t.recommended_interval}d (${t.data_points} pts)`:s("reanalyze_insufficient_data",this._lang)||"Not enough data",await this._loadTask(),setTimeout(()=>{this._toast=""},3500)}catch(t){this._error=k(t,this._lang)}finally{this._busy=!1}}}_onEditHistoryEntry(t){!this._entryId||!this._taskId||import("./dialog-mount-XQBURIOO.js").then(({openHistoryEditDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,original_timestamp:t.timestamp,type:t.type,timestamp:t.timestamp,notes:t.notes??null,cost:t.cost??null,duration:t.duration??null,completed_by:t.completed_by??null})})}_renderRecommendation(t){if(!this._features.adaptive||!t.suggested_interval||t.suggested_interval===t.interval_days)return c;let e=this._lang;return n`
+  `}var b=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._taskId=null;this._task=null;this._objectName="";this._busy=!1;this._error="";this._showSkip=!1;this._showReset=!1;this._showDetails=!1;this._showAdaptive=!1;this._skipReason="";this._resetDate="";this._features={adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1};this._toast="";this._featuresLoaded=!1}get _lang(){return this.hass?.language||"en"}async openFor(t,e){this._entryId=t,this._taskId=e,this._error="",this._showSkip=!1,this._showReset=!1,this._showAdaptive=!1,this._skipReason="",this._resetDate=new Date().toISOString().slice(0,10),this._open=!0,await Promise.all([this._loadTask(),this._loadFeatures()])}async _loadFeatures(){if(!this._featuresLoaded)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/settings"});t?.features&&(this._features={...this._features,...t.features}),this._featuresLoaded=!0}catch{}}close(){this._open=!1,this._task=null,this._error=""}async _loadTask(){if(!(!this._entryId||!this._taskId))try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._objectName=t.object?.name||"";let e=(t.tasks||[]).find(i=>i.id===this._taskId);this._task=e??null}catch(t){this._error=k(t,this._lang)}}async _runWs(t){this._busy=!0,this._error="";try{return await this.hass.connection.sendMessagePromise(t),this._busy=!1,!0}catch(e){return this._error=k(e,this._lang),this._busy=!1,!1}}_notifyChanged(t){this.dispatchEvent(new CustomEvent("task-action-fired",{detail:{entry_id:this._entryId,task_id:this._taskId,action:t},bubbles:!0,composed:!0}))}_onComplete(){!this._entryId||!this._taskId||!this._task||import("./dialog-mount-IC5TYAS5.js").then(({openCompleteDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,checklist:this._task.checklist||[],adaptive_enabled:!!this._task.adaptive_config?.enabled})&&(this._notifyChanged("complete"),this.close())})}async _onSkipConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/skip",entry_id:this._entryId,task_id:this._taskId,reason:this._skipReason.trim()||null})&&(this._notifyChanged("skip"),this.close())}async _onResetConfirm(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/reset",entry_id:this._entryId,task_id:this._taskId,date:this._resetDate||void 0})&&(this._notifyChanged("reset"),this.close())}_onEdit(){!this._entryId||!this._taskId||import("./dialog-mount-IC5TYAS5.js").then(({openEditTaskDialog:t})=>{t(this._entryId,this._taskId),this.close()})}_onQr(){!this._entryId||!this._taskId||!this._task||import("./dialog-mount-IC5TYAS5.js").then(({openQrDialog:t})=>{t({entry_id:this._entryId,task_id:this._taskId,task_name:this._task.name,object_name:this._objectName}),this.close()})}async _onDelete(){if(!this._entryId||!this._taskId)return;let t=s("delete_task_confirm",this._lang)||`Delete "${this._task?.name}"?`;if(!window.confirm(t))return;await this._runWs({type:"maintenance_supporter/task/delete",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("delete"),this.close())}async _onArchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/archive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("archive"),this.close())}async _onUnarchive(){if(!this._entryId||!this._taskId)return;await this._runWs({type:"maintenance_supporter/task/unarchive",entry_id:this._entryId,task_id:this._taskId})&&(this._notifyChanged("unarchive"),this.close())}_onOpenInPanel(){if(!this._entryId||!this._taskId)return;let t=`/maintenance-supporter?entry_id=${encodeURIComponent(this._entryId)}&task_id=${encodeURIComponent(this._taskId)}`;history.pushState(null,"",t),window.dispatchEvent(new CustomEvent("location-changed")),this.close()}async _applySuggestion(){if(!this._entryId||!this._taskId||!this._task?.suggested_interval)return;await this._runWs({type:"maintenance_supporter/task/apply_suggestion",entry_id:this._entryId,task_id:this._taskId,interval:this._task.suggested_interval})&&(this._toast=s("suggestion_applied",this._lang)||"Applied",this._notifyChanged("apply_suggestion"),await this._loadTask(),setTimeout(()=>{this._toast=""},2500))}async _reanalyzeInterval(){if(!(!this._entryId||!this._taskId)){this._busy=!0,this._error="";try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/task/analyze_interval",entry_id:this._entryId,task_id:this._taskId});this._toast=t.recommended_interval?`${s("reanalyze_result",this._lang)||"Recomputed"}: ${t.recommended_interval}d (${t.data_points} pts)`:s("reanalyze_insufficient_data",this._lang)||"Not enough data",await this._loadTask(),setTimeout(()=>{this._toast=""},3500)}catch(t){this._error=k(t,this._lang)}finally{this._busy=!1}}}_onEditHistoryEntry(t){!this._entryId||!this._taskId||import("./dialog-mount-IC5TYAS5.js").then(({openHistoryEditDialog:e})=>{e({entry_id:this._entryId,task_id:this._taskId,original_timestamp:t.timestamp,type:t.type,timestamp:t.timestamp,notes:t.notes??null,cost:t.cost??null,duration:t.duration??null,completed_by:t.completed_by??null})})}_renderRecommendation(t){if(!this._features.adaptive||!t.suggested_interval||t.suggested_interval===t.interval_days)return c;let e=this._lang;return r`
       <div class="recommendation-card">
         <h4>${s("suggested_interval",e)}</h4>
         ${ot(t.interval_days,t.suggested_interval,t.interval_confidence||"medium",e)}
@@ -1686,20 +1715,20 @@ ${p?`<div class="sub">${p}</div>`:""}
           </button>
         </div>
       </div>
-    `}_renderAdaptive(t){let e=this._lang,i=this._features.adaptive&&t.suggested_interval&&t.suggested_interval!==t.interval_days,o=t.degradation_trend!=null&&t.degradation_trend!=="insufficient_data"||t.days_until_threshold!=null||t.environmental_factor!=null&&t.environmental_factor!==1,u=this._features.adaptive&&t.interval_analysis?.weibull_beta!=null&&t.interval_analysis?.weibull_eta!=null,_=this._features.seasonal&&t.seasonal_factor&&t.seasonal_factor!==1;return!i&&!o&&!u&&!_?n`<div class="adaptive-empty">
+    `}_renderAdaptive(t){let e=this._lang,i=this._features.adaptive&&t.suggested_interval&&t.suggested_interval!==t.interval_days,o=t.degradation_trend!=null&&t.degradation_trend!=="insufficient_data"||t.days_until_threshold!=null||t.environmental_factor!=null&&t.environmental_factor!==1,u=this._features.adaptive&&t.interval_analysis?.weibull_beta!=null&&t.interval_analysis?.weibull_eta!=null,_=this._features.seasonal&&t.seasonal_factor&&t.seasonal_factor!==1;return!i&&!o&&!u&&!_?r`<div class="adaptive-empty">
         ${s("adaptive_no_data",e)||"Not enough completion history yet for adaptive analysis."}
-      </div>`:n`
+      </div>`:r`
       <div class="adaptive-stack">
-        ${this._toast?n`<div class="toast">${this._toast}</div>`:c}
+        ${this._toast?r`<div class="toast">${this._toast}</div>`:c}
         ${i?this._renderRecommendation(t):c}
         ${o?nt(t,e,this._features):c}
         ${u?rt(t,e):c}
-        ${_?n`
+        ${_?r`
           ${dt(t,e,this._features)}
           ${t.seasonal_factors?.length===12||t.interval_analysis?.seasonal_factors?.length===12?ct(t,e):c}
         `:c}
       </div>
-    `}_renderDetails(t){let e=this._lang,i=t.history||[],o=i.filter(p=>p.type==="completed"),u=o.reduce((p,m)=>p+(typeof m.cost=="number"?m.cost:0),0),_=(()=>{let p=o.map(m=>typeof m.duration=="number"?m.duration:null).filter(m=>m!=null);return p.length?Math.round(p.reduce((m,y)=>m+y,0)/p.length):null})();return n`
+    `}_renderDetails(t){let e=this._lang,i=t.history||[],o=i.filter(p=>p.type==="completed"),u=o.reduce((p,m)=>p+(typeof m.cost=="number"?m.cost:0),0),_=(()=>{let p=o.map(m=>typeof m.duration=="number"?m.duration:null).filter(m=>m!=null);return p.length?Math.round(p.reduce((m,y)=>m+y,0)/p.length):null})();return r`
       <div class="details">
         <div class="stats-grid">
           <div class="stat">
@@ -1719,52 +1748,52 @@ ${p?`<div class="sub">${p}</div>`:""}
           <strong>${s("history",e)||"History"}</strong>
           <span class="history-count">${i.length}</span>
         </div>
-        ${i.length===0?n`<div class="history-empty">${s("history_empty",e)||"No history yet."}</div>`:n`
+        ${i.length===0?r`<div class="history-empty">${s("history_empty",e)||"No history yet."}</div>`:r`
               <div class="history-list">
-                ${[...i].reverse().slice(0,20).map(p=>{let m=["completed","reset","skipped"].includes(p.type);return n`
+                ${[...i].reverse().slice(0,20).map(p=>{let m=["completed","reset","skipped"].includes(p.type);return r`
                     <div class="history-entry">
                       <div class="history-line">
                         <span class="history-type type-${p.type}">${s(p.type,e)}</span>
                         <span class="history-date">${X(p.timestamp,e)}</span>
-                        ${m?n`<button class="history-edit"
+                        ${m?r`<button class="history-edit"
                                    title="${s("history_edit_button",e)||"Edit"}"
                                    @click=${()=>this._onEditHistoryEntry(p)}>
                               <ha-icon icon="mdi:pencil"></ha-icon>
                             </button>`:c}
                       </div>
-                      ${p.notes?n`<div class="history-notes">${p.notes}</div>`:c}
-                      ${p.cost!=null||p.duration!=null?n`<div class="history-meta">
-                            ${p.cost!=null?n`<span>💰 ${p.cost.toFixed(2)}</span>`:c}
-                            ${p.duration!=null?n`<span>⏱️ ${p.duration}m</span>`:c}
+                      ${p.notes?r`<div class="history-notes">${p.notes}</div>`:c}
+                      ${p.cost!=null||p.duration!=null?r`<div class="history-meta">
+                            ${p.cost!=null?r`<span>💰 ${p.cost.toFixed(2)}</span>`:c}
+                            ${p.duration!=null?r`<span>⏱️ ${p.duration}m</span>`:c}
                           </div>`:c}
                     </div>
                   `})}
-                ${i.length>20?n`<div class="history-more">… +${i.length-20} ${s("older_entries",e)||"older"}</div>`:c}
+                ${i.length>20?r`<div class="history-more">… +${i.length-20} ${s("older_entries",e)||"older"}</div>`:c}
               </div>
             `}
       </div>
-    `}render(){if(!this._open)return c;let t=this._lang,e=this._task,i=this.hass?.user?.is_admin??!0;return n`
+    `}render(){if(!this._open)return c;let t=this._lang,e=this._task,i=this.hass?.user?.is_admin??!0;return r`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
-        ${e?n`
+        ${e?r`
               <div class="header">
                 <div class="title">
                   <span class="status-dot" style="background: ${W[e.status]||"#ccc"}"></span>
                   <span class="task-name">${e.name}</span>
                 </div>
                 <div class="object">
-                  <button class="link-inline" @click=${()=>{this._entryId&&import("./dialog-mount-XQBURIOO.js").then(({openObjectQuickActions:o})=>{o(this._entryId),this.close()})}}>${this._objectName}</button>
+                  <button class="link-inline" @click=${()=>{this._entryId&&import("./dialog-mount-IC5TYAS5.js").then(({openObjectQuickActions:o})=>{o(this._entryId),this.close()})}}>${this._objectName}</button>
                 </div>
                 <div class="quick-info">
-                  ${e.next_due?n`<span><strong>${s("next_due",t)||"Next due"}:</strong> ${U(e.next_due,t)}</span>`:c}
-                  ${e.last_performed?n`<span><strong>${s("last_performed",t)||"Last"}:</strong> ${U(e.last_performed,t)}</span>`:c}
-                  ${e.schedule?.kind&&!["manual","one_time"].includes(e.schedule.kind)||e.interval_days!=null?n`<span><strong>${s("interval",t)||"Interval"}:</strong> ${tt(e,t)}</span>`:c}
+                  ${e.next_due?r`<span><strong>${s("next_due",t)||"Next due"}:</strong> ${D(e.next_due,t)}</span>`:c}
+                  ${e.last_performed?r`<span><strong>${s("last_performed",t)||"Last"}:</strong> ${D(e.last_performed,t)}</span>`:c}
+                  ${e.schedule?.kind&&!["manual","one_time"].includes(e.schedule.kind)||e.interval_days!=null?r`<span><strong>${s("interval",t)||"Interval"}:</strong> ${tt(e,t)}</span>`:c}
                 </div>
               </div>
 
-              ${this._error?n`<div class="error">${this._error}</div>`:c}
+              ${this._error?r`<div class="error">${this._error}</div>`:c}
 
-              ${this._showSkip?n`
+              ${this._showSkip?r`
                     <div class="inline-form">
                       <label>${s("skip_reason",t)||"Skip reason (optional)"}</label>
                       <input type="text" .value=${this._skipReason}
@@ -1778,7 +1807,7 @@ ${p?`<div class="sub">${p}</div>`:""}
                         </button>
                       </div>
                     </div>
-                  `:this._showReset?n`
+                  `:this._showReset?r`
                     <div class="inline-form">
                       <label>${s("reset_to_date",t)||"Reset last_performed to"}</label>
                       <input type="date" .value=${this._resetDate}
@@ -1792,7 +1821,7 @@ ${p?`<div class="sub">${p}</div>`:""}
                         </button>
                       </div>
                     </div>
-                  `:n`
+                  `:r`
                     <div class="actions primary-row">
                       <button class="btn primary" @click=${this._onComplete} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:check"></ha-icon>
@@ -1807,7 +1836,7 @@ ${p?`<div class="sub">${p}</div>`:""}
                         ${s("reset",t)||"Reset"}
                       </button>
                     </div>
-                    ${i?n`
+                    ${i?r`
                           <div class="actions secondary-row">
                             <button class="btn ghost" @click=${this._onEdit} ?disabled=${this._busy}>
                               <ha-icon icon="mdi:pencil"></ha-icon>
@@ -1834,7 +1863,7 @@ ${p?`<div class="sub">${p}</div>`:""}
                         <ha-icon icon="${this._showDetails?"mdi:chevron-up":"mdi:chevron-down"}"></ha-icon>
                         ${this._showDetails?s("hide_details",t)||"Hide details":s("show_details",t)||"Show history + stats"}
                       </button>
-                      ${this._features.adaptive||this._features.seasonal||this._features.environmental?n`<button class="link" @click=${()=>{this._showAdaptive=!this._showAdaptive}}>
+                      ${this._features.adaptive||this._features.seasonal||this._features.environmental?r`<button class="link" @click=${()=>{this._showAdaptive=!this._showAdaptive}}>
                             <ha-icon icon="${this._showAdaptive?"mdi:chart-line":"mdi:chart-line-variant"}"></ha-icon>
                             ${this._showAdaptive?s("hide_stats",t)||"Hide stats":s("show_stats",t)||"Show stats + graphs"}
                           </button>`:c}
@@ -1848,9 +1877,9 @@ ${p?`<div class="sub">${p}</div>`:""}
                       </button>
                     </div>
                   `}
-            `:n`<div class="loading">${s("loading",t)||"Loading\u2026"}</div>`}
+            `:r`<div class="loading">${s("loading",t)||"Loading\u2026"}</div>`}
       </div>
-    `}};f.styles=[it,x`
+    `}};b.styles=[it,x`
     :host { display: contents; }
     .backdrop {
       position: fixed; inset: 0; z-index: 100;
@@ -2030,25 +2059,25 @@ ${p?`<div class="sub">${p}</div>`:""}
     .weibull-section, .seasonal-card-compact { max-width: 100%; }
     .weibull-chart svg { max-width: 100%; height: auto; }
     .details-toggle { gap: 12px; flex-wrap: wrap; }
-  `],a([g({attribute:!1})],f.prototype,"hass",2),a([l()],f.prototype,"_open",2),a([l()],f.prototype,"_entryId",2),a([l()],f.prototype,"_taskId",2),a([l()],f.prototype,"_task",2),a([l()],f.prototype,"_objectName",2),a([l()],f.prototype,"_busy",2),a([l()],f.prototype,"_error",2),a([l()],f.prototype,"_showSkip",2),a([l()],f.prototype,"_showReset",2),a([l()],f.prototype,"_showDetails",2),a([l()],f.prototype,"_showAdaptive",2),a([l()],f.prototype,"_skipReason",2),a([l()],f.prototype,"_resetDate",2),a([l()],f.prototype,"_features",2),a([l()],f.prototype,"_toast",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",f);var C=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error=""}get _lang(){return this.hass?.language||"en"}async openFor(t){this._entryId=t,this._error="",this._open=!0,await this._load()}close(){this._open=!1,this._data=null,this._error=""}async _load(){if(this._entryId)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._data=t}catch(t){this._error=k(t,this._lang)}}_onEditObject(){!this._entryId||!this._data||import("./dialog-mount-XQBURIOO.js").then(({openEditObjectDialog:t})=>{t(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&import("./dialog-mount-XQBURIOO.js").then(({openCreateTaskDialog:t})=>{t(),this.close()})}async _onDelete(){if(!this._entryId||!this._data)return;let t=s("delete_object_confirm",this._lang)||`Delete "${this._data.object.name}" and all its tasks?`;if(window.confirm(t)){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=k(e,this._lang)}finally{this._busy=!1}}}async _onArchiveObject(){if(!this._entryId||!this._data)return;let t=!!this._data.object.archived;if(!t){let e=s("confirm_archive_object",this._lang)||"Archive this object and its tasks?";if(!window.confirm(e))return}this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:t?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=k(e,this._lang)}finally{this._busy=!1}}_onTaskClick(t){this._entryId&&import("./dialog-mount-XQBURIOO.js").then(({openTaskQuickActions:e})=>{e(this._entryId,t)})}render(){if(!this._open)return c;let t=this._lang,e=this._data,i=e?.object,o=e?.tasks||[],u=this.hass?.user?.is_admin??!0;return n`
+  `],a([g({attribute:!1})],b.prototype,"hass",2),a([l()],b.prototype,"_open",2),a([l()],b.prototype,"_entryId",2),a([l()],b.prototype,"_taskId",2),a([l()],b.prototype,"_task",2),a([l()],b.prototype,"_objectName",2),a([l()],b.prototype,"_busy",2),a([l()],b.prototype,"_error",2),a([l()],b.prototype,"_showSkip",2),a([l()],b.prototype,"_showReset",2),a([l()],b.prototype,"_showDetails",2),a([l()],b.prototype,"_showAdaptive",2),a([l()],b.prototype,"_skipReason",2),a([l()],b.prototype,"_resetDate",2),a([l()],b.prototype,"_features",2),a([l()],b.prototype,"_toast",2);customElements.get("maintenance-task-quick-actions-dialog")||customElements.define("maintenance-task-quick-actions-dialog",b);var C=class extends ${constructor(){super(...arguments);this._open=!1;this._entryId=null;this._data=null;this._busy=!1;this._error=""}get _lang(){return this.hass?.language||"en"}async openFor(t){this._entryId=t,this._error="",this._open=!0,await this._load()}close(){this._open=!1,this._data=null,this._error=""}async _load(){if(this._entryId)try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:this._entryId});this._data=t}catch(t){this._error=k(t,this._lang)}}_onEditObject(){!this._entryId||!this._data||import("./dialog-mount-IC5TYAS5.js").then(({openEditObjectDialog:t})=>{t(this._entryId,this._data.object),this.close()})}_onAddTask(){this._entryId&&import("./dialog-mount-IC5TYAS5.js").then(({openCreateTaskDialog:t})=>{t(),this.close()})}async _onDelete(){if(!this._entryId||!this._data)return;let t=s("delete_object_confirm",this._lang)||`Delete "${this._data.object.name}" and all its tasks?`;if(window.confirm(t)){this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/delete",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-deleted",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=k(e,this._lang)}finally{this._busy=!1}}}async _onArchiveObject(){if(!this._entryId||!this._data)return;let t=!!this._data.object.archived;if(!t){let e=s("confirm_archive_object",this._lang)||"Archive this object and its tasks?";if(!window.confirm(e))return}this._busy=!0,this._error="";try{await this.hass.connection.sendMessagePromise({type:t?"maintenance_supporter/object/unarchive":"maintenance_supporter/object/archive",entry_id:this._entryId}),this.dispatchEvent(new CustomEvent("object-changed",{detail:{entry_id:this._entryId},bubbles:!0,composed:!0})),this.close()}catch(e){this._error=k(e,this._lang)}finally{this._busy=!1}}_onTaskClick(t){this._entryId&&import("./dialog-mount-IC5TYAS5.js").then(({openTaskQuickActions:e})=>{e(this._entryId,t)})}render(){if(!this._open)return c;let t=this._lang,e=this._data,i=e?.object,o=e?.tasks||[],u=this.hass?.user?.is_admin??!0;return r`
       <div class="backdrop" @click=${this.close}></div>
       <div class="dialog" role="dialog" aria-modal="true">
-        ${e&&i?n`
+        ${e&&i?r`
               <div class="header">
                 <div class="title">${i.name}</div>
                 ${this._renderMetaRow(i)}
               </div>
 
-              ${this._error?n`<div class="error">${this._error}</div>`:c}
+              ${this._error?r`<div class="error">${this._error}</div>`:c}
 
               <div class="tasks-section">
                 <div class="section-header">
                   <strong>${s("tasks",t)||"Tasks"}</strong>
                   <span class="count">${o.length}</span>
                 </div>
-                ${o.length===0?n`<div class="empty">${s("no_tasks",t)||"No tasks yet."}</div>`:n`
+                ${o.length===0?r`<div class="empty">${s("no_tasks",t)||"No tasks yet."}</div>`:r`
                       <div class="task-list">
-                        ${o.map(_=>n`
+                        ${o.map(_=>r`
                           <div class="task-row" @click=${()=>this._onTaskClick(_.id)}>
                             <span class="status-dot" style="background: ${W[_.status]||"#ccc"}"></span>
                             <span class="task-name">${_.name}</span>
@@ -2059,14 +2088,14 @@ ${p?`<div class="sub">${p}</div>`:""}
                     `}
               </div>
 
-              ${i.notes?n`
+              ${i.notes?r`
                     <div class="notes-section">
                       <strong>${s("object_notes_label",t)}</strong>
                       <div class="notes-body">${i.notes}</div>
                     </div>
                   `:c}
 
-              ${u?n`
+              ${u?r`
                     <div class="actions">
                       <button class="btn primary" @click=${this._onAddTask} ?disabled=${this._busy}>
                         <ha-icon icon="mdi:plus"></ha-icon>
@@ -2086,14 +2115,14 @@ ${p?`<div class="sub">${p}</div>`:""}
                       </button>
                     </div>
                   `:c}
-            `:n`<div class="loading">${s("loading",t)||"Loading\u2026"}</div>`}
+            `:r`<div class="loading">${s("loading",t)||"Loading\u2026"}</div>`}
       </div>
-    `}_renderMetaRow(t){let e=this._lang,i=[];return t.area_id&&i.push([s("area",e),t.area_id]),t.manufacturer&&i.push([s("manufacturer",e),t.manufacturer]),t.model&&i.push([s("model",e),t.model]),t.serial_number&&i.push([s("serial_number_label",e),t.serial_number]),t.installation_date&&i.push([s("installed",e),t.installation_date]),t.warranty_expiry&&i.push([s("warranty",e),t.warranty_expiry]),t.documentation_url&&i.push([s("documentation_url_label",e),t.documentation_url]),i.length===0?c:n`
+    `}_renderMetaRow(t){let e=this._lang,i=[];return t.area_id&&i.push([s("area",e),t.area_id]),t.manufacturer&&i.push([s("manufacturer",e),t.manufacturer]),t.model&&i.push([s("model",e),t.model]),t.serial_number&&i.push([s("serial_number_label",e),t.serial_number]),t.installation_date&&i.push([s("installed",e),t.installation_date]),t.warranty_expiry&&i.push([s("warranty",e),t.warranty_expiry]),t.documentation_url&&i.push([s("documentation_url_label",e),t.documentation_url]),i.length===0?c:r`
       <div class="meta">
-        ${i.map(([o,u])=>n`
+        ${i.map(([o,u])=>r`
             <div class="meta-item">
               <span class="meta-label">${o}</span>
-              <span class="meta-value">${/^https?:\/\//i.test(u)?n`<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`:u}</span>
+              <span class="meta-value">${/^https?:\/\//i.test(u)?r`<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`:u}</span>
             </div>
           `)}
       </div>
@@ -2156,4 +2185,4 @@ ${p?`<div class="sub">${p}</div>`:""}
     .btn ha-icon { --mdc-icon-size: 16px; }
     .loading { padding: 24px; text-align: center; color: var(--secondary-text-color); }
     .error { padding: 8px; border-radius: 6px; background: rgba(211,47,47,0.1); color: var(--error-color); font-size: 13px; }
-  `,a([g({attribute:!1})],C.prototype,"hass",2),a([l()],C.prototype,"_open",2),a([l()],C.prototype,"_entryId",2),a([l()],C.prototype,"_data",2),a([l()],C.prototype,"_busy",2),a([l()],C.prototype,"_error",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",C);var ht="maintenance-object-dialog",_t="maintenance-task-dialog",Ft="maintenance-history-edit-dialog",zt="maintenance-complete-dialog",qt="maintenance-qr-dialog",Mt="maintenance-task-quick-actions-dialog",Nt="maintenance-object-quick-actions-dialog";function G(){return document.querySelector("home-assistant")?.hass}function P(r){let d=document.body.querySelector(r);return d||(d=document.createElement(r),document.body.appendChild(d)),d}function F(r){let d=G();if(!d)return!1;r.hass=d;let t=d.language||"en";return Z(t)||J(t).then(()=>{r.requestUpdate?.()}),!0}var pt={features:{adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1},defaultWarningDays:7},B=null;function ut(r){return B||(B=r.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(d=>({features:d.features??pt.features,defaultWarningDays:d.general?.default_warning_days??7})).catch(()=>pt),B)}function ri(){let r=P(ht);return F(r)?(r.openCreate(),!0):!1}function ni(r,d){let t=P(ht);return F(t)?(t.openEdit(r,d),!0):!1}function oi(){let r=P(_t);if(!F(r))return!1;let d=G();return d?((async()=>{let t=await ut(d),e=r;e.checklistsEnabled=t.features.checklists,e.scheduleTimeEnabled=t.features.schedule_time,e.completionActionsEnabled=t.features.completion_actions,e.defaultWarningDays=t.defaultWarningDays,e.openCreate()})(),!0):!1}function li(r,d){let t=P(_t);if(!F(t))return!1;let e=G();return e?((async()=>{try{let[i,o]=await Promise.all([e.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:r}),ut(e)]),u=(i.tasks||[]).find(p=>p.id===d);if(!u){console.warn(`openEditTaskDialog: task ${d} not found in entry ${r}`);return}let _=t;_.checklistsEnabled=o.features.checklists,_.scheduleTimeEnabled=o.features.schedule_time,_.completionActionsEnabled=o.features.completion_actions,_.defaultWarningDays=o.defaultWarningDays,await _.openEdit(r,u)}catch(i){console.warn("openEditTaskDialog: failed to load task/features",i)}})(),!0):!1}function di(r){let d=P(Ft);return F(d)?(d.openEdit(r),!0):!1}function ci(r){let d=P(zt);return F(d)?(d.entryId=r.entry_id,d.taskId=r.task_id,d.taskName=r.task_name,d.checklist=r.checklist??[],d.adaptiveEnabled=!!r.adaptive_enabled,d.lang=G()?.language||"en",d.open(),!0):!1}function pi(r){let d=P(qt);return F(d)?(d.openForTask(r.entry_id,r.task_id,r.object_name,r.task_name),!0):!1}function hi(r,d){let t=P(Mt);return F(t)?(t.openFor(r,d),!0):!1}function _i(r){let d=P(Nt);return F(d)?(d.openFor(r),!0):!1}export{ci as openCompleteDialog,ri as openCreateObjectDialog,oi as openCreateTaskDialog,ni as openEditObjectDialog,li as openEditTaskDialog,di as openHistoryEditDialog,_i as openObjectQuickActions,pi as openQrDialog,hi as openTaskQuickActions};
+  `,a([g({attribute:!1})],C.prototype,"hass",2),a([l()],C.prototype,"_open",2),a([l()],C.prototype,"_entryId",2),a([l()],C.prototype,"_data",2),a([l()],C.prototype,"_busy",2),a([l()],C.prototype,"_error",2);customElements.get("maintenance-object-quick-actions-dialog")||customElements.define("maintenance-object-quick-actions-dialog",C);var ht="maintenance-object-dialog",_t="maintenance-task-dialog",Ft="maintenance-history-edit-dialog",zt="maintenance-complete-dialog",qt="maintenance-qr-dialog",Mt="maintenance-task-quick-actions-dialog",Nt="maintenance-object-quick-actions-dialog";function G(){return document.querySelector("home-assistant")?.hass}function P(n){let d=document.body.querySelector(n);return d||(d=document.createElement(n),document.body.appendChild(d)),d}function F(n){let d=G();if(!d)return!1;n.hass=d;let t=d.language||"en";return Z(t)||J(t).then(()=>{n.requestUpdate?.()}),!0}var pt={features:{adaptive:!1,predictions:!1,seasonal:!1,environmental:!1,budget:!1,groups:!1,checklists:!1,schedule_time:!1,completion_actions:!1},defaultWarningDays:7},B=null;function ut(n){return B||(B=n.connection.sendMessagePromise({type:"maintenance_supporter/settings"}).then(d=>({features:d.features??pt.features,defaultWarningDays:d.general?.default_warning_days??7})).catch(()=>pt),B)}function ri(){let n=P(ht);return F(n)?(n.openCreate(),!0):!1}function ni(n,d){let t=P(ht);return F(t)?(t.openEdit(n,d),!0):!1}function oi(){let n=P(_t);if(!F(n))return!1;let d=G();return d?((async()=>{let t=await ut(d),e=n;e.checklistsEnabled=t.features.checklists,e.scheduleTimeEnabled=t.features.schedule_time,e.completionActionsEnabled=t.features.completion_actions,e.defaultWarningDays=t.defaultWarningDays,e.openCreate()})(),!0):!1}function li(n,d){let t=P(_t);if(!F(t))return!1;let e=G();return e?((async()=>{try{let[i,o]=await Promise.all([e.connection.sendMessagePromise({type:"maintenance_supporter/object",entry_id:n}),ut(e)]),u=(i.tasks||[]).find(p=>p.id===d);if(!u){console.warn(`openEditTaskDialog: task ${d} not found in entry ${n}`);return}let _=t;_.checklistsEnabled=o.features.checklists,_.scheduleTimeEnabled=o.features.schedule_time,_.completionActionsEnabled=o.features.completion_actions,_.defaultWarningDays=o.defaultWarningDays,await _.openEdit(n,u)}catch(i){console.warn("openEditTaskDialog: failed to load task/features",i)}})(),!0):!1}function di(n){let d=P(Ft);return F(d)?(d.openEdit(n),!0):!1}function ci(n){let d=P(zt);return F(d)?(d.entryId=n.entry_id,d.taskId=n.task_id,d.taskName=n.task_name,d.checklist=n.checklist??[],d.adaptiveEnabled=!!n.adaptive_enabled,d.lang=G()?.language||"en",d.open(),!0):!1}function pi(n){let d=P(qt);return F(d)?(d.openForTask(n.entry_id,n.task_id,n.object_name,n.task_name),!0):!1}function hi(n,d){let t=P(Mt);return F(t)?(t.openFor(n,d),!0):!1}function _i(n){let d=P(Nt);return F(d)?(d.openFor(n),!0):!1}export{ci as openCompleteDialog,ri as openCreateObjectDialog,oi as openCreateTaskDialog,ni as openEditObjectDialog,li as openEditTaskDialog,di as openHistoryEditDialog,_i as openObjectQuickActions,pi as openQrDialog,hi as openTaskQuickActions};

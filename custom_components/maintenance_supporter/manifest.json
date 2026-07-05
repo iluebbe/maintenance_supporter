@@ -1,13 +1,23 @@
 {
   "domain": "maintenance_supporter",
   "name": "Maintenance Supporter",
-  "after_dependencies": ["recorder"],
-  "codeowners": ["@iluebbe"],
+  "after_dependencies": [
+    "recorder"
+  ],
+  "codeowners": [
+    "@iluebbe"
+  ],
   "config_flow": true,
-  "dependencies": ["repairs", "http", "panel_custom", "lovelace"],
+  "dependencies": [
+    "repairs",
+    "http",
+    "panel_custom",
+    "lovelace"
+  ],
   "documentation": "https://github.com/iluebbe/maintenance_supporter",
   "integration_type": "hub",
   "iot_class": "calculated",
+  "quality_scale": "silver",
   "issue_tracker": "https://github.com/iluebbe/maintenance_supporter/issues",
   "requirements": [],
   "version": "2.18.1"

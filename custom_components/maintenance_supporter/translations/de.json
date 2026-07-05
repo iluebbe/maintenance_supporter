@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Aufgaben gesamt"
+      },
+      "next_due": {
+        "name": "{task_name} Nächste Fälligkeit"
       }
     },
     "calendar": {

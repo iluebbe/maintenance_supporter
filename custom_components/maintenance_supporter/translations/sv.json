@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Totalt antal uppgifter"
+      },
+      "next_due": {
+        "name": "{task_name} Nästa förfallodatum"
       }
     },
     "calendar": {

@@ -2,7 +2,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { HomeAssistant, MaintenanceObject } from "../types";
+import type { HomeAssistant, MaintenanceObject, MaintenanceObjectResponse } from "../types";
 import { t } from "../styles";
 
 import { describeWsError } from "../ws-errors";
@@ -10,6 +10,8 @@ import "./ms-textfield";
 
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+  /** All objects — choices for the parent-object picker (2.19). */
+  @property({ attribute: false }) public objects: MaintenanceObjectResponse[] = [];
   @state() private _open = false;
   @state() private _loading = false;
   @state() private _error = "";
@@ -25,6 +27,9 @@ export class MaintenanceObjectDialog extends LitElement {
   @state() private _documentationUrl = "";
   // v1.4.10 (#46): free-form notes (multiline)
   @state() private _notes = "";
+  // 2.19: attach to an existing HA device / nest under another object
+  @state() private _haDeviceId = "";
+  @state() private _parentEntryId = "";
   @state() private _entryId: string | null = null; // null = create, string = update
 
   private get _lang(): string {
@@ -42,6 +47,8 @@ export class MaintenanceObjectDialog extends LitElement {
     this._warrantyExpiry = "";
     this._documentationUrl = "";
     this._notes = "";
+    this._haDeviceId = "";
+    this._parentEntryId = "";
     this._error = "";
     this._open = true;
   }
@@ -57,6 +64,8 @@ export class MaintenanceObjectDialog extends LitElement {
     this._warrantyExpiry = obj.warranty_expiry || "";
     this._documentationUrl = obj.documentation_url || "";
     this._notes = obj.notes || "";
+    this._haDeviceId = obj.ha_device_id || "";
+    this._parentEntryId = obj.parent_entry_id || "";
     this._error = "";
     this._open = true;
   }
@@ -80,6 +89,8 @@ export class MaintenanceObjectDialog extends LitElement {
           warranty_expiry: this._warrantyExpiry || null,
           documentation_url: this._documentationUrl.trim() || null,
           notes: this._notes.trim() || null,
+          ha_device_id: this._haDeviceId || null,
+          parent_entry_id: this._parentEntryId || null,
         });
       } else {
         await this.hass.connection.sendMessagePromise({
@@ -93,6 +104,8 @@ export class MaintenanceObjectDialog extends LitElement {
           warranty_expiry: this._warrantyExpiry || null,
           documentation_url: this._documentationUrl.trim() || null,
           notes: this._notes.trim() || null,
+          ha_device_id: this._haDeviceId || null,
+          parent_entry_id: this._parentEntryId || null,
         });
       }
       this._open = false;
@@ -102,6 +115,10 @@ export class MaintenanceObjectDialog extends LitElement {
     } finally {
       this._loading = false;
     }
+  }
+
+  private _parentChoices(): MaintenanceObjectResponse[] {
+    return (this.objects || []).filter((o) => o.entry_id !== this._entryId);
   }
 
   private _close(): void {
@@ -163,6 +180,36 @@ export class MaintenanceObjectDialog extends LitElement {
             .value=${this._warrantyExpiry}
             @input=${(e: Event) => (this._warrantyExpiry = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
+          <ha-form
+            .hass=${this.hass}
+            .data=${{ device: this._haDeviceId || undefined }}
+            .schema=${[{ name: "device", selector: { device: {} } }]}
+            .computeLabel=${() => t("link_device_optional", L)}
+            @value-changed=${(e: CustomEvent) =>
+              (this._haDeviceId =
+                ((e.detail.value as { device?: string })?.device as string) || "")}
+          ></ha-form>
+          ${this._parentChoices().length
+            ? html`<label class="textarea-field">
+                <span class="textarea-label">${t("parent_object_optional", L)}</span>
+                <select
+                  class="parent-select"
+                  .value=${this._parentEntryId}
+                  @change=${(e: Event) =>
+                    (this._parentEntryId = (e.target as HTMLSelectElement).value)}
+                >
+                  <option value="" ?selected=${!this._parentEntryId}>
+                    ${t("parent_none", L)}
+                  </option>
+                  ${this._parentChoices().map(
+                    (o) => html`<option
+                      value=${o.entry_id}
+                      ?selected=${this._parentEntryId === o.entry_id}
+                    >${o.object.name}</option>`,
+                  )}
+                </select>
+              </label>`
+            : nothing}
           <label class="textarea-field">
             <span class="textarea-label">${t("object_notes_optional", L)}</span>
             <textarea
@@ -223,6 +270,12 @@ export class MaintenanceObjectDialog extends LitElement {
     }
     .textarea-field textarea:focus {
       outline: none; border-color: var(--primary-color);
+    }
+    .parent-select {
+      padding: 8px 10px; font-size: 14px; font-family: inherit;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
     }
     .error {
       color: var(--error-color, #f44336);

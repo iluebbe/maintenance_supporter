@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina",
   "auto_complete_on_recovery_help": "Registra un completamento (imposta l'ultima esecuzione) quando il trigger si risolve da solo — ad es. sale ricaricato, filtro sostituito.",
   "doc_search": "Cerca documenti…",
-  "doc_search_none": "Nessun documento corrispondente"
+  "doc_search_none": "Nessun documento corrispondente",
+  "link_device_optional": "Collega a dispositivo esistente (opzionale)",
+  "parent_object_optional": "Oggetto principale (opzionale)",
+  "parent_none": "(Nessun principale)"
 }

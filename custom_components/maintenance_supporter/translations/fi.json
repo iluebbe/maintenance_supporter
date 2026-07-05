@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "Tehtäviä yhteensä"
+      },
+      "next_due": {
+        "name": "{task_name} Seuraava eräpäivä"
       }
     },
     "calendar": {

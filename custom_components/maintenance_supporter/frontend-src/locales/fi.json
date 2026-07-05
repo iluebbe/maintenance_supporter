@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu",
   "auto_complete_on_recovery_help": "Kirjaa suorituksen (asettaa viimeksi tehdyn), kun laukaisin poistuu itsestään — esim. suola lisätty, suodatin vaihdettu.",
   "doc_search": "Hae asiakirjoja…",
-  "doc_search_none": "Ei vastaavia asiakirjoja"
+  "doc_search_none": "Ei vastaavia asiakirjoja",
+  "link_device_optional": "Liitä olemassa olevaan laitteeseen (valinnainen)",
+  "parent_object_optional": "Yläobjekti (valinnainen)",
+  "parent_none": "(Ei yläobjektia)"
 }

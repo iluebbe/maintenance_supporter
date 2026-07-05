@@ -1356,6 +1356,9 @@
       },
       "summary_total_tasks": {
         "name": "タスク総数"
+      },
+      "next_due": {
+        "name": "{task_name} 次回期日"
       }
     },
     "calendar": {

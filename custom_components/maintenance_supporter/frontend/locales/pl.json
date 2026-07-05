@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy",
   "auto_complete_on_recovery_help": "Rejestruje wykonanie (ustawia ostatnie wykonanie), gdy wyzwalacz sam się rozwiąże — np. uzupełniono sól, wymieniono filtr.",
   "doc_search": "Szukaj dokumentów…",
-  "doc_search_none": "Brak pasujących dokumentów"
+  "doc_search_none": "Brak pasujących dokumentów",
+  "link_device_optional": "Połącz z istniejącym urządzeniem (opcjonalnie)",
+  "parent_object_optional": "Obiekt nadrzędny (opcjonalnie)",
+  "parent_none": "(Brak nadrzędnego)"
 }

@@ -62,7 +62,63 @@ _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
     vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
     # v1.4.10 (#46): free-form notes (part numbers, procedures, etc.)
     vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+    # 2.19: attach the object to an EXISTING HA device (entities land on its
+    # device page) / nest under another maintenance object (via_device).
+    vol.Optional("ha_device_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+    vol.Optional("parent_entry_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
 }
+
+
+def _validate_device_link(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+    *,
+    self_entry_id: str | None,
+) -> bool:
+    """Validate ha_device_id / parent_entry_id; sends the WS error itself.
+
+    The parent chain is walked upwards so an A->B->A cycle (which would make
+    the via_device hierarchy unresolvable) is rejected at write time.
+    """
+    if device_id := msg.get("ha_device_id"):
+        from homeassistant.helpers import device_registry as dr
+
+        if dr.async_get(hass).async_get(device_id) is None:
+            connection.send_error(
+                msg["id"], "invalid_device", f"No HA device {device_id!r}"
+            )
+            return False
+
+    if parent_id := msg.get("parent_entry_id"):
+        parent = hass.config_entries.async_get_entry(parent_id)
+        if (
+            parent is None
+            or parent.domain != DOMAIN
+            or parent.unique_id == GLOBAL_UNIQUE_ID
+        ):
+            connection.send_error(
+                msg["id"], "invalid_parent", f"No maintenance object {parent_id!r}"
+            )
+            return False
+        if self_entry_id is not None:
+            cursor: str | None = parent_id
+            for _ in range(20):
+                if cursor == self_entry_id:
+                    connection.send_error(
+                        msg["id"], "invalid_parent",
+                        "Parent chain would form a cycle",
+                    )
+                    return False
+                cur = hass.config_entries.async_get_entry(cursor) if cursor else None
+                cursor = (
+                    (cur.data.get(CONF_OBJECT, {}) or {}).get("parent_entry_id")
+                    if cur
+                    else None
+                )
+                if not cursor:
+                    break
+    return True
 
 
 @websocket_api.websocket_command(
@@ -121,6 +177,8 @@ async def async_create_object(
     warranty_expiry: str | None = None,
     documentation_url: str | None = None,
     notes: str | None = None,
+    ha_device_id: str | None = None,
+    parent_entry_id: str | None = None,
 ) -> str:
     """Create a maintenance object (config entry) and return its entry_id.
 
@@ -143,6 +201,8 @@ async def async_create_object(
             CONF_OBJECT_NOTES: (
                 notes.strip() if isinstance(notes, str) and notes.strip() else None
             ),
+            "ha_device_id": ha_device_id,
+            "parent_entry_id": parent_entry_id,
             "task_ids": [],
         },
         CONF_TASKS: {},
@@ -214,6 +274,10 @@ async def ws_create_object(
     notes_raw = msg.get("notes")
     notes = notes_raw.strip() if isinstance(notes_raw, str) and notes_raw.strip() else None
 
+    # 2.19: device link / parent hierarchy
+    if not _validate_device_link(hass, connection, msg, self_entry_id=None):
+        return
+
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
         connection.send_result(msg["id"], {"valid": True, "entry_id": None})
@@ -231,6 +295,8 @@ async def ws_create_object(
             warranty_expiry=warranty_expiry,
             documentation_url=documentation_url,
             notes=notes,
+            ha_device_id=msg.get("ha_device_id"),
+            parent_entry_id=msg.get("parent_entry_id"),
         )
     except ValueError as err:
         connection.send_error(msg["id"], "create_failed", str(err))
@@ -308,6 +374,12 @@ async def ws_update_object(
             stripped = msg["notes"].strip()
             msg["notes"] = stripped or None
 
+    # 2.19: device link / parent hierarchy
+    if not _validate_device_link(
+        hass, connection, msg, self_entry_id=entry.entry_id
+    ):
+        return
+
     new_data = dict(entry.data)
     obj = dict(new_data.get(CONF_OBJECT, {}))
 
@@ -329,6 +401,13 @@ async def ws_update_object(
         obj[CONF_OBJECT_DOCUMENTATION_URL] = msg["documentation_url"]
     if "notes" in msg:
         obj[CONF_OBJECT_NOTES] = msg["notes"]
+    # 2.19: entity->device attachment only changes on entity re-add, so a
+    # changed link/parent needs an entry reload (scheduled below).
+    device_link_changed = False
+    for key in ("ha_device_id", "parent_entry_id"):
+        if key in msg and msg[key] != obj.get(key):
+            obj[key] = msg[key]
+            device_link_changed = True
 
     # Safety net: cap user strings on persist so this write path matches the
     # create path (which caps via the config flow) and tasks (cap_task_fields).
@@ -336,6 +415,8 @@ async def ws_update_object(
     new_data[CONF_OBJECT] = obj
     title = obj.get(CONF_OBJECT_NAME, entry.title)
     hass.config_entries.async_update_entry(entry, data=new_data, title=title)
+    if device_link_changed:
+        hass.config_entries.async_schedule_reload(entry.entry_id)
 
     connection.send_result(msg["id"], {"success": True})
 

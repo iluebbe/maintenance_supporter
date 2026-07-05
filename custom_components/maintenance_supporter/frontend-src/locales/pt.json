@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar",
   "auto_complete_on_recovery_help": "Regista uma conclusão (define a última realização) quando o gatilho se resolve sozinho — p. ex., sal reabastecido, filtro substituído.",
   "doc_search": "Pesquisar documentos…",
-  "doc_search_none": "Nenhum documento correspondente"
+  "doc_search_none": "Nenhum documento correspondente",
+  "link_device_optional": "Associar a dispositivo existente (opcional)",
+  "parent_object_optional": "Objeto principal (opcional)",
+  "parent_none": "(Sem objeto principal)"
 }

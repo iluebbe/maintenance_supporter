@@ -1,0 +1,153 @@
+# Self-assessment against Home Assistant's integration quality scale
+# (https://developers.home-assistant.io/docs/core/integration-quality-scale/).
+#
+# As a HACS custom integration this file is informational — hassfest does not
+# validate it — but the assessment is kept honest and current so the gaps are
+# explicit. The integration is a local, deviceless service integration
+# (no network I/O, no external dependencies), so the connectivity-related
+# rules are exempt.
+rules:
+  # Bronze
+  action-setup: done
+  appropriate-polling:
+    status: done
+    comment: >
+      5-minute coordinator refresh for time-based status; sensor triggers are
+      event-driven via state_changed listeners (no polling).
+  brands:
+    status: done
+    comment: Registered in home-assistant/brands as part of the HACS default-store listing.
+  common-modules: done
+  config-flow: done
+  config-flow-test-coverage: done
+  dependency-transparency:
+    status: done
+    comment: No runtime requirements at all (manifest requirements is empty).
+  docs-actions:
+    status: done
+    comment: services.yaml descriptors + docs/CONFIGURATION.md and docs/EXAMPLES.md.
+  docs-conditions:
+    status: done
+    comment: docs/FEATURES.md "Automation triggers & conditions".
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions:
+    status: done
+    comment: docs/TROUBLESHOOTING.md "Uninstalling".
+  docs-triggers:
+    status: done
+    comment: docs/FEATURES.md "Automation triggers & conditions".
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure:
+    status: exempt
+    comment: Purely local — there is no device or service connection to test.
+  test-before-setup:
+    status: done
+    comment: Storage load + first coordinator refresh fail the setup cleanly.
+  unique-config-entry:
+    status: done
+    comment: Stable unique_id per object entry plus a singleton global entry.
+
+  # Silver
+  action-exceptions:
+    status: done
+    comment: Services raise ServiceValidationError / HomeAssistantError.
+  config-entry-unloading: done
+  docs-configuration-parameters:
+    status: done
+    comment: docs/CONFIGURATION.md documents every parameter.
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable:
+    status: done
+    comment: >
+      Missing/unavailable trigger entities are logged with a grace period and
+      surfaced as repair issues.
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: No authentication of any kind.
+  test-coverage:
+    status: done
+    comment: CI enforces >= 98% coverage over 2400+ backend tests.
+
+  # Gold
+  devices:
+    status: done
+    comment: Every maintenance object is a device grouping its task entities.
+  diagnostics:
+    status: done
+    comment: Config-entry diagnostics with PII redaction.
+  discovery:
+    status: exempt
+    comment: Objects are user-defined; there is nothing on the network to discover.
+  discovery-update-info:
+    status: exempt
+    comment: No discovery.
+  docs-data-update:
+    status: done
+    comment: docs/FEATURES.md "Data Updates".
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices:
+    status: exempt
+    comment: >
+      Deviceless — objects model arbitrary real-world equipment; 13 object
+      templates are documented instead.
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: done
+    comment: >
+      Objects/tasks created at runtime (panel, WS, services, import) get their
+      device + entities immediately via entry setup/reload.
+  entity-category:
+    status: done
+    comment: >
+      Task sensors/buttons are primary by design; the global document-storage
+      sensor is the only meta entity and is kept primary for dashboard use.
+  entity-device-class:
+    status: done
+    comment: ENUM task sensors, TIMESTAMP next-due, DATA_SIZE storage, problem binary sensors.
+  entity-disabled-by-default:
+    status: done
+    comment: The per-task next-due timestamp sensor is registry-disabled by default.
+  entity-translations:
+    status: done
+    comment: translation_key everywhere; 18 languages with enforced key parity.
+  exception-translations:
+    status: todo
+    comment: >
+      Core lookup failures use translation keys (e.g. no_task_for_entity), but
+      most ServiceValidationError raises are still English-only.
+  icon-translations: done
+  reconfiguration-flow:
+    status: exempt
+    comment: >
+      Nothing is fixed at setup time — every setting is editable via the
+      options flow or the panel settings, so a dedicated reconfigure step
+      would duplicate them.
+  repair-issues:
+    status: done
+    comment: >
+      Missing trigger entities, orphaned operator ids, storage hygiene, and
+      notify-service problems all raise (partly fixable) repair issues.
+  stale-devices:
+    status: done
+    comment: Deleting an object removes its device; task deletion cleans its entities.
+
+  # Platinum
+  async-dependency:
+    status: exempt
+    comment: No dependencies.
+  inject-websession:
+    status: exempt
+    comment: No HTTP client is used.
+  strict-typing:
+    status: done
+    comment: mypy --strict over the whole component is a blocking CI gate.

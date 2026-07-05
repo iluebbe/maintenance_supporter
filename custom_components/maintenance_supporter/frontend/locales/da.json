@@ -663,5 +663,8 @@
   "auto_complete_on_recovery": "Fuldfør automatisk når sensoren retter sig",
   "auto_complete_on_recovery_help": "Registrerer en fuldførelse (sætter senest udført), når udløseren løser sig selv — f.eks. salt påfyldt, filter udskiftet.",
   "doc_search": "Søg dokumenter…",
-  "doc_search_none": "Ingen matchende dokumenter"
+  "doc_search_none": "Ingen matchende dokumenter",
+  "link_device_optional": "Tilknyt eksisterende enhed (valgfrit)",
+  "parent_object_optional": "Overordnet objekt (valgfrit)",
+  "parent_none": "(Intet overordnet)"
 }
