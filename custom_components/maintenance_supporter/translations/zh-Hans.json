@@ -1323,15 +1323,27 @@
           }
         }
       },
-      "summary_overdue": { "name": "已超期" },
-      "summary_due_soon": { "name": "即将到期" },
-      "summary_triggered": { "name": "已触发" },
-      "summary_needs_attention": { "name": "待处理" },
-      "summary_ok": { "name": "正常" },
+      "summary_overdue": {
+        "name": "已超期"
+      },
+      "summary_due_soon": {
+        "name": "即将到期"
+      },
+      "summary_triggered": {
+        "name": "已触发"
+      },
+      "summary_needs_attention": {
+        "name": "待处理"
+      },
+      "summary_ok": {
+        "name": "正常"
+      },
       "document_storage": {
         "name": "文档存储"
       },
-      "summary_total_tasks": { "name": "总任务数" }
+      "summary_total_tasks": {
+        "name": "总任务数"
+      }
     },
     "calendar": {
       "maintenance_schedule": {
@@ -1362,6 +1374,11 @@
             "name": "所属维护项"
           }
         }
+      }
+    },
+    "todo": {
+      "maintenance_todo": {
+        "name": "维护"
       }
     }
   },
