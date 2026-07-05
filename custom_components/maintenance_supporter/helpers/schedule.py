@@ -178,7 +178,8 @@ class Schedule:
         by ``offset_days``. Bases are searched from ``ref - offset`` so the
         shifted result still lands on/after ``ref``; when the business
         rollback pushes a candidate before ``ref``, the next base is tried
-        (bounded — a rollback moves at most 2 days).
+        (bounded — a rollback moves at most a few days, ≤14 even with a
+        Workday-provided holiday calendar in play).
         """
         offset = timedelta(days=self.offset_days)
         search = ref - offset
