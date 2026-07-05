@@ -142,9 +142,11 @@ Smaller, high-frequency wins first; each ships independently.
   task table, costs; opens in a new tab to print / "Save as PDF".
 
 ### Design system
-- 🟡 **Dark-mode & color-blind audit** — status badges now carry a shape icon and
-  the chart danger zone uses a diagonal hatch (v2.15.0). Remaining: full contrast
-  verification in dark themes + design-token consolidation.
+- 🟡 **Dark-mode & color-blind audit** — status badges carry a shape icon and the
+  chart danger zone uses a diagonal hatch (v2.15.0). Status colours are now all
+  routed through HA theme tokens (a tripwire test blocks bare colours from
+  reappearing). Remaining: live multi-theme contrast QA in the browser (a manual
+  check that can't be unit-tested).
 - ✅ **Task-detail information architecture** (v2.15.0) — Weibull/seasonal
   analysis cards are collapsible with per-section remembered state.
 - 🟡 **Panel performance as a feature** — code-splitting (strategy chunks) shipped;
