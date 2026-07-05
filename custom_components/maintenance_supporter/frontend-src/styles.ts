@@ -24,6 +24,7 @@ export const STATUS_ICONS: Record<string, string> = {
   archived: "mdi:archive-outline",
   completed: "mdi:check-circle",
   skipped: "mdi:skip-next",
+  missed: "mdi:calendar-remove",
   reset: "mdi:refresh",
 };
 

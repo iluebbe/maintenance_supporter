@@ -75,6 +75,7 @@ from .tasks_validation import (
         # Validated/canonicalized in the handler via Schedule.from_dict.
         vol.Optional("schedule"): vol.Any(dict, None),
         vol.Optional("warning_days", default=DEFAULT_WARNING_DAYS): vol.All(int, vol.Range(min=0, max=365)),
+        vol.Optional("earliest_completion_days"): vol.Any(vol.All(int, vol.Range(min=0, max=3650)), None),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
@@ -192,6 +193,8 @@ async def ws_create_task(
         task_data["documentation_url"] = msg["documentation_url"]
     if msg.get("responsible_user_id") is not None:
         task_data["responsible_user_id"] = msg["responsible_user_id"]
+    if msg.get("earliest_completion_days") is not None:
+        task_data["earliest_completion_days"] = msg["earliest_completion_days"]
     if msg.get("assignee_pool"):
         from ..helpers.sanitize import sanitize_assignee_pool
         task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
@@ -274,6 +277,7 @@ async def ws_create_task(
         # Nested recurrence (calendar kinds); see create schema.
         vol.Optional("schedule"): vol.Any(dict, None),
         vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
+        vol.Optional("earliest_completion_days"): vol.Any(vol.All(int, vol.Range(min=0, max=3650)), None),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
@@ -384,6 +388,7 @@ async def ws_update_task(
         "due_date": "due_date",
         "interval_anchor": "interval_anchor",
         "warning_days": "warning_days",
+        "earliest_completion_days": "earliest_completion_days",
         "last_performed": "last_performed",
         "trigger_config": "trigger_config",
         "notes": "notes",

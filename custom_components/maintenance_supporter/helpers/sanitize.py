@@ -96,6 +96,13 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
         elif wd > 365:
             task_data["warning_days"] = 365
 
+    ecd = task_data.get("earliest_completion_days")
+    if ecd is not None:
+        if not isinstance(ecd, int) or isinstance(ecd, bool):
+            task_data.pop("earliest_completion_days", None)
+        else:
+            task_data["earliest_completion_days"] = max(0, min(ecd, 3650))
+
     cl = task_data.get("checklist")
     if cl is not None:
         if not isinstance(cl, list):

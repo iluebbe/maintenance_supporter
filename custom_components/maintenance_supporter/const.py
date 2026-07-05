@@ -479,6 +479,7 @@ class HistoryEntryType(StrEnum):
 
     COMPLETED = "completed"
     SKIPPED = "skipped"
+    MISSED = "missed"
     RESET = "reset"
     TRIGGERED = "triggered"
     TRIGGER_REMOVED = "trigger_removed"

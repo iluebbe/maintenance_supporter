@@ -111,6 +111,7 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _intervalUnit = "days";
   @state() private _dueDate = "";
   @state() private _warningDays = "7";
+  @state() private _earliestCompletionDays = "";
   @state() private _intervalAnchor: "completion" | "planned" = "completion";
   // Calendar kinds (Phase 4): weekdays (0=Mon…6=Sun), nth_weekday, day_of_month
   @state() private _weekdays: number[] = [];
@@ -236,6 +237,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._nthWeekday = sched?.kind === "nth_weekday" ? String(sched.weekday ?? 5) : "5";
     this._domDay = sched?.kind === "day_of_month" ? String(sched.day ?? 1) : "1";
     this._warningDays = task.warning_days.toString();
+    this._earliestCompletionDays =
+      task.earliest_completion_days != null ? String(task.earliest_completion_days) : "";
     this._intervalAnchor = task.interval_anchor || "completion";
     this._notes = task.notes || "";
     this._documentationUrl = task.documentation_url || "";
@@ -323,6 +326,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._intervalUnit = "days";
     this._dueDate = "";
     this._warningDays = String(this.defaultWarningDays);
+    this._earliestCompletionDays = "";
     this._intervalAnchor = "completion";
     this._weekdays = [];
     this._nth = "1";
@@ -671,6 +675,8 @@ export class MaintenanceTaskDialog extends LitElement {
         schedule_type: this._scheduleType,
         warning_days: parseInt(this._warningDays, 10) || 7,
       };
+      const ecd = this._earliestCompletionDays.trim();
+      data.earliest_completion_days = ecd === "" ? null : Math.max(0, parseInt(ecd, 10) || 0);
 
       if (this._taskId) data.task_id = this._taskId;
 
@@ -1349,6 +1355,13 @@ export class MaintenanceTaskDialog extends LitElement {
             type="number"
             .value=${this._warningDays}
             @input=${(e: Event) => (this._warningDays = (e.target as HTMLInputElement).value)}
+          ></ms-textfield>
+          <ms-textfield
+            label="${t("earliest_completion_days", L)}"
+            helper="${t("earliest_completion_days_help", L)}"
+            type="number"
+            .value=${this._earliestCompletionDays}
+            @input=${(e: Event) => (this._earliestCompletionDays = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
           ${this.checklistsEnabled ? html`
             <h3>${t("checklist_steps_optional", L)}</h3>
