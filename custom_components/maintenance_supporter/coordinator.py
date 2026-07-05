@@ -996,11 +996,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 task.adaptive_config = updated_config
 
+        await self._persist_and_signal_task_change(task_id, task)
+
         # Shared-task rotation: advance_rotation() (inside task.complete)
         # mutates responsible_user_id, which is a STATIC config field — the
         # Store's dynamic overlay deliberately doesn't carry it. Persist the
         # rotated pointer to entry.data or the rotation evaporates with this
         # model object (the pointer never actually moved in released 2.17).
+        # Ordered AFTER the store flush (journey I1): a crash between the two
+        # writes then loses only the rotation — the completion is recorded,
+        # and a retried completion can't double-advance the pointer.
         if task.responsible_user_id != pre_rotation_responsible:
             new_data = dict(self.entry.data)
             new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -1009,8 +1014,6 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             new_tasks[task_id] = td
             new_data[CONF_TASKS] = new_tasks
             self.hass.config_entries.async_update_entry(self.entry, data=new_data)
-
-        await self._persist_and_signal_task_change(task_id, task)
 
         # Invalidate budget cache when a cost is recorded
         if cost is not None:

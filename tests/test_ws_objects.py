@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry, MockUser
 
 from custom_components.maintenance_supporter.const import (
     CONF_OBJECT,
@@ -321,6 +321,12 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
 
     Source-of-truth: every key set in this fixture must round-trip.
     """
+    # The assignee pool below must reference REAL HA users — the startup
+    # orphan sweep (extended for rotation ghosts, journey G2) prunes pool
+    # members that aren't in the auth registry and dissolves the rotation.
+    MockUser(id="user-a", name="User A").add_to_hass(hass)
+    MockUser(id="user-b", name="User B").add_to_hass(hass)
+
     task_id = "f" * 32
     fully_loaded_task: dict[str, Any] = {
         "id": task_id,
