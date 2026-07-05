@@ -1233,13 +1233,24 @@ _ORPHAN_ISSUE_PREFIX = "orphan_admin_panel_user_"
 async def _check_task_responsible_user_orphans(
     hass: HomeAssistant,
 ) -> None:
-    """Clear ``task.responsible_user_id`` pointing at deleted HA users.
+    """Clear task assignments pointing at deleted HA users.
 
     Same class of bug as ``admin_panel_user_ids`` orphans (#48 audit) but for
-    tasks: a user can be deleted in HA while we hold their UUID in entry data,
-    causing dashboards to render "Unknown user" forever. Notifications already
-    fall back to the global service when the user is gone, so silent removal
-    is the right move — no repair issue, no user prompt.
+    tasks: a user can be deleted in HA while we hold their UUID in entry data.
+    Two references need pruning:
+
+    * ``responsible_user_id`` — dashboards would render "Unknown user"
+      forever; notifications already fall back to the global service.
+    * ``assignee_pool`` (2.17 rotation) — a ghost member is WORSE than a
+      ghost pointer: ``advance_rotation`` keeps assigning the deleted user
+      (``least_completed`` picks them forever at 0 completions), so pruning
+      only the pointer would resurrect it on the next completion.
+
+    When the pool shrinks below 2 members the rotation is dissolved
+    (mirroring the task-dialog save rule); when the orphaned pointer leaves a
+    healthy pool behind, responsibility moves to the first remaining member
+    so the shared task never goes unassigned. Silent removal with an info
+    log — no repair issue, no user prompt.
     """
     valid_ids = {u.id for u in await hass.auth.async_get_users()}
     if not valid_ids:
@@ -1256,16 +1267,37 @@ async def _check_task_responsible_user_orphans(
         changed = False
         for tid, td in tasks.items():
             ruid = td.get("responsible_user_id")
-            if ruid and ruid not in valid_ids:
+            pool = [u for u in (td.get("assignee_pool") or []) if isinstance(u, str)]
+            pruned_pool = [u for u in pool if u in valid_ids]
+            resp_orphaned = bool(ruid) and ruid not in valid_ids
+            if not resp_orphaned and pruned_pool == pool:
+                new_tasks[tid] = td
+                continue
+
+            new_td = dict(td)
+            changed = True
+            if pruned_pool != pool:
+                _LOGGER.info(
+                    "Removing %d deleted user(s) from assignee_pool on task %s (%s)",
+                    len(pool) - len(pruned_pool), tid, entry.title,
+                )
+                if len(pruned_pool) >= 2:
+                    new_td["assignee_pool"] = pruned_pool
+                else:
+                    # A rotation needs at least two members.
+                    new_td.pop("assignee_pool", None)
+                    new_td.pop("rotation_strategy", None)
+            if resp_orphaned:
                 _LOGGER.info(
                     "Clearing orphaned responsible_user_id %s on task %s (%s)",
                     ruid, tid, entry.title,
                 )
-                new_td = {k: v for k, v in td.items() if k != "responsible_user_id"}
-                new_tasks[tid] = new_td
-                changed = True
-            else:
-                new_tasks[tid] = td
+                if len(pruned_pool) >= 2:
+                    # Keep the shared task assigned: hand over to the pool.
+                    new_td["responsible_user_id"] = pruned_pool[0]
+                else:
+                    new_td.pop("responsible_user_id", None)
+            new_tasks[tid] = new_td
         if changed:
             new_data = {**entry.data, CONF_TASKS: new_tasks}
             hass.config_entries.async_update_entry(entry, data=new_data)
