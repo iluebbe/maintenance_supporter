@@ -440,6 +440,8 @@
   "settings_max_per_day": "Max notifications per day (0 = unlimited)",
   "settings_bundling": "Bundle notifications",
   "settings_bundle_threshold": "Bundle threshold",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Mobile Action Buttons",
   "settings_action_complete": "Show 'Complete' button",
   "settings_action_skip": "Show 'Skip' button",

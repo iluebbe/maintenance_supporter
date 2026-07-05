@@ -249,6 +249,72 @@ async def async_maybe_send_warranty_reminders(
         await nm.async_send_warranty_reminder(names, days)
 
 
+async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
+    """Send extra lead-time reminders for tasks due in exactly N days.
+
+    Opt-in via the ``reminder_lead_days`` list (e.g. [14, 3, 0]) — for every
+    active task whose days-until-due matches one of the configured leads, one
+    reminder fires through the notification manager (per-user routing, quiet
+    hours, vacation, snooze, daily limit all apply). Runs from the daily
+    08:00 tick, so each lead fires at most once per day per task, and once
+    per cycle overall (the day-match only occurs on one day per lead).
+    Complements — does not replace — the warning_days status-change path.
+    """
+    from .const import CONF_REMINDER_LEAD_DAYS
+    from .models.maintenance_task import MaintenanceTask
+
+    global_entry = next(
+        (e for e in hass.config_entries.async_entries(DOMAIN)
+         if e.unique_id == GLOBAL_UNIQUE_ID),
+        None,
+    )
+    if global_entry is None:
+        return
+    options = global_entry.options or global_entry.data
+    leads_raw = options.get(CONF_REMINDER_LEAD_DAYS) or []
+    leads = {v for v in leads_raw if isinstance(v, int) and not isinstance(v, bool)}
+    if not leads:
+        return
+
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if nm is None:
+        return
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            continue
+        obj = entry.data.get(CONF_OBJECT) or {}
+        if obj.get("archived_at") is not None:
+            continue
+        rd = getattr(entry, "runtime_data", None)
+        coordinator = getattr(rd, "coordinator", None)
+        if coordinator is None:
+            continue
+        # Merged data so last_performed reflects the Store, not stale entry data.
+        merged = coordinator._get_merged_tasks_data()
+        obj_name = obj.get("name") or entry.title
+        for task_id, task_data in merged.items():
+            if not task_data.get("enabled", True):
+                continue
+            if task_data.get("archived_at") is not None:
+                continue
+            task = MaintenanceTask.from_dict(task_data)
+            days = task.days_until_due
+            # days == 0 is a valid lead ("on the due date"); negatives are the
+            # overdue path's job (notify_overdue_interval_hours).
+            if days is None or days < 0 or days not in leads:
+                continue
+            await nm.async_send_lead_reminder(
+                entry_id=entry.entry_id,
+                task_id=task_id,
+                task_name=task.name,
+                object_name=obj_name,
+                days=days,
+                next_due=task.next_due.isoformat() if task.next_due else None,
+                responsible_user_id=task.responsible_user_id,
+            )
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Maintenance Supporter integration."""
     hass.data.setdefault(DOMAIN, {})
@@ -678,6 +744,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def _weekly_digest_tick(now: Any) -> None:
         await async_maybe_send_weekly_digest(hass)
         await async_maybe_send_warranty_reminders(hass)
+        await async_maybe_send_lead_reminders(hass)
 
     unsub_digest = async_track_time_change(
         hass, _weekly_digest_tick, hour=8, minute=0, second=0

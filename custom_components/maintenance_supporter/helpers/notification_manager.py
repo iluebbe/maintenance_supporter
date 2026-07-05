@@ -1157,6 +1157,78 @@ class NotificationManager:
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send warranty reminder")
 
+    async def async_send_lead_reminder(
+        self,
+        entry_id: str,
+        task_id: str,
+        task_name: str,
+        object_name: str,
+        days: int,
+        next_due: str | None = None,
+        responsible_user_id: str | None = None,
+    ) -> None:
+        """Send one lead-time reminder (task is due in exactly ``days`` days).
+
+        Fired by the daily lead-reminder tick when a task's days-until-due
+        matches one of the configured ``reminder_lead_days``. Reuses the
+        due-soon strings (same message shape) and the per-user routing of the
+        status-change path. Honours quiet hours, vacation mode, snooze, and
+        the daily limit; the once-per-day tick is the repeat gate, so no
+        ``_last_notified`` bookkeeping is needed.
+        """
+        self.async_verify_configured_service()
+        if not self.enabled:
+            return
+        if self._is_quiet_hours():
+            return
+        from .vacation import get_vacation_state
+
+        if get_vacation_state(self.hass).is_silent_for(task_id):
+            return
+        # An active snooze silences lead reminders too (same key family the
+        # snooze action writes).
+        if self._is_snoozed(f"{entry_id}_{task_id}_{MaintenanceStatus.DUE_SOON}"):
+            return
+        if not self._check_daily_limit():
+            return
+
+        lang = self._lang
+        title = _notif_t("due_soon_title", lang)
+        message = _notif_t(
+            "due_soon_message",
+            lang,
+            task=task_name,
+            object=object_name,
+            days=str(days),
+            due=next_due if next_due is not None else "?",
+        )
+
+        target_services: list[str] = []
+        if responsible_user_id:
+            user_services = await _get_user_notify_services(self.hass, responsible_user_id)
+            if user_services:
+                target_services = user_services
+        if not target_services and self.notify_service:
+            target_services = [self.notify_service]
+        if not target_services:
+            return
+
+        success = False
+        for service in target_services:
+            if await self._async_send_notification_to_service(
+                service=service,
+                title=title,
+                message=message,
+                entry_id=entry_id,
+                task_id=task_id,
+            ):
+                success = True
+        if success:
+            self._daily_count += 1
+            _LOGGER.debug(
+                "Lead reminder sent: %s due in %s day(s)", task_name, days
+            )
+
     async def async_budget_alert(
         self,
         period: str,

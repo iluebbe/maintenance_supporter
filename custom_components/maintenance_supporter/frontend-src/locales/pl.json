@@ -439,6 +439,8 @@
   "settings_max_per_day": "Maks. powiadomień dziennie (0 = bez limitu)",
   "settings_bundling": "Grupowanie powiadomień",
   "settings_bundle_threshold": "Próg grupowania",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Mobilne przyciski akcji",
   "settings_action_complete": "Pokaż przycisk 'Wykonaj'",
   "settings_action_skip": "Pokaż przycisk 'Pomiń'",

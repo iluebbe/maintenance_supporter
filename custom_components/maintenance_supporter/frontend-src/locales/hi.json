@@ -440,6 +440,8 @@
   "settings_max_per_day": "प्रति दिन अधिकतम सूचनाएँ (0 = असीमित)",
   "settings_bundling": "सूचनाएँ बंडल करें",
   "settings_bundle_threshold": "बंडल सीमा",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "मोबाइल क्रिया बटन",
   "settings_action_complete": "'पूर्ण करें' बटन दिखाएँ",
   "settings_action_skip": "'छोड़ें' बटन दिखाएँ",

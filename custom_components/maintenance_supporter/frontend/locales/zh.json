@@ -440,6 +440,8 @@
   "settings_max_per_day": "每日最高通知次数 (0 = 不限)",
   "settings_bundling": "合并通知",
   "settings_bundle_threshold": "合并阈值",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "移动端操作按钮",
   "settings_action_complete": "显示“完成”按钮",
   "settings_action_skip": "显示“跳过”按钮",

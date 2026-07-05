@@ -440,6 +440,8 @@
   "settings_max_per_day": "Ilmoituksia enintään päivässä (0 = rajoittamaton)",
   "settings_bundling": "Niputa ilmoitukset",
   "settings_bundle_threshold": "Niputuksen kynnys",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Mobiilitoimintopainikkeet",
   "settings_action_complete": "Näytä Valmis-painike",
   "settings_action_skip": "Näytä Ohita-painike",

@@ -39,6 +39,7 @@ interface SettingsResponse {
     max_per_day: number;
     bundling_enabled: boolean;
     bundle_threshold: number;
+    reminder_lead_days: number[];
   };
   actions: {
     complete_enabled: boolean;
@@ -542,6 +543,19 @@ export class MaintenanceSettingsView extends LitElement {
               @change=${(e: Event) => this._updateSetting("notification_bundle_threshold", parseInt((e.target as HTMLInputElement).value, 10) || 2)} />
           </label>
         ` : nothing}
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_reminder_leads", L)}</span>
+          <input type="text" placeholder="14, 3, 0"
+            .value=${(n.reminder_lead_days || []).join(", ")}
+            @change=${(e: Event) => {
+              const leads = (e.target as HTMLInputElement).value
+                .split(",")
+                .map((s) => parseInt(s.trim(), 10))
+                .filter((v) => Number.isInteger(v) && v >= 0 && v <= 365);
+              this._updateSetting("reminder_lead_days", [...new Set(leads)]);
+            }} />
+        </label>
+        <div class="setting-hint">${t("settings_reminder_leads_hint", L)}</div>
 
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_actions", L)}</h4>
         <label class="setting-row">

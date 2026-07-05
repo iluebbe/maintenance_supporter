@@ -439,6 +439,8 @@
   "settings_max_per_day": "Max notifiche al giorno (0 = illimitato)",
   "settings_bundling": "Raggruppare le notifiche",
   "settings_bundle_threshold": "Soglia di raggruppamento",
+  "settings_reminder_leads": "Extra reminders (days before due)",
+  "settings_reminder_leads_hint": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
   "settings_actions": "Pulsanti azione mobili",
   "settings_action_complete": "Mostra pulsante 'Completato'",
   "settings_action_skip": "Mostra pulsante 'Salta'",
