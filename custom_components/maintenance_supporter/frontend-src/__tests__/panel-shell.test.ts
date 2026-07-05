@@ -72,12 +72,18 @@ describe("panel shell", () => {
       .to.equal(0);
   });
 
-  it("Ctrl+K opens the command palette, filters, and navigates to the task", async () => {
+  it("'/' opens the command palette, filters, and navigates to the task", async () => {
     const { el } = await mountPanel([
       obj("e1", [task({ name: "Filter Wechsel" }), task({ name: "Pumpe prüfen" })]),
     ]);
 
+    // Ctrl+K must NOT open it — that's HA's own global-search hotkey and the
+    // panel used to shadow it (changed in 2.18.1).
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+    await el.updateComplete;
+    expect(sr(el).querySelector(".palette-input"), "Ctrl+K stays HA's").to.be.null;
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "/" }));
     await el.updateComplete;
     const input = sr(el).querySelector<HTMLInputElement>(".palette-input");
     expect(input, "palette opened").to.exist;
@@ -101,6 +107,23 @@ describe("panel shell", () => {
     expect(sr(el).querySelector(".task-header"), "task detail rendered").to.exist;
     expect(sr(el).querySelector(".task-name-breadcrumb")!.textContent)
       .to.include("Filter Wechsel");
+  });
+
+  it("'/' while typing in a text field does not open the palette", async () => {
+    const { el } = await mountPanel([
+      obj("e1", [task({ name: "Filter Wechsel" })]),
+    ]);
+    const field = document.createElement("input");
+    document.body.appendChild(field);
+    try {
+      field.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "/", bubbles: true, composed: true }),
+      );
+      await el.updateComplete;
+      expect(sr(el).querySelector(".palette-input")).to.be.null;
+    } finally {
+      field.remove();
+    }
   });
 
   it("Today view buckets overdue / due-today / this-week and hides later tasks", async () => {

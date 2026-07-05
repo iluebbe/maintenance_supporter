@@ -150,7 +150,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     try { return new Set(JSON.parse(localStorage.getItem("msp-collapsed-sections") || "[]")); }
     catch { return new Set(); }
   })();
-  // v2.15.0: command palette (Ctrl/Cmd+K) — global search over objects + tasks.
+  // v2.15.0: command palette ("/" since 2.18.1 — Ctrl+K clashed with HA's own
+  // global search) — global fuzzy search over objects + tasks.
   @state() private _paletteOpen = false;
   @state() private _paletteQuery = "";
   @state() private _paletteActive = 0;
@@ -769,12 +770,25 @@ export class MaintenanceSupporterPanel extends LitElement {
     undo?.();
   }
 
-  // --- Command palette (Ctrl/Cmd+K) ---
+  // --- Command palette ("/") ---
 
   private _paletteKeydown = (e: KeyboardEvent): void => {
-    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+    // "/" opens the palette (GitHub/Discourse convention; Shift+7 on a German
+    // layout still yields key === "/"). Deliberately NOT Ctrl/Cmd+K: that is
+    // HA's own global-search hotkey, and this window-level preventDefault
+    // would shadow it whenever the panel is open.
+    if (
+      e.key === "/"
+      && !e.ctrlKey && !e.metaKey && !e.altKey
+      && !this._paletteOpen
+    ) {
+      const target = e.composedPath()[0];
+      const typing = target instanceof HTMLElement
+        && (target.tagName === "INPUT" || target.tagName === "TEXTAREA"
+          || target.tagName === "SELECT" || target.isContentEditable);
+      if (typing) return;
       e.preventDefault();
-      this._paletteOpen ? this._closePalette() : this._openPalette();
+      this._openPalette();
       return;
     }
     if (!this._paletteOpen) return;

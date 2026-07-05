@@ -103,7 +103,7 @@ for you — always previewing before it writes.
 | **History & money** | Full history with cost/duration/photos, Missed-vs-skipped, budgets + alerts, PDF report, CSV/JSON import & export | [Features → Data Management](docs/FEATURES.md#data-management) |
 | **Documents** | Attach manuals/invoices/photos per object — backup-safe, deduplicated, searchable, linkable to tasks (PDF page jump) | [Features → Documents](docs/FEATURES.md#documents--manuals-2110) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags, on-complete service calls back to the device | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
-| **Dashboards** | Sidebar panel (Today view, Ctrl+K palette, bulk actions), Lovelace card, calendar card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
+| **Dashboards** | Sidebar panel (Today view, `/` command palette, bulk actions), Lovelace card, calendar card, auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
 | **Localization** | Full UI in 18 languages across panel, config flow, and notifications | [Features → Frontend](docs/FEATURES.md#frontend) |
 
 ## Entities & automation hooks
