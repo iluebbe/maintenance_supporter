@@ -149,12 +149,13 @@ Smaller, high-frequency wins first; each ships independently.
   check that can't be unit-tested).
 - ✅ **Task-detail information architecture** (v2.15.0) — Weibull/seasonal
   analysis cards are collapsible with per-section remembered state.
-- 🟡 **Panel performance as a feature** — code-splitting (strategy chunks) shipped;
-  `content-visibility: auto` now skips off-screen paint on the object cards, the
-  history timeline and the Today list. Remaining: the dashboard task table uses
-  CSS **subgrid** for cross-row column alignment, which is incompatible with
-  `content-visibility`/`size` containment — genuinely virtualizing it (windowing)
-  without losing column alignment is the larger follow-up for 500+ task installs.
+- ✅ **Panel performance as a feature** — code-splitting (strategy chunks),
+  `content-visibility: auto` on object cards / history timeline / Today list,
+  and (new) a **genuinely virtualized dashboard task table**: above 120 rows
+  only the scroll window is in the DOM (spacers keep the scrollbar honest), and
+  a hidden sizer row pins the content-sized badge column so the shared subgrid
+  tracks can't jitter while scrolling. Verified live with ~300 tasks: 36 DOM
+  rows, byte-identical column widths at top/middle/end.
 
 ## Maintainability (internal, scheduled before the feature wave)
 
@@ -168,15 +169,13 @@ changes, but they gate how cheap the features above are to build.
 - ✅ **Move `_trigger_state` out of `trigger_config`** (v2.13.0) — dynamic trigger
   runtime now lives in the per-entry Store, reconstructed into `trigger_config`
   only at read.
-- 🛠️ **Modularize the panel** — the 2.5k-line `maintenance-panel.ts` is being
-  thinned by extracting cohesive render clusters into `renderers/` free-function
-  modules (the pattern already used for sparkline/prediction/charts). Done so
-  far: the shared progress bars (`renderers/progress.ts`) and the history
-  sub-view (`renderers/history.ts`). Remaining: the task-detail cluster is a
-  larger, higher-risk step — it owns ~20 action handlers and drives dialogs in
-  the panel's shadow root, so a full `<task-detail-view>` web component needs
-  events/dialog-ownership rework rather than a mechanical move; do it
-  incrementally, not big-bang.
+- ✅ **Modularize the panel** — cohesive render clusters live in `renderers/`
+  free-function modules: progress bars, history sub-view, and (new) the entire
+  **task-detail cluster** (`renderers/task-detail.ts` — header/actions, tab
+  bar, overview tab with KPI/meta/analysis cards, history tab) behind a
+  `TaskDetailContext` of ~20 panel-owned callbacks. Dialog ownership stays
+  panel-side by design, so the module renders into the panel's shadow root and
+  never touches a dialog itself. The panel shrank ~2.9k → ~2.5k lines.
 - 🟡 **Panel ↔ config-flow parity by construction** — the *global settings*
   surface is now derived from one `helpers/settings_registry` source (allow-list
   + ranges + options-flow selectors) and the notify-target list is unified.
