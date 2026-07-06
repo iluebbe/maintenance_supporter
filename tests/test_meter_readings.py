@@ -140,7 +140,9 @@ async def test_ws_complete_records_reading_values(hass: HomeAssistant, global_en
     readings = [h["reading_value"] for h in merged["history"] if "reading_value" in h]
     assert readings == [1000.0, 1123.5, 1250.0]
     # The delta the panel derives from consecutive entries: +123.5, +126.5.
-    deltas = [b - a for a, b in zip(readings, readings[1:])]
+    from itertools import pairwise
+
+    deltas = [b - a for a, b in pairwise(readings)]
     assert deltas == [123.5, 126.5]
 
 
