@@ -85,6 +85,25 @@ all along via `notify_overdue_interval_hours`.
 
 ## Next (under consideration)
 
+### 💡 Replace an object (successor flow)
+When an appliance dies and is replaced, users today must either delete the
+object (losing its history) or rename+reset it (mixing the old machine's
+record into the new one's). A **Replace** flow would retire the old object
+(archive, preserving its full history/costs under a "predecessor" marker) and
+create the successor pre-filled from it — templates, tasks, documents carried
+over, counters starting fresh. Identified via the device-biography journey
+review (docs/design/user-journeys.md, N1).
+
+### 💡 Object pause / seasonal mode
+Seasonal equipment (pool, lawn mower, AC) is out of service for months at a
+time. Vacation mode is global and archive kills status entirely — neither
+fits "paused until spring". A per-object **pause** (optionally with a resume
+date) would silence notifications and freeze schedules while keeping the
+object visible and its history intact; resuming re-anchors like unarchive
+does. Identified via the device-biography journey review
+(docs/design/user-journeys.md, N3).
+
+
 ### 💡 End-of-month scheduling (last day / last business day / ±N offset)
 Requested in [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
 Extend the calendar schedule kinds with **last day of the month**, **last
