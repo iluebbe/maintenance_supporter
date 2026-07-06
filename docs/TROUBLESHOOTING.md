@@ -36,6 +36,17 @@ Fix: **hard-reload the browser** (`Ctrl+Shift+F5` or `Cmd+Shift+R` on macOS). Th
 1. Enable action buttons in **Notification Actions** settings (`action_complete_enabled`, etc.)
 2. Verify you are using the HA Companion App (action buttons require the mobile app notification platform)
 
+### Damaged Storage File
+
+Each object stores its dynamic state (history, last-performed dates, trigger
+runtime) in `.storage/maintenance_supporter.<entry_id>`. If such a file is
+damaged — hand-edited, truncated by a crash, or restored incompletely — the
+integration still boots: syntactically broken files are quarantined by Home
+Assistant itself, and structurally wrong content (wrong-typed sections) is
+dropped with a warning in the log. Affected tasks degrade to "never
+performed" instead of failing the whole object; task configuration itself is
+unaffected (it lives in the config entry, not this file).
+
 ### Debug Logging
 
 Add to `configuration.yaml` and restart:
@@ -55,7 +66,8 @@ logger:
 - **Compound triggers**: No nesting — a compound trigger cannot contain another compound trigger as a condition
 - **Threshold debounce**: `trigger_for_minutes` timers are persisted and restored across HA restarts; however, the remaining duration is computed from wall-clock time, so large NTP jumps could cause premature or delayed triggering
 - **Budget tracking**: Numeric values only — the currency symbol is set in **General Settings** (1.4.9+, previously under Budget Settings; default: €). **17 currencies** supported (1.4.8+): EUR, USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL, CZK, PLN, RUB, SEK, NOK, DKK, UAH
-- **History pruning**: Maximum 500 history entries per task. Oldest entries are automatically removed when the limit is reached
+- **History pruning**: Maximum 500 history entries per task. When the limit is reached, sensor-trigger noise (trigger activated/cleared entries) is dropped first, oldest-first — completions, skips and resets are only pruned when the history is full of real actions
+- **Duplicate completions**: two Complete actions for the same task arriving within 30 seconds (e.g. two household members tapping at once) are treated as one real-world action — one history entry, one rotation step. A deliberate second completion later than that counts normally, and a reset or skip in between always re-arms immediately
 - **Panel visibility**: Changing the `panel_enabled` toggle takes effect immediately (no restart required)
 
 
@@ -67,3 +79,10 @@ logger:
 4. Restart Home Assistant
 
 > **Note:** Recorder history (entity state history in the HA database) is not automatically removed. To purge it, use the `recorder.purge_entities` service targeting this integration's entities (in the UI you can pick the Maintenance Supporter device or select the entities directly — they follow the `sensor.<object>_<task>` naming described under [Entity naming](#entity-naming)).
+
+**Reinstalling later** is a documented fresh start: re-adding the integration
+(even in the same Home Assistant run, without a restart) gives a clean install
+— nothing from the previous life is restored. To carry your data across,
+export it (Settings → Export in the panel) before uninstalling and import the
+file after reinstalling; the export round-trips objects, tasks, history and
+document metadata completely.

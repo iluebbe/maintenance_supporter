@@ -442,7 +442,8 @@ These values are not user-configurable but affect behavior:
 | Coordinator refresh interval | 5 min | Periodic status recomputation |
 | Startup grace period | 5 min | Time before marking entities as unavailable after HA start |
 | Missing entity threshold | 6 refreshes (~30 min) | Refreshes before creating a repair issue for unavailable entities |
-| Max history entries per task | 500 | Oldest entries auto-pruned when exceeded |
+| Max history entries per task | 500 | Type-aware pruning: sensor-trigger noise (activated/cleared) is dropped first, oldest-first; completions/skips/resets only when the history is full of real actions |
+| Manual-completion dedup window | 30 s | Duplicate Complete actions within the window (e.g. a double tap from two phones) count as one action; a reset or skip re-arms it immediately |
 | Runtime persistence interval | 5 min | How often accumulated runtime hours are saved to config entry |
 | Weibull reliability target | 90% | Reliability level used for Weibull interval recommendations |
 | Seasonal factor range | 0.3x – 3.0x | Floor and ceiling for seasonal interval multipliers |
