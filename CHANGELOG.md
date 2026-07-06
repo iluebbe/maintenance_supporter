@@ -2,7 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.20.0] - 2026-07-06
+
+Three features from the roadmap's journey-review lane — seasonal pause,
+a replace-object successor flow, and full meter readings — each verified
+end-to-end in a live browser session on top of the test suites. No breaking
+changes.
 
 ### ✨ New
 
@@ -31,6 +36,17 @@ All notable changes to Maintenance Supporter are documented in this file.
   to today, serial number and warranty cleared. Both objects link to each
   other (`predecessor` / `replaced_by`). Panel: Replace… in the object
   header; WS: `object/replace`.
+
+### 🐛 Fixed
+
+- **Prompt dialogs rendered without their input field** — the shared
+  confirm-dialog used `<ha-textfield>`, which Home Assistant only loads
+  lazily for its own panels; inside the custom panel it could be
+  unregistered and render at zero height. The pause prompt showed no
+  auto-resume date, the replace prompt no successor-name field, and the
+  skip-reason prompt had the same latent hole. All prompts now use a
+  native input. Found by the live browser verification of this release's
+  features.
 
 ## [2.19.1] - 2026-07-06
 

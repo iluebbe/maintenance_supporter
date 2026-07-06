@@ -58,3 +58,6 @@ docker/.shots-config/
 e2e/*.log
 e2e/*.out
 e2e/shots/
+
+# live-test screenshot output (e2e/live-*.mjs)
+e2e/live-shots/

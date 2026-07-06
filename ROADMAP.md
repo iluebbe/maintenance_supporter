@@ -86,7 +86,7 @@ all along via `notify_overdue_interval_hours`.
 ## Next (under consideration)
 
 ### ✅ Replace an object (successor flow)
-**Shipped** (unreleased). When an appliance dies and is replaced, deleting
+**Shipped** in v2.20.0. When an appliance dies and is replaced, deleting
 the object loses its history and rename+reset mixes two machines' records.
 **Replace…** (object detail header / `object/replace` WS) retires the old
 object in place — archived with a `replaced_by` marker, history and costs
@@ -97,7 +97,7 @@ Identified via the device-biography journey review
 (docs/design/user-journeys.md, N1).
 
 ### ✅ Object pause / seasonal mode
-**Shipped** (unreleased). Seasonal equipment (pool, lawn mower, AC) is out of
+**Shipped** in v2.20.0. Seasonal equipment (pool, lawn mower, AC) is out of
 service for months — vacation mode is global and archive retires entirely;
 neither fits "paused until spring". **Pause** (object detail header /
 `object/pause` WS, optional auto-resume date) freezes the object's schedules:
@@ -120,8 +120,7 @@ kinds weekdays / nth_weekday / day_of_month) — a natural `last_day` /
 `last_business_day` kind plus an `offset_days` field.
 
 ### ✅ "Meter reading" task type
-**Shipped** (enum value in 2.18; the reading-specific fields unreleased for
-v2.20). From [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
+**Shipped** (enum value in 2.18; the reading-specific fields in v2.20.0). From [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
 Reading-type tasks now carry a per-task **unit** ("kWh", "m³", …) editable in
 the task dialog and both config-flow forms, and the completion dialog gains a
 **Reading value** field: the recorded value lands on the history entry and
