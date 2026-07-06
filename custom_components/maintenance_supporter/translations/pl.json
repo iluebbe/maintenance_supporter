@@ -1111,7 +1111,8 @@
           "due_soon": "Wkrótce wymagane",
           "overdue": "Przeterminowane",
           "triggered": "Wyzwolone",
-          "archived": "Zarchiwizowane"
+          "archived": "Zarchiwizowane",
+          "paused": "Wstrzymane"
         },
         "state_attributes": {
           "maintenance_type": {

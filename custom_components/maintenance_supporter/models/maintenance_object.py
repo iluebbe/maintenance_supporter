@@ -32,6 +32,16 @@ class MaintenanceObject:
     # 2.19: another maintenance object's entry_id as parent — the object's
     # device nests under it (HA via_device hierarchy).
     parent_entry_id: str | None = None
+    # 2.20 (journey N3): seasonal pause. paused_at set = paused (ISO timestamp
+    # marker); paused_until (ISO date) optionally auto-resumes on that day.
+    paused_at: str | None = None
+    paused_until: str | None = None
+    # 2.20 (journey N1): replace flow lineage. On the retired predecessor,
+    # replaced_by_entry_id points at the successor; on the successor,
+    # predecessor_entry_id points back — history stays findable in both
+    # directions.
+    predecessor_entry_id: str | None = None
+    replaced_by_entry_id: str | None = None
     task_ids: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,6 +59,10 @@ class MaintenanceObject:
             "notes": self.notes,
             "ha_device_id": self.ha_device_id,
             "parent_entry_id": self.parent_entry_id,
+            "paused_at": self.paused_at,
+            "paused_until": self.paused_until,
+            "predecessor_entry_id": self.predecessor_entry_id,
+            "replaced_by_entry_id": self.replaced_by_entry_id,
             "task_ids": self.task_ids,
         }
 
@@ -68,6 +82,10 @@ class MaintenanceObject:
             notes=data.get("notes"),
             ha_device_id=data.get("ha_device_id"),
             parent_entry_id=data.get("parent_entry_id"),
+            paused_at=data.get("paused_at"),
+            paused_until=data.get("paused_until"),
+            predecessor_entry_id=data.get("predecessor_entry_id"),
+            replaced_by_entry_id=data.get("replaced_by_entry_id"),
             task_ids=data.get("task_ids", []),
         )
 

@@ -17,9 +17,6 @@ from ..const import (
     MAX_ID_LENGTH,
 )
 from ..helpers.permissions import require_write
-from ..helpers.schedule import (
-    Schedule,
-)
 from . import (
     _build_task_summary,
     _get_merged_tasks,
@@ -34,20 +31,12 @@ def _is_recurring_schedule(task: dict[str, Any]) -> bool:
 
     One-off and manual tasks don't re-arm, so unarchiving them keeps their
     terminal state; a recurring task is given a fresh cycle instead (D2).
+    Delegates to the shared predicate in helpers.schedule (also used by the
+    seasonal-pause resume, N3).
     """
-    from ..helpers.schedule import (
-        KIND_DAY_OF_MONTH,
-        KIND_INTERVAL,
-        KIND_NTH_WEEKDAY,
-        KIND_WEEKDAYS,
-    )
+    from ..helpers.schedule import is_recurring
 
-    return Schedule.parse(task).kind in (
-        KIND_INTERVAL,
-        KIND_WEEKDAYS,
-        KIND_NTH_WEEKDAY,
-        KIND_DAY_OF_MONTH,
-    )
+    return is_recurring(task)
 
 
 @websocket_api.websocket_command(

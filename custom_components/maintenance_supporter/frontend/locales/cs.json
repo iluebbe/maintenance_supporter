@@ -666,5 +666,18 @@
   "doc_search_none": "Žádné odpovídající dokumenty",
   "link_device_optional": "Propojit s existujícím zařízením (volitelné)",
   "parent_object_optional": "Nadřazený objekt (volitelné)",
-  "parent_none": "(Žádný nadřazený)"
+  "parent_none": "(Žádný nadřazený)",
+  "paused": "Pozastaveno",
+  "pause_object": "Pozastavit",
+  "resume_object": "Pokračovat",
+  "pause_until_prompt": "Zmrazit plány tohoto objektu — nic není splatné a nic neupozorňuje, dokud nebude obnoven. Volitelně nastavte datum automatického obnovení.",
+  "pause_until_label": "Pokračovat dne (volitelné)",
+  "object_paused": "Objekt pozastaven",
+  "object_resumed": "Objekt obnoven — plány restartovány",
+  "object_paused_badge": "Pozastaveno",
+  "paused_until_label": "do",
+  "replace_object": "Nahradit…",
+  "replace_object_prompt": "Vyřadit tento objekt a vytvořit nástupce. Historie a náklady zůstávají archivované u starého; úkoly a dokumenty přecházejí na nový, počítadla začínají od nuly.",
+  "replace_name_label": "Název nástupce",
+  "object_replaced": "Objekt nahrazen — nástupce vytvořen"
 }

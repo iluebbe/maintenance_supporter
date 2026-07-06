@@ -113,6 +113,31 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             time.monotonic() - self._startup_time
         ) < STARTUP_GRACE_PERIOD_SECONDS
 
+    async def _async_maybe_auto_resume(self) -> None:
+        """Resume a seasonal pause whose ``paused_until`` day has arrived (N3).
+
+        Runs at the top of every refresh (5-min granularity is plenty for a
+        day-granular date). Uses the same resume core as the ``object/resume``
+        WS command: pause cleared, active recurring tasks re-anchored to a
+        fresh cycle from today.
+        """
+        from .helpers.pause import build_resumed_entry_data, pause_due_for_auto_resume
+
+        obj_data = self.entry.data.get(CONF_OBJECT, {})
+        today = dt_util.now().date()
+        if not pause_due_for_auto_resume(obj_data, today):
+            return
+
+        new_data = build_resumed_entry_data(
+            dict(self.entry.data), self._store, today.isoformat()
+        )
+        self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+        await self._store.async_save()
+        _LOGGER.info(
+            "Seasonal pause on '%s' ended (paused_until reached) — resumed",
+            obj_data.get("name"),
+        )
+
     @property
     def maintenance_object(self) -> MaintenanceObject:
         """Return the maintenance object from config entry data."""
@@ -129,8 +154,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch and compute the current state of all tasks."""
+        # Seasonal pause (N3): auto-resume on the first refresh on/after
+        # paused_until, then continue this refresh un-paused.
+        await self._async_maybe_auto_resume()
+
         obj = self.maintenance_object
         tasks = self.tasks
+        object_paused = obj.paused_at is not None
 
         # Preserve live trigger state from previous data to avoid resetting
         # trigger state that was set by event-driven triggers between refreshes
@@ -174,6 +204,26 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if task.archived_at is not None:
                 task_result = task.to_dict()
                 task_result["_status"] = MaintenanceStatus.ARCHIVED
+                task_result["_days_until_due"] = None
+                task_result["_next_due"] = None
+                task_result["_is_done"] = task.is_done
+                task_result["_trigger_active"] = False
+                task_result["_times_performed"] = task.times_performed
+                task_result["_total_cost"] = task.total_cost
+                task_result["_average_duration"] = task.average_duration
+                task_result["_last_entry"] = task.last_entry
+                result[CONF_TASKS][task_id] = task_result
+                continue
+
+            # v2.20 (N3): tasks of a paused object are frozen — status PAUSED,
+            # no trigger evaluation, no due computation, nothing to notify.
+            # Same short-circuit surface as archived, but the object remains a
+            # first-class citizen in every view. `_paused` mirrors the status
+            # for the dict-twin recomputation in helpers.status.
+            if object_paused:
+                task_result = task.to_dict()
+                task_result["_status"] = MaintenanceStatus.PAUSED
+                task_result["_paused"] = True
                 task_result["_days_until_due"] = None
                 task_result["_next_due"] = None
                 task_result["_is_done"] = task.is_done

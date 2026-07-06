@@ -315,6 +315,21 @@ class Schedule:
         )
 
 
+def is_recurring(task: Mapping[str, Any]) -> bool:
+    """True iff the task dict has a cycling schedule (interval or calendar kind).
+
+    One-off and manual tasks don't re-arm; a recurring task gets a fresh cycle
+    when its object is unarchived (D2) or resumed from a seasonal pause (N3).
+    Single source for both — the websocket layer delegates here.
+    """
+    return Schedule.parse(task).kind in (
+        KIND_INTERVAL,
+        KIND_WEEKDAYS,
+        KIND_NTH_WEEKDAY,
+        KIND_DAY_OF_MONTH,
+    )
+
+
 # --- flat <-> nested adapters (Phase 3) ------------------------------------
 #
 # Readers that still speak the flat v2.6.x shape (the WS payload, export, CSV,

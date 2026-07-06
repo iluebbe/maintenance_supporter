@@ -1111,7 +1111,8 @@
           "due_soon": "Erääntyy pian",
           "overdue": "Myöhässä",
           "triggered": "Lauennut",
-          "archived": "Arkistoitu"
+          "archived": "Arkistoitu",
+          "paused": "Keskeytetty"
         },
         "state_attributes": {
           "maintenance_type": {

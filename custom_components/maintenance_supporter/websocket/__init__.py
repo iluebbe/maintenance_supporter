@@ -253,6 +253,14 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
             # "archived on …" in the Archived section.
             "archived": obj_data.get("archived_at") is not None,
             "archived_at": obj_data.get("archived_at"),
+            # v2.20 (N3) seasonal pause: `paused` bool + the optional
+            # auto-resume date for the "Paused until …" badge.
+            "paused": obj_data.get("paused_at") is not None,
+            "paused_at": obj_data.get("paused_at"),
+            "paused_until": obj_data.get("paused_until"),
+            # v2.20 (N1) replace-flow lineage, both directions.
+            "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
+            "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
             # (roadmap P2) count of attached documents (files + web-links) for
             # the objects-table paperclip badge; computed, not persisted.
             "document_count": document_count,
@@ -411,6 +419,9 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_entity_attributes,
         ws_get_object,
         ws_get_objects,
+        ws_pause_object,
+        ws_replace_object,
+        ws_resume_object,
         ws_unarchive_object,
         ws_update_object,
     )
@@ -449,6 +460,9 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_from_template)
     websocket_api.async_register_command(hass, ws_archive_object)
     websocket_api.async_register_command(hass, ws_unarchive_object)
+    websocket_api.async_register_command(hass, ws_pause_object)
+    websocket_api.async_register_command(hass, ws_resume_object)
+    websocket_api.async_register_command(hass, ws_replace_object)
     websocket_api.async_register_command(hass, ws_create_task)
     websocket_api.async_register_command(hass, ws_update_task)
     websocket_api.async_register_command(hass, ws_delete_task)

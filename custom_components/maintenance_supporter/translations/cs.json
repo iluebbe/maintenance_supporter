@@ -1111,7 +1111,8 @@
           "due_soon": "Brzy splatné",
           "overdue": "Po termínu",
           "triggered": "Spuštěno",
-          "archived": "Archivováno"
+          "archived": "Archivováno",
+          "paused": "Pozastaveno"
         },
         "state_attributes": {
           "maintenance_type": {

@@ -1111,7 +1111,8 @@
           "due_soon": "期限間近",
           "overdue": "期限切れ",
           "triggered": "トリガー済み",
-          "archived": "アーカイブ済み"
+          "archived": "アーカイブ済み",
+          "paused": "一時停止中"
         },
         "state_attributes": {
           "maintenance_type": {

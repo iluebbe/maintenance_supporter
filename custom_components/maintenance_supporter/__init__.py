@@ -315,6 +315,10 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
         obj = entry.data.get(CONF_OBJECT) or {}
         if obj.get("archived_at") is not None:
             continue
+        # v2.20 (N3): a seasonally paused object's schedules are frozen — no
+        # lead reminders until it resumes.
+        if obj.get("paused_at") is not None:
+            continue
         rd = getattr(entry, "runtime_data", None)
         coordinator = getattr(rd, "coordinator", None)
         if coordinator is None:

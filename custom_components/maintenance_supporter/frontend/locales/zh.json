@@ -666,5 +666,18 @@
   "doc_search_none": "没有匹配的文档",
   "link_device_optional": "关联到现有设备（可选）",
   "parent_object_optional": "父对象（可选）",
-  "parent_none": "（无父对象）"
+  "parent_none": "（无父对象）",
+  "paused": "已暂停",
+  "pause_object": "暂停",
+  "resume_object": "恢复",
+  "pause_until_prompt": "冻结此对象的日程——在恢复之前不会有任何到期或通知。可选设置自动恢复日期。",
+  "pause_until_label": "恢复日期（可选）",
+  "object_paused": "对象已暂停",
+  "object_resumed": "对象已恢复——日程已重新开始",
+  "object_paused_badge": "已暂停",
+  "paused_until_label": "至",
+  "replace_object": "更换…",
+  "replace_object_prompt": "让此对象退役并创建继任者。历史和费用留在旧对象的归档中；任务和文档转移到新对象，计数器重新开始。",
+  "replace_name_label": "继任者名称",
+  "object_replaced": "对象已更换——已创建继任者"
 }

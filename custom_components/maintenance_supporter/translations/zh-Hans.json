@@ -1111,7 +1111,8 @@
           "due_soon": "即将到期",
           "overdue": "已超期",
           "triggered": "已触发",
-          "archived": "已归档"
+          "archived": "已归档",
+          "paused": "已暂停"
         },
         "state_attributes": {
           "maintenance_type": {

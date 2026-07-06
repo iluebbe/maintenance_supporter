@@ -666,5 +666,18 @@
   "doc_search_none": "Nessun documento corrispondente",
   "link_device_optional": "Collega a dispositivo esistente (opzionale)",
   "parent_object_optional": "Oggetto principale (opzionale)",
-  "parent_none": "(Nessun principale)"
+  "parent_none": "(Nessun principale)",
+  "paused": "In pausa",
+  "pause_object": "Metti in pausa",
+  "resume_object": "Riprendi",
+  "pause_until_prompt": "Congela i calendari di questo oggetto: nulla scade e nulla notifica finché non viene ripreso. Facoltativamente imposta una data di ripresa automatica.",
+  "pause_until_label": "Riprendi il (facoltativo)",
+  "object_paused": "Oggetto in pausa",
+  "object_resumed": "Oggetto ripreso — calendari riavviati",
+  "object_paused_badge": "In pausa",
+  "paused_until_label": "fino al",
+  "replace_object": "Sostituisci…",
+  "replace_object_prompt": "Ritira questo oggetto e crea un successore. Storico e costi restano archiviati sul vecchio; attività e documenti passano al nuovo, i contatori ripartono da zero.",
+  "replace_name_label": "Nome del successore",
+  "object_replaced": "Oggetto sostituito — successore creato"
 }

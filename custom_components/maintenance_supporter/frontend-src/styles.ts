@@ -15,6 +15,8 @@ export const STATUS_COLORS: Record<string, string> = {
   triggered: "var(--deep-orange-color, #ff5722)",
   // v2.10.0: archived is a neutral, greyed-out state (retired but retained).
   archived: "var(--disabled-color, #9e9e9e)",
+  // v2.20 (N3): paused is frozen-but-present — info blue, clearly not urgent.
+  paused: "var(--info-color, #2196f3)",
 };
 
 export const STATUS_ICONS: Record<string, string> = {
@@ -23,6 +25,7 @@ export const STATUS_ICONS: Record<string, string> = {
   overdue: "mdi:alert-octagon",
   triggered: "mdi:bell-alert",
   archived: "mdi:archive-outline",
+  paused: "mdi:pause-circle-outline",
   completed: "mdi:check-circle",
   skipped: "mdi:skip-next",
   missed: "mdi:calendar-remove",
@@ -297,6 +300,8 @@ export const sharedStyles = css`
   .status-badge.done { background-color: var(--maint-done-color, #78909c); }
   /* v2.10.0: archived (retire-but-retain) — neutral grey, clearly inert. */
   .status-badge.archived { background-color: var(--disabled-color, #9e9e9e); }
+  /* v2.20 (N3): paused — frozen but present, info blue. */
+  .status-badge.paused { background-color: var(--info-color, #2196f3); }
 
   /* v1.4.7: 5-column grid so all 5 KPIs (Objects/Tasks/Overdue/Due Soon/
      Triggered) always stay in one row. The previous flex-wrap layout was

@@ -666,5 +666,18 @@
   "doc_search_none": "Ei vastaavia asiakirjoja",
   "link_device_optional": "Liitä olemassa olevaan laitteeseen (valinnainen)",
   "parent_object_optional": "Yläobjekti (valinnainen)",
-  "parent_none": "(Ei yläobjektia)"
+  "parent_none": "(Ei yläobjektia)",
+  "paused": "Keskeytetty",
+  "pause_object": "Keskeytä",
+  "resume_object": "Jatka",
+  "pause_until_prompt": "Jäädytä tämän kohteen aikataulut — mikään ei eräänny eikä ilmoita ennen jatkamista. Aseta halutessasi automaattisen jatkamisen päivämäärä.",
+  "pause_until_label": "Jatka (valinnainen)",
+  "object_paused": "Kohde keskeytetty",
+  "object_resumed": "Kohde jatkettu — aikataulut käynnistetty uudelleen",
+  "object_paused_badge": "Keskeytetty",
+  "paused_until_label": "asti",
+  "replace_object": "Korvaa…",
+  "replace_object_prompt": "Poista tämä kohde käytöstä ja luo seuraaja. Historia ja kustannukset pysyvät arkistoituina vanhassa; tehtävät ja asiakirjat siirtyvät uuteen, laskurit alkavat alusta.",
+  "replace_name_label": "Seuraajan nimi",
+  "object_replaced": "Kohde korvattu — seuraaja luotu"
 }

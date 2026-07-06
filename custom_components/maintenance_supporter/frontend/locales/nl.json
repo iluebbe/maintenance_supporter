@@ -666,5 +666,18 @@
   "doc_search_none": "Geen overeenkomende documenten",
   "link_device_optional": "Koppelen aan bestaand apparaat (optioneel)",
   "parent_object_optional": "Bovenliggend object (optioneel)",
-  "parent_none": "(Geen bovenliggend object)"
+  "parent_none": "(Geen bovenliggend object)",
+  "paused": "Gepauzeerd",
+  "pause_object": "Pauzeren",
+  "resume_object": "Hervatten",
+  "pause_until_prompt": "Bevries de schema's van dit object — niets wordt verwacht en niets meldt tot het wordt hervat. Stel optioneel een datum voor automatisch hervatten in.",
+  "pause_until_label": "Hervatten op (optioneel)",
+  "object_paused": "Object gepauzeerd",
+  "object_resumed": "Object hervat — schema's herstart",
+  "object_paused_badge": "Gepauzeerd",
+  "paused_until_label": "tot",
+  "replace_object": "Vervangen…",
+  "replace_object_prompt": "Dit object uitfaseren en een opvolger aanmaken. Geschiedenis en kosten blijven gearchiveerd bij het oude; taken en documenten gaan mee naar het nieuwe, tellers beginnen opnieuw.",
+  "replace_name_label": "Naam van de opvolger",
+  "object_replaced": "Object vervangen — opvolger aangemaakt"
 }

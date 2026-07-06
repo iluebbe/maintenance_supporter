@@ -666,5 +666,18 @@
   "doc_search_none": "Brak pasujących dokumentów",
   "link_device_optional": "Połącz z istniejącym urządzeniem (opcjonalnie)",
   "parent_object_optional": "Obiekt nadrzędny (opcjonalnie)",
-  "parent_none": "(Brak nadrzędnego)"
+  "parent_none": "(Brak nadrzędnego)",
+  "paused": "Wstrzymane",
+  "pause_object": "Wstrzymaj",
+  "resume_object": "Wznów",
+  "pause_until_prompt": "Zamroź harmonogramy tego obiektu — nic nie staje się wymagane i nic nie powiadamia do czasu wznowienia. Opcjonalnie ustaw datę automatycznego wznowienia.",
+  "pause_until_label": "Wznów dnia (opcjonalnie)",
+  "object_paused": "Obiekt wstrzymany",
+  "object_resumed": "Obiekt wznowiony — harmonogramy uruchomione od nowa",
+  "object_paused_badge": "Wstrzymane",
+  "paused_until_label": "do",
+  "replace_object": "Zastąp…",
+  "replace_object_prompt": "Wycofaj ten obiekt i utwórz następcę. Historia i koszty pozostają zarchiwizowane przy starym; zadania i dokumenty przechodzą do nowego, liczniki startują od zera.",
+  "replace_name_label": "Nazwa następcy",
+  "object_replaced": "Obiekt zastąpiony — utworzono następcę"
 }

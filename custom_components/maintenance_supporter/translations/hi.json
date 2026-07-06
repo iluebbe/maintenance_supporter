@@ -1111,7 +1111,8 @@
           "due_soon": "जल्द देय",
           "overdue": "अतिदेय",
           "triggered": "ट्रिगर हुआ",
-          "archived": "संग्रहीत"
+          "archived": "संग्रहीत",
+          "paused": "रोका गया"
         },
         "state_attributes": {
           "maintenance_type": {

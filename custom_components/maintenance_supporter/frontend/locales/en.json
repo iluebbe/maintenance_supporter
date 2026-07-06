@@ -666,5 +666,18 @@
   "doc_search_none": "No matching documents",
   "link_device_optional": "Link to existing device (optional)",
   "parent_object_optional": "Parent object (optional)",
-  "parent_none": "(No parent)"
+  "parent_none": "(No parent)",
+  "paused": "Paused",
+  "pause_object": "Pause",
+  "resume_object": "Resume",
+  "pause_until_prompt": "Freeze this object's schedules — nothing becomes due and nothing notifies until it is resumed. Optionally set an auto-resume date.",
+  "pause_until_label": "Resume on (optional)",
+  "object_paused": "Object paused",
+  "object_resumed": "Object resumed — schedules restarted",
+  "object_paused_badge": "Paused",
+  "paused_until_label": "until",
+  "replace_object": "Replace…",
+  "replace_object_prompt": "Retire this object and create a successor. History and costs stay archived on the old one; tasks and documents carry over to the new one, counters start fresh.",
+  "replace_name_label": "Successor name",
+  "object_replaced": "Object replaced — successor created"
 }

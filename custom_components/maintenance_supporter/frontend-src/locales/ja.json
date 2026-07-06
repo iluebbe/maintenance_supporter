@@ -666,5 +666,18 @@
   "doc_search_none": "一致するドキュメントはありません",
   "link_device_optional": "既存のデバイスにリンク（任意）",
   "parent_object_optional": "親オブジェクト（任意）",
-  "parent_none": "（親なし）"
+  "parent_none": "（親なし）",
+  "paused": "一時停止中",
+  "pause_object": "一時停止",
+  "resume_object": "再開",
+  "pause_until_prompt": "このオブジェクトのスケジュールを凍結します。再開するまで期限も通知も発生しません。必要に応じて自動再開日を設定できます。",
+  "pause_until_label": "再開日（任意）",
+  "object_paused": "オブジェクトを一時停止しました",
+  "object_resumed": "オブジェクトを再開しました — スケジュールを再スタート",
+  "object_paused_badge": "一時停止中",
+  "paused_until_label": "まで",
+  "replace_object": "置き換え…",
+  "replace_object_prompt": "このオブジェクトを退役させ、後継を作成します。履歴とコストは旧オブジェクトにアーカイブされたまま残り、タスクと文書は新しいオブジェクトへ引き継がれ、カウンターはリセットされます。",
+  "replace_name_label": "後継の名前",
+  "object_replaced": "オブジェクトを置き換えました — 後継を作成"
 }

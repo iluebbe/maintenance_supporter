@@ -1111,7 +1111,8 @@
           "due_soon": "Due Soon",
           "overdue": "Overdue",
           "triggered": "Triggered",
-          "archived": "Archived"
+          "archived": "Archived",
+          "paused": "Paused"
         },
         "state_attributes": {
           "maintenance_type": {

@@ -122,6 +122,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         MaintenanceStatus.OVERDUE,
         MaintenanceStatus.TRIGGERED,
         MaintenanceStatus.ARCHIVED,
+        MaintenanceStatus.PAUSED,
     ]
 
     def __init__(
@@ -328,6 +329,12 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # v2.10.0: an archived task is inert — keep the status listener above
         # (so unarchive repaints immediately) but never wire up its triggers.
         if task_data.get("archived_at") is not None:
+            return
+
+        # v2.20 (N3): same for a seasonally paused object — the pause/resume
+        # WS commands reload the entry, so triggers wire up again on resume.
+        obj_data = self.coordinator.entry.data.get(CONF_OBJECT, {})
+        if obj_data.get("paused_at") is not None:
             return
 
         if not trigger_config:

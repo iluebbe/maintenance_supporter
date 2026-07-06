@@ -1111,7 +1111,8 @@
           "due_soon": "Próximo a vencer",
           "overdue": "Vencido",
           "triggered": "Activado",
-          "archived": "Archivado"
+          "archived": "Archivado",
+          "paused": "Pausado"
         },
         "state_attributes": {
           "maintenance_type": {
