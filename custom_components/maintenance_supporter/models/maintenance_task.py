@@ -412,9 +412,28 @@ class MaintenanceTask:
 
         self.history.append(entry)
 
-        # Trim history to max entries
+        # Trim history to max entries — TYPE-AWARE (journey K1): trigger
+        # noise is evicted first, so a flapping sensor (hundreds of
+        # `triggered` entries) can never push out the completion record that
+        # `times_performed` / `total_cost` / adaptive learning are computed
+        # from. Only if dropping all trigger entries still isn't enough does
+        # the trim fall back to oldest-first over everything.
         if len(self.history) > DEFAULT_MAX_HISTORY_ENTRIES:
-            self.history = self.history[-DEFAULT_MAX_HISTORY_ENTRIES:]
+            overflow = len(self.history) - DEFAULT_MAX_HISTORY_ENTRIES
+            noise_types = {
+                HistoryEntryType.TRIGGERED,
+                HistoryEntryType.TRIGGER_REMOVED,
+            }
+            kept: list[dict[str, Any]] = []
+            dropped = 0
+            for h in self.history:
+                if dropped < overflow and h.get("type") in noise_types:
+                    dropped += 1
+                    continue
+                kept.append(h)
+            if len(kept) > DEFAULT_MAX_HISTORY_ENTRIES:
+                kept = kept[-DEFAULT_MAX_HISTORY_ENTRIES:]
+            self.history = kept
 
     # --- Serialization ---
 
