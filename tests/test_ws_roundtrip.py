@@ -748,6 +748,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # (#67) list setting — must use valid column keys; the WS sanitiser drops
     # unknown keys, so a sentinel like ["abc"] would NOT round-trip.
     "objects_table_columns": ["name", "warranty_expiry", "actions"],
+    # v2.21: sample must survive the known-id sanitiser → real template ids.
+    "disabled_template_ids": ["vehicle_bicycle", "pool_pump"],
     # v2.10.0 archive automation (panel-managed int settings).
     "archive_oneoff_days": 21,
     "delete_archived_oneoff_days": 30,
@@ -821,6 +823,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "budget_alert_threshold": settings["budget"]["alert_threshold_pct"],
         "budget_currency": settings["budget"]["currency"],
         "objects_table_columns": settings["objects_table_columns"],
+        "disabled_template_ids": settings["disabled_template_ids"],
         "archive_oneoff_days": settings["archive"]["oneoff_days"],
         "delete_archived_oneoff_days": settings["archive"]["delete_archived_oneoff_days"],
     }

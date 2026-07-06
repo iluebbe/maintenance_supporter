@@ -683,5 +683,7 @@
   "reading_unit_label": "Ableseeinheit (z. B. kWh, m³)",
   "reading_unit_help": "Wird beim Erledigen dieser Aufgabe neben dem erfassten Wert angezeigt.",
   "reading_value_label": "Ablesewert",
-  "reading_label": "Ablesung"
+  "reading_label": "Ablesung",
+  "settings_templates_label": "Vorlagen-Galerie",
+  "settings_templates_hint": "Vorlagen abwählen, die du nie brauchst — sie verschwinden aus den \"Aus Vorlage\"-Auswahlen (Panel und Config-Flow). Sonst ändert sich nichts; jederzeit wieder aktivierbar."
 }

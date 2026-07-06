@@ -41,6 +41,7 @@ from ..const import (
     CONF_BUDGET_YEARLY,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
+    CONF_DISABLED_TEMPLATE_IDS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -104,6 +105,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_ADMIN_PANEL_USER_IDS, list),
     SettingSpec(CONF_OPERATOR_WRITE_ENABLED, bool),
     SettingSpec(CONF_OBJECTS_TABLE_COLUMNS, list),
+    # v2.21: hidden template ids (bespoke known-id sanitiser in the handler)
+    SettingSpec(CONF_DISABLED_TEMPLATE_IDS, list),
     # Archive automation
     SettingSpec(CONF_ARCHIVE_ONEOFF_DAYS, int, int_range=(0, 3650)),
     SettingSpec(CONF_DELETE_ARCHIVED_ONEOFF_DAYS, int, int_range=(0, 3650)),

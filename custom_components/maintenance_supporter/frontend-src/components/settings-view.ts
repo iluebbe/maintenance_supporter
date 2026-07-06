@@ -15,6 +15,8 @@ interface SettingsResponse {
   admin_panel_user_ids?: string[];
   operator_write_enabled?: boolean;
   objects_table_columns?: string[];
+  /** v2.21: template-gallery curation — hidden template ids. */
+  disabled_template_ids?: string[];
   general: {
     default_warning_days: number;
     notifications_enabled: boolean;
@@ -240,6 +242,7 @@ export class MaintenanceSettingsView extends LitElement {
       ${this._renderPanelAccess(L)}
       ${this._renderGeneral(L)}
       ${this._renderObjectsColumns(L)}
+        ${this._renderTemplateToggles(L)}
       ${this._settings.general.notifications_enabled ? this._renderNotifications(L) : nothing}
       ${this.features.budget ? this._renderBudget(L) : nothing}
       ${this._renderArchive(L)}
@@ -350,6 +353,62 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   // --- Section: Objects table columns (#67) ---
+
+  // --- Section: Template gallery curation (v2.21) ---
+
+  @state() private _allTemplates: Array<{ id: string; name: string; category: string; disabled?: boolean }> = [];
+  @state() private _templateCategories: Record<string, Record<string, string>> = {};
+
+  // One-shot request guard: keyed on a plain flag, NOT on the result being
+  // non-empty — an empty catalog answer would otherwise re-trigger the load
+  // from render() forever (Lit update loop; caught by the settings tests).
+  private _templatesRequested = false;
+
+  private async _loadTemplates(): Promise<void> {
+    if (this._templatesRequested) return;
+    this._templatesRequested = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{
+        templates: Array<{ id: string; name: string; category: string; disabled?: boolean }>;
+        categories: Record<string, Record<string, string>>;
+      }>({
+        type: "maintenance_supporter/templates",
+      });
+      this._allTemplates = res.templates || [];
+      this._templateCategories = res.categories || {};
+    } catch { /* section renders empty; retried on next open */ }
+  }
+
+  private _renderTemplateToggles(L: string) {
+    this._loadTemplates();
+    const hidden = new Set(this._settings!.disabled_template_ids || []);
+    return html`
+      <div class="settings-section" data-section="templates">
+        <h3>${t("settings_templates_label", L)}</h3>
+        <p class="section-desc">${t("settings_templates_hint", L)}</p>
+        ${this._allTemplates.map((tpl) => html`
+          <label class="setting-row">
+            <span>
+              <span class="setting-label">${tpl.name}</span>
+              <span class="setting-desc">${this._templateCategories[tpl.category]?.["name_" + L] || this._templateCategories[tpl.category]?.name_en || tpl.category}</span>
+            </span>
+            <input
+              type="checkbox"
+              .checked=${!hidden.has(tpl.id)}
+              @change=${(e: Event) => this._toggleTemplate(tpl.id, (e.target as HTMLInputElement).checked)}
+            />
+          </label>
+        `)}
+      </div>
+    `;
+  }
+
+  private _toggleTemplate(id: string, visible: boolean): void {
+    const hidden = new Set(this._settings!.disabled_template_ids || []);
+    if (visible) hidden.delete(id);
+    else hidden.add(id);
+    this._updateSetting("disabled_template_ids", [...hidden]);
+  }
 
   private _renderObjectsColumns(L: string) {
     const selected = sanitizeColumns(this._settings!.objects_table_columns);

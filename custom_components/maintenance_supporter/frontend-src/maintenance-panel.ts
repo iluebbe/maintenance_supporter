@@ -158,7 +158,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _paletteActive = 0;
   // v2.15.0: template gallery (surfaces the config-flow object templates).
   @state() private _templateGalleryOpen = false;
-  @state() private _templates: Array<{ id: string; name: string; category: string; tasks: unknown[] }> = [];
+  @state() private _templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean }> = [];
   @state() private _templateCategories: Record<string, { icon?: string; [k: string]: unknown }> = {};
   @state() private _templateBusy = false;
   // v1.5.0: Calendar tab state
@@ -883,10 +883,11 @@ export class MaintenanceSupporterPanel extends LitElement {
     try {
       const res = await this.hass.connection.sendMessagePromise<{
         categories: Record<string, { icon?: string }>;
-        templates: Array<{ id: string; name: string; category: string; tasks: unknown[] }>;
+        templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean }>;
       }>({ type: "maintenance_supporter/templates" });
       this._templateCategories = res.categories || {};
-      this._templates = res.templates || [];
+      // v2.21: admin-hidden templates stay out of the gallery.
+      this._templates = (res.templates || []).filter((tpl) => !tpl.disabled);
     } catch {
       this._showToast(t("action_error", this._lang));
     }

@@ -2,6 +2,17 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ New
+
+- **Template-gallery curation** — Settings gains a "Template gallery"
+  section listing every built-in template with an on/off toggle. Untick the
+  ones you'll never need (no pool? hide the pool templates) and they
+  disappear from the "From template" pickers in the panel AND the config
+  flow. Nothing else changes: hidden templates stay functional and can be
+  re-enabled any time. (From the template-wishlist discussion #85.)
+
 ## [2.20.0] - 2026-07-06
 
 Three features from the roadmap's journey-review lane — seasonal pause,

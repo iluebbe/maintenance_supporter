@@ -44,8 +44,15 @@ async def ws_get_templates(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Return all available maintenance templates."""
-    from ..templates import TEMPLATE_CATEGORIES, TEMPLATES
+    """Return all maintenance templates.
+
+    Every template is returned with a ``disabled`` flag (v2.21 gallery
+    curation): the pickers hide disabled ones client-side, while the Settings
+    section needs the full list to render the toggles.
+    """
+    from ..templates import TEMPLATE_CATEGORIES, TEMPLATES, get_disabled_template_ids
+
+    disabled = get_disabled_template_ids(hass)
 
     result = {
         "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},
@@ -54,6 +61,7 @@ async def ws_get_templates(
                 "id": t.id,
                 "name": t.name,
                 "category": t.category,
+                "disabled": t.id in disabled,
                 "tasks": [
                     {
                         "name": tt.name,

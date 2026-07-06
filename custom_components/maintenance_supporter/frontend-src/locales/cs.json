@@ -683,5 +683,7 @@
   "reading_unit_label": "Jednotka odečtu (např. kWh, m³)",
   "reading_unit_help": "Zobrazí se vedle zaznamenané hodnoty při dokončení tohoto úkolu.",
   "reading_value_label": "Hodnota odečtu",
-  "reading_label": "Odečet"
+  "reading_label": "Odečet",
+  "settings_templates_label": "Galerie šablon",
+  "settings_templates_hint": "Odškrtněte šablony, které nikdy nevyužijete — zmizí z výběru „Ze šablony\" (panel i config flow). Nic jiného se nemění; kdykoli je lze znovu zapnout."
 }

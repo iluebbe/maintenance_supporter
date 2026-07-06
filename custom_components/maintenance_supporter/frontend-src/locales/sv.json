@@ -683,5 +683,7 @@
   "reading_unit_label": "Avläsningsenhet (t.ex. kWh, m³)",
   "reading_unit_help": "Visas bredvid det registrerade värdet när uppgiften slutförs.",
   "reading_value_label": "Avläst värde",
-  "reading_label": "Avläsning"
+  "reading_label": "Avläsning",
+  "settings_templates_label": "Mallgalleri",
+  "settings_templates_hint": "Avmarkera mallar du aldrig behöver — de försvinner från \"Från mall\"-väljarna (panel och config flow). Inget annat ändras; kan återaktiveras när som helst."
 }

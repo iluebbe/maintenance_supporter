@@ -239,3 +239,21 @@ def get_template_by_id(template_id: str) -> ObjectTemplate | None:
         if t.id == template_id:
             return t
     return None
+
+
+KNOWN_TEMPLATE_IDS: frozenset[str] = frozenset(t.id for t in TEMPLATES)
+
+
+def get_disabled_template_ids(hass) -> set[str]:  # type: ignore[no-untyped-def]
+    """Ids the admin hid from the template pickers (v2.21).
+
+    Read from the global entry's options; unknown ids are ignored so a stale
+    list (e.g. after a template rename) can't hide anything by accident.
+    """
+    from .const import CONF_DISABLED_TEMPLATE_IDS, DOMAIN, GLOBAL_UNIQUE_ID
+
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.unique_id == GLOBAL_UNIQUE_ID:
+            raw = (entry.options or entry.data).get(CONF_DISABLED_TEMPLATE_IDS) or []
+            return {t for t in raw if isinstance(t, str) and t in KNOWN_TEMPLATE_IDS}
+    return set()

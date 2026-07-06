@@ -200,7 +200,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             self._selected_template = template
             return await self.async_step_template_customize()
 
-        templates = get_templates_by_category(self._template_category)
+        # v2.21: admin-hidden templates stay out of the picker.
+        from .templates import get_disabled_template_ids
+
+        disabled = get_disabled_template_ids(self.hass)
+        templates = [t for t in get_templates_by_category(self._template_category) if t.id not in disabled]
         options = [
             selector.SelectOptionDict(
                 value=t.id,

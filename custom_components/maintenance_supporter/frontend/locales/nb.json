@@ -683,5 +683,7 @@
   "reading_unit_label": "Avlesningsenhet (f.eks. kWh, m³)",
   "reading_unit_help": "Vises ved siden av den registrerte verdien når oppgaven fullføres.",
   "reading_value_label": "Avlest verdi",
-  "reading_label": "Avlesning"
+  "reading_label": "Avlesning",
+  "settings_templates_label": "Malgalleri",
+  "settings_templates_hint": "Fjern haken for maler du aldri trenger — de forsvinner fra \"Fra mal\"-velgerne (panel og config flow). Ellers endres ingenting; kan aktiveres igjen når som helst."
 }

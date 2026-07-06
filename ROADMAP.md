@@ -141,6 +141,17 @@ views. A per-task `earliest_completion_days` optionally restricts premature
 completion (the annual inspection can't be signed off three weeks early); the
 complete/quick-complete WS paths + the To-do list honour it.
 
+### 💡 Task work sheet — a printable one-pager per task
+Print what you need at the machine, not a whole manual: a single-page PDF for
+one task with everything required to actually do it — object + task details
+(interval, last done, priority), the checklist as tick boxes, the task notes,
+and a **QR code** pair (open the task / complete it) so the paper links back
+to the panel. Optionally append an **excerpt from the linked manual**: the
+documents feature already stores per-task page hints (`task_pages`), so "from
+page X, N pages" can pull exactly the relevant section of the attached PDF
+into the work sheet. Builds on the existing per-object report generator, the
+QR engine, and the document store.
+
 ### 💡 Cross-cutting labels / tags
 Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
 across objects, areas, and groups for filtering and reporting — orthogonal to

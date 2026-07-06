@@ -683,5 +683,7 @@
   "reading_unit_label": "Lukeman yksikkö (esim. kWh, m³)",
   "reading_unit_help": "Näytetään kirjatun arvon vieressä tehtävää suoritettaessa.",
   "reading_value_label": "Lukema",
-  "reading_label": "Lukema"
+  "reading_label": "Lukema",
+  "settings_templates_label": "Mallipohjagalleria",
+  "settings_templates_hint": "Poista valinta mallipohjista, joita et koskaan tarvitse — ne katoavat \"Mallipohjasta\"-valitsimista (paneeli ja config flow). Mikään muu ei muutu; voi ottaa käyttöön uudelleen milloin tahansa."
 }

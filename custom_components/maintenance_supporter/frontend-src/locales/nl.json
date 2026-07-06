@@ -683,5 +683,7 @@
   "reading_unit_label": "Meeteenheid (bijv. kWh, m³)",
   "reading_unit_help": "Wordt naast de vastgelegde waarde getoond bij het afronden van deze taak.",
   "reading_value_label": "Meterstand",
-  "reading_label": "Meting"
+  "reading_label": "Meting",
+  "settings_templates_label": "Sjabloongalerij",
+  "settings_templates_hint": "Vink sjablonen uit die je nooit nodig hebt — ze verdwijnen uit de \"Vanuit sjabloon\"-keuzes (paneel en config flow). Verder verandert er niets; altijd weer in te schakelen."
 }
