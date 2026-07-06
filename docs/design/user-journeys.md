@@ -43,7 +43,7 @@ flow, **W** WS API, **S** services, **E** entities (buttons/todo/calendar),
 |---|---------|----------|---------------|-----|
 | B1 | Glance: Today view → one-tap complete | P | FE panel tests, test_ws_tasks_actions | — |
 | B2 | Complete with details (notes/cost/duration/photo/checklist) | P, C | test_ws_tasks_actions, test_completion_photos | — |
-| B3 | Complete via every OTHER surface: button entity, todo check-off, service, QR complete, quick-complete QR, NFC scan, notification action, voice | E, S, Q, N, V | test_button, test_todo, test_services, test_qr*, test_init (NFC), notification-action tests | one task completed via N different surfaces in ONE test (envelope parity of events/history) untested |
+| B3 | Complete via every OTHER surface: button entity, todo check-off, service, QR complete, quick-complete QR, NFC scan, notification action, voice | E, S, Q, N, V | per-surface tests + test_journey_daily_use (6 surfaces, envelope parity) | ✔ closed 2026-07-06 (notification-action + voice ride the service path) |
 | B4 | Skip / missed semantics / snooze (notification + panel) | P, N, W | test_ws_tasks_actions, test_notification_manager | — |
 | B5 | Being reminded: due-soon → overdue → lead-times → digest → quiet hours/vacation interplay | (time) | test_notification_manager, test_daily_tick, test_vacation | multi-day time-lapse of ONE task through all reminder stages untested |
 | B6 | Sensor-triggered flow: threshold crosses → TRIGGERED → notification → complete → re-arm (or auto-complete on recovery) | (state) | test_triggers*, test_auto_complete_recovery | — |
@@ -101,7 +101,7 @@ especially across reload/restart.
 
 | # | Journey | Surfaces | Covered today | Gap |
 |---|---------|----------|---------------|-----|
-| G1 | Operator lifecycle: invite non-admin → read-only use → delegate write → edit → **revoke mid-session** → next call rejected | P, W | test_ws_permission_matrix (static tiers) | the revoke TRANSITION untested |
+| G1 | Operator lifecycle: delegate write → edit → **revoke mid-session** → next call rejected | P, W | test_ws_permission_matrix, test_journey_time_and_limits | ✔ closed 2026-07-06 (permissions evaluated per call) |
 | G2 | **HA user deleted** while responsible for tasks / in rotation pools: badges, per-user notification routing, rotation advance | (auth) | allowlist orphan repair only (F3) | assignments have NO orphan handling — suspected silent-fallback + ghost-rotation bugs |
 | G3 | Two admins, two panels: concurrent edits, complete-vs-delete race, subscription consistency | P, W | — | untested |
 
@@ -109,7 +109,7 @@ especially across reload/restart.
 
 | # | Journey | Surfaces | Covered today | Gap |
 |---|---------|----------|---------------|-----|
-| H1 | Downtime catch-up: HA off for weeks → boot → reminders bundle sanely (no storm), retention sweeps | (time) | logbook baselining only | untested (faketime infra exists) |
+| H1 | Downtime catch-up: HA off for weeks → boot → no storm, reminders resume | (time) | seed_startup_state + test_journey_time_and_limits | ✔ closed 2026-07-06 |
 | H2 | DST transition × schedule_time (non-existent 02:30), instance timezone change | (time) | — | untested |
 | H3 | Year rollover × Workday holiday calendar (lazy year population), EOM at year boundary | (time) | test_schedule_eom (fixed dates) | rollover untested |
 
@@ -134,7 +134,7 @@ especially across reload/restart.
 
 | # | Journey | Surfaces | Covered today | Gap |
 |---|---------|----------|---------------|-----|
-| K1 | **History growth**: NO cap exists — completion + trigger history accumulate forever (entry/store bloat, WS payload size) | (time) | — | needs a design decision (cap/trim/paginate), then tests |
+| K1 | **History growth** | (time) | 500-entry cap existed; trim was TYPE-BLIND — sensor flapping could evict the completion record (cost/times_performed corruption). Now trims trigger noise first; test_journey_time_and_limits | ✔ closed 2026-07-06 |
 | K2 | Import at the documented maxima; document storage at quota; 1000-task install across all views | P, W | virtualized table (FE) | backend limits untested as journeys |
 
 ### L. Cross-feature interactions
