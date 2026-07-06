@@ -40,10 +40,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -53,15 +56,22 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_get_groups_empty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test get_groups with no groups."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_groups, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/groups",
-    })
+    await call_ws_handler(
+        ws_get_groups,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/groups",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -74,9 +84,15 @@ async def test_get_groups_no_global(
     """Test get_groups when no global entry exists."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_groups, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/groups",
-    })
+    await call_ws_handler(
+        ws_get_groups,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/groups",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -87,16 +103,23 @@ async def test_get_groups_no_global(
 
 
 async def test_create_group_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test creating a group with name only."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Monthly Tasks",
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Monthly Tasks",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -112,21 +135,28 @@ async def test_create_group_basic(
 
 
 async def test_create_group_with_all_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test creating a group with description and task_refs."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Pool Maintenance",
-        "description": "All pool-related tasks",
-        "task_refs": [
-            {"entry_id": "entry1", "task_id": "task1"},
-            {"entry_id": "entry1", "task_id": "task2"},
-        ],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Pool Maintenance",
+            "description": "All pool-related tasks",
+            "task_refs": [
+                {"entry_id": "entry1", "task_id": "task1"},
+                {"entry_id": "entry1", "task_id": "task2"},
+            ],
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     group_id = result["group_id"]
@@ -144,10 +174,16 @@ async def test_create_group_no_global(
     """Test creating a group when no global entry exists."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Test",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -157,33 +193,47 @@ async def test_create_group_no_global(
 
 
 async def _create_group(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> str:
     """Helper to create a group and return its ID."""
     conn = _mock_connection()
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Original Name",
-        "description": "Original desc",
-        "task_refs": [{"entry_id": "e1", "task_id": "t1"}],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Original Name",
+            "description": "Original desc",
+            "task_refs": [{"entry_id": "e1", "task_id": "t1"}],
+        },
+    )
     result: str = conn.send_result.call_args[0][1]["group_id"]
     return result
 
 
 async def test_update_group_name(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test updating a group's name."""
     await setup_integration(hass, global_entry)
     group_id = await _create_group(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_group, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/group/update",
-        "group_id": group_id,
-        "name": "Updated Name",
-    })
+    await call_ws_handler(
+        ws_update_group,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/group/update",
+            "group_id": group_id,
+            "name": "Updated Name",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -197,21 +247,28 @@ async def test_update_group_name(
 
 
 async def test_update_group_task_refs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test updating a group's task_refs."""
     await setup_integration(hass, global_entry)
     group_id = await _create_group(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_group, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/group/update",
-        "group_id": group_id,
-        "task_refs": [
-            {"entry_id": "e2", "task_id": "t2"},
-            {"entry_id": "e2", "task_id": "t3"},
-        ],
-    })
+    await call_ws_handler(
+        ws_update_group,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/group/update",
+            "group_id": group_id,
+            "task_refs": [
+                {"entry_id": "e2", "task_id": "t2"},
+                {"entry_id": "e2", "task_id": "t3"},
+            ],
+        },
+    )
 
     entry = hass.config_entries.async_get_entry(global_entry.entry_id)
     assert entry is not None
@@ -219,17 +276,24 @@ async def test_update_group_task_refs(
 
 
 async def test_update_group_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test updating a non-existent group."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/update",
-        "group_id": "nonexistent",
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_update_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/update",
+            "group_id": "nonexistent",
+            "name": "Test",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -241,11 +305,17 @@ async def test_update_group_no_global(
     """Test updating a group when no global entry exists."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/update",
-        "group_id": "any",
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_update_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/update",
+            "group_id": "any",
+            "name": "Test",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -254,17 +324,24 @@ async def test_update_group_no_global(
 
 
 async def test_delete_group(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test deleting a group."""
     await setup_integration(hass, global_entry)
     group_id = await _create_group(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_group, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/group/delete",
-        "group_id": group_id,
-    })
+    await call_ws_handler(
+        ws_delete_group,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/group/delete",
+            "group_id": group_id,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -276,16 +353,23 @@ async def test_delete_group(
 
 
 async def test_delete_group_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test deleting a non-existent group."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/delete",
-        "group_id": "nonexistent",
-    })
+    await call_ws_handler(
+        ws_delete_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/delete",
+            "group_id": "nonexistent",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -297,10 +381,16 @@ async def test_delete_group_no_global(
     """Test deleting a group when no global entry exists."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/delete",
-        "group_id": "any",
-    })
+    await call_ws_handler(
+        ws_delete_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/delete",
+            "group_id": "any",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -309,48 +399,79 @@ async def test_delete_group_no_global(
 
 
 async def test_group_crud_cycle(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test full group lifecycle: create → get → update → delete → get."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
     # Create
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Lifecycle Test",
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Lifecycle Test",
+        },
+    )
     group_id = conn.send_result.call_args[0][1]["group_id"]
 
     # Get
     conn.reset_mock()
-    await call_ws_handler(ws_get_groups, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/groups",
-    })
+    await call_ws_handler(
+        ws_get_groups,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/groups",
+        },
+    )
     groups = conn.send_result.call_args[0][1]["groups"]
     assert group_id in groups
     assert groups[group_id]["name"] == "Lifecycle Test"
 
     # Update
     conn.reset_mock()
-    await call_ws_handler(ws_update_group, hass, conn, {
-        "id": 3, "type": "maintenance_supporter/group/update",
-        "group_id": group_id,
-        "name": "Updated Lifecycle",
-    })
+    await call_ws_handler(
+        ws_update_group,
+        hass,
+        conn,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/group/update",
+            "group_id": group_id,
+            "name": "Updated Lifecycle",
+        },
+    )
 
     # Delete
     conn.reset_mock()
-    await call_ws_handler(ws_delete_group, hass, conn, {
-        "id": 4, "type": "maintenance_supporter/group/delete",
-        "group_id": group_id,
-    })
+    await call_ws_handler(
+        ws_delete_group,
+        hass,
+        conn,
+        {
+            "id": 4,
+            "type": "maintenance_supporter/group/delete",
+            "group_id": group_id,
+        },
+    )
 
     # Verify deleted
     conn.reset_mock()
-    await call_ws_handler(ws_get_groups, hass, conn, {
-        "id": 5, "type": "maintenance_supporter/groups",
-    })
+    await call_ws_handler(
+        ws_get_groups,
+        hass,
+        conn,
+        {
+            "id": 5,
+            "type": "maintenance_supporter/groups",
+        },
+    )
     groups = conn.send_result.call_args[0][1]["groups"]
     assert group_id not in groups
 
@@ -359,21 +480,28 @@ async def test_group_crud_cycle(
 
 
 async def test_cleanup_group_refs_by_task_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test cleanup_group_refs removes refs matching a task_id."""
     await setup_integration(hass, global_entry)
 
     # Create a group with two task refs
     conn = _mock_connection()
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Test Group",
-        "task_refs": [
-            {"entry_id": "e1", "task_id": TASK_ID_1},
-            {"entry_id": "e1", "task_id": TASK_ID_2},
-        ],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Test Group",
+            "task_refs": [
+                {"entry_id": "e1", "task_id": TASK_ID_1},
+                {"entry_id": "e1", "task_id": TASK_ID_2},
+            ],
+        },
+    )
     group_id = conn.send_result.call_args[0][1]["group_id"]
 
     # Clean up refs for TASK_ID_1
@@ -387,21 +515,28 @@ async def test_cleanup_group_refs_by_task_id(
 
 
 async def test_cleanup_group_refs_by_entry_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test cleanup_group_refs removes all refs for an entry_id."""
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Test Group",
-        "task_refs": [
-            {"entry_id": "entry_to_delete", "task_id": "t1"},
-            {"entry_id": "entry_to_delete", "task_id": "t2"},
-            {"entry_id": "other_entry", "task_id": "t3"},
-        ],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Test Group",
+            "task_refs": [
+                {"entry_id": "entry_to_delete", "task_id": "t1"},
+                {"entry_id": "entry_to_delete", "task_id": "t2"},
+                {"entry_id": "other_entry", "task_id": "t3"},
+            ],
+        },
+    )
     group_id = conn.send_result.call_args[0][1]["group_id"]
 
     cleanup_group_refs(hass, entry_id="entry_to_delete")
@@ -414,7 +549,8 @@ async def test_cleanup_group_refs_by_entry_id(
 
 
 async def test_cleanup_group_refs_no_groups(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test cleanup_group_refs is a no-op when no groups exist."""
     await setup_integration(hass, global_entry)
@@ -436,29 +572,42 @@ async def test_cleanup_group_refs_no_global_entry(
 
 
 async def test_cleanup_group_refs_across_multiple_groups(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test cleanup removes refs from ALL groups that reference the task."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
     # Create two groups, both referencing the same task
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/group/create",
-        "name": "Group A",
-        "task_refs": [{"entry_id": "e1", "task_id": TASK_ID_1}],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/group/create",
+            "name": "Group A",
+            "task_refs": [{"entry_id": "e1", "task_id": TASK_ID_1}],
+        },
+    )
     gid_a = conn.send_result.call_args[0][1]["group_id"]
 
     conn.reset_mock()
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/group/create",
-        "name": "Group B",
-        "task_refs": [
-            {"entry_id": "e1", "task_id": TASK_ID_1},
-            {"entry_id": "e1", "task_id": TASK_ID_2},
-        ],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/group/create",
+            "name": "Group B",
+            "task_refs": [
+                {"entry_id": "e1", "task_id": TASK_ID_1},
+                {"entry_id": "e1", "task_id": TASK_ID_2},
+            ],
+        },
+    )
     gid_b = conn.send_result.call_args[0][1]["group_id"]
 
     cleanup_group_refs(hass, task_id=TASK_ID_1)
@@ -490,10 +639,13 @@ def _covws_conn() -> MagicMock:
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -504,7 +656,8 @@ def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
 # colliding with the existing test of the same name; this variant asserts the exact
 # replacement value and the success flag.
 async def test_update_group_task_refs_replaces_refs(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """ws_update_group: task_refs field is updated when provided."""
     from custom_components.maintenance_supporter.websocket.groups import (
@@ -515,11 +668,17 @@ async def test_update_group_task_refs_replaces_refs(
     conn = _covws_conn()
 
     # Create a group first
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 10, "type": "maintenance_supporter/group/create",
-        "name": "My Group",
-        "task_refs": [{"entry_id": "entry_a", "task_id": "task_a"}],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 10,
+            "type": "maintenance_supporter/group/create",
+            "name": "My Group",
+            "task_refs": [{"entry_id": "entry_a", "task_id": "task_a"}],
+        },
+    )
     group_id = conn.send_result.call_args[0][1]["group_id"]
     conn.reset_mock()
 
@@ -528,11 +687,17 @@ async def test_update_group_task_refs_replaces_refs(
         {"entry_id": "entry_b", "task_id": "task_b"},
         {"entry_id": "entry_c", "task_id": "task_c"},
     ]
-    await call_ws_handler(ws_update_group, hass, conn, {
-        "id": 11, "type": "maintenance_supporter/group/update",
-        "group_id": group_id,
-        "task_refs": new_refs,
-    })
+    await call_ws_handler(
+        ws_update_group,
+        hass,
+        conn,
+        {
+            "id": 11,
+            "type": "maintenance_supporter/group/update",
+            "group_id": group_id,
+            "task_refs": new_refs,
+        },
+    )
 
     conn.send_result.assert_called_once()
     assert conn.send_result.call_args[0][1]["success"] is True
@@ -540,5 +705,6 @@ async def test_update_group_task_refs_replaces_refs(
     # Verify the task_refs were actually updated
     entry = hass.config_entries.async_get_entry(covws_global_entry.entry_id)
     from custom_components.maintenance_supporter.const import CONF_GROUPS
+
     groups = (entry.options or entry.data).get(CONF_GROUPS, {})
     assert groups[group_id]["task_refs"] == new_refs

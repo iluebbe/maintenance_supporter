@@ -24,6 +24,9 @@ export interface HistoryContext {
   setFilter: (filter: string | null) => void;
   setSearch: (search: string) => void;
   openEdit: (entry: HistoryEntry) => void;
+  /** v2.20 (#83): unit + delta-vs-previous for reading-task entries. */
+  readingUnit?: string | null;
+  readingDelta?: (entry: HistoryEntry) => number | null;
 }
 
 const _FILTER_TYPES = ["completed", "skipped", "missed", "reset", "triggered"] as const;
@@ -106,6 +109,12 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryContext) {
           ${entry.cost != null ? html`<span>${t("cost", L)}: ${entry.cost.toFixed(2)} ${ctx.currencySymbol}</span>` : nothing}
           ${entry.duration != null ? html`<span>${t("duration", L)}: ${entry.duration} min</span>` : nothing}
           ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}</span>` : nothing}
+          ${entry.reading_value != null
+            ? html`<span>${t("reading_label", L)}: ${entry.reading_value}${ctx.readingUnit ? ` ${ctx.readingUnit}` : ""}${(() => {
+                const d = ctx.readingDelta?.(entry);
+                return d == null ? "" : ` (${d >= 0 ? "+" : ""}${Number(d.toFixed(3))})`;
+              })()}</span>`
+            : nothing}
         </div>
       </div>
     </div>

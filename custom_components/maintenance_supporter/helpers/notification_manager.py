@@ -485,17 +485,12 @@ def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     strings = _NOTIFICATION_STRINGS.get(lang, _NOTIFICATION_STRINGS["en"])
     text = strings.get(key, _NOTIFICATION_STRINGS["en"].get(key, key))
     if kwargs:
-        safe_kwargs = {
-            k: str(v).replace("{", "{{").replace("}", "}}")
-            for k, v in kwargs.items()
-        }
+        safe_kwargs = {k: str(v).replace("{", "{{").replace("}", "}}") for k, v in kwargs.items()}
         text = text.format(**safe_kwargs)
     return text
 
 
-async def _get_user_notify_services(
-    hass: HomeAssistant, user_id: str
-) -> list[str]:
+async def _get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[str]:
     """Find all notify services for a user via mobile_app config entries.
 
     Discovery strategy:
@@ -538,9 +533,7 @@ async def _get_user_notify_services(
                 continue
             seen.add(service)
             services.append(f"notify.{service}")
-            _LOGGER.debug(
-                "Found notify service notify.%s for user %s", service, user_id
-            )
+            _LOGGER.debug("Found notify service notify.%s for user %s", service, user_id)
 
     return services
 
@@ -688,11 +681,7 @@ class NotificationManager:
         on, that case.
         """
         service = self.notify_service
-        missing = (
-            bool(service)
-            and self.enabled
-            and not self._configured_service_exists(service)
-        )
+        missing = bool(service) and self.enabled and not self._configured_service_exists(service)
         # None (first call) never equals a bool, so the registry is reconciled
         # once at startup — clearing any issue persisted from a previous run.
         if missing == self._notify_issue_active:
@@ -700,8 +689,7 @@ class NotificationManager:
         self._notify_issue_active = missing
         if missing:
             _LOGGER.warning(
-                "Configured notify service '%s' is not available — notifications "
-                "will silently fail; raising a repair issue",
+                "Configured notify service '%s' is not available — notifications will silently fail; raising a repair issue",
                 service,
             )
             ir.async_create_issue(
@@ -714,9 +702,7 @@ class NotificationManager:
                 translation_placeholders={"service": service},
             )
         else:
-            ir.async_delete_issue(
-                self.hass, DOMAIN, _NOTIFY_SERVICE_MISSING_ISSUE_ID
-            )
+            ir.async_delete_issue(self.hass, DOMAIN, _NOTIFY_SERVICE_MISSING_ISSUE_ID)
 
     def _is_status_enabled(self, status: str) -> bool:
         """Check if notifications for this specific status are enabled."""
@@ -764,13 +750,9 @@ class NotificationManager:
             self._daily_count = 0
             self._daily_reset_date = today
 
-        max_per_day = self._global_options.get(
-            CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY
-        )
+        max_per_day = self._global_options.get(CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY)
         if max_per_day > 0 and self._daily_count >= max_per_day:
-            _LOGGER.debug(
-                "Daily notification limit reached (%s/%s)", self._daily_count, max_per_day
-            )
+            _LOGGER.debug("Daily notification limit reached (%s/%s)", self._daily_count, max_per_day)
             return False
         return True
 
@@ -787,17 +769,13 @@ class NotificationManager:
 
     def snooze_task(self, entry_id: str, task_id: str) -> None:
         """Snooze all notifications for a task."""
-        hours = self._global_options.get(
-            CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS
-        )
+        hours = self._global_options.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS)
         until = dt_util.now() + timedelta(hours=hours)
         # Snooze for all status types
         for status in (MaintenanceStatus.DUE_SOON, MaintenanceStatus.OVERDUE, MaintenanceStatus.TRIGGERED):
             key = f"{entry_id}_{task_id}_{status}"
             self._snoozed_until[key] = until
-        _LOGGER.debug(
-            "Snoozed task %s for %s hours (until %s)", task_id, hours, until
-        )
+        _LOGGER.debug("Snoozed task %s for %s hours (until %s)", task_id, hours, until)
 
     async def async_task_status_changed(
         self,
@@ -865,9 +843,7 @@ class NotificationManager:
 
         # Build translated message
         lang = self._lang
-        title, message = self._build_message(
-            new_status, lang, task_name, object_name, days_until_due, next_due
-        )
+        title, message = self._build_message(new_status, lang, task_name, object_name, days_until_due, next_due)
 
         # Determine target services: user-specific or global
         target_services = []
@@ -996,20 +972,26 @@ class NotificationManager:
         # Build action buttons for Companion App
         actions: list[dict[str, str]] = []
         if options.get(CONF_ACTION_COMPLETE_ENABLED, False):
-            actions.append({
-                "action": f"MS_COMPLETE_{entry_id}_{task_id}",
-                "title": f"\u2705 {_notif_t('action_complete', lang)}",
-            })
+            actions.append(
+                {
+                    "action": f"MS_COMPLETE_{entry_id}_{task_id}",
+                    "title": f"\u2705 {_notif_t('action_complete', lang)}",
+                }
+            )
         if options.get(CONF_ACTION_SKIP_ENABLED, False):
-            actions.append({
-                "action": f"MS_SKIP_{entry_id}_{task_id}",
-                "title": f"\u23ed\ufe0f {_notif_t('action_skip', lang)}",
-            })
+            actions.append(
+                {
+                    "action": f"MS_SKIP_{entry_id}_{task_id}",
+                    "title": f"\u23ed\ufe0f {_notif_t('action_skip', lang)}",
+                }
+            )
         if options.get(CONF_ACTION_SNOOZE_ENABLED, False):
-            actions.append({
-                "action": f"MS_SNOOZE_{entry_id}_{task_id}",
-                "title": f"\U0001f4a4 {_notif_t('action_snooze', lang)}",
-            })
+            actions.append(
+                {
+                    "action": f"MS_SNOOZE_{entry_id}_{task_id}",
+                    "title": f"\U0001f4a4 {_notif_t('action_snooze', lang)}",
+                }
+            )
 
         service_data: dict[str, Any] = {"title": title, "message": message}
         data: dict[str, Any] = {
@@ -1066,9 +1048,7 @@ class NotificationManager:
             task_parts.append(_notif_t(key, lang, task=t["task_name"]))
 
         title = _notif_t("bundled_title", lang, count=str(len(tasks)))
-        message = _notif_t(
-            "bundled_message", lang, object=object_name, task_list=", ".join(task_parts)
-        )
+        message = _notif_t("bundled_message", lang, object=object_name, task_list=", ".join(task_parts))
 
         # v1.4.0 (#44): for bundled notifications, "object_name" style still
         # prefers the object as the title; "task_name" doesn't map cleanly
@@ -1108,9 +1088,7 @@ class NotificationManager:
         lang = self._lang
         service_data: dict[str, Any] = {
             "title": _notif_t("digest_title", lang),
-            "message": _notif_t(
-                "digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)
-            ),
+            "message": _notif_t("digest_message", lang, overdue=str(overdue), due_soon=str(due_soon)),
             "data": {
                 "tag": "maintenance_weekly_digest",
                 "url": "/maintenance-supporter",
@@ -1119,15 +1097,11 @@ class NotificationManager:
         }
         try:
             await async_dispatch_notify(self.hass, self.notify_service, service_data)
-            _LOGGER.debug(
-                "Weekly digest sent: %s overdue, %s due soon", overdue, due_soon
-            )
+            _LOGGER.debug("Weekly digest sent: %s overdue, %s due soon", overdue, due_soon)
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send weekly digest")
 
-    async def async_send_warranty_reminder(
-        self, names: list[str], days: int
-    ) -> None:
+    async def async_send_warranty_reminder(self, names: list[str], days: int) -> None:
         """Send the opt-in warranty-expiry reminder — one message listing the
         objects whose warranty expires within ``days`` days. Like the digest,
         a scheduled once-a-day send that skips rate-limit / quiet-hours gating.
@@ -1225,9 +1199,7 @@ class NotificationManager:
                 success = True
         if success:
             self._daily_count += 1
-            _LOGGER.debug(
-                "Lead reminder sent: %s due in %s day(s)", task_name, days
-            )
+            _LOGGER.debug("Lead reminder sent: %s due in %s day(s)", task_name, days)
 
     async def async_budget_alert(
         self,
@@ -1260,7 +1232,8 @@ class NotificationManager:
         title = _notif_t("budget_alert_title", lang)
         key = f"budget_alert_{period}"
         message = _notif_t(
-            key, lang,
+            key,
+            lang,
             pct=str(pct),
             spent=f"{spent:.2f}{currency_symbol}",
             budget=f"{budget:.2f}{currency_symbol}",
@@ -1284,9 +1257,7 @@ class NotificationManager:
         except (HomeAssistantError, ValueError, TypeError):
             _LOGGER.exception("Failed to send budget alert")
 
-    def seed_startup_state(
-        self, entry_id: str, task_id: str, status: str
-    ) -> None:
+    def seed_startup_state(self, entry_id: str, task_id: str, status: str) -> None:
         """Seed notification state for a task that is already notifiable at startup.
 
         Called once on first coordinator refresh to prevent a burst of stale

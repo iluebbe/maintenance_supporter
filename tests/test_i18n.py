@@ -25,11 +25,7 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.maintenance_supporter.helpers.i18n import normalize_language
 
-_COMPONENT = (
-    Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "maintenance_supporter"
-)
+_COMPONENT = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter"
 _STRINGS = _COMPONENT / "strings.json"
 _TRANSLATIONS = _COMPONENT / "translations"
 # Frontend panel/card UI strings: runtime-loaded JSON (only EN is bundled into
@@ -37,15 +33,13 @@ _TRANSLATIONS = _COMPONENT / "translations"
 # codes (zh, not zh-Hans) match the frontend t() table keys.
 _FRONTEND_LOCALES = _COMPONENT / "frontend-src" / "locales"
 _FRONTEND_LANGUAGES = frozenset(
-    {"de", "en", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh",
-     "da", "fi", "nb", "ja", "hi"}
+    {"de", "en", "nl", "fr", "it", "es", "pt", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi"}
 )
 
 # The shipped UI languages. Mirrors the frontend guard's set (which uses "zh");
 # HA's on-disk convention is the regional file name "zh-Hans".
 _EXPECTED_LANGUAGES = frozenset(
-    {"cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh-Hans",
-     "da", "fi", "nb", "ja", "hi"}
+    {"cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "ru", "sv", "uk", "zh-Hans", "da", "fi", "nb", "ja", "hi"}
 )
 
 # HA/Python ``str.format`` placeholder, e.g. ``{task_name}``.
@@ -107,9 +101,7 @@ def _non_en_files() -> list[Path]:
         (None, "en"),  # unset -> default
     ],
 )
-def test_normalize_language(
-    hass: HomeAssistant, ha_language: str | None, expected: str
-) -> None:
+def test_normalize_language(hass: HomeAssistant, ha_language: str | None, expected: str) -> None:
     """Regional, uppercase, empty and unset HA codes map to a 2-letter key."""
     hass.config.language = ha_language
     assert normalize_language(hass) == expected

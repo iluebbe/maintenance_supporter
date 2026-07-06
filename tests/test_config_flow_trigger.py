@@ -39,24 +39,26 @@ from .conftest import build_global_entry_data, setup_integration
 @pytest.fixture
 def global_config_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
 
 
 async def _navigate_to_add_task(
-    hass: HomeAssistant, global_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_entry: ConfigEntry,
 ) -> ConfigFlowResult:
     """Navigate config flow to 'add task' step."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     # Step 1: User menu - select "create_object"
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -80,7 +82,8 @@ async def _navigate_to_add_task(
 
 
 async def test_runtime_trigger_full_flow(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test full runtime trigger flow: sensor→attribute→type→runtime_config→finish."""
     hass.states.async_set("sensor.pump", "on", {"unit_of_measurement": ""})
@@ -137,7 +140,8 @@ async def test_runtime_trigger_full_flow(
 
 
 async def test_sensor_safety_interval_honors_unit(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """A sensor task's safety interval must persist interval_unit (e.g. months),
     not just days — the config-flow trigger step exposes the unit selector now."""
@@ -153,13 +157,16 @@ async def test_sensor_safety_interval_honors_unit(
         },
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.pump_hours"]},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.pump_hours"]},
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
     )
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.RUNTIME},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.RUNTIME},
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
@@ -172,7 +179,8 @@ async def test_sensor_safety_interval_honors_unit(
     )
     assert result["type"] == FlowResultType.MENU
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"next_step_id": "finish"},
+        result["flow_id"],
+        {"next_step_id": "finish"},
     )
     assert result["type"] == FlowResultType.CREATE_ENTRY
     task = list(result["data"][CONF_TASKS].values())[0]
@@ -181,7 +189,8 @@ async def test_sensor_safety_interval_honors_unit(
 
 
 async def test_runtime_trigger_custom_on_states(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test runtime trigger with custom on_states."""
     hass.states.async_set("sensor.pump_hours", "100", {"unit_of_measurement": "h"})
@@ -232,7 +241,8 @@ async def test_runtime_trigger_custom_on_states(
 
 
 async def test_compound_trigger_two_conditions(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test compound trigger with 2 threshold conditions."""
     hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
@@ -336,7 +346,8 @@ async def test_compound_trigger_two_conditions(
 
 
 async def test_go_back_sensor_select(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test go_back from sensor_select returns to previous step."""
     hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
@@ -362,7 +373,8 @@ async def test_go_back_sensor_select(
 
 
 async def test_go_back_trigger_type(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test go_back from trigger_type returns to sensor_attribute."""
     hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
@@ -395,7 +407,8 @@ async def test_go_back_trigger_type(
 
 
 async def test_go_back_threshold_config(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test go_back from threshold config returns to trigger_type."""
     hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
@@ -435,7 +448,8 @@ async def test_go_back_threshold_config(
 
 
 async def test_multi_entity_threshold(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test multi-entity threshold stores entity_ids."""
     hass.states.async_set("sensor.temp1", "25.0", {"unit_of_measurement": "°C"})
@@ -484,7 +498,8 @@ async def test_multi_entity_threshold(
 
 
 async def test_multi_entity_second_entity_invalid(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test multi-entity validation rejects when second entity doesn't exist."""
     hass.states.async_set("sensor.valid", "25.0", {"unit_of_measurement": "°C"})
@@ -510,7 +525,8 @@ async def test_multi_entity_second_entity_invalid(
 
 
 async def test_multi_entity_all_valid(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test multi-entity validation passes when all entities exist."""
     hass.states.async_set("sensor.valid1", "25.0", {"unit_of_measurement": "°C"})
@@ -563,7 +579,8 @@ def test_mixin_go_back_no_field() -> None:
 
 
 async def test_attribute_no_numeric(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test that non-numeric entity at attribute step still offers _state."""
     # Entity with no numeric state or attributes
@@ -589,15 +606,20 @@ async def test_attribute_no_numeric(
 
 
 async def test_attribute_multiple_numeric(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Test entity with multiple numeric attributes shows all options."""
-    hass.states.async_set("sensor.device", "25.0", {
-        "unit_of_measurement": "°C",
-        "humidity": 60.0,
-        "pressure": 1013.0,
-        "friendly_name": "Multi Sensor",
-    })
+    hass.states.async_set(
+        "sensor.device",
+        "25.0",
+        {
+            "unit_of_measurement": "°C",
+            "humidity": 60.0,
+            "pressure": 1013.0,
+            "friendly_name": "Multi Sensor",
+        },
+    )
 
     result = await _navigate_to_add_task(hass, global_config_entry)
     result = await hass.config_entries.flow.async_configure(

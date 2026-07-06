@@ -74,10 +74,7 @@ async def async_setup_entry(
         summary = runtime_data.summary_coordinator if runtime_data else None
         entities: list[SensorEntity] = []
         if summary is not None:
-            entities.extend(
-                MaintenanceSummarySensor(summary, key, icon)
-                for key, icon in SUMMARY_METRICS
-            )
+            entities.extend(MaintenanceSummarySensor(summary, key, icon) for key, icon in SUMMARY_METRICS)
         # One global storage sensor (total blob bytes = real backup cost).
         doc_store = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
         entities.append(DocumentStorageSensor(hass, doc_store))
@@ -92,16 +89,11 @@ async def async_setup_entry(
     coordinator = runtime_data.coordinator
     tasks = entry.data.get(CONF_TASKS, {})
 
-    entities = [
-        MaintenanceSensor(coordinator, task_id)
-        for task_id in tasks
-    ]
+    entities = [MaintenanceSensor(coordinator, task_id) for task_id in tasks]
     # Companion timestamp sensor per task (disabled by default): the raw
     # next-due instant for tile/entities cards with the relative time-format
     # display options ("in 2 days"), template automations, etc.
-    entities.extend(
-        MaintenanceNextDueSensor(coordinator, task_id) for task_id in tasks
-    )
+    entities.extend(MaintenanceNextDueSensor(coordinator, task_id) for task_id in tasks)
 
     async_add_entities(entities)
     _LOGGER.debug(
@@ -233,32 +225,18 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             if ttype == "threshold":
                 attrs["trigger_above"] = trigger_config.get("trigger_above")
                 attrs["trigger_below"] = trigger_config.get("trigger_below")
-                attrs["trigger_for_minutes"] = trigger_config.get(
-                    "trigger_for_minutes"
-                )
+                attrs["trigger_for_minutes"] = trigger_config.get("trigger_for_minutes")
             elif ttype == "counter":
-                attrs["trigger_target_value"] = trigger_config.get(
-                    "trigger_target_value"
-                )
-                attrs["trigger_delta_mode"] = trigger_config.get(
-                    "trigger_delta_mode"
-                )
+                attrs["trigger_target_value"] = trigger_config.get("trigger_target_value")
+                attrs["trigger_delta_mode"] = trigger_config.get("trigger_delta_mode")
             elif ttype == "state_change":
-                attrs["trigger_from_state"] = trigger_config.get(
-                    "trigger_from_state"
-                )
+                attrs["trigger_from_state"] = trigger_config.get("trigger_from_state")
                 attrs["trigger_to_state"] = trigger_config.get("trigger_to_state")
-                attrs["trigger_target_changes"] = trigger_config.get(
-                    "trigger_target_changes"
-                )
+                attrs["trigger_target_changes"] = trigger_config.get("trigger_target_changes")
             elif ttype == "runtime":
-                attrs["trigger_runtime_hours"] = trigger_config.get(
-                    "trigger_runtime_hours"
-                )
+                attrs["trigger_runtime_hours"] = trigger_config.get("trigger_runtime_hours")
             elif ttype == "compound":
-                attrs["compound_logic"] = trigger_config.get(
-                    "compound_logic", "AND"
-                )
+                attrs["compound_logic"] = trigger_config.get("compound_logic", "AND")
                 conditions = trigger_config.get("conditions", [])
                 attrs["compound_conditions_count"] = len(conditions)
 
@@ -268,9 +246,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             attrs["interval_confidence"] = task.get("_interval_confidence")
         adaptive_cfg = task.get("adaptive_config")
         if adaptive_cfg:
-            attrs["adaptive_scheduling_enabled"] = adaptive_cfg.get(
-                "enabled", False
-            )
+            attrs["adaptive_scheduling_enabled"] = adaptive_cfg.get("enabled", False)
 
         # Seasonal scheduling attributes
         analysis = task.get("_interval_analysis")
@@ -294,9 +270,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 attrs["weibull_beta_interpretation"] = "highly_predictable"
         if analysis and analysis.get("confidence_interval_low") is not None:
             attrs["confidence_interval_low"] = analysis["confidence_interval_low"]
-            attrs["confidence_interval_high"] = analysis.get(
-                "confidence_interval_high"
-            )
+            attrs["confidence_interval_high"] = analysis.get("confidence_interval_high")
 
         return attrs
 
@@ -306,9 +280,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
 
         # Use merged data (static config + Store runtime) so that persisted
         # trigger state (_trigger_state) survives HA restarts.
-        static_task = self.coordinator.entry.data.get(CONF_TASKS, {}).get(
-            self._task_id, {}
-        )
+        static_task = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {})
         store = self.coordinator._store
         if store is not None:
             task_data = store.merge_task_data(self._task_id, static_task)
@@ -319,12 +291,8 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         # Listen for task reset signals (completion/skip/reset) —
         # registered for ALL tasks (not just trigger-based) so that
         # status updates propagate immediately to the UI.
-        signal = SIGNAL_TASK_RESET.format(
-            entry_id=self.coordinator.entry.entry_id, task_id=self._task_id
-        )
-        self.async_on_remove(
-            async_dispatcher_connect(self.hass, signal, self._handle_task_reset)
-        )
+        signal = SIGNAL_TASK_RESET.format(entry_id=self.coordinator.entry.entry_id, task_id=self._task_id)
+        self.async_on_remove(async_dispatcher_connect(self.hass, signal, self._handle_task_reset))
 
         # v2.10.0: an archived task is inert — keep the status listener above
         # (so unarchive repaints immediately) but never wire up its triggers.
@@ -360,9 +328,7 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
                 entity_ids if not is_compound else "[compound]",
             )
         except (HomeAssistantError, ValueError, TypeError, KeyError):
-            _LOGGER.exception(
-                "Failed to set up triggers for %s", self.entity_id
-            )
+            _LOGGER.exception("Failed to set up triggers for %s", self.entity_id)
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity is removed, clean up triggers."""
@@ -418,15 +384,11 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
 
         # Aggregate trigger states
         if len(self._triggers) > 1:
-            trigger_config = self.coordinator.entry.data.get(CONF_TASKS, {}).get(
-                self._task_id, {}
-            ).get("trigger_config", {})
+            trigger_config = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {}).get("trigger_config", {})
             entity_logic = trigger_config.get("entity_logic", DEFAULT_ENTITY_LOGIC)
 
             if entity_logic == "all":
-                aggregated = bool(self._trigger_states) and all(
-                    self._trigger_states.values()
-                )
+                aggregated = bool(self._trigger_states) and all(self._trigger_states.values())
             else:  # "any"
                 aggregated = any(self._trigger_states.values())
 
@@ -482,9 +444,7 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
-        self._attr_unique_id = (
-            f"maintenance_supporter_{object_slug}_{task_id}_next_due"
-        )
+        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_next_due"
         self._attr_translation_placeholders = {"task_name": task_data.get("name", "")}
 
     @property
@@ -522,9 +482,7 @@ class MaintenanceNextDueSensor(MaintenanceEntity, SensorEntity):
         return False
 
 
-class MaintenanceSummarySensor(
-    CoordinatorEntity[MaintenanceSummaryCoordinator], SensorEntity
-):
+class MaintenanceSummarySensor(CoordinatorEntity[MaintenanceSummaryCoordinator], SensorEntity):
     """Aggregate count sensor on the global Maintenance Supporter hub device.
 
     Counts come from the shared summary coordinator (which uses the same
@@ -610,11 +568,7 @@ class DocumentStorageSensor(SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Subscribe to document-change notifications."""
         await super().async_added_to_hass()
-        self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass, SIGNAL_DOCUMENTS_UPDATED, self._handle_update
-            )
-        )
+        self.async_on_remove(async_dispatcher_connect(self.hass, SIGNAL_DOCUMENTS_UPDATED, self._handle_update))
 
     @callback
     def _handle_update(self) -> None:

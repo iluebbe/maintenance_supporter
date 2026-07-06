@@ -330,7 +330,18 @@ def inject_short_term(conn: sqlite3.Connection, entity: dict, metadata_id: int) 
                     """INSERT OR REPLACE INTO statistics_short_term
                         (created_ts, metadata_id, start_ts, mean, mean_weight, min, max, state, sum, last_reset_ts)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (now_ts, metadata_id, start_ts, round(mean_val, 3), 1.0, round(min_val, 3), round(max_val, 3), None, None, None),
+                    (
+                        now_ts,
+                        metadata_id,
+                        start_ts,
+                        round(mean_val, 3),
+                        1.0,
+                        round(min_val, 3),
+                        round(max_val, 3),
+                        None,
+                        None,
+                        None,
+                    ),
                 )
             count += 1
 

@@ -56,15 +56,10 @@ def is_completed_oneoff(task: dict[str, Any]) -> bool:
     # Local import keeps this module HA-free for the pure-function tests.
     from .schedule import KIND_ONE_TIME, Schedule
 
-    return (
-        Schedule.parse(task).kind == KIND_ONE_TIME
-        and bool(task.get("last_performed"))
-    )
+    return Schedule.parse(task).kind == KIND_ONE_TIME and bool(task.get("last_performed"))
 
 
-def should_auto_archive(
-    task: dict[str, Any], *, archive_days: int, today: date
-) -> bool:
+def should_auto_archive(task: dict[str, Any], *, archive_days: int, today: date) -> bool:
     """Decide whether a (merged) task should be auto-archived now.
 
     True only for an active (not-yet-archived) completed one-off whose completion
@@ -83,9 +78,7 @@ def should_auto_archive(
     return (today - last_performed).days >= archive_days
 
 
-def should_auto_delete(
-    task: dict[str, Any], *, delete_days: int, today: date
-) -> bool:
+def should_auto_delete(task: dict[str, Any], *, delete_days: int, today: date) -> bool:
     """Decide whether an auto-archived task should be auto-deleted now.
 
     True only for a task archived **automatically** (``archived_reason == "auto"``
@@ -172,14 +165,8 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
         merged = _merged_tasks(entry)
         # The two sets are disjoint by construction: archive needs archived_at
         # None; delete needs archived_at set — a task can't be both this pass.
-        to_archive = [
-            tid for tid, td in merged.items()
-            if should_auto_archive(td, archive_days=archive_days, today=today)
-        ]
-        to_delete = [
-            tid for tid, td in merged.items()
-            if should_auto_delete(td, delete_days=delete_days, today=today)
-        ]
+        to_archive = [tid for tid, td in merged.items() if should_auto_archive(td, archive_days=archive_days, today=today)]
+        to_delete = [tid for tid, td in merged.items() if should_auto_delete(td, delete_days=delete_days, today=today)]
         if not to_archive and not to_delete:
             continue
 
@@ -197,7 +184,8 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
             hass.config_entries.async_update_entry(entry, data=new_data)
             _LOGGER.info(
                 "Auto-archived %d completed one-off task(s) in %s",
-                len(to_archive), entry.title,
+                len(to_archive),
+                entry.title,
             )
 
         if to_delete:
@@ -210,7 +198,8 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
             if deleted:
                 _LOGGER.info(
                     "Auto-deleted %d archived one-off task(s) in %s",
-                    deleted, entry.title,
+                    deleted,
+                    entry.title,
                 )
 
         # Reload once so entities reflect the archive (inert) / delete (gone).

@@ -27,10 +27,14 @@ async def test_analyze_nonexistent_entity(hass: HomeAssistant) -> None:
 
 async def test_analyze_numeric_state(hass: HomeAssistant) -> None:
     """Test analyzing entity with numeric state."""
-    hass.states.async_set("sensor.temp", "25.5", {
-        "unit_of_measurement": "°C",
-        "device_class": "temperature",
-    })
+    hass.states.async_set(
+        "sensor.temp",
+        "25.5",
+        {
+            "unit_of_measurement": "°C",
+            "device_class": "temperature",
+        },
+    )
 
     analyzer = EntityAnalyzer(hass)
     with patch.object(analyzer, "_async_fetch_statistics", return_value=None):
@@ -47,9 +51,13 @@ async def test_analyze_numeric_state(hass: HomeAssistant) -> None:
 
 async def test_analyze_non_numeric_state(hass: HomeAssistant) -> None:
     """Test analyzing entity with non-numeric state."""
-    hass.states.async_set("binary_sensor.door", "off", {
-        "device_class": "door",
-    })
+    hass.states.async_set(
+        "binary_sensor.door",
+        "off",
+        {
+            "device_class": "door",
+        },
+    )
 
     analyzer = EntityAnalyzer(hass)
     with patch.object(analyzer, "_async_fetch_statistics", return_value=None):
@@ -63,13 +71,17 @@ async def test_analyze_non_numeric_state(hass: HomeAssistant) -> None:
 
 async def test_analyze_numeric_attributes(hass: HomeAssistant) -> None:
     """Test discovering numeric attributes."""
-    hass.states.async_set("sensor.weather", "ok", {
-        "temperature": 22.5,
-        "humidity": 65,
-        "pressure": 1013.25,
-        "condition": "sunny",  # non-numeric, should be excluded
-        "friendly_name": "Weather",  # non-numeric
-    })
+    hass.states.async_set(
+        "sensor.weather",
+        "ok",
+        {
+            "temperature": 22.5,
+            "humidity": 65,
+            "pressure": 1013.25,
+            "condition": "sunny",  # non-numeric, should be excluded
+            "friendly_name": "Weather",  # non-numeric
+        },
+    )
 
     analyzer = EntityAnalyzer(hass)
     with patch.object(analyzer, "_async_fetch_statistics", return_value=None):
@@ -89,10 +101,14 @@ async def test_analyze_numeric_attributes(hass: HomeAssistant) -> None:
 
 async def test_analyze_private_attributes_excluded(hass: HomeAssistant) -> None:
     """Test that private attributes (starting with _) are excluded."""
-    hass.states.async_set("sensor.device", "25", {
-        "_internal": 42,
-        "public_value": 100,
-    })
+    hass.states.async_set(
+        "sensor.device",
+        "25",
+        {
+            "_internal": 42,
+            "public_value": 100,
+        },
+    )
 
     analyzer = EntityAnalyzer(hass)
     with patch.object(analyzer, "_async_fetch_statistics", return_value=None):
@@ -144,10 +160,7 @@ async def test_fetch_statistics_with_data(hass: HomeAssistant) -> None:
     """Test statistics processing with valid data."""
     analyzer = EntityAnalyzer(hass)
 
-    rows = [
-        {"mean": 20.0 + i * 0.5, "min": 18.0 + i * 0.3, "max": 25.0 + i * 0.7}
-        for i in range(20)
-    ]
+    rows = [{"mean": 20.0 + i * 0.5, "min": 18.0 + i * 0.3, "max": 25.0 + i * 0.7} for i in range(20)]
 
     result = await _mock_fetch(hass, analyzer, "sensor.temp", {"sensor.temp": rows})
 
@@ -307,7 +320,6 @@ def test_attribute_info() -> None:
     assert info.unit == "°C"
 
 
-
 # ─── helpers/entity_analyzer.py lines 120-122, 163 ──────────────────────────
 
 
@@ -391,15 +403,7 @@ def test_entity_rename_rewrite_store() -> None:
     from custom_components.maintenance_supporter.helpers.entity_rename import rewrite_store
 
     mock_store = MagicMock()
-    mock_store._data = {
-        "tasks": {
-            "task1": {
-                "trigger_runtime": {
-                    "sensor.old": {"accumulated_seconds": 100}
-                }
-            }
-        }
-    }
+    mock_store._data = {"tasks": {"task1": {"trigger_runtime": {"sensor.old": {"accumulated_seconds": 100}}}}}
     changed = rewrite_store(mock_store, "sensor.old", "sensor.new")
     assert changed is True
     runtime = mock_store._data["tasks"]["task1"]["trigger_runtime"]

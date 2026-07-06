@@ -44,6 +44,7 @@ _COLUMNS = [
     "due_date",
     "interval_anchor",
     "schedule_time",
+    "reading_unit",
     "warning_days",
     "last_performed",
     "notes",
@@ -73,11 +74,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
 
     Each row represents one task, with the parent object info repeated.
     """
-    entries = [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
+    entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
 
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=_COLUMNS, extrasaction="ignore")
@@ -116,6 +113,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     "due_date": sched["due_date"] or "",
                     "interval_anchor": sched["interval_anchor"],
                     "schedule_time": tdata.get("schedule_time", ""),
+                    "reading_unit": tdata.get("reading_unit", ""),
                     "warning_days": tdata.get("warning_days", DEFAULT_WARNING_DAYS),
                     "last_performed": tdata.get("last_performed", ""),
                     "notes": _csv_safe(tdata.get("notes", "")),
@@ -130,11 +128,7 @@ def export_objects_csv(hass: HomeAssistant) -> str:
                     # Each item is _csv_safe()-prefixed individually so a step
                     # starting with "=" can't trigger a formula in Excel after
                     # the cell is unpacked.
-                    "checklist": "\n".join(
-                        _csv_safe(item)
-                        for item in (tdata.get("checklist") or [])
-                        if item
-                    ),
+                    "checklist": "\n".join(_csv_safe(item) for item in (tdata.get("checklist") or []) if item),
                 }
             )
 
@@ -164,16 +158,10 @@ def export_object_records_csv(hass: HomeAssistant) -> str:
     tasks, which the per-task export skips entirely — and carries the full
     asset field set used by the objects table.
     """
-    entries = [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
+    entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
 
     output = io.StringIO()
-    writer = csv.DictWriter(
-        output, fieldnames=_OBJECT_RECORD_COLUMNS, extrasaction="ignore"
-    )
+    writer = csv.DictWriter(output, fieldnames=_OBJECT_RECORD_COLUMNS, extrasaction="ignore")
     writer.writeheader()
 
     for entry in entries:
@@ -181,9 +169,7 @@ def export_object_records_csv(hass: HomeAssistant) -> str:
         static_tasks = entry.data.get(CONF_TASKS, {})
         rd = getattr(entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
-        tasks_data = (
-            store.merge_all_tasks(static_tasks) if store is not None else static_tasks
-        )
+        tasks_data = store.merge_all_tasks(static_tasks) if store is not None else static_tasks
         writer.writerow(
             {
                 "object_name": _csv_safe(obj_data.get("name", "")),
@@ -281,6 +267,10 @@ def import_objects_csv(
         if sched_time and re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", sched_time):
             task_data["schedule_time"] = sched_time
 
+        reading_unit = (row.get("reading_unit") or "").strip()
+        if reading_unit:
+            task_data["reading_unit"] = reading_unit[:32]
+
         last_performed = (row.get("last_performed") or "").strip()
         if last_performed:
             task_data["last_performed"] = last_performed
@@ -295,6 +285,7 @@ def import_objects_csv(
         doc_url = (row.get("documentation_url") or "").strip()
         if doc_url:
             from urllib.parse import urlparse
+
             scheme = urlparse(doc_url).scheme.lower()
             if scheme in ("", "http", "https"):
                 task_data["documentation_url"] = doc_url
@@ -313,11 +304,9 @@ def import_objects_csv(
         # accidental CSV can't bloat the entry.
         checklist_raw = row.get("checklist") or ""
         if checklist_raw:
-            items = [
-                line.strip()[:MAX_CHECKLIST_ITEM_LENGTH]
-                for line in checklist_raw.splitlines()
-                if line.strip()
-            ][:MAX_CHECKLIST_ITEMS]
+            items = [line.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for line in checklist_raw.splitlines() if line.strip()][
+                :MAX_CHECKLIST_ITEMS
+            ]
             if items:
                 task_data["checklist"] = items
 

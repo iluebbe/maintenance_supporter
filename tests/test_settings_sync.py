@@ -67,25 +67,36 @@ def _next_id() -> int:
 async def _ws_get(hass: HomeAssistant) -> dict[str, Any]:
     """Call ws_get_settings and return the result dict."""
     conn = _mock_connection()
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": _next_id(),
-        "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": _next_id(),
+            "type": "maintenance_supporter/settings",
+        },
+    )
     conn.send_result.assert_called_once()
     result: dict[str, Any] = conn.send_result.call_args[0][1]
     return result
 
 
 async def _ws_update(
-    hass: HomeAssistant, settings: dict[str, Any],
+    hass: HomeAssistant,
+    settings: dict[str, Any],
 ) -> dict[str, Any]:
     """Call ws_update_global_settings and return the result dict."""
     conn = _mock_connection()
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": _next_id(),
-        "type": "maintenance_supporter/global/update",
-        "settings": settings,
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": _next_id(),
+            "type": "maintenance_supporter/global/update",
+            "settings": settings,
+        },
+    )
     conn.send_result.assert_called_once()
     result: dict[str, Any] = conn.send_result.call_args[0][1]
     return result
@@ -104,10 +115,13 @@ def _entry_options(hass: HomeAssistant, entry_id: str) -> dict[str, Any]:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -117,15 +131,19 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_ws_update_then_config_flow_reads(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """WS sets warning_days=14, panel=True; config entry options reflect it."""
     await setup_integration(hass, global_entry)
 
-    await _ws_update(hass, {
-        CONF_DEFAULT_WARNING_DAYS: 14,
-        CONF_PANEL_ENABLED: True,
-    })
+    await _ws_update(
+        hass,
+        {
+            CONF_DEFAULT_WARNING_DAYS: 14,
+            CONF_PANEL_ENABLED: True,
+        },
+    )
 
     # Config entry (as config flow reads via self._current) has updated values
     opts = _entry_options(hass, global_entry.entry_id)
@@ -134,7 +152,8 @@ async def test_ws_update_then_config_flow_reads(
 
 
 async def test_config_flow_update_then_ws_reads(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Config flow sets warning_days=3; WS get_settings returns 3."""
     await setup_integration(hass, global_entry)
@@ -142,7 +161,8 @@ async def test_config_flow_update_then_ws_reads(
     # Config flow: navigate to general_settings and submit
     result = await hass.config_entries.options.async_init(global_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "general_settings"},
+        result["flow_id"],
+        {"next_step_id": "general_settings"},
     )
     assert result["type"] == FlowResultType.FORM
 
@@ -162,16 +182,20 @@ async def test_config_flow_update_then_ws_reads(
 
 
 async def test_feature_toggles_sync_ws_to_config_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Enable budget+groups via WS; config flow menu reflects it."""
     await setup_integration(hass, global_entry)
 
     # Enable budget + groups via WS
-    await _ws_update(hass, {
-        CONF_ADVANCED_BUDGET: True,
-        CONF_ADVANCED_GROUPS: True,
-    })
+    await _ws_update(
+        hass,
+        {
+            CONF_ADVANCED_BUDGET: True,
+            CONF_ADVANCED_GROUPS: True,
+        },
+    )
 
     # Config flow menu should include budget_settings + manage_groups
     result = await hass.config_entries.options.async_init(global_entry.entry_id)
@@ -188,7 +212,8 @@ async def test_feature_toggles_sync_ws_to_config_flow(
 
 
 async def test_notifications_sync_ws_to_config_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Enable notifications via WS; config flow menu shows notification items."""
     await setup_integration(hass, global_entry)
@@ -208,7 +233,8 @@ async def test_notifications_sync_ws_to_config_flow(
 
 
 async def test_budget_values_sync_ws_float_precision(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Set budget values via WS (int→float coercion); both paths see correct floats."""
     await setup_integration(hass, global_entry)
@@ -217,13 +243,16 @@ async def test_budget_values_sync_ws_float_precision(
     await _ws_update(hass, {CONF_ADVANCED_BUDGET: True})
 
     # Set budget values — 150 is int, should be coerced to float
-    await _ws_update(hass, {
-        CONF_BUDGET_MONTHLY: 150,
-        CONF_BUDGET_YEARLY: 1800.50,
-        CONF_BUDGET_CURRENCY: "USD",
-        CONF_BUDGET_ALERTS_ENABLED: True,
-        CONF_BUDGET_ALERT_THRESHOLD: 90,
-    })
+    await _ws_update(
+        hass,
+        {
+            CONF_BUDGET_MONTHLY: 150,
+            CONF_BUDGET_YEARLY: 1800.50,
+            CONF_BUDGET_CURRENCY: "USD",
+            CONF_BUDGET_ALERTS_ENABLED: True,
+            CONF_BUDGET_ALERT_THRESHOLD: 90,
+        },
+    )
 
     # Config entry has correct values
     opts = _entry_options(hass, global_entry.entry_id)
@@ -242,7 +271,8 @@ async def test_budget_values_sync_ws_float_precision(
 
 
 async def test_alternating_updates_both_paths(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Alternate WS and config flow updates; both always see latest state."""
     await setup_integration(hass, global_entry)
@@ -253,7 +283,8 @@ async def test_alternating_updates_both_paths(
     # 2) Config flow: overwrite to 5
     result = await hass.config_entries.options.async_init(global_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "general_settings"},
+        result["flow_id"],
+        {"next_step_id": "general_settings"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -278,7 +309,8 @@ async def test_alternating_updates_both_paths(
     # 6) Config flow: enable adaptive (unrelated key)
     result = await hass.config_entries.options.async_init(global_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "advanced_features"},
+        result["flow_id"],
+        {"next_step_id": "advanced_features"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -292,19 +324,23 @@ async def test_alternating_updates_both_paths(
 
 
 async def test_full_round_trip(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Full round-trip: WS write → WS read → config entry → CF write → WS read."""
     await setup_integration(hass, global_entry)
 
     # 1) WS write: 5 mixed keys
-    await _ws_update(hass, {
-        CONF_ADVANCED_BUDGET: True,
-        CONF_BUDGET_MONTHLY: 200.0,
-        CONF_ACTION_COMPLETE_ENABLED: True,
-        CONF_SNOOZE_DURATION_HOURS: 8,
-        CONF_QUIET_HOURS_START: "23:00",
-    })
+    await _ws_update(
+        hass,
+        {
+            CONF_ADVANCED_BUDGET: True,
+            CONF_BUDGET_MONTHLY: 200.0,
+            CONF_ACTION_COMPLETE_ENABLED: True,
+            CONF_SNOOZE_DURATION_HOURS: 8,
+            CONF_QUIET_HOURS_START: "23:00",
+        },
+    )
 
     # 2) WS read: all values present
     ws_result = await _ws_get(hass)
@@ -323,7 +359,8 @@ async def test_full_round_trip(
     # 4) Config flow: overwrite budget values
     result = await hass.config_entries.options.async_init(global_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "budget_settings"},
+        result["flow_id"],
+        {"next_step_id": "budget_settings"},
     )
     assert result["type"] == FlowResultType.FORM
 

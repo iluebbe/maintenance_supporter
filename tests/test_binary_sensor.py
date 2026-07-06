@@ -36,10 +36,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -52,7 +55,9 @@ def _make_entry(
     unique_id: str = "bs_test",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -67,10 +72,13 @@ def _make_entry(
 
 def _global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -80,17 +88,21 @@ def _object_entry(hass: HomeAssistant, tasks: dict | None = None) -> MockConfigE
     if tasks is None:
         tasks = {TASK_ID_1: build_task_data()}
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks=tasks),
-        source="user", unique_id="test_object_unique",
+        source="user",
+        unique_id="test_object_unique",
     )
     entry.add_to_hass(hass)
     return entry
 
 
 def _get_binary_sensors(
-    hass: HomeAssistant, entry: MockConfigEntry,
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
 ) -> list[Any]:
     """Get all binary_sensor entity states for this config entry."""
     entity_reg = er.async_get(hass)
@@ -100,7 +112,8 @@ def _get_binary_sensors(
 
 
 def _get_binary_sensor(
-    hass: HomeAssistant, entry: MockConfigEntry,
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
 ) -> Any | None:
     """Get the first binary_sensor state for this config entry."""
     states = _get_binary_sensors(hass, entry)
@@ -111,7 +124,8 @@ def _get_binary_sensor(
 
 
 async def test_binary_sensor_created(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that a binary_sensor entity is created for each task."""
     task1 = build_task_data(task_id=TASK_ID_1, last_performed="2024-06-01")
@@ -125,7 +139,8 @@ async def test_binary_sensor_created(
 
 
 async def test_binary_sensor_device_class(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that binary_sensor has device_class 'problem'."""
     task = build_task_data(task_id=TASK_ID_1, last_performed="2024-06-01")
@@ -138,7 +153,8 @@ async def test_binary_sensor_device_class(
 
 
 async def test_binary_sensor_unique_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test the unique_id includes object slug and task_id with _overdue suffix."""
     task = build_task_data(task_id=TASK_ID_1, last_performed="2024-06-01")
@@ -156,7 +172,8 @@ async def test_binary_sensor_unique_id(
 
 
 async def test_binary_sensor_ok_is_off(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test binary_sensor is OFF when task status is OK."""
     last = (dt_util.now().date() - timedelta(days=5)).isoformat()
@@ -170,7 +187,8 @@ async def test_binary_sensor_ok_is_off(
 
 
 async def test_binary_sensor_due_soon_is_off(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test binary_sensor is OFF when task status is DUE_SOON."""
     # 25 days ago, 30 day interval, 7 day warning → due in 5 days → due_soon
@@ -186,7 +204,8 @@ async def test_binary_sensor_due_soon_is_off(
 
 
 async def test_binary_sensor_overdue_is_on(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test binary_sensor is ON when task status is OVERDUE."""
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()
@@ -200,7 +219,8 @@ async def test_binary_sensor_overdue_is_on(
 
 
 async def test_binary_sensor_triggered_is_on(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test binary_sensor is ON when task status is TRIGGERED."""
     hass.states.async_set("sensor.counter", "100")
@@ -229,7 +249,8 @@ async def test_binary_sensor_triggered_is_on(
 
 
 async def test_binary_sensor_attributes(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test extra_state_attributes include status, days_until_due, next_due, parent_object."""
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()
@@ -250,7 +271,8 @@ async def test_binary_sensor_attributes(
 
 
 async def test_binary_sensor_disabled_task_is_off(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test binary_sensor is OFF for a disabled task even if interval is overdue."""
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()
@@ -267,7 +289,8 @@ async def test_binary_sensor_disabled_task_is_off(
 
 
 async def test_binary_sensor_reacts_to_task_reset(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test binary_sensor updates immediately on SIGNAL_TASK_RESET dispatch."""
     from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -307,7 +330,8 @@ async def test_binary_sensor_reacts_to_task_reset(
 
 
 async def test_no_binary_sensors_for_global_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that no binary_sensor entities are created for the global config entry."""
     await setup_integration(hass, global_entry)
@@ -395,7 +419,9 @@ async def test_binary_sensor_handle_task_reset_missing_task(hass: HomeAssistant)
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -406,17 +432,17 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_binary_sensor_status_computation(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 118, 127, 187: binary sensor returns correct values."""
     await setup_integration(hass, global_entry, object_entry)
     # The binary sensor should exist and have a state
     from homeassistant.helpers.entity_registry import async_get as er_async_get
+
     er = er_async_get(hass)
-    bs_entities = [
-        e for e in er.entities.values()
-        if e.platform == DOMAIN and e.domain == "binary_sensor"
-    ]
+    bs_entities = [e for e in er.entities.values() if e.platform == DOMAIN and e.domain == "binary_sensor"]
     assert len(bs_entities) >= 1
     state = hass.states.get(bs_entities[0].entity_id)
     assert state is not None
@@ -467,10 +493,13 @@ class TestBinarySensorResetClearsValue:
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -485,7 +514,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -512,10 +543,15 @@ async def test_binary_sensor_no_coordinator(hass: HomeAssistant) -> None:
 
     # Create entry with None coordinator
     from custom_components.maintenance_supporter import MaintenanceSupporterData
+
     fake_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Fake", data=build_object_entry_data(),
-        source="user", unique_id="fake_no_coord_bs",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Fake",
+        data=build_object_entry_data(),
+        source="user",
+        unique_id="fake_no_coord_bs",
     )
     fake_entry.add_to_hass(hass)
     fake_entry.runtime_data = MaintenanceSupporterData(coordinator=None)
@@ -576,11 +612,13 @@ async def test_binary_sensor_compute_live_status_overdue(hass: HomeAssistant) ->
     from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
     from custom_components.maintenance_supporter.const import MaintenanceStatus
 
-    result = MaintenanceBinarySensor._compute_live_status({
-        "_trigger_active": False,
-        "_days_until_due": -5,
-        "warning_days": 7,
-    })
+    result = MaintenanceBinarySensor._compute_live_status(
+        {
+            "_trigger_active": False,
+            "_days_until_due": -5,
+            "warning_days": 7,
+        }
+    )
     assert result == MaintenanceStatus.OVERDUE
 
 
@@ -589,9 +627,11 @@ async def test_binary_sensor_compute_live_status_due_soon_from_dict(hass: HomeAs
     from custom_components.maintenance_supporter.binary_sensor import MaintenanceBinarySensor
     from custom_components.maintenance_supporter.const import MaintenanceStatus
 
-    result = MaintenanceBinarySensor._compute_live_status({
-        "_trigger_active": False,
-        "_days_until_due": 3,
-        "warning_days": 7,
-    })
+    result = MaintenanceBinarySensor._compute_live_status(
+        {
+            "_trigger_active": False,
+            "_days_until_due": 3,
+            "warning_days": 7,
+        }
+    )
     assert result == MaintenanceStatus.DUE_SOON

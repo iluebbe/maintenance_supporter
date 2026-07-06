@@ -21,16 +21,21 @@ async def test_integration_loads_without_errors(
 ) -> None:
     """Smoke test: integration loads successfully."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     task = build_task_data(last_performed="2024-06-01")
     object_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Test Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Test Object", manufacturer="TestCo", serial_number="SN-001"),
@@ -51,16 +56,21 @@ async def test_integration_creates_entities(
 ) -> None:
     """Verify sensor + binary_sensor + calendar entities are created."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     task = build_task_data(name="Oil Change", task_type="service", last_performed="2024-06-01")
     object_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Car",
         data=build_object_entry_data(
             object_data=build_object_data(name="Car"),
@@ -91,15 +101,20 @@ async def test_integration_unloads_cleanly(
 ) -> None:
     """Verify integration unloads without errors."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     object_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Unload Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Unload Test"),

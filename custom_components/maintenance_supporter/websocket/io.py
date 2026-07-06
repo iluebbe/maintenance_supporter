@@ -37,9 +37,7 @@ from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
 _LOGGER = logging.getLogger(__name__)
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/templates"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/templates"})
 @websocket_api.async_response
 async def ws_get_templates(
     hass: HomeAssistant,
@@ -50,12 +48,7 @@ async def ws_get_templates(
     from ..templates import TEMPLATE_CATEGORIES, TEMPLATES
 
     result = {
-        "categories": {
-            cat_id: {
-                k: v for k, v in cat.items()
-            }
-            for cat_id, cat in TEMPLATE_CATEGORIES.items()
-        },
+        "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},
         "templates": [
             {
                 "id": t.id,
@@ -107,9 +100,7 @@ async def ws_export_data(
     connection.send_result(msg["id"], {"format": fmt, "data": result})
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/csv/export"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/csv/export"})
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_export_csv(
@@ -124,9 +115,7 @@ async def ws_export_csv(
     connection.send_result(msg["id"], {"csv": csv_data})
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/objects/csv"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/objects/csv"})
 @websocket_api.async_response
 async def ws_export_objects_csv(
     hass: HomeAssistant,
@@ -270,9 +259,7 @@ async def ws_import_json(
     try:
         data = _parse_structured(raw)
     except ValueError:
-        connection.send_error(
-            msg["id"], "invalid_format", "Content is not valid JSON or YAML"
-        )
+        connection.send_error(msg["id"], "invalid_format", "Content is not valid JSON or YAML")
         return
 
     if not isinstance(data, dict) or "objects" not in data:
@@ -360,15 +347,25 @@ async def ws_import_json(
                 "history": task_entry.get("history", []),
             }
             for key in (
-                "interval_days", "interval_unit", "due_date",
-                "interval_anchor", "last_planned_due",
+                "interval_days",
+                "interval_unit",
+                "due_date",
+                "interval_anchor",
+                "last_planned_due",
                 # nested recurrence (calendar kinds) — config-flow normalize
                 # treats it as authoritative when present.
                 "schedule",
-                "last_performed", "notes", "documentation_url",
-                "custom_icon", "nfc_tag_id", "responsible_user_id",
-                "entity_slug", "trigger_config", "adaptive_config",
-                "checklist", "schedule_time",
+                "last_performed",
+                "notes",
+                "documentation_url",
+                "custom_icon",
+                "nfc_tag_id",
+                "responsible_user_id",
+                "entity_slug",
+                "trigger_config",
+                "adaptive_config",
+                "checklist",
+                "schedule_time",
             ):
                 val = task_entry.get(key)
                 if val is not None:
@@ -382,6 +379,7 @@ async def ws_import_json(
             if lp is not None:
                 try:
                     from datetime import date
+
                     date.fromisoformat(lp)
                 except (ValueError, TypeError):
                     task_data.pop("last_performed", None)
@@ -397,20 +395,14 @@ async def ws_import_json(
                 if not isinstance(cl, list):
                     task_data.pop("checklist", None)
                 else:
-                    cleaned = [
-                        item.strip()
-                        for item in cl
-                        if isinstance(item, str) and len(item) <= MAX_CHECKLIST_ITEM_LENGTH
-                    ]
+                    cleaned = [item.strip() for item in cl if isinstance(item, str) and len(item) <= MAX_CHECKLIST_ITEM_LENGTH]
                     cleaned = [c for c in cleaned if c]
                     task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 
             # schedule_time: strict HH:MM, otherwise drop
             st = task_data.get("schedule_time")
             if st is not None:
-                if not isinstance(st, str) or not re.fullmatch(
-                    r"^([01]\d|2[0-3]):[0-5]\d$", st
-                ):
+                if not isinstance(st, str) or not re.fullmatch(r"^([01]\d|2[0-3]):[0-5]\d$", st):
                     task_data.pop("schedule_time", None)
 
             # Validate an imported trigger_config the same way the WS create/update
@@ -487,12 +479,8 @@ async def ws_import_json(
         vol.Required("type"): "maintenance_supporter/qr/generate",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-        vol.Optional("action", default="view"): vol.In(
-            ["view", "complete", "quick_complete"]
-        ),
-        vol.Optional("url_mode", default="server"): vol.In(
-            ["server", "local", "companion"]
-        ),
+        vol.Optional("action", default="view"): vol.In(["view", "complete", "quick_complete"]),
+        vol.Optional("url_mode", default="server"): vol.In(["server", "local", "companion"]),
         vol.Optional("base_url"): vol.Url(),
     }
 )
@@ -525,8 +513,12 @@ async def ws_generate_qr(
     base_url = msg.get("base_url")
     try:
         url = build_qr_url(
-            hass, entry_id, task_id=task_id, action=action,
-            base_url_override=base_url, url_mode=url_mode,
+            hass,
+            entry_id,
+            task_id=task_id,
+            action=action,
+            base_url_override=base_url,
+            url_mode=url_mode,
         )
     except ValueError as err:
         connection.send_error(msg["id"], "no_url", str(err))
@@ -561,6 +553,7 @@ async def ws_generate_qr(
 # (generous 6 QRs/A4 page = 34 pages).
 _MAX_BATCH_QRS = 200
 
+
 # LRU cache keyed on (url, icon). Two users printing the same task twice
 # in a session hit this cache; so does re-running the batch after
 # narrowing the filter. Bounded size so long-running HA instances with
@@ -585,9 +578,7 @@ def _cached_qr_svg(url: str, icon: str | None) -> str:
             [vol.In(["view", "complete", "skip", "quick_complete"])],
             vol.Length(min=1, max=4),
         ),
-        vol.Optional("url_mode", default="server"): vol.In(
-            ["server", "local", "companion"]
-        ),
+        vol.Optional("url_mode", default="server"): vol.In(["server", "local", "companion"]),
         vol.Optional("base_url"): vol.Url(),
     }
 )
@@ -604,11 +595,7 @@ async def ws_batch_generate_qr(
     filters mean "all" at that level.
     """
     # Resolve target entries (always exclude the global config entry).
-    all_entries = [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
+    all_entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
     entry_filter = msg.get("entry_ids")
     if entry_filter:
         wanted = set(entry_filter)
@@ -626,9 +613,7 @@ async def ws_batch_generate_qr(
         for task_id, task_data in tasks_data.items():
             if task_filter is not None and task_id not in task_filter:
                 continue
-            targets.append(
-                (entry.entry_id, obj_name, task_id, task_data.get("name", ""))
-            )
+            targets.append((entry.entry_id, obj_name, task_id, task_data.get("name", "")))
 
     actions: list[str] = msg["actions"]
     total = len(targets) * len(actions)

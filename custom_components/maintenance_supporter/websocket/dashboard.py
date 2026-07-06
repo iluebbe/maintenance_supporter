@@ -97,9 +97,7 @@ _LOGGER = logging.getLogger(__name__)
 _ALLOWED_SETTING_KEYS = ALLOWED_SETTING_KEYS
 
 
-def _build_full_settings(
-    options: Mapping[str, Any], *, notify_targets: list[str] | None = None
-) -> dict[str, Any]:
+def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str] | None = None) -> dict[str, Any]:
     """Build a full settings dict from global entry options.
 
     ``notify_targets`` is the shared pickable-notify-target list (see
@@ -126,17 +124,13 @@ def _build_full_settings(
         # write. Default False → operator allowlist is read-only.
         "operator_write_enabled": options.get(CONF_OPERATOR_WRITE_ENABLED, False),
         # (#67): ordered objects-table columns for the panel All-Objects view.
-        "objects_table_columns": options.get(
-            CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS
-        ),
+        "objects_table_columns": options.get(CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS),
         # v2.10.0: archive automation thresholds (panel Settings → Archive).
         # oneoff_days: auto-archive a completed one-off after N days (0 = off).
         # delete_archived_oneoff_days: auto-delete an auto-archived one-off N
         # days after archiving (0 = never; manual archives are never deleted).
         "archive": {
-            "oneoff_days": options.get(
-                CONF_ARCHIVE_ONEOFF_DAYS, DEFAULT_ARCHIVE_ONEOFF_DAYS
-            ),
+            "oneoff_days": options.get(CONF_ARCHIVE_ONEOFF_DAYS, DEFAULT_ARCHIVE_ONEOFF_DAYS),
             "delete_archived_oneoff_days": options.get(
                 CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
                 DEFAULT_DELETE_ARCHIVED_ONEOFF_DAYS,
@@ -176,12 +170,8 @@ def _build_full_settings(
             "snooze_enabled": options.get(CONF_ACTION_SNOOZE_ENABLED, False),
             "snooze_duration_hours": options.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS),
             "weekly_digest_enabled": options.get(CONF_WEEKLY_DIGEST_ENABLED, False),
-            "warranty_reminder_enabled": options.get(
-                CONF_WARRANTY_REMINDER_ENABLED, False
-            ),
-            "warranty_reminder_days": options.get(
-                CONF_WARRANTY_REMINDER_DAYS, DEFAULT_WARRANTY_REMINDER_DAYS
-            ),
+            "warranty_reminder_enabled": options.get(CONF_WARRANTY_REMINDER_ENABLED, False),
+            "warranty_reminder_days": options.get(CONF_WARRANTY_REMINDER_DAYS, DEFAULT_WARRANTY_REMINDER_DAYS),
         },
         "budget": {
             "monthly": options.get(CONF_BUDGET_MONTHLY, 0.0),
@@ -212,9 +202,7 @@ def _vacation_summary(options: Mapping[str, Any]) -> dict[str, Any]:
     return VacationState.from_options(options).as_wire_dict()
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/settings"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/settings"})
 @websocket_api.async_response
 async def ws_get_settings(
     hass: HomeAssistant,
@@ -235,16 +223,12 @@ async def ws_get_settings(
         msg["id"],
         _build_full_settings(
             options,
-            notify_targets=build_notify_targets(
-                hass, current=options.get(CONF_NOTIFY_SERVICE, "")
-            ),
+            notify_targets=build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
         ),
     )
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): "maintenance_supporter/statistics"}
-)
+@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/statistics"})
 @websocket_api.async_response
 async def ws_get_statistics(
     hass: HomeAssistant,
@@ -268,9 +252,7 @@ async def ws_get_statistics(
     )
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): "maintenance_supporter/subscribe"}
-)
+@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/subscribe"})
 @websocket_api.async_response
 async def ws_subscribe(
     hass: HomeAssistant,
@@ -290,9 +272,7 @@ async def ws_subscribe(
             rd = _get_runtime_data(hass, entry.entry_id)
             coord_data = rd.coordinator.data if rd and rd.coordinator else None
             result.append(_build_object_response(hass, entry, coord_data))
-        connection.send_message(
-            websocket_api.event_message(msg["id"], {"objects": result})
-        )
+        connection.send_message(websocket_api.event_message(msg["id"], {"objects": result}))
 
     def _attach_entry(entry_id: str) -> None:
         """Attach a coordinator listener for a specific entry."""
@@ -300,9 +280,7 @@ async def ws_subscribe(
             return
         rd = _get_runtime_data(hass, entry_id)
         if rd and rd.coordinator:
-            unsub_callbacks.append(
-                rd.coordinator.async_add_listener(_forward_update)
-            )
+            unsub_callbacks.append(rd.coordinator.async_add_listener(_forward_update))
             attached_entry_ids.add(entry_id)
 
     # Register listeners on all existing coordinators
@@ -316,9 +294,7 @@ async def ws_subscribe(
         _attach_entry(entry_id)
         _forward_update()
 
-    unsub_callbacks.append(
-        async_dispatcher_connect(hass, SIGNAL_NEW_OBJECT_ENTRY, _on_new_entry)
-    )
+    unsub_callbacks.append(async_dispatcher_connect(hass, SIGNAL_NEW_OBJECT_ENTRY, _on_new_entry))
 
     @callback
     def _unsub() -> None:
@@ -332,9 +308,7 @@ async def ws_subscribe(
     _forward_update()
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/budget_status"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/budget_status"})
 @websocket_api.async_response
 async def ws_get_budget_status(
     hass: HomeAssistant,
@@ -347,9 +321,7 @@ async def ws_get_budget_status(
     from homeassistant.util import dt as dt_util
 
     global_entry = _get_global_entry(hass)
-    global_options: Mapping[str, Any] = (
-        (global_entry.options or global_entry.data) if global_entry else {}
-    )
+    global_options: Mapping[str, Any] = (global_entry.options or global_entry.data) if global_entry else {}
 
     monthly_budget = float(global_options.get(CONF_BUDGET_MONTHLY, 0))
     yearly_budget = float(global_options.get(CONF_BUDGET_YEARLY, 0))
@@ -475,10 +447,8 @@ async def ws_update_global_settings(
     # the known set is dropped silently so a bogus value can't get into the
     # ConfigEntry options.
     from ..const import NOTIFICATION_TITLE_STYLES
-    if (
-        CONF_NOTIFICATION_TITLE_STYLE in filtered
-        and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES
-    ):
+
+    if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
 
     # v1.4.6 (#44 follow-up): drop quiet-hours time strings that aren't valid
@@ -544,9 +514,7 @@ async def ws_update_global_settings(
         filtered[CONF_OBJECTS_TABLE_COLUMNS] = cols or list(DEFAULT_OBJECTS_TABLE_COLUMNS)
 
     if not filtered:
-        connection.send_error(
-            msg["id"], "invalid_input", "No valid setting keys provided"
-        )
+        connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
         return
 
     # Validate notify_service if provided
@@ -570,9 +538,7 @@ async def ws_update_global_settings(
         msg["id"],
         _build_full_settings(
             merged,
-            notify_targets=build_notify_targets(
-                hass, current=merged.get(CONF_NOTIFY_SERVICE, "")
-            ),
+            notify_targets=build_notify_targets(hass, current=merged.get(CONF_NOTIFY_SERVICE, "")),
         ),
     )
 
@@ -582,9 +548,7 @@ async def ws_update_global_settings(
 # ---------------------------------------------------------------------------
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/global/test_notification"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/global/test_notification"})
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_test_notification(

@@ -33,9 +33,7 @@ from .conftest import (
 )
 
 
-def _obj_entry(
-    hass: HomeAssistant, name: str = "Car", unique: str = "ms_btn", *, enabled: bool = True
-) -> MockConfigEntry:
+def _obj_entry(hass: HomeAssistant, name: str = "Car", unique: str = "ms_btn", *, enabled: bool = True) -> MockConfigEntry:
     """Register an object entry with one time-based task."""
     task = build_task_data(interval_days=30, enabled=enabled)
     entry = MockConfigEntry(
@@ -43,9 +41,7 @@ def _obj_entry(
         minor_version=1,
         domain=DOMAIN,
         title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name), tasks={TASK_ID_1: task}
-        ),
+        data=build_object_entry_data(object_data=build_object_data(name=name), tasks={TASK_ID_1: task}),
         source="user",
         unique_id=unique,
     )
@@ -62,19 +58,13 @@ def _button_entity_id(hass: HomeAssistant, entry: MockConfigEntry, action: str) 
     raise AssertionError(f"no {action} button for {entry.entry_id}")
 
 
-async def test_per_task_buttons_created(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_per_task_buttons_created(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """Each task gets complete/skip/reset buttons, all enabled by default."""
     obj = _obj_entry(hass)
     await setup_integration(hass, global_config_entry, obj)
 
     reg = er.async_get(hass)
-    buttons = [
-        e
-        for e in er.async_entries_for_config_entry(reg, obj.entry_id)
-        if e.domain == "button"
-    ]
+    buttons = [e for e in er.async_entries_for_config_entry(reg, obj.entry_id) if e.domain == "button"]
     assert len(buttons) == 3
     assert {e.unique_id.rsplit("_", 1)[-1] for e in buttons} == {
         "complete",
@@ -85,18 +75,12 @@ async def test_per_task_buttons_created(
     assert all(e.disabled_by is None for e in buttons)
 
 
-async def test_global_entry_has_no_buttons(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_global_entry_has_no_buttons(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """The global hub entry exposes no button entities (export is a service)."""
     await setup_integration(hass, global_config_entry)
 
     reg = er.async_get(hass)
-    buttons = [
-        e
-        for e in er.async_entries_for_config_entry(reg, global_config_entry.entry_id)
-        if e.domain == "button"
-    ]
+    buttons = [e for e in er.async_entries_for_config_entry(reg, global_config_entry.entry_id) if e.domain == "button"]
     assert buttons == []
 
 
@@ -130,9 +114,7 @@ async def test_button_press_delegates_to_coordinator(
     mock.assert_awaited_once_with(TASK_ID_1, **kwargs)
 
 
-async def test_disabled_task_button_unavailable(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_disabled_task_button_unavailable(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """A button for a disabled (paused) task is unavailable."""
     obj = _obj_entry(hass, enabled=False)
     await setup_integration(hass, global_config_entry, obj)
@@ -142,9 +124,7 @@ async def test_disabled_task_button_unavailable(
     assert state.state == "unavailable"
 
 
-async def test_button_available_false_when_no_task_data(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_button_available_false_when_no_task_data(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """MaintenanceActionButton.available returns False when _task_data is empty."""
     from custom_components.maintenance_supporter.button import MaintenanceActionButton
 
@@ -161,10 +141,13 @@ async def test_button_available_false_when_no_task_data(
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -179,7 +162,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -206,9 +191,13 @@ async def test_button_no_coordinator(hass: HomeAssistant) -> None:
     await setup_integration(hass, global_entry)
 
     fake_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Fake Button", data=build_object_entry_data(),
-        source="user", unique_id="fake_no_coord_button",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Fake Button",
+        data=build_object_entry_data(),
+        source="user",
+        unique_id="fake_no_coord_button",
     )
     fake_entry.add_to_hass(hass)
     fake_entry.runtime_data = MaintenanceSupporterData(coordinator=None)

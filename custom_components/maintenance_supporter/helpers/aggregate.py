@@ -29,16 +29,10 @@ _COUNTED_STATUSES = (
 
 def get_object_entries(hass: HomeAssistant) -> list[ConfigEntry]:
     """Return all non-global config entries for this domain."""
-    return [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
+    return [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
 
 
-def get_runtime_data(
-    hass: HomeAssistant, entry_id: str
-) -> MaintenanceSupporterData | None:
+def get_runtime_data(hass: HomeAssistant, entry_id: str) -> MaintenanceSupporterData | None:
     """Get runtime data for a config entry."""
     entry = hass.config_entries.async_get_entry(entry_id)
     if entry is None:
@@ -63,11 +57,7 @@ def compute_status_counts(hass: HomeAssistant) -> dict[str, Any]:
         # Archived tasks are inert: excluded from the task total and (via their
         # ARCHIVED _status, which isn't a counted bucket) from every status
         # count. Their cost still counts — budget is retained on archive.
-        total_tasks += sum(
-            1
-            for td in entry.data.get(CONF_TASKS, {}).values()
-            if td.get("archived_at") is None
-        )
+        total_tasks += sum(1 for td in entry.data.get(CONF_TASKS, {}).values() if td.get("archived_at") is None)
 
         rd = get_runtime_data(hass, entry.entry_id)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None

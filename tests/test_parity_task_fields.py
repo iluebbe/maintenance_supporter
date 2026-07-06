@@ -54,7 +54,7 @@ _PANEL_SIBLING_WS = {
 # ─── Intentional divergences (each needs a reason) ──────────────────────────
 # Panel-only: advanced completion features the legacy config-flow never grew.
 PANEL_ONLY = {
-    "on_complete_action",       # service call fired on completion (v1.3.0)
+    "on_complete_action",  # service call fired on completion (v1.3.0)
     "quick_complete_defaults",  # prefilled notes/cost/duration/feedback
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers

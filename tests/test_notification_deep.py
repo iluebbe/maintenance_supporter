@@ -69,10 +69,13 @@ def _create_global_entry(
     data[CONF_MAX_NOTIFICATIONS_PER_DAY] = max_per_day
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -414,8 +417,12 @@ async def test_build_message_due_soon(hass: HomeAssistant) -> None:
 
     mgr = NotificationManager(hass)
     title, message = mgr._build_message(
-        MaintenanceStatus.DUE_SOON, "en",
-        "Filter Cleaning", "Pool Pump", 5, "2025-06-15",
+        MaintenanceStatus.DUE_SOON,
+        "en",
+        "Filter Cleaning",
+        "Pool Pump",
+        5,
+        "2025-06-15",
     )
     assert title  # Non-empty
     assert "Filter Cleaning" in message or "Pool Pump" in message
@@ -427,8 +434,12 @@ async def test_build_message_overdue(hass: HomeAssistant) -> None:
 
     mgr = NotificationManager(hass)
     title, message = mgr._build_message(
-        MaintenanceStatus.OVERDUE, "en",
-        "Oil Change", "Car", -10, None,
+        MaintenanceStatus.OVERDUE,
+        "en",
+        "Oil Change",
+        "Car",
+        -10,
+        None,
     )
     assert title
 
@@ -439,8 +450,12 @@ async def test_build_message_triggered(hass: HomeAssistant) -> None:
 
     mgr = NotificationManager(hass)
     title, message = mgr._build_message(
-        MaintenanceStatus.TRIGGERED, "en",
-        "Filter Alert", "Pool", None, None,
+        MaintenanceStatus.TRIGGERED,
+        "en",
+        "Filter Alert",
+        "Pool",
+        None,
+        None,
     )
     assert title
 
@@ -451,8 +466,12 @@ async def test_build_message_unknown_status(hass: HomeAssistant) -> None:
 
     mgr = NotificationManager(hass)
     title, message = mgr._build_message(
-        "unknown_status", "en",
-        "Task", "Object", None, None,
+        "unknown_status",
+        "en",
+        "Task",
+        "Object",
+        None,
+        None,
     )
     assert title == "Maintenance"
     assert "Task" in message
@@ -615,7 +634,12 @@ async def test_title_style_default_uses_per_status_title(hass: HomeAssistant) ->
     mgr = NotificationManager(hass)
     assert mgr.title_style == "default"
     title, message = mgr._build_message(
-        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+        MaintenanceStatus.OVERDUE,
+        "en",
+        "Filter cleaning",
+        "Pool Pump",
+        -3,
+        "2026-04-23",
     )
     # Per-status default title — does NOT contain object/task name.
     assert "Pool Pump" not in title
@@ -640,7 +664,12 @@ async def test_title_style_object_name_uses_object_as_title(hass: HomeAssistant)
     mgr = NotificationManager(hass)
     assert mgr.title_style == "object_name"
     title, _ = mgr._build_message(
-        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+        MaintenanceStatus.OVERDUE,
+        "en",
+        "Filter cleaning",
+        "Pool Pump",
+        -3,
+        "2026-04-23",
     )
     assert title == "Pool Pump"
 
@@ -660,7 +689,12 @@ async def test_title_style_task_name_uses_task_as_title(hass: HomeAssistant) -> 
     mgr = NotificationManager(hass)
     assert mgr.title_style == "task_name"
     title, _ = mgr._build_message(
-        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+        MaintenanceStatus.OVERDUE,
+        "en",
+        "Filter cleaning",
+        "Pool Pump",
+        -3,
+        "2026-04-23",
     )
     assert title == "Filter cleaning"
 
@@ -680,7 +714,12 @@ async def test_title_style_unknown_value_falls_back_to_default(hass: HomeAssista
     mgr = NotificationManager(hass)
     assert mgr.title_style == "default"
     title, _ = mgr._build_message(
-        MaintenanceStatus.OVERDUE, "en", "Filter cleaning", "Pool Pump", -3, "2026-04-23",
+        MaintenanceStatus.OVERDUE,
+        "en",
+        "Filter cleaning",
+        "Pool Pump",
+        -3,
+        "2026-04-23",
     )
     assert "Pool Pump" not in title  # default per-status title
 
@@ -775,6 +814,7 @@ async def test_notification_manager_no_global_entry(
     from custom_components.maintenance_supporter.helpers.notification_manager import (
         NotificationManager,
     )
+
     nm = NotificationManager(hass)
     assert nm._global_options == {}
 
@@ -794,9 +834,7 @@ async def test_budget_both_zero_returns(
     global_data[CONF_BUDGET_ALERT_THRESHOLD] = 80
     global_data[CONF_BUDGET_MONTHLY] = 0
     global_data[CONF_BUDGET_YEARLY] = 0
-    hass.config_entries.async_update_entry(
-        global_config_entry, data=global_data
-    )
+    hass.config_entries.async_update_entry(global_config_entry, data=global_data)
 
     await setup_integration(hass, global_config_entry, object_config_entry)
 
@@ -819,9 +857,7 @@ async def test_budget_skips_non_completed_and_no_cost(
     global_data[CONF_BUDGET_ALERT_THRESHOLD] = 80
     global_data[CONF_BUDGET_MONTHLY] = 1000
     global_data[CONF_BUDGET_YEARLY] = 5000
-    hass.config_entries.async_update_entry(
-        global_config_entry, data=global_data
-    )
+    hass.config_entries.async_update_entry(global_config_entry, data=global_data)
 
     now = datetime.now()
     task = build_task_data(
@@ -837,7 +873,9 @@ async def test_budget_skips_non_completed_and_no_cost(
         ],
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Budget Edge",
         data=build_object_entry_data(
             object_data=build_object_data(name="Budget Edge"),
@@ -860,6 +898,7 @@ async def test_budget_skips_non_completed_and_no_cost(
 
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
+
 
 async def test_notification_skipped_when_vacation_active(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """Lines 520-521: notification skipped during active vacation."""
@@ -906,6 +945,7 @@ async def test_notification_skipped_when_vacation_active(hass: HomeAssistant, gl
     mgr._async_send_notification_to_service = _track  # type: ignore[method-assign]
 
     from custom_components.maintenance_supporter.const import MaintenanceStatus
+
     await mgr.async_task_status_changed(
         entry_id="eid",
         task_id="task_not_exempt",
@@ -915,6 +955,7 @@ async def test_notification_skipped_when_vacation_active(hass: HomeAssistant, gl
     )
     # Vacation is active and task is not exempt → notification suppressed
     assert not called
+
 
 async def test_notification_no_target_services(hass: HomeAssistant) -> None:
     """Lines 575-576: logs warning when no notification services are available."""
@@ -949,6 +990,7 @@ async def test_notification_no_target_services(hass: HomeAssistant) -> None:
             new_status=MaintenanceStatus.OVERDUE,
         )
     # No crash — just returns without sending (lines 574-576)
+
 
 async def test_send_bundled_title_style_object_name(hass: HomeAssistant) -> None:
     """Line 767: bundled notification uses object_name as title when title_style = object_name."""
@@ -991,6 +1033,7 @@ async def test_send_bundled_title_style_object_name(hass: HomeAssistant) -> None
         call_data = mock_hass.services.async_call.call_args[0][2]
         assert call_data.get("title") == "Pool Pump"
 
+
 async def test_send_bundled_quiet_hours_skipped(hass: HomeAssistant) -> None:
     """Line 744: bundled notifications skipped during quiet hours."""
     from custom_components.maintenance_supporter.const import (
@@ -1032,6 +1075,7 @@ async def test_send_bundled_quiet_hours_skipped(hass: HomeAssistant) -> None:
         # quiet hours active → service not called
         mock_hass.services.async_call.assert_not_called()
 
+
 async def test_budget_alert_quiet_hours_skipped(hass: HomeAssistant) -> None:
     """Line 818: budget alert skipped during quiet hours."""
     from custom_components.maintenance_supporter.const import (
@@ -1071,6 +1115,7 @@ async def test_budget_alert_quiet_hours_skipped(hass: HomeAssistant) -> None:
         # quiet hours active → not called
         mock_hass.services.async_call.assert_not_called()
 
+
 async def test_budget_alert_sends_notification(hass: HomeAssistant) -> None:
     """Lines 791-792: budget alert sends notification to service."""
     from custom_components.maintenance_supporter.const import (
@@ -1107,6 +1152,7 @@ async def test_budget_alert_sends_notification(hass: HomeAssistant) -> None:
         call_args = mock_hass.services.async_call.call_args[0]
         assert call_args[0] == "notify"
 
+
 async def test_dismiss_task_notification(hass: HomeAssistant) -> None:
     """Lines 894-895: async_dismiss_task_notification calls service."""
     from custom_components.maintenance_supporter.const import (
@@ -1141,6 +1187,7 @@ async def test_dismiss_task_notification(hass: HomeAssistant) -> None:
         call_data = mock_hass.services.async_call.call_args[0][2]
         assert call_data["message"] == "clear_notification"
         assert "maintenance_my_task_id" in call_data["data"]["tag"]
+
 
 async def test_dismiss_task_notification_no_service(hass: HomeAssistant) -> None:
     """Line 882: async_dismiss_task_notification returns early when no service."""
@@ -1181,9 +1228,7 @@ async def test_dismiss_task_notification_no_service(hass: HomeAssistant) -> None
 
 def _get_notify_issue(hass: HomeAssistant) -> ir.IssueEntry | None:
     """Return the 'configured notify service missing' repair issue, or None."""
-    return ir.async_get(hass).async_get_issue(
-        DOMAIN, _NOTIFY_SERVICE_MISSING_ISSUE_ID
-    )
+    return ir.async_get(hass).async_get_issue(DOMAIN, _NOTIFY_SERVICE_MISSING_ISSUE_ID)
 
 
 async def test_verify_service_creates_issue_when_missing(
@@ -1233,9 +1278,7 @@ async def test_verify_service_group_not_flagged(hass: HomeAssistant) -> None:
 
 async def test_verify_service_no_issue_when_disabled(hass: HomeAssistant) -> None:
     """Notifications disabled → no issue even when the service is missing."""
-    _create_global_entry(
-        hass, notifications_enabled=False, notify_service="notify.ghost_service"
-    )
+    _create_global_entry(hass, notifications_enabled=False, notify_service="notify.ghost_service")
 
     mgr = NotificationManager(hass)
     mgr.async_verify_configured_service()
@@ -1294,9 +1337,7 @@ async def test_status_change_keeps_issue_in_sync(hass: HomeAssistant) -> None:
     mgr = NotificationManager(hass)
     # Patch the actual dispatch so the test asserts only the verify hook, not
     # HA's service-call internals.
-    with patch.object(
-        mgr, "_async_send_notification_to_service", AsyncMock(return_value=True)
-    ):
+    with patch.object(mgr, "_async_send_notification_to_service", AsyncMock(return_value=True)):
         await mgr.async_task_status_changed(
             entry_id="eid",
             task_id="t1",
@@ -1337,8 +1378,11 @@ async def test_send_to_legacy_service_uses_service_call(hass: HomeAssistant) -> 
 
     mgr = NotificationManager(hass)
     ok = await mgr._async_send_notification_to_service(
-        service="notify.legacy_device", title="T", message="M",
-        entry_id="e", task_id="t",
+        service="notify.legacy_device",
+        title="T",
+        message="M",
+        entry_id="e",
+        task_id="t",
     )
     await hass.async_block_till_done()
 
@@ -1358,8 +1402,11 @@ async def test_send_to_notify_entity_uses_send_message(hass: HomeAssistant) -> N
 
     mgr = NotificationManager(hass)
     ok = await mgr._async_send_notification_to_service(
-        service="notify.file", title="T", message="M",
-        entry_id="e", task_id="t",
+        service="notify.file",
+        title="T",
+        message="M",
+        entry_id="e",
+        task_id="t",
     )
     await hass.async_block_till_done()
 

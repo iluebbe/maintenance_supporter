@@ -19,9 +19,7 @@ A, B, C = "user-a", "user-b", "user-c"
 
 
 def test_model_roundtrips_pool_and_strategy() -> None:
-    task = MaintenanceTask(
-        name="X", assignee_pool=[A, B], rotation_strategy="round_robin"
-    )
+    task = MaintenanceTask(name="X", assignee_pool=[A, B], rotation_strategy="round_robin")
     d = task.to_dict()
     assert d["assignee_pool"] == [A, B]
     assert d["rotation_strategy"] == "round_robin"
@@ -41,7 +39,9 @@ def test_empty_pool_and_strategy_not_persisted() -> None:
 
 def test_round_robin_advances_and_wraps() -> None:
     task = MaintenanceTask(
-        name="X", assignee_pool=[A, B, C], rotation_strategy="round_robin",
+        name="X",
+        assignee_pool=[A, B, C],
+        rotation_strategy="round_robin",
         responsible_user_id=A,
     )
     task.complete(completed_by=A)
@@ -54,7 +54,9 @@ def test_round_robin_advances_and_wraps() -> None:
 
 def test_round_robin_from_none_starts_at_first() -> None:
     task = MaintenanceTask(
-        name="X", assignee_pool=[A, B], rotation_strategy="round_robin",
+        name="X",
+        assignee_pool=[A, B],
+        rotation_strategy="round_robin",
         responsible_user_id=None,
     )
     task.complete()
@@ -65,7 +67,9 @@ def test_least_completed_picks_fewest() -> None:
     # A has two prior completions, B none → after completing (credited to A),
     # B is still least → becomes responsible.
     task = MaintenanceTask(
-        name="X", assignee_pool=[A, B], rotation_strategy="least_completed",
+        name="X",
+        assignee_pool=[A, B],
+        rotation_strategy="least_completed",
         responsible_user_id=A,
         history=[
             {"timestamp": "2026-01-01T00:00:00+00:00", "type": "completed", "completed_by": A},
@@ -78,7 +82,9 @@ def test_least_completed_picks_fewest() -> None:
 
 def test_random_stays_in_pool_and_rotates_off_current() -> None:
     task = MaintenanceTask(
-        name="X", assignee_pool=[A, B], rotation_strategy="random",
+        name="X",
+        assignee_pool=[A, B],
+        rotation_strategy="random",
         responsible_user_id=A,
     )
     task.complete(completed_by=A)
@@ -91,7 +97,9 @@ def test_random_stays_in_pool_and_rotates_off_current() -> None:
 
 def test_no_rotation_when_pool_too_small() -> None:
     task = MaintenanceTask(
-        name="X", assignee_pool=[A], rotation_strategy="round_robin",
+        name="X",
+        assignee_pool=[A],
+        rotation_strategy="round_robin",
         responsible_user_id=A,
     )
     task.complete(completed_by=A)
@@ -100,7 +108,9 @@ def test_no_rotation_when_pool_too_small() -> None:
 
 def test_no_rotation_without_strategy() -> None:
     task = MaintenanceTask(
-        name="X", assignee_pool=[A, B], rotation_strategy=None,
+        name="X",
+        assignee_pool=[A, B],
+        rotation_strategy=None,
         responsible_user_id=A,
     )
     task.complete(completed_by=A)

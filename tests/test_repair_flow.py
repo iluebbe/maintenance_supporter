@@ -37,10 +37,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -69,7 +72,9 @@ def _make_sensor_entry(
         trigger_config=tc,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Repair Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Repair Object"),
@@ -105,7 +110,8 @@ def _make_flow(
 
 
 async def test_repair_init_shows_menu(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that init step shows menu with 3 options."""
     obj_entry = _make_sensor_entry(hass)
@@ -121,7 +127,8 @@ async def test_repair_init_shows_menu(
 
 
 async def test_repair_init_placeholders(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that init step includes correct placeholders."""
     obj_entry = _make_sensor_entry(hass)
@@ -141,7 +148,8 @@ async def test_repair_init_placeholders(
 
 
 async def test_repair_dismiss(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test dismiss creates empty entry."""
     obj_entry = _make_sensor_entry(hass)
@@ -158,7 +166,8 @@ async def test_repair_dismiss(
 
 
 async def test_repair_replace_shows_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replace_entity step shows form with EntitySelector."""
     obj_entry = _make_sensor_entry(hass)
@@ -172,7 +181,8 @@ async def test_repair_replace_shows_form(
 
 
 async def test_repair_replace_updates_config(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that replacing entity updates config entry."""
     obj_entry = _make_sensor_entry(hass)
@@ -190,7 +200,8 @@ async def test_repair_replace_updates_config(
 
 
 async def test_repair_replace_multi_entity(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replacing entity in multi-entity trigger."""
     obj_entry = _make_sensor_entry(
@@ -213,7 +224,8 @@ async def test_repair_replace_multi_entity(
 
 
 async def test_repair_replace_resets_baseline(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that replacing entity removes baseline/change_count."""
     obj_entry = _make_sensor_entry(hass, unique_id="repair_baseline")
@@ -244,7 +256,8 @@ async def test_repair_replace_resets_baseline(
 
 
 async def test_repair_replace_missing_data(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replace with missing entry_id in issue data logs error."""
     await setup_integration(hass, global_entry)
@@ -261,7 +274,8 @@ async def test_repair_replace_missing_data(
 
 
 async def test_repair_remove_shows_confirm(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test remove_trigger shows confirmation form."""
     obj_entry = _make_sensor_entry(hass, unique_id="repair_remove_form")
@@ -275,7 +289,8 @@ async def test_repair_remove_shows_confirm(
 
 
 async def test_repair_remove_single_to_time_based(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test removing single-entity trigger converts to time_based."""
     obj_entry = _make_sensor_entry(hass, interval_days=30, unique_id="repair_remove_tb")
@@ -293,7 +308,8 @@ async def test_repair_remove_single_to_time_based(
 
 
 async def test_repair_remove_single_to_manual(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test removing trigger without interval converts to manual."""
     obj_entry = _make_sensor_entry(hass, interval_days=None, unique_id="repair_remove_manual")
@@ -321,7 +337,8 @@ async def test_repair_remove_single_to_manual(
 
 
 async def test_repair_remove_multi_keeps_remaining(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test removing one entity from multi-entity trigger keeps remaining."""
     obj_entry = _make_sensor_entry(
@@ -344,7 +361,8 @@ async def test_repair_remove_multi_keeps_remaining(
 
 
 async def test_repair_remove_missing_data(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test remove with missing entry_id in issue data logs error."""
     await setup_integration(hass, global_entry)
@@ -360,7 +378,8 @@ async def test_repair_remove_missing_data(
 
 
 async def test_repair_replace_aborts_when_task_deleted(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replace_entity aborts if the task was deleted after issue creation."""
     obj_entry = _make_sensor_entry(hass, unique_id="repair_stale_replace")
@@ -381,7 +400,8 @@ async def test_repair_replace_aborts_when_task_deleted(
 
 
 async def test_repair_remove_aborts_when_task_deleted(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test remove_trigger aborts if the task was deleted after issue creation."""
     obj_entry = _make_sensor_entry(hass, unique_id="repair_stale_remove")
@@ -402,7 +422,8 @@ async def test_repair_remove_aborts_when_task_deleted(
 
 
 async def test_repair_replace_aborts_when_entry_gone(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replace_entity aborts if config entry was removed."""
     obj_entry = _make_sensor_entry(hass, unique_id="repair_stale_entry")
@@ -423,7 +444,8 @@ async def test_repair_replace_aborts_when_entry_gone(
 
 
 async def test_delete_task_cleans_up_repair_issues(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that deleting a task cleans up associated repair issues."""
     from homeassistant.helpers import issue_registry as ir_mod
@@ -434,7 +456,9 @@ async def test_delete_task_cleans_up_repair_issues(
     # Create a repair issue for this task
     issue_id = f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_sensor.old_temp"
     ir_mod.async_create_issue(
-        hass, DOMAIN, issue_id,
+        hass,
+        DOMAIN,
+        issue_id,
         is_fixable=True,
         severity=ir_mod.IssueSeverity.WARNING,
         translation_key="missing_trigger_entity",
@@ -451,10 +475,11 @@ async def test_delete_task_cleans_up_repair_issues(
     mock_conn.send_result = MagicMock()
     mock_conn.send_error = MagicMock()
 
-    await call_ws_handler(ws_delete_task,
-        hass, mock_conn,
-        {"id": 1, "type": "maintenance_supporter/task/delete",
-         "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        mock_conn,
+        {"id": 1, "type": "maintenance_supporter/task/delete", "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1},
     )
     await hass.async_block_till_done()
 
@@ -495,7 +520,9 @@ def _make_compound_entry(
         trigger_config=tc,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Compound Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Compound Object"),
@@ -509,7 +536,8 @@ def _make_compound_entry(
 
 
 async def test_repair_replace_in_compound_single_entity_condition(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replacing entity in a compound condition with single entity_id."""
     obj_entry = _make_compound_entry(
@@ -536,7 +564,8 @@ async def test_repair_replace_in_compound_single_entity_condition(
 
 
 async def test_repair_replace_in_compound_multi_entity_condition(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replacing entity in a compound condition with multi-entity entity_ids."""
     obj_entry = _make_compound_entry(
@@ -565,7 +594,8 @@ async def test_repair_replace_in_compound_multi_entity_condition(
 
 
 async def test_repair_replace_in_compound_nested_trigger_config(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test replacing entity nested inside condition.trigger_config."""
     obj_entry = _make_compound_entry(
@@ -592,7 +622,8 @@ async def test_repair_replace_in_compound_nested_trigger_config(
 
 
 async def test_repair_remove_from_compound_keeps_two_conditions(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test removing entity from 3-condition compound leaves 2 conditions (still compound)."""
     obj_entry = _make_compound_entry(
@@ -620,7 +651,8 @@ async def test_repair_remove_from_compound_keeps_two_conditions(
 
 
 async def test_repair_remove_from_compound_demotes_to_flat(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test removing entity from 2-condition compound demotes to flat single trigger."""
     obj_entry = _make_compound_entry(
@@ -647,7 +679,8 @@ async def test_repair_remove_from_compound_demotes_to_flat(
 
 
 async def test_repair_remove_from_compound_multi_entity_keeps_condition(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test removing entity from a multi-entity condition keeps the condition with remaining entities."""
     obj_entry = _make_compound_entry(

@@ -26,7 +26,10 @@ from custom_components.maintenance_supporter.helpers.schedule import (
 
 def _next(sched: Schedule, *, last: date | None, today: date) -> date | None:
     return sched.next_due(
-        last_performed=last, created_at=today, last_planned_due=None, today=today,
+        last_performed=last,
+        created_at=today,
+        last_planned_due=None,
+        today=today,
     )
 
 
@@ -74,9 +77,7 @@ def test_business_rollback_before_ref_advances_to_next_month() -> None:
 
 def test_negative_offset_two_days_before_last_business_day() -> None:
     # The exact #83 example: "two days before the last working day".
-    sched = Schedule.from_dict(
-        {"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2}
-    )
+    sched = Schedule.from_dict({"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2})
     # Last business day Jan 2027 = Fri 29 → minus 2 = Wed 27.
     assert _next(sched, last=None, today=date(2027, 1, 5)) == date(2027, 1, 27)
     # Completing on the effective date advances a full cycle (Feb 26 − 2 = 24).
@@ -112,8 +113,7 @@ def test_from_dict_sanitises_bogus_values() -> None:
     s = Schedule.from_dict({"kind": KIND_DAY_OF_MONTH, "day": 99, "offset": 400})
     assert s.day is None  # invalid day dropped
     assert s.offset_days == 15  # clamped
-    s2 = Schedule.from_dict({"kind": KIND_DAY_OF_MONTH, "day": -1, "offset": -99,
-                             "business": "yes"})
+    s2 = Schedule.from_dict({"kind": KIND_DAY_OF_MONTH, "day": -1, "offset": -99, "business": "yes"})
     assert s2.day == -1
     assert s2.offset_days == -15
     assert s2.business is False  # only literal True enables it
@@ -123,9 +123,15 @@ def test_from_dict_sanitises_bogus_values() -> None:
 
 
 def test_flow_input_builds_last_business_day_with_offset() -> None:
-    schedule = schedule_from_calendar_input(KIND_DAY_OF_MONTH, {
-        "day": 15, "last_day": True, "business": True, "offset": -2,
-    })
+    schedule = schedule_from_calendar_input(
+        KIND_DAY_OF_MONTH,
+        {
+            "day": 15,
+            "last_day": True,
+            "business": True,
+            "offset": -2,
+        },
+    )
     assert schedule == {"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2}
 
 
@@ -135,9 +141,11 @@ def test_flow_input_plain_day_unchanged() -> None:
 
 
 def test_flow_prefill_reflects_stored_schedule() -> None:
-    cur = calendar_current({
-        "schedule": {"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2},
-    })
+    cur = calendar_current(
+        {
+            "schedule": {"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2},
+        }
+    )
     assert cur["last_day"] is True
     assert cur["business"] is True
     assert cur["offset"] == -2

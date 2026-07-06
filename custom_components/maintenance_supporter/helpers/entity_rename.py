@@ -14,9 +14,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def rewrite_trigger_config(
-    config: dict[str, Any], old_id: str, new_id: str
-) -> tuple[dict[str, Any], bool]:
+def rewrite_trigger_config(config: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
     """Return (new_config, changed) with all entity_id references rewritten.
 
     Handles:
@@ -53,9 +51,7 @@ def rewrite_trigger_config(
             new_cond, cond_changed = rewrite_trigger_config(cond, old_id, new_id)
             inner = new_cond.get("trigger_config") if isinstance(new_cond, dict) else None
             if isinstance(inner, dict):
-                rewritten_inner, inner_changed = rewrite_trigger_config(
-                    inner, old_id, new_id
-                )
+                rewritten_inner, inner_changed = rewrite_trigger_config(inner, old_id, new_id)
                 if inner_changed:
                     new_cond = {**new_cond, "trigger_config": rewritten_inner}
                     cond_changed = True
@@ -68,9 +64,7 @@ def rewrite_trigger_config(
     return new_config, changed
 
 
-def rewrite_task(
-    task_data: dict[str, Any], old_id: str, new_id: str
-) -> tuple[dict[str, Any], bool]:
+def rewrite_task(task_data: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[str, Any], bool]:
     """Rewrite trigger_config + adaptive_config.environmental_entity in a task.
 
     Note: ``adaptive_config`` lives in the Store after the v1.x migration —
@@ -95,9 +89,7 @@ def rewrite_task(
     return new_task, changed
 
 
-def rewrite_tasks(
-    tasks: dict[str, dict[str, Any]], old_id: str, new_id: str
-) -> tuple[dict[str, dict[str, Any]], bool]:
+def rewrite_tasks(tasks: dict[str, dict[str, Any]], old_id: str, new_id: str) -> tuple[dict[str, dict[str, Any]], bool]:
     """Rewrite all tasks in an entry; return (new_tasks, any_changed)."""
     new_tasks: dict[str, dict[str, Any]] = {}
     any_changed = False
@@ -133,9 +125,7 @@ def rewrite_store(store: Any, old_id: str, new_id: str) -> bool:
     return changed
 
 
-def migrate_object_unique_ids(
-    hass: Any, entry: Any, old_name: str | None, new_name: str | None
-) -> int:
+def migrate_object_unique_ids(hass: Any, entry: Any, old_name: str | None, new_name: str | None) -> int:
     """Rewrite per-task entity unique_ids after an object RENAME.
 
     Same dual-storage bug class as the trigger rewrites above, but for our
@@ -168,7 +158,7 @@ def migrate_object_unique_ids(
         uid = reg_entry.unique_id or ""
         if not uid.startswith(old_prefix):
             continue
-        new_uid = new_prefix + uid[len(old_prefix):]
+        new_uid = new_prefix + uid[len(old_prefix) :]
         try:
             ent_reg.async_update_entity(reg_entry.entity_id, new_unique_id=new_uid)
             migrated += 1
@@ -177,6 +167,9 @@ def migrate_object_unique_ids(
 
             logging.getLogger(__name__).warning(
                 "unique_id %s already taken while renaming %r -> %r; leaving %s",
-                new_uid, old_name, new_name, reg_entry.entity_id,
+                new_uid,
+                old_name,
+                new_name,
+                reg_entry.entity_id,
             )
     return migrated

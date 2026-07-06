@@ -67,10 +67,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -80,7 +83,9 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def global_entry_with_advanced(hass: HomeAssistant) -> MockConfigEntry:
     data = build_global_entry_data()
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
         options={
@@ -88,7 +93,8 @@ def global_entry_with_advanced(hass: HomeAssistant) -> MockConfigEntry:
             CONF_ADVANCED_CHECKLISTS: True,
             CONF_ADVANCED_ADAPTIVE: True,
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -99,7 +105,9 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     last_performed = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(last_performed=last_performed)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -112,7 +120,9 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 @pytest.fixture
 def object_entry_no_tasks(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Empty Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Empty Object"),
@@ -141,7 +151,9 @@ def object_entry_with_trigger(hass: HomeAssistant) -> MockConfigEntry:
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Triggered Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Triggered Object"),
@@ -163,7 +175,9 @@ def cfg_global_entry_with_advanced(hass: HomeAssistant) -> MockConfigEntry:
     """
     data = build_global_entry_data()
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
         options={
@@ -172,7 +186,8 @@ def cfg_global_entry_with_advanced(hass: HomeAssistant) -> MockConfigEntry:
             CONF_ADVANCED_ADAPTIVE: True,
             CONF_ADVANCED_SCHEDULE_TIME: True,
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -195,7 +210,9 @@ def object_entry_multi_entity_trigger(hass: HomeAssistant) -> MockConfigEntry:
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Multi Entity Trigger",
         data=build_object_entry_data(
             object_data=build_object_data(name="Multi Entity Trigger"),
@@ -209,15 +226,18 @@ def object_entry_multi_entity_trigger(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def _navigate_opts_to_task_action(
-    hass: HomeAssistant, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    object_entry: MockConfigEntry,
 ) -> ConfigFlowResult:
     """Navigate options flow to task_action menu for TASK_ID_1."""
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     assert result["step_id"] == "task_action"
     return result
@@ -227,7 +247,9 @@ async def _navigate_opts_to_task_action(
 
 
 async def test_options_init_menu(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test options flow shows init menu."""
     await setup_integration(hass, global_entry, object_entry)
@@ -241,7 +263,9 @@ async def test_options_init_menu(
 
 
 async def test_options_done(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test done closes options flow."""
     await setup_integration(hass, global_entry, object_entry)
@@ -258,7 +282,9 @@ async def test_options_done(
 
 
 async def test_manage_tasks_shows_list(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test manage_tasks shows task selection form."""
     await setup_integration(hass, global_entry, object_entry)
@@ -273,7 +299,8 @@ async def test_manage_tasks_shows_list(
 
 
 async def test_manage_tasks_empty_returns_to_menu(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_no_tasks: MockConfigEntry,
 ) -> None:
     """Test manage_tasks with no tasks returns to init menu."""
@@ -290,7 +317,9 @@ async def test_manage_tasks_empty_returns_to_menu(
 
 
 async def test_manage_tasks_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test manage_tasks go_back returns to init menu."""
     await setup_integration(hass, global_entry, object_entry)
@@ -309,9 +338,10 @@ async def test_manage_tasks_go_back(
     assert result["step_id"] == "init"
 
 
-
 async def test_manage_tasks_select_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test selecting a task shows task action menu."""
     await setup_integration(hass, global_entry, object_entry)
@@ -333,7 +363,8 @@ async def test_manage_tasks_select_task(
 
 
 async def test_task_action_menu_with_advanced(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry_with_trigger: MockConfigEntry,
 ) -> None:
     """Test task action menu includes checklist/adaptive when advanced enabled."""
@@ -359,42 +390,50 @@ async def test_task_action_menu_with_advanced(
 
 
 async def test_edit_task_shows_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test edit_task shows form with current task data."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "edit_task"
 
 
 async def test_edit_task_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test edit_task go_back returns to task action menu."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -409,21 +448,25 @@ async def test_edit_task_go_back(
 
 
 async def test_edit_task_submit(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test editing a task updates config entry."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -452,7 +495,8 @@ async def test_edit_task_submit(
 
 
 async def test_edit_trigger_shows_summary(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_with_trigger: MockConfigEntry,
 ) -> None:
     """Test edit_trigger shows summary when trigger exists."""
@@ -461,14 +505,16 @@ async def test_edit_trigger_shows_summary(
 
     result = await hass.config_entries.options.async_init(object_entry_with_trigger.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_trigger"},
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
     )
     # Should show trigger summary menu
     assert result["type"] == FlowResultType.MENU
@@ -479,7 +525,8 @@ async def test_edit_trigger_shows_summary(
 
 
 async def test_remove_trigger_shows_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_with_trigger: MockConfigEntry,
 ) -> None:
     """Test remove_trigger shows confirmation form."""
@@ -487,21 +534,24 @@ async def test_remove_trigger_shows_form(
 
     result = await hass.config_entries.options.async_init(object_entry_with_trigger.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "remove_trigger"},
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "remove_trigger"
 
 
 async def test_remove_trigger_confirm(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_with_trigger: MockConfigEntry,
 ) -> None:
     """Test removing trigger config from task."""
@@ -509,14 +559,16 @@ async def test_remove_trigger_confirm(
 
     result = await hass.config_entries.options.async_init(object_entry_with_trigger.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "remove_trigger"},
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -535,7 +587,8 @@ async def test_remove_trigger_confirm(
 
 
 async def test_remove_trigger_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_with_trigger: MockConfigEntry,
 ) -> None:
     """Test remove_trigger go_back."""
@@ -543,14 +596,16 @@ async def test_remove_trigger_go_back(
 
     result = await hass.config_entries.options.async_init(object_entry_with_trigger.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "remove_trigger"},
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -564,7 +619,8 @@ async def test_remove_trigger_go_back(
 
 
 async def test_edit_checklist_shows_form(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """Test edit_checklist shows form."""
@@ -572,21 +628,24 @@ async def test_edit_checklist_shows_form(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_checklist"},
+        result["flow_id"],
+        {"next_step_id": "edit_checklist"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "edit_checklist"
 
 
 async def test_edit_checklist_submit(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """Test submitting checklist saves items."""
@@ -594,14 +653,16 @@ async def test_edit_checklist_submit(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_checklist"},
+        result["flow_id"],
+        {"next_step_id": "edit_checklist"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -617,7 +678,8 @@ async def test_edit_checklist_submit(
 
 
 async def test_edit_checklist_go_back(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """Test edit_checklist go_back."""
@@ -625,14 +687,16 @@ async def test_edit_checklist_go_back(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_checklist"},
+        result["flow_id"],
+        {"next_step_id": "edit_checklist"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -646,42 +710,50 @@ async def test_edit_checklist_go_back(
 
 
 async def test_delete_task_shows_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test delete_task shows confirmation form."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "delete_task"},
+        result["flow_id"],
+        {"next_step_id": "delete_task"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "delete_task"
 
 
 async def test_delete_task_confirm(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test confirming task deletion removes it."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "delete_task"},
+        result["flow_id"],
+        {"next_step_id": "delete_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -698,21 +770,25 @@ async def test_delete_task_confirm(
 
 
 async def test_delete_task_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test delete_task go_back returns to task action menu."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "delete_task"},
+        result["flow_id"],
+        {"next_step_id": "delete_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -723,21 +799,25 @@ async def test_delete_task_go_back(
 
 
 async def test_delete_task_cancel(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test delete_task no confirm returns to task action."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "delete_task"},
+        result["flow_id"],
+        {"next_step_id": "delete_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -751,14 +831,17 @@ async def test_delete_task_cancel(
 
 
 async def test_add_task_time_based_full_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test add task → time_based schedule full flow."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "add_task"
@@ -804,14 +887,17 @@ async def test_add_task_time_based_full_flow(
 
 
 async def test_add_task_one_time_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test add task → one-time schedule full flow (due_date persisted)."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -838,22 +924,23 @@ async def test_add_task_one_time_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t["name"] == "One Shot"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t["name"] == "One Shot")
     assert read_legacy_fields(new_task)["schedule_type"] == ScheduleType.ONE_TIME
     assert read_legacy_fields(new_task)["due_date"] == "2026-09-01"
 
 
 async def test_add_task_nth_weekday_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Add task → nth_weekday calendar kind via the options flow (Phase 4)."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -875,14 +962,14 @@ async def test_add_task_nth_weekday_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t["name"] == "Smoke alarm"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t["name"] == "Smoke alarm")
     assert new_task["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
 
 
 async def test_edit_task_calendar_kind_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Edit an existing nth_weekday task via the options flow — change nth."""
     await setup_integration(hass, global_entry, object_entry)
@@ -891,21 +978,23 @@ async def test_edit_task_calendar_kind_flow(
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
     tasks = dict(entry.data[CONF_TASKS])
-    seeded = {k: v for k, v in tasks[TASK_ID_1].items()
-              if k not in ("interval_days", "interval_unit", "interval_anchor")}
+    seeded = {k: v for k, v in tasks[TASK_ID_1].items() if k not in ("interval_days", "interval_unit", "interval_anchor")}
     seeded["schedule"] = {"kind": "nth_weekday", "nth": 1, "weekday": 5}
     tasks[TASK_ID_1] = seeded
     hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_TASKS: tasks})
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "edit_task"
@@ -915,7 +1004,8 @@ async def test_edit_task_calendar_kind_flow(
         user_input={
             CONF_TASK_NAME: "Renamed Calendar Task",
             CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
-            "nth": "2", "weekday": "5",
+            "nth": "2",
+            "weekday": "5",
             CONF_TASK_WARNING_DAYS: 7,
             CONF_TASK_ENABLED: True,
             "go_back": False,
@@ -925,19 +1015,24 @@ async def test_edit_task_calendar_kind_flow(
     refreshed = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert refreshed is not None
     assert refreshed.data[CONF_TASKS][TASK_ID_1]["schedule"] == {
-        "kind": "nth_weekday", "nth": 2, "weekday": 5,
+        "kind": "nth_weekday",
+        "nth": 2,
+        "weekday": 5,
     }
 
 
 async def test_add_task_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test add_task go_back returns to menu."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -953,14 +1048,17 @@ async def test_add_task_go_back(
 
 
 async def test_add_task_manual_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test add task → manual schedule."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -988,14 +1086,17 @@ async def test_add_task_manual_flow(
 
 
 async def test_add_task_manual_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test opt_manual go_back."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1015,14 +1116,17 @@ async def test_add_task_manual_go_back(
 
 
 async def test_add_task_time_based_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test opt_time_based go_back."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1044,12 +1148,12 @@ async def test_add_task_time_based_go_back(
     assert result["step_id"] == "init"
 
 
-
 # ─── Adaptive Scheduling ────────────────────────────────────────────────
 
 
 async def test_adaptive_scheduling_shows_form(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """Test adaptive_scheduling shows form."""
@@ -1057,21 +1161,24 @@ async def test_adaptive_scheduling_shows_form(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "adaptive_scheduling"},
+        result["flow_id"],
+        {"next_step_id": "adaptive_scheduling"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "adaptive_scheduling"
 
 
 async def test_adaptive_scheduling_submit(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """Test submitting adaptive scheduling config."""
@@ -1079,14 +1186,16 @@ async def test_adaptive_scheduling_submit(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "adaptive_scheduling"},
+        result["flow_id"],
+        {"next_step_id": "adaptive_scheduling"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1110,7 +1219,8 @@ async def test_adaptive_scheduling_submit(
 
 
 async def test_adaptive_scheduling_go_back(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """Test adaptive_scheduling go_back."""
@@ -1118,14 +1228,16 @@ async def test_adaptive_scheduling_go_back(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "adaptive_scheduling"},
+        result["flow_id"],
+        {"next_step_id": "adaptive_scheduling"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1147,28 +1259,34 @@ async def test_adaptive_scheduling_go_back(
 
 
 async def test_object_settings_shows_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test object_settings shows form."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "object_settings"},
+        result["flow_id"],
+        {"next_step_id": "object_settings"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "object_settings"
 
 
 async def test_object_settings_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test object_settings go_back."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "object_settings"},
+        result["flow_id"],
+        {"next_step_id": "object_settings"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1337,13 +1455,16 @@ def test_build_trigger_config_parts_compound() -> None:
 
 # ─── migrated from test_coverage_97b.py (test-structure reorg) ───
 
+
 @pytest.fixture
 def cov97b_object_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Carried from test_coverage_97b.py: fixed far-past last_performed so the
     migrated tests hit the same status branches as before the structure reorg."""
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -1368,7 +1489,9 @@ def sensor_task_entry(hass: HomeAssistant) -> MockConfigEntry:
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Sensor Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Sensor Pump"),
@@ -1385,12 +1508,15 @@ def sensor_task_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_manage_tasks_invalid_selection(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 191: selecting a nonexistent task returns to menu (bypass schema)."""
     from custom_components.maintenance_supporter.config_flow_options_task import (
         MaintenanceOptionsFlow,
     )
+
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     flow = MaintenanceOptionsFlow()
@@ -1409,14 +1535,17 @@ async def test_manage_tasks_invalid_selection(
 
 
 async def test_add_task_with_icon(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 843, 109: adding task with custom icon."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "add_task"
@@ -1440,12 +1569,15 @@ async def test_add_task_with_icon(
 
 
 async def test_time_based_invalid_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 904: interval <= 0 shows error (bypass NumberSelector min=1)."""
     from custom_components.maintenance_supporter.config_flow_options_task import (
         MaintenanceOptionsFlow,
     )
+
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     flow = MaintenanceOptionsFlow()
@@ -1471,14 +1603,17 @@ async def test_time_based_invalid_interval(
 
 
 async def test_add_task_non_completion_anchor(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 103: anchor != 'completion' stored in task_data."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1506,22 +1641,27 @@ async def test_add_task_non_completion_anchor(
 
 
 async def test_edit_task_icon_and_nfc(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 301, 306: setting icon and NFC tag during task edit."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     assert result["type"] == FlowResultType.MENU  # task_action menu
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "edit_task"
@@ -1547,7 +1687,9 @@ async def test_edit_task_icon_and_nfc(
 
 
 async def test_trigger_summary_entity_states(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, sensor_task_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    sensor_task_entry: MockConfigEntry,
 ) -> None:
     """Lines 560, 566: trigger summary with single entity_id string and unavailable entity."""
     hass.states.async_set("sensor.cov97b_temp", "25.0")
@@ -1571,14 +1713,17 @@ async def test_trigger_summary_entity_states(
 
     result = await hass.config_entries.options.async_init(sensor_task_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     # Navigate to edit_trigger which shows trigger_summary first
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_trigger"},
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
     )
     # Should show trigger_summary menu
     assert result["type"] == FlowResultType.MENU
@@ -1598,8 +1743,11 @@ async def test_get_global_options_no_global(
 
     task = build_task_data(last_performed="2024-06-01")
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Pump", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pump",
+        source="user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         unique_id="maintenance_supporter_cov97b_noglobal",
     )
@@ -1617,21 +1765,26 @@ async def test_get_global_options_no_global(
 
 
 async def test_adaptive_scheduling_min_exceeds_max(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 1207: min_interval > max_interval shows error."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     # Navigate to adaptive_scheduling
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "adaptive_scheduling"},
+        result["flow_id"],
+        {"next_step_id": "adaptive_scheduling"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "adaptive_scheduling"
@@ -1654,7 +1807,9 @@ async def test_adaptive_scheduling_min_exceeds_max(
 
 
 async def test_adaptive_scheduling_with_env_entity(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 1225: setting environmental_entity in adaptive config."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
@@ -1662,13 +1817,16 @@ async def test_adaptive_scheduling_with_env_entity(
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "adaptive_scheduling"},
+        result["flow_id"],
+        {"next_step_id": "adaptive_scheduling"},
     )
     assert result["step_id"] == "adaptive_scheduling"
 
@@ -1689,7 +1847,9 @@ async def test_adaptive_scheduling_with_env_entity(
 
 
 async def test_adaptive_scheduling_legacy_store_none(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 1188, 1239-1245: adaptive scheduling with store=None (legacy path)."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
@@ -1703,13 +1863,16 @@ async def test_adaptive_scheduling_legacy_store_none(
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "adaptive_scheduling"},
+        result["flow_id"],
+        {"next_step_id": "adaptive_scheduling"},
     )
     assert result["step_id"] == "adaptive_scheduling"
 
@@ -1734,7 +1897,9 @@ async def test_adaptive_scheduling_legacy_store_none(
 
 
 async def test_save_new_task_legacy_store_none(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 131-137: saving new task with last_performed when store is None."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
@@ -1747,7 +1912,8 @@ async def test_save_new_task_legacy_store_none(
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1775,17 +1941,24 @@ async def test_save_new_task_legacy_store_none(
 
 
 async def test_trigger_threshold_below_and_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 382, 397: threshold with trigger_below and interval_days > 0."""
-    hass.states.async_set("sensor.cov97b_below", "10.0", {
-        "unit_of_measurement": "°C",
-    })
+    hass.states.async_set(
+        "sensor.cov97b_below",
+        "10.0",
+        {
+            "unit_of_measurement": "°C",
+        },
+    )
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1827,7 +2000,9 @@ async def test_trigger_threshold_below_and_interval(
 
 
 async def test_trigger_state_change_with_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 612: state_change trigger with interval_days > 0."""
     hass.states.async_set("sensor.cov97b_state", "on")
@@ -1835,7 +2010,8 @@ async def test_trigger_state_change_with_interval(
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1870,7 +2046,9 @@ async def test_trigger_state_change_with_interval(
 
 
 async def test_trigger_runtime_with_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 695 (go_back), 721: runtime trigger with interval_days > 0.
     Actually testing line 1082 (the wrapper) + 721 (interval)."""
@@ -1879,7 +2057,8 @@ async def test_trigger_runtime_with_interval(
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1913,7 +2092,9 @@ async def test_trigger_runtime_with_interval(
 
 
 async def test_trigger_counter_with_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 503: counter trigger with interval_days > 0."""
     hass.states.async_set("sensor.cov97b_counter", "50")
@@ -1921,7 +2102,8 @@ async def test_trigger_counter_with_interval(
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1958,12 +2140,15 @@ async def test_trigger_counter_with_interval(
 
 
 async def test_trigger_attribute_entity_unavailable(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 242: entity_state is None when attribute step shows form."""
     from custom_components.maintenance_supporter.config_flow_options_task import (
         MaintenanceOptionsFlow,
     )
+
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     flow = MaintenanceOptionsFlow()
@@ -1985,14 +2170,17 @@ async def test_trigger_attribute_entity_unavailable(
 
 
 async def test_trigger_sensor_empty_entity(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, cov97b_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    cov97b_object_entry: MockConfigEntry,
 ) -> None:
     """Line 182: empty entity list shows error."""
     await setup_integration(hass, global_entry_with_advanced, cov97b_object_entry)
 
     result = await hass.config_entries.options.async_init(cov97b_object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2016,7 +2204,9 @@ async def test_trigger_sensor_empty_entity(
 
 
 async def test_remove_trigger_single_entity_id(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, sensor_task_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    sensor_task_entry: MockConfigEntry,
 ) -> None:
     """Lines 634-635: remove_trigger with single entity_id string format."""
     hass.states.async_set("sensor.cov97b_temp", "25.0")
@@ -2024,15 +2214,18 @@ async def test_remove_trigger_single_entity_id(
 
     result = await hass.config_entries.options.async_init(sensor_task_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     # Navigate to remove_trigger
     assert "remove_trigger" in result["menu_options"]
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "remove_trigger"},
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
     )
     # Should show confirmation form
     assert result["type"] == FlowResultType.FORM
@@ -2050,29 +2243,39 @@ async def test_remove_trigger_single_entity_id(
 
 
 async def test_edit_trigger_saves_interval(
-    hass: HomeAssistant, global_entry_with_advanced: MockConfigEntry, sensor_task_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_advanced: MockConfigEntry,
+    sensor_task_entry: MockConfigEntry,
 ) -> None:
     """Line 608: _save_edited_trigger saves interval_days."""
-    hass.states.async_set("sensor.cov97b_temp", "25.0", {
-        "unit_of_measurement": "°C",
-    })
+    hass.states.async_set(
+        "sensor.cov97b_temp",
+        "25.0",
+        {
+            "unit_of_measurement": "°C",
+        },
+    )
     await setup_integration(hass, global_entry_with_advanced, sensor_task_entry)
 
     result = await hass.config_entries.options.async_init(sensor_task_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     # Navigate to edit_trigger
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_trigger"},
+        result["flow_id"],
+        {"next_step_id": "edit_trigger"},
     )
     # Shows trigger_summary first
     assert result["step_id"] == "trigger_summary"
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_trigger_proceed"},
+        result["flow_id"],
+        {"next_step_id": "edit_trigger_proceed"},
     )
     # Sensor select
     assert result["step_id"] == "opt_sensor_select"
@@ -2103,15 +2306,19 @@ async def test_edit_trigger_saves_interval(
 # config_flow_options_task.py coverage (migrated from test_cov_cfgflow.py)
 # ============================================================================
 
+
 async def test_options_manage_tasks_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """manage_tasks go_back returns to init menu (line 147)."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     assert result["step_id"] == "manage_tasks"
 
@@ -2125,7 +2332,9 @@ async def test_options_manage_tasks_go_back(
 
 
 async def test_options_add_task_interval_unit_months(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """add task with interval_unit=months persists it (lines 146-147, 158).
 
@@ -2137,7 +2346,8 @@ async def test_options_add_task_interval_unit_months(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2163,16 +2373,16 @@ async def test_options_add_task_interval_unit_months(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t["name"] == "Monthly Task"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t["name"] == "Monthly Task")
     # After normalize_task_storage, interval_unit is moved into the nested
     # schedule dict; the flat key is removed.
     assert new_task.get("schedule", {}).get("unit") == "months"
 
 
 async def test_options_edit_task_sets_interval_unit_days(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Editing interval_unit to 'days' removes it from storage (line 347-351)."""
     await setup_integration(hass, global_entry, object_entry)
@@ -2186,13 +2396,16 @@ async def test_options_edit_task_sets_interval_unit_days(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     assert result["step_id"] == "edit_task"
 
@@ -2217,20 +2430,25 @@ async def test_options_edit_task_sets_interval_unit_days(
 
 
 async def test_options_edit_task_schedule_time(
-    hass: HomeAssistant, cfg_global_entry_with_advanced: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    cfg_global_entry_with_advanced: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """edit_task with schedule_time value (lines 365-369)."""
     await setup_integration(hass, cfg_global_entry_with_advanced, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        user_input={"selected_task": TASK_ID_1, "go_back": False},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     assert result["step_id"] == "edit_task"
 
@@ -2255,7 +2473,8 @@ async def test_options_edit_task_schedule_time(
 
 
 async def test_options_remove_trigger_multi_entity_partial(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_multi_entity_trigger: MockConfigEntry,
 ) -> None:
     """remove_trigger for multi-entity trigger shows form with entity selector (lines 770-771)."""
@@ -2267,7 +2486,8 @@ async def test_options_remove_trigger_multi_entity_partial(
     result = await _navigate_opts_to_task_action(hass, object_entry_multi_entity_trigger)
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "remove_trigger"},
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
     )
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "remove_trigger"
@@ -2277,7 +2497,8 @@ async def test_options_remove_trigger_multi_entity_partial(
 
 
 async def test_options_remove_trigger_partial_removal(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry_multi_entity_trigger: MockConfigEntry,
 ) -> None:
     """Partial removal keeps remaining entities in trigger config (line 808)."""
@@ -2287,7 +2508,8 @@ async def test_options_remove_trigger_partial_removal(
 
     result = await _navigate_opts_to_task_action(hass, object_entry_multi_entity_trigger)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "remove_trigger"},
+        result["flow_id"],
+        {"next_step_id": "remove_trigger"},
     )
     assert result["step_id"] == "remove_trigger"
 
@@ -2312,7 +2534,9 @@ async def test_options_remove_trigger_partial_removal(
 
 
 async def test_options_add_task_sensor_threshold_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task → sensor trigger (lines 1125, 1128, 1135, 1162, 1166)."""
     hass.states.async_set("sensor.pres", "1.0", {"unit_of_measurement": "bar"})
@@ -2320,7 +2544,8 @@ async def test_options_add_task_sensor_threshold_flow(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2364,14 +2589,14 @@ async def test_options_add_task_sensor_threshold_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t.get("name") == "Sensor Task Opt"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t.get("name") == "Sensor Task Opt")
     assert new_task["trigger_config"][CONF_TRIGGER_ABOVE] == 2.0
 
 
 async def test_options_add_task_sensor_one_time_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task with one_time schedule (lines 1154-1193).
 
@@ -2384,7 +2609,8 @@ async def test_options_add_task_sensor_one_time_flow(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2406,21 +2632,22 @@ async def test_options_add_task_sensor_one_time_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t.get("name") == "One Time Opt"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t.get("name") == "One Time Opt")
     assert new_task.get("schedule", {}).get("due_date") == "2027-01-01"
 
 
 async def test_options_add_task_calendar_invalid_schedule(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task calendar with empty weekdays shows error (line 1333)."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2443,14 +2670,17 @@ async def test_options_add_task_calendar_invalid_schedule(
 
 
 async def test_options_add_task_calendar_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow opt_calendar go_back returns to init menu (line 1343)."""
     await setup_integration(hass, global_entry, object_entry)
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2472,7 +2702,9 @@ async def test_options_add_task_calendar_go_back(
 
 
 async def test_options_add_task_one_time_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow opt_one_time go_back returns to init menu (line 1161-1162).
 
@@ -2484,7 +2716,8 @@ async def test_options_add_task_one_time_go_back(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2507,7 +2740,9 @@ async def test_options_add_task_one_time_go_back(
 
 
 async def test_options_add_task_sensor_counter_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task → counter trigger (lines 1366, 1376)."""
     hass.states.async_set("sensor.cnt_opt", "500", {"unit_of_measurement": "h"})
@@ -2515,7 +2750,8 @@ async def test_options_add_task_sensor_counter_flow(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2527,13 +2763,16 @@ async def test_options_add_task_sensor_counter_flow(
         },
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.cnt_opt"]},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.cnt_opt"]},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.COUNTER},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.COUNTER},
     )
     assert result["step_id"] == "opt_trigger_counter"
 
@@ -2550,14 +2789,14 @@ async def test_options_add_task_sensor_counter_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t.get("name") == "Counter Opt"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t.get("name") == "Counter Opt")
     assert new_task["trigger_config"][CONF_TRIGGER_TARGET_VALUE] == 1000
 
 
 async def test_options_add_task_sensor_state_change_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task → state_change trigger (line 1386)."""
     hass.states.async_set("binary_sensor.opt_door", "off")
@@ -2565,7 +2804,8 @@ async def test_options_add_task_sensor_state_change_flow(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2577,13 +2817,16 @@ async def test_options_add_task_sensor_state_change_flow(
         },
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["binary_sensor.opt_door"]},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["binary_sensor.opt_door"]},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.STATE_CHANGE},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.STATE_CHANGE},
     )
     assert result["step_id"] == "opt_trigger_state_change"
 
@@ -2601,14 +2844,14 @@ async def test_options_add_task_sensor_state_change_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t.get("name") == "SC Opt"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t.get("name") == "SC Opt")
     assert new_task["trigger_config"][CONF_TRIGGER_TARGET_CHANGES] == 5
 
 
 async def test_options_add_task_sensor_runtime_flow(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task → runtime trigger (line 1396)."""
     hass.states.async_set("sensor.rt_opt", "200", {"unit_of_measurement": "h"})
@@ -2616,7 +2859,8 @@ async def test_options_add_task_sensor_runtime_flow(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2628,13 +2872,16 @@ async def test_options_add_task_sensor_runtime_flow(
         },
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.rt_opt"]},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.rt_opt"]},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.RUNTIME},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.RUNTIME},
     )
     assert result["step_id"] == "opt_trigger_runtime"
 
@@ -2650,14 +2897,14 @@ async def test_options_add_task_sensor_runtime_flow(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
-    new_task = next(
-        t for t in entry.data[CONF_TASKS].values() if t.get("name") == "RT Opt"
-    )
+    new_task = next(t for t in entry.data[CONF_TASKS].values() if t.get("name") == "RT Opt")
     assert new_task["trigger_config"][CONF_TRIGGER_RUNTIME_HOURS] == 300
 
 
 async def test_options_trigger_type_step_reached(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Options flow add_task reaches opt_trigger_type step (line 1285 path check).
 
@@ -2676,7 +2923,8 @@ async def test_options_trigger_type_step_reached(
 
     result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "add_task"},
+        result["flow_id"],
+        {"next_step_id": "add_task"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -2688,17 +2936,20 @@ async def test_options_trigger_type_step_reached(
         },
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.cmp_opt"]},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.cmp_opt"]},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_ATTRIBUTE: "_state"},
     )
     # Reached opt_trigger_type — the compound_step dispatch is in the schema
     assert result["step_id"] == "opt_trigger_type"
 
     # Use THRESHOLD (a working path) to confirm dispatch works
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
+        result["flow_id"],
+        user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD},
     )
     assert result["step_id"] == "opt_trigger_threshold"
 

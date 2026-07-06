@@ -69,20 +69,15 @@ class BaseTrigger(ABC):
         state = self.hass.states.get(self.entity_id)
         if state is None:
             _LOGGER.info(
-                "Trigger entity %s not yet available — listener registered, "
-                "waiting for entity to appear",
+                "Trigger entity %s not yet available — listener registered, waiting for entity to appear",
                 self.entity_id,
             )
             # Register listener anyway so we catch the entity appearing
-            self._unsub_listener = async_track_state_change_event(
-                self.hass, [self.entity_id], self._handle_state_change_event
-            )
+            self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_change_event)
             return
 
         # Register state change listener
-        self._unsub_listener = async_track_state_change_event(
-            self.hass, [self.entity_id], self._handle_state_change_event
-        )
+        self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_change_event)
 
         # If state is unknown/unavailable, schedule a retry
         if state.state in ("unavailable", "unknown"):
@@ -137,9 +132,7 @@ class BaseTrigger(ABC):
                     value,
                 )
 
-        self._unsub_retry = async_call_later(
-            self.hass, 30, _retry_initial_evaluation
-        )
+        self._unsub_retry = async_call_later(self.hass, 30, _retry_initial_evaluation)
 
     def _cancel_retry(self) -> None:
         """Cancel pending retry timer."""
@@ -243,11 +236,7 @@ class BaseTrigger(ABC):
         )
 
         # Add history entry for the trigger activation
-        self.hass.async_create_task(
-            self._coordinator.async_add_trigger_history_entry(
-                self._task_id, trigger_value=value
-            )
-        )
+        self.hass.async_create_task(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
 
         # Fire event
         self.hass.bus.async_fire(
@@ -296,11 +285,7 @@ class BaseTrigger(ABC):
         # resets the trigger via reset(), which never lands here, so the
         # manual flow cannot double-record.
         if self.config.get("auto_complete_on_recovery"):
-            self.hass.async_create_task(
-                self._coordinator.async_auto_complete_on_recovery(
-                    self._task_id, value
-                )
-            )
+            self.hass.async_create_task(self._coordinator.async_auto_complete_on_recovery(self._task_id, value))
 
     def _get_numeric_value(self, state: State) -> float | None:
         """Extract numeric value from state or attribute."""

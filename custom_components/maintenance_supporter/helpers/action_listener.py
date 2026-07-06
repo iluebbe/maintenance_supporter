@@ -34,9 +34,7 @@ from .sanitize import _FORBIDDEN_ACTION_DOMAINS
 _LOGGER = logging.getLogger(__name__)
 
 
-def _resolve_task_action(
-    hass: HomeAssistant, entry_id: str, task_id: str
-) -> dict[str, Any] | None:
+def _resolve_task_action(hass: HomeAssistant, entry_id: str, task_id: str) -> dict[str, Any] | None:
     """Look up `on_complete_action` from the task's config entry.
 
     Returns the action dict or None if the entry/task/action isn't there.
@@ -75,20 +73,19 @@ async def _dispatch_action(hass: HomeAssistant, action: dict[str, Any]) -> None:
     # stored before the write-time denylist existed (or via any path that skips
     # cap_action_field) can never run shell/scripts/host control on completion.
     if domain in _FORBIDDEN_ACTION_DOMAINS:
-        _LOGGER.warning(
-            "on_complete_action refused: %s is a privileged service domain", domain
-        )
+        _LOGGER.warning("on_complete_action refused: %s is a privileged service domain", domain)
         return
     data = action.get("data") if isinstance(action.get("data"), dict) else None
     target = action.get("target") if isinstance(action.get("target"), dict) else None
     try:
-        await hass.services.async_call(
-            domain, name, service_data=data, target=target, blocking=False
-        )
+        await hass.services.async_call(domain, name, service_data=data, target=target, blocking=False)
     except Exception:
         _LOGGER.exception(
             "on_complete_action service-call failed: %s.%s data=%r target=%r",
-            domain, name, data, target,
+            domain,
+            name,
+            data,
+            target,
         )
 
 
@@ -99,6 +96,7 @@ def register_action_listener(hass: HomeAssistant) -> Callable[[], None]:
     Returns the unsubscribe callback so callers can clean up on integration
     teardown.
     """
+
     async def _on_task_completed(event: Event) -> None:
         entry_id = event.data.get("entry_id")
         task_id = event.data.get("task_id")

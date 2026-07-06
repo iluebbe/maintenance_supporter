@@ -27,9 +27,7 @@ def _states(mapping: dict[str, str | float | dict]):
             return None
         spec = mapping[entity_id]
         if isinstance(spec, dict):
-            return SimpleNamespace(
-                state=str(spec.get("state")), attributes=spec.get("attributes", {})
-            )
+            return SimpleNamespace(state=str(spec.get("state")), attributes=spec.get("attributes", {}))
         return SimpleNamespace(state=str(spec), attributes={})
 
     return get
@@ -198,9 +196,7 @@ def test_runtime_accumulated_hours() -> None:
     r = evaluate_runtime(
         {
             "trigger_runtime_hours": 500,
-            "_trigger_state": {
-                "input_boolean.comp": {"accumulated_seconds": 400 * 3600, "on_since": None}
-            },
+            "_trigger_state": {"input_boolean.comp": {"accumulated_seconds": 400 * 3600, "on_since": None}},
         },
         ["input_boolean.comp"],
     )

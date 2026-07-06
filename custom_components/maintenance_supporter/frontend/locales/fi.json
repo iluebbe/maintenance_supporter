@@ -679,5 +679,9 @@
   "replace_object": "Korvaa…",
   "replace_object_prompt": "Poista tämä kohde käytöstä ja luo seuraaja. Historia ja kustannukset pysyvät arkistoituina vanhassa; tehtävät ja asiakirjat siirtyvät uuteen, laskurit alkavat alusta.",
   "replace_name_label": "Seuraajan nimi",
-  "object_replaced": "Kohde korvattu — seuraaja luotu"
+  "object_replaced": "Kohde korvattu — seuraaja luotu",
+  "reading_unit_label": "Lukeman yksikkö (esim. kWh, m³)",
+  "reading_unit_help": "Näytetään kirjatun arvon vieressä tehtävää suoritettaessa.",
+  "reading_value_label": "Lukema",
+  "reading_label": "Lukema"
 }

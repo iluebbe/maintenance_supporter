@@ -32,6 +32,7 @@ from .const import (
     CONF_TASK_NFC_TAG,
     CONF_TASK_NOTES,
     CONF_TASK_PRIORITY,
+    CONF_TASK_READING_UNIT,
     CONF_TASK_ROTATION_STRATEGY,
     CONF_TASK_SCHEDULE_TIME,
     CONF_TASK_TYPE,
@@ -225,6 +226,13 @@ class TaskCrudMixin:
                     updated_task[CONF_TASK_NFC_TAG] = nfc_val
                 else:
                     updated_task.pop(CONF_TASK_NFC_TAG, None)
+                # v2.20 (#83): reading unit — clear by submitting "".
+                if CONF_TASK_READING_UNIT in user_input:
+                    ru = (user_input.get(CONF_TASK_READING_UNIT) or "").strip()
+                    if ru:
+                        updated_task[CONF_TASK_READING_UNIT] = ru
+                    else:
+                        updated_task.pop(CONF_TASK_READING_UNIT, None)
 
                 from .helpers.sanitize import cap_task_fields
 
@@ -262,6 +270,11 @@ class TaskCrudMixin:
             vol.Optional(CONF_TASK_NFC_TAG, default=task.get(CONF_TASK_NFC_TAG))
             if task.get(CONF_TASK_NFC_TAG)
             else vol.Optional(CONF_TASK_NFC_TAG)
+        )
+        reading_unit_key = (
+            vol.Optional(CONF_TASK_READING_UNIT, default=task.get(CONF_TASK_READING_UNIT))
+            if task.get(CONF_TASK_READING_UNIT)
+            else vol.Optional(CONF_TASK_READING_UNIT)
         )
         due_date_key = (
             vol.Required(CONF_TASK_DUE_DATE, default=task.get(CONF_TASK_DUE_DATE))
@@ -424,6 +437,7 @@ class TaskCrudMixin:
                         default=", ".join(task.get("labels", [])),
                     ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     nfc_tag_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    reading_unit_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),

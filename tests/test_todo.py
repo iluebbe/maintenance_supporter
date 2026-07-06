@@ -32,9 +32,13 @@ TASK_ID_2 = "b" * 32
 
 def _global(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -42,11 +46,16 @@ def _global(hass: HomeAssistant) -> MockConfigEntry:
 
 def _object(hass: HomeAssistant, tasks: dict, *, uid: str = "todo_obj") -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Pool Pump",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pool Pump",
         data=build_object_entry_data(
-            object_data=build_object_data(name="Pool Pump"), tasks=tasks,
+            object_data=build_object_data(name="Pool Pump"),
+            tasks=tasks,
         ),
-        source="user", unique_id=f"maintenance_supporter_{uid}",
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
     )
     entry.add_to_hass(hass)
     return entry
@@ -57,9 +66,16 @@ def _todo(hass: HomeAssistant) -> MaintenanceTodoList:
 
 
 async def test_todo_entity_created_with_update_feature(hass: HomeAssistant) -> None:
-    await setup_integration(hass, _global(hass), _object(hass, {
-        TASK_ID_1: build_task_data(last_performed="2020-01-01", interval_days=30),
-    }))
+    await setup_integration(
+        hass,
+        _global(hass),
+        _object(
+            hass,
+            {
+                TASK_ID_1: build_task_data(last_performed="2020-01-01", interval_days=30),
+            },
+        ),
+    )
     todo = _todo(hass)
     assert todo.supported_features & TodoListEntityFeature.UPDATE_TODO_ITEM
     # No create/delete/move — the list is derived, not user-authored.
@@ -67,15 +83,26 @@ async def test_todo_entity_created_with_update_feature(hass: HomeAssistant) -> N
 
 
 async def test_todo_status_mirrors_due_state(hass: HomeAssistant) -> None:
-    await setup_integration(hass, _global(hass), _object(hass, {
-        TASK_ID_1: build_task_data(
-            name="Overdue Task", last_performed="2020-01-01", interval_days=30,
+    await setup_integration(
+        hass,
+        _global(hass),
+        _object(
+            hass,
+            {
+                TASK_ID_1: build_task_data(
+                    name="Overdue Task",
+                    last_performed="2020-01-01",
+                    interval_days=30,
+                ),
+                TASK_ID_2: build_task_data(
+                    task_id=TASK_ID_2,
+                    name="Fresh Task",
+                    interval_days=3650,
+                    last_performed="2026-06-01",
+                ),
+            },
         ),
-        TASK_ID_2: build_task_data(
-            task_id=TASK_ID_2, name="Fresh Task", interval_days=3650,
-            last_performed="2026-06-01",
-        ),
-    }))
+    )
     items = {i.summary: i for i in _todo(hass).todo_items}
     assert "Pool Pump: Overdue Task" in items
     assert "Pool Pump: Fresh Task" in items
@@ -84,18 +111,23 @@ async def test_todo_status_mirrors_due_state(hass: HomeAssistant) -> None:
 
 
 async def test_todo_excludes_disabled_and_archived(hass: HomeAssistant) -> None:
-    await setup_integration(hass, _global(hass), _object(hass, {
-        TASK_ID_1: build_task_data(name="Off", enabled=False),
-        TASK_ID_2: build_task_data(
-            task_id=TASK_ID_2, name="Gone",
-            history=[{"timestamp": "2026-01-01T00:00:00+00:00", "type": "completed"}],
+    await setup_integration(
+        hass,
+        _global(hass),
+        _object(
+            hass,
+            {
+                TASK_ID_1: build_task_data(name="Off", enabled=False),
+                TASK_ID_2: build_task_data(
+                    task_id=TASK_ID_2,
+                    name="Gone",
+                    history=[{"timestamp": "2026-01-01T00:00:00+00:00", "type": "completed"}],
+                ),
+            },
         ),
-    }))
-    # Archive the second task in storage.
-    obj = next(
-        e for e in hass.config_entries.async_entries(DOMAIN)
-        if e.unique_id != GLOBAL_UNIQUE_ID
     )
+    # Archive the second task in storage.
+    obj = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id != GLOBAL_UNIQUE_ID)
     tasks = dict(obj.data["tasks"])
     tasks[TASK_ID_2] = {**tasks[TASK_ID_2], "archived_at": "2026-02-01T00:00:00+00:00"}
     hass.config_entries.async_update_entry(obj, data={**obj.data, "tasks": tasks})
@@ -106,11 +138,16 @@ async def test_todo_excludes_disabled_and_archived(hass: HomeAssistant) -> None:
 
 
 async def test_todo_complete_completes_task(hass: HomeAssistant) -> None:
-    obj = _object(hass, {
-        TASK_ID_1: build_task_data(
-            name="Overdue Task", last_performed="2020-01-01", interval_days=30,
-        ),
-    })
+    obj = _object(
+        hass,
+        {
+            TASK_ID_1: build_task_data(
+                name="Overdue Task",
+                last_performed="2020-01-01",
+                interval_days=30,
+            ),
+        },
+    )
     await setup_integration(hass, _global(hass), obj)
     todo = _todo(hass)
 
@@ -140,11 +177,17 @@ async def test_todo_checkoff_blocked_inside_completion_window(
     from homeassistant.util import dt as dt_util
 
     lp = dt_util.now().date().isoformat()  # completed today → due in 30 days
-    obj = _object(hass, {
-        TASK_ID_1: build_task_data(
-            name="Windowed Task", last_performed=lp, interval_days=30,
-        ) | {"earliest_completion_days": 0},  # only on/after the due date
-    })
+    obj = _object(
+        hass,
+        {
+            TASK_ID_1: build_task_data(
+                name="Windowed Task",
+                last_performed=lp,
+                interval_days=30,
+            )
+            | {"earliest_completion_days": 0},  # only on/after the due date
+        },
+    )
     await setup_integration(hass, _global(hass), obj)
     todo = _todo(hass)
 
@@ -155,19 +198,22 @@ async def test_todo_checkoff_blocked_inside_completion_window(
 
     # Silently refused: no new completion recorded, cycle unchanged.
     assert len(_task_history(obj)) == before
-    assert not any(
-        h["type"] == HistoryEntryType.COMPLETED for h in _task_history(obj)
-    )
+    assert not any(h["type"] == HistoryEntryType.COMPLETED for h in _task_history(obj))
 
 
 async def test_todo_uncheck_is_noop(hass: HomeAssistant) -> None:
     """Un-checking (back to needs_action) must not reset or mutate the task —
     a maintenance cycle can't be 'un-completed' from the to-do card."""
-    obj = _object(hass, {
-        TASK_ID_1: build_task_data(
-            name="Overdue Task", last_performed="2020-01-01", interval_days=30,
-        ),
-    })
+    obj = _object(
+        hass,
+        {
+            TASK_ID_1: build_task_data(
+                name="Overdue Task",
+                last_performed="2020-01-01",
+                interval_days=30,
+            ),
+        },
+    )
     await setup_integration(hass, _global(hass), obj)
     todo = _todo(hass)
 
@@ -193,11 +239,16 @@ async def test_todo_item_summary_and_due_date_match_task(
     from homeassistant.util import dt as dt_util
 
     lp = (dt_util.now().date() - timedelta(days=10)).isoformat()
-    obj = _object(hass, {
-        TASK_ID_1: build_task_data(
-            name="Mirrored", last_performed=lp, interval_days=30,
-        ),
-    })
+    obj = _object(
+        hass,
+        {
+            TASK_ID_1: build_task_data(
+                name="Mirrored",
+                last_performed=lp,
+                interval_days=30,
+            ),
+        },
+    )
     await setup_integration(hass, _global(hass), obj)
     todo = _todo(hass)
 

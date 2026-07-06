@@ -30,15 +30,9 @@ else:
     }
 
     CONDITIONS = {
-        "task_is_overdue": make_entity_state_condition(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.OVERDUE
-        ),
-        "task_is_due_soon": make_entity_state_condition(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.DUE_SOON
-        ),
-        "task_is_triggered": make_entity_state_condition(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.TRIGGERED
-        ),
+        "task_is_overdue": make_entity_state_condition(_TASK_SENSOR_SPECS, MaintenanceStatus.OVERDUE),
+        "task_is_due_soon": make_entity_state_condition(_TASK_SENSOR_SPECS, MaintenanceStatus.DUE_SOON),
+        "task_is_triggered": make_entity_state_condition(_TASK_SENSOR_SPECS, MaintenanceStatus.TRIGGERED),
         # "Needs attention" = the two states that demand action now.
         "task_needs_attention": make_entity_state_condition(
             _TASK_SENSOR_SPECS,

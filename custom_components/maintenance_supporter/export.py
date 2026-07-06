@@ -34,22 +34,26 @@ def _export_documents(doc_store: Any, object_id: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for d in doc_store.for_object(object_id):
         if d.get("kind") == "weblink":
-            out.append({
-                "kind": "weblink",
-                "url": d.get("url"),
-                "title": d.get("title"),
-                "tags": d.get("tags") or [],
-            })
+            out.append(
+                {
+                    "kind": "weblink",
+                    "url": d.get("url"),
+                    "title": d.get("title"),
+                    "tags": d.get("tags") or [],
+                }
+            )
         else:
-            out.append({
-                "kind": "file",
-                "hash": d.get("hash"),
-                "title": d.get("title"),
-                "filename": d.get("filename"),
-                "mime": d.get("mime"),
-                "size": d.get("size"),
-                "tags": d.get("tags") or [],
-            })
+            out.append(
+                {
+                    "kind": "file",
+                    "hash": d.get("hash"),
+                    "title": d.get("title"),
+                    "filename": d.get("filename"),
+                    "mime": d.get("mime"),
+                    "size": d.get("size"),
+                    "tags": d.get("tags") or [],
+                }
+            )
     return out
 
 
@@ -118,11 +122,7 @@ def _build_export_object(
 
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     object_id = obj_data.get("id", "")
-    documents = (
-        _export_documents(doc_store, object_id)
-        if doc_store is not None and object_id
-        else []
-    )
+    documents = _export_documents(doc_store, object_id) if doc_store is not None and object_id else []
 
     return {
         "entry_id": entry.entry_id,
@@ -166,19 +166,13 @@ def build_export_data(
     The returned dict contains no HA objects and is safe to
     serialize in an executor thread.
     """
-    entries = [
-        entry
-        for entry in hass.config_entries.async_entries(DOMAIN)
-        if entry.unique_id != GLOBAL_UNIQUE_ID
-    ]
+    entries = [entry for entry in hass.config_entries.async_entries(DOMAIN) if entry.unique_id != GLOBAL_UNIQUE_ID]
 
     objects = []
     for entry in entries:
         rd = getattr(entry, "runtime_data", None)
         coord_data = rd.coordinator.data if rd and rd.coordinator else None
-        objects.append(
-            _build_export_object(hass, entry, coord_data, include_history)
-        )
+        objects.append(_build_export_object(hass, entry, coord_data, include_history))
 
     return {
         "version": 1,
@@ -200,11 +194,7 @@ def serialize_export(data: dict[str, Any], fmt: str = "json") -> str:
             # crash on data JSON handles fine. Round-tripping keeps both
             # formats consistent and YAML-safe.
             normalized = json.loads(json.dumps(data, ensure_ascii=False))
-            return str(
-                yaml.safe_dump(
-                    normalized, default_flow_style=False, allow_unicode=True
-                )
-            )
+            return str(yaml.safe_dump(normalized, default_flow_style=False, allow_unicode=True))
         except ImportError:
             _LOGGER.warning("PyYAML not available, falling back to JSON")
             return json.dumps(data, indent=2, ensure_ascii=False)
@@ -212,9 +202,7 @@ def serialize_export(data: dict[str, Any], fmt: str = "json") -> str:
     return json.dumps(data, indent=2, ensure_ascii=False)
 
 
-def serialize_export_to_file(
-    data: dict[str, Any], fmt: str, file_path: str
-) -> str:
+def serialize_export_to_file(data: dict[str, Any], fmt: str, file_path: str) -> str:
     """Serialize export data and write to a file.
 
     Pure sync function — safe to run in an executor via

@@ -99,9 +99,7 @@ def build_provider_from_workday_options(
     country = options.get("country")
     if holidays_excluded and country:
         try:
-            calendar = holidays_pkg.country_holidays(
-                country, subdiv=options.get("province") or None
-            )
+            calendar = holidays_pkg.country_holidays(country, subdiv=options.get("province") or None)
         except Exception:  # noqa: BLE001 - unknown country/subdiv in options
             _LOGGER.warning(
                 "Could not build a holiday calendar for Workday config %r",

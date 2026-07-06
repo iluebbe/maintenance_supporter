@@ -31,10 +31,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -47,7 +50,9 @@ def _make_entry(
     unique_id: str = "deep_sensor",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -82,7 +87,8 @@ def _get_sensor_entity(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
 
 
 async def test_weibull_attrs_early_failures(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test Weibull beta < 0.8 → early_failures."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -112,7 +118,8 @@ async def test_weibull_attrs_early_failures(
 
 
 async def test_weibull_attrs_wear_out(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test Weibull beta 1.2-3.5 → wear_out."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -144,7 +151,8 @@ async def test_weibull_attrs_wear_out(
 
 
 async def test_weibull_attrs_highly_predictable(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test Weibull beta > 3.5 → highly_predictable."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -176,7 +184,8 @@ async def test_weibull_attrs_highly_predictable(
 
 
 async def test_seasonal_factor_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test seasonal factor attributes from interval analysis."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -208,7 +217,8 @@ async def test_seasonal_factor_attrs(
 
 
 async def test_environmental_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test environmental factor attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -234,7 +244,8 @@ async def test_environmental_attrs(
 
 
 async def test_threshold_prediction_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold prediction attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -260,7 +271,8 @@ async def test_threshold_prediction_attrs(
 
 
 async def test_suggested_interval_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test adaptive suggested interval and confidence attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -288,7 +300,8 @@ async def test_suggested_interval_attrs(
 
 
 async def test_runtime_fallback_from_config(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger attributes from config (fallback path)."""
     hass.states.async_set("sensor.pump", "on")

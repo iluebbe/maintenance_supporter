@@ -68,10 +68,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -82,7 +85,9 @@ def global_entry_with_features(hass: HomeAssistant) -> MockConfigEntry:
     """Global entry with advanced features enabled."""
     data = build_global_entry_data()
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
         options={
@@ -95,7 +100,8 @@ def global_entry_with_features(hass: HomeAssistant) -> MockConfigEntry:
             CONF_ADVANCED_GROUPS: False,
             CONF_ADVANCED_CHECKLISTS: True,
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -109,10 +115,13 @@ def global_entry_with_budget(hass: HomeAssistant) -> MockConfigEntry:
     data[CONF_BUDGET_YEARLY] = 2000.0
     data[CONF_BUDGET_ALERT_THRESHOLD] = 90
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -122,7 +131,9 @@ def global_entry_with_budget(hass: HomeAssistant) -> MockConfigEntry:
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -160,7 +171,9 @@ def object_entry_with_cost(hass: HomeAssistant) -> MockConfigEntry:
         },
     ]
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Costly Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Costly Pump"),
@@ -177,15 +190,22 @@ def object_entry_with_cost(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_get_settings_default(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test get_settings with default (no features enabled)."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/settings",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -197,15 +217,22 @@ async def test_get_settings_default(
 
 
 async def test_get_settings_with_features(
-    hass: HomeAssistant, global_entry_with_features: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_features: MockConfigEntry,
 ) -> None:
     """Test get_settings with advanced features enabled."""
     await setup_integration(hass, global_entry_with_features)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/settings",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     features = result["features"]
@@ -293,8 +320,7 @@ async def test_get_settings_exposes_every_writable_setting_key(
     assert not missing, (
         f"Tripwire (issue #50 pattern, settings edition): _build_full_settings "
         f"is dropping these CONF_* values that ws_update_global_settings "
-        f"accepts as writable:\n  " + "\n  ".join(missing) +
-        "\n\nFix: extend _build_full_settings in websocket/dashboard.py to "
+        f"accepts as writable:\n  " + "\n  ".join(missing) + "\n\nFix: extend _build_full_settings in websocket/dashboard.py to "
         "expose them. See feedback_ws_response_field_audit memory for context."
     )
 
@@ -305,9 +331,15 @@ async def test_get_settings_no_global_entry(
     """Test get_settings when no global entry exists."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/settings",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -329,15 +361,23 @@ async def test_get_settings_no_global_entry(
 
 
 async def test_get_statistics_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test get_statistics returns aggregated data."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_statistics, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/statistics",
-    })
+    await call_ws_handler(
+        ws_get_statistics,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/statistics",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -350,15 +390,22 @@ async def test_get_statistics_basic(
 
 
 async def test_get_statistics_empty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test get_statistics with no objects."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_statistics, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/statistics",
-    })
+    await call_ws_handler(
+        ws_get_statistics,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/statistics",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["total_objects"] == 0
@@ -367,37 +414,50 @@ async def test_get_statistics_empty(
 
 
 async def test_get_statistics_multiple_objects(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test get_statistics with multiple objects and tasks."""
     task1 = build_task_data(task_id=TASK_ID_1, last_performed="2024-01-01")
     task2 = build_task_data(task_id=TASK_ID_2, name="Oil Change", last_performed="2024-06-01")
     entry1 = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Object 1",
         data=build_object_entry_data(
             object_data=build_object_data(name="Object 1"),
             tasks={TASK_ID_1: task1},
         ),
-        source="user", unique_id="maintenance_supporter_stats_obj1",
+        source="user",
+        unique_id="maintenance_supporter_stats_obj1",
     )
     entry2 = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Object 2",
         data=build_object_entry_data(
             object_data=build_object_data(name="Object 2"),
             tasks={TASK_ID_2: task2},
         ),
-        source="user", unique_id="maintenance_supporter_stats_obj2",
+        source="user",
+        unique_id="maintenance_supporter_stats_obj2",
     )
     entry1.add_to_hass(hass)
     entry2.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry1, entry2)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_statistics, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/statistics",
-    })
+    await call_ws_handler(
+        ws_get_statistics,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/statistics",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["total_objects"] == 2
@@ -408,15 +468,23 @@ async def test_get_statistics_multiple_objects(
 
 
 async def test_subscribe_registers_listener(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test subscribe registers coordinator listeners and sends initial data."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_subscribe, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/subscribe",
-    })
+    await call_ws_handler(
+        ws_subscribe,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/subscribe",
+        },
+    )
 
     # Should call send_result for subscription confirmation
     conn.send_result.assert_called_once()
@@ -427,15 +495,23 @@ async def test_subscribe_registers_listener(
 
 
 async def test_subscribe_unsub_cleans_up(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test unsubscribe callback cleans up listeners."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_subscribe, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/subscribe",
-    })
+    await call_ws_handler(
+        ws_subscribe,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/subscribe",
+        },
+    )
 
     # Call unsub
     unsub = conn.subscriptions[1]
@@ -443,15 +519,22 @@ async def test_subscribe_unsub_cleans_up(
 
 
 async def test_subscribe_no_objects(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test subscribe with no objects still works."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_subscribe, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/subscribe",
-    })
+    await call_ws_handler(
+        ws_subscribe,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/subscribe",
+        },
+    )
 
     conn.send_result.assert_called_once()
     conn.send_message.assert_called_once()
@@ -461,15 +544,22 @@ async def test_subscribe_no_objects(
 
 
 async def test_budget_status_default(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test budget_status with default config (no budget)."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_budget_status, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/budget_status",
-    })
+    await call_ws_handler(
+        ws_get_budget_status,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/budget_status",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -481,15 +571,22 @@ async def test_budget_status_default(
 
 
 async def test_budget_status_with_config(
-    hass: HomeAssistant, global_entry_with_budget: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_budget: MockConfigEntry,
 ) -> None:
     """Test budget_status returns configured budget values."""
     await setup_integration(hass, global_entry_with_budget)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_budget_status, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/budget_status",
-    })
+    await call_ws_handler(
+        ws_get_budget_status,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/budget_status",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["monthly_budget"] == 200.0
@@ -498,16 +595,23 @@ async def test_budget_status_with_config(
 
 
 async def test_budget_status_with_costs(
-    hass: HomeAssistant, global_entry_with_budget: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_budget: MockConfigEntry,
     object_entry_with_cost: MockConfigEntry,
 ) -> None:
     """Test budget_status calculates spent from history."""
     await setup_integration(hass, global_entry_with_budget, object_entry_with_cost)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_budget_status, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/budget_status",
-    })
+    await call_ws_handler(
+        ws_get_budget_status,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/budget_status",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     # monthly: 50 + 75 = 125; yearly: 50 + 75 + 100 = 225
@@ -519,15 +623,22 @@ async def test_budget_status_with_costs(
 
 
 async def test_get_settings_returns_all_sections(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test get_settings returns all sections (general, notifications, etc.)."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/settings",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     # All sections must be present
@@ -553,7 +664,8 @@ async def test_get_settings_returns_all_sections(
 
 
 async def test_get_settings_notify_targets_merges_services_entities_and_current(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """general.notify_targets merges notify services + entities + saved value.
 
@@ -577,9 +689,15 @@ async def test_get_settings_notify_targets_merges_services_entities_and_current(
     hass.states.async_set("notify.send_message", "unknown")
 
     conn = _mock_connection()
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/settings",
+        },
+    )
 
     targets = conn.send_result.call_args[0][1]["general"]["notify_targets"]
     assert "notify.mobile_app_phone" in targets  # legacy service
@@ -593,20 +711,26 @@ async def test_get_settings_notify_targets_merges_services_entities_and_current(
 
 
 async def test_update_global_settings(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test updating global settings via WS."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {
-            CONF_DEFAULT_WARNING_DAYS: 14,
-            CONF_PANEL_ENABLED: True,
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_DEFAULT_WARNING_DAYS: 14,
+                CONF_PANEL_ENABLED: True,
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -622,17 +746,23 @@ async def test_update_global_settings(
 
 
 async def test_update_global_settings_panel_title_trimmed_and_capped(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """global/update normalises panel_title: trims whitespace, caps at 50 (#63)."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {CONF_PANEL_TITLE: "  " + "Z" * 80 + "  "},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_PANEL_TITLE: "  " + "Z" * 80 + "  "},
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -645,38 +775,54 @@ async def test_update_global_settings_panel_title_trimmed_and_capped(
 
 
 async def test_update_global_settings_panel_title_blank_clears(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A blank panel_title is stored as "" (clears the override → default title)."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {CONF_PANEL_TITLE: "   "},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_PANEL_TITLE: "   "},
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["general"]["panel_title"] == ""
 
 
 async def test_update_global_settings_objects_table_columns_sanitised(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """objects_table_columns (#67): drop unknown/non-string, dedupe, keep order."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {
-            "objects_table_columns": [
-                "warranty_expiry", "bogus", "name", "warranty_expiry", 42,
-            ],
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                "objects_table_columns": [
+                    "warranty_expiry",
+                    "bogus",
+                    "name",
+                    "warranty_expiry",
+                    42,
+                ],
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -689,7 +835,8 @@ async def test_update_global_settings_objects_table_columns_sanitised(
 
 
 async def test_update_global_settings_objects_table_columns_empty_defaults(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """An all-unknown column list falls back to the default set (#67)."""
     from custom_components.maintenance_supporter.const import (
@@ -699,31 +846,42 @@ async def test_update_global_settings_objects_table_columns_empty_defaults(
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {"objects_table_columns": ["nope", "alsobad"]},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {"objects_table_columns": ["nope", "alsobad"]},
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["objects_table_columns"] == list(DEFAULT_OBJECTS_TABLE_COLUMNS)
 
 
 async def test_update_global_settings_filters_unknown_keys(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Unknown keys are silently ignored."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {
-            CONF_DEFAULT_WARNING_DAYS: 5,
-            "totally_unknown_key": "should_be_ignored",
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_DEFAULT_WARNING_DAYS: 5,
+                "totally_unknown_key": "should_be_ignored",
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -731,37 +889,49 @@ async def test_update_global_settings_filters_unknown_keys(
 
 
 async def test_update_global_settings_no_valid_keys(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Error when no valid setting keys are provided."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {"bad_key": True},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {"bad_key": True},
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_input"
 
 
 async def test_update_global_settings_type_validation(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Wrong-typed values are filtered out."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {
-            CONF_DEFAULT_WARNING_DAYS: "not_an_int",  # wrong type
-            CONF_PANEL_ENABLED: True,  # valid
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_DEFAULT_WARNING_DAYS: "not_an_int",  # wrong type
+                CONF_PANEL_ENABLED: True,  # valid
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -771,7 +941,8 @@ async def test_update_global_settings_type_validation(
 
 
 async def test_update_global_settings_drops_invalid_quiet_hours_times(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """v1.4.6 #44 follow-up regression: empty / malformed quiet-hours time
     strings must be dropped before persistence so the next options-flow
@@ -788,26 +959,29 @@ async def test_update_global_settings_drops_invalid_quiet_hours_times(
 
     for bad in ("", "  ", "not-a-time", "25:99", "abc:def", None, 42):
         conn = _mock_connection()
-        await call_ws_handler(ws_update_global_settings, hass, conn, {
-            "id": 1,
-            "type": "maintenance_supporter/global/update",
-            "settings": {
-                CONF_QUIET_HOURS_START: bad,
-                CONF_QUIET_HOURS_END: bad,
-                # The user's actual edit (the one they tried to save in the
-                # original bug report) must still land even though they didn't
-                # touch the time fields. Use title_style here — it's a v1.4.0
-                # setting that doesn't have HA-side panel side-effects.
-                CONF_NOTIFICATION_TITLE_STYLE: "object_name",
+        await call_ws_handler(
+            ws_update_global_settings,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/global/update",
+                "settings": {
+                    CONF_QUIET_HOURS_START: bad,
+                    CONF_QUIET_HOURS_END: bad,
+                    # The user's actual edit (the one they tried to save in the
+                    # original bug report) must still land even though they didn't
+                    # touch the time fields. Use title_style here — it's a v1.4.0
+                    # setting that doesn't have HA-side panel side-effects.
+                    CONF_NOTIFICATION_TITLE_STYLE: "object_name",
+                },
             },
-        })
+        )
         conn.send_result.assert_called_once()
         result = conn.send_result.call_args[0][1]
         # The unrelated edit must always be persisted — that's the actual
         # behaviour byoung79 was asking for in #44.
-        assert result["notifications"]["title_style"] == "object_name", (
-            f"unrelated title_style edit dropped for bad time {bad!r}"
-        )
+        assert result["notifications"]["title_style"] == "object_name", f"unrelated title_style edit dropped for bad time {bad!r}"
         # The bad time is dropped; the response shows the default for both.
         assert result["notifications"]["quiet_hours_start"] == "22:00"
         assert result["notifications"]["quiet_hours_end"] == "08:00"
@@ -817,14 +991,19 @@ async def test_update_global_settings_drops_invalid_quiet_hours_times(
     # `_STR_MAX_LENGTHS=5` cap higher up in this same handler — out of scope
     # for this regression test.)
     conn = _mock_connection()
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {
-            CONF_QUIET_HOURS_START: "23:00",
-            CONF_QUIET_HOURS_END: "07:30",
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_QUIET_HOURS_START: "23:00",
+                CONF_QUIET_HOURS_END: "07:30",
+            },
         },
-    })
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert result["notifications"]["quiet_hours_start"] == "23:00"
@@ -832,19 +1011,25 @@ async def test_update_global_settings_drops_invalid_quiet_hours_times(
 
 
 async def test_update_global_settings_invalid_notify_service(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Invalid notify_service format returns error."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {
-            CONF_NOTIFY_SERVICE: "totally.invalid.service.format",
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_NOTIFY_SERVICE: "totally.invalid.service.format",
+            },
         },
-    })
+    )
 
     conn.send_error.assert_called_once()
 
@@ -855,28 +1040,39 @@ async def test_update_global_settings_no_global_entry(
     """Error when global config entry doesn't exist."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {CONF_PANEL_ENABLED: True},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_PANEL_ENABLED: True},
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_update_global_settings_int_for_float(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Int values accepted for float fields (budget)."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/global/update",
-        "settings": {CONF_BUDGET_MONTHLY: 500},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_BUDGET_MONTHLY: 500},
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -892,24 +1088,37 @@ async def test_test_notification_no_global_entry(
     """Error when global config entry doesn't exist."""
     conn = _mock_connection()
 
-    await call_ws_handler(ws_test_notification, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/global/test_notification",
-    })
+    await call_ws_handler(
+        ws_test_notification,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/test_notification",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_test_notification_no_service(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Returns failure when no notify service is configured."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_test_notification, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/global/test_notification",
-    })
+    await call_ws_handler(
+        ws_test_notification,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/test_notification",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -923,11 +1132,14 @@ async def test_test_notification_success(
     # Create global entry with notify service configured
     data = build_global_entry_data()
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
         options={**data, CONF_NOTIFY_SERVICE: "notify.test_device"},
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, entry)
@@ -939,9 +1151,15 @@ async def test_test_notification_success(
     hass.services.async_register("notify", "test_device", mock_notify)
 
     conn = _mock_connection()
-    await call_ws_handler(ws_test_notification, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/global/test_notification",
-    })
+    await call_ws_handler(
+        ws_test_notification,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/test_notification",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -954,11 +1172,14 @@ async def test_test_notification_service_call_fails(
     """Test notification returns failure when service call raises."""
     data = build_global_entry_data()
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
         options={**data, CONF_NOTIFY_SERVICE: "notify.broken"},
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, entry)
@@ -970,9 +1191,15 @@ async def test_test_notification_service_call_fails(
     hass.services.async_register("notify", "broken", failing_notify)
 
     conn = _mock_connection()
-    await call_ws_handler(ws_test_notification, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/global/test_notification",
-    })
+    await call_ws_handler(
+        ws_test_notification,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/test_notification",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -998,10 +1225,13 @@ def _covws_conn() -> MagicMock:
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -1009,7 +1239,8 @@ def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 # Lines 197-200: _vacation_summary — _parse returns None for invalid date string
 async def test_settings_vacation_summary_invalid_date(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """_vacation_summary: non-date start/end strings are treated as None."""
     from custom_components.maintenance_supporter.const import (
@@ -1031,9 +1262,15 @@ async def test_settings_vacation_summary_invalid_date(
     hass.config_entries.async_update_entry(covws_global_entry, options=options)
 
     conn = _covws_conn()
-    await call_ws_handler(ws_get_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/settings",
-    })
+    await call_ws_handler(
+        ws_get_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/settings",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     vacation = result["vacation"]
@@ -1044,7 +1281,8 @@ async def test_settings_vacation_summary_invalid_date(
 
 # Line 496: ws_update_global_settings — invalid notification_title_style is dropped
 async def test_update_global_settings_invalid_title_style_dropped(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """ws_update_global_settings: unknown notification_title_style is silently dropped."""
     from custom_components.maintenance_supporter.const import CONF_NOTIFICATION_TITLE_STYLE
@@ -1054,14 +1292,20 @@ async def test_update_global_settings_invalid_title_style_dropped(
 
     # Send an unknown style; must be dropped so no error is raised but setting
     # is not persisted
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/global/update",
-        "settings": {
-            CONF_NOTIFICATION_TITLE_STYLE: "unicorn_style",
-            # Also include a valid setting to avoid "no valid keys" error
-            "default_warning_days": 10,
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {
+                CONF_NOTIFICATION_TITLE_STYLE: "unicorn_style",
+                # Also include a valid setting to avoid "no valid keys" error
+                "default_warning_days": 10,
+            },
         },
-    })
+    )
 
     result = conn.send_result.call_args[0][1]
     # The valid setting was accepted
@@ -1074,7 +1318,8 @@ async def test_update_global_settings_invalid_title_style_dropped(
 
 # Lines 515-530: ws_update_global_settings — admin_panel_user_ids sanitized
 async def test_update_global_settings_admin_user_ids_sanitized(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """ws_update_global_settings: admin_panel_user_ids list is deduped and stripped."""
     from custom_components.maintenance_supporter.const import CONF_ADMIN_PANEL_USER_IDS
@@ -1083,17 +1328,23 @@ async def test_update_global_settings_admin_user_ids_sanitized(
     conn = _covws_conn()
 
     raw_ids = [
-        "  abc123  ",      # should be stripped
-        "abc123",          # duplicate — should be deduped
-        "",                # empty — should be dropped
-        42,                # non-string — should be dropped
-        "valid_user_id",   # valid
+        "  abc123  ",  # should be stripped
+        "abc123",  # duplicate — should be deduped
+        "",  # empty — should be dropped
+        42,  # non-string — should be dropped
+        "valid_user_id",  # valid
     ]
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/global/update",
-        "settings": {CONF_ADMIN_PANEL_USER_IDS: raw_ids},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_ADMIN_PANEL_USER_IDS: raw_ids},
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -1139,7 +1390,8 @@ def _c97_conn() -> MagicMock:
 
 
 async def test_statistics_triggered_count(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Line 209: triggered status is counted in statistics."""
     # Create a sensor-based task that will show as triggered
@@ -1153,8 +1405,11 @@ async def test_statistics_triggered_count(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Triggered Obj", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Triggered Obj",
+        source="user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         unique_id="maintenance_supporter_cov97_triggered",
     )
@@ -1163,9 +1418,15 @@ async def test_statistics_triggered_count(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = _c97_conn()
-    await call_ws_handler(ws_get_statistics, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/statistics",
-    })
+    await call_ws_handler(
+        ws_get_statistics,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/statistics",
+        },
+    )
     result = conn.send_result.call_args[0][1]
     # The task should be triggered since sensor value 50 > threshold 30
     assert result["triggered"] >= 1
@@ -1175,23 +1436,34 @@ async def test_statistics_triggered_count(
 
 
 async def test_subscribe_new_entry_callback(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 270-271: _on_new_entry callback fires on new object entry."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
 
-    await call_ws_handler(ws_subscribe, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/subscribe",
-    })
+    await call_ws_handler(
+        ws_subscribe,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/subscribe",
+        },
+    )
     # Initial send_result + _forward_update
     initial_calls = conn.send_message.call_count
 
     # Add and set up a new object entry
     task2 = build_task_data(task_id=TASK_ID_2, name="New Task", last_performed="2024-01-01")
     new_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="New Pump", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="New Pump",
+        source="user",
         data=build_object_entry_data(
             object_data=build_object_data(name="New Pump"),
             tasks={TASK_ID_2: task2},
@@ -1210,16 +1482,24 @@ async def test_subscribe_new_entry_callback(
 
 
 async def test_subscribe_already_attached_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Line 254: _attach_entry returns early if already attached."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
 
     # Subscribe — this attaches the entry
-    await call_ws_handler(ws_subscribe, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/subscribe",
-    })
+    await call_ws_handler(
+        ws_subscribe,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/subscribe",
+        },
+    )
 
     # Manually trigger _on_new_entry for the already-attached entry
     # by dispatching the signal
@@ -1251,9 +1531,13 @@ async def test_budget_status_edge_history(
     data["budget_monthly"] = 500.0
     data["budget_yearly"] = 5000.0
     ge = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", source="user",
-        data=data, unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        source="user",
+        data=data,
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     ge.add_to_hass(hass)
 
@@ -1271,8 +1555,11 @@ async def test_budget_status_edge_history(
         {"timestamp": now.isoformat(), "type": "completed", "cost": 25.0},
     ]
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Budget Edge", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Budget Edge",
+        source="user",
         data=build_object_entry_data(
             object_data=build_object_data(name="Budget Edge"),
             tasks={TASK_ID_1: task},
@@ -1300,9 +1587,15 @@ async def test_budget_status_edge_history(
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     conn = _c97_conn()
-    await call_ws_handler(ws_get_budget_status, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/budget_status",
-    })
+    await call_ws_handler(
+        ws_get_budget_status,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/budget_status",
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     # Only the valid completed entry with cost 25.0 should be counted
@@ -1315,12 +1608,14 @@ async def test_budget_status_edge_history(
 
 
 async def test_notification_invalid_service(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Lines 464-471: invalid notify service in ws_test_notification."""
     # Set up with an invalid notify service
     hass.config_entries.async_update_entry(
-        global_entry, options={
+        global_entry,
+        options={
             **dict(global_entry.data),
             CONF_NOTIFY_SERVICE: "invalid_service_format",
             CONF_NOTIFICATIONS_ENABLED: True,
@@ -1329,9 +1624,15 @@ async def test_notification_invalid_service(
     await setup_integration(hass, global_entry)
 
     conn = _c97_conn()
-    await call_ws_handler(ws_test_notification, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/global/test_notification",
-    })
+    await call_ws_handler(
+        ws_test_notification,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/global/test_notification",
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert result["success"] is False
@@ -1341,11 +1642,13 @@ async def test_notification_invalid_service(
 
 
 async def test_notification_with_action_buttons(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Lines 486-493: action buttons included in test notification."""
     hass.config_entries.async_update_entry(
-        global_entry, options={
+        global_entry,
+        options={
             **dict(global_entry.data),
             CONF_NOTIFY_SERVICE: "notify.mobile_app_phone",
             CONF_NOTIFICATIONS_ENABLED: True,
@@ -1364,7 +1667,10 @@ async def test_notification_with_action_buttons(
     original_async_call = hass.services.async_call
 
     async def mock_async_call(
-        domain: str, service: str, service_data: dict[str, Any] | None = None, **kw: Any,
+        domain: str,
+        service: str,
+        service_data: dict[str, Any] | None = None,
+        **kw: Any,
     ) -> None:
         if domain == "notify":
             calls.append({"domain": domain, "service": service, "data": service_data or {}})
@@ -1376,9 +1682,15 @@ async def test_notification_with_action_buttons(
         "homeassistant.core.ServiceRegistry.async_call",
         side_effect=mock_async_call,
     ):
-        await call_ws_handler(ws_test_notification, hass, conn, {
-            "id": _c97_nid(), "type": "maintenance_supporter/global/test_notification",
-        })
+        await call_ws_handler(
+            ws_test_notification,
+            hass,
+            conn,
+            {
+                "id": _c97_nid(),
+                "type": "maintenance_supporter/global/test_notification",
+            },
+        )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -1397,13 +1709,20 @@ async def test_notification_with_action_buttons(
 
 
 async def test_update_settings_invalid_notify_service(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Line 414: notify_service validation in global update."""
     await setup_integration(hass, global_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/global/update",
-        "settings": {CONF_NOTIFY_SERVICE: "badprefix.service_name"},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/global/update",
+            "settings": {CONF_NOTIFY_SERVICE: "badprefix.service_name"},
+        },
+    )
     conn.send_error.assert_called_once()

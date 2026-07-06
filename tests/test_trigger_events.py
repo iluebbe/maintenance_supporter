@@ -32,10 +32,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -48,7 +51,9 @@ def _make_entry(
     unique_id: str = "trigger_events",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -65,7 +70,8 @@ def _make_entry(
 
 
 async def test_threshold_trigger_state_change_activates(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger activates when entity state exceeds threshold."""
     hass.states.async_set("sensor.temp_evt", "20")
@@ -93,7 +99,8 @@ async def test_threshold_trigger_state_change_activates(
 
 
 async def test_threshold_trigger_state_change_deactivates(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger deactivates when entity state goes below threshold."""
     hass.states.async_set("sensor.temp_deact", "35")
@@ -117,7 +124,8 @@ async def test_threshold_trigger_state_change_deactivates(
 
 
 async def test_threshold_trigger_entity_unavailable(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger handles entity becoming unavailable."""
     hass.states.async_set("sensor.temp_unavail", "25")
@@ -145,7 +153,8 @@ async def test_threshold_trigger_entity_unavailable(
 
 
 async def test_threshold_trigger_entity_removed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger handles entity being removed (new_state=None)."""
     hass.states.async_set("sensor.temp_remove", "25")
@@ -169,7 +178,8 @@ async def test_threshold_trigger_entity_removed(
 
 
 async def test_threshold_trigger_entity_not_yet_available(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger when entity doesn't exist at setup time."""
     # Don't set state — entity is missing
@@ -193,7 +203,8 @@ async def test_threshold_trigger_entity_not_yet_available(
 
 
 async def test_threshold_trigger_unavailable_at_setup(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger schedules retry when entity is unavailable at setup."""
     hass.states.async_set("sensor.temp_retry", "unavailable")
@@ -223,7 +234,8 @@ async def test_threshold_trigger_unavailable_at_setup(
 
 
 async def test_state_change_trigger_counts_transitions(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test state change trigger counts matching transitions."""
     hass.states.async_set("binary_sensor.door_evt", "off")
@@ -252,7 +264,8 @@ async def test_state_change_trigger_counts_transitions(
 
 
 async def test_state_change_trigger_unavailable(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test state change trigger handles unavailable entity."""
     hass.states.async_set("binary_sensor.door_unavail", "off")
@@ -280,7 +293,8 @@ async def test_state_change_trigger_unavailable(
 
 
 async def test_state_change_trigger_entity_appeared(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test state change trigger when entity first appears."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -306,7 +320,8 @@ async def test_state_change_trigger_entity_appeared(
 
 
 async def test_runtime_trigger_on_off_cycle(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger tracks ON→OFF cycle."""
     hass.states.async_set("sensor.pump_rt", "off")
@@ -334,7 +349,8 @@ async def test_runtime_trigger_on_off_cycle(
 
 
 async def test_runtime_trigger_unavailable_pauses(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger pauses accumulation when entity becomes unavailable."""
     hass.states.async_set("sensor.pump_unavail", "on")
@@ -362,7 +378,8 @@ async def test_runtime_trigger_unavailable_pauses(
 
 
 async def test_runtime_trigger_entity_appeared(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger when entity first appears."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -385,7 +402,8 @@ async def test_runtime_trigger_entity_appeared(
 
 
 async def test_runtime_trigger_periodic_callback(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger periodic persistence callback."""
     hass.states.async_set("sensor.pump_periodic", "on")
@@ -409,7 +427,8 @@ async def test_runtime_trigger_periodic_callback(
 
 
 async def test_runtime_trigger_off_at_setup(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger setup when entity is already OFF."""
     hass.states.async_set("sensor.pump_off", "off")
@@ -439,7 +458,8 @@ async def test_runtime_trigger_off_at_setup(
 
 
 async def test_counter_trigger_delta_baseline_init(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test counter trigger initializes baseline in delta mode."""
     hass.states.async_set("sensor.counter_init", "100")
@@ -465,7 +485,8 @@ async def test_counter_trigger_delta_baseline_init(
 
 
 async def test_counter_trigger_state_change(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test counter trigger reacts to state changes."""
     hass.states.async_set("sensor.counter_sc", "50")
@@ -497,7 +518,8 @@ async def test_counter_trigger_state_change(
 
 
 async def test_threshold_for_minutes_timer(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger with for_minutes timer."""
     hass.states.async_set("sensor.temp_timer", "20")
@@ -526,7 +548,8 @@ async def test_threshold_for_minutes_timer(
 
 
 async def test_threshold_for_minutes_cancel(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold for_minutes timer cancels when value returns to normal."""
     hass.states.async_set("sensor.temp_cancel", "20")
@@ -558,7 +581,8 @@ async def test_threshold_for_minutes_cancel(
 
 
 async def test_trigger_teardown_on_unload(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test trigger listeners are cleaned up on entry unload."""
     hass.states.async_set("sensor.temp_unload", "25")

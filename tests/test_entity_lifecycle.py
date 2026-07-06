@@ -54,14 +54,9 @@ async def test_sensor_unique_id_format(
     await setup_integration(hass, global_config_entry, object_config_entry)
 
     entity_reg = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(
-        entity_reg, object_config_entry.entry_id
-    )
+    entities = er.async_entries_for_config_entry(entity_reg, object_config_entry.entry_id)
 
-    sensor_entities = [
-        e for e in entities
-        if e.domain == "sensor" and not e.unique_id.endswith("_next_due")
-    ]
+    sensor_entities = [e for e in entities if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
     assert len(sensor_entities) == 1
 
     # unique_id should be: maintenance_supporter_{object_slug}_{task_id}
@@ -79,9 +74,7 @@ async def test_unique_id_stable_across_reloads(
     await setup_integration(hass, global_config_entry, object_config_entry)
 
     entity_reg = er.async_get(hass)
-    entities_before = er.async_entries_for_config_entry(
-        entity_reg, object_config_entry.entry_id
-    )
+    entities_before = er.async_entries_for_config_entry(entity_reg, object_config_entry.entry_id)
     uids_before = {e.unique_id for e in entities_before}
 
     # Reload
@@ -89,9 +82,7 @@ async def test_unique_id_stable_across_reloads(
     await hass.config_entries.async_setup(object_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    entities_after = er.async_entries_for_config_entry(
-        entity_reg, object_config_entry.entry_id
-    )
+    entities_after = er.async_entries_for_config_entry(entity_reg, object_config_entry.entry_id)
     uids_after = {e.unique_id for e in entities_after}
 
     assert uids_before == uids_after
@@ -179,10 +170,7 @@ async def test_multiple_tasks_create_sensors(
     entities = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
     # One status sensor per task (+ one default-disabled next-due timestamp
     # sensor each, 2.19 — excluded here).
-    sensor_entities = [
-        e for e in entities
-        if e.domain == "sensor" and not e.unique_id.endswith("_next_due")
-    ]
+    sensor_entities = [e for e in entities if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
     assert len(sensor_entities) == 2
 
 
@@ -200,9 +188,7 @@ async def test_device_created_for_object(
     from homeassistant.helpers import device_registry as dr
 
     device_reg = dr.async_get(hass)
-    devices = dr.async_entries_for_config_entry(
-        device_reg, object_config_entry.entry_id
-    )
+    devices = dr.async_entries_for_config_entry(device_reg, object_config_entry.entry_id)
     assert len(devices) == 1
     assert devices[0].name == "Pool Pump"
 
@@ -268,9 +254,7 @@ def _make_object_entry(
     """Create and register a maintenance object config entry."""
     obj_id = _next_id()
     tid = task_id or _next_id()
-    last_performed = (
-        dt_util.now().date() - timedelta(days=last_performed_days_ago)
-    ).isoformat()
+    last_performed = (dt_util.now().date() - timedelta(days=last_performed_days_ago)).isoformat()
 
     task = build_task_data(
         task_id=tid,
@@ -476,9 +460,7 @@ async def test_calendar_reflects_three_objects(
     assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
-    events = await calendar.async_get_events(
-        hass, now - timedelta(days=90), now + timedelta(days=365)
-    )
+    events = await calendar.async_get_events(hass, now - timedelta(days=90), now + timedelta(days=365))
 
     # Each object has 1 task → expect at least 3 events
     assert len(events) >= 3
@@ -506,9 +488,7 @@ async def test_calendar_after_object_unload(
     assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
-    events_before = await calendar.async_get_events(
-        hass, now - timedelta(days=90), now + timedelta(days=365)
-    )
+    events_before = await calendar.async_get_events(hass, now - timedelta(days=90), now + timedelta(days=365))
     summaries_before = " ".join(e.summary or "" for e in events_before)
     assert "CalUnload2" in summaries_before
 
@@ -520,9 +500,7 @@ async def test_calendar_after_object_unload(
     # Invalidate cache
     calendar.invalidate_cache()
 
-    events_after = await calendar.async_get_events(
-        hass, now - timedelta(days=90), now + timedelta(days=365)
-    )
+    events_after = await calendar.async_get_events(hass, now - timedelta(days=90), now + timedelta(days=365))
     summaries_after = " ".join(e.summary or "" for e in events_after)
     assert "CalUnload2" not in summaries_after
     assert "CalUnload1" in summaries_after
@@ -535,9 +513,7 @@ async def test_calendar_event_updates_after_task_completion(
 ) -> None:
     """After completing an overdue task, calendar event changes status."""
     global_entry = _make_global_entry(hass)
-    obj1 = _make_object_entry(
-        hass, "CalComplete", last_performed_days_ago=60, interval_days=30
-    )
+    obj1 = _make_object_entry(hass, "CalComplete", last_performed_days_ago=60, interval_days=30)
 
     await setup_integration(hass, global_entry, obj1)
 
@@ -545,9 +521,7 @@ async def test_calendar_event_updates_after_task_completion(
     assert calendar is not None, "calendar entity should be created on the global entry"
 
     now = dt_util.now()
-    events_before = await calendar.async_get_events(
-        hass, now - timedelta(days=90), now + timedelta(days=365)
-    )
+    events_before = await calendar.async_get_events(hass, now - timedelta(days=90), now + timedelta(days=365))
     cal_events = [e for e in events_before if "CalComplete" in (e.summary or "")]
     assert len(cal_events) >= 1
     # Should have overdue prefix
@@ -561,9 +535,7 @@ async def test_calendar_event_updates_after_task_completion(
 
     # Invalidate cache, query again
     calendar.invalidate_cache()
-    events_after = await calendar.async_get_events(
-        hass, now - timedelta(days=1), now + timedelta(days=365)
-    )
+    events_after = await calendar.async_get_events(hass, now - timedelta(days=1), now + timedelta(days=365))
     cal_events_after = [e for e in events_after if "CalComplete" in (e.summary or "")]
     assert len(cal_events_after) >= 1
     # Should now have OK prefix (🟢) instead of overdue
@@ -581,9 +553,7 @@ async def test_notification_state_isolated_between_objects(
     hass: HomeAssistant,
 ) -> None:
     """Snoozing one object's task does not affect another object's notifications."""
-    global_entry = _make_global_entry(
-        hass, notifications_enabled=True, notify_service="notify.test"
-    )
+    global_entry = _make_global_entry(hass, notifications_enabled=True, notify_service="notify.test")
     obj1 = _make_object_entry(hass, "NotifObj1", last_performed_days_ago=60, interval_days=30)
     obj2 = _make_object_entry(hass, "NotifObj2", last_performed_days_ago=60, interval_days=30)
 
@@ -640,9 +610,7 @@ async def test_notification_manager_survives_partial_unload(
     hass: HomeAssistant,
 ) -> None:
     """NotificationManager state persists when only one object is unloaded."""
-    global_entry = _make_global_entry(
-        hass, notifications_enabled=True, notify_service="notify.test"
-    )
+    global_entry = _make_global_entry(hass, notifications_enabled=True, notify_service="notify.test")
     obj1 = _make_object_entry(hass, "NMSurvive1", last_performed_days_ago=60, interval_days=30)
     obj2 = _make_object_entry(hass, "NMSurvive2", last_performed_days_ago=60, interval_days=30)
 
@@ -701,9 +669,7 @@ async def test_notification_manager_cleared_on_full_unload(
     hass: HomeAssistant,
 ) -> None:
     """NotificationManager state is cleared when async_unload is called."""
-    global_entry = _make_global_entry(
-        hass, notifications_enabled=True, notify_service="notify.test"
-    )
+    global_entry = _make_global_entry(hass, notifications_enabled=True, notify_service="notify.test")
     obj1 = _make_object_entry(hass, "NMClear1", last_performed_days_ago=60, interval_days=30)
 
     await setup_integration(hass, global_entry, obj1)
@@ -757,9 +723,7 @@ async def test_history_trimmed_at_max_entries(
     # Build 50 existing history entries
     existing_history = [
         {
-            "timestamp": (
-                dt_util.now() - timedelta(days=DEFAULT_MAX_HISTORY_ENTRIES - i)
-            ).isoformat(),
+            "timestamp": (dt_util.now() - timedelta(days=DEFAULT_MAX_HISTORY_ENTRIES - i)).isoformat(),
             "type": HistoryEntryType.COMPLETED,
             "notes": f"entry_{i}",
         }
@@ -848,10 +812,7 @@ async def test_many_objects_simultaneous(
 ) -> None:
     """Loading 10 objects simultaneously all succeed."""
     global_entry = _make_global_entry(hass)
-    objects = [
-        _make_object_entry(hass, f"Multi{i:02d}", last_performed_days_ago=10 + i)
-        for i in range(10)
-    ]
+    objects = [_make_object_entry(hass, f"Multi{i:02d}", last_performed_days_ago=10 + i) for i in range(10)]
 
     await setup_integration(hass, global_entry, *objects)
 
@@ -871,9 +832,7 @@ async def test_many_objects_simultaneous(
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
     if calendar is not None:
         now = dt_util.now()
-        events = await calendar.async_get_events(
-            hass, now - timedelta(days=90), now + timedelta(days=365)
-        )
+        events = await calendar.async_get_events(hass, now - timedelta(days=90), now + timedelta(days=365))
         assert len(events) >= 10
 
 
@@ -910,9 +869,7 @@ async def test_nfc_tag_scan_after_object_unload(
     """Firing tag_scanned for an unloaded object does not crash."""
     tag_id = "test-nfc-tag-123"
     global_entry = _make_global_entry(hass)
-    obj1 = _make_object_entry(
-        hass, "NFCObj", nfc_tag_id=tag_id, last_performed_days_ago=60, interval_days=30
-    )
+    obj1 = _make_object_entry(hass, "NFCObj", nfc_tag_id=tag_id, last_performed_days_ago=60, interval_days=30)
 
     await setup_integration(hass, global_entry, obj1)
 
@@ -959,10 +916,12 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     # Spy on the unsub callbacks
     original_unsubs = list(event_unsubs)
     call_tracker = []
+
     def _make_wrapper(fn: Any, idx: int) -> Any:
         def wrapper() -> None:
             call_tracker.append(idx)
             fn()
+
         return wrapper
 
     for i, orig in enumerate(original_unsubs):
@@ -1227,9 +1186,7 @@ async def test_remove_config_entry_device_no_entities(
         identifiers={(DOMAIN, "test_device_empty")},
     )
 
-    result = await async_remove_config_entry_device(
-        hass, object_config_entry, device
-    )
+    result = await async_remove_config_entry_device(hass, object_config_entry, device)
     assert result is True
 
 
@@ -1251,23 +1208,26 @@ async def test_remove_config_entry_device_with_entities(
 
     entity_reg = er.async_get(hass)
     entity_reg.async_get_or_create(
-        "sensor", DOMAIN, "device_entity_test",
+        "sensor",
+        DOMAIN,
+        "device_entity_test",
         config_entry=object_config_entry,
         device_id=device.id,
     )
 
-    result = await async_remove_config_entry_device(
-        hass, object_config_entry, device
-    )
+    result = await async_remove_config_entry_device(hass, object_config_entry, device)
     assert result is False
 
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -1282,7 +1242,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -1459,7 +1421,9 @@ async def test_entity_rename_updates_trigger_config(hass: HomeAssistant) -> None
     entity_reg = er.async_get(hass)
     # Register a fake entity so we can rename it
     test_entity = entity_reg.async_get_or_create(
-        "sensor", DOMAIN, "old_entity_unique",
+        "sensor",
+        DOMAIN,
+        "old_entity_unique",
         config_entry=obj_entry,
         original_name="Old Entity",
     )
@@ -1482,6 +1446,7 @@ async def test_get_task_id_for_sensor_entity(hass: HomeAssistant) -> None:
         pytest.skip("No sensor entities")
 
     from custom_components.maintenance_supporter import _get_task_id_for_entity
+
     task_id = _get_task_id_for_entity(hass, sensors[0].entity_id)
     assert task_id == TASK_ID_1
 
@@ -1498,6 +1463,7 @@ async def test_get_task_id_for_binary_sensor_entity(hass: HomeAssistant) -> None
         pytest.skip("No binary sensor entities")
 
     from custom_components.maintenance_supporter import _get_task_id_for_entity
+
     task_id = _get_task_id_for_entity(hass, binary_sensors[0].entity_id)
     assert task_id == TASK_ID_1
 
@@ -1511,7 +1477,8 @@ async def test_get_task_id_for_binary_sensor_entity(hass: HomeAssistant) -> None
 
 
 async def test_cleanup_on_last_entry_unload(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Lines 447-452: domain data cleanup when no entries remain."""
     from custom_components.maintenance_supporter import async_unload_entry
@@ -1520,15 +1487,20 @@ async def test_cleanup_on_last_entry_unload(
     assert DOMAIN in hass.data
 
     # Unload platforms first
-    await hass.config_entries.async_unload_platforms(
-        global_config_entry, ["sensor", "binary_sensor", "calendar"]
-    )
+    await hass.config_entries.async_unload_platforms(global_config_entry, ["sensor", "binary_sensor", "calendar"])
 
     # Patch async_entries to return empty list to simulate no entries remaining
-    with patch.object(
-        hass.config_entries, "async_entries", return_value=[],
-    ), patch.object(
-        hass.config_entries, "async_unload_platforms", return_value=True,
+    with (
+        patch.object(
+            hass.config_entries,
+            "async_entries",
+            return_value=[],
+        ),
+        patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            return_value=True,
+        ),
     ):
         await async_unload_entry(hass, global_config_entry)
 
@@ -1539,7 +1511,8 @@ async def test_cleanup_on_last_entry_unload(
 
 
 async def test_remove_global_entry(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Line 462: async_remove_entry returns early for global entry."""
     from custom_components.maintenance_supporter import async_remove_entry
@@ -1552,7 +1525,8 @@ async def test_remove_global_entry(
 
 
 async def test_get_coordinator_no_runtime_data(
-    hass: HomeAssistant, global_config_entry: ConfigEntry,
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
 ) -> None:
     """Line 497: _get_coordinator_for_entity returns None when no runtime_data."""
     from custom_components.maintenance_supporter import _get_coordinator_for_entity

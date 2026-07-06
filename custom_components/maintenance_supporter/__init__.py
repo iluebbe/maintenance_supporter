@@ -107,6 +107,8 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
         vol.Optional("notes"): vol.All(cv.string, vol.Length(max=2000)),
         vol.Optional("cost"): vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)),
         vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)),
+        # Meter readings (v2.20, #83): recorded value for `reading` tasks.
+        vol.Optional("reading_value"): vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)),
     }
 )
 
@@ -411,6 +413,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
             notes=call.data.get("notes"),
             cost=call.data.get("cost"),
             duration=call.data.get("duration"),
+            reading_value=call.data.get("reading_value"),
         )
 
     async def _handle_reset(call: ServiceCall) -> None:

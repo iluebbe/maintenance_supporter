@@ -679,5 +679,9 @@
   "replace_object": "Sostituisci…",
   "replace_object_prompt": "Ritira questo oggetto e crea un successore. Storico e costi restano archiviati sul vecchio; attività e documenti passano al nuovo, i contatori ripartono da zero.",
   "replace_name_label": "Nome del successore",
-  "object_replaced": "Oggetto sostituito — successore creato"
+  "object_replaced": "Oggetto sostituito — successore creato",
+  "reading_unit_label": "Unità di lettura (es. kWh, m³)",
+  "reading_unit_help": "Mostrata accanto al valore registrato al completamento di questa attività.",
+  "reading_value_label": "Valore letto",
+  "reading_label": "Lettura"
 }

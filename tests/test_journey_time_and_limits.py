@@ -42,14 +42,15 @@ from .conftest import (
 from .journey import simulate_restart
 
 
-def _make_entry(
-    hass: HomeAssistant, unique_id: str, tasks: dict[str, Any]
-) -> MockConfigEntry:
+def _make_entry(hass: HomeAssistant, unique_id: str, tasks: dict[str, Any]) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Journey Object",
         data=build_object_entry_data(
-            object_data=build_object_data(name="Journey Object"), tasks=tasks,
+            object_data=build_object_data(name="Journey Object"),
+            tasks=tasks,
         ),
         source="user",
         unique_id=f"maintenance_supporter_{unique_id}",
@@ -65,12 +66,16 @@ async def test_downtime_catchup_no_storm_but_reminders_resume(
     hass: HomeAssistant,
 ) -> None:
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(
-            notifications_enabled=True, notify_service="notify.mobile_app",
+            notifications_enabled=True,
+            notify_service="notify.mobile_app",
         ),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
@@ -78,14 +83,20 @@ async def test_downtime_catchup_no_storm_but_reminders_resume(
     long_ago = (dt_util.now().date() - timedelta(days=40)).isoformat()
     tasks = {
         TASK_ID_1: build_task_data(
-            task_id=TASK_ID_1, last_performed=long_ago, interval_days=14,
+            task_id=TASK_ID_1,
+            last_performed=long_ago,
+            interval_days=14,
         ),
         "b" * 32: build_task_data(
-            task_id="b" * 32, name="Second", last_performed=long_ago,
+            task_id="b" * 32,
+            name="Second",
+            last_performed=long_ago,
             interval_days=7,
         ),
         "c" * 32: build_task_data(
-            task_id="c" * 32, name="Third", last_performed=long_ago,
+            task_id="c" * 32,
+            name="Third",
+            last_performed=long_ago,
             interval_days=30,
         ),
     }
@@ -129,8 +140,7 @@ async def test_downtime_catchup_no_storm_but_reminders_resume(
 
 def test_flapping_trigger_never_evicts_completions() -> None:
     task = MaintenanceTask.from_dict(
-        {"id": "t", "object_id": "o", "name": "Flap", "type": "service",
-         "schedule_type": "sensor_based", "warning_days": 3}
+        {"id": "t", "object_id": "o", "name": "Flap", "type": "service", "schedule_type": "sensor_based", "warning_days": 3}
     )
     # A real service record: 40 completions with costs.
     for i in range(40):
@@ -139,9 +149,7 @@ def test_flapping_trigger_never_evicts_completions() -> None:
     for _ in range(1000):
         task.add_history_entry(HistoryEntryType.TRIGGERED, trigger_value=1.0)
 
-    completed = [
-        h for h in task.history if h.get("type") == HistoryEntryType.COMPLETED
-    ]
+    completed = [h for h in task.history if h.get("type") == HistoryEntryType.COMPLETED]
     assert len(completed) == 40, "trigger noise evicted completions"
     assert len(task.history) <= 500
     assert task.times_performed == 40
@@ -150,8 +158,15 @@ def test_flapping_trigger_never_evicts_completions() -> None:
 
 def test_history_cap_still_bounds_lifecycle_only_growth() -> None:
     task = MaintenanceTask.from_dict(
-        {"id": "t", "object_id": "o", "name": "Busy", "type": "cleaning",
-         "schedule_type": "time_based", "interval_days": 1, "warning_days": 1}
+        {
+            "id": "t",
+            "object_id": "o",
+            "name": "Busy",
+            "type": "cleaning",
+            "schedule_type": "time_based",
+            "interval_days": 1,
+            "warning_days": 1,
+        }
     )
     for _ in range(700):
         task.add_history_entry(HistoryEntryType.COMPLETED)
@@ -180,18 +195,22 @@ async def test_operator_write_revoke_applies_to_next_call(
     operator = MockUser(id="op-uid", name="Operator").add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options={
             CONF_ADMIN_PANEL_USER_IDS: ["op-uid"],
             CONF_OPERATOR_WRITE_ENABLED: True,
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     obj_entry = _make_entry(
-        hass, "revoke",
+        hass,
+        "revoke",
         {TASK_ID_1: build_task_data(task_id=TASK_ID_1, interval_days=30)},
     )
     await setup_integration(hass, global_entry, obj_entry)
@@ -201,11 +220,17 @@ async def test_operator_write_revoke_applies_to_next_call(
 
     # Delegated: the operator's edit goes through (guard passes; the
     # decorated handler schedules the async body).
-    ws_update_task(hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1,
-        "notes": "operator was here",
-    })
+    ws_update_task(
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "notes": "operator was here",
+        },
+    )
     await hass.async_block_till_done()
     conn.send_error.assert_not_called()
     assert obj_entry.data[CONF_TASKS][TASK_ID_1]["notes"] == "operator was here"
@@ -219,11 +244,17 @@ async def test_operator_write_revoke_applies_to_next_call(
     conn2 = MagicMock()
     conn2.user = operator
     with pytest.raises(Unauthorized):
-        ws_update_task(hass, conn2, {
-            "id": 2, "type": "maintenance_supporter/task/update",
-            "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1,
-            "notes": "should be rejected",
-        })
+        ws_update_task(
+            hass,
+            conn2,
+            {
+                "id": 2,
+                "type": "maintenance_supporter/task/update",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "notes": "should be rejected",
+            },
+        )
     await hass.async_block_till_done()
     assert obj_entry.data[CONF_TASKS][TASK_ID_1]["notes"] == "operator was here"
 

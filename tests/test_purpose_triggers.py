@@ -78,9 +78,7 @@ def test_translations_carry_trigger_sections() -> None:
 # ─── functional: trigger fires on state transition ──────────────────────────
 
 
-async def _arm(
-    hass: HomeAssistant, trigger: str, target: dict[str, Any], calls: list[str]
-) -> None:
+async def _arm(hass: HomeAssistant, trigger: str, target: dict[str, Any], calls: list[str]) -> None:
     """Validate + attach a new-style trigger, recording fired entity ids."""
 
     @callback
@@ -90,12 +88,8 @@ async def _arm(
     def log_cb(level: int, msg: str, **kwargs: Any) -> None:
         _LOGGER.log(level, "%s", msg)
 
-    validated = await async_validate_trigger_config(
-        hass, [{"platform": trigger, "target": target}]
-    )
-    await async_initialize_triggers(
-        hass, validated, action, domain="test", name="t", log_cb=log_cb
-    )
+    validated = await async_validate_trigger_config(hass, [{"platform": trigger, "target": target}])
+    await async_initialize_triggers(hass, validated, action, domain="test", name="t", log_cb=log_cb)
 
 
 def _set_task_state(hass: HomeAssistant, entity_id: str, state: str) -> None:
@@ -108,9 +102,7 @@ async def test_task_became_overdue_fires(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     calls: list[str] = []
-    await _arm(
-        hass, "maintenance_supporter.task_became_overdue", {"entity_id": entity}, calls
-    )
+    await _arm(hass, "maintenance_supporter.task_became_overdue", {"entity_id": entity}, calls)
 
     _set_task_state(hass, entity, "due_soon")
     await hass.async_block_till_done()
@@ -153,9 +145,7 @@ async def test_non_enum_sensor_is_filtered_out(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     calls: list[str] = []
-    await _arm(
-        hass, "maintenance_supporter.task_became_overdue", {"entity_id": entity}, calls
-    )
+    await _arm(hass, "maintenance_supporter.task_became_overdue", {"entity_id": entity}, calls)
     hass.states.async_set(entity, "overdue")
     await hass.async_block_till_done()
     assert not calls
@@ -164,9 +154,7 @@ async def test_non_enum_sensor_is_filtered_out(hass: HomeAssistant) -> None:
 # ─── functional: conditions evaluate task state ─────────────────────────────
 
 
-async def _check(
-    hass: HomeAssistant, condition: str, target: dict[str, Any]
-) -> bool:
+async def _check(hass: HomeAssistant, condition: str, target: dict[str, Any]) -> bool:
     validated = await async_validate_condition_config(
         hass,
         {"condition": condition, "target": target, "options": {"behavior": "any"}},
@@ -179,15 +167,11 @@ async def test_task_is_overdue_condition(hass: HomeAssistant) -> None:
     entity = "sensor.pool_pump_impeller_cleaning"
     _set_task_state(hass, entity, "ok")
     await hass.async_block_till_done()
-    assert not await _check(
-        hass, "maintenance_supporter.task_is_overdue", {"entity_id": entity}
-    )
+    assert not await _check(hass, "maintenance_supporter.task_is_overdue", {"entity_id": entity})
 
     _set_task_state(hass, entity, "overdue")
     await hass.async_block_till_done()
-    assert await _check(
-        hass, "maintenance_supporter.task_is_overdue", {"entity_id": entity}
-    )
+    assert await _check(hass, "maintenance_supporter.task_is_overdue", {"entity_id": entity})
 
 
 async def test_task_needs_attention_condition_covers_both_states(

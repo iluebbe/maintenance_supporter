@@ -27,6 +27,7 @@ def test_sanitize_cap_action_field_unserializable_data() -> None:
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_cap_strings_truncates_long_values() -> None:
     """Line 69: _cap_strings truncates strings exceeding max length."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_task_fields
@@ -36,6 +37,7 @@ def test_cap_strings_truncates_long_values() -> None:
     data = {"name": long_name}
     result = cap_task_fields(data)
     assert len(result["name"]) < len(long_name)
+
 
 def test_cap_task_interval_days_clamping() -> None:
     """Lines 86, 88: interval_days < 1 clamped to 1; > MAX clamped to MAX."""
@@ -52,6 +54,7 @@ def test_cap_task_interval_days_clamping() -> None:
     cap_task_fields(data2)
     assert data2["interval_days"] == MAX_INTERVAL_DAYS
 
+
 def test_cap_task_warning_days_clamping() -> None:
     """Lines 93, 95: warning_days < 0 clamped to 0; > 365 clamped to 365."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_task_fields
@@ -64,6 +67,7 @@ def test_cap_task_warning_days_clamping() -> None:
     cap_task_fields(data2)
     assert data2["warning_days"] == 365
 
+
 def test_cap_task_checklist_non_list_dropped() -> None:
     """Line 100: non-list checklist is dropped."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_task_fields
@@ -72,6 +76,7 @@ def test_cap_task_checklist_non_list_dropped() -> None:
     cap_task_fields(data)
     assert "checklist" not in data
 
+
 def test_cap_action_field_non_dict_dropped() -> None:
     """Lines 146-147: on_complete_action that is not a dict is dropped."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_action_field
@@ -79,6 +84,7 @@ def test_cap_action_field_non_dict_dropped() -> None:
     data: dict[str, Any] = {"on_complete_action": "invalid"}
     cap_action_field(data)
     assert "on_complete_action" not in data
+
 
 def test_cap_action_field_invalid_service_dropped() -> None:
     """Lines 168-173: invalid service name causes action to be dropped."""
@@ -93,6 +99,7 @@ def test_cap_action_field_invalid_service_dropped() -> None:
     data2: dict[str, Any] = {"on_complete_action": {"service": "a." + "b" * 200}}
     cap_action_field(data2)
     assert "on_complete_action" not in data2
+
 
 def test_cap_action_field_target_list_capped() -> None:
     """Lines 168-173: target entity_id as list is capped and kept."""
@@ -110,6 +117,7 @@ def test_cap_action_field_target_list_capped() -> None:
     assert "on_complete_action" in data
     assert data["on_complete_action"]["target"]["entity_id"] == ["light.a", "light.b"]
 
+
 def test_cap_quick_complete_non_dict_dropped() -> None:
     """Lines 200-201: quick_complete_defaults that is not dict is dropped."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_quick_complete_defaults_field
@@ -118,6 +126,7 @@ def test_cap_quick_complete_non_dict_dropped() -> None:
     cap_quick_complete_defaults_field(data)
     assert "quick_complete_defaults" not in data
 
+
 def test_cap_quick_complete_empty_cleaned_drops_key() -> None:
     """Line 224: when cleaned dict is empty, key is removed."""
     from custom_components.maintenance_supporter.helpers.sanitize import cap_quick_complete_defaults_field
@@ -125,14 +134,15 @@ def test_cap_quick_complete_empty_cleaned_drops_key() -> None:
     # All fields invalid → cleaned is empty → key dropped
     data: dict[str, Any] = {
         "quick_complete_defaults": {
-            "notes": "",           # empty string → rejected
-            "cost": -1,            # negative → rejected
-            "duration": -1,        # negative → rejected
-            "feedback": "wrong",   # invalid value → rejected
+            "notes": "",  # empty string → rejected
+            "cost": -1,  # negative → rejected
+            "duration": -1,  # negative → rejected
+            "feedback": "wrong",  # invalid value → rejected
         }
     }
     cap_quick_complete_defaults_field(data)
     assert "quick_complete_defaults" not in data
+
 
 def test_cap_quick_complete_valid_fields_kept() -> None:
     """Lines 183-184: valid quick_complete_defaults are stored."""
@@ -189,19 +199,14 @@ def test_object_schema_string_caps_match_sanitize_map() -> None:
         _OBJECT_STR_FIELD_SCHEMA,
     )
 
-    schema_caps = {
-        marker.schema: _length_max(validator)
-        for marker, validator in _OBJECT_STR_FIELD_SCHEMA.items()
-    }
+    schema_caps = {marker.schema: _length_max(validator) for marker, validator in _OBJECT_STR_FIELD_SCHEMA.items()}
     # Every field in the shared schema caps a string with a known max.
     assert all(cap is not None for cap in schema_caps.values()), schema_caps
 
     # `name` is defined per-schema (Required in create), so compare it separately
     # and check the rest against the sanitize map exactly.
     expected = {k: v for k, v in _OBJECT_STR_LIMITS.items() if k != "name"}
-    assert schema_caps == expected, (
-        f"object schema caps {schema_caps} diverged from sanitize map {expected}"
-    )
+    assert schema_caps == expected, f"object schema caps {schema_caps} diverged from sanitize map {expected}"
 
 
 # === Security: on_complete_action privileged-domain denylist ================

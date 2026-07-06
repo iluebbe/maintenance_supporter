@@ -90,8 +90,7 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Car",
         category="vehicle",
         tasks=[
-            TaskTemplate("Oil Change", "service", "time_based", 365, 30,
-                         "Change engine oil and filter."),
+            TaskTemplate("Oil Change", "service", "time_based", 365, 30, "Change engine oil and filter."),
             TaskTemplate("Tire Rotation", "service", "time_based", 180, 14),
             TaskTemplate("Brake Inspection", "inspection", "time_based", 365, 30),
             TaskTemplate("Air Filter", "replacement", "time_based", 730, 60),

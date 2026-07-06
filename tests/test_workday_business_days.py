@@ -44,7 +44,10 @@ def _reset_provider() -> Iterator[None]:
 
 def _next(sched: Schedule, *, last: date | None, today: date) -> date | None:
     return sched.next_due(
-        last_performed=last, created_at=today, last_planned_due=None, today=today,
+        last_performed=last,
+        created_at=today,
+        last_planned_due=None,
+        today=today,
     )
 
 
@@ -59,14 +62,10 @@ def test_default_rule_is_mon_fri() -> None:
 
 def test_roll_back_honours_installed_provider() -> None:
     # Wed 2027-06-30 is a "holiday" → last business day of June is Tue 29th.
-    set_business_day_provider(
-        lambda d: d.weekday() < 5 and d != date(2027, 6, 30)
-    )
+    set_business_day_provider(lambda d: d.weekday() < 5 and d != date(2027, 6, 30))
     assert roll_back_to_business_day(date(2027, 6, 30)) == date(2027, 6, 29)
     # A holiday Friday before a weekend rolls Sat → Thu in one go.
-    set_business_day_provider(
-        lambda d: d.weekday() < 5 and d != date(2027, 12, 31)
-    )
+    set_business_day_provider(lambda d: d.weekday() < 5 and d != date(2027, 12, 31))
     assert roll_back_to_business_day(date(2027, 12, 31)) == date(2027, 12, 30)
 
 
@@ -88,24 +87,16 @@ def test_crashing_provider_falls_back_to_weekday_rule() -> None:
 
 
 def test_last_business_day_of_month_skips_holiday() -> None:
-    set_business_day_provider(
-        lambda d: d.weekday() < 5 and d != date(2027, 6, 30)
-    )
-    sched = Schedule.from_dict(
-        {"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True}
-    )
+    set_business_day_provider(lambda d: d.weekday() < 5 and d != date(2027, 6, 30))
+    sched = Schedule.from_dict({"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True})
     assert _next(sched, last=None, today=date(2027, 6, 5)) == date(2027, 6, 29)
 
 
 def test_offset_before_last_business_day_with_holiday() -> None:
     # "-2 on the last business day": Dec 31 (Fri) is a holiday → last business
     # day is Thu 30th → minus 2 = Tue 28th.
-    set_business_day_provider(
-        lambda d: d.weekday() < 5 and d != date(2027, 12, 31)
-    )
-    sched = Schedule.from_dict(
-        {"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2}
-    )
+    set_business_day_provider(lambda d: d.weekday() < 5 and d != date(2027, 12, 31))
+    sched = Schedule.from_dict({"kind": KIND_DAY_OF_MONTH, "day": -1, "business": True, "offset": -2})
     assert _next(sched, last=None, today=date(2027, 12, 1)) == date(2027, 12, 28)
 
 
@@ -123,9 +114,7 @@ class _FakeHolidayCalendar:
         return self._table.get(d)
 
 
-def _install_fake_holidays(
-    monkeypatch: pytest.MonkeyPatch, table: dict[date, str]
-) -> None:
+def _install_fake_holidays(monkeypatch: pytest.MonkeyPatch, table: dict[date, str]) -> None:
     mod = ModuleType("holidays")
 
     def country_holidays(country: str, subdiv: str | None = None) -> object:
@@ -142,8 +131,7 @@ _XMAS = date(2027, 12, 24)  # a Friday
 def test_builder_excludes_public_holidays(monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
     fn = build_provider_from_workday_options(
-        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-         "excludes": ["sat", "sun", "holiday"]}
+        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"], "excludes": ["sat", "sun", "holiday"]}
     )
     assert fn is not None
     assert fn(_XMAS) is False  # holiday Friday
@@ -153,8 +141,7 @@ def test_builder_excludes_public_holidays(monkeypatch: pytest.MonkeyPatch) -> No
 def test_builder_honours_custom_working_week(monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {})
     fn = build_provider_from_workday_options(
-        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri", "sat"],
-         "excludes": ["sun", "holiday"]}
+        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri", "sat"], "excludes": ["sun", "holiday"]}
     )
     assert fn is not None
     assert fn(date(2027, 7, 31)) is True  # Saturday is a working day here
@@ -164,10 +151,13 @@ def test_builder_honours_custom_working_week(monkeypatch: pytest.MonkeyPatch) ->
 def test_builder_add_and_remove_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
     fn = build_provider_from_workday_options(
-        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-         "excludes": ["sat", "sun", "holiday"],
-         "add_holidays": ["2027-12-23"],  # company holiday
-         "remove_holidays": ["2027-12-24"]}  # we do work Christmas Eve
+        {
+            "country": "DE",
+            "workdays": ["mon", "tue", "wed", "thu", "fri"],
+            "excludes": ["sat", "sun", "holiday"],
+            "add_holidays": ["2027-12-23"],  # company holiday
+            "remove_holidays": ["2027-12-24"],
+        }  # we do work Christmas Eve
     )
     assert fn is not None
     assert fn(date(2027, 12, 23)) is False  # added
@@ -177,9 +167,12 @@ def test_builder_add_and_remove_overrides(monkeypatch: pytest.MonkeyPatch) -> No
 def test_builder_remove_by_name_fragment(monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
     fn = build_provider_from_workday_options(
-        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-         "excludes": ["sat", "sun", "holiday"],
-         "remove_holidays": ["christmas"]}
+        {
+            "country": "DE",
+            "workdays": ["mon", "tue", "wed", "thu", "fri"],
+            "excludes": ["sat", "sun", "holiday"],
+            "remove_holidays": ["christmas"],
+        }
     )
     assert fn is not None
     assert fn(_XMAS) is True
@@ -188,8 +181,7 @@ def test_builder_remove_by_name_fragment(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_builder_without_holiday_exclusion(monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
     fn = build_provider_from_workday_options(
-        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-         "excludes": ["sat", "sun"]}  # "holiday" NOT excluded
+        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"], "excludes": ["sat", "sun"]}  # "holiday" NOT excluded
     )
     assert fn is not None
     assert fn(_XMAS) is True  # holidays don't matter for this config
@@ -202,24 +194,19 @@ def test_builder_requires_holidays_package(monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_builder_rejects_empty_working_week(monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {})
-    assert build_provider_from_workday_options(
-        {"country": "DE", "workdays": []}
-    ) is None
+    assert build_provider_from_workday_options({"country": "DE", "workdays": []}) is None
 
 
 # ─── setup wiring ───────────────────────────────────────────────────────────
 
 
-async def test_setup_installs_provider_from_workday_entry(
-    hass, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_setup_installs_provider_from_workday_entry(hass, monkeypatch: pytest.MonkeyPatch) -> None:
     _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
     entry = MockConfigEntry(
         domain="workday",
         title="Workday DE",
         data={},
-        options={"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-                 "excludes": ["sat", "sun", "holiday"]},
+        options={"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"], "excludes": ["sat", "sun", "holiday"]},
     )
     entry.add_to_hass(hass)
 
@@ -245,8 +232,7 @@ def test_builder_survives_unknown_country(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setitem(sys.modules, "holidays", mod)
 
     fn = build_provider_from_workday_options(
-        {"country": "XX-NOPE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-         "excludes": ["sat", "sun", "holiday"]}
+        {"country": "XX-NOPE", "workdays": ["mon", "tue", "wed", "thu", "fri"], "excludes": ["sat", "sun", "holiday"]}
     )
     assert fn is not None
     # No calendar → plain weekday semantics.
@@ -260,10 +246,13 @@ def test_builder_ignores_malformed_override_dates(
     """Garbage in add_holidays is skipped; a NAME in remove_holidays matches."""
     _install_fake_holidays(monkeypatch, {_XMAS: "Christmas Eve"})
     fn = build_provider_from_workday_options(
-        {"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"],
-         "excludes": ["sat", "sun", "holiday"],
-         "add_holidays": ["not-a-date", None],
-         "remove_holidays": ["also-not-a-date"]}
+        {
+            "country": "DE",
+            "workdays": ["mon", "tue", "wed", "thu", "fri"],
+            "excludes": ["sat", "sun", "holiday"],
+            "add_holidays": ["not-a-date", None],
+            "remove_holidays": ["also-not-a-date"],
+        }
     )
     assert fn is not None
     assert fn(date(2027, 12, 23)) is True  # garbage add ignored

@@ -76,10 +76,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -112,7 +115,9 @@ def _make_trigger_entry(
         trigger_config=trigger_config,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -129,13 +134,16 @@ def _make_trigger_entry(
 
 
 async def test_trigger_entity_removed_creates_repair_issue(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Trigger entity removed → after threshold refreshes → repair issue created."""
     set_sensor_state(hass, "sensor.removable", "25.0")
     obj_entry = _make_trigger_entry(
-        hass, entity_id="sensor.removable",
-        trigger_above=50.0, unique_suffix="repair_issue",
+        hass,
+        entity_id="sensor.removable",
+        trigger_above=50.0,
+        unique_suffix="repair_issue",
         name="Repair Test",
     )
     await setup_integration(hass, global_entry, obj_entry)
@@ -169,13 +177,16 @@ async def test_trigger_entity_removed_creates_repair_issue(
 
 
 async def test_trigger_entity_removed_then_restored(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Trigger entity removed → issue created → entity restored → issue cleared."""
     set_sensor_state(hass, "sensor.flapping", "10.0")
     obj_entry = _make_trigger_entry(
-        hass, entity_id="sensor.flapping",
-        trigger_below=5.0, unique_suffix="flapping",
+        hass,
+        entity_id="sensor.flapping",
+        trigger_below=5.0,
+        unique_suffix="flapping",
         name="Flapping Test",
     )
     await setup_integration(hass, global_entry, obj_entry)
@@ -210,13 +221,16 @@ async def test_trigger_entity_removed_then_restored(
 
 
 async def test_trigger_entity_unavailable_no_issue(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Entity state='unavailable' → no repair issue, but trigger not activated."""
     set_sensor_state(hass, "sensor.unreliable", "2.0")
     obj_entry = _make_trigger_entry(
-        hass, entity_id="sensor.unreliable",
-        trigger_below=1.0, unique_suffix="unavail_no_issue",
+        hass,
+        entity_id="sensor.unreliable",
+        trigger_below=1.0,
+        unique_suffix="unavail_no_issue",
         name="Unavailable Test",
     )
     await setup_integration(hass, global_entry, obj_entry)
@@ -245,13 +259,16 @@ async def test_trigger_entity_unavailable_no_issue(
 
 
 async def test_trigger_entity_unknown_state(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Entity state='unknown' → handled same as unavailable."""
     set_sensor_state(hass, "sensor.mystery", "5.0")
     obj_entry = _make_trigger_entry(
-        hass, entity_id="sensor.mystery",
-        trigger_above=10.0, unique_suffix="unknown_state",
+        hass,
+        entity_id="sensor.mystery",
+        trigger_above=10.0,
+        unique_suffix="unknown_state",
         name="Unknown Test",
     )
     await setup_integration(hass, global_entry, obj_entry)
@@ -273,17 +290,25 @@ async def test_trigger_entity_unknown_state(
 
 
 async def test_trigger_attribute_removed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Trigger monitors attribute → attribute removed → trigger handles gracefully."""
-    hass.states.async_set("sensor.multi_attr", "on", {
-        "temperature": 25.0,
-        "humidity": 60.0,
-    })
+    hass.states.async_set(
+        "sensor.multi_attr",
+        "on",
+        {
+            "temperature": 25.0,
+            "humidity": 60.0,
+        },
+    )
     obj_entry = _make_trigger_entry(
-        hass, entity_id="sensor.multi_attr",
-        trigger_above=40.0, attribute="temperature",
-        unique_suffix="attr_removed", name="Attr Removed",
+        hass,
+        entity_id="sensor.multi_attr",
+        trigger_above=40.0,
+        attribute="temperature",
+        unique_suffix="attr_removed",
+        name="Attr Removed",
     )
     await setup_integration(hass, global_entry, obj_entry)
 
@@ -298,10 +323,14 @@ async def test_trigger_attribute_removed(
     assert task_data.get("_trigger_active") is not True
 
     # Remove the attribute (entity still exists but attribute gone)
-    hass.states.async_set("sensor.multi_attr", "on", {
-        "humidity": 60.0,
-        # "temperature" removed
-    })
+    hass.states.async_set(
+        "sensor.multi_attr",
+        "on",
+        {
+            "humidity": 60.0,
+            # "temperature" removed
+        },
+    )
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
@@ -311,14 +340,18 @@ async def test_trigger_attribute_removed(
 
 
 async def test_trigger_attribute_non_numeric(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Trigger attribute becomes non-numeric → handled gracefully."""
     hass.states.async_set("sensor.attr_type", "on", {"level": 5.0})
     obj_entry = _make_trigger_entry(
-        hass, entity_id="sensor.attr_type",
-        trigger_above=10.0, attribute="level",
-        unique_suffix="attr_type", name="Attr Type Change",
+        hass,
+        entity_id="sensor.attr_type",
+        trigger_above=10.0,
+        attribute="level",
+        unique_suffix="attr_type",
+        name="Attr Type Change",
     )
     await setup_integration(hass, global_entry, obj_entry)
 
@@ -340,7 +373,8 @@ async def test_trigger_attribute_non_numeric(
 
 
 async def test_multi_entity_trigger_one_removed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Multi-entity trigger with entity_logic='any': one entity removed."""
     set_sensor_state(hass, "sensor.tire_fl", "2.5")
@@ -358,7 +392,9 @@ async def test_multi_entity_trigger_one_removed(
         trigger_config=trigger_config,
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Multi Remove",
         data=build_object_entry_data(
             object_data=build_object_data(name="Multi Remove"),
@@ -399,7 +435,8 @@ async def test_multi_entity_trigger_one_removed(
 
 
 async def test_multi_entity_trigger_all_logic_one_removed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Multi-entity trigger with entity_logic='all': one entity removed → not triggered."""
     set_sensor_state(hass, "sensor.zone_a", "1.5")
@@ -417,7 +454,9 @@ async def test_multi_entity_trigger_all_logic_one_removed(
         trigger_config=trigger_config,
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="All Logic Remove",
         data=build_object_entry_data(
             object_data=build_object_data(name="All Logic Remove"),
@@ -452,7 +491,8 @@ async def test_multi_entity_trigger_all_logic_one_removed(
 
 
 async def test_object_deletion_cleans_up_device_and_entities(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Deleting object via WS removes device, entities, and Store."""
     task = build_task_data(
@@ -460,7 +500,9 @@ async def test_object_deletion_cleans_up_device_and_entities(
         interval_days=30,
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Deletable",
         data=build_object_entry_data(
             object_data=build_object_data(name="Deletable"),
@@ -484,10 +526,16 @@ async def test_object_deletion_cleans_up_device_and_entities(
 
     # Delete object via WS
     conn = _mock_connection()
-    await call_ws_handler(ws_delete_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/delete",
-        "entry_id": obj_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": obj_entry.entry_id,
+        },
+    )
     conn.send_result.assert_called_once()
     await hass.async_block_till_done()
 
@@ -497,24 +545,29 @@ async def test_object_deletion_cleans_up_device_and_entities(
 
 
 async def test_task_deletion_removes_entities(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Deleting a task via WS removes its sensor + binary_sensor entities."""
     now = dt_util.now().date()
     tasks = {
         TASK_ID_1: build_task_data(
-            task_id=TASK_ID_1, name="Task Keep",
+            task_id=TASK_ID_1,
+            name="Task Keep",
             last_performed=(now - timedelta(days=5)).isoformat(),
             interval_days=30,
         ),
         TASK_ID_2: build_task_data(
-            task_id=TASK_ID_2, name="Task Remove",
+            task_id=TASK_ID_2,
+            name="Task Remove",
             last_performed=(now - timedelta(days=5)).isoformat(),
             interval_days=30,
         ),
     }
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Task Del",
         data=build_object_entry_data(
             object_data=build_object_data(name="Task Del"),
@@ -530,19 +583,22 @@ async def test_task_deletion_removes_entities(
     entities_before = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
     # One STATUS sensor per task; each task also registers a (default-
     # disabled) next-due timestamp sensor since 2.19 — filter it out here.
-    status_sensors_before = [
-        e for e in entities_before
-        if e.domain == "sensor" and not e.unique_id.endswith("_next_due")
-    ]
+    status_sensors_before = [e for e in entities_before if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
     assert len(status_sensors_before) == 2
 
     # Delete one task via WS
     conn = _mock_connection()
-    await call_ws_handler(ws_delete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/delete",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_2,
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_2,
+        },
+    )
     conn.send_result.assert_called_once()
     await hass.async_block_till_done()
 
@@ -550,10 +606,7 @@ async def test_task_deletion_removes_entities(
     # task's status AND next-due sensor are both cleaned up (the `_{task_id}`
     # unique-id segment match covers every per-task entity).
     entities_after = er.async_entries_for_config_entry(entity_reg, obj_entry.entry_id)
-    status_after = [
-        e for e in entities_after
-        if e.domain == "sensor" and not e.unique_id.endswith("_next_due")
-    ]
+    status_after = [e for e in entities_after if e.domain == "sensor" and not e.unique_id.endswith("_next_due")]
     assert len(status_after) == 1
     assert not any(TASK_ID_2 in e.unique_id for e in entities_after)
 
@@ -562,7 +615,8 @@ async def test_task_deletion_removes_entities(
 
 
 async def test_startup_grace_period_no_issue(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Entity missing during startup grace period → no issue created."""
     # Don't create the entity — it's "missing" from the start
@@ -576,7 +630,9 @@ async def test_startup_grace_period_no_issue(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Grace Period",
         data=build_object_entry_data(
             object_data=build_object_data(name="Grace Period"),
@@ -605,7 +661,8 @@ async def test_startup_grace_period_no_issue(
 
 
 async def test_entity_appears_after_grace_period(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Entity missing at startup → appears later → trigger works normally."""
     task = build_task_data(
@@ -618,7 +675,9 @@ async def test_entity_appears_after_grace_period(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Late Load",
         data=build_object_entry_data(
             object_data=build_object_data(name="Late Load"),

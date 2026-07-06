@@ -171,9 +171,7 @@ async def test_replace_trigger_legacy_no_store(
     _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id)
-    result = await flow.async_step_replace_entity(
-        {"new_entity_id": "sensor.new_temp"}
-    )
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new_temp"})
 
     assert result["type"] == "create_entry"
 
@@ -209,9 +207,7 @@ async def test_replace_trigger_legacy_multi_entity(
     _set_store_none(hass, obj_entry.entry_id)
 
     flow = _make_flow(hass, obj_entry.entry_id, entity_id="sensor.old_temp")
-    result = await flow.async_step_replace_entity(
-        {"new_entity_id": "sensor.new_temp"}
-    )
+    result = await flow.async_step_replace_entity({"new_entity_id": "sensor.new_temp"})
 
     assert result["type"] == "create_entry"
 
@@ -394,6 +390,7 @@ async def test_remove_trigger_legacy_to_manual(
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_entry_for_issue_missing_entry_id() -> None:
     """Line 54: _entry_for_issue returns None when entry_id is absent."""
     from custom_components.maintenance_supporter.repairs import _entry_for_issue
@@ -404,6 +401,7 @@ def test_entry_for_issue_missing_entry_id() -> None:
     # No entry_id in issue_data
     assert _entry_for_issue(hass, {}) is None
     assert _entry_for_issue(hass, None) is None
+
 
 def test_entry_has_task_false_cases() -> None:
     """Lines 113, 115: _entry_has_task returns False for None entry or missing task."""
@@ -417,6 +415,7 @@ def test_entry_has_task_false_cases() -> None:
     entry.data = {"tasks": {"t1": {}}}
     assert _entry_has_task(entry, None) is False
     assert _entry_has_task(entry, "") is False
+
 
 def test_replace_entity_in_dict_entity_ids_list() -> None:
     """Lines 134-135 area: _replace_entity_in_dict replaces in entity_ids list."""
@@ -432,6 +431,7 @@ def test_replace_entity_in_dict_entity_ids_list() -> None:
     result2 = _replace_entity_in_dict(cfg2, "sensor.old", "sensor.new")
     assert result2["entity_id"] == "sensor.new"
 
+
 def test_replace_entity_in_condition_with_nested() -> None:
     """Lines 92-96: _replace_entity_in_condition replaces in nested trigger_config."""
     from custom_components.maintenance_supporter.repairs import _replace_entity_in_condition
@@ -444,6 +444,7 @@ def test_replace_entity_in_condition_with_nested() -> None:
     assert result["entity_id"] == "sensor.new"
     assert result["trigger_config"]["entity_id"] == "sensor.new"
 
+
 def test_strip_entity_from_dict_multi_entity() -> None:
     """Lines 113-114: stripping from multi-entity list leaves remaining."""
     from custom_components.maintenance_supporter.repairs import _strip_entity_from_dict
@@ -454,6 +455,7 @@ def test_strip_entity_from_dict_multi_entity() -> None:
     assert "sensor.a" not in result.get("entity_ids", [])
     assert result.get("entity_id") == "sensor.b"
 
+
 def test_strip_entity_from_dict_sole_entity() -> None:
     """Lines 116-118: stripping sole entity leaves has_remaining=False."""
     from custom_components.maintenance_supporter.repairs import _strip_entity_from_dict
@@ -462,6 +464,7 @@ def test_strip_entity_from_dict_sole_entity() -> None:
     result, has_remaining = _strip_entity_from_dict(cfg, "sensor.a")
     assert has_remaining is False
     assert "entity_id" not in result
+
 
 def test_strip_entity_from_condition_compound() -> None:
     """Lines 130-136: _strip_entity_from_condition strips from nested."""
@@ -473,6 +476,7 @@ def test_strip_entity_from_condition_compound() -> None:
     }
     result, keep = _strip_entity_from_condition(cond, "sensor.x")
     assert keep is False
+
 
 def test_async_create_fix_flow_routing() -> None:
     """Line 661: async_create_fix_flow returns correct flow type."""
@@ -487,20 +491,15 @@ def test_async_create_fix_flow_routing() -> None:
 
     hass = MagicMock()
 
-    flow1 = asyncio.get_event_loop().run_until_complete(
-        async_create_fix_flow(hass, "orphan_admin_panel_user_abc", {})
-    )
+    flow1 = asyncio.get_event_loop().run_until_complete(async_create_fix_flow(hass, "orphan_admin_panel_user_abc", {}))
     assert isinstance(flow1, OrphanAdminPanelUserRepairFlow)
 
-    flow2 = asyncio.get_event_loop().run_until_complete(
-        async_create_fix_flow(hass, "stale_action_entity_abc", {})
-    )
+    flow2 = asyncio.get_event_loop().run_until_complete(async_create_fix_flow(hass, "stale_action_entity_abc", {}))
     assert isinstance(flow2, StaleActionEntityRepairFlow)
 
-    flow3 = asyncio.get_event_loop().run_until_complete(
-        async_create_fix_flow(hass, "missing_trigger_entity_abc", {})
-    )
+    flow3 = asyncio.get_event_loop().run_until_complete(async_create_fix_flow(hass, "missing_trigger_entity_abc", {}))
     assert isinstance(flow3, MissingTriggerEntityRepairFlow)
+
 
 async def test_orphan_admin_repair_flow_init_form(hass: HomeAssistant) -> None:
     """Lines 525-528: OrphanAdminPanelUserRepairFlow.async_step_init shows form first."""
@@ -515,6 +514,7 @@ async def test_orphan_admin_repair_flow_init_form(hass: HomeAssistant) -> None:
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "init"
 
+
 async def test_orphan_admin_repair_flow_entry_gone(hass: HomeAssistant) -> None:
     """Lines 540-543: OrphanAdminPanelUserRepairFlow aborts when entry is gone."""
     from homeassistant import data_entry_flow
@@ -527,6 +527,7 @@ async def test_orphan_admin_repair_flow_entry_gone(hass: HomeAssistant) -> None:
     result = await flow.async_step_remove_user_id()
     assert result["type"] == data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "entry_gone"
+
 
 async def test_orphan_admin_repair_removes_user(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """Lines 544-552: OrphanAdminPanelUserRepairFlow removes orphan user id."""
@@ -556,6 +557,7 @@ async def test_orphan_admin_repair_removes_user(hass: HomeAssistant, global_conf
     assert "orphan_uid" not in ids
     assert "keep_uid" in ids
 
+
 async def test_stale_action_repair_flow_init_menu(hass: HomeAssistant) -> None:
     """Lines 590: StaleActionEntityRepairFlow.async_step_init shows menu."""
     from homeassistant import data_entry_flow
@@ -575,6 +577,7 @@ async def test_stale_action_repair_flow_init_menu(hass: HomeAssistant) -> None:
     assert "replace_entity" in result["menu_options"]
     assert "remove_action" in result["menu_options"]
 
+
 async def test_stale_action_repair_replace_entity_entry_gone(hass: HomeAssistant) -> None:
     """Line 590: StaleActionEntityRepairFlow replace_entity aborts when entry gone."""
     from homeassistant import data_entry_flow
@@ -592,6 +595,7 @@ async def test_stale_action_repair_replace_entity_entry_gone(hass: HomeAssistant
     result = await flow.async_step_replace_entity(user_input={"new_entity": "sensor.new"})
     assert result["type"] == data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "entry_gone"
+
 
 async def test_stale_action_repair_replace_no_entity_aborts(hass: HomeAssistant) -> None:
     """Line 593: StaleActionEntityRepairFlow replace with empty entity aborts."""
@@ -618,6 +622,7 @@ async def test_stale_action_repair_replace_no_entity_aborts(hass: HomeAssistant)
     result = await flow.async_step_replace_entity(user_input={"new_entity": ""})
     assert result["type"] == data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "no_entity"
+
 
 async def test_stale_action_repair_replace_entity_success(hass: HomeAssistant) -> None:
     """Line 596: StaleActionEntityRepairFlow patches action entity and returns CREATE_ENTRY."""
@@ -658,6 +663,7 @@ async def test_stale_action_repair_replace_entity_success(hass: HomeAssistant) -
     action = updated.data[CONF_TASKS][task_id]["on_complete_action"]
     assert action["target"]["entity_id"] == "sensor.new"
 
+
 async def test_stale_action_repair_remove_action_entry_gone(hass: HomeAssistant) -> None:
     """Line 613: StaleActionEntityRepairFlow remove_action aborts when entry gone."""
     from homeassistant import data_entry_flow
@@ -676,6 +682,7 @@ async def test_stale_action_repair_remove_action_entry_gone(hass: HomeAssistant)
     assert result["type"] == data_entry_flow.FlowResultType.ABORT
     assert result["reason"] == "entry_gone"
 
+
 async def test_stale_action_repair_remove_action_success(hass: HomeAssistant) -> None:
     """Line 616: StaleActionEntityRepairFlow clears action and returns CREATE_ENTRY."""
     from homeassistant import data_entry_flow
@@ -685,13 +692,7 @@ async def test_stale_action_repair_remove_action_success(hass: HomeAssistant) ->
     task_id = "t2"
     entry = MockConfigEntry(
         domain="maintenance_supporter",
-        data={
-            CONF_TASKS: {
-                task_id: {
-                    "on_complete_action": {"service": "light.turn_on"}
-                }
-            }
-        },
+        data={CONF_TASKS: {task_id: {"on_complete_action": {"service": "light.turn_on"}}}},
         unique_id="test_stale_remove",
     )
     entry.add_to_hass(hass)
@@ -711,6 +712,7 @@ async def test_stale_action_repair_remove_action_success(hass: HomeAssistant) ->
     updated = hass.config_entries.async_get_entry(entry.entry_id)
     assert "on_complete_action" not in updated.data[CONF_TASKS][task_id]
 
+
 async def test_stale_action_replace_shows_form_when_no_input(hass: HomeAssistant) -> None:
     """Lines 596-605: async_step_replace_entity shows form when user_input is None."""
     from homeassistant import data_entry_flow
@@ -729,6 +731,7 @@ async def test_stale_action_replace_shows_form_when_no_input(hass: HomeAssistant
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "replace_entity"
 
+
 async def test_stale_action_remove_shows_form_when_no_input(hass: HomeAssistant) -> None:
     """Lines 616-622: async_step_remove_action shows form when user_input is None."""
     from homeassistant import data_entry_flow
@@ -746,6 +749,7 @@ async def test_stale_action_remove_shows_form_when_no_input(hass: HomeAssistant)
     result = await flow.async_step_remove_action(user_input=None)
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "remove_action"
+
 
 def test_remove_from_flat_multi_entity_strips_one() -> None:
     """Lines 489-491: flat multi-entity: strip one entity, keep remaining."""
@@ -767,6 +771,7 @@ def test_remove_from_flat_multi_entity_strips_one() -> None:
     # sensor.b should remain
     assert task_dict["trigger_config"]["entity_id"] == "sensor.b"
 
+
 def test_remove_from_flat_sole_entity_converts_to_time_based() -> None:
     """Line 502: flat sole entity removed → schedule becomes time_based."""
     from custom_components.maintenance_supporter.repairs import MissingTriggerEntityRepairFlow
@@ -785,6 +790,7 @@ def test_remove_from_flat_sole_entity_converts_to_time_based() -> None:
     flow._remove_from_flat(task_dict, trigger_config, "sensor.a")
     assert "trigger_config" not in task_dict
     assert task_dict.get("schedule_type") in ("time_based", "manual")
+
 
 def test_remove_from_compound_two_remaining_stays_compound() -> None:
     """Lines 476-482: compound with >=2 conditions remaining stays compound."""
@@ -805,6 +811,7 @@ def test_remove_from_compound_two_remaining_stays_compound() -> None:
     notes = flow._remove_from_compound(task_dict, trigger_config, "sensor.dead")
     assert "2 conditions remain" in notes
     assert task_dict["trigger_config"]["type"] == "compound"
+
 
 def test_remove_from_compound_one_remaining_demotes() -> None:
     """Lines 484-498: compound with 1 condition demoted to flat trigger."""
@@ -828,6 +835,7 @@ def test_remove_from_compound_one_remaining_demotes() -> None:
     assert "demoted" in notes
     # trigger_config should now be a flat one (type != "compound")
     assert task_dict["trigger_config"].get("type") != "compound"
+
 
 def test_remove_from_compound_zero_remaining_delegates_flat() -> None:
     """Line 502: compound with 0 remaining delegates to _remove_from_flat."""

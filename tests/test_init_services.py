@@ -30,10 +30,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -44,7 +47,9 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     last_performed = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(last_performed=last_performed)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -66,7 +71,9 @@ def _find_sensor_entity_id(hass: HomeAssistant, entry: MockConfigEntry) -> str |
 
 
 async def test_service_complete(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test calling the complete service."""
     await setup_integration(hass, global_entry, object_entry)
@@ -74,7 +81,8 @@ async def test_service_complete(
     assert entity_id is not None
 
     await hass.services.async_call(
-        DOMAIN, "complete",
+        DOMAIN,
+        "complete",
         {"entity_id": entity_id},
         blocking=True,
     )
@@ -87,14 +95,17 @@ async def test_service_complete(
 
 
 async def test_service_complete_with_options(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test complete service with notes, cost, duration."""
     await setup_integration(hass, global_entry, object_entry)
     entity_id = _find_sensor_entity_id(hass, object_entry)
 
     await hass.services.async_call(
-        DOMAIN, "complete",
+        DOMAIN,
+        "complete",
         {"entity_id": entity_id, "notes": "Looks good", "cost": 50.0, "duration": 30},
         blocking=True,
     )
@@ -110,14 +121,17 @@ async def test_service_complete_with_options(
 
 
 async def test_service_reset(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test calling the reset service."""
     await setup_integration(hass, global_entry, object_entry)
     entity_id = _find_sensor_entity_id(hass, object_entry)
 
     await hass.services.async_call(
-        DOMAIN, "reset",
+        DOMAIN,
+        "reset",
         {"entity_id": entity_id},
         blocking=True,
     )
@@ -131,14 +145,17 @@ async def test_service_reset(
 
 
 async def test_service_skip(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test calling the skip service."""
     await setup_integration(hass, global_entry, object_entry)
     entity_id = _find_sensor_entity_id(hass, object_entry)
 
     await hass.services.async_call(
-        DOMAIN, "skip",
+        DOMAIN,
+        "skip",
         {"entity_id": entity_id},
         blocking=True,
     )
@@ -153,7 +170,9 @@ async def test_service_skip(
 
 
 async def test_notification_action_complete(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test mobile app notification action: complete."""
     await setup_integration(hass, global_entry, object_entry)
@@ -171,7 +190,9 @@ async def test_notification_action_complete(
 
 
 async def test_notification_action_skip(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test mobile app notification action: skip."""
     await setup_integration(hass, global_entry, object_entry)
@@ -185,13 +206,13 @@ async def test_notification_action_skip(
     hass.bus.async_fire("mobile_app_notification_action", {"action": action})
     await hass.async_block_till_done()
 
-    runtime_data.coordinator.skip_maintenance.assert_called_once_with(
-        task_id=TASK_ID_1, reason="Skipped from notification"
-    )
+    runtime_data.coordinator.skip_maintenance.assert_called_once_with(task_id=TASK_ID_1, reason="Skipped from notification")
 
 
 async def test_notification_action_snooze(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test mobile app notification action: snooze."""
     await setup_integration(hass, global_entry, object_entry)
@@ -208,7 +229,9 @@ async def test_notification_action_snooze(
 
 
 async def test_notification_action_complete_dismisses_notification(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that successful complete action dismisses notification and clears NM state."""
     await setup_integration(hass, global_entry, object_entry)
@@ -220,8 +243,10 @@ async def test_notification_action_complete_dismisses_notification(
     runtime_data.coordinator.complete_maintenance = AsyncMock()
 
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-    with patch.object(nm, "async_dismiss_task_notification", new_callable=AsyncMock) as mock_dismiss, \
-         patch.object(nm, "clear_task_state") as mock_clear:
+    with (
+        patch.object(nm, "async_dismiss_task_notification", new_callable=AsyncMock) as mock_dismiss,
+        patch.object(nm, "clear_task_state") as mock_clear,
+    ):
         hass.bus.async_fire("mobile_app_notification_action", {"action": action})
         await hass.async_block_till_done()
 
@@ -230,7 +255,9 @@ async def test_notification_action_complete_dismisses_notification(
 
 
 async def test_notification_action_complete_error_does_not_dismiss(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that failed complete action does NOT dismiss notification."""
     await setup_integration(hass, global_entry, object_entry)
@@ -242,8 +269,10 @@ async def test_notification_action_complete_error_does_not_dismiss(
     runtime_data.coordinator.complete_maintenance = AsyncMock(side_effect=RuntimeError("store error"))
 
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-    with patch.object(nm, "async_dismiss_task_notification", new_callable=AsyncMock) as mock_dismiss, \
-         patch.object(nm, "clear_task_state") as mock_clear:
+    with (
+        patch.object(nm, "async_dismiss_task_notification", new_callable=AsyncMock) as mock_dismiss,
+        patch.object(nm, "clear_task_state") as mock_clear,
+    ):
         hass.bus.async_fire("mobile_app_notification_action", {"action": action})
         await hass.async_block_till_done()
 
@@ -252,7 +281,8 @@ async def test_notification_action_complete_error_does_not_dismiss(
 
 
 async def test_notification_action_ignores_non_ms(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that non-MS actions are ignored."""
     await setup_integration(hass, global_entry)
@@ -263,7 +293,8 @@ async def test_notification_action_ignores_non_ms(
 
 
 async def test_notification_action_invalid_format(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that badly formatted MS actions are logged and ignored."""
     await setup_integration(hass, global_entry)
@@ -277,7 +308,9 @@ async def test_notification_action_invalid_format(
 
 
 async def test_entry_unload(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that unloading an entry works."""
     await setup_integration(hass, global_entry, object_entry)
@@ -287,7 +320,8 @@ async def test_entry_unload(
 
 
 async def test_global_entry_unload(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that unloading the global entry works."""
     await setup_integration(hass, global_entry)

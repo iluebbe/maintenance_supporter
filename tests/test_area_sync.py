@@ -22,16 +22,12 @@ from tests.conftest import setup_integration
 
 
 async def _device_for(hass: HomeAssistant, entry: ConfigEntry) -> Any:
-    devices = dr.async_entries_for_config_entry(
-        dr.async_get(hass), entry.entry_id
-    )
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
     assert len(devices) == 1
     return devices[0]
 
 
-async def _update_obj(
-    hass: HomeAssistant, entry: ConfigEntry, **field_updates: Any
-) -> None:
+async def _update_obj(hass: HomeAssistant, entry: ConfigEntry, **field_updates: Any) -> None:
     """Apply obj-field updates the same way ws_update_object does."""
     obj = dict(entry.data.get(CONF_OBJECT, {}))
     obj.update(field_updates)
@@ -105,10 +101,7 @@ async def test_reverse_sync_area_from_ha_ui(
     dr.async_get(hass).async_update_device(device.id, area_id="bathroom")
     await hass.async_block_till_done()
 
-    obj = (
-        hass.config_entries.async_get_entry(object_config_entry.entry_id)
-        .data.get(CONF_OBJECT, {})
-    )
+    obj = hass.config_entries.async_get_entry(object_config_entry.entry_id).data.get(CONF_OBJECT, {})
     assert obj.get("area_id") == "bathroom"
 
 
@@ -129,10 +122,7 @@ async def test_no_loop_between_forward_and_reverse(
     # Both listeners must have settled — block_till_done flushes pending tasks.
     await hass.async_block_till_done()
     device = await _device_for(hass, object_config_entry)
-    obj = (
-        hass.config_entries.async_get_entry(object_config_entry.entry_id)
-        .data.get(CONF_OBJECT, {})
-    )
+    obj = hass.config_entries.async_get_entry(object_config_entry.entry_id).data.get(CONF_OBJECT, {})
     assert device.area_id == "office"
     assert obj.get("area_id") == "office"
 
@@ -140,9 +130,6 @@ async def test_no_loop_between_forward_and_reverse(
     dr.async_get(hass).async_update_device(device.id, area_id="basement")
     await hass.async_block_till_done()
     device = await _device_for(hass, object_config_entry)
-    obj = (
-        hass.config_entries.async_get_entry(object_config_entry.entry_id)
-        .data.get(CONF_OBJECT, {})
-    )
+    obj = hass.config_entries.async_get_entry(object_config_entry.entry_id).data.get(CONF_OBJECT, {})
     assert device.area_id == "basement"
     assert obj.get("area_id") == "basement"

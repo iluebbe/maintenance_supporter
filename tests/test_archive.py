@@ -126,28 +126,32 @@ def _oneoff_task(
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
 
 
-def _global_entry_with_archive(
-    hass: HomeAssistant, *, archive_days: int = 0, delete_days: int = 0
-) -> MockConfigEntry:
+def _global_entry_with_archive(hass: HomeAssistant, *, archive_days: int = 0, delete_days: int = 0) -> MockConfigEntry:
     """Global entry whose options carry the archive automation thresholds."""
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options={
             CONF_ARCHIVE_ONEOFF_DAYS: archive_days,
             CONF_DELETE_ARCHIVED_ONEOFF_DAYS: delete_days,
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -160,12 +164,16 @@ def _global_entry_with_archive(
 
 def test_model_status_archived_has_highest_precedence() -> None:
     """archived_at on the model wins over overdue AND an active trigger."""
-    task = MaintenanceTask.from_dict({
-        "id": "t", "name": "x",
-        "schedule_type": "time_based", "interval_days": 30,
-        "last_performed": "2000-01-01",  # wildly overdue
-        "archived_at": _ts_days_ago(1),
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": "t",
+            "name": "x",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "last_performed": "2000-01-01",  # wildly overdue
+            "archived_at": _ts_days_ago(1),
+        }
+    )
     assert task.archived is True
     assert task.status == MaintenanceStatus.ARCHIVED
     # Even a live trigger does not beat archived.
@@ -176,27 +184,32 @@ def test_model_status_archived_has_highest_precedence() -> None:
 def test_dict_status_twin_archived_precedence() -> None:
     """compute_status_from_task_dict mirrors the model: archived wins."""
     assert (
-        compute_status_from_task_dict({
-            "archived_at": _ts_days_ago(2),
-            "_trigger_active": True,
-            "_days_until_due": -99,
-        })
+        compute_status_from_task_dict(
+            {
+                "archived_at": _ts_days_ago(2),
+                "_trigger_active": True,
+                "_days_until_due": -99,
+            }
+        )
         == MaintenanceStatus.ARCHIVED
     )
     # Active task (no archived_at) keeps the normal ladder.
-    assert (
-        compute_status_from_task_dict({"_days_until_due": -1})
-        == MaintenanceStatus.OVERDUE
-    )
+    assert compute_status_from_task_dict({"_days_until_due": -1}) == MaintenanceStatus.OVERDUE
 
 
 def test_archived_fields_round_trip_through_serialization() -> None:
     """archived_at + archived_reason survive to_dict / from_dict; absent when active."""
-    archived = MaintenanceTask.from_dict({
-        "id": "t", "name": "x", "schedule_type": "one_time",
-        "due_date": "2026-01-01", "last_performed": "2026-01-02",
-        "archived_at": _ts_days_ago(3), "archived_reason": ARCHIVE_REASON_MANUAL,
-    })
+    archived = MaintenanceTask.from_dict(
+        {
+            "id": "t",
+            "name": "x",
+            "schedule_type": "one_time",
+            "due_date": "2026-01-01",
+            "last_performed": "2026-01-02",
+            "archived_at": _ts_days_ago(3),
+            "archived_reason": ARCHIVE_REASON_MANUAL,
+        }
+    )
     dumped = archived.to_dict()
     assert dumped["archived_at"] == archived.archived_at
     assert dumped["archived_reason"] == ARCHIVE_REASON_MANUAL
@@ -219,10 +232,16 @@ def test_is_completed_oneoff() -> None:
     # one-off but never completed
     assert is_completed_oneoff(_oneoff_task()) is False
     # recurring task is never a "completed one-off"
-    assert is_completed_oneoff({
-        "schedule_type": "time_based", "interval_days": 30,
-        "last_performed": _days_ago(1),
-    }) is False
+    assert (
+        is_completed_oneoff(
+            {
+                "schedule_type": "time_based",
+                "interval_days": 30,
+                "last_performed": _days_ago(1),
+            }
+        )
+        is False
+    )
 
 
 def test_should_auto_archive_policy() -> None:
@@ -240,7 +259,8 @@ def test_should_auto_archive_policy() -> None:
     assert should_auto_archive(already, archive_days=14, today=today) is False
     # Recurring task is out of scope (manual archive only).
     recurring = {
-        "schedule_type": "time_based", "interval_days": 30,
+        "schedule_type": "time_based",
+        "interval_days": 30,
         "last_performed": _days_ago(99),
     }
     assert should_auto_archive(recurring, archive_days=14, today=today) is False
@@ -250,24 +270,28 @@ def test_should_auto_delete_policy() -> None:
     today = _TODAY
     auto_old = _oneoff_task(
         last_performed=_days_ago(60),
-        archived_at=_ts_days_ago(30), archived_reason=ARCHIVE_REASON_AUTO,
+        archived_at=_ts_days_ago(30),
+        archived_reason=ARCHIVE_REASON_AUTO,
     )
     assert should_auto_delete(auto_old, delete_days=14, today=today) is True
     # Disabled (0 = never).
     assert should_auto_delete(auto_old, delete_days=0, today=today) is False
     # Not yet aged enough.
     auto_recent = _oneoff_task(
-        archived_at=_ts_days_ago(3), archived_reason=ARCHIVE_REASON_AUTO,
+        archived_at=_ts_days_ago(3),
+        archived_reason=ARCHIVE_REASON_AUTO,
     )
     assert should_auto_delete(auto_recent, delete_days=14, today=today) is False
     # A MANUAL archive is never auto-deleted.
     manual_old = _oneoff_task(
-        archived_at=_ts_days_ago(30), archived_reason=ARCHIVE_REASON_MANUAL,
+        archived_at=_ts_days_ago(30),
+        archived_reason=ARCHIVE_REASON_MANUAL,
     )
     assert should_auto_delete(manual_old, delete_days=14, today=today) is False
     # An OBJECT-cascade archive is never auto-deleted either.
     obj_old = _oneoff_task(
-        archived_at=_ts_days_ago(30), archived_reason=ARCHIVE_REASON_OBJECT,
+        archived_at=_ts_days_ago(30),
+        archived_reason=ARCHIVE_REASON_OBJECT,
     )
     assert should_auto_delete(obj_old, delete_days=14, today=today) is False
     # Active task → nothing to delete.
@@ -279,23 +303,26 @@ def test_should_auto_delete_policy() -> None:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _object_entry_with_task(
-    hass: HomeAssistant, task: dict[str, Any], *, uid: str
-) -> MockConfigEntry:
+def _object_entry_with_task(hass: HomeAssistant, task: dict[str, Any], *, uid: str) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Gadget",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Gadget",
         data=build_object_entry_data(
             object_data=build_object_data(name="Gadget"),
             tasks={task["id"]: task},
         ),
-        source="user", unique_id=uid,
+        source="user",
+        unique_id=uid,
     )
     entry.add_to_hass(hass)
     return entry
 
 
 async def test_ws_archive_task_sets_fields_and_status(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """ws_archive_task stamps archived_at + reason MANUAL; status reads archived."""
     task = build_task_data(last_performed=_days_ago(60), interval_days=30)
@@ -303,55 +330,82 @@ async def test_ws_archive_task_sets_fields_and_status(
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     payload = assert_ws_success(conn)
     assert payload["success"] is True
     assert payload["archived_at"]
 
-    persisted = hass.config_entries.async_get_entry(entry.entry_id).data[
-        CONF_TASKS
-    ][TASK_ID_1]
+    persisted = hass.config_entries.async_get_entry(entry.entry_id).data[CONF_TASKS][TASK_ID_1]
     assert persisted["archived_at"]
     assert persisted["archived_reason"] == ARCHIVE_REASON_MANUAL
 
     # The WS response (and thus the sensor) now reads archived.
     conn = make_ws_connection()
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/object",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object",
+            "entry_id": entry.entry_id,
+        },
+    )
     task_resp = assert_ws_success(conn)["tasks"][0]
     assert task_resp["archived"] is True
     assert task_resp["status"] == MaintenanceStatus.ARCHIVED
 
 
 async def test_ws_archive_task_already_archived_errors(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     task = build_task_data(last_performed=_days_ago(10), interval_days=30)
     entry = _object_entry_with_task(hass, task, uid="ms_arch_twice")
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_success(conn)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_task, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_error(conn, "already_archived")
 
 
 async def test_ws_archive_task_archives_only_that_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Archiving ONE task on a multi-task object must leave the others active
     and the object itself unarchived — task/archive must not cascade (only
@@ -360,20 +414,28 @@ async def test_ws_archive_task_archives_only_that_task(
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_success(conn)
 
     data = hass.config_entries.async_get_entry(entry.entry_id).data
-    assert data[CONF_TASKS][TASK_ID_1].get("archived_at")        # the chosen one
-    assert "archived_at" not in data[CONF_TASKS][TASK_ID_2]      # sibling untouched
-    assert "archived_at" not in data[CONF_OBJECT]                # object not archived
+    assert data[CONF_TASKS][TASK_ID_1].get("archived_at")  # the chosen one
+    assert "archived_at" not in data[CONF_TASKS][TASK_ID_2]  # sibling untouched
+    assert "archived_at" not in data[CONF_OBJECT]  # object not archived
 
 
 async def test_ws_unarchive_recurring_task_starts_fresh_cycle(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """D2: unarchiving a recurring task re-anchors last_performed to today
     (next_due = today + interval), not retroactively overdue."""
@@ -382,38 +444,54 @@ async def test_ws_unarchive_recurring_task_starts_fresh_cycle(
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_success(conn)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_unarchive_task, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/task/unarchive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_unarchive_task,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/unarchive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_success(conn)
 
-    persisted = hass.config_entries.async_get_entry(entry.entry_id).data[
-        CONF_TASKS
-    ][TASK_ID_1]
+    persisted = hass.config_entries.async_get_entry(entry.entry_id).data[CONF_TASKS][TASK_ID_1]
     assert "archived_at" not in persisted
     assert "archived_reason" not in persisted
     # Fresh cycle: last_performed re-anchored to today (dynamic → Store).
     # Compute "today" via dt_util here (in the hass timezone the handler uses),
     # not the module-load _TODAY — those can differ by a day across the test
     # framework's TZ / UTC midnight boundary.
-    assert get_task_store_state(hass, entry.entry_id, TASK_ID_1)[
-        "last_performed"
-    ] == dt_util.now().date().isoformat()
+    assert get_task_store_state(hass, entry.entry_id, TASK_ID_1)["last_performed"] == dt_util.now().date().isoformat()
 
     # Status is no longer archived nor overdue (next_due = today + 30).
     conn = make_ws_connection()
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 3, "type": "maintenance_supporter/object",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/object",
+            "entry_id": entry.entry_id,
+        },
+    )
     task_resp = assert_ws_success(conn)["tasks"][0]
     assert task_resp["archived"] is False
     assert task_resp["status"] != MaintenanceStatus.ARCHIVED
@@ -421,40 +499,53 @@ async def test_ws_unarchive_recurring_task_starts_fresh_cycle(
 
 
 async def test_ws_unarchive_oneoff_stays_done(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A one-off keeps its terminal 'done' state on unarchive (no re-anchor)."""
     completed = _days_ago(30)
-    task = _oneoff_task(last_performed=completed, archived_at=_ts_days_ago(5),
-                        archived_reason=ARCHIVE_REASON_MANUAL)
+    task = _oneoff_task(last_performed=completed, archived_at=_ts_days_ago(5), archived_reason=ARCHIVE_REASON_MANUAL)
     entry = _object_entry_with_task(hass, task, uid="ms_unarch_oneoff")
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_unarchive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/unarchive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_unarchive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/unarchive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_success(conn)
 
     # last_performed unchanged (one-off NOT re-anchored).
-    assert get_task_store_state(hass, entry.entry_id, TASK_ID_1)[
-        "last_performed"
-    ] == completed
+    assert get_task_store_state(hass, entry.entry_id, TASK_ID_1)["last_performed"] == completed
 
 
 async def test_ws_unarchive_task_not_archived_errors(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     task = build_task_data(last_performed=_days_ago(10), interval_days=30)
     entry = _object_entry_with_task(hass, task, uid="ms_unarch_active")
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_unarchive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/unarchive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_unarchive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/unarchive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     assert_ws_error(conn, "not_archived")
 
 
@@ -464,24 +555,27 @@ async def test_ws_unarchive_task_not_archived_errors(
 
 
 def _object_entry_two_tasks(hass: HomeAssistant, *, uid: str) -> MockConfigEntry:
-    a = build_task_data(task_id=TASK_ID_1, name="A", last_performed=_days_ago(40),
-                        interval_days=30)
-    b = build_task_data(task_id=TASK_ID_2, name="B", last_performed=_days_ago(40),
-                        interval_days=30)
+    a = build_task_data(task_id=TASK_ID_1, name="A", last_performed=_days_ago(40), interval_days=30)
+    b = build_task_data(task_id=TASK_ID_2, name="B", last_performed=_days_ago(40), interval_days=30)
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Appliance",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Appliance",
         data=build_object_entry_data(
             object_data=build_object_data(name="Appliance"),
             tasks={TASK_ID_1: a, TASK_ID_2: b},
         ),
-        source="user", unique_id=uid,
+        source="user",
+        unique_id=uid,
     )
     entry.add_to_hass(hass)
     return entry
 
 
 async def test_ws_archive_object_cascades_to_active_tasks(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Archiving an object archives the object AND its active tasks (reason OBJECT),
     while a task archived manually beforehand keeps its own reason."""
@@ -490,18 +584,31 @@ async def test_ws_archive_object_cascades_to_active_tasks(
 
     # Manually archive B first.
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry.entry_id, "task_id": TASK_ID_2,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_2,
+        },
+    )
     assert_ws_success(conn)
 
     # Archive the object → cascades to the still-active A only.
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_object, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/object/archive",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_archive_object,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/archive",
+            "entry_id": entry.entry_id,
+        },
+    )
     payload = assert_ws_success(conn)
     assert payload["archived_at"]
 
@@ -513,7 +620,8 @@ async def test_ws_archive_object_cascades_to_active_tasks(
 
 
 async def test_ws_unarchive_object_uncascades_only_object_reason(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Unarchiving an object restores only the tasks IT archived; a manually
     archived task stays archived."""
@@ -523,24 +631,43 @@ async def test_ws_unarchive_object_uncascades_only_object_reason(
     # Manually archive B, then archive the object (cascades A as OBJECT).
     for mid, tid in ((1, TASK_ID_2),):
         conn = make_ws_connection()
-        await call_ws_handler(ws_archive_task, hass, conn, {
-            "id": mid, "type": "maintenance_supporter/task/archive",
-            "entry_id": entry.entry_id, "task_id": tid,
-        })
+        await call_ws_handler(
+            ws_archive_task,
+            hass,
+            conn,
+            {
+                "id": mid,
+                "type": "maintenance_supporter/task/archive",
+                "entry_id": entry.entry_id,
+                "task_id": tid,
+            },
+        )
         assert_ws_success(conn)
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_object, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/object/archive",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_archive_object,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/archive",
+            "entry_id": entry.entry_id,
+        },
+    )
     assert_ws_success(conn)
 
     # Unarchive the object.
     conn = make_ws_connection()
-    await call_ws_handler(ws_unarchive_object, hass, conn, {
-        "id": 3, "type": "maintenance_supporter/object/unarchive",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_unarchive_object,
+        hass,
+        conn,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/object/unarchive",
+            "entry_id": entry.entry_id,
+        },
+    )
     assert_ws_success(conn)
 
     data = hass.config_entries.async_get_entry(entry.entry_id).data
@@ -553,22 +680,35 @@ async def test_ws_unarchive_object_uncascades_only_object_reason(
 
 
 async def test_ws_archive_object_already_archived_errors(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     entry = _object_entry_two_tasks(hass, uid="ms_arch_obj_twice")
     await setup_integration(hass, global_entry, entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/archive",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_archive_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/archive",
+            "entry_id": entry.entry_id,
+        },
+    )
     assert_ws_success(conn)
     conn = make_ws_connection()
-    await call_ws_handler(ws_archive_object, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/object/archive",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_archive_object,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/archive",
+            "entry_id": entry.entry_id,
+        },
+    )
     assert_ws_error(conn, "already_archived")
 
 
@@ -586,12 +726,16 @@ async def test_sweep_auto_archives_aged_completed_oneoff(
     aged = _oneoff_task(task_id=TASK_ID_1, name="Aged", last_performed=_days_ago(30))
     fresh = _oneoff_task(task_id=TASK_ID_2, name="Fresh", last_performed=_days_ago(2))
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Sweeper",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Sweeper",
         data=build_object_entry_data(
             object_data=build_object_data(name="Sweeper"),
             tasks={TASK_ID_1: aged, TASK_ID_2: fresh},
         ),
-        source="user", unique_id="ms_sweep_archive",
+        source="user",
+        unique_id="ms_sweep_archive",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -612,20 +756,30 @@ async def test_sweep_auto_deletes_aged_auto_archive_but_not_manual(
     manual one."""
     global_entry = _global_entry_with_archive(hass, archive_days=0, delete_days=7)
     auto = _oneoff_task(
-        task_id=TASK_ID_1, name="AutoOld", last_performed=_days_ago(60),
-        archived_at=_ts_days_ago(20), archived_reason=ARCHIVE_REASON_AUTO,
+        task_id=TASK_ID_1,
+        name="AutoOld",
+        last_performed=_days_ago(60),
+        archived_at=_ts_days_ago(20),
+        archived_reason=ARCHIVE_REASON_AUTO,
     )
     manual = _oneoff_task(
-        task_id=TASK_ID_2, name="ManualOld", last_performed=_days_ago(60),
-        archived_at=_ts_days_ago(20), archived_reason=ARCHIVE_REASON_MANUAL,
+        task_id=TASK_ID_2,
+        name="ManualOld",
+        last_performed=_days_ago(60),
+        archived_at=_ts_days_ago(20),
+        archived_reason=ARCHIVE_REASON_MANUAL,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Deleter",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Deleter",
         data=build_object_entry_data(
             object_data=build_object_data(name="Deleter"),
             tasks={TASK_ID_1: auto, TASK_ID_2: manual},
         ),
-        source="user", unique_id="ms_sweep_delete",
+        source="user",
+        unique_id="ms_sweep_delete",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -635,7 +789,7 @@ async def test_sweep_auto_deletes_aged_auto_archive_but_not_manual(
 
     tasks = hass.config_entries.async_get_entry(entry.entry_id).data[CONF_TASKS]
     assert TASK_ID_1 not in tasks  # auto archive → deleted
-    assert TASK_ID_2 in tasks      # manual archive → kept
+    assert TASK_ID_2 in tasks  # manual archive → kept
 
 
 async def test_sweep_noop_when_disabled(hass: HomeAssistant) -> None:
@@ -643,12 +797,16 @@ async def test_sweep_noop_when_disabled(hass: HomeAssistant) -> None:
     global_entry = _global_entry_with_archive(hass, archive_days=0, delete_days=0)
     aged = _oneoff_task(task_id=TASK_ID_1, last_performed=_days_ago(999))
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Idle",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Idle",
         data=build_object_entry_data(
             object_data=build_object_data(name="Idle"),
             tasks={TASK_ID_1: aged},
         ),
-        source="user", unique_id="ms_sweep_noop",
+        source="user",
+        unique_id="ms_sweep_noop",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -667,43 +825,59 @@ async def test_sweep_noop_when_disabled(hass: HomeAssistant) -> None:
 
 
 async def test_status_counts_exclude_archived_but_keep_cost(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """An archived task drops out of total_tasks + the status buckets, but its
     spent cost still counts toward the cost total (budget is retained)."""
     active = build_task_data(
-        task_id=TASK_ID_1, name="Active", last_performed=_days_ago(60),
+        task_id=TASK_ID_1,
+        name="Active",
+        last_performed=_days_ago(60),
         interval_days=30,  # overdue
     )
     archived = _oneoff_task(
-        task_id=TASK_ID_2, name="Archived", last_performed=_days_ago(60),
-        archived_at=_ts_days_ago(2), archived_reason=ARCHIVE_REASON_MANUAL,
-        history=[{
-            "type": "completed", "cost": 50.0, "timestamp": _ts_days_ago(60),
-        }],
+        task_id=TASK_ID_2,
+        name="Archived",
+        last_performed=_days_ago(60),
+        archived_at=_ts_days_ago(2),
+        archived_reason=ARCHIVE_REASON_MANUAL,
+        history=[
+            {
+                "type": "completed",
+                "cost": 50.0,
+                "timestamp": _ts_days_ago(60),
+            }
+        ],
     )
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Counter",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Counter",
         data=build_object_entry_data(
             object_data=build_object_data(name="Counter"),
             tasks={TASK_ID_1: active, TASK_ID_2: archived},
         ),
-        source="user", unique_id="ms_counts",
+        source="user",
+        unique_id="ms_counts",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
 
     counts = compute_status_counts(hass)
     assert counts["total_tasks"] == 1  # archived excluded
-    assert counts["overdue"] == 1      # only the active task
+    assert counts["overdue"] == 1  # only the active task
     # Archived task's spent cost is retained in the cost total.
     assert counts["total_cost"] == 50.0
 
 
 def test_build_task_summary_exposes_archive_fields(hass: HomeAssistant) -> None:
     archived = {
-        "name": "T", "type": "custom",
-        "archived_at": _ts_days_ago(1), "archived_reason": ARCHIVE_REASON_MANUAL,
+        "name": "T",
+        "type": "custom",
+        "archived_at": _ts_days_ago(1),
+        "archived_reason": ARCHIVE_REASON_MANUAL,
     }
     res = _build_task_summary(hass, "tid", archived, None)
     assert res["archived"] is True
@@ -719,9 +893,13 @@ def test_build_object_response_exposes_archive_fields(hass: HomeAssistant) -> No
     obj = build_object_data(name="Box")
     obj["archived_at"] = _ts_days_ago(1)
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN, title="Box",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Box",
         data=build_object_entry_data(object_data=obj, tasks={}),
-        source="user", unique_id="ms_obj_resp_archive",
+        source="user",
+        unique_id="ms_obj_resp_archive",
     )
     entry.add_to_hass(hass)
     res = _build_object_response(hass, entry, None)

@@ -51,9 +51,7 @@ _TASK_IDS_SCHEMA = vol.All(
 # {task_id: page} jump-to-page hints; page 0 clears, >=1 sets (PDFs, #page=N).
 # A plain ``str`` type-key matches any task id — a ``vol.All(str, ...)`` key is
 # treated as an unknown key by voluptuous and rejected as "extra keys".
-_TASK_PAGES_SCHEMA = vol.Schema(
-    {str: vol.All(int, vol.Range(min=0, max=99999))}
-)
+_TASK_PAGES_SCHEMA = vol.Schema({str: vol.All(int, vol.Range(min=0, max=99999))})
 
 
 def _get_store(hass: HomeAssistant) -> DocumentStore:
@@ -85,9 +83,7 @@ async def ws_documents_list(
     connection.send_result(msg["id"], {"documents": documents})
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): "maintenance_supporter/documents/storage"}
-)
+@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/documents/storage"})
 @websocket_api.async_response
 async def ws_documents_storage(
     hass: HomeAssistant,
@@ -230,23 +226,23 @@ async def ws_documents_search(
     store = _get_store(hass)
     results: list[dict[str, Any]] = []
     for did, doc in store.documents.items():
-        haystack = " ".join(
-            [str(doc.get(f) or "") for f in _SEARCH_FIELDS] + list(doc.get("tags") or [])
-        ).lower()
+        haystack = " ".join([str(doc.get(f) or "") for f in _SEARCH_FIELDS] + list(doc.get("tags") or [])).lower()
         if query not in haystack:
             continue
         entry_id, name = obj_map.get(doc.get("object_id", ""), ("", ""))
-        results.append({
-            "id": did,
-            "entry_id": entry_id,
-            "object_name": name,
-            "kind": doc.get("kind"),
-            "title": doc.get("title"),
-            "filename": doc.get("filename"),
-            "url": doc.get("url"),
-            "size": doc.get("size"),
-            "tags": doc.get("tags") or [],
-        })
+        results.append(
+            {
+                "id": did,
+                "entry_id": entry_id,
+                "object_name": name,
+                "kind": doc.get("kind"),
+                "title": doc.get("title"),
+                "filename": doc.get("filename"),
+                "url": doc.get("url"),
+                "size": doc.get("size"),
+                "tags": doc.get("tags") or [],
+            }
+        )
         if len(results) >= _SEARCH_MAX_RESULTS:
             break
     connection.send_result(msg["id"], {"results": results})

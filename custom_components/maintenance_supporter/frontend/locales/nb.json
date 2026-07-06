@@ -679,5 +679,9 @@
   "replace_object": "Erstatt…",
   "replace_object_prompt": "Pensjoner dette objektet og opprett en etterfølger. Historikk og kostnader forblir arkivert på det gamle; oppgaver og dokumenter følger med til det nye, tellere starter på nytt.",
   "replace_name_label": "Etterfølgerens navn",
-  "object_replaced": "Objekt erstattet — etterfølger opprettet"
+  "object_replaced": "Objekt erstattet — etterfølger opprettet",
+  "reading_unit_label": "Avlesningsenhet (f.eks. kWh, m³)",
+  "reading_unit_help": "Vises ved siden av den registrerte verdien når oppgaven fullføres.",
+  "reading_value_label": "Avlest verdi",
+  "reading_label": "Avlesning"
 }

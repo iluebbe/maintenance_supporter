@@ -54,10 +54,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -67,7 +70,8 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_complete_during_coordinator_refresh(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Complete task while coordinator refresh is happening → both succeed."""
     now = dt_util.now().date()
@@ -76,7 +80,9 @@ async def test_complete_during_coordinator_refresh(
         interval_days=30,
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Concurrent Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Concurrent Test"),
@@ -101,11 +107,17 @@ async def test_complete_during_coordinator_refresh(
         refresh_task = hass.async_create_task(coordinator.async_refresh())
 
         conn = _mock_connection()
-        await call_ws_handler(ws_complete_task, hass, conn, {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": obj_entry.entry_id,
-            "task_id": TASK_ID_1,
-        })
+        await call_ws_handler(
+            ws_complete_task,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/complete",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+            },
+        )
 
         await refresh_task
 
@@ -118,29 +130,35 @@ async def test_complete_during_coordinator_refresh(
 
 
 async def test_multiple_task_completions_same_object(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Complete 3 tasks in rapid succession → all get correct state."""
     now = dt_util.now().date()
     tasks = {
         TASK_ID_1: build_task_data(
-            task_id=TASK_ID_1, name="Task A",
+            task_id=TASK_ID_1,
+            name="Task A",
             last_performed=(now - timedelta(days=40)).isoformat(),
             interval_days=30,
         ),
         TASK_ID_2: build_task_data(
-            task_id=TASK_ID_2, name="Task B",
+            task_id=TASK_ID_2,
+            name="Task B",
             last_performed=(now - timedelta(days=50)).isoformat(),
             interval_days=30,
         ),
         TASK_ID_3: build_task_data(
-            task_id=TASK_ID_3, name="Task C",
+            task_id=TASK_ID_3,
+            name="Task C",
             last_performed=(now - timedelta(days=60)).isoformat(),
             interval_days=30,
         ),
     }
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Multi Task",
         data=build_object_entry_data(
             object_data=build_object_data(name="Multi Task"),
@@ -163,12 +181,18 @@ async def test_multiple_task_completions_same_object(
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
         for tid, idx in [(TASK_ID_1, 1), (TASK_ID_2, 2), (TASK_ID_3, 3)]:
             conn = _mock_connection()
-            await call_ws_handler(ws_complete_task, hass, conn, {
-                "id": idx, "type": "maintenance_supporter/task/complete",
-                "entry_id": obj_entry.entry_id,
-                "task_id": tid,
-                "notes": f"Completed task {idx}",
-            })
+            await call_ws_handler(
+                ws_complete_task,
+                hass,
+                conn,
+                {
+                    "id": idx,
+                    "type": "maintenance_supporter/task/complete",
+                    "entry_id": obj_entry.entry_id,
+                    "task_id": tid,
+                    "notes": f"Completed task {idx}",
+                },
+            )
             conn.send_result.assert_called_once()
 
     await hass.async_block_till_done()
@@ -182,24 +206,29 @@ async def test_multiple_task_completions_same_object(
 
 
 async def test_store_delay_save_coalescing(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Multiple store writes within debounce window → verify no crash."""
     now = dt_util.now().date()
     tasks = {
         TASK_ID_1: build_task_data(
-            task_id=TASK_ID_1, name="Task A",
+            task_id=TASK_ID_1,
+            name="Task A",
             last_performed=(now - timedelta(days=40)).isoformat(),
             interval_days=30,
         ),
         TASK_ID_2: build_task_data(
-            task_id=TASK_ID_2, name="Task B",
+            task_id=TASK_ID_2,
+            name="Task B",
             last_performed=(now - timedelta(days=50)).isoformat(),
             interval_days=30,
         ),
     }
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Coalesce Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Coalesce Test"),
@@ -217,17 +246,29 @@ async def test_store_delay_save_coalescing(
 
     # Use real delay_save (don't patch) — just verify no crash
     conn1 = _mock_connection()
-    await call_ws_handler(ws_complete_task, hass, conn1, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn1,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn2 = _mock_connection()
-    await call_ws_handler(ws_complete_task, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/task/complete",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_2,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_2,
+        },
+    )
     await hass.async_block_till_done()
 
     conn1.send_result.assert_called_once()
@@ -235,27 +276,40 @@ async def test_store_delay_save_coalescing(
 
 
 async def test_create_delete_object_rapid(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Create object → delete immediately → no orphans."""
     await setup_integration(hass, global_entry)
 
     # Create
     conn1 = _mock_connection()
-    await call_ws_handler(ws_create_object, hass, conn1, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Ephemeral",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn1,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Ephemeral",
+        },
+    )
     conn1.send_result.assert_called_once()
     entry_id = conn1.send_result.call_args[0][1]["entry_id"]
     await hass.async_block_till_done()
 
     # Delete immediately
     conn2 = _mock_connection()
-    await call_ws_handler(ws_delete_object, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/object/delete",
-        "entry_id": entry_id,
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": entry_id,
+        },
+    )
     conn2.send_result.assert_called_once()
     await hass.async_block_till_done()
 

@@ -61,9 +61,7 @@ def _is_safe_url(url: str | None) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _check_nfc_tag_duplicate(
-    hass: HomeAssistant, nfc_tag_id: str, exclude_task_id: str | None = None
-) -> str | None:
+def _check_nfc_tag_duplicate(hass: HomeAssistant, nfc_tag_id: str, exclude_task_id: str | None = None) -> str | None:
     """Check if an NFC tag ID is already in use by another task.
 
     Returns a warning message if duplicate, or None.
@@ -75,10 +73,7 @@ def _check_nfc_tag_duplicate(
             if tid == exclude_task_id:
                 continue
             if tdata.get("nfc_tag_id") == nfc_tag_id:
-                return (
-                    f"NFC tag '{nfc_tag_id}' is already linked to task "
-                    f"'{tdata.get('name', tid)}' on object '{obj_name}'"
-                )
+                return f"NFC tag '{nfc_tag_id}' is already linked to task '{tdata.get('name', tid)}' on object '{obj_name}'"
     return None
 
 
@@ -98,17 +93,28 @@ _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
 }
 
 _TRIGGER_ALLOWED_KEYS: set[str] = {
-    "type", "entity_id", "entity_ids", "entity_logic", "attribute",
+    "type",
+    "entity_id",
+    "entity_ids",
+    "entity_logic",
+    "attribute",
     # threshold
-    "trigger_above", "trigger_below", "trigger_for_minutes",
+    "trigger_above",
+    "trigger_below",
+    "trigger_for_minutes",
     # counter
-    "trigger_target_value", "trigger_delta_mode",
+    "trigger_target_value",
+    "trigger_delta_mode",
     # runtime
-    "trigger_runtime_hours", "trigger_on_states",
+    "trigger_runtime_hours",
+    "trigger_on_states",
     # state_change
-    "trigger_from_state", "trigger_to_state", "trigger_target_changes",
+    "trigger_from_state",
+    "trigger_to_state",
+    "trigger_target_changes",
     # compound
-    "compound_logic", "conditions",
+    "compound_logic",
+    "conditions",
     # record a completion when the trigger clears itself (#53)
     "auto_complete_on_recovery",
 }
@@ -131,10 +137,7 @@ def _validate_trigger_config(
     # Trigger type
     trigger_type = trigger_config.get("type", "threshold")
     if trigger_type not in _VALID_TRIGGER_TYPES:
-        errors.append(
-            f"Invalid trigger type '{trigger_type}'. "
-            f"Must be one of: {', '.join(sorted(_VALID_TRIGGER_TYPES))}"
-        )
+        errors.append(f"Invalid trigger type '{trigger_type}'. Must be one of: {', '.join(sorted(_VALID_TRIGGER_TYPES))}")
         return errors, warnings
 
     # --- Compound triggers ---
@@ -151,9 +154,7 @@ def _validate_trigger_config(
             if state is None:
                 warnings.append(f"Entity {eid} does not exist (yet)")
             elif state.state in ("unavailable", "unknown"):
-                warnings.append(
-                    f"Entity {eid} is currently '{state.state}'"
-                )
+                warnings.append(f"Entity {eid} is currently '{state.state}'")
         # Ensure entity_id is set for backwards compat
         if not trigger_config.get("entity_id"):
             trigger_config["entity_id"] = entity_ids[0]
@@ -163,10 +164,7 @@ def _validate_trigger_config(
     # Validate entity_logic
     entity_logic = trigger_config.get("entity_logic")
     if entity_logic is not None and entity_logic not in ("any", "all"):
-        errors.append(
-            f"trigger_config.entity_logic must be 'any' or 'all', "
-            f"got '{entity_logic}'"
-        )
+        errors.append(f"trigger_config.entity_logic must be 'any' or 'all', got '{entity_logic}'")
 
     # Required fields per type
     for field in _TRIGGER_REQUIRED_FIELDS[trigger_type]:
@@ -176,27 +174,16 @@ def _validate_trigger_config(
     # Threshold: at least one of trigger_above or trigger_below
     if trigger_type == "threshold":
         if trigger_config.get("trigger_above") is None and trigger_config.get("trigger_below") is None:
-            errors.append(
-                "trigger_config requires at least one of "
-                "'trigger_above' or 'trigger_below' for type 'threshold'"
-            )
+            errors.append("trigger_config requires at least one of 'trigger_above' or 'trigger_below' for type 'threshold'")
 
     # Runtime: validate trigger_on_states if provided
     if trigger_type == "runtime":
         on_states = trigger_config.get("trigger_on_states")
         if on_states is not None:
-            if not isinstance(on_states, list) or not all(
-                isinstance(s, str) and s.strip() for s in on_states
-            ):
-                errors.append(
-                    "trigger_config.trigger_on_states must be a list of "
-                    "non-empty strings"
-                )
+            if not isinstance(on_states, list) or not all(isinstance(s, str) and s.strip() for s in on_states):
+                errors.append("trigger_config.trigger_on_states must be a list of non-empty strings")
             elif len(on_states) == 0:
-                errors.append(
-                    "trigger_config.trigger_on_states must not be empty "
-                    "when provided"
-                )
+                errors.append("trigger_config.trigger_on_states must not be empty when provided")
 
     # Strip unknown keys to prevent data pollution
     unknown = set(trigger_config) - _TRIGGER_ALLOWED_KEYS
@@ -237,15 +224,11 @@ def _validate_compound_trigger(
 
     compound_logic = trigger_config.get("compound_logic", "AND").upper()
     if compound_logic not in ("AND", "OR"):
-        errors.append(
-            f"compound_logic must be 'AND' or 'OR', got '{compound_logic}'"
-        )
+        errors.append(f"compound_logic must be 'AND' or 'OR', got '{compound_logic}'")
 
     conditions = trigger_config.get("conditions")
     if not isinstance(conditions, list) or len(conditions) < 2:
-        errors.append(
-            "Compound trigger requires 'conditions' list with at least 2 entries"
-        )
+        errors.append("Compound trigger requires 'conditions' list with at least 2 entries")
         return errors, warnings
 
     for idx, condition in enumerate(conditions):
@@ -254,9 +237,7 @@ def _validate_compound_trigger(
             continue
         cond_type = condition.get("type", "threshold")
         if cond_type == "compound":
-            errors.append(
-                f"Condition {idx}: nested compound triggers are not allowed"
-            )
+            errors.append(f"Condition {idx}: nested compound triggers are not allowed")
             continue
         # Validate each condition as a regular trigger
         cond_errors, cond_warnings = _validate_trigger_config(hass, condition)
@@ -266,5 +247,3 @@ def _validate_compound_trigger(
             warnings.append(f"Condition {idx}: {warn}")
 
     return errors, warnings
-
-

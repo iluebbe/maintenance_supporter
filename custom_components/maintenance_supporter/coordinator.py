@@ -58,9 +58,7 @@ _LOGGER = logging.getLogger(__name__)
 class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinator for a single maintenance object and its tasks."""
 
-    def __init__(
-        self, hass: HomeAssistant, entry: ConfigEntry, store: MaintenanceStore
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, store: MaintenanceStore) -> None:
         """Initialize the coordinator.
 
         A per-entry :class:`MaintenanceStore` is always provided (created in
@@ -109,9 +107,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _in_startup_grace_period(self) -> bool:
         """Return True if still within the startup grace period."""
-        return (
-            time.monotonic() - self._startup_time
-        ) < STARTUP_GRACE_PERIOD_SECONDS
+        return (time.monotonic() - self._startup_time) < STARTUP_GRACE_PERIOD_SECONDS
 
     async def _async_maybe_auto_resume(self) -> None:
         """Resume a seasonal pause whose ``paused_until`` day has arrived (N3).
@@ -128,9 +124,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not pause_due_for_auto_resume(obj_data, today):
             return
 
-        new_data = build_resumed_entry_data(
-            dict(self.entry.data), self._store, today.isoformat()
-        )
+        new_data = build_resumed_entry_data(dict(self.entry.data), self._store, today.isoformat())
         self.hass.config_entries.async_update_entry(self.entry, data=new_data)
         await self._store.async_save()
         _LOGGER.info(
@@ -147,10 +141,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def tasks(self) -> dict[str, MaintenanceTask]:
         """Return all tasks, merging static config with Store dynamic state."""
         tasks_data = self._store.merge_all_tasks(self.entry.data.get(CONF_TASKS, {}))
-        return {
-            task_id: MaintenanceTask.from_dict(task_data)
-            for task_id, task_data in tasks_data.items()
-        }
+        return {task_id: MaintenanceTask.from_dict(task_data) for task_id, task_data in tasks_data.items()}
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch and compute the current state of all tasks."""
@@ -169,12 +160,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Clean up expired cooldown entries
         now_mono = time.monotonic()
         self._recently_completed = {
-            tid: ts for tid, ts in self._recently_completed.items()
-            if now_mono - ts < TRIGGER_COMPLETION_COOLDOWN_SECONDS
+            tid: ts for tid, ts in self._recently_completed.items() if now_mono - ts < TRIGGER_COMPLETION_COOLDOWN_SECONDS
         }
         self._recent_manual_completions = {
-            tid: ts for tid, ts in self._recent_manual_completions.items()
-            if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
+            tid: ts for tid, ts in self._recent_manual_completions.items() if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
         }
 
         result: dict[str, Any] = {
@@ -245,10 +234,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     task._trigger_current_value = prev_task["_trigger_current_value"]
 
             # Check sensor-based triggers (fallback for threshold/counter)
-            if (
-                task.schedule_type == ScheduleType.SENSOR_BASED
-                and task.trigger_config
-            ):
+            if task.schedule_type == ScheduleType.SENSOR_BASED and task.trigger_config:
                 await self._evaluate_trigger_fallback(task, task_id)
 
             # Feature-flag gate: zero out schedule_time so the model's
@@ -265,15 +251,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task_result = task.to_dict()
             task_result["_status"] = status
             task_result["_days_until_due"] = task.days_until_due
-            task_result["_next_due"] = (
-                task.next_due.isoformat() if task.next_due else None
-            )
+            task_result["_next_due"] = task.next_due.isoformat() if task.next_due else None
             task_result["_is_done"] = task.is_done
             task_result["_trigger_active"] = task._trigger_active
             task_result["_trigger_current_value"] = task._trigger_current_value
-            task_result["_trigger_entity_state"] = self._trigger_entity_states.get(
-                task_id, TriggerEntityState.AVAILABLE
-            )
+            task_result["_trigger_entity_state"] = self._trigger_entity_states.get(task_id, TriggerEntityState.AVAILABLE)
 
             # Expose counter delta data for frontend visualization
             tc = task.trigger_config
@@ -281,7 +263,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Check per-entity _trigger_state first, fall back to flat key
                 baseline = None
                 trigger_state = tc.get("_trigger_state", {})
-                for eid in (tc.get("entity_ids") or [tc.get("entity_id")]):
+                for eid in tc.get("entity_ids") or [tc.get("entity_id")]:
                     if eid:
                         es = trigger_state.get(eid, {})
                         if "baseline_value" in es:
@@ -299,9 +281,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     # current_value left the graph stuck at the old delta (#runtime-graph).
                     task_result["_trigger_baseline_value"] = baseline
                     if task._trigger_current_value is not None:
-                        task_result["_trigger_current_delta"] = (
-                            task._trigger_current_value - baseline
-                        )
+                        task_result["_trigger_current_delta"] = task._trigger_current_value - baseline
             task_result["_times_performed"] = task.times_performed
             task_result["_total_cost"] = task.total_cost
             task_result["_average_duration"] = task.average_duration
@@ -311,11 +291,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # reasons entirely in days and applying a suggestion overwrites
             # interval_days; on a weeks/months/years task that would corrupt the
             # schedule (e.g. interval_days=90 left with unit=months → +90 months).
-            if (
-                task.adaptive_config
-                and task.adaptive_config.get("enabled")
-                and task.interval_unit in (None, "days")
-            ):
+            if task.adaptive_config and task.adaptive_config.get("enabled") and task.interval_unit in (None, "days"):
                 # Guarded like the sensor-prediction block below: a malformed
                 # history / analysis error must not abort the whole refresh and
                 # stall every task in this object.
@@ -326,9 +302,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     # Inject hemisphere and current month for seasonal awareness.
                     # latitude is None on an un-onboarded HA → default to north.
                     analysis_config = dict(task.adaptive_config)
-                    analysis_config["hemisphere"] = (
-                        "south" if (self.hass.config.latitude or 0) < 0 else "north"
-                    )
+                    analysis_config["hemisphere"] = "south" if (self.hass.config.latitude or 0) < 0 else "north"
                     analysis_config["_current_month"] = dt_util.now().month
                     analysis = analyzer.analyze(task_result, analysis_config)
                     task_result["_suggested_interval"] = analysis.recommended_interval
@@ -367,9 +341,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     from .helpers.sensor_predictor import SensorPredictor
 
                     predictor = SensorPredictor(self.hass)
-                    prediction = await predictor.async_analyze(
-                        task_result, adaptive_cfg
-                    )
+                    prediction = await predictor.async_analyze(task_result, adaptive_cfg)
                     if prediction:
                         # Degradation data
                         if prediction.degradation:
@@ -382,28 +354,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         # Threshold prediction
                         if prediction.threshold_prediction:
                             tp = prediction.threshold_prediction
-                            task_result["_days_until_threshold"] = (
-                                tp.days_until_threshold
-                            )
-                            task_result["_threshold_prediction_date"] = (
-                                tp.predicted_date
-                            )
-                            task_result["_threshold_prediction_confidence"] = (
-                                tp.confidence
-                            )
+                            task_result["_days_until_threshold"] = tp.days_until_threshold
+                            task_result["_threshold_prediction_date"] = tp.predicted_date
+                            task_result["_threshold_prediction_confidence"] = tp.confidence
 
                             # Urgency check: threshold will be reached sooner
                             # than the current maintenance interval
-                            current_interval = (
-                                task.interval_days or DEFAULT_INTERVAL_DAYS
-                            )
+                            current_interval = task.interval_days or DEFAULT_INTERVAL_DAYS
                             suggested = task_result.get("_suggested_interval")
                             effective_interval = suggested or current_interval
                             if (
                                 tp.days_until_threshold is not None
                                 and tp.days_until_threshold > 0
-                                and tp.days_until_threshold
-                                < effective_interval * 0.9
+                                and tp.days_until_threshold < effective_interval * 0.9
                             ):
                                 task_result["_sensor_prediction_urgency"] = True
                                 # Override suggested interval with 90% safety
@@ -411,28 +374,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                                     1,
                                     int(tp.days_until_threshold * 0.9),
                                 )
-                                task_result["_suggested_interval"] = (
-                                    urgency_interval
-                                )
+                                task_result["_suggested_interval"] = urgency_interval
 
                         # Environmental factor
                         if prediction.environmental:
                             env = prediction.environmental
-                            task_result["_environmental_factor"] = (
-                                env.adjustment_factor
-                            )
+                            task_result["_environmental_factor"] = env.adjustment_factor
                             task_result["_environmental_entity"] = env.entity_id
-                            task_result["_environmental_correlation"] = (
-                                env.correlation
-                            )
+                            task_result["_environmental_correlation"] = env.correlation
 
                             # Apply environmental factor to suggested interval
                             si = task_result.get("_suggested_interval")
-                            if (
-                                si is not None
-                                and env.adjustment_factor != 1.0
-                                and env.has_sufficient_data
-                            ):
+                            if si is not None and env.adjustment_factor != 1.0 and env.has_sufficient_data:
                                 task_result["_suggested_interval"] = max(
                                     1,
                                     int(si * env.adjustment_factor),
@@ -524,13 +477,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Dispatch to the pure per-type evaluators (helpers/trigger_fallback);
         # this method only applies what they learned.
         if trigger_type == "threshold":
-            result = evaluate_threshold(
-                self.hass.states.get, task.trigger_config, entity_ids
-            )
+            result = evaluate_threshold(self.hass.states.get, task.trigger_config, entity_ids)
         elif trigger_type == "counter":
-            result = evaluate_counter(
-                self.hass.states.get, task.trigger_config, entity_ids
-            )
+            result = evaluate_counter(self.hass.states.get, task.trigger_config, entity_ids)
         elif trigger_type == "state_change":
             result = evaluate_state_change(task.trigger_config, entity_ids)
         elif trigger_type == "runtime":
@@ -543,9 +492,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if result.active is not None:
             task._trigger_active = result.active
 
-    async def _async_check_for_issues(
-        self, tasks: dict[str, MaintenanceTask]
-    ) -> None:
+    async def _async_check_for_issues(self, tasks: dict[str, MaintenanceTask]) -> None:
         """Check trigger entity availability and create/remove repair issues.
 
         Uses a tiered approach:
@@ -612,8 +559,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ):
                         worst_state = TriggerEntityState.STARTUP
                     _LOGGER.debug(
-                        "Trigger entity %s not yet available (startup grace period), "
-                        "skipping issue creation for task '%s'",
+                        "Trigger entity %s not yet available (startup grace period), skipping issue creation for task '%s'",
                         trigger_entity_id,
                         task.name,
                     )
@@ -626,8 +572,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
                     if count < MISSING_ENTITY_THRESHOLD_REFRESHES:
                         _LOGGER.debug(
-                            "Trigger entity %s missing for task '%s' "
-                            "(refresh %d/%d before issue)",
+                            "Trigger entity %s missing for task '%s' (refresh %d/%d before issue)",
                             trigger_entity_id,
                             task.name,
                             count,
@@ -722,9 +667,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         },
                     )
 
-    async def _async_notify_status_changes(
-        self, task_results: dict[str, Any]
-    ) -> None:
+    async def _async_notify_status_changes(self, task_results: dict[str, Any]) -> None:
         """Pass tasks with notifiable statuses to the NotificationManager.
 
         The NotificationManager handles deduplication and repeat intervals
@@ -832,11 +775,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if ce_store is not None:
                     history = ce_store.get_history(tid)
                 else:
-                    history = (
-                        ce.data.get(CONF_TASKS, {})
-                        .get(tid, {})
-                        .get("history", [])
-                    )
+                    history = ce.data.get(CONF_TASKS, {}).get(tid, {}).get("history", [])
 
                 for h_entry in history:
                     if h_entry.get("type") != "completed":
@@ -869,9 +808,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "last_updated": now,
         }
 
-    async def _async_check_budget(
-        self, task_results: dict[str, Any]
-    ) -> None:
+    async def _async_check_budget(self, task_results: dict[str, Any]) -> None:
         """Check budget thresholds using cached totals."""
         from .helpers.notification_manager import NotificationManager
 
@@ -899,12 +836,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         currency_symbol = BUDGET_CURRENCIES.get(currency_code, "€")
 
         # Use cached budget totals (recalculate if stale or missing)
-        cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get(
-            "_budget_cache"
-        )
-        if cache is None or (
-            dt_util.now() - cache["last_updated"]
-        ).total_seconds() > 3600:
+        cache: dict[str, Any] | None = self.hass.data.get(DOMAIN, {}).get("_budget_cache")
+        if cache is None or (dt_util.now() - cache["last_updated"]).total_seconds() > 3600:
             self._recalculate_budget_cache()
             cache = self.hass.data[DOMAIN]["_budget_cache"]
 
@@ -913,15 +846,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Check monthly
         if monthly_budget > 0 and monthly_spent >= monthly_budget * threshold_pct:
-            await nm.async_budget_alert(
-                "monthly", monthly_spent, monthly_budget, currency_symbol
-            )
+            await nm.async_budget_alert("monthly", monthly_spent, monthly_budget, currency_symbol)
 
         # Check yearly
         if yearly_budget > 0 and yearly_spent >= yearly_budget * threshold_pct:
-            await nm.async_budget_alert(
-                "yearly", yearly_spent, yearly_budget, currency_symbol
-            )
+            await nm.async_budget_alert("yearly", yearly_spent, yearly_budget, currency_symbol)
 
     # --- Helpers ---
 
@@ -999,6 +928,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         feedback: str | None = None,
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
+        reading_value: float | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
         merged = self._get_merged_tasks_data()
@@ -1016,14 +946,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # from _recently_completed: that one is also stamped by skip/reset,
         # and a complete right after a date-correction reset must go through.
         last_manual = self._recent_manual_completions.get(task_id)
-        if (
-            last_manual is not None
-            and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS
-        ):
+        if last_manual is not None and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS:
             _LOGGER.info(
-                "Ignoring duplicate completion of %s within %.0fs (double-tap "
-                "from a second device?)",
-                task_id, time.monotonic() - last_manual,
+                "Ignoring duplicate completion of %s within %.0fs (double-tap from a second device?)",
+                task_id,
+                time.monotonic() - last_manual,
             )
             return
 
@@ -1040,9 +967,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 actual_interval = None
 
         task.complete(
-            notes=notes, cost=cost, duration=duration,
-            checklist_state=checklist_state, feedback=feedback,
-            completed_by=completed_by, photo_doc_id=photo_doc_id,
+            notes=notes,
+            cost=cost,
+            duration=duration,
+            checklist_state=checklist_state,
+            feedback=feedback,
+            completed_by=completed_by,
+            photo_doc_id=photo_doc_id,
+            reading_value=reading_value,
         )
 
         # Link the completion photo to this task so it also surfaces under the
@@ -1059,19 +991,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 analyzer = IntervalAnalyzer()
                 # Store the base interval for blending reference
                 if "base_interval" not in task.adaptive_config:
-                    task.adaptive_config["base_interval"] = (
-                        task.interval_days or DEFAULT_INTERVAL_DAYS
-                    )
+                    task.adaptive_config["base_interval"] = task.interval_days or DEFAULT_INTERVAL_DAYS
                 # Inject hemisphere, current month/date for seasonal awareness
-                task.adaptive_config["hemisphere"] = (
-                    "south" if (self.hass.config.latitude or 0) < 0 else "north"
-                )
+                task.adaptive_config["hemisphere"] = "south" if (self.hass.config.latitude or 0) < 0 else "north"
                 now = dt_util.now()
                 task.adaptive_config["_current_month"] = now.month
                 task.adaptive_config["_current_date"] = now.date().isoformat()
-                updated_config = analyzer.update_on_completion(
-                    task.adaptive_config, actual_interval, feedback
-                )
+                updated_config = analyzer.update_on_completion(task.adaptive_config, actual_interval, feedback)
                 task.adaptive_config = updated_config
 
         self._recent_manual_completions[task_id] = time.monotonic()
@@ -1098,9 +1024,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if cost is not None:
             self._recalculate_budget_cache()
 
-        _LOGGER.debug(
-            "Maintenance completed: %s on %s", task.name, self.maintenance_object.name
-        )
+        _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 
         # Fire event after persistence — power users wire HA automations on
         # this; the integration's own action_listener also subscribes here
@@ -1108,15 +1032,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.hass.bus.async_fire(
             EVENT_TASK_COMPLETED,
             self._lifecycle_event_payload(
-                task, task_id,
-                notes=notes, cost=cost, duration=duration,
-                feedback=feedback, completed_by=completed_by,
+                task,
+                task_id,
+                notes=notes,
+                cost=cost,
+                duration=duration,
+                feedback=feedback,
+                completed_by=completed_by,
             ),
         )
 
-    async def async_auto_complete_on_recovery(
-        self, task_id: str, trigger_value: float
-    ) -> None:
+    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float) -> None:
         """Record a completion because the task's trigger cleared itself (#53).
 
         Called from ``BaseTrigger._on_trigger_deactivated`` when the task opted
@@ -1147,14 +1073,17 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if last_ts is not None and (dt_util.now() - last_ts).total_seconds() < 120:
                 _LOGGER.debug(
                     "Skipping auto-complete for %s: completed %.0fs ago",
-                    task_id, (dt_util.now() - last_ts).total_seconds(),
+                    task_id,
+                    (dt_util.now() - last_ts).total_seconds(),
                 )
                 return
             break
 
         _LOGGER.info(
             "Auto-completing task %s on %s: trigger recovered (value: %s)",
-            task_id, self.maintenance_object.name, trigger_value,
+            task_id,
+            self.maintenance_object.name,
+            trigger_value,
         )
         await self.complete_maintenance(
             task_id,
@@ -1180,14 +1109,14 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         await self._persist_and_signal_task_change(task_id, task)
 
-        _LOGGER.debug(
-            "Maintenance reset: %s on %s", task.name, self.maintenance_object.name
-        )
+        _LOGGER.debug("Maintenance reset: %s on %s", task.name, self.maintenance_object.name)
 
         self.hass.bus.async_fire(
             EVENT_TASK_RESET,
             self._lifecycle_event_payload(
-                task, task_id, reset_date=task.last_performed,
+                task,
+                task_id,
+                reset_date=task.last_performed,
             ),
         )
 
@@ -1214,9 +1143,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         await self._persist_and_signal_task_change(task_id, task)
 
-        _LOGGER.debug(
-            "Maintenance skipped: %s on %s", task.name, self.maintenance_object.name
-        )
+        _LOGGER.debug("Maintenance skipped: %s on %s", task.name, self.maintenance_object.name)
 
         self.hass.bus.async_fire(
             EVENT_TASK_SKIPPED,
@@ -1224,7 +1151,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     async def _persist_and_signal_task_change(
-        self, task_id: str, task: MaintenanceTask,
+        self,
+        task_id: str,
+        task: MaintenanceTask,
     ) -> None:
         """Single source of truth for the post-mutation persistence dance.
 
@@ -1244,7 +1173,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.async_request_refresh()
 
     def _lifecycle_event_payload(
-        self, task: MaintenanceTask, task_id: str, **extra: Any,
+        self,
+        task: MaintenanceTask,
+        task_id: str,
+        **extra: Any,
     ) -> dict[str, Any]:
         """Build the common envelope shared by all task-lifecycle events.
 
@@ -1262,9 +1194,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             **extra,
         }
 
-    async def async_apply_suggested_interval(
-        self, task_id: str, interval: int
-    ) -> None:
+    async def async_apply_suggested_interval(self, task_id: str, interval: int) -> None:
         """Apply a suggested interval to a task (static config → ConfigEntry)."""
         tasks_data = dict(self.entry.data.get(CONF_TASKS, {}))
         if task_id not in tasks_data:
@@ -1290,7 +1220,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         _LOGGER.info(
             "Adaptive: interval %s→%s for task %s",
-            old_interval, interval, task_id,
+            old_interval,
+            interval,
+            task_id,
         )
 
     async def _async_persist_tasks(self, tasks_data: dict[str, Any]) -> None:

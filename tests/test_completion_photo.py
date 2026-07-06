@@ -72,9 +72,13 @@ def _conn() -> MagicMock:
 
 def _global(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -82,25 +86,33 @@ def _global(hass: HomeAssistant) -> MockConfigEntry:
 
 def _object(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Pool Pump",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pool Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Pool Pump"),
             tasks={TASK_ID_1: build_task_data(last_performed="2024-06-01")},
         ),
-        source="user", unique_id="maintenance_supporter_photo_obj",
+        source="user",
+        unique_id="maintenance_supporter_photo_obj",
     )
     entry.add_to_hass(hass)
     return entry
 
 
-async def _history_after_complete(
-    hass: HomeAssistant, obj: MockConfigEntry
-) -> list[dict]:
+async def _history_after_complete(hass: HomeAssistant, obj: MockConfigEntry) -> list[dict]:
     conn = _conn()
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 9, "type": "maintenance_supporter/object",
-        "entry_id": obj.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 9,
+            "type": "maintenance_supporter/object",
+            "entry_id": obj.entry_id,
+        },
+    )
     tasks = conn.send_result.call_args[0][1]["tasks"]
     task = next(t for t in tasks if t["id"] == TASK_ID_1)
     return task["history"]
@@ -113,16 +125,26 @@ async def test_ws_complete_with_photo_links_doc(hass: HomeAssistant) -> None:
 
     store: DocumentStore = hass.data[DOMAIN][DOCUMENT_STORE_KEY]
     doc = await store.async_add_file(
-        OBJECT_ID_1, content=b"\x89PNG fake", filename="done.png",
-        mime="image/png", tags=["photo"],
+        OBJECT_ID_1,
+        content=b"\x89PNG fake",
+        filename="done.png",
+        mime="image/png",
+        tags=["photo"],
     )
 
     conn = _conn()
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": obj.entry_id, "task_id": TASK_ID_1,
-        "photo_doc_id": doc["id"],
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+            "photo_doc_id": doc["id"],
+        },
+    )
     conn.send_result.assert_called_once()
 
     history = await _history_after_complete(hass, obj)
@@ -143,11 +165,18 @@ async def test_ws_complete_with_unknown_photo_still_completes(
     await setup_integration(hass, global_entry, obj)
 
     conn = _conn()
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": obj.entry_id, "task_id": TASK_ID_1,
-        "photo_doc_id": "does-not-exist",
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+            "photo_doc_id": "does-not-exist",
+        },
+    )
     # Completion succeeds; the (unknown) id is still recorded on the entry.
     conn.send_result.assert_called_once()
     history = await _history_after_complete(hass, obj)

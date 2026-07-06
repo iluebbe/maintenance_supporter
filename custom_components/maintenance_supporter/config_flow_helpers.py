@@ -28,10 +28,21 @@ _LOGGER = logging.getLogger(__name__)
 # config-flow i18n surface small; the kind names are translated via strings.json.
 CALENDAR_KIND_VALUES = (KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH)
 _WEEKDAY_LABELS = (
-    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
 )
 _NTH_OPTIONS = (
-    ("1", "1st"), ("2", "2nd"), ("3", "3rd"), ("4", "4th"), ("5", "5th"), ("-1", "Last"),
+    ("1", "1st"),
+    ("2", "2nd"),
+    ("3", "3rd"),
+    ("4", "4th"),
+    ("5", "5th"),
+    ("-1", "Last"),
 )
 
 
@@ -40,69 +51,48 @@ def calendar_schema(kind: str, current: dict[str, Any] | None = None) -> vol.Sch
     day_of_month). Shared by the config + options flows (DRY). Callers extend it
     with their own warning_days / last_performed / go_back fields."""
     cur = current or {}
-    weekday_opts = [
-        selector.SelectOptionDict(value=str(i), label=lbl)
-        for i, lbl in enumerate(_WEEKDAY_LABELS)
-    ]
+    weekday_opts = [selector.SelectOptionDict(value=str(i), label=lbl) for i, lbl in enumerate(_WEEKDAY_LABELS)]
     fields: dict[Any, Any] = {}
     if kind == KIND_WEEKDAYS:
-        fields[vol.Required("weekdays", default=cur.get("weekdays", []))] = (
-            selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=weekday_opts, multiple=True,
-                    mode=selector.SelectSelectorMode.LIST,
-                )
+        fields[vol.Required("weekdays", default=cur.get("weekdays", []))] = selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=weekday_opts,
+                multiple=True,
+                mode=selector.SelectSelectorMode.LIST,
             )
         )
     elif kind == KIND_NTH_WEEKDAY:
-        fields[vol.Required("nth", default=cur.get("nth", "1"))] = (
-            selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=[selector.SelectOptionDict(value=v, label=lbl)
-                             for v, lbl in _NTH_OPTIONS],
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                )
+        fields[vol.Required("nth", default=cur.get("nth", "1"))] = selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[selector.SelectOptionDict(value=v, label=lbl) for v, lbl in _NTH_OPTIONS],
+                mode=selector.SelectSelectorMode.DROPDOWN,
             )
         )
-        fields[vol.Required("weekday", default=cur.get("weekday", "5"))] = (
-            selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=weekday_opts, mode=selector.SelectSelectorMode.DROPDOWN,
-                )
+        fields[vol.Required("weekday", default=cur.get("weekday", "5"))] = selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=weekday_opts,
+                mode=selector.SelectSelectorMode.DROPDOWN,
             )
         )
     elif kind == KIND_DAY_OF_MONTH:
-        fields[vol.Required("day", default=cur.get("day", 1))] = (
-            selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1, max=31, step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            )
+        fields[vol.Required("day", default=cur.get("day", 1))] = selector.NumberSelector(
+            selector.NumberSelectorConfig(min=1, max=31, step=1, mode=selector.NumberSelectorMode.BOX)
         )
         # (#83) end-of-month options: "last day" overrides the day number;
         # "business" rolls a weekend date back to Friday.
-        fields[vol.Optional("last_day", default=cur.get("last_day", False))] = (
-            selector.BooleanSelector()
-        )
-        fields[vol.Optional("business", default=cur.get("business", False))] = (
-            selector.BooleanSelector()
-        )
+        fields[vol.Optional("last_day", default=cur.get("last_day", False))] = selector.BooleanSelector()
+        fields[vol.Optional("business", default=cur.get("business", False))] = selector.BooleanSelector()
     # (#83) ±N-day shift of the computed occurrence, on every calendar kind
     # ("two days before the last working day" = last_day + business + offset -2).
-    fields[vol.Optional("offset", default=cur.get("offset", 0))] = (
-        selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=-15, max=15, step=1, mode=selector.NumberSelectorMode.BOX
-            )
-        )
+    fields[vol.Optional("offset", default=cur.get("offset", 0))] = selector.NumberSelector(
+        selector.NumberSelectorConfig(min=-15, max=15, step=1, mode=selector.NumberSelectorMode.BOX)
     )
     return vol.Schema(fields)
 
 
-def schedule_from_calendar_input(
-    kind: str, user_input: dict[str, Any]
-) -> dict[str, Any] | None:
+def schedule_from_calendar_input(kind: str, user_input: dict[str, Any]) -> dict[str, Any] | None:
     """Build the nested `schedule` dict from a calendar step's user_input."""
+
     def _with_offset(schedule: dict[str, Any]) -> dict[str, Any]:
         offset = int(user_input.get("offset", 0) or 0)
         if offset:
@@ -113,11 +103,13 @@ def schedule_from_calendar_input(
         days = sorted(int(d) for d in user_input.get("weekdays", []))
         return _with_offset({"kind": KIND_WEEKDAYS, "weekdays": days}) if days else None
     if kind == KIND_NTH_WEEKDAY:
-        return _with_offset({
-            "kind": KIND_NTH_WEEKDAY,
-            "nth": int(user_input["nth"]),
-            "weekday": int(user_input["weekday"]),
-        })
+        return _with_offset(
+            {
+                "kind": KIND_NTH_WEEKDAY,
+                "nth": int(user_input["nth"]),
+                "weekday": int(user_input["weekday"]),
+            }
+        )
     if kind == KIND_DAY_OF_MONTH:
         # (#83) "last day" wins over the day number; business rolls back weekends.
         day = -1 if user_input.get("last_day") else int(user_input.get("day", 1))
@@ -185,9 +177,7 @@ async def async_get_threshold_suggestions(
 
         attribute = current_task.get("trigger_config", {}).get("attribute")
         calculator = ThresholdCalculator(hass)
-        return await calculator.async_calculate_suggestions(
-            trigger_entity_id, attribute, analysis
-        )
+        return await calculator.async_calculate_suggestions(trigger_entity_id, attribute, analysis)
     except (HomeAssistantError, ValueError, TypeError, KeyError):
         _LOGGER.debug(
             "Failed to get threshold suggestions for %s",

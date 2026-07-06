@@ -41,10 +41,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -59,7 +62,9 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
         {"timestamp": "2024-06-01T00:00:00", "type": "completed"},
     ]
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -73,17 +78,25 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_analyze_interval_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test analyze_interval returns analysis result."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_analyze_interval, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/analyze_interval",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_analyze_interval,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/analyze_interval",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -95,51 +108,73 @@ async def test_analyze_interval_basic(
 
 
 async def test_analyze_interval_not_found_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test analyze_interval with non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_analyze_interval, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/analyze_interval",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_analyze_interval,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/analyze_interval",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_analyze_interval_not_found_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test analyze_interval with non-existent task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_analyze_interval, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/analyze_interval",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task",
-    })
+    await call_ws_handler(
+        ws_analyze_interval,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/analyze_interval",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_analyze_interval_rejects_global(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test analyze_interval rejects global config entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_analyze_interval, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/analyze_interval",
-        "entry_id": global_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_analyze_interval,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/analyze_interval",
+            "entry_id": global_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -148,18 +183,26 @@ async def test_analyze_interval_rejects_global(
 
 
 async def test_apply_suggestion_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test applying a suggested interval."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_apply_suggestion, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/apply_suggestion",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "interval": 45,
-    })
+    await call_ws_handler(
+        ws_apply_suggestion,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/apply_suggestion",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "interval": 45,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -167,19 +210,27 @@ async def test_apply_suggestion_basic(
 
 
 async def test_apply_suggestion_unknown_task_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """L6: a valid coordinator but an unknown task_id must return not_found, not
     a no-op success."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_apply_suggestion, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/apply_suggestion",
-        "entry_id": object_entry.entry_id,
-        "task_id": "does_not_exist",
-        "interval": 45,
-    })
+    await call_ws_handler(
+        ws_apply_suggestion,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/apply_suggestion",
+            "entry_id": object_entry.entry_id,
+            "task_id": "does_not_exist",
+            "interval": 45,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -187,18 +238,25 @@ async def test_apply_suggestion_unknown_task_id(
 
 
 async def test_apply_suggestion_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test apply_suggestion with non-existent coordinator."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_apply_suggestion, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/apply_suggestion",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-        "interval": 45,
-    })
+    await call_ws_handler(
+        ws_apply_suggestion,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/apply_suggestion",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+            "interval": 45,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -208,18 +266,26 @@ async def test_apply_suggestion_not_found(
 
 
 async def test_seasonal_overrides_set(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test setting seasonal overrides."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "overrides": {"7": 0.5, "1": 2.0},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "overrides": {"7": 0.5, "1": 2.0},
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -233,18 +299,26 @@ async def test_seasonal_overrides_set(
 
 
 async def test_seasonal_overrides_clear(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test clearing seasonal overrides with empty dict."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "overrides": {},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "overrides": {},
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -253,89 +327,128 @@ async def test_seasonal_overrides_clear(
 
 
 async def test_seasonal_overrides_invalid_month(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test seasonal overrides with invalid month (>12)."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "overrides": {"13": 1.0},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "overrides": {"13": 1.0},
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_input"
 
 
 async def test_seasonal_overrides_invalid_factor(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test seasonal overrides with factor out of range."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "overrides": {"6": 10.0},  # >5.0
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "overrides": {"6": 10.0},  # >5.0
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_input"
 
 
 async def test_seasonal_overrides_invalid_key_type(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test seasonal overrides with non-numeric key."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "overrides": {"abc": 1.0},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "overrides": {"abc": 1.0},
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_input"
 
 
 async def test_seasonal_overrides_not_found_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test seasonal overrides with non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-        "overrides": {},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+            "overrides": {},
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_seasonal_overrides_not_found_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test seasonal overrides with non-existent task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task",
-        "overrides": {},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task",
+            "overrides": {},
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -344,18 +457,26 @@ async def test_seasonal_overrides_not_found_task(
 
 
 async def test_set_environmental_entity(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test setting environmental entity."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "environmental_entity": "sensor.outdoor_temp",
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "environmental_entity": "sensor.outdoor_temp",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -368,19 +489,27 @@ async def test_set_environmental_entity(
 
 
 async def test_set_environmental_entity_with_attribute(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test setting environmental entity with attribute."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "environmental_entity": "sensor.weather",
-        "environmental_attribute": "temperature",
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "environmental_entity": "sensor.weather",
+            "environmental_attribute": "temperature",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -392,28 +521,42 @@ async def test_set_environmental_entity_with_attribute(
 
 
 async def test_clear_environmental_entity(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test clearing environmental entity binding."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
     # First set it
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "environmental_entity": "sensor.outdoor_temp",
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "environmental_entity": "sensor.outdoor_temp",
+        },
+    )
 
     # Then clear it
     conn.reset_mock()
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "environmental_entity": None,
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "environmental_entity": None,
+        },
+    )
 
     conn.send_result.assert_called_once()
     state = get_task_store_state(hass, object_entry.entry_id, TASK_ID_1)
@@ -422,35 +565,50 @@ async def test_clear_environmental_entity(
 
 
 async def test_set_environmental_entity_not_found_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test set_environmental_entity with non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-        "environmental_entity": "sensor.temp",
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+            "environmental_entity": "sensor.temp",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_set_environmental_entity_not_found_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test set_environmental_entity with non-existent task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task",
-        "environmental_entity": "sensor.temp",
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task",
+            "environmental_entity": "sensor.temp",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -483,7 +641,9 @@ def _c97_conn() -> MagicMock:
 
 
 async def test_seasonal_overrides_legacy_store_none(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 187-193: legacy path in ws_seasonal_overrides when store is None."""
     await setup_integration(hass, global_entry, object_entry)
@@ -495,20 +655,27 @@ async def test_seasonal_overrides_legacy_store_none(
     rd.store = None
 
     conn = _c97_conn()
-    await call_ws_handler(ws_seasonal_overrides, hass, conn, {
-        "id": _c97_nid(),
-        "type": "maintenance_supporter/task/set_seasonal_overrides",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "overrides": {"1": 0.8, "7": 1.2},
-    })
+    await call_ws_handler(
+        ws_seasonal_overrides,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/set_seasonal_overrides",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "overrides": {"1": 0.8, "7": 1.2},
+        },
+    )
     conn.send_result.assert_called_once()
 
     rd.store = original_store
 
 
 async def test_environmental_entity_legacy_store_none(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 258-264: legacy path in ws_set_environmental_entity when store is None."""
     await setup_integration(hass, global_entry, object_entry)
@@ -520,14 +687,19 @@ async def test_environmental_entity_legacy_store_none(
     rd.store = None
 
     conn = _c97_conn()
-    await call_ws_handler(ws_set_environmental_entity, hass, conn, {
-        "id": _c97_nid(),
-        "type": "maintenance_supporter/task/set_environmental_entity",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "environmental_entity": "sensor.outdoor_temp",
-        "environmental_attribute": "temperature",
-    })
+    await call_ws_handler(
+        ws_set_environmental_entity,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/set_environmental_entity",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "environmental_entity": "sensor.outdoor_temp",
+            "environmental_attribute": "temperature",
+        },
+    )
     conn.send_result.assert_called_once()
 
     rd.store = original_store

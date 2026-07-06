@@ -51,9 +51,7 @@ def add_interval(anchor: date, n: int, unit: str = "days") -> date:
     return anchor + timedelta(days=n)
 
 
-def nth_weekday_of_month(
-    year: int, month: int, nth: int, weekday: int
-) -> date | None:
+def nth_weekday_of_month(year: int, month: int, nth: int, weekday: int) -> date | None:
     """The ``nth`` ``weekday`` of ``(year, month)``; ``None`` if it doesn't exist.
 
     ``weekday`` is 0=Mon … 6=Sun (``date.weekday()``). ``nth`` is 1..5, or -1 for
@@ -70,9 +68,7 @@ def nth_weekday_of_month(
     return date(year, month, day)
 
 
-def next_weekday_in_set(
-    ref: date, weekdays: tuple[int, ...], *, inclusive: bool
-) -> date | None:
+def next_weekday_in_set(ref: date, weekdays: tuple[int, ...], *, inclusive: bool) -> date | None:
     """Next date on/after ``ref`` whose weekday is in ``weekdays`` (0=Mon…6=Sun).
 
     ``inclusive`` includes ``ref`` itself; otherwise the search starts the next

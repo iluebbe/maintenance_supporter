@@ -141,11 +141,7 @@ class MaintenanceTodoList(TodoListEntity):
                     TodoItem(
                         uid=f"{entry.entry_id}:{task_id}",
                         summary=f"{obj_name}: {task_cfg.get('name', '')}",
-                        status=(
-                            TodoItemStatus.NEEDS_ACTION
-                            if status in _ACTION_STATUSES
-                            else TodoItemStatus.COMPLETED
-                        ),
+                        status=(TodoItemStatus.NEEDS_ACTION if status in _ACTION_STATUSES else TodoItemStatus.COMPLETED),
                         due=due,
                     )
                 )
@@ -173,7 +169,5 @@ class MaintenanceTodoList(TodoListEntity):
         td = coordinator._get_merged_tasks_data().get(task_id)
         if td and not MaintenanceTask.from_dict(td).can_complete_now:
             return
-        await coordinator.complete_maintenance(
-            task_id, notes="Completed from the To-do list"
-        )
+        await coordinator.complete_maintenance(task_id, notes="Completed from the To-do list")
         self.async_write_ha_state()

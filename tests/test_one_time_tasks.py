@@ -75,14 +75,28 @@ def test_vacation_preview_projects_calendar_kind() -> None:
 
     today = date(2026, 5, 24)
     state = VacationState(
-        enabled=True, start=date(2026, 6, 1), end=date(2026, 6, 30), buffer_days=0,
+        enabled=True,
+        start=date(2026, 6, 1),
+        end=date(2026, 6, 30),
+        buffer_days=0,
     )
-    rows = compute_preview(state, [{
-        "task_id": "t1", "entry_id": "e", "object_name": "Home",
-        "task_name": "Smoke alarm", "schedule_type": "nth_weekday", "enabled": True,
-        "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
-        "warning_days": 0, "created_at": "2026-05-24",
-    }], today=today)
+    rows = compute_preview(
+        state,
+        [
+            {
+                "task_id": "t1",
+                "entry_id": "e",
+                "object_name": "Home",
+                "task_name": "Smoke alarm",
+                "schedule_type": "nth_weekday",
+                "enabled": True,
+                "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
+                "warning_days": 0,
+                "created_at": "2026-05-24",
+            }
+        ],
+        today=today,
+    )
 
     assert len(rows) == 1
     assert rows[0]["kind"] == "nth_weekday"
@@ -234,9 +248,7 @@ def test_serialization_roundtrip_new_fields() -> None:
     assert d["schedule"] == {"kind": "one_time", "due_date": "2026-12-01"}
     assert MaintenanceTask.from_dict(d).due_date == "2026-12-01"
 
-    monthly = MaintenanceTask(
-        schedule_type=ScheduleType.TIME_BASED, interval_days=2, interval_unit="months"
-    )
+    monthly = MaintenanceTask(schedule_type=ScheduleType.TIME_BASED, interval_days=2, interval_unit="months")
     dm = monthly.to_dict()
     assert dm["schedule"]["unit"] == "months"
     assert MaintenanceTask.from_dict(dm).interval_unit == "months"
@@ -255,21 +267,33 @@ def test_model_next_due_calendar_kinds() -> None:
     keep schedule_raw and compute from it. First-time anchors on created_at, so
     these are deterministic. 2026-05-24 is a Sunday.
     """
-    nth = MaintenanceTask.from_dict({
-        "id": "t1", "name": "Smoke alarm", "created_at": "2026-05-24",
-        "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
-    })
+    nth = MaintenanceTask.from_dict(
+        {
+            "id": "t1",
+            "name": "Smoke alarm",
+            "created_at": "2026-05-24",
+            "schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
+        }
+    )
     assert nth.next_due == date(2026, 6, 6)  # May's 1st Sat passed → June 6
     assert nth.next_due.weekday() == 5
 
-    dom = MaintenanceTask.from_dict({
-        "id": "t2", "name": "Rent", "created_at": "2026-05-24",
-        "schedule": {"kind": "day_of_month", "day": 15},
-    })
+    dom = MaintenanceTask.from_dict(
+        {
+            "id": "t2",
+            "name": "Rent",
+            "created_at": "2026-05-24",
+            "schedule": {"kind": "day_of_month", "day": 15},
+        }
+    )
     assert dom.next_due == date(2026, 6, 15)  # May 15 passed → June 15
 
-    wd = MaintenanceTask.from_dict({
-        "id": "t3", "name": "Floors", "created_at": "2026-05-24",
-        "schedule": {"kind": "weekdays", "weekdays": [0, 3]},
-    })
+    wd = MaintenanceTask.from_dict(
+        {
+            "id": "t3",
+            "name": "Floors",
+            "created_at": "2026-05-24",
+            "schedule": {"kind": "weekdays", "weekdays": [0, 3]},
+        }
+    )
     assert wd.next_due == date(2026, 5, 25)  # next Mon on/after Sun 2026-05-24

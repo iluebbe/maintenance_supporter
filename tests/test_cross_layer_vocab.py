@@ -20,12 +20,7 @@ from custom_components.maintenance_supporter.helpers.schedule import (
     KIND_ONE_TIME,
 )
 
-_FRONTEND_SRC = (
-    Path(__file__).resolve().parents[1]
-    / "custom_components"
-    / "maintenance_supporter"
-    / "frontend-src"
-)
+_FRONTEND_SRC = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter" / "frontend-src"
 
 
 def _read(rel: str) -> str:

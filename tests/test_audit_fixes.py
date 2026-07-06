@@ -206,10 +206,13 @@ async def test_json_import_exception_logged(
     """Exception during JSON import should be logged with full traceback."""
     # Set up a global entry so the domain is loaded
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
@@ -217,21 +220,35 @@ async def test_json_import_exception_logged(
     conn = _mock_connection()
 
     # Craft JSON with a valid object that will cause async_init to raise
-    json_data = json.dumps({
-        "objects": [{
-            "object": {"name": "Test Object"},
-            "tasks": [{"name": "Task 1"}],
-        }]
-    })
+    json_data = json.dumps(
+        {
+            "objects": [
+                {
+                    "object": {"name": "Test Object"},
+                    "tasks": [{"name": "Task 1"}],
+                }
+            ]
+        }
+    )
 
-    with patch.object(
-        hass.config_entries.flow, "async_init",
-        side_effect=RuntimeError("test boom"),
-    ), caplog.at_level(logging.ERROR):
-        await call_ws_handler(ws_import_json, hass, conn, {
-            "id": 1, "type": f"{DOMAIN}/json/import",
-            "json_content": json_data,
-        })
+    with (
+        patch.object(
+            hass.config_entries.flow,
+            "async_init",
+            side_effect=RuntimeError("test boom"),
+        ),
+        caplog.at_level(logging.ERROR),
+    ):
+        await call_ws_handler(
+            ws_import_json,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": f"{DOMAIN}/json/import",
+                "json_content": json_data,
+            },
+        )
 
     # The exception should be logged
     assert "test boom" in caplog.text
@@ -255,7 +272,9 @@ async def test_json_import_nfc_duplicate_warning(
     existing_task = build_task_data(last_performed="2024-06-01")
     existing_task["nfc_tag_id"] = "TAG_EXISTING"
     existing_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Existing Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Existing Object"),
@@ -267,10 +286,13 @@ async def test_json_import_nfc_duplicate_warning(
     existing_entry.add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, existing_entry)
@@ -278,20 +300,32 @@ async def test_json_import_nfc_duplicate_warning(
     conn = _mock_connection()
 
     # Import an object with the same NFC tag
-    json_data = json.dumps({
-        "objects": [{
-            "object": {"name": "New Imported Object"},
-            "tasks": [{
-                "name": "Task With Dup NFC",
-                "nfc_tag_id": "TAG_EXISTING",
-            }],
-        }]
-    })
+    json_data = json.dumps(
+        {
+            "objects": [
+                {
+                    "object": {"name": "New Imported Object"},
+                    "tasks": [
+                        {
+                            "name": "Task With Dup NFC",
+                            "nfc_tag_id": "TAG_EXISTING",
+                        }
+                    ],
+                }
+            ]
+        }
+    )
 
-    await call_ws_handler(ws_import_json, hass, conn, {
-        "id": 1, "type": f"{DOMAIN}/json/import",
-        "json_content": json_data,
-    })
+    await call_ws_handler(
+        ws_import_json,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/json/import",
+            "json_content": json_data,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -312,10 +346,13 @@ async def test_diagnostics_redacts_nfc_and_user_id(
 ) -> None:
     """nfc_tag_id and responsible_user_id should be redacted in diagnostics."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
@@ -324,7 +361,9 @@ async def test_diagnostics_redacts_nfc_and_user_id(
     task["responsible_user_id"] = "user-uuid-secret"
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Redaction Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Redaction Test"),
@@ -356,16 +395,21 @@ async def test_diagnostics_redacts_serial_number(
 ) -> None:
     """serial_number should be redacted in diagnostics as PII."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     obj_data = build_object_data(name="Serial Test", serial_number="SN-SECRET-9999")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Serial Test",
         data=build_object_entry_data(
             object_data=obj_data,
@@ -401,7 +445,9 @@ async def test_options_flow_nfc_duplicate_rejected(
     # Create two objects — second one already has the NFC tag
     task1 = build_task_data(last_performed="2024-06-01")
     entry1 = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Object A",
         data=build_object_entry_data(
             object_data=build_object_data(name="Object A"),
@@ -416,7 +462,9 @@ async def test_options_flow_nfc_duplicate_rejected(
     task2 = build_task_data(task_id=task2_id, name="Task B", last_performed="2024-06-01")
     task2["nfc_tag_id"] = "TAG_TAKEN"
     entry2 = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Object B",
         data=build_object_entry_data(
             object_data=build_object_data(name="Object B", object_id="e" * 32),
@@ -428,10 +476,13 @@ async def test_options_flow_nfc_duplicate_rejected(
     entry2.add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry1, entry2)
@@ -439,15 +490,18 @@ async def test_options_flow_nfc_duplicate_rejected(
     # Navigate options flow to edit_task on entry1
     result = await hass.config_entries.options.async_init(entry1.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "manage_tasks"},
+        result["flow_id"],
+        {"next_step_id": "manage_tasks"},
     )
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"selected_task": TASK_ID_1, "go_back": False},
+        result["flow_id"],
+        {"selected_task": TASK_ID_1, "go_back": False},
     )
     assert result["type"] == FlowResultType.MENU
 
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"next_step_id": "edit_task"},
+        result["flow_id"],
+        {"next_step_id": "edit_task"},
     )
     assert result["step_id"] == "edit_task"
 
@@ -480,7 +534,9 @@ async def test_csv_import_nfc_duplicate_warning(
     existing_task = build_task_data(last_performed="2024-06-01")
     existing_task["nfc_tag_id"] = "TAG_CSV_DUP"
     existing_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Existing CSV Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Existing CSV Object"),
@@ -492,10 +548,13 @@ async def test_csv_import_nfc_duplicate_warning(
     existing_entry.add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, existing_entry)
@@ -507,10 +566,16 @@ async def test_csv_import_nfc_duplicate_warning(
         "New CSV Pump,Filter Clean,cleaning,time_based,30,7,TAG_CSV_DUP\n"
     )
 
-    await call_ws_handler(ws_import_csv, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/csv/import",
-        "csv_content": csv_content,
-    })
+    await call_ws_handler(
+        ws_import_csv,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/csv/import",
+            "csv_content": csv_content,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]

@@ -31,10 +31,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -57,7 +60,9 @@ def _make_entry(
     unique_id: str = "cal_deep",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -74,7 +79,8 @@ def _make_entry(
 
 
 async def test_calendar_event_property(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test the calendar entity event property returns next upcoming event."""
     last_performed = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -96,7 +102,8 @@ async def test_calendar_event_property(
 
 
 async def test_calendar_async_get_events(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test async_get_events returns events in range."""
     last_performed = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -112,9 +119,7 @@ async def test_calendar_async_get_events(
     assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
-    events = await cal_entity.async_get_events(
-        hass, now, now + timedelta(days=365)
-    )
+    events = await cal_entity.async_get_events(hass, now, now + timedelta(days=365))
     # Should have at least one event for the task due in ~5 days
     assert len(events) >= 1
     assert "Test Device" in events[0].summary
@@ -124,7 +129,8 @@ async def test_calendar_async_get_events(
 
 
 async def test_calendar_manual_task_no_trigger(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test manual task without trigger produces no event."""
     task = build_task_data(schedule_type=ScheduleType.MANUAL)
@@ -140,9 +146,7 @@ async def test_calendar_manual_task_no_trigger(
     assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
-    events = await cal_entity.async_get_events(
-        hass, now, now + timedelta(days=365)
-    )
+    events = await cal_entity.async_get_events(hass, now, now + timedelta(days=365))
     # Manual task without trigger → no event
     manual_events = [e for e in events if "Test Device" in e.summary]
     assert len(manual_events) == 0
@@ -152,7 +156,8 @@ async def test_calendar_manual_task_no_trigger(
 
 
 async def test_calendar_disabled_task_no_event(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test disabled task produces no event."""
     last_performed = (dt_util.now().date() - timedelta(days=5)).isoformat()
@@ -167,9 +172,7 @@ async def test_calendar_disabled_task_no_event(
     assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
-    events = await cal_entity.async_get_events(
-        hass, now, now + timedelta(days=365)
-    )
+    events = await cal_entity.async_get_events(hass, now, now + timedelta(days=365))
     disabled_events = [e for e in events if "Test Device" in e.summary]
     assert len(disabled_events) == 0
 
@@ -178,7 +181,8 @@ async def test_calendar_disabled_task_no_event(
 
 
 async def test_calendar_sensor_triggered_no_due_date(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test sensor-triggered task without fixed due date shows today event."""
     task = build_task_data(
@@ -208,9 +212,7 @@ async def test_calendar_sensor_triggered_no_due_date(
     assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
-    events = await cal_entity.async_get_events(
-        hass, now, now + timedelta(days=1)
-    )
+    events = await cal_entity.async_get_events(hass, now, now + timedelta(days=1))
     # When trigger_active + no next_due → shows today
     triggered_events = [e for e in events if "Test Device" in e.summary]
     # May or may not produce an event depending on coordinator data path
@@ -222,7 +224,8 @@ async def test_calendar_sensor_triggered_no_due_date(
 
 
 async def test_calendar_event_out_of_range(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test event outside date range is not returned."""
     # Task due in 300 days
@@ -239,9 +242,7 @@ async def test_calendar_event_out_of_range(
 
     now = dt_util.now()
     # Only query next 7 days - task due in 300 days shouldn't appear
-    events = await cal_entity.async_get_events(
-        hass, now, now + timedelta(days=7)
-    )
+    events = await cal_entity.async_get_events(hass, now, now + timedelta(days=7))
     range_events = [e for e in events if "Test Device" in e.summary]
     assert len(range_events) == 0
 
@@ -250,7 +251,8 @@ async def test_calendar_event_out_of_range(
 
 
 async def test_calendar_overdue_event(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test overdue task still produces event with correct status prefix."""
     last_performed = (dt_util.now().date() - timedelta(days=60)).isoformat()
@@ -265,9 +267,7 @@ async def test_calendar_overdue_event(
     assert cal_entity is not None, "calendar.maintenance_schedule should exist after setup"
 
     now = dt_util.now()
-    events = await cal_entity.async_get_events(
-        hass, now - timedelta(days=60), now + timedelta(days=60)
-    )
+    events = await cal_entity.async_get_events(hass, now - timedelta(days=60), now + timedelta(days=60))
     overdue_events = [e for e in events if "Test Device" in e.summary]
     # Overdue task should still show
     assert isinstance(overdue_events, list)
@@ -277,7 +277,8 @@ async def test_calendar_overdue_event(
 
 
 async def test_calendar_date_objects(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test _get_all_events handles plain date objects."""
     last_performed = (dt_util.now().date() - timedelta(days=25)).isoformat()
@@ -300,10 +301,13 @@ async def test_calendar_date_objects(
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -318,7 +322,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -353,6 +359,7 @@ async def test_calendar_event_with_schedule_time(hass: HomeAssistant) -> None:
         pytest.skip("No calendar entity")
 
     from datetime import datetime, timezone
+
     now = dt_util.now()
     events = await cal_data.async_get_events(hass, now, now + timedelta(days=60))
     # At least the task event should show as a timed event (datetime start, not date)

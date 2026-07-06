@@ -31,6 +31,7 @@ from custom_components.maintenance_supporter.helpers.sensor_predictor import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_linear_points(
     start_ts: float,
     slope_per_day: float,
@@ -69,10 +70,7 @@ def _make_noisy_points(
 
 def _make_history(dates: list[str]) -> list[dict[str, str]]:
     """Create completed history entries from ISO date strings."""
-    return [
-        {"type": "completed", "timestamp": d + "T12:00:00+00:00"}
-        for d in dates
-    ]
+    return [{"type": "completed", "timestamp": d + "T12:00:00+00:00"} for d in dates]
 
 
 def _ts(iso_date: str) -> float:
@@ -159,25 +157,19 @@ class TestPearsonCorrelation:
     """Test the _pearson_correlation static method."""
 
     def test_perfect_positive(self) -> None:
-        r = SensorPredictor._pearson_correlation(
-            [1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 20.0, 30.0, 40.0, 50.0]
-        )
+        r = SensorPredictor._pearson_correlation([1.0, 2.0, 3.0, 4.0, 5.0], [10.0, 20.0, 30.0, 40.0, 50.0])
         assert r is not None
         assert abs(r - 1.0) < 1e-10
 
     def test_perfect_negative(self) -> None:
-        r = SensorPredictor._pearson_correlation(
-            [1.0, 2.0, 3.0, 4.0, 5.0], [50.0, 40.0, 30.0, 20.0, 10.0]
-        )
+        r = SensorPredictor._pearson_correlation([1.0, 2.0, 3.0, 4.0, 5.0], [50.0, 40.0, 30.0, 20.0, 10.0])
         assert r is not None
         assert abs(r - (-1.0)) < 1e-10
 
     def test_no_correlation(self) -> None:
         """Uncorrelated data should have r near 0."""
         # Pattern chosen to produce near-zero correlation
-        r = SensorPredictor._pearson_correlation(
-            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0], [4.0, 2.0, 5.0, 1.0, 6.0, 3.0, 4.0]
-        )
+        r = SensorPredictor._pearson_correlation([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0], [4.0, 2.0, 5.0, 1.0, 6.0, 3.0, 4.0])
         assert r is not None
         assert abs(r) < 0.5
 
@@ -202,9 +194,7 @@ class TestPearsonCorrelation:
 class TestThresholdPrediction:
     """Test threshold prediction calculation."""
 
-    def _make_degradation(
-        self, current: float, slope: float, r2: float = 0.8
-    ) -> DegradationAnalysis:
+    def _make_degradation(self, current: float, slope: float, r2: float = 0.8) -> DegradationAnalysis:
         return DegradationAnalysis(
             entity_id="sensor.test",
             slope_per_day=slope,
@@ -338,9 +328,7 @@ class TestDegradationAnalysis:
     async def test_insufficient_data(self, predictor: SensorPredictor) -> None:
         """Less than MIN_POINTS → insufficient_data."""
         few_points: list[tuple[float, float]] = [(i * 3600.0, 10.0 + i * 0.1) for i in range(5)]
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=few_points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=few_points):
             result = await predictor._async_compute_degradation("sensor.test", None, 30)
         assert result.trend == "insufficient_data"
         assert result.slope_per_day is None
@@ -351,9 +339,7 @@ class TestDegradationAnalysis:
         base_ts = 1700000000.0
         # 720 points (30 days), slope=2.0, intercept=10 → mean ≈ 40, ratio=2/40=0.05 → rising
         points = _make_linear_points(base_ts, slope_per_day=2.0, intercept=10.0, n_points=720)
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             result = await predictor._async_compute_degradation("sensor.test", None, 30)
         assert result.trend == "rising"
         assert result.slope_per_day is not None
@@ -368,9 +354,7 @@ class TestDegradationAnalysis:
         # 720 points (30 days), slope=-2.0, intercept=100 → mean ≈ 70, ratio=2/70=0.029 → not enough
         # Use slope=-5.0, intercept=100 → mean ≈ 25, ratio=5/25=0.2 → clearly falling
         points = _make_linear_points(base_ts, slope_per_day=-5.0, intercept=100.0, n_points=480)
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             result = await predictor._async_compute_degradation("sensor.test", None, 30)
         assert result.trend == "falling"
         assert result.slope_per_day is not None
@@ -382,9 +366,7 @@ class TestDegradationAnalysis:
         base_ts = 1700000000.0
         # slope_per_day = 0.001, mean ≈ 50 → ratio = 0.001/50 = 0.00002 < significance
         points = _make_linear_points(base_ts, slope_per_day=0.001, intercept=50.0, n_points=100)
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             result = await predictor._async_compute_degradation("sensor.test", None, 30)
         assert result.trend == "stable"
 
@@ -393,9 +375,7 @@ class TestDegradationAnalysis:
         """Noisy but with clear underlying trend."""
         base_ts = 1700000000.0
         points = _make_noisy_points(base_ts, slope_per_day=2.0, intercept=10.0, n_points=200, noise_scale=0.5)
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             result = await predictor._async_compute_degradation("sensor.test", None, 30)
         assert result.trend == "rising"
         assert result.r_squared is not None
@@ -404,9 +384,7 @@ class TestDegradationAnalysis:
     @pytest.mark.asyncio
     async def test_empty_data(self, predictor: SensorPredictor) -> None:
         """No recorder data → insufficient."""
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=[]
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=[]):
             result = await predictor._async_compute_degradation("sensor.test", None, 30)
         assert result.trend == "insufficient_data"
         assert result.data_points == 0
@@ -430,9 +408,7 @@ class TestEnvironmentalAnalysis:
         hass.states.get.return_value = state
         return SensorPredictor(hass)
 
-    def _make_env_points(
-        self, avg: float = 20.0, n_days: int = 90
-    ) -> list[tuple[float, float]]:
+    def _make_env_points(self, avg: float = 20.0, n_days: int = 90) -> list[tuple[float, float]]:
         """Create env sensor points (hourly, centered around avg)."""
         base_ts = datetime(2026, 1, 1, tzinfo=UTC).timestamp()
         points: list[tuple[float, float]] = []
@@ -444,30 +420,27 @@ class TestEnvironmentalAnalysis:
             points.append((ts, val))
         return points
 
-    def _make_task_with_history_and_env_correlation(
-        self, intervals: list[int], env_values: list[float]
-    ) -> dict[str, Any]:
+    def _make_task_with_history_and_env_correlation(self, intervals: list[int], env_values: list[float]) -> dict[str, Any]:
         """Create task_data with completion history that correlates with env values."""
         base = datetime(2026, 1, 1, tzinfo=UTC)
         history: list[dict[str, str]] = []
         current = base
         for interval in [0, *intervals]:
             current += timedelta(days=interval)
-            history.append({
-                "type": "completed",
-                "timestamp": current.isoformat(),
-            })
+            history.append(
+                {
+                    "type": "completed",
+                    "timestamp": current.isoformat(),
+                }
+            )
         return {"history": history, "schedule_type": "sensor_based"}
 
     @pytest.mark.asyncio
     async def test_insufficient_env_data(self, predictor: SensorPredictor) -> None:
         """Too few env data points → insufficient."""
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=[(1.0, 20.0)]
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=[(1.0, 20.0)]):
             result = await predictor._async_analyze_environmental(
-                "sensor.outdoor_temp", None,
-                {"history": _make_history(["2026-01-01", "2026-01-15"])}
+                "sensor.outdoor_temp", None, {"history": _make_history(["2026-01-01", "2026-01-15"])}
             )
         assert not result.has_sufficient_data
         assert result.adjustment_factor == 1.0
@@ -476,13 +449,10 @@ class TestEnvironmentalAnalysis:
     async def test_insufficient_completions(self, predictor: SensorPredictor) -> None:
         """Enough env data but too few completions → insufficient."""
         env_points = self._make_env_points()
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=env_points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=env_points):
             # Only 1 completion → 0 intervals
             result = await predictor._async_analyze_environmental(
-                "sensor.outdoor_temp", None,
-                {"history": [{"type": "completed", "timestamp": "2026-01-01T12:00:00+00:00"}]}
+                "sensor.outdoor_temp", None, {"history": [{"type": "completed", "timestamp": "2026-01-01T12:00:00+00:00"}]}
             )
         assert not result.has_sufficient_data
 
@@ -494,17 +464,21 @@ class TestEnvironmentalAnalysis:
         env_points: list[tuple[float, float]] = [(base_ts + i * 3600, 20.0 + (i % 2) * 0.01) for i in range(2160)]
 
         # Task with varying intervals
-        task_data: dict[str, Any] = {"history": _make_history([
-            "2026-01-01", "2026-01-15", "2026-02-01", "2026-02-20",
-            "2026-03-10", "2026-03-25",
-        ])}
-
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=env_points
-        ):
-            result = await predictor._async_analyze_environmental(
-                "sensor.outdoor_temp", None, task_data
+        task_data: dict[str, Any] = {
+            "history": _make_history(
+                [
+                    "2026-01-01",
+                    "2026-01-15",
+                    "2026-02-01",
+                    "2026-02-20",
+                    "2026-03-10",
+                    "2026-03-25",
+                ]
             )
+        }
+
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=env_points):
+            result = await predictor._async_analyze_environmental("sensor.outdoor_temp", None, task_data)
         # Weak or no correlation → factor close to 1.0
         assert result.has_sufficient_data
         assert abs(result.adjustment_factor - 1.0) < 0.3
@@ -575,13 +549,9 @@ class TestPoolPumpPressureScenario:
         base_ts = 1700000000.0
         # 720 hourly points (30 days), pressure rising 1.5/day from 5
         # After 30 days: 5 + 1.5*30 = 50, mean ≈ 27.5, ratio = 1.5/27.5 ≈ 0.055
-        points = _make_linear_points(
-            base_ts, slope_per_day=1.5, intercept=5.0, n_points=720
-        )
+        points = _make_linear_points(base_ts, slope_per_day=1.5, intercept=5.0, n_points=720)
 
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             deg = await predictor._async_compute_degradation("sensor.pool_pressure", None, 30)
 
         assert deg.trend == "rising"
@@ -602,13 +572,9 @@ class TestPoolPumpPressureScenario:
         """Filter pressure stable → no meaningful prediction."""
         base_ts = 1700000000.0
         # Very slight slope that's below significance threshold
-        points = _make_linear_points(
-            base_ts, slope_per_day=0.001, intercept=15.0, n_points=720
-        )
+        points = _make_linear_points(base_ts, slope_per_day=0.001, intercept=15.0, n_points=720)
 
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             deg = await predictor._async_compute_degradation("sensor.pool_pressure", None, 30)
 
         assert deg.trend == "stable"
@@ -630,16 +596,12 @@ class TestAsyncAnalyze:
     @pytest.mark.asyncio
     async def test_non_sensor_based_returns_none(self, predictor: SensorPredictor) -> None:
         """Time-based tasks should return None."""
-        result = await predictor.async_analyze(
-            {"schedule_type": "time_based"}, {}
-        )
+        result = await predictor.async_analyze({"schedule_type": "time_based"}, {})
         assert result is None
 
     @pytest.mark.asyncio
     async def test_no_trigger_entity_returns_none(self, predictor: SensorPredictor) -> None:
-        result = await predictor.async_analyze(
-            {"schedule_type": "sensor_based", "trigger_config": {}}, {}
-        )
+        result = await predictor.async_analyze({"schedule_type": "sensor_based", "trigger_config": {}}, {})
         assert result is None
 
     @pytest.mark.asyncio
@@ -663,9 +625,7 @@ class TestAsyncAnalyze:
         base_ts = 1700000000.0
         points = _make_linear_points(base_ts, slope_per_day=1.0, intercept=10.0, n_points=200)
 
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             result = await predictor.async_analyze(
                 {
                     "schedule_type": "sensor_based",
@@ -698,6 +658,7 @@ class TestAsyncAnalyze:
         predictor.hass.states.get.return_value = state  # type: ignore[attr-defined]
 
         call_count = [0]
+
         async def mock_fetch(entity_id: str, days: int) -> list[tuple[float, float]]:
             call_count[0] += 1
             if entity_id == "sensor.test":
@@ -713,10 +674,15 @@ class TestAsyncAnalyze:
                         "type": "threshold",
                         "trigger_above": 50,
                     },
-                    "history": _make_history([
-                        "2026-01-01", "2026-01-15", "2026-02-01",
-                        "2026-02-20", "2026-03-10",
-                    ]),
+                    "history": _make_history(
+                        [
+                            "2026-01-01",
+                            "2026-01-15",
+                            "2026-02-01",
+                            "2026-02-20",
+                            "2026-03-10",
+                        ]
+                    ),
                 },
                 {"environmental_entity": "sensor.outdoor_temp"},
             )
@@ -744,9 +710,7 @@ class TestBackwardCompatibility:
         """Old adaptive_config without sensor_prediction_enabled should work."""
         base_ts = 1700000000.0
         points = _make_linear_points(base_ts, slope_per_day=0.5, intercept=10.0, n_points=100)
-        with patch.object(
-            predictor, "_async_fetch_statistics_points", return_value=points
-        ):
+        with patch.object(predictor, "_async_fetch_statistics_points", return_value=points):
             result = await predictor.async_analyze(
                 {
                     "schedule_type": "sensor_based",

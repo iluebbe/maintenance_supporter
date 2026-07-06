@@ -227,17 +227,13 @@ class TestBlendRecommendations:
 
     def test_low_confidence_returns_none(self) -> None:
         analyzer = IntervalAnalyzer()
-        result, reason = analyzer._blend_recommendations(
-            base=30, ewa=25.0, weibull=28, confidence="low"
-        )
+        result, reason = analyzer._blend_recommendations(base=30, ewa=25.0, weibull=28, confidence="low")
         assert result is None
         assert reason is None
 
     def test_medium_confidence_50_50(self) -> None:
         analyzer = IntervalAnalyzer()
-        result, reason = analyzer._blend_recommendations(
-            base=30, ewa=20.0, weibull=None, confidence="medium"
-        )
+        result, reason = analyzer._blend_recommendations(base=30, ewa=20.0, weibull=None, confidence="medium")
         assert result is not None
         # 50% of 30 + 50% of 20 = 25
         assert result == 25
@@ -245,9 +241,7 @@ class TestBlendRecommendations:
 
     def test_high_confidence_20_80(self) -> None:
         analyzer = IntervalAnalyzer()
-        result, reason = analyzer._blend_recommendations(
-            base=30, ewa=20.0, weibull=None, confidence="high"
-        )
+        result, reason = analyzer._blend_recommendations(base=30, ewa=20.0, weibull=None, confidence="high")
         assert result is not None
         # 20% of 30 + 80% of 20 = 22
         assert result == 22
@@ -255,9 +249,7 @@ class TestBlendRecommendations:
 
     def test_ewa_and_weibull_combined(self) -> None:
         analyzer = IntervalAnalyzer()
-        result, reason = analyzer._blend_recommendations(
-            base=30, ewa=20.0, weibull=24, confidence="high"
-        )
+        result, reason = analyzer._blend_recommendations(base=30, ewa=20.0, weibull=24, confidence="high")
         assert result is not None
         # statistical = mean(20, 24) = 22
         # 20% of 30 + 80% of 22 = 6 + 17.6 = 23.6 → 24
@@ -266,9 +258,7 @@ class TestBlendRecommendations:
 
     def test_no_predictions(self) -> None:
         analyzer = IntervalAnalyzer()
-        result, reason = analyzer._blend_recommendations(
-            base=30, ewa=None, weibull=None, confidence="high"
-        )
+        result, reason = analyzer._blend_recommendations(base=30, ewa=None, weibull=None, confidence="high")
         assert result is None
         assert reason is None
 
@@ -298,11 +288,13 @@ class TestAnalyze:
         history = []
         for i in range(10):
             ts = (base_date + timedelta(days=30 * i)).isoformat()
-            history.append({
-                "timestamp": ts,
-                "type": "completed",
-                "feedback": "needed" if i > 0 else None,
-            })
+            history.append(
+                {
+                    "timestamp": ts,
+                    "type": "completed",
+                    "feedback": "needed" if i > 0 else None,
+                }
+            )
 
         task_data = {"interval_days": 30, "history": history}
         adaptive_config = {

@@ -78,10 +78,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -90,13 +93,16 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 @pytest.fixture
 def global_entry_with_notifications(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(
             notifications_enabled=True,
             notify_service="notify.mobile_app",
         ),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
         options={
             CONF_NOTIFICATIONS_ENABLED: True,
             CONF_NOTIFY_SERVICE: "notify.mobile_app",
@@ -121,7 +127,9 @@ def _make_overdue_entry(hass: HomeAssistant, unique_suffix: str = "flow") -> Moc
         interval_days=30,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -135,7 +143,8 @@ def _make_overdue_entry(hass: HomeAssistant, unique_suffix: str = "flow") -> Moc
 
 
 async def test_full_lifecycle_create_complete_reset(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Create overdue task → complete → status OK → reset → status OK (reset = today)."""
     obj_entry = _make_overdue_entry(hass)
@@ -156,13 +165,19 @@ async def test_full_lifecycle_create_complete_reset(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await call_ws_handler(ws_complete_task, hass, conn, {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": obj_entry.entry_id,
-            "task_id": TASK_ID_1,
-            "notes": "Done",
-            "cost": 25.0,
-        })
+        await call_ws_handler(
+            ws_complete_task,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/complete",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "notes": "Done",
+                "cost": 25.0,
+            },
+        )
     await hass.async_block_till_done()
     conn.send_result.assert_called_once()
 
@@ -179,11 +194,17 @@ async def test_full_lifecycle_create_complete_reset(
 
     # Reset task via WS
     conn2 = _mock_connection()
-    await call_ws_handler(ws_reset_task, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/task/reset",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     await hass.async_block_till_done()
     conn2.send_result.assert_called_once()
 
@@ -195,7 +216,8 @@ async def test_full_lifecycle_create_complete_reset(
 
 
 async def test_compound_trigger_lifecycle(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Compound AND trigger: one condition met → not triggered, both → triggered."""
     set_sensor_state(hass, "sensor.temp1", "25.0")
@@ -222,7 +244,9 @@ async def test_compound_trigger_lifecycle(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Compound Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Compound Test"),
@@ -255,7 +279,8 @@ async def test_compound_trigger_lifecycle(
 
 
 async def test_sensor_trigger_lifecycle(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Threshold trigger: safe → triggered → complete → cooldown."""
     # Create sensor entity before setup
@@ -271,7 +296,9 @@ async def test_sensor_trigger_lifecycle(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Water System",
         data=build_object_entry_data(
             object_data=build_object_data(name="Water System"),
@@ -308,27 +335,40 @@ async def test_sensor_trigger_lifecycle(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await call_ws_handler(ws_complete_task, hass, conn, {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": obj_entry.entry_id,
-            "task_id": TASK_ID_1,
-        })
+        await call_ws_handler(
+            ws_complete_task,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/complete",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+            },
+        )
     await hass.async_block_till_done()
     conn.send_result.assert_called_once()
 
 
 async def test_create_object_via_ws_then_query(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Full CRUD round-trip via WS: create object → create task → query → delete."""
     await setup_integration(hass, global_entry)
 
     # Create object
     conn = _mock_connection()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Test Machine",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Test Machine",
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     new_entry_id = result["entry_id"]
@@ -336,62 +376,95 @@ async def test_create_object_via_ws_then_query(
 
     # Query objects → should include the new one
     conn2 = _mock_connection()
-    await call_ws_handler(ws_get_objects, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/objects",
-    })
+    await call_ws_handler(
+        ws_get_objects,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/objects",
+        },
+    )
     objects = conn2.send_result.call_args[0][1]["objects"]
     names = [o["object"]["name"] for o in objects]
     assert "Test Machine" in names
 
     # Create task on new object
     conn3 = _mock_connection()
-    await call_ws_handler(ws_create_task, hass, conn3, {
-        "id": 3, "type": "maintenance_supporter/task/create",
-        "entry_id": new_entry_id,
-        "name": "Oil Change",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn3,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": new_entry_id,
+            "name": "Oil Change",
+        },
+    )
     conn3.send_result.assert_called_once()
     task_id = conn3.send_result.call_args[0][1]["task_id"]
     await hass.async_block_till_done()
 
     # Delete task
     conn4 = _mock_connection()
-    await call_ws_handler(ws_delete_task, hass, conn4, {
-        "id": 4, "type": "maintenance_supporter/task/delete",
-        "entry_id": new_entry_id,
-        "task_id": task_id,
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn4,
+        {
+            "id": 4,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": new_entry_id,
+            "task_id": task_id,
+        },
+    )
     conn4.send_result.assert_called_once()
     await hass.async_block_till_done()
 
     # Delete object
     conn5 = _mock_connection()
-    await call_ws_handler(ws_delete_object, hass, conn5, {
-        "id": 5, "type": "maintenance_supporter/object/delete",
-        "entry_id": new_entry_id,
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        conn5,
+        {
+            "id": 5,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": new_entry_id,
+        },
+    )
     conn5.send_result.assert_called_once()
     await hass.async_block_till_done()
 
     # Verify gone
     conn6 = _mock_connection()
-    await call_ws_handler(ws_get_objects, hass, conn6, {
-        "id": 6, "type": "maintenance_supporter/objects",
-    })
+    await call_ws_handler(
+        ws_get_objects,
+        hass,
+        conn6,
+        {
+            "id": 6,
+            "type": "maintenance_supporter/objects",
+        },
+    )
     objects = conn6.send_result.call_args[0][1]["objects"]
     names = [o["object"]["name"] for o in objects]
     assert "Test Machine" not in names
 
 
 async def test_notification_on_status_transition(
-    hass: HomeAssistant, global_entry_with_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_notifications: MockConfigEntry,
 ) -> None:
     """Task transitions OK → OVERDUE → notification sent."""
     # Task is OK: last_performed 10 days ago, interval 30 days
     last_performed = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(last_performed=last_performed, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="HVAC",
         data=build_object_entry_data(
             object_data=build_object_data(name="HVAC"),
@@ -428,15 +501,13 @@ async def test_notification_on_status_transition(
         assert coordinator.data[CONF_TASKS][TASK_ID_1]["_status"] == MaintenanceStatus.OVERDUE
 
         # Check that notify service was called
-        notify_calls = [
-            c for c in mock_call.call_args_list
-            if c[0][0] == "notify" and c[0][1] == "mobile_app"
-        ]
+        notify_calls = [c for c in mock_call.call_args_list if c[0][0] == "notify" and c[0][1] == "mobile_app"]
         assert len(notify_calls) >= 1
 
 
 async def test_notification_suppressed_on_restart(
-    hass: HomeAssistant, global_entry_with_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_with_notifications: MockConfigEntry,
 ) -> None:
     """Task already OVERDUE on startup → no notification burst.
 
@@ -461,13 +532,8 @@ async def test_notification_suppressed_on_restart(
         await coordinator.async_refresh()
         await hass.async_block_till_done()
 
-        notify_calls = [
-            c for c in mock_call.call_args_list
-            if c[0][0] == "notify"
-        ]
-        assert len(notify_calls) == 0, (
-            f"Expected no notifications on restart, got {len(notify_calls)}"
-        )
+        notify_calls = [c for c in mock_call.call_args_list if c[0][0] == "notify"]
+        assert len(notify_calls) == 0, f"Expected no notifications on restart, got {len(notify_calls)}"
 
 
 async def test_budget_alert_flow(
@@ -475,13 +541,16 @@ async def test_budget_alert_flow(
 ) -> None:
     """Complete task with cost exceeding budget threshold → alert sent."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(
             notifications_enabled=True,
             notify_service="notify.mobile_app",
         ),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
         options={
             CONF_NOTIFICATIONS_ENABLED: True,
             CONF_NOTIFY_SERVICE: "notify.mobile_app",
@@ -496,7 +565,9 @@ async def test_budget_alert_flow(
     last_performed = (dt_util.now().date() - timedelta(days=5)).isoformat()
     task = build_task_data(last_performed=last_performed, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Budget Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Budget Test"),
@@ -521,12 +592,18 @@ async def test_budget_alert_flow(
 
         with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
             conn = _mock_connection()
-            await call_ws_handler(ws_complete_task, hass, conn, {
-                "id": 1, "type": "maintenance_supporter/task/complete",
-                "entry_id": obj_entry.entry_id,
-                "task_id": TASK_ID_1,
-                "cost": 85.0,
-            })
+            await call_ws_handler(
+                ws_complete_task,
+                hass,
+                conn,
+                {
+                    "id": 1,
+                    "type": "maintenance_supporter/task/complete",
+                    "entry_id": obj_entry.entry_id,
+                    "task_id": TASK_ID_1,
+                    "cost": 85.0,
+                },
+            )
         await hass.async_block_till_done()
 
         # Refresh triggers budget check
@@ -539,7 +616,8 @@ async def test_budget_alert_flow(
 
 
 async def test_multi_object_statistics(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """3 objects with varying statuses → statistics endpoint returns correct counts."""
     now = dt_util.now().date()
@@ -551,7 +629,9 @@ async def test_multi_object_statistics(
         interval_days=30,
     )
     ok_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="OK Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="OK Object"),
@@ -570,7 +650,9 @@ async def test_multi_object_statistics(
         warning_days=7,
     )
     due_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Due Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Due Object"),
@@ -588,7 +670,9 @@ async def test_multi_object_statistics(
         interval_days=30,
     )
     overdue_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Overdue Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Overdue Object"),
@@ -603,9 +687,15 @@ async def test_multi_object_statistics(
 
     # Query statistics
     conn = _mock_connection()
-    await call_ws_handler(ws_get_statistics, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/statistics",
-    })
+    await call_ws_handler(
+        ws_get_statistics,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/statistics",
+        },
+    )
     stats = conn.send_result.call_args[0][1]
     assert stats["total_objects"] == 3
     assert stats["total_tasks"] == 3
@@ -692,24 +782,23 @@ async def test_global_options_updated_panel_toggle(
     from custom_components.maintenance_supporter.const import CONF_PANEL_ENABLED
 
     # Enable panel
-    hass.config_entries.async_update_entry(
-        global_config_entry, options={CONF_PANEL_ENABLED: True}
-    )
+    hass.config_entries.async_update_entry(global_config_entry, options={CONF_PANEL_ENABLED: True})
     await hass.async_block_till_done()
 
     # Disable panel
-    hass.config_entries.async_update_entry(
-        global_config_entry, options={CONF_PANEL_ENABLED: False}
-    )
+    hass.config_entries.async_update_entry(global_config_entry, options={CONF_PANEL_ENABLED: False})
     await hass.async_block_till_done()
 
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -724,7 +813,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -751,7 +842,8 @@ async def test_service_complete_no_coordinator(hass: HomeAssistant) -> None:
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "complete_maintenance",
+            DOMAIN,
+            "complete_maintenance",
             {"entity_id": "sensor.nonexistent_entity_xyz"},
             blocking=True,
         )
@@ -764,7 +856,8 @@ async def test_service_reset_no_coordinator(hass: HomeAssistant) -> None:
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "reset_maintenance",
+            DOMAIN,
+            "reset_maintenance",
             {"entity_id": "sensor.nonexistent_entity_xyz"},
             blocking=True,
         )
@@ -777,7 +870,8 @@ async def test_service_skip_no_coordinator(hass: HomeAssistant) -> None:
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "skip_maintenance",
+            DOMAIN,
+            "skip_maintenance",
             {"entity_id": "sensor.nonexistent_entity_xyz"},
             blocking=True,
         )
@@ -805,7 +899,8 @@ async def test_service_complete_no_task_id(hass: HomeAssistant) -> None:
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "complete_maintenance",
+            DOMAIN,
+            "complete_maintenance",
             {"entity_id": entity_id},
             blocking=True,
         )
@@ -825,7 +920,8 @@ async def test_service_add_object_value_error(hass: HomeAssistant) -> None:
     ):
         with pytest.raises(ServiceValidationError, match="duplicate name"):
             await hass.services.async_call(
-                DOMAIN, "add_object",
+                DOMAIN,
+                "add_object",
                 {"name": "Test Object"},
                 blocking=True,
             )
@@ -841,7 +937,9 @@ def c97_object_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Object entry with one time-based task (carried from test_coverage_97.py)."""
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -855,7 +953,9 @@ def c97_object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_service_complete_task_id_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry, c97_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    c97_object_entry: MockConfigEntry,
 ) -> None:
     """Lines 120 (and 144, 166): task_id not found raises ServiceValidationError."""
     await setup_integration(hass, global_entry, c97_object_entry)
@@ -871,14 +971,17 @@ async def test_service_complete_task_id_not_found(
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "complete_maintenance",
+            DOMAIN,
+            "complete_maintenance",
             {"entity_id": "sensor.maintenance_supporter_pump_nomatch"},
             blocking=True,
         )
 
 
 async def test_service_reset_task_id_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry, c97_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    c97_object_entry: MockConfigEntry,
 ) -> None:
     """Line 144: reset service with entity whose task_id can't be found."""
     await setup_integration(hass, global_entry, c97_object_entry)
@@ -893,14 +996,17 @@ async def test_service_reset_task_id_not_found(
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "reset_maintenance",
+            DOMAIN,
+            "reset_maintenance",
             {"entity_id": "sensor.maintenance_supporter_pump_noreset"},
             blocking=True,
         )
 
 
 async def test_service_skip_task_id_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry, c97_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    c97_object_entry: MockConfigEntry,
 ) -> None:
     """Line 166: skip service with entity whose task_id can't be found."""
     await setup_integration(hass, global_entry, c97_object_entry)
@@ -915,7 +1021,8 @@ async def test_service_skip_task_id_not_found(
 
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "skip_maintenance",
+            DOMAIN,
+            "skip_maintenance",
             {"entity_id": "sensor.maintenance_supporter_pump_noskip"},
             blocking=True,
         )
@@ -931,17 +1038,24 @@ async def test_detect_seasonal_feature_usage(
     from custom_components.maintenance_supporter import _detect_advanced_feature_usage
 
     ge = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", source="user",
-        data=build_global_entry_data(), unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        source="user",
+        data=build_global_entry_data(),
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     ge.add_to_hass(hass)
 
     task = build_task_data()
     task["adaptive_config"] = {"seasonal_enabled": True}
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Seasonal Pump", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Seasonal Pump",
+        source="user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         unique_id="maintenance_supporter_cov97_seasonal",
     )

@@ -60,10 +60,13 @@ def _mock_user(
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -73,7 +76,9 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -89,7 +94,9 @@ def assigned_object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     task["responsible_user_id"] = "user1"
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Assigned Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Assigned Pump"),
@@ -106,7 +113,8 @@ def assigned_object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_ws_list_users(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test listing active, non-system users."""
     await setup_integration(hass, global_entry)
@@ -118,9 +126,15 @@ async def test_ws_list_users(
     hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await call_ws_handler(ws_list_users, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/users/list",
-    })
+    await call_ws_handler(
+        ws_list_users,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/users/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["users"]) == 2
@@ -129,7 +143,8 @@ async def test_ws_list_users(
 
 
 async def test_ws_list_users_excludes_system(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that system-generated users are excluded."""
     await setup_integration(hass, global_entry)
@@ -141,9 +156,15 @@ async def test_ws_list_users_excludes_system(
     hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await call_ws_handler(ws_list_users, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/users/list",
-    })
+    await call_ws_handler(
+        ws_list_users,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/users/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["users"]) == 1
@@ -151,7 +172,8 @@ async def test_ws_list_users_excludes_system(
 
 
 async def test_ws_list_users_excludes_inactive(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that inactive users are excluded."""
     await setup_integration(hass, global_entry)
@@ -163,9 +185,15 @@ async def test_ws_list_users_excludes_inactive(
     hass.auth.async_get_users = AsyncMock(return_value=users)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await call_ws_handler(ws_list_users, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/users/list",
-    })
+    await call_ws_handler(
+        ws_list_users,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/users/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["users"]) == 1
@@ -176,19 +204,27 @@ async def test_ws_list_users_excludes_inactive(
 
 
 async def test_ws_assign_user(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test assigning a user to a task."""
     await setup_integration(hass, global_entry, object_entry)
     hass.auth.async_get_user = AsyncMock(return_value=_mock_user("user1"))  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await call_ws_handler(ws_assign_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/assign_user",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "user_id": "user1",
-    })
+    await call_ws_handler(
+        ws_assign_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/assign_user",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "user_id": "user1",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -201,18 +237,26 @@ async def test_ws_assign_user(
 
 
 async def test_ws_assign_user_unassign(
-    hass: HomeAssistant, global_entry: MockConfigEntry, assigned_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    assigned_object_entry: MockConfigEntry,
 ) -> None:
     """Test unassigning a user from a task."""
     await setup_integration(hass, global_entry, assigned_object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_assign_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/assign_user",
-        "entry_id": assigned_object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "user_id": None,
-    })
+    await call_ws_handler(
+        ws_assign_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/assign_user",
+            "entry_id": assigned_object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "user_id": None,
+        },
+    )
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(assigned_object_entry.entry_id)
@@ -221,53 +265,76 @@ async def test_ws_assign_user_unassign(
 
 
 async def test_ws_assign_user_not_found_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test assigning user on non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_assign_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/assign_user",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-        "user_id": "user1",
-    })
+    await call_ws_handler(
+        ws_assign_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/assign_user",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+            "user_id": "user1",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_ws_assign_user_not_found_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test assigning user to non-existent task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_assign_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/assign_user",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task",
-        "user_id": "user1",
-    })
+    await call_ws_handler(
+        ws_assign_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/assign_user",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task",
+            "user_id": "user1",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_ws_assign_user_invalid(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test assigning non-existent user."""
     await setup_integration(hass, global_entry, object_entry)
     hass.auth.async_get_user = AsyncMock(return_value=None)  # type: ignore[method-assign]
     conn = _mock_connection()
 
-    await call_ws_handler(ws_assign_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/assign_user",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "user_id": "nonexistent_user",
-    })
+    await call_ws_handler(
+        ws_assign_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/assign_user",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "user_id": "nonexistent_user",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_user"
@@ -277,7 +344,9 @@ async def test_ws_assign_user_invalid(
 
 
 async def test_ws_tasks_by_user(
-    hass: HomeAssistant, global_entry: MockConfigEntry, assigned_object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    assigned_object_entry: MockConfigEntry,
 ) -> None:
     """Test getting tasks assigned to a user."""
     # v1.5.4: mock auth so the orphan-check (added in #48 audit follow-up)
@@ -286,10 +355,16 @@ async def test_ws_tasks_by_user(
     await setup_integration(hass, global_entry, assigned_object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_tasks_by_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tasks/by_user",
-        "user_id": "user1",
-    })
+    await call_ws_handler(
+        ws_tasks_by_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tasks/by_user",
+            "user_id": "user1",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -300,16 +375,24 @@ async def test_ws_tasks_by_user(
 
 
 async def test_ws_tasks_by_user_empty(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test getting tasks for a user with no assignments."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_tasks_by_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tasks/by_user",
-        "user_id": "user_with_no_tasks",
-    })
+    await call_ws_handler(
+        ws_tasks_by_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tasks/by_user",
+            "user_id": "user_with_no_tasks",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tasks"] == []
@@ -319,7 +402,8 @@ async def test_ws_tasks_by_user_empty(
 
 
 async def test_ws_list_users_strips_flags_for_non_admin(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A non-admin caller gets only id+name — not is_admin/is_owner (enumeration)."""
     await setup_integration(hass, global_entry)
@@ -331,9 +415,15 @@ async def test_ws_list_users_strips_flags_for_non_admin(
     conn = _mock_connection()
     conn.user = _mock_user("u2", "Bob", is_admin=False)
 
-    await call_ws_handler(ws_list_users, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/users/list",
-    })
+    await call_ws_handler(
+        ws_list_users,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/users/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["users"]) == 2
@@ -352,9 +442,16 @@ async def test_ws_tasks_by_user_self_allowed(
     conn = _mock_connection()
     conn.user = _mock_user("user1", is_admin=False)
 
-    await call_ws_handler(ws_tasks_by_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tasks/by_user", "user_id": "user1",
-    })
+    await call_ws_handler(
+        ws_tasks_by_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tasks/by_user",
+            "user_id": "user1",
+        },
+    )
 
     assert conn.send_error.call_count == 0
     conn.send_result.assert_called_once()
@@ -371,11 +468,17 @@ async def test_ws_tasks_by_user_other_rejected(
     conn = _mock_connection()
     conn.user = _mock_user("attacker", is_admin=False)
 
-    await call_ws_handler(ws_tasks_by_user, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tasks/by_user", "user_id": "user1",
-    })
+    await call_ws_handler(
+        ws_tasks_by_user,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tasks/by_user",
+            "user_id": "user1",
+        },
+    )
 
     conn.send_result.assert_not_called()
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "unauthorized"
-

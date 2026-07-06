@@ -67,10 +67,13 @@ def _conn() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -79,7 +82,9 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 @pytest.fixture
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Pool Pump"),
@@ -96,7 +101,9 @@ def _object_entry(hass: HomeAssistant, name: str, unique: str, **fields) -> Mock
     obj_data = build_object_data(name=name)
     obj_data.update(fields)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=obj_data,
@@ -137,48 +144,67 @@ def test_cap_object_fields_truncates_warranty() -> None:
 
 
 async def test_ws_create_object_with_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Warranty Object",
-        "warranty_expiry": "2030-12-31",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Warranty Object",
+            "warranty_expiry": "2030-12-31",
+        },
+    )
     conn.send_result.assert_called_once()
-    entries = [
-        e for e in hass.config_entries.async_entries(DOMAIN)
-        if e.title == "Warranty Object"
-    ]
+    entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Warranty Object"]
     assert len(entries) == 1
     assert entries[0].data[CONF_OBJECT]["warranty_expiry"] == "2030-12-31"
 
 
 async def test_ws_create_object_invalid_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Bad Warranty",
-        "warranty_expiry": "not-a-date",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Bad Warranty",
+            "warranty_expiry": "not-a-date",
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_date"
 
 
 async def test_ws_update_object_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "warranty_expiry": "2029-06-15",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "warranty_expiry": "2029-06-15",
+        },
+    )
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
@@ -186,31 +212,44 @@ async def test_ws_update_object_warranty(
 
 
 async def test_ws_update_object_invalid_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "warranty_expiry": "2029/06/15",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "warranty_expiry": "2029/06/15",
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_date"
 
 
 async def test_ws_get_object_exposes_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
-    entry = _object_entry(
-        hass, "Warranty Read", "warranty_read", warranty_expiry="2032-02-02"
-    )
+    entry = _object_entry(hass, "Warranty Read", "warranty_read", warranty_expiry="2032-02-02")
     await setup_integration(hass, global_entry, entry)
     conn = _conn()
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object",
+            "entry_id": entry.entry_id,
+        },
+    )
     obj_resp = conn.send_result.call_args[0][1]["object"]
     assert obj_resp["warranty_expiry"] == "2032-02-02"
 
@@ -219,11 +258,10 @@ async def test_ws_get_object_exposes_warranty(
 
 
 async def test_export_includes_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
-    entry = _object_entry(
-        hass, "Exported", "exported_warranty", warranty_expiry="2033-03-03"
-    )
+    entry = _object_entry(hass, "Exported", "exported_warranty", warranty_expiry="2033-03-03")
     await setup_integration(hass, global_entry, entry)
 
     data = build_export_data(hass, include_history=False)
@@ -236,11 +274,15 @@ async def test_export_includes_warranty(
 
 
 async def test_csv_roundtrips_warranty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     entry = _object_entry(
-        hass, "CSV Object", "csv_warranty",
-        warranty_expiry="2034-04-04", installation_date="2020-01-01",
+        hass,
+        "CSV Object",
+        "csv_warranty",
+        warranty_expiry="2034-04-04",
+        installation_date="2020-01-01",
     )
     await setup_integration(hass, global_entry, entry)
 
@@ -263,9 +305,13 @@ def _warranty_global(hass: HomeAssistant, *, enabled: bool, days: int = 30) -> M
     data[CONF_WARRANTY_REMINDER_ENABLED] = enabled
     data[CONF_WARRANTY_REMINDER_DAYS] = days
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=data,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry

@@ -34,10 +34,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -74,7 +77,9 @@ def _make_compound_entry(
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Compound Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Compound Test"),
@@ -91,7 +96,8 @@ def _make_compound_entry(
 
 
 async def test_compound_trigger_and_setup(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test compound trigger with AND logic sets up sub-triggers."""
     hass.states.async_set("sensor.temp", "25")
@@ -107,7 +113,8 @@ async def test_compound_trigger_and_setup(
 
 
 async def test_compound_trigger_and_not_triggered_initially(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test AND compound trigger is not triggered when conditions are not met."""
     hass.states.async_set("sensor.temp", "25")  # Below 30
@@ -117,9 +124,7 @@ async def test_compound_trigger_and_not_triggered_initially(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_id = next(
-        (e.entity_id for e in er.async_entries_for_config_entry(
-            er.async_get(hass), obj_entry.entry_id
-        ) if e.domain == "sensor"),
+        (e.entity_id for e in er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id) if e.domain == "sensor"),
         None,
     )
     if entity_id is not None:
@@ -129,7 +134,8 @@ async def test_compound_trigger_and_not_triggered_initially(
 
 
 async def test_compound_trigger_and_partial_trigger(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test AND compound trigger: one condition met doesn't trigger."""
     hass.states.async_set("sensor.temp", "35")  # Above 30 → condition 1 met
@@ -139,9 +145,7 @@ async def test_compound_trigger_and_partial_trigger(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_id = next(
-        (e.entity_id for e in er.async_entries_for_config_entry(
-            er.async_get(hass), obj_entry.entry_id
-        ) if e.domain == "sensor"),
+        (e.entity_id for e in er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id) if e.domain == "sensor"),
         None,
     )
     if entity_id is not None:
@@ -155,7 +159,8 @@ async def test_compound_trigger_and_partial_trigger(
 
 
 async def test_compound_trigger_or_setup(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test compound trigger with OR logic sets up correctly."""
     hass.states.async_set("sensor.temp", "25")
@@ -171,7 +176,8 @@ async def test_compound_trigger_or_setup(
 
 
 async def test_compound_trigger_or_one_met(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test OR compound trigger: one condition met triggers."""
     hass.states.async_set("sensor.temp", "35")  # Above 30
@@ -181,9 +187,7 @@ async def test_compound_trigger_or_one_met(
     await setup_integration(hass, global_entry, obj_entry)
 
     entity_id = next(
-        (e.entity_id for e in er.async_entries_for_config_entry(
-            er.async_get(hass), obj_entry.entry_id
-        ) if e.domain == "sensor"),
+        (e.entity_id for e in er.async_entries_for_config_entry(er.async_get(hass), obj_entry.entry_id) if e.domain == "sensor"),
         None,
     )
     if entity_id is not None:
@@ -298,7 +302,8 @@ async def test_coordinator_proxy_delegates_attrs() -> None:
 
 
 async def test_coordinator_proxy_persist_runtime(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test proxy persists runtime under condition index."""
     hass.states.async_set("sensor.temp", "25")
@@ -328,7 +333,8 @@ async def test_coordinator_proxy_persist_runtime(
 
 
 async def test_coordinator_proxy_persist_no_entity(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test proxy persists runtime without entity_id."""
     hass.states.async_set("sensor.temp", "25")
@@ -358,7 +364,8 @@ async def test_coordinator_proxy_persist_no_entity(
 
 
 async def test_coordinator_proxy_persist_missing_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test proxy returns early if task_id not in data."""
     hass.states.async_set("sensor.temp", "25")
@@ -390,11 +397,15 @@ def test_compound_evaluate_and() -> None:
     mock_entity.coordinator = MagicMock()
 
     hass = MagicMock()
-    trigger = CompoundTrigger(hass, mock_entity, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [{"type": "threshold"}, {"type": "threshold"}],
-    })
+    trigger = CompoundTrigger(
+        hass,
+        mock_entity,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [{"type": "threshold"}, {"type": "threshold"}],
+        },
+    )
 
     # Initially both False
     assert trigger.evaluate(0) is False
@@ -416,11 +427,15 @@ def test_compound_evaluate_or() -> None:
     mock_entity.coordinator = MagicMock()
 
     hass = MagicMock()
-    trigger = CompoundTrigger(hass, mock_entity, {
-        "type": "compound",
-        "compound_logic": "OR",
-        "conditions": [{"type": "threshold"}, {"type": "threshold"}],
-    })
+    trigger = CompoundTrigger(
+        hass,
+        mock_entity,
+        {
+            "type": "compound",
+            "compound_logic": "OR",
+            "conditions": [{"type": "threshold"}, {"type": "threshold"}],
+        },
+    )
 
     # Initially both False
     assert trigger.evaluate(0) is False
@@ -438,11 +453,15 @@ def test_compound_condition_states_property() -> None:
     mock_entity.coordinator = MagicMock()
 
     hass = MagicMock()
-    trigger = CompoundTrigger(hass, mock_entity, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [{"type": "threshold"}],
-    })
+    trigger = CompoundTrigger(
+        hass,
+        mock_entity,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [{"type": "threshold"}],
+        },
+    )
 
     states = trigger.condition_states
     assert states == [False]
@@ -461,11 +480,15 @@ def test_on_condition_changed_activates(hass: HomeAssistant) -> None:
     mock_entity._task_id = TASK_ID_1
     mock_entity.coordinator = MagicMock()
 
-    trigger = CompoundTrigger(hass, mock_entity, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [{"type": "threshold"}, {"type": "threshold"}],
-    })
+    trigger = CompoundTrigger(
+        hass,
+        mock_entity,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [{"type": "threshold"}, {"type": "threshold"}],
+        },
+    )
 
     # Both conditions met → trigger activates
     trigger._on_condition_changed(0, True)
@@ -482,11 +505,15 @@ def test_on_condition_changed_deactivates(hass: HomeAssistant) -> None:
     mock_entity._task_id = TASK_ID_1
     mock_entity.coordinator = MagicMock()
 
-    trigger = CompoundTrigger(hass, mock_entity, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [{"type": "threshold"}, {"type": "threshold"}],
-    })
+    trigger = CompoundTrigger(
+        hass,
+        mock_entity,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [{"type": "threshold"}, {"type": "threshold"}],
+        },
+    )
 
     # Set to triggered first
     trigger._condition_states = [True, True]
@@ -513,11 +540,15 @@ def test_compound_reset() -> None:
     mock_entity.coordinator = MagicMock()
 
     hass = MagicMock()
-    trigger = CompoundTrigger(hass, mock_entity, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [{"type": "threshold"}, {"type": "threshold"}],
-    })
+    trigger = CompoundTrigger(
+        hass,
+        mock_entity,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [{"type": "threshold"}, {"type": "threshold"}],
+        },
+    )
 
     trigger._condition_states = [True, True]
     trigger._triggered = True

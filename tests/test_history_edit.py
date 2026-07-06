@@ -94,7 +94,9 @@ def _build_object_entry_with_history(
             last_performed = max(h["timestamp"] for h in lifecycle)[:10]
     task = build_task_data(history=history, last_performed=last_performed)
     return MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="HistEditObj",
         data=build_object_entry_data(
             object_data=build_object_data(name="HistEditObj"),
@@ -108,10 +110,13 @@ def _build_object_entry_with_history(
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -126,7 +131,8 @@ def _get_store(hass: HomeAssistant, entry: MockConfigEntry):
 
 
 async def test_edit_notes_only(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Patching only ``notes`` leaves other fields intact."""
     h = _hist_entry(5, notes="initial", cost=12.5, duration=30)
@@ -135,13 +141,19 @@ async def test_edit_notes_only(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": h["timestamp"],
-        "notes": "edited via UI",
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "notes": "edited via UI",
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -154,7 +166,8 @@ async def test_edit_notes_only(
 
 
 async def test_edit_cost_and_duration(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     h = _hist_entry(3, cost=10.0, duration=15)
     obj_entry = _build_object_entry_with_history([h])
@@ -162,14 +175,20 @@ async def test_edit_cost_and_duration(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": h["timestamp"],
-        "cost": 99.99,
-        "duration": 90,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "cost": 99.99,
+            "duration": 90,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -179,7 +198,8 @@ async def test_edit_cost_and_duration(
 
 
 async def test_clear_optional_fields_with_null(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Sending ``None`` for an optional field removes it from the entry."""
     h = _hist_entry(2, notes="will be cleared", cost=5.0)
@@ -188,14 +208,20 @@ async def test_clear_optional_fields_with_null(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": h["timestamp"],
-        "notes": None,
-        "cost": None,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "notes": None,
+            "cost": None,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -209,7 +235,8 @@ async def test_clear_optional_fields_with_null(
 
 
 async def test_unknown_original_timestamp_returns_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     h = _hist_entry(1)
     obj_entry = _build_object_entry_with_history([h])
@@ -217,54 +244,75 @@ async def test_unknown_original_timestamp_returns_not_found(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": "2020-01-01T00:00:00",  # nonexistent
-        "notes": "doesn't matter",
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": "2020-01-01T00:00:00",  # nonexistent
+            "notes": "doesn't matter",
+        },
+    )
     code, _ = assert_ws_error(conn)
     assert code == "not_found"
 
 
 async def test_unknown_task_returns_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     obj_entry = _build_object_entry_with_history([_hist_entry(1)])
     obj_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": "z" * 32,  # nonexistent task id
-        "original_timestamp": "2020-01-01T00:00:00",
-        "notes": "noop",
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": "z" * 32,  # nonexistent task id
+            "original_timestamp": "2020-01-01T00:00:00",
+            "notes": "noop",
+        },
+    )
     code, _ = assert_ws_error(conn)
     assert code == "not_found"
 
 
 async def test_unknown_object_returns_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": "01ABC",
-        "task_id": TASK_ID_1,
-        "original_timestamp": "2020-01-01T00:00:00",
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": "01ABC",
+            "task_id": TASK_ID_1,
+            "original_timestamp": "2020-01-01T00:00:00",
+        },
+    )
     code, _ = assert_ws_error(conn)
     assert code == "not_found"
 
 
 async def test_invalid_timestamp_format_rejected(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     h = _hist_entry(1)
     obj_entry = _build_object_entry_with_history([h])
@@ -272,13 +320,19 @@ async def test_invalid_timestamp_format_rejected(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": h["timestamp"],
-        "timestamp": "this is not a date",
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "timestamp": "this is not a date",
+        },
+    )
     code, _ = assert_ws_error(conn)
     assert code == "invalid_date"
     # Verify nothing was mutated
@@ -287,7 +341,8 @@ async def test_invalid_timestamp_format_rejected(
 
 
 async def test_non_admin_rejected(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     h = _hist_entry(1)
     obj_entry = _build_object_entry_with_history([h])
@@ -307,20 +362,26 @@ async def test_non_admin_rejected(
     with pytest.raises(Unauthorized):
         # ws_update_history_entry is decorated with require_admin which
         # wraps the inner async function. The outer call respects admin.
-        await ws_update_history_entry(hass, conn, {
-            "id": 1, "type": "maintenance_supporter/task/history/update",
-            "entry_id": obj_entry.entry_id,
-            "task_id": TASK_ID_1,
-            "original_timestamp": h["timestamp"],
-            "notes": "shouldn't apply",
-        })
+        await ws_update_history_entry(
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/history/update",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "original_timestamp": h["timestamp"],
+                "notes": "shouldn't apply",
+            },
+        )
 
 
 # ─── last_performed recomputation ───────────────────────────────────────────
 
 
 async def test_editing_latest_completion_timestamp_updates_last_performed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """When the user moves the latest completion's date forward by 2 days,
     last_performed must follow."""
@@ -333,13 +394,19 @@ async def test_editing_latest_completion_timestamp_updates_last_performed(
     new_ts = (dt_util.now() - timedelta(days=0)).isoformat()  # today
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": latest["timestamp"],
-        "timestamp": new_ts,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": latest["timestamp"],
+            "timestamp": new_ts,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -347,7 +414,8 @@ async def test_editing_latest_completion_timestamp_updates_last_performed(
 
 
 async def test_editing_older_entry_does_NOT_change_last_performed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Patching an older entry's timestamp must NOT change last_performed
     (the latest entry is still the anchor)."""
@@ -361,13 +429,19 @@ async def test_editing_older_entry_does_NOT_change_last_performed(
     new_old_ts = (dt_util.now() - timedelta(days=25)).isoformat()
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": older["timestamp"],
-        "timestamp": new_old_ts,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": older["timestamp"],
+            "timestamp": new_old_ts,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -377,7 +451,8 @@ async def test_editing_older_entry_does_NOT_change_last_performed(
 
 
 async def test_editing_older_entry_to_become_latest_updates_last_performed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """If editing an older entry's timestamp into the future makes it the
     new latest, last_performed must follow that newest one."""
@@ -390,13 +465,19 @@ async def test_editing_older_entry_to_become_latest_updates_last_performed(
     new_ts = (dt_util.now() - timedelta(days=1)).isoformat()  # newer than latest
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": older["timestamp"],
-        "timestamp": new_ts,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": older["timestamp"],
+            "timestamp": new_ts,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -404,7 +485,8 @@ async def test_editing_older_entry_to_become_latest_updates_last_performed(
 
 
 async def test_non_lifecycle_entry_edit_does_NOT_touch_last_performed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Editing a TRIGGERED entry (non-lifecycle) must not move last_performed
     even if its new timestamp would be more recent than the latest completed
@@ -419,13 +501,19 @@ async def test_non_lifecycle_entry_edit_does_NOT_touch_last_performed(
 
     new_triggered_ts = (dt_util.now()).isoformat()  # today — newest of all
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": triggered["timestamp"],
-        "timestamp": new_triggered_ts,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": triggered["timestamp"],
+            "timestamp": new_triggered_ts,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -438,7 +526,8 @@ async def test_non_lifecycle_entry_edit_does_NOT_touch_last_performed(
 
 
 async def test_patched_entry_survives_store_save_and_reload(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """End-to-end persistence: patch → store.async_save (already awaited by
     handler) → re-read via Store API → patched data still there."""
@@ -448,14 +537,20 @@ async def test_patched_entry_survives_store_save_and_reload(
     await setup_integration(hass, global_entry, obj_entry)
 
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": h["timestamp"],
-        "notes": "after",
-        "cost": 42.0,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h["timestamp"],
+            "notes": "after",
+            "cost": 42.0,
+        },
+    )
     assert_ws_success(conn)
 
     store = _get_store(hass, obj_entry)
@@ -469,7 +564,8 @@ async def test_patched_entry_survives_store_save_and_reload(
 
 
 async def test_response_contains_index_and_new_timestamp(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """The success payload should give the frontend everything it needs to
     reconcile its local view (index + the new authoritative timestamp)."""
@@ -482,13 +578,19 @@ async def test_response_contains_index_and_new_timestamp(
 
     new_ts = (dt_util.now() - timedelta(days=4)).isoformat()
     conn = make_ws_connection()
-    await call_ws_handler(ws_update_history_entry, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/history/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "original_timestamp": h1["timestamp"],
-        "timestamp": new_ts,
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "original_timestamp": h1["timestamp"],
+            "timestamp": new_ts,
+        },
+    )
     payload = assert_ws_success(conn)
     assert payload["success"] is True
     assert payload["patched_index"] == 1

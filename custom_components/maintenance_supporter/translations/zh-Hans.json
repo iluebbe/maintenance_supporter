@@ -676,7 +676,8 @@
           "custom_icon": "任务图标",
           "nfc_tag_id": "NFC 标签 ID",
           "go_back": "返回",
-          "interval_anchor": "计划锚点"
+          "interval_anchor": "计划锚点",
+          "reading_unit": "读数单位（用于读数任务，如 kWh）"
         },
         "data_description": {
           "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
@@ -862,7 +863,8 @@
           "type": "维护类型",
           "schedule_type": "计划类型",
           "custom_icon": "任务图标",
-          "go_back": "返回"
+          "go_back": "返回",
+          "reading_unit": "读数单位（用于读数任务，如 kWh）"
         },
         "data_description": {
           "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "时长",
           "description": "维护持续时长 (分钟)。"
+        },
+        "reading_value": {
+          "name": "读数值",
+          "description": "读数类任务记录的值（抄表、液位检查）。"
         }
       }
     },

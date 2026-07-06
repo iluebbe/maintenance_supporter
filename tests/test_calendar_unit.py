@@ -37,10 +37,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -59,7 +62,9 @@ def _add_object_entry(
     unique_id: str = "cal_unit",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -76,7 +81,8 @@ def _add_object_entry(
 
 
 async def test_get_all_events_time_based(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events returns events for time-based tasks."""
@@ -86,15 +92,14 @@ async def test_get_all_events_time_based(
     await setup_integration(hass, global_entry)
 
     now = dt_util.now()
-    events = calendar_entity._get_all_events(
-        now, now + timedelta(days=365)
-    )
+    events = calendar_entity._get_all_events(now, now + timedelta(days=365))
     matching = [e for e in events if "Test Object" in e.summary]
     assert len(matching) >= 1
 
 
 async def test_get_all_events_disabled_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events skips disabled tasks."""
@@ -104,15 +109,14 @@ async def test_get_all_events_disabled_task(
     await setup_integration(hass, global_entry)
 
     now = dt_util.now()
-    events = calendar_entity._get_all_events(
-        now, now + timedelta(days=365)
-    )
+    events = calendar_entity._get_all_events(now, now + timedelta(days=365))
     matching = [e for e in events if "Test Object" in e.summary]
     assert len(matching) == 0
 
 
 async def test_get_all_events_manual_no_trigger(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events: manual task without trigger → no event."""
@@ -122,15 +126,14 @@ async def test_get_all_events_manual_no_trigger(
     await setup_integration(hass, global_entry)
 
     now = dt_util.now()
-    events = calendar_entity._get_all_events(
-        now, now + timedelta(days=365)
-    )
+    events = calendar_entity._get_all_events(now, now + timedelta(days=365))
     matching = [e for e in events if "Test Object" in e.summary]
     assert len(matching) == 0
 
 
 async def test_get_all_events_out_of_range(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events: task due far away not in short range."""
@@ -140,15 +143,14 @@ async def test_get_all_events_out_of_range(
     await setup_integration(hass, global_entry)
 
     now = dt_util.now()
-    events = calendar_entity._get_all_events(
-        now, now + timedelta(days=7)
-    )
+    events = calendar_entity._get_all_events(now, now + timedelta(days=7))
     matching = [e for e in events if "Test Object" in e.summary]
     assert len(matching) == 0
 
 
 async def test_get_all_events_with_plain_dates(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test _get_all_events accepts plain date objects."""
@@ -167,7 +169,8 @@ async def test_get_all_events_with_plain_dates(
 
 
 async def test_event_property_returns_next(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test event property returns the nearest upcoming event."""
@@ -182,7 +185,8 @@ async def test_event_property_returns_next(
 
 
 async def test_event_property_no_events(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test event property returns None when no events."""
@@ -196,7 +200,8 @@ async def test_event_property_no_events(
 
 
 async def test_async_get_events(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test async_get_events returns events."""
@@ -206,9 +211,7 @@ async def test_async_get_events(
     await setup_integration(hass, global_entry)
 
     now = dt_util.now()
-    events = await calendar_entity.async_get_events(
-        hass, now, now + timedelta(days=365)
-    )
+    events = await calendar_entity.async_get_events(hass, now, now + timedelta(days=365))
     matching = [e for e in events if "Test Object" in e.summary]
     assert len(matching) >= 1
 
@@ -221,21 +224,21 @@ def test_create_event_all_day_without_schedule_time(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Default behaviour: no schedule_time → all-day event (start/end are date)."""
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Timed",
-        "type": "service",
-        "enabled": True,
-        "schedule_type": ScheduleType.TIME_BASED,
-        "interval_days": 7,
-        "warning_days": 1,
-        "last_performed": dt_util.now().date().isoformat(),
-        "history": [],
-    })
-    today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Timed",
+            "type": "service",
+            "enabled": True,
+            "schedule_type": ScheduleType.TIME_BASED,
+            "interval_days": 7,
+            "warning_days": 1,
+            "last_performed": dt_util.now().date().isoformat(),
+            "history": [],
+        }
     )
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is not None
     # Without schedule_time, event.start is a plain `date` (all-day)
     assert not isinstance(event.start, datetime)
@@ -255,22 +258,22 @@ def test_create_event_timed_when_schedule_time_and_flag_on(
     )
     global_entry.add_to_hass(hass)
 
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "At09",
-        "type": "service",
-        "enabled": True,
-        "schedule_type": ScheduleType.TIME_BASED,
-        "interval_days": 7,
-        "warning_days": 1,
-        "last_performed": dt_util.now().date().isoformat(),
-        "schedule_time": "09:00",
-        "history": [],
-    })
-    today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "At09",
+            "type": "service",
+            "enabled": True,
+            "schedule_type": ScheduleType.TIME_BASED,
+            "interval_days": 7,
+            "warning_days": 1,
+            "last_performed": dt_util.now().date().isoformat(),
+            "schedule_time": "09:00",
+            "history": [],
+        }
     )
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is not None
     assert isinstance(event.start, datetime), "start must be datetime when schedule_time is set"
     assert isinstance(event.end, datetime)
@@ -292,22 +295,22 @@ def test_create_event_all_day_when_flag_off(
     )
     global_entry.add_to_hass(hass)
 
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "At09",
-        "type": "service",
-        "enabled": True,
-        "schedule_type": ScheduleType.TIME_BASED,
-        "interval_days": 7,
-        "warning_days": 1,
-        "last_performed": dt_util.now().date().isoformat(),
-        "schedule_time": "09:00",
-        "history": [],
-    })
-    today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "At09",
+            "type": "service",
+            "enabled": True,
+            "schedule_type": ScheduleType.TIME_BASED,
+            "interval_days": 7,
+            "warning_days": 1,
+            "last_performed": dt_util.now().date().isoformat(),
+            "schedule_time": "09:00",
+            "history": [],
+        }
     )
+    today = dt_util.now().date()
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is not None
     # Flag off: even though schedule_time is set, event stays all-day
     assert not isinstance(event.start, datetime)
@@ -318,20 +321,20 @@ def test_create_event_manual_not_triggered(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test manual task not triggered → no event."""
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Manual Task",
-        "type": "cleaning",
-        "enabled": True,
-        "schedule_type": ScheduleType.MANUAL,
-        "warning_days": 7,
-        "history": [],
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Manual Task",
+            "type": "cleaning",
+            "enabled": True,
+            "schedule_type": ScheduleType.MANUAL,
+            "warning_days": 7,
+            "history": [],
+        }
+    )
 
     today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is None
 
 
@@ -340,21 +343,21 @@ def test_create_event_manual_triggered(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test manual task triggered → event for today."""
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Manual Task",
-        "type": "cleaning",
-        "enabled": True,
-        "schedule_type": ScheduleType.MANUAL,
-        "warning_days": 7,
-        "history": [],
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Manual Task",
+            "type": "cleaning",
+            "enabled": True,
+            "schedule_type": ScheduleType.MANUAL,
+            "warning_days": 7,
+            "history": [],
+        }
+    )
     task._trigger_active = True
 
     today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is not None
     assert "Manual Task" in event.summary
 
@@ -364,23 +367,23 @@ def test_create_event_manual_triggered_out_of_range(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test manual task triggered but outside date range → no event."""
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Manual Task",
-        "type": "cleaning",
-        "enabled": True,
-        "schedule_type": ScheduleType.MANUAL,
-        "warning_days": 7,
-        "history": [],
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Manual Task",
+            "type": "cleaning",
+            "enabled": True,
+            "schedule_type": ScheduleType.MANUAL,
+            "warning_days": 7,
+            "history": [],
+        }
+    )
     task._trigger_active = True
 
     # Range in the far past
     start = date(2020, 1, 1)
     end = date(2020, 1, 31)
-    event = calendar_entity._create_event_for_task(
-        task, "Object", start, end
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", start, end)
     assert event is None
 
 
@@ -389,22 +392,22 @@ def test_create_event_sensor_triggered_no_due_date(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test sensor-triggered task with no next_due → shows today."""
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Sensor Task",
-        "type": "inspection",
-        "enabled": True,
-        "schedule_type": ScheduleType.SENSOR_BASED,
-        "warning_days": 7,
-        "history": [],
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Sensor Task",
+            "type": "inspection",
+            "enabled": True,
+            "schedule_type": ScheduleType.SENSOR_BASED,
+            "warning_days": 7,
+            "history": [],
+        }
+    )
     task._trigger_active = True
     # No last_performed → no next_due
 
     today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is not None
     assert "Sensor Task" in event.summary
 
@@ -414,21 +417,21 @@ def test_create_event_no_next_due_no_trigger(
     calendar_entity: MaintenanceCalendar,
 ) -> None:
     """Test task with no next_due and no trigger → no event."""
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "No Due Task",
-        "type": "inspection",
-        "enabled": True,
-        "schedule_type": ScheduleType.SENSOR_BASED,
-        "warning_days": 7,
-        "history": [],
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "No Due Task",
+            "type": "inspection",
+            "enabled": True,
+            "schedule_type": ScheduleType.SENSOR_BASED,
+            "warning_days": 7,
+            "history": [],
+        }
+    )
     # No trigger active, no interval → no next_due
 
     today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=30)
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=30))
     assert event is None
 
 
@@ -438,25 +441,25 @@ def test_create_event_overdue(
 ) -> None:
     """Test overdue task creates event with correct prefix."""
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()
-    task = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Overdue Task",
-        "type": "cleaning",
-        "enabled": True,
-        "schedule_type": ScheduleType.TIME_BASED,
-        "interval_days": 30,
-        "warning_days": 7,
-        "last_performed": last,
-        "history": [],
-    })
+    task = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Overdue Task",
+            "type": "cleaning",
+            "enabled": True,
+            "schedule_type": ScheduleType.TIME_BASED,
+            "interval_days": 30,
+            "warning_days": 7,
+            "last_performed": last,
+            "history": [],
+        }
+    )
 
     today = dt_util.now().date()
     # Wide range covering past 60 days to future 60 days
     start = today - timedelta(days=60)
     end = today + timedelta(days=60)
-    event = calendar_entity._create_event_for_task(
-        task, "Object", start, end
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", start, end)
     if event is not None:
         assert "Overdue Task" in event.summary
 
@@ -465,16 +468,18 @@ def test_create_event_overdue(
 
 
 def _cal_task(schedule: dict[str, Any]) -> MaintenanceTask:
-    return MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Cal",
-        "type": "service",
-        "enabled": True,
-        "schedule": schedule,
-        "created_at": dt_util.now().date().isoformat(),
-        "warning_days": 1,
-        "history": [],
-    })
+    return MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Cal",
+            "type": "service",
+            "enabled": True,
+            "schedule": schedule,
+            "created_at": dt_util.now().date().isoformat(),
+            "warning_days": 1,
+            "history": [],
+        }
+    )
 
 
 def test_recurrence_text_nth_weekday() -> None:
@@ -508,17 +513,19 @@ def test_recurrence_text_day_of_month() -> None:
 
 def test_recurrence_text_interval_fallback() -> None:
     """Non-calendar tasks fall back to the real day-span (3 months → ~90 days)."""
-    t = MaintenanceTask.from_dict({
-        "id": TASK_ID_1,
-        "name": "Int",
-        "type": "service",
-        "enabled": True,
-        "schedule_type": ScheduleType.TIME_BASED,
-        "interval_days": 3,
-        "interval_unit": "months",
-        "warning_days": 1,
-        "history": [],
-    })
+    t = MaintenanceTask.from_dict(
+        {
+            "id": TASK_ID_1,
+            "name": "Int",
+            "type": "service",
+            "enabled": True,
+            "schedule_type": ScheduleType.TIME_BASED,
+            "interval_days": 3,
+            "interval_unit": "months",
+            "warning_days": 1,
+            "history": [],
+        }
+    )
     assert _recurrence_text(t, "en") == "90 days"
 
 
@@ -530,8 +537,6 @@ def test_create_event_calendar_kind_description_localized(
     hass.config.language = "de"
     task = _cal_task({"kind": "nth_weekday", "nth": 1, "weekday": 5})
     today = dt_util.now().date()
-    event = calendar_entity._create_event_for_task(
-        task, "Object", today, today + timedelta(days=90)
-    )
+    event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=90))
     assert event is not None
     assert "1. Samstag" in event.description

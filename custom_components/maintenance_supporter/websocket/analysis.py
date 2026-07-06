@@ -51,9 +51,7 @@ async def ws_analyze_interval(
     # Inject hemisphere and current month for seasonal awareness
     from homeassistant.util import dt as dt_util
 
-    adaptive_config["hemisphere"] = (
-        "south" if (hass.config.latitude or 0) < 0 else "north"
-    )
+    adaptive_config["hemisphere"] = "south" if (hass.config.latitude or 0) < 0 else "north"
     adaptive_config["_current_month"] = dt_util.now().month
 
     analyzer = IntervalAnalyzer()
@@ -157,22 +155,13 @@ async def ws_seasonal_overrides(
             month = int(key)
             factor = float(value)
         except (ValueError, TypeError):
-            connection.send_error(
-                msg["id"], "invalid_input",
-                f"Invalid override: key={key}, value={value}"
-            )
+            connection.send_error(msg["id"], "invalid_input", f"Invalid override: key={key}, value={value}")
             return
         if month < 1 or month > 12:
-            connection.send_error(
-                msg["id"], "invalid_input",
-                f"Month must be 1-12, got {month}"
-            )
+            connection.send_error(msg["id"], "invalid_input", f"Month must be 1-12, got {month}")
             return
         if factor < 0.1 or factor > 5.0:
-            connection.send_error(
-                msg["id"], "invalid_input",
-                f"Factor must be 0.1-5.0, got {factor}"
-            )
+            connection.send_error(msg["id"], "invalid_input", f"Factor must be 0.1-5.0, got {factor}")
             return
         validated[month] = round(factor, 2)
 

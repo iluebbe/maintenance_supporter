@@ -679,5 +679,9 @@
   "replace_object": "更换…",
   "replace_object_prompt": "让此对象退役并创建继任者。历史和费用留在旧对象的归档中；任务和文档转移到新对象，计数器重新开始。",
   "replace_name_label": "继任者名称",
-  "object_replaced": "对象已更换——已创建继任者"
+  "object_replaced": "对象已更换——已创建继任者",
+  "reading_unit_label": "读数单位（如 kWh、m³）",
+  "reading_unit_help": "完成此任务时显示在记录值旁边。",
+  "reading_value_label": "读数值",
+  "reading_label": "读数"
 }

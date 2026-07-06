@@ -34,10 +34,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -50,7 +53,9 @@ def _make_entry(
     unique_id: str = "trigger_attr",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -69,9 +74,7 @@ def _get_sensor_entity(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
     sensors = [e for e in entities if e.domain == "sensor"]
     if not sensors:
         return None
-    return hass.data.get("entity_components", {}).get("sensor", MagicMock()).get_entity(
-        sensors[0].entity_id
-    )
+    return hass.data.get("entity_components", {}).get("sensor", MagicMock()).get_entity(sensors[0].entity_id)
 
 
 def _get_sensor_state(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
@@ -120,7 +123,8 @@ def test_compute_live_status_no_due_date() -> None:
 
 
 async def test_counter_multi_entity_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test counter trigger with multi-entity exposes baselines and deltas."""
     hass.states.async_set("sensor.counter1", "100")
@@ -154,7 +158,8 @@ async def test_counter_multi_entity_attrs(
 
 
 async def test_state_change_multi_entity_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test state_change trigger with multi-entity exposes change counts."""
     hass.states.async_set("binary_sensor.door1", "off")
@@ -190,7 +195,8 @@ async def test_state_change_multi_entity_attrs(
 
 
 async def test_runtime_multi_entity_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger with multi-entity exposes per-entity hours."""
     hass.states.async_set("sensor.pump1", "on")
@@ -222,7 +228,8 @@ async def test_runtime_multi_entity_attrs(
 
 
 async def test_compound_trigger_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test compound trigger exposes logic and conditions count."""
     hass.states.async_set("sensor.temp", "25")
@@ -265,7 +272,8 @@ async def test_compound_trigger_attrs(
 
 
 async def test_runtime_fallback_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger attributes from config fallback path."""
     hass.states.async_set("sensor.pump", "on")
@@ -295,7 +303,8 @@ async def test_runtime_fallback_attrs(
 
 
 async def test_async_update_trigger_state_single(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test async_update_trigger_state with single trigger."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -330,7 +339,8 @@ async def test_async_update_trigger_state_single(
 
 
 async def test_async_update_trigger_state_coordinator_none(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test async_update_trigger_state returns early if coordinator.data is None."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -367,7 +377,8 @@ async def test_async_update_trigger_state_coordinator_none(
 
 
 async def test_degradation_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test degradation_rate and degradation_trend attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -393,7 +404,8 @@ async def test_degradation_attrs(
 
 
 async def test_sensor_setup_global_creates_summary_sensors(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """The global entry exposes the aggregate summary + storage sensors (no per-task ones)."""
     await setup_integration(hass, global_entry)
@@ -401,19 +413,16 @@ async def test_sensor_setup_global_creates_summary_sensors(
     entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
     sensors = [e for e in entities if e.domain == "sensor"]
     assert len(sensors) == 7  # 6 summary metrics + the document-storage sensor
-    assert all(
-        e.unique_id.startswith("maintenance_supporter_global_")
-        for e in sensors
-    )
+    assert all(e.unique_id.startswith("maintenance_supporter_global_") for e in sensors)
     # Stable, documented entity IDs (see README "Summary sensors").
     assert {e.entity_id for e in sensors} == {
-        f"sensor.maintenance_supporter_{k}"
-        for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
+        f"sensor.maintenance_supporter_{k}" for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
     } | {"sensor.maintenance_supporter_document_storage"}
 
 
 async def test_summary_sensor_ids_are_language_independent(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Summary entity_ids stay English even when the HA system language isn't.
 
@@ -426,8 +435,7 @@ async def test_summary_sensor_ids_are_language_independent(
     entities = er.async_entries_for_config_entry(entity_reg, global_entry.entry_id)
     sensors = {e.entity_id for e in entities if e.domain == "sensor"}
     assert sensors == {
-        f"sensor.maintenance_supporter_{k}"
-        for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
+        f"sensor.maintenance_supporter_{k}" for k in ("overdue", "due_soon", "triggered", "needs_attention", "ok", "total_tasks")
     } | {"sensor.maintenance_supporter_document_storage"}
 
 
@@ -435,7 +443,8 @@ async def test_summary_sensor_ids_are_language_independent(
 
 
 async def test_last_entry_attr(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test _last_entry attribute is exposed."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()

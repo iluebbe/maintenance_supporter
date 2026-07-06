@@ -679,5 +679,9 @@
   "replace_object": "Udskift…",
   "replace_object_prompt": "Pensioner dette objekt og opret en efterfølger. Historik og omkostninger forbliver arkiveret på det gamle; opgaver og dokumenter følger med til det nye, tællere starter forfra.",
   "replace_name_label": "Efterfølgerens navn",
-  "object_replaced": "Objekt udskiftet — efterfølger oprettet"
+  "object_replaced": "Objekt udskiftet — efterfølger oprettet",
+  "reading_unit_label": "Aflæsningsenhed (f.eks. kWh, m³)",
+  "reading_unit_help": "Vises ved siden af den registrerede værdi, når opgaven fuldføres.",
+  "reading_value_label": "Aflæst værdi",
+  "reading_label": "Aflæsning"
 }

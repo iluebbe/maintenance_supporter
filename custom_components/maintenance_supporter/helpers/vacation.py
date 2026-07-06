@@ -115,9 +115,7 @@ class VacationState:
             enabled=bool(options.get(CONF_VACATION_ENABLED, False)),
             start=_coerce_date(options.get(CONF_VACATION_START)),
             end=_coerce_date(options.get(CONF_VACATION_END)),
-            buffer_days=_coerce_buffer(
-                options.get(CONF_VACATION_BUFFER_DAYS, DEFAULT_VACATION_BUFFER_DAYS)
-            ),
+            buffer_days=_coerce_buffer(options.get(CONF_VACATION_BUFFER_DAYS, DEFAULT_VACATION_BUFFER_DAYS)),
             exempt_task_ids=frozenset(exempt),
         )
 
@@ -300,11 +298,7 @@ def compute_preview(
                 if sched
                 else None
             )
-            events = (
-                _events_from_next_due(nd, _task_warning_days(t), today, window_start, window_end)
-                if nd
-                else []
-            )
+            events = _events_from_next_due(nd, _task_warning_days(t), today, window_start, window_end) if nd else []
             kind = schedule_type
             confidence = "deterministic"
         else:

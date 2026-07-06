@@ -84,9 +84,7 @@ async def ws_archive_task(
     # trigger setup for archived tasks) and every per-task entity recomputes inert.
     await hass.config_entries.async_reload(entry.entry_id)
 
-    connection.send_result(
-        msg["id"], {"success": True, "archived_at": td["archived_at"]}
-    )
+    connection.send_result(msg["id"], {"success": True, "archived_at": td["archived_at"]})
 
 
 @websocket_api.websocket_command(
@@ -180,18 +178,13 @@ def ws_list_tasks(
         entry_tasks = _get_merged_tasks(entry)
         obj_data = entry.data.get(CONF_OBJECT, {})
         rd = _get_runtime_data(hass, entry.entry_id)
-        coordinator_data = (
-            rd.coordinator.data if rd and rd.coordinator else None
-        )
+        coordinator_data = rd.coordinator.data if rd and rd.coordinator else None
         ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
         for task_id, task_data in entry_tasks.items():
-            summary = _build_task_summary(
-                hass, task_id, task_data, ct_tasks.get(task_id)
-            )
+            summary = _build_task_summary(hass, task_id, task_data, ct_tasks.get(task_id))
             summary["task_id"] = task_id
             summary["entry_id"] = entry.entry_id
             summary["object_name"] = obj_data.get(CONF_OBJECT_NAME, "")
             tasks.append(summary)
 
     connection.send_result(msg["id"], {"tasks": tasks})
-

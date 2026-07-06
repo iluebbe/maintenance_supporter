@@ -135,8 +135,16 @@ async def async_create_task_simple(
 
 
 _UPDATABLE_FLAT_FIELDS = (
-    "name", "type", "interval_days", "interval_unit", "due_date",
-    "warning_days", "enabled", "notes", "priority", "labels",
+    "name",
+    "type",
+    "interval_days",
+    "interval_unit",
+    "due_date",
+    "warning_days",
+    "enabled",
+    "notes",
+    "priority",
+    "labels",
 )
 
 

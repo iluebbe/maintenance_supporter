@@ -224,9 +224,7 @@ async def test_panel_toggle_on_via_options_update(
         mock_register.assert_not_called()
 
         # Toggle panel on
-        hass.config_entries.async_update_entry(
-            entry, options={**entry.options, CONF_PANEL_ENABLED: True}
-        )
+        hass.config_entries.async_update_entry(entry, options={**entry.options, CONF_PANEL_ENABLED: True})
         await hass.async_block_till_done()
 
         mock_register.assert_called_once()
@@ -250,9 +248,7 @@ async def test_panel_toggle_off_via_options_update(
         await setup_integration(hass, entry)
 
         # Toggle panel off
-        hass.config_entries.async_update_entry(
-            entry, options={**entry.options, CONF_PANEL_ENABLED: False}
-        )
+        hass.config_entries.async_update_entry(entry, options={**entry.options, CONF_PANEL_ENABLED: False})
         await hass.async_block_till_done()
 
         mock_remove.assert_called_once_with(hass, PANEL_NAME)
@@ -280,9 +276,7 @@ async def test_panel_not_reregistered_on_unrelated_options_change(
         assert hass.data[DOMAIN].get("_panel_registered") is True
 
         # Change a non-title global option; the panel stays enabled.
-        hass.config_entries.async_update_entry(
-            entry, options={**entry.options, "max_notifications_per_day": 5}
-        )
+        hass.config_entries.async_update_entry(entry, options={**entry.options, "max_notifications_per_day": 5})
         await hass.async_block_till_done()
 
         # The panel must NOT have been torn down.
@@ -306,9 +300,7 @@ async def test_panel_reregistered_on_title_change(
     ):
         await setup_integration(hass, entry)
 
-        hass.config_entries.async_update_entry(
-            entry, options={**entry.options, CONF_PANEL_TITLE: "My Custom Upkeep"}
-        )
+        hass.config_entries.async_update_entry(entry, options={**entry.options, CONF_PANEL_TITLE: "My Custom Upkeep"})
         await hass.async_block_till_done()
 
         mock_remove.assert_called_once_with(hass, PANEL_NAME)
@@ -413,10 +405,7 @@ async def test_card_url_is_unversioned(hass: HomeAssistant) -> None:
 
     # The heavy strategy bundle must NOT be auto-loaded — it is lazy-imported
     # by the shim, not registered as an extra-module URL.
-    assert STRATEGY_URL not in urls, (
-        "heavy strategy bundle should not be in extra_module_url; the shim "
-        "loads it lazily"
-    )
+    assert STRATEGY_URL not in urls, "heavy strategy bundle should not be in extra_module_url; the shim loads it lazily"
 
     # Every registered Maintenance-Supporter URL must be unversioned.
     for url in urls & expected:

@@ -47,9 +47,7 @@ class CompoundSubEntity:
         # the AND from firing). Single-entity conditions stay empty and use the
         # is_triggered fallback in async_update_trigger_state. (H1)
         _eids = condition_config.get("entity_ids") or []
-        self._per_entity_states: dict[str, bool] = (
-            {eid: False for eid in _eids} if len(_eids) > 1 else {}
-        )
+        self._per_entity_states: dict[str, bool] = {eid: False for eid in _eids} if len(_eids) > 1 else {}
         self._per_entity_values: dict[str, float | None] = {}
         self._entity_logic = condition_config.get("entity_logic", "any")
         # Mirror attributes the real entity exposes for trigger access
@@ -74,9 +72,7 @@ class CompoundSubEntity:
         if not self._per_entity_states:
             aggregated = is_triggered
         elif self._entity_logic == "all":
-            aggregated = bool(self._per_entity_states) and all(
-                self._per_entity_states.values()
-            )
+            aggregated = bool(self._per_entity_states) and all(self._per_entity_states.values())
         else:  # "any"
             aggregated = any(self._per_entity_states.values())
 
@@ -150,12 +146,8 @@ class CompoundTrigger(BaseTrigger):
 
         # `or "AND"` (not just the .get default) so a present-but-null value in
         # hand-edited config doesn't crash on .upper().
-        self._compound_logic: str = (
-            trigger_config.get(CONF_COMPOUND_LOGIC) or "AND"
-        ).upper()
-        self._conditions: list[dict[str, Any]] = (
-            trigger_config.get(CONF_COMPOUND_CONDITIONS) or []
-        )
+        self._compound_logic: str = (trigger_config.get(CONF_COMPOUND_LOGIC) or "AND").upper()
+        self._conditions: list[dict[str, Any]] = trigger_config.get(CONF_COMPOUND_CONDITIONS) or []
         self._condition_states: list[bool] = [False] * len(self._conditions)
         self._sub_triggers: list[list[BaseTrigger]] = []
         self._sub_entities: list[CompoundSubEntity] = []
@@ -184,9 +176,7 @@ class CompoundTrigger(BaseTrigger):
                     cond_config["_trigger_state"] = cond_state
 
             # Wrap the real coordinator with a proxy for persistence
-            proxy_coordinator = _CompoundCoordinatorProxy(
-                self._coordinator, idx
-            )
+            proxy_coordinator = _CompoundCoordinatorProxy(self._coordinator, idx)
             sub_entity.coordinator = proxy_coordinator  # type: ignore[assignment]
 
             sub_triggers = create_triggers(self.hass, sub_entity, cond_config)  # type: ignore[arg-type]
@@ -233,9 +223,7 @@ class CompoundTrigger(BaseTrigger):
 
         was_triggered = self._triggered
         if self._compound_logic == "AND":
-            now_triggered = bool(self._condition_states) and all(
-                self._condition_states
-            )
+            now_triggered = bool(self._condition_states) and all(self._condition_states)
         else:  # OR
             now_triggered = any(self._condition_states)
 
@@ -259,11 +247,7 @@ class CompoundTrigger(BaseTrigger):
             current_value=None,
             trigger_entity_id=None,
         )
-        self.hass.async_create_task(
-            self._coordinator.async_add_trigger_history_entry(
-                self._task_id, trigger_value=None
-            )
-        )
+        self.hass.async_create_task(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=None))
         self.hass.bus.async_fire(
             EVENT_TRIGGER_ACTIVATED,
             {

@@ -33,8 +33,11 @@ TODAY = date(2026, 5, 1)
 
 def test_from_legacy_one_time() -> None:
     s = Schedule.from_legacy(
-        schedule_type="one_time", interval_days=None, interval_unit=None,
-        interval_anchor=None, due_date="2026-09-01",
+        schedule_type="one_time",
+        interval_days=None,
+        interval_unit=None,
+        interval_anchor=None,
+        due_date="2026-09-01",
     )
     assert s.kind == KIND_ONE_TIME
     assert s.due_date == date(2026, 9, 1)
@@ -42,8 +45,11 @@ def test_from_legacy_one_time() -> None:
 
 def test_from_legacy_interval() -> None:
     s = Schedule.from_legacy(
-        schedule_type="time_based", interval_days=6, interval_unit="months",
-        interval_anchor="planned", due_date=None,
+        schedule_type="time_based",
+        interval_days=6,
+        interval_unit="months",
+        interval_anchor="planned",
+        due_date=None,
     )
     assert s.kind == KIND_INTERVAL
     assert (s.every, s.unit, s.anchor) == (6, "months", "planned")
@@ -52,8 +58,11 @@ def test_from_legacy_interval() -> None:
 def test_from_legacy_manual_and_sensor_without_interval() -> None:
     for st in ("manual", "sensor_based", "time_based"):
         s = Schedule.from_legacy(
-            schedule_type=st, interval_days=None, interval_unit="days",
-            interval_anchor="completion", due_date=None,
+            schedule_type=st,
+            interval_days=None,
+            interval_unit="days",
+            interval_anchor="completion",
+            due_date=None,
         )
         assert s.kind == KIND_MANUAL
 
@@ -61,8 +70,11 @@ def test_from_legacy_manual_and_sensor_without_interval() -> None:
 def test_from_legacy_sensor_with_safety_interval_is_interval() -> None:
     # A sensor task's safety interval drives next_due exactly like time_based.
     s = Schedule.from_legacy(
-        schedule_type="sensor_based", interval_days=3, interval_unit="months",
-        interval_anchor="completion", due_date=None,
+        schedule_type="sensor_based",
+        interval_days=3,
+        interval_unit="months",
+        interval_anchor="completion",
+        due_date=None,
     )
     assert s.kind == KIND_INTERVAL
     assert (s.every, s.unit) == (3, "months")
@@ -70,9 +82,9 @@ def test_from_legacy_sensor_with_safety_interval_is_interval() -> None:
 
 # ─── next_due ────────────────────────────────────────────────────────────
 
+
 def _nd(s: Schedule, *, last=None, created=None, planned=None, today=TODAY):
-    return s.next_due(last_performed=last, created_at=created,
-                      last_planned_due=planned, today=today)
+    return s.next_due(last_performed=last, created_at=created, last_planned_due=planned, today=today)
 
 
 def test_next_due_interval_days() -> None:
@@ -132,7 +144,8 @@ def test_span_days_unit_aware() -> None:
 
 def test_to_dict_omits_defaults() -> None:
     assert Schedule(kind=KIND_INTERVAL, every=7).to_dict() == {
-        "kind": "interval", "every": 7,
+        "kind": "interval",
+        "every": 7,
     }  # unit=days + anchor=completion omitted
     assert Schedule(kind=KIND_MANUAL).to_dict() == {"kind": "manual"}
 
@@ -237,8 +250,7 @@ def test_normalize_preserves_calendar_kind() -> None:
     # A calendar kind survives normalize even with a stray flat key — it can't
     # be rebuilt from the flat fields, so the nested schedule is authoritative.
     out = normalize_task_storage(
-        {"schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5},
-         "schedule_type": "manual", "name": "Smoke alarm"}
+        {"schedule": {"kind": "nth_weekday", "nth": 1, "weekday": 5}, "schedule_type": "manual", "name": "Smoke alarm"}
     )
     assert out["schedule"] == {"kind": "nth_weekday", "nth": 1, "weekday": 5}
     assert "schedule_type" not in out
@@ -246,19 +258,18 @@ def test_normalize_preserves_calendar_kind() -> None:
 
 
 def test_legacy_schedule_type_surfaces_calendar_kinds() -> None:
-    assert legacy_schedule_type(
-        Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5), has_trigger=False
-    ) == "nth_weekday"
-    assert legacy_schedule_type(
-        Schedule(kind=KIND_WEEKDAYS, weekdays=(0,)), has_trigger=False
-    ) == "weekdays"
+    assert legacy_schedule_type(Schedule(kind=KIND_NTH_WEEKDAY, nth=1, weekday=5), has_trigger=False) == "nth_weekday"
+    assert legacy_schedule_type(Schedule(kind=KIND_WEEKDAYS, weekdays=(0,)), has_trigger=False) == "weekdays"
 
 
 def test_legacy_to_nested_equivalence() -> None:
     # The migration path: from_legacy → to_dict → from_dict yields the same rule.
     legacy = Schedule.from_legacy(
-        schedule_type="time_based", interval_days=6, interval_unit="months",
-        interval_anchor="planned", due_date=None,
+        schedule_type="time_based",
+        interval_days=6,
+        interval_unit="months",
+        interval_anchor="planned",
+        due_date=None,
     )
     assert Schedule.from_dict(legacy.to_dict()) == legacy
 
@@ -279,22 +290,31 @@ def test_legacy_schedule_type_derivation() -> None:
 def test_read_legacy_fields_flat_passthrough() -> None:
     # A flat v2.6.x task is returned field-for-field (behaviour-preserving).
     flat = {
-        "schedule_type": "time_based", "interval_days": 6, "interval_unit": "months",
-        "interval_anchor": "planned", "due_date": None,
+        "schedule_type": "time_based",
+        "interval_days": 6,
+        "interval_unit": "months",
+        "interval_anchor": "planned",
+        "due_date": None,
     }
     assert read_legacy_fields(flat) == flat
     # Missing values use the long-standing flat defaults.
     assert read_legacy_fields({}) == {
-        "schedule_type": "time_based", "interval_days": None,
-        "interval_unit": "days", "interval_anchor": "completion", "due_date": None,
+        "schedule_type": "time_based",
+        "interval_days": None,
+        "interval_unit": "days",
+        "interval_anchor": "completion",
+        "due_date": None,
     }
 
 
 def test_read_legacy_fields_translates_nested() -> None:
     nested = {"schedule": {"kind": "interval", "every": 6, "unit": "months", "anchor": "planned"}}
     assert read_legacy_fields(nested) == {
-        "schedule_type": "time_based", "interval_days": 6, "interval_unit": "months",
-        "interval_anchor": "planned", "due_date": None,
+        "schedule_type": "time_based",
+        "interval_days": 6,
+        "interval_unit": "months",
+        "interval_anchor": "planned",
+        "due_date": None,
     }
     # nested one_time → due_date echoed as ISO string
     assert read_legacy_fields({"schedule": {"kind": "one_time", "due_date": "2026-09-01"}})["due_date"] == "2026-09-01"
@@ -325,6 +345,7 @@ def test_schedule_normalize_no_fields_gives_manual() -> None:
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_next_due_interval_planned_anchor_months_loop() -> None:
     """Line 146: the 'return candidate' fallback after the loop exhausts MAX_PLANNED_STEPS."""
     from custom_components.maintenance_supporter.helpers.schedule import (
@@ -342,6 +363,7 @@ def test_next_due_interval_planned_anchor_months_loop() -> None:
         today=date(2026, 3, 20),
     )
     assert result is not None and result > date(2026, 3, 20)
+
 
 def test_calendar_occurrence_day_of_month_none_day() -> None:
     """Line 163/165: _calendar_occurrence returns None for KIND_DAY_OF_MONTH with day=None."""
@@ -361,6 +383,7 @@ def test_calendar_occurrence_day_of_month_none_day() -> None:
     result2 = s2.next_due(last_performed=None, created_at=None, last_planned_due=None, today=date(2026, 5, 1))
     assert result2 is None
 
+
 def test_schedule_next_due_kind_interval_zero_every() -> None:
     """Lines 125: every <= 0 returns None."""
     from custom_components.maintenance_supporter.helpers.schedule import (
@@ -371,6 +394,7 @@ def test_schedule_next_due_kind_interval_zero_every() -> None:
     s = Schedule(kind=KIND_INTERVAL, every=0)
     result = s.next_due(last_performed=None, created_at=None, last_planned_due=None, today=date(2026, 5, 1))
     assert result is None
+
 
 def test_normalize_task_storage_strips_flat_keys() -> None:
     """Lines 304-305: normalize_task_storage removes flat recurrence keys."""

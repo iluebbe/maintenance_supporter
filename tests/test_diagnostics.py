@@ -62,9 +62,7 @@ async def test_global_diagnostics_counts(
     overdue_config_entry: ConfigEntry,
 ) -> None:
     """Test that global diagnostics correctly counts objects and overdue tasks."""
-    await setup_integration(
-        hass, global_config_entry, object_config_entry, overdue_config_entry
-    )
+    await setup_integration(hass, global_config_entry, object_config_entry, overdue_config_entry)
 
     diag = await async_get_config_entry_diagnostics(hass, global_config_entry)
 
@@ -264,10 +262,7 @@ async def test_repairs_created_for_missing_trigger(
     # During startup grace period, no repair issue is created yet
     issue_reg = ir.async_get(hass)
     issues = issue_reg.issues
-    our_issues = {
-        k: v for k, v in issues.items()
-        if k[0] == DOMAIN and "missing_trigger" in k[1]
-    }
+    our_issues = {k: v for k, v in issues.items() if k[0] == DOMAIN and "missing_trigger" in k[1]}
     # No issue during grace period
     assert len(our_issues) == 0
 
@@ -322,12 +317,7 @@ async def test_repairs_removed_when_trigger_available(
     # Repair issue should NOT be created
     issue_reg = ir.async_get(hass)
     issues = issue_reg.issues
-    our_issues = {
-        k: v for k, v in issues.items()
-        if k[0] == DOMAIN
-        and "missing_trigger" in k[1]
-        and entry.entry_id in k[1]
-    }
+    our_issues = {k: v for k, v in issues.items() if k[0] == DOMAIN and "missing_trigger" in k[1] and entry.entry_id in k[1]}
     assert len(our_issues) == 0
 
 
@@ -347,7 +337,9 @@ async def test_diagnostics_overview_due_soon(
         warning_days=7,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Due Soon Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Due Soon Object"),
@@ -381,7 +373,9 @@ async def test_diagnostics_trigger_health_missing_entity(
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Missing Entity Diag",
         data=build_object_entry_data(
             object_data=build_object_data(name="Missing Entity Diag"),
@@ -417,7 +411,9 @@ async def test_diagnostics_trigger_health_unavailable(
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Unavail Diag",
         data=build_object_entry_data(
             object_data=build_object_data(name="Unavail Diag"),
@@ -526,10 +522,13 @@ def test_diagnostics_trigger_status_compound(hass: HomeAssistant) -> None:
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -544,7 +543,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",

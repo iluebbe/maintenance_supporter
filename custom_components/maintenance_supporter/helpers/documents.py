@@ -58,9 +58,7 @@ class DocumentStore:
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the document store."""
         self.hass = hass
-        self._store: Store[dict[str, Any]] = Store(
-            hass, DOC_STORE_VERSION, DOC_STORE_KEY
-        )
+        self._store: Store[dict[str, Any]] = Store(hass, DOC_STORE_VERSION, DOC_STORE_KEY)
         self._data: dict[str, Any] = {"documents": {}, "blobs": {}}
 
     # ------------------------------------------------------------------
@@ -121,11 +119,7 @@ class DocumentStore:
 
     def for_object(self, object_id: str) -> list[dict[str, Any]]:
         """All documents attached to an object, newest first."""
-        docs = [
-            {"id": did, **d}
-            for did, d in self.documents.items()
-            if d.get("object_id") == object_id
-        ]
+        docs = [{"id": did, **d} for did, d in self.documents.items() if d.get("object_id") == object_id]
         docs.sort(key=lambda d: d.get("added_at", ""), reverse=True)
         return docs
 
@@ -152,9 +146,7 @@ class DocumentStore:
         if len(content) > MAX_DOC_BYTES:
             raise ValueError("file_too_large")
 
-        digest, wrote_new = await self.hass.async_add_executor_job(
-            self._store_blob_sync, content
-        )
+        digest, wrote_new = await self.hass.async_add_executor_job(self._store_blob_sync, content)
 
         # Register / adopt the blob and bump its refcount.
         blob = self.blobs.get(digest)
@@ -165,11 +157,7 @@ class DocumentStore:
         blob["refcount"] += 1
 
         duplicate_in_object = next(
-            (
-                did
-                for did, d in self.documents.items()
-                if d.get("object_id") == object_id and d.get("hash") == digest
-            ),
+            (did for did, d in self.documents.items() if d.get("object_id") == object_id and d.get("hash") == digest),
             None,
         )
 
@@ -232,9 +220,7 @@ class DocumentStore:
         await self._async_save()
         return {"id": doc_id, **doc}
 
-    async def async_import_documents(
-        self, object_id: str, docs: list[dict[str, Any]]
-    ) -> int:
+    async def async_import_documents(self, object_id: str, docs: list[dict[str, Any]]) -> int:
         """Recreate document metadata for an imported object (P6).
 
         Web-links round-trip fully. File docs are restored as metadata + a blob
@@ -254,24 +240,21 @@ class DocumentStore:
                 # Only http(s) links — the add-link WS path enforces the same, so
                 # a crafted export can't smuggle a javascript:/data: URL that the
                 # frontend would later window.open (matches ws_documents_add_link).
-                if (
-                    not isinstance(url, str)
-                    or not url.lower().startswith(("http://", "https://"))
-                ):
+                if not isinstance(url, str) or not url.lower().startswith(("http://", "https://")):
                     continue
                 self.documents[uuid4().hex] = {
-                    "object_id": object_id, "kind": KIND_WEBLINK, "url": url,
-                    "title": title or url, "tags": tags, "task_ids": [],
+                    "object_id": object_id,
+                    "kind": KIND_WEBLINK,
+                    "url": url,
+                    "title": title or url,
+                    "tags": tags,
+                    "task_ids": [],
                     "added_at": dt_util.utcnow().isoformat(),
                 }
                 created += 1
             elif meta.get("kind") == KIND_FILE:
                 digest = meta.get("hash")
-                if (
-                    not isinstance(digest, str)
-                    or len(digest) != 64
-                    or not all(c in "0123456789abcdef" for c in digest)
-                ):
+                if not isinstance(digest, str) or len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest):
                     continue
                 size = int(meta.get("size") or 0)
                 mime = meta.get("mime") or "application/octet-stream"
@@ -281,10 +264,15 @@ class DocumentStore:
                     self.blobs[digest] = blob
                 blob["refcount"] += 1
                 self.documents[uuid4().hex] = {
-                    "object_id": object_id, "kind": KIND_FILE, "hash": digest,
+                    "object_id": object_id,
+                    "kind": KIND_FILE,
+                    "hash": digest,
                     "title": title or meta.get("filename") or "document",
                     "filename": meta.get("filename") or "document",
-                    "mime": mime, "size": size, "tags": tags, "task_ids": [],
+                    "mime": mime,
+                    "size": size,
+                    "tags": tags,
+                    "task_ids": [],
                     "added_at": dt_util.utcnow().isoformat(),
                 }
                 created += 1
@@ -359,11 +347,7 @@ class DocumentStore:
 
     async def async_remove_object(self, object_id: str) -> int:
         """Remove every document of an object (on object delete). Bytes freed."""
-        doc_ids = [
-            did
-            for did, d in self.documents.items()
-            if d.get("object_id") == object_id
-        ]
+        doc_ids = [did for did, d in self.documents.items() if d.get("object_id") == object_id]
         if not doc_ids:
             return 0
         freed = 0
@@ -456,19 +440,14 @@ class DocumentStore:
         - ``dangling_docs``: file documents whose blob is missing (external
           delete / partial restore).
         """
-        on_disk: set[str] = await self.hass.async_add_executor_job(
-            self._list_blob_files
-        )
+        on_disk: set[str] = await self.hass.async_add_executor_job(self._list_blob_files)
         registered = set(self.blobs)
         orphan_blobs = sorted(on_disk - registered)
-        zero_refcount = sorted(
-            h for h, b in self.blobs.items() if int(b.get("refcount", 0)) <= 0
-        )
+        zero_refcount = sorted(h for h, b in self.blobs.items() if int(b.get("refcount", 0)) <= 0)
         dangling_docs = sorted(
             did
             for did, d in self.documents.items()
-            if d.get("kind") == KIND_FILE
-            and (d.get("hash") not in self.blobs or d.get("hash") not in on_disk)
+            if d.get("kind") == KIND_FILE and (d.get("hash") not in self.blobs or d.get("hash") not in on_disk)
         )
         return {
             "orphan_blobs": orphan_blobs,
@@ -487,13 +466,7 @@ class DocumentStore:
             # Dir absent, or removed between the check and the scan (a
             # concurrent delete / shared test config dir) — nothing to list.
             return set()
-        return {
-            p.name
-            for p in entries
-            if p.is_file()
-            and len(p.name) == 64
-            and all(c in "0123456789abcdef" for c in p.name)
-        }
+        return {p.name for p in entries if p.is_file() and len(p.name) == 64 and all(c in "0123456789abcdef" for c in p.name)}
 
     # ------------------------------------------------------------------
     # Cleanup (backs the repair-issue fix flow)
@@ -510,9 +483,7 @@ class DocumentStore:
         issues = await self.async_find_issues()
         freed = 0
         for digest in issues["orphan_blobs"]:
-            freed += await self.hass.async_add_executor_job(
-                self._reclaim_blob_sync, digest
-            )
+            freed += await self.hass.async_add_executor_job(self._reclaim_blob_sync, digest)
         for digest in issues["zero_refcount"]:
             blob = self.blobs.pop(digest, None)
             freed += int(blob.get("size", 0)) if blob else 0

@@ -66,12 +66,14 @@ def test_vacation_compute_preview_interval_task() -> None:
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_vacation_state_is_silent_false_when_inactive() -> None:
     """Line 82: is_silent_for returns False when vacation is not active."""
     from custom_components.maintenance_supporter.helpers.vacation import VacationState
 
     state = VacationState(enabled=False, start=None, end=None, buffer_days=0)
     assert state.is_silent_for("any_task_id") is False
+
 
 def test_coerce_date_empty_and_invalid() -> None:
     """Lines 91-92: _coerce_date returns None for falsy / non-string values."""
@@ -82,6 +84,7 @@ def test_coerce_date_empty_and_invalid() -> None:
     assert _coerce_date(123) is None
     # invalid ISO string
     assert _coerce_date("not-a-date") is None
+
 
 def test_coerce_buffer_invalid_and_out_of_range() -> None:
     """Lines 98-101: _coerce_buffer returns default for bad/range-exceeded values."""
@@ -98,6 +101,7 @@ def test_coerce_buffer_invalid_and_out_of_range() -> None:
     assert _coerce_buffer(0) == 0
     assert _coerce_buffer(14) == 14
 
+
 def test_global_options_no_global_entry(hass: HomeAssistant) -> None:
     """Line 110: _global_options returns {} when there is no global entry."""
     from custom_components.maintenance_supporter.helpers.vacation import _global_options
@@ -105,6 +109,7 @@ def test_global_options_no_global_entry(hass: HomeAssistant) -> None:
     # No entries at all → empty
     result = _global_options(hass)
     assert result == {}
+
 
 def test_events_from_next_due_already_due_today() -> None:
     """Lines 166-169: task already overdue/due_soon at window_start gives today event."""
@@ -160,8 +165,8 @@ def test_events_from_next_due_already_due_today() -> None:
     # To trigger line 168 we need the "not events" path: next_due AND due_soon_from both outside window:
     today3 = date(2026, 6, 1)
     events4 = _events_from_next_due(
-        next_due=date(2026, 6, 3),    # future, inside window → second if fires
-        warning_days=0,               # due_soon_from = Jun3 (same as next_due)
+        next_due=date(2026, 6, 3),  # future, inside window → second if fires
+        warning_days=0,  # due_soon_from = Jun3 (same as next_due)
         today=today3,
         window_start=today3,
         window_end=date(2026, 6, 14),
@@ -205,8 +210,8 @@ def test_events_from_next_due_already_due_today() -> None:
     # CONCLUSION: line 168 only reachable if next_due > window_end (outside vacation window)
     # but today >= due_soon_from. Let's test that:
     events6 = _events_from_next_due(
-        next_due=date(2026, 6, 20),   # outside window_end
-        warning_days=25,              # due_soon_from = May26 (before today Jun1)
+        next_due=date(2026, 6, 20),  # outside window_end
+        warning_days=25,  # due_soon_from = May26 (before today Jun1)
         today=date(2026, 6, 1),
         window_start=date(2026, 6, 1),
         window_end=date(2026, 6, 14),
@@ -218,6 +223,7 @@ def test_events_from_next_due_already_due_today() -> None:
     assert len(events6) == 1
     assert events6[0].status == "due_soon"
     assert events6[0].date == date(2026, 6, 1)
+
 
 def test_project_time_based_no_interval_returns_empty() -> None:
     """Line 185: _project_time_based returns [] when interval is 0 or None."""
@@ -248,6 +254,7 @@ def test_project_time_based_no_interval_returns_empty() -> None:
     )
     assert result2 == []
 
+
 def test_compute_preview_skips_disabled_and_no_task_id() -> None:
     """Lines 210, 215: disabled tasks and tasks with no task_id are skipped."""
     from custom_components.maintenance_supporter.helpers.vacation import (
@@ -264,14 +271,13 @@ def test_compute_preview_skips_disabled_and_no_task_id() -> None:
 
     tasks = [
         # disabled task (line 210 - skip)
-        {"task_id": "t1", "enabled": False, "schedule_type": "time_based",
-         "interval_days": 10, "warning_days": 3},
+        {"task_id": "t1", "enabled": False, "schedule_type": "time_based", "interval_days": 10, "warning_days": 3},
         # no task_id (line 215 - skip)
-        {"enabled": True, "schedule_type": "time_based",
-         "interval_days": 10, "warning_days": 3},
+        {"enabled": True, "schedule_type": "time_based", "interval_days": 10, "warning_days": 3},
     ]
     rows = compute_preview(state, tasks, today=date(2026, 6, 1))
     assert rows == []
+
 
 def test_compute_preview_sensor_based_event() -> None:
     """Line 220: sensor_based tasks get triggered_est event."""
@@ -301,6 +307,7 @@ def test_compute_preview_sensor_based_event() -> None:
     assert rows[0]["confidence"] == "unpredictable"
     assert any(e["status"] == "triggered_est" for e in rows[0]["events"])
 
+
 def test_compute_preview_calendar_kind_with_schedule() -> None:
     """Line 223: calendar-kind tasks use Schedule.next_due for projection."""
     from custom_components.maintenance_supporter.helpers.vacation import (
@@ -329,6 +336,7 @@ def test_compute_preview_calendar_kind_with_schedule() -> None:
     assert len(rows) >= 1
     assert rows[0]["kind"] == "weekdays"
 
+
 def test_compute_preview_no_start_end_returns_empty() -> None:
     """Line 274: if state.start is None, returns []."""
     from custom_components.maintenance_supporter.helpers.vacation import (
@@ -339,6 +347,7 @@ def test_compute_preview_no_start_end_returns_empty() -> None:
     state = VacationState(enabled=True, start=None, end=None, buffer_days=0)
     result = compute_preview(state, [{"task_id": "t1", "enabled": True}])
     assert result == []
+
 
 def test_compute_preview_window_end_before_start_returns_empty() -> None:
     """Line 277: window_end < window_start → returns []."""

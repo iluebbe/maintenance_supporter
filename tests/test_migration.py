@@ -201,9 +201,7 @@ async def test_migration_trigger_state_extracted(
             "type": "threshold",
             "entity_id": "sensor.temp",
             "trigger_above": 30,
-            "_trigger_state": {
-                "sensor.temp": {"baseline_value": 25.0, "accumulated_seconds": 0}
-            },
+            "_trigger_state": {"sensor.temp": {"baseline_value": 25.0, "accumulated_seconds": 0}},
         },
     )
 
@@ -425,9 +423,13 @@ async def test_migrate_entry_backfills_created_at_for_new_task(
     task.pop("created_at", None)
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Mig Test", data=build_object_entry_data(tasks={TASK_ID_1: task}),
-        source="user", unique_id="maintenance_supporter_mig_v2_a",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Mig Test",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_mig_v2_a",
     )
     entry.add_to_hass(hass)
 
@@ -457,9 +459,13 @@ async def test_migrate_entry_uses_earliest_history_timestamp(
     task.pop("created_at", None)
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Mig Hist", data=build_object_entry_data(tasks={TASK_ID_1: task}),
-        source="user", unique_id="maintenance_supporter_mig_v2_b",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Mig Hist",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_mig_v2_b",
     )
     entry.add_to_hass(hass)
 
@@ -480,9 +486,13 @@ async def test_migrate_entry_skips_tasks_with_last_performed(
     task.pop("created_at", None)
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Mig LP", data=build_object_entry_data(tasks={TASK_ID_1: task}),
-        source="user", unique_id="maintenance_supporter_mig_v2_c",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Mig LP",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_mig_v2_c",
     )
     entry.add_to_hass(hass)
 
@@ -504,9 +514,13 @@ async def test_migrate_entry_idempotent(
     task = build_task_data(last_performed=None, history=[])
     task.pop("created_at", None)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Idem", data=build_object_entry_data(tasks={TASK_ID_1: task}),
-        source="user", unique_id="maintenance_supporter_mig_v2_d",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Idem",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_mig_v2_d",
     )
     entry.add_to_hass(hass)
 
@@ -537,9 +551,13 @@ async def test_migrate_entry_v2_to_v3_nests_schedule(
     task["schedule_type"] = ScheduleType.TIME_BASED
 
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
-        title="Mig v3", data=build_object_entry_data(tasks={TASK_ID_1: task}),
-        source="user", unique_id="maintenance_supporter_mig_v3",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Mig v3",
+        data=build_object_entry_data(tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_mig_v3",
     )
     entry.add_to_hass(hass)
 
@@ -571,7 +589,9 @@ async def test_create_task_sets_created_at(
     from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
 
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Create CA",
         data=build_object_entry_data(tasks={}),
         source="user",
@@ -588,11 +608,16 @@ async def test_create_task_sets_created_at(
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
     await call_ws_handler(
-        ws_create_task, hass, conn,
+        ws_create_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/create",
-            "entry_id": entry.entry_id, "name": "Created Task",
-            "interval_days": 30, "enabled": True,
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": entry.entry_id,
+            "name": "Created Task",
+            "interval_days": 30,
+            "enabled": True,
         },
     )
     conn.send_result.assert_called_once()
@@ -601,4 +626,3 @@ async def test_create_task_sets_created_at(
     refreshed = hass.config_entries.async_get_entry(entry.entry_id)
     assert refreshed is not None
     assert refreshed.data[CONF_TASKS][new_task_id]["created_at"] == dt_util.now().date().isoformat()
-

@@ -676,7 +676,8 @@
           "custom_icon": "タスクアイコン",
           "nfc_tag_id": "NFC タグ ID",
           "go_back": "戻る",
-          "interval_anchor": "間隔の基準"
+          "interval_anchor": "間隔の基準",
+          "reading_unit": "検針単位（検針タスク用、例: kWh）"
         },
         "data_description": {
           "name": "このタスクの分かりやすい名前です (例: 「フィルター清掃」「オイル交換」)。",
@@ -862,7 +863,8 @@
           "type": "メンテナンスの種類",
           "schedule_type": "スケジュールの種類",
           "custom_icon": "タスクアイコン",
-          "go_back": "戻る"
+          "go_back": "戻る",
+          "reading_unit": "検針単位（検針タスク用、例: kWh）"
         },
         "data_description": {
           "name": "このタスクの分かりやすい名前です (例: 「フィルター清掃」「オイル交換」)。",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "所要時間",
           "description": "メンテナンスの所要時間 (分) です。"
+        },
+        "reading_value": {
+          "name": "検針値",
+          "description": "検針タスクで記録する値（メーター読み取り、レベル確認）。"
         }
       }
     },

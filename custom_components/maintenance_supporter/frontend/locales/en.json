@@ -679,5 +679,9 @@
   "replace_object": "Replace…",
   "replace_object_prompt": "Retire this object and create a successor. History and costs stay archived on the old one; tasks and documents carry over to the new one, counters start fresh.",
   "replace_name_label": "Successor name",
-  "object_replaced": "Object replaced — successor created"
+  "object_replaced": "Object replaced — successor created",
+  "reading_unit_label": "Reading unit (e.g. kWh, m³)",
+  "reading_unit_help": "Shown next to the recorded value when completing this task.",
+  "reading_value_label": "Reading value",
+  "reading_label": "Reading"
 }

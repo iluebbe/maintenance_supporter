@@ -66,9 +66,7 @@ async def test_global_options_init_shows_menu(
     """Test that global options shows menu."""
     await setup_integration(hass, global_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        global_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
     # GlobalOptionsFlow.async_step_init shows a menu
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "global_init"
@@ -87,9 +85,7 @@ async def test_global_options_update(
     hass.services.async_register("notify", "my_phone", lambda call: None)
 
     # Step 1: Init shows menu
-    result = await hass.config_entries.options.async_init(
-        global_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
     assert result["type"] == FlowResultType.MENU
 
     # Step 2: Select general_settings from menu
@@ -126,9 +122,7 @@ async def test_global_options_panel_title_saved_and_trimmed(
     """general_settings persists a custom sidebar title, trimmed (#63)."""
     await setup_integration(hass, global_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        global_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "general_settings"},
@@ -157,9 +151,7 @@ async def test_maintenance_options_init_shows_menu(
     """Test that maintenance options shows menu."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
     assert "manage_tasks" in result["menu_options"]
@@ -179,9 +171,7 @@ async def test_manage_tasks_lists_tasks(
     """Test that manage_tasks shows existing tasks."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "manage_tasks"},
@@ -198,9 +188,7 @@ async def test_manage_tasks_submit(
     """Test that selecting a task in manage_tasks navigates to task_action."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "manage_tasks"},
@@ -233,9 +221,7 @@ async def test_add_task_via_options(
 
     initial_task_count = len(object_config_entry.data.get(CONF_TASKS, {}))
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "add_task"},
@@ -271,9 +257,7 @@ async def test_add_task_via_options(
     updated_tasks = object_config_entry.data.get(CONF_TASKS, {})
     assert len(updated_tasks) == initial_task_count + 1
 
-    new_task = [
-        t for t in updated_tasks.values() if t["name"] == "New Task"
-    ]
+    new_task = [t for t in updated_tasks.values() if t["name"] == "New Task"]
     assert len(new_task) == 1
     assert read_legacy_fields(new_task[0])["interval_days"] == 60
 
@@ -289,9 +273,7 @@ async def test_object_settings_update(
     """Test updating object settings via options flow."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "object_settings"},
@@ -330,9 +312,7 @@ async def _navigate_to_options_add_task(
     """Helper to navigate to add_task in options flow."""
     await setup_integration(hass, global_entry, object_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "add_task"},
@@ -355,9 +335,7 @@ async def test_add_sensor_threshold_task_via_options(
 
     initial_task_count = len(object_config_entry.data.get(CONF_TASKS, {}))
 
-    result = await _navigate_to_options_add_task(
-        hass, global_config_entry, object_config_entry
-    )
+    result = await _navigate_to_options_add_task(hass, global_config_entry, object_config_entry)
 
     # Step 1: name, type, schedule
     result = await hass.config_entries.options.async_configure(
@@ -420,15 +398,11 @@ async def test_add_sensor_counter_task_via_options(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test adding a sensor-based counter task via options flow (uses mixin)."""
-    hass.states.async_set(
-        "sensor.runtime_hours", "500", {"unit_of_measurement": "h"}
-    )
+    hass.states.async_set("sensor.runtime_hours", "500", {"unit_of_measurement": "h"})
 
     initial_task_count = len(object_config_entry.data.get(CONF_TASKS, {}))
 
-    result = await _navigate_to_options_add_task(
-        hass, global_config_entry, object_config_entry
-    )
+    result = await _navigate_to_options_add_task(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -478,15 +452,11 @@ async def test_add_sensor_state_change_task_via_options(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test adding a sensor-based state change task via options flow (uses mixin)."""
-    hass.states.async_set(
-        "sensor.door_count", "12", {"unit_of_measurement": "opens"}
-    )
+    hass.states.async_set("sensor.door_count", "12", {"unit_of_measurement": "opens"})
 
     initial_task_count = len(object_config_entry.data.get(CONF_TASKS, {}))
 
-    result = await _navigate_to_options_add_task(
-        hass, global_config_entry, object_config_entry
-    )
+    result = await _navigate_to_options_add_task(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -537,9 +507,7 @@ async def test_options_sensor_select_invalid_entity(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that selecting a non-existent entity in options shows error."""
-    result = await _navigate_to_options_add_task(
-        hass, global_config_entry, object_config_entry
-    )
+    result = await _navigate_to_options_add_task(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -568,9 +536,7 @@ async def test_options_manual_task_via_options(
     """Test adding a manual task via options flow."""
     initial_task_count = len(object_config_entry.data.get(CONF_TASKS, {}))
 
-    result = await _navigate_to_options_add_task(
-        hass, global_config_entry, object_config_entry
-    )
+    result = await _navigate_to_options_add_task(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -607,9 +573,7 @@ async def _navigate_to_task_action(
     if not skip_setup:
         await setup_integration(hass, global_entry, object_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "manage_tasks"},
@@ -632,9 +596,7 @@ async def test_task_action_shows_edit_trigger(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that task_action menu includes edit_trigger."""
-    result, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     assert "edit_trigger" in result["menu_options"]
     # No trigger_config on default fixture → remove_trigger should NOT appear
     assert "remove_trigger" not in result["menu_options"]
@@ -647,13 +609,12 @@ async def test_edit_trigger_full_flow(
 ) -> None:
     """Test editing a trigger on an existing task (full sensor-based flow)."""
     hass.states.async_set(
-        "sensor.water_temp", "25.3",
+        "sensor.water_temp",
+        "25.3",
         {"unit_of_measurement": "°C"},
     )
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     # Select edit_trigger from menu
     result = await hass.config_entries.options.async_configure(
@@ -713,9 +674,7 @@ async def test_remove_trigger_shown_only_when_trigger_exists(
     # First add a trigger to the task
     hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     assert "remove_trigger" not in result["menu_options"]
 
     # Add trigger via edit_trigger
@@ -747,9 +706,7 @@ async def test_remove_trigger_shown_only_when_trigger_exists(
     assert result["step_id"] == "task_action"
 
     # Now navigate again — remove_trigger should appear
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     assert "remove_trigger" in result2["menu_options"]
 
 
@@ -762,9 +719,7 @@ async def test_remove_trigger_flow(
     hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
 
     # Add a trigger first
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "edit_trigger"},
@@ -794,9 +749,7 @@ async def test_remove_trigger_flow(
     assert "trigger_config" in object_config_entry.data[CONF_TASKS][task_id]
 
     # Now remove the trigger
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     result2 = await hass.config_entries.options.async_configure(
         result2["flow_id"],
         {"next_step_id": "remove_trigger"},
@@ -825,9 +778,7 @@ async def test_remove_trigger_cancel(
     hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
 
     # Add a trigger first
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "edit_trigger"},
@@ -856,9 +807,7 @@ async def test_remove_trigger_cancel(
     assert result["step_id"] == "task_action"
 
     # Try to remove but don't confirm
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     result2 = await hass.config_entries.options.async_configure(
         result2["flow_id"],
         {"next_step_id": "remove_trigger"},
@@ -907,9 +856,7 @@ async def test_edit_task_new_fields(
     """Test editing a task with enabled, notes, documentation_url, last_performed, responsible_user_id."""
     _mock_auth_users(hass)
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     # Select edit_task from menu
     result = await hass.config_entries.options.async_configure(
@@ -962,9 +909,7 @@ async def test_edit_task_partial_new_fields(
     """Test editing a task with only some new fields leaves others unchanged."""
     _mock_auth_users(hass)
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1003,9 +948,7 @@ async def test_object_settings_with_area_and_install_date(
     """Test updating object settings with area_id and installation_date."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "object_settings"},
@@ -1045,9 +988,7 @@ async def test_object_settings_without_new_fields(
     """Test updating object settings without area_id/installation_date still works."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "object_settings"},
@@ -1079,9 +1020,7 @@ async def _add_trigger_to_task(
     """Helper: add a threshold trigger to the first task, return task_id."""
     hass.states.async_set("sensor.test", "10", {"unit_of_measurement": ""})
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_entry, object_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_entry, object_entry)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "edit_trigger"},
@@ -1117,14 +1056,10 @@ async def test_trigger_summary_shows_config(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that edit_trigger on a task with trigger_config shows trigger_summary."""
-    task_id = await _add_trigger_to_task(
-        hass, global_config_entry, object_config_entry
-    )
+    task_id = await _add_trigger_to_task(hass, global_config_entry, object_config_entry)
 
     # Navigate to task_action again
-    result, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
 
     # Select edit_trigger — should route to trigger_summary
     result = await hass.config_entries.options.async_configure(
@@ -1150,13 +1085,9 @@ async def test_trigger_summary_back(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that selecting 'Back' from trigger_summary returns to task_action."""
-    await _add_trigger_to_task(
-        hass, global_config_entry, object_config_entry
-    )
+    await _add_trigger_to_task(hass, global_config_entry, object_config_entry)
 
-    result, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1179,13 +1110,9 @@ async def test_remove_trigger_shows_entity_info(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that remove_trigger description_placeholders contain entity/type/config info."""
-    await _add_trigger_to_task(
-        hass, global_config_entry, object_config_entry
-    )
+    await _add_trigger_to_task(hass, global_config_entry, object_config_entry)
 
-    result, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     assert "remove_trigger" in result["menu_options"]
 
     result = await hass.config_entries.options.async_configure(
@@ -1210,9 +1137,7 @@ async def test_edit_task_user_dropdown_and_unassign(
     """Test that responsible_user_id uses a dropdown and empty string unassigns."""
     _mock_auth_users(hass)
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     # Assign user first
     result = await hass.config_entries.options.async_configure(
@@ -1235,9 +1160,7 @@ async def test_edit_task_user_dropdown_and_unassign(
     assert object_config_entry.data[CONF_TASKS][task_id][CONF_RESPONSIBLE_USER_ID] == "abc123user"
 
     # Now unassign by submitting empty string
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     result2 = await hass.config_entries.options.async_configure(
         result2["flow_id"],
         {"next_step_id": "edit_task"},
@@ -1269,9 +1192,7 @@ async def test_edit_task_returns_to_task_action(
     """Test that submitting edit_task returns to task_action menu."""
     _mock_auth_users(hass)
 
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1300,9 +1221,7 @@ async def test_delete_task_cancel_returns_to_task_action(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that cancelling delete_task returns to task_action menu."""
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1328,9 +1247,7 @@ async def test_delete_task_confirm_returns_to_init(
     object_config_entry: ConfigEntry,
 ) -> None:
     """Test that confirming delete_task returns to init menu."""
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1358,9 +1275,7 @@ async def test_done_closes_flow(
     """Test that selecting 'Done' from init menu closes the flow."""
     await setup_integration(hass, global_config_entry, object_config_entry)
 
-    result = await hass.config_entries.options.async_init(
-        object_config_entry.entry_id
-    )
+    result = await hass.config_entries.options.async_init(object_config_entry.entry_id)
     assert result["type"] == FlowResultType.MENU
     assert "done" in result["menu_options"]
 
@@ -1413,16 +1328,12 @@ async def test_compound_trigger_summary_shows_conditions(
     task["schedule_type"] = ScheduleType.SENSOR_BASED
     new_tasks[task_id] = task
     new_data[CONF_TASKS] = new_tasks
-    hass.config_entries.async_update_entry(
-        object_config_entry, data=new_data
-    )
+    hass.config_entries.async_update_entry(object_config_entry, data=new_data)
 
     hass.states.async_set("sensor.temp", "25.0", {"unit_of_measurement": "°C"})
     hass.states.async_set("sensor.humidity", "60", {"unit_of_measurement": "%"})
 
-    result, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1485,13 +1396,9 @@ async def test_compound_remove_trigger_shows_conditions(
     task["schedule_type"] = ScheduleType.SENSOR_BASED
     new_tasks[task_id] = task
     new_data[CONF_TASKS] = new_tasks
-    hass.config_entries.async_update_entry(
-        object_config_entry, data=new_data
-    )
+    hass.config_entries.async_update_entry(object_config_entry, data=new_data)
 
-    result, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     assert "remove_trigger" in result["menu_options"]
 
     result = await hass.config_entries.options.async_configure(
@@ -1521,17 +1428,11 @@ async def test_edit_trigger_prepopulates_entities(
 ) -> None:
     """Test that editing a trigger pre-populates existing entity_ids."""
     # Set up entities in HA
-    hass.states.async_set(
-        "sensor.pool_temp", "25.0", {"unit_of_measurement": "°C"}
-    )
-    hass.states.async_set(
-        "sensor.pool_pressure", "1.2", {"unit_of_measurement": "bar"}
-    )
+    hass.states.async_set("sensor.pool_temp", "25.0", {"unit_of_measurement": "°C"})
+    hass.states.async_set("sensor.pool_pressure", "1.2", {"unit_of_measurement": "bar"})
 
     # First, add a trigger with multiple entities to the task
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "edit_trigger"},
@@ -1567,9 +1468,7 @@ async def test_edit_trigger_prepopulates_entities(
     ]
 
     # Now navigate to edit the trigger again — via trigger_summary
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     # Task now has a trigger, so edit_trigger shows trigger_summary first
     result2 = await hass.config_entries.options.async_configure(
         result2["flow_id"],
@@ -1609,9 +1508,7 @@ async def test_remove_trigger_selective_entity_removal(
     hass.states.async_set("sensor.temp_c", "28", {"unit_of_measurement": "°C"})
 
     # Add a trigger with 3 entities
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "edit_trigger"},
@@ -1648,9 +1545,7 @@ async def test_remove_trigger_selective_entity_removal(
     assert tc["entity_ids"] == ["sensor.temp_a", "sensor.temp_b", "sensor.temp_c"]
 
     # Navigate to remove_trigger
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     result2 = await hass.config_entries.options.async_configure(
         result2["flow_id"],
         {"next_step_id": "remove_trigger"},
@@ -1660,9 +1555,7 @@ async def test_remove_trigger_selective_entity_removal(
     # Verify the form has an entities_to_remove selector for multi-entity triggers
     assert result2["data_schema"] is not None
     schema = result2["data_schema"].schema
-    has_entity_selector = any(
-        str(key) == "entities_to_remove" for key in schema
-    )
+    has_entity_selector = any(str(key) == "entities_to_remove" for key in schema)
     assert has_entity_selector, "Multi-entity trigger should show entity selector"
 
     # Remove only one entity, keep the other two
@@ -1696,18 +1589,14 @@ async def test_remove_trigger_all_entities_removes_trigger(
     hass.states.async_set("sensor.temp_b", "30", {"unit_of_measurement": "°C"})
 
     # Add a trigger with 2 entities
-    result, task_id = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry
-    )
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {"next_step_id": "edit_trigger"},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        user_input={
-            CONF_TRIGGER_ENTITY: ["sensor.temp_a", "sensor.temp_b"]
-        },
+        user_input={CONF_TRIGGER_ENTITY: ["sensor.temp_a", "sensor.temp_b"]},
     )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -1728,9 +1617,7 @@ async def test_remove_trigger_all_entities_removes_trigger(
     assert result["type"] == FlowResultType.MENU
 
     # Navigate to remove_trigger and remove ALL entities
-    result2, _ = await _navigate_to_task_action(
-        hass, global_config_entry, object_config_entry, skip_setup=True
-    )
+    result2, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
     result2 = await hass.config_entries.options.async_configure(
         result2["flow_id"],
         {"next_step_id": "remove_trigger"},

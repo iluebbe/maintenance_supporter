@@ -119,14 +119,15 @@ meter readings. Builds on the nested `schedule` model (`helpers/schedule.py`,
 kinds weekdays / nth_weekday / day_of_month) — a natural `last_day` /
 `last_business_day` kind plus an `offset_days` field.
 
-### 💡 "Meter reading" task type
-Also from [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
-A dedicated task type for recording a value at a regular interval — meter
-readings aren't cleaning/inspection/replacement/calibration/service. Start as
-a new `MaintenanceTypeEnum` value (clearer in the UI, own icon); later it can
-grow reading-specific fields on completion (recorded value, unit,
-previous-value comparison / delta history), which pairs naturally with the
-existing completion dialog and history timeline.
+### ✅ "Meter reading" task type
+**Shipped** (enum value in 2.18; the reading-specific fields unreleased for
+v2.20). From [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
+Reading-type tasks now carry a per-task **unit** ("kWh", "m³", …) editable in
+the task dialog and both config-flow forms, and the completion dialog gains a
+**Reading value** field: the recorded value lands on the history entry and
+the timeline shows each reading with its **delta vs the previous reading**
+(+123.5 kWh). Also on the `complete` service and WS command
+(`reading_value`); unit round-trips through JSON/CSV export/import.
 
 ### ✅ Priority levels
 **Shipped.** An explicit priority per task (low / normal / high) to sharpen

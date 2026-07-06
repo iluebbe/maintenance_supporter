@@ -367,10 +367,7 @@ def test_linear_regression_unix_timestamps() -> None:
     """
     base_ts = 1_700_000_000.0  # ~Nov 2023
     # 10 hourly points with y = 2.5 * hours + 100
-    points = [
-        (base_ts + i * 3600, 100.0 + 2.5 * i)
-        for i in range(10)
-    ]
+    points = [(base_ts + i * 3600, 100.0 + 2.5 * i) for i in range(10)]
     result = SensorPredictor._linear_regression(points)
     assert result is not None
     slope, intercept, r_squared = result
@@ -385,11 +382,9 @@ def test_linear_regression_unix_timestamps_with_noise() -> None:
     base_ts = 1_700_000_000.0
     # 20 points over 20 hours, y ≈ 0.5 * hours + 50 (with noise)
     import random
+
     rng = random.Random(42)
-    points = [
-        (base_ts + i * 3600, 50.0 + 0.5 * i + rng.gauss(0, 0.1))
-        for i in range(20)
-    ]
+    points = [(base_ts + i * 3600, 50.0 + 0.5 * i + rng.gauss(0, 0.1)) for i in range(20)]
     result = SensorPredictor._linear_regression(points)
     assert result is not None
     slope, _intercept, r_squared = result
@@ -409,9 +404,7 @@ def predictor(hass: HomeAssistant) -> SensorPredictor:
 
 async def test_analyze_non_sensor_based(predictor: SensorPredictor) -> None:
     """Test async_analyze returns None for non-sensor tasks."""
-    result = await predictor.async_analyze(
-        {"schedule_type": "time_based"}, {}
-    )
+    result = await predictor.async_analyze({"schedule_type": "time_based"}, {})
     assert result is None
 
 
@@ -437,20 +430,20 @@ async def test_analyze_unsupported_trigger_type(predictor: SensorPredictor) -> N
 
 
 async def test_analyze_with_degradation(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test full async_analyze with degradation data from recorder."""
     # Generate enough data points (> DEFAULT_DEGRADATION_MIN_POINTS=5)
     now = datetime.now(UTC)
-    mock_points = [
-        (now.timestamp() - i * 3600, 20.0 + i * 0.1)
-        for i in range(20)
-    ]
+    mock_points = [(now.timestamp() - i * 3600, 20.0 + i * 0.1) for i in range(20)]
     mock_points.reverse()
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=mock_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=mock_points,
     ):
         result = await predictor.async_analyze(
             {
@@ -471,12 +464,15 @@ async def test_analyze_with_degradation(
 
 
 async def test_analyze_insufficient_data(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test async_analyze with insufficient recorder data."""
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=[(1.0, 10.0)],
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=[(1.0, 10.0)],
     ):
         result = await predictor.async_analyze(
             {
@@ -497,7 +493,8 @@ async def test_analyze_insufficient_data(
 
 
 async def test_analyze_with_environmental(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test async_analyze with environmental entity."""
     hass.states.async_set("sensor.humidity", "65")
@@ -545,12 +542,13 @@ async def test_compute_degradation_regression_none(
 ) -> None:
     """Test degradation when regression returns None (constant x)."""
     # All same timestamp → denom=0 → regression returns None
-    points = [(1000.0, 10.0), (1000.0, 20.0), (1000.0, 30.0),
-              (1000.0, 40.0), (1000.0, 50.0)]
+    points = [(1000.0, 10.0), (1000.0, 20.0), (1000.0, 30.0), (1000.0, 40.0), (1000.0, 50.0)]
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=points,
     ):
         result = await predictor._async_compute_degradation("sensor.test", None, 30)
 
@@ -565,40 +563,40 @@ async def test_compute_degradation_trend_classification(
     now_ts = datetime.now(UTC).timestamp()
 
     # Stable: very small slope relative to mean
-    stable_points = [
-        (now_ts - i * 3600, 100.0 + i * 0.0001) for i in range(10)
-    ]
+    stable_points = [(now_ts - i * 3600, 100.0 + i * 0.0001) for i in range(10)]
     stable_points.reverse()
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=stable_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=stable_points,
     ):
         result = await predictor._async_compute_degradation("sensor.test", None, 30)
     assert result.trend == "stable"
 
     # Rising: values increase with time (earlier timestamps have lower values)
     # i=0 is now, i=9 is 9 days ago; after reverse: earliest first
-    rising_points = [
-        (now_ts - (9 - i) * 86400, 10.0 + i * 5.0) for i in range(10)
-    ]
+    rising_points = [(now_ts - (9 - i) * 86400, 10.0 + i * 5.0) for i in range(10)]
     # Already ordered: earliest (i=0, ts=now-9d, val=10) to latest (i=9, ts=now, val=55)
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=rising_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=rising_points,
     ):
         result = await predictor._async_compute_degradation("sensor.test", None, 30)
     assert result.trend == "rising"
 
     # Falling: values decrease with time
-    falling_points = [
-        (now_ts - (9 - i) * 86400, 100.0 - i * 5.0) for i in range(10)
-    ]
+    falling_points = [(now_ts - (9 - i) * 86400, 100.0 - i * 5.0) for i in range(10)]
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=falling_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=falling_points,
     ):
         result = await predictor._async_compute_degradation("sensor.test", None, 30)
     assert result.trend == "falling"
@@ -608,7 +606,8 @@ async def test_compute_degradation_trend_classification(
 
 
 async def test_fetch_statistics_empty_result(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test fetch statistics returns empty list when entity has no data."""
     with patch(
@@ -620,7 +619,8 @@ async def test_fetch_statistics_empty_result(
 
 
 async def test_fetch_statistics_exception(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test fetch statistics handles general exceptions."""
     with patch(
@@ -632,7 +632,8 @@ async def test_fetch_statistics_exception(
 
 
 async def test_fetch_statistics_parses_rows(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test fetch statistics parses different row formats."""
     now = datetime.now(UTC)
@@ -647,12 +648,15 @@ async def test_fetch_statistics_parses_rows(
     mock_instance = MagicMock()
     mock_instance.async_add_executor_job = AsyncMock(side_effect=lambda fn: fn())
 
-    with patch(
-        "homeassistant.components.recorder.get_instance",
-        return_value=mock_instance,
-    ), patch(
-        "homeassistant.components.recorder.statistics.statistics_during_period",
-        return_value={"sensor.test": mock_rows},
+    with (
+        patch(
+            "homeassistant.components.recorder.get_instance",
+            return_value=mock_instance,
+        ),
+        patch(
+            "homeassistant.components.recorder.statistics.statistics_during_period",
+            return_value={"sensor.test": mock_rows},
+        ),
     ):
         result = await predictor._async_fetch_statistics_points("sensor.test", 30)
 
@@ -666,25 +670,27 @@ async def test_fetch_statistics_parses_rows(
 
 
 async def test_environmental_insufficient_env_points(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test environmental analysis with insufficient env data points."""
     hass.states.async_set("sensor.env", "25")
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=[(1.0, 10.0)],  # < 10 points
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=[(1.0, 10.0)],  # < 10 points
     ):
-        result = await predictor._async_analyze_environmental(
-            "sensor.env", None, {"history": []}
-        )
+        result = await predictor._async_analyze_environmental("sensor.env", None, {"history": []})
 
     assert result.has_sufficient_data is False
     assert result.adjustment_factor == 1.0
 
 
 async def test_environmental_insufficient_completions(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test environmental analysis with < 2 completions."""
     hass.states.async_set("sensor.env", "25")
@@ -692,11 +698,14 @@ async def test_environmental_insufficient_completions(
     env_points = [(now_ts - i * 3600, 20.0) for i in range(20)]
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=env_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=env_points,
     ):
         result = await predictor._async_analyze_environmental(
-            "sensor.env", None,
+            "sensor.env",
+            None,
             {"history": [{"type": "completed", "timestamp": datetime.now(UTC).isoformat()}]},
         )
 
@@ -704,7 +713,8 @@ async def test_environmental_insufficient_completions(
 
 
 async def test_environmental_with_sufficient_data(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test environmental analysis with sufficient data computes correlation."""
     hass.states.async_set("sensor.env", "30")
@@ -723,11 +733,14 @@ async def test_environmental_with_sufficient_data(
         history.append({"type": "completed", "timestamp": ts})
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=env_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=env_points,
     ):
         result = await predictor._async_analyze_environmental(
-            "sensor.env", None,
+            "sensor.env",
+            None,
             {"history": history},
         )
 
@@ -738,7 +751,8 @@ async def test_environmental_with_sufficient_data(
 
 
 async def test_environmental_attribute_based(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test environmental analysis reads from attribute."""
     hass.states.async_set("sensor.device", "on", {"temperature": 28.5})
@@ -746,11 +760,14 @@ async def test_environmental_attribute_based(
     env_points = [(now_ts - i * 3600, 20.0) for i in range(5)]
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=env_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=env_points,
     ):
         result = await predictor._async_analyze_environmental(
-            "sensor.device", "temperature",
+            "sensor.device",
+            "temperature",
             {"history": []},
         )
 
@@ -758,7 +775,8 @@ async def test_environmental_attribute_based(
 
 
 async def test_environmental_non_numeric_value(
-    hass: HomeAssistant, predictor: SensorPredictor,
+    hass: HomeAssistant,
+    predictor: SensorPredictor,
 ) -> None:
     """Test environmental analysis with non-numeric state."""
     hass.states.async_set("sensor.env", "not_a_number")
@@ -766,11 +784,14 @@ async def test_environmental_non_numeric_value(
     env_points = [(now_ts - i * 3600, 20.0) for i in range(5)]
 
     with patch.object(
-        predictor, "_async_fetch_statistics_points",
-        new_callable=AsyncMock, return_value=env_points,
+        predictor,
+        "_async_fetch_statistics_points",
+        new_callable=AsyncMock,
+        return_value=env_points,
     ):
         result = await predictor._async_analyze_environmental(
-            "sensor.env", None,
+            "sensor.env",
+            None,
             {"history": []},
         )
 
@@ -785,10 +806,12 @@ async def test_degradation_regression_returns_none(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
         SensorPredictor,
     )
+
     sp = SensorPredictor(hass)
 
     # 4 identical points → collinear in x, regression denom=0 → returns None
     import time
+
     now = time.time()
     points = [(now, 5.0), (now, 5.0), (now, 5.0), (now, 5.0)]
     result = sp._linear_regression(points)
@@ -806,9 +829,11 @@ async def test_degradation_mean_val_zero(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
         SensorPredictor,
     )
+
     sp = SensorPredictor(hass)
     # 10+ points that average to 0.0 → triggers mean_val=1.0 fallback
     import time
+
     now = time.time()
     points = [
         (now - i * 3600, (-1.0) ** i * (i % 3))  # alternating, avg ≈ 0
@@ -834,6 +859,7 @@ async def test_threshold_prediction_below_already_exceeded(
         DegradationAnalysis,
         SensorPredictor,
     )
+
     deg = DegradationAnalysis(
         entity_id="sensor.test",
         slope_per_day=-0.5,  # falling
@@ -858,6 +884,7 @@ async def test_threshold_prediction_no_matching_direction(
         DegradationAnalysis,
         SensorPredictor,
     )
+
     deg = DegradationAnalysis(
         entity_id="sensor.test",
         slope_per_day=0.5,  # rising
@@ -878,6 +905,7 @@ async def test_env_analysis_none_attribute(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
         SensorPredictor,
     )
+
     sp = SensorPredictor(hass)
     # Set entity state but attribute returns None
     hass.states.async_set("sensor.env_test", "25.0")
@@ -896,17 +924,19 @@ async def test_env_analysis_bad_timestamps(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
         SensorPredictor,
     )
+
     sp = SensorPredictor(hass)
     hass.states.async_set("sensor.env_temp", "20.0")
 
     # Need 10+ env points
     import time
+
     now = time.time()
     env_points = [(now - i * 86400, 20.0 + i * 0.1) for i in range(15)]
 
     task_data = {
         "history": [
-            {"timestamp": "bad_date", "type": "completed"},       # line 400-401
+            {"timestamp": "bad_date", "type": "completed"},  # line 400-401
             {"timestamp": "2024-01-01T00:00:00", "type": "completed"},
             {"timestamp": "2024-01-01T12:00:00", "type": "completed"},  # line 405: same day
             {"timestamp": "2024-02-01T00:00:00", "type": "completed"},
@@ -914,7 +944,9 @@ async def test_env_analysis_bad_timestamps(hass: HomeAssistant) -> None:
     }
     with patch.object(sp, "_async_fetch_statistics_points", return_value=env_points):
         result = await sp._async_analyze_environmental(
-            "sensor.env_temp", None, task_data,
+            "sensor.env_temp",
+            None,
+            task_data,
         )
     assert result is not None
     # Only 1 valid interval (Jan→Feb), < min completions → insufficient data
@@ -926,6 +958,7 @@ async def test_fetch_statistics_import_error(hass: HomeAssistant) -> None:
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
         SensorPredictor,
     )
+
     sp = SensorPredictor(hass)
     with patch(
         "custom_components.maintenance_supporter.helpers.sensor_predictor.SensorPredictor._async_fetch_statistics_points",
@@ -947,6 +980,7 @@ async def test_parse_statistics_bad_start_and_bad_value(
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
         SensorPredictor,
     )
+
     sp = SensorPredictor(hass)
     raw_stats = {
         "sensor.test": [
@@ -989,13 +1023,9 @@ class TestSensorPredictorDtUtil:
         )
         trigger_config = {"type": "threshold", "trigger_above": 20.0}
 
-        with patch(
-            "custom_components.maintenance_supporter.helpers.sensor_predictor.dt_util"
-        ) as mock_dt:
+        with patch("custom_components.maintenance_supporter.helpers.sensor_predictor.dt_util") as mock_dt:
             mock_dt.now.return_value = dt_util.now()
-            result = SensorPredictor._compute_threshold_prediction(
-                degradation, trigger_config
-            )
+            result = SensorPredictor._compute_threshold_prediction(degradation, trigger_config)
 
         assert result is not None
         assert result.days_until_threshold == 10.0
@@ -1003,6 +1033,7 @@ class TestSensorPredictorDtUtil:
 
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
+
 
 def test_linear_regression_returns_none_for_identical_x() -> None:
     """Line 194 (result is None): linear regression returns None for degenerate data."""
@@ -1012,6 +1043,7 @@ def test_linear_regression_returns_none_for_identical_x() -> None:
     points = [(1000.0, v) for v in [1.0, 2.0, 3.0]]
     result = SensorPredictor._linear_regression(points)
     assert result is None
+
 
 def test_compute_threshold_prediction_counter_not_increasing() -> None:
     """Line 288: counter trigger with slope <= 0 returns None."""
@@ -1035,6 +1067,7 @@ def test_compute_threshold_prediction_counter_not_increasing() -> None:
     }
     result = SensorPredictor._compute_threshold_prediction(degradation, trigger_config)
     assert result is None
+
 
 def test_compute_threshold_prediction_days_until_zero_already_exceeded() -> None:
     """Lines 314-316: already exceeded threshold → days_until = 0."""
@@ -1061,6 +1094,7 @@ def test_compute_threshold_prediction_days_until_zero_already_exceeded() -> None
     assert result is not None
     assert result.days_until_threshold == 0.0
 
+
 def test_compute_threshold_prediction_below_already_exceeded() -> None:
     """Line 315: below trigger but current already < threshold → days_until=0."""
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
@@ -1085,6 +1119,7 @@ def test_compute_threshold_prediction_below_already_exceeded() -> None:
     assert result is not None
     assert result.days_until_threshold == 0.0
 
+
 def test_compute_threshold_prediction_slope_zero_returns_none() -> None:
     """Lines 248-249 guard: slope=0 returns None."""
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
@@ -1104,6 +1139,7 @@ def test_compute_threshold_prediction_slope_zero_returns_none() -> None:
     result = SensorPredictor._compute_threshold_prediction(degradation, {"type": "threshold", "trigger_above": 100})
     assert result is None
 
+
 def test_compute_threshold_prediction_confidence_levels() -> None:
     """Lines 300-306: confidence derived from r_squared."""
     from custom_components.maintenance_supporter.helpers.sensor_predictor import (
@@ -1115,11 +1151,10 @@ def test_compute_threshold_prediction_confidence_levels() -> None:
         return DegradationAnalysis("s", 1.0, "rising", r2, 50.0, 20, 90)
 
     for r2, expected in [(0.8, "high"), (0.5, "medium"), (0.1, "low")]:
-        result = SensorPredictor._compute_threshold_prediction(
-            _make_deg(r2), {"type": "threshold", "trigger_above": 100.0}
-        )
+        result = SensorPredictor._compute_threshold_prediction(_make_deg(r2), {"type": "threshold", "trigger_above": 100.0})
         assert result is not None, f"Expected result for r2={r2}"
         assert result.confidence == expected, f"r2={r2}: got {result.confidence}"
+
 
 def test_compute_threshold_prediction_counter_delta_mode() -> None:
     """Lines 264-268: counter with delta_mode uses current - baseline."""
@@ -1148,6 +1183,7 @@ def test_compute_threshold_prediction_counter_delta_mode() -> None:
     assert result is not None
     assert result.days_until_threshold > 0
 
+
 def test_environmental_analysis_insufficient_data() -> None:
     """Line 416 area: environmental returns has_sufficient_data=False."""
     # This tests that the EnvironmentalAnalysis dataclass is constructed correctly
@@ -1165,6 +1201,7 @@ def test_environmental_analysis_insufficient_data() -> None:
     assert analysis.has_sufficient_data is False
     assert analysis.adjustment_factor == 1.0
 
+
 def test_pearson_correlation_computed() -> None:
     """Lines 453-460 (via _pearson_correlation): returns None for short lists."""
     from custom_components.maintenance_supporter.helpers.sensor_predictor import SensorPredictor
@@ -1176,6 +1213,7 @@ def test_pearson_correlation_computed() -> None:
     result = SensorPredictor._pearson_correlation([1.0, 2.0, 3.0], [2.0, 4.0, 6.0])
     assert result is not None
     assert abs(result - 1.0) < 0.01
+
 
 def test_fetch_statistics_returns_empty_list_on_import_error() -> None:
     """Line 519: returns [] when recorder module is not available."""
@@ -1189,7 +1227,5 @@ def test_fetch_statistics_returns_empty_list_on_import_error() -> None:
     import asyncio
 
     with patch.dict("sys.modules", {"homeassistant.components.recorder": None}):
-        result = asyncio.get_event_loop().run_until_complete(
-            predictor._async_fetch_statistics_points("sensor.x", 30)
-        )
+        result = asyncio.get_event_loop().run_until_complete(predictor._async_fetch_statistics_points("sensor.x", 30))
     assert result == []

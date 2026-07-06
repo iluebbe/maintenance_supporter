@@ -101,6 +101,8 @@ from .tasks_validation import (
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
+        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=32)), None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("checklist"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
@@ -243,6 +245,9 @@ async def ws_create_task(
             nfc_warn = _check_nfc_tag_duplicate(hass, nfc_val)
             if nfc_warn:
                 tc_warnings.append(nfc_warn)
+    # v2.20 (#83): unit for `reading`-type tasks.
+    if msg.get("reading_unit") is not None:
+        task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
     if msg.get("checklist"):
         task_data["checklist"] = msg["checklist"]
     if msg.get("labels"):
@@ -318,6 +323,8 @@ async def ws_create_task(
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
+        # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
+        vol.Optional("reading_unit"): vol.Any(vol.All(str, vol.Length(max=32)), None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
         vol.Optional("checklist"): vol.Any(
             vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
@@ -433,6 +440,7 @@ async def ws_update_task(
         "entity_slug": "entity_slug",
         "custom_icon": "custom_icon",
         "nfc_tag_id": "nfc_tag_id",
+        "reading_unit": "reading_unit",
         "priority": "priority",
         "checklist": "checklist",
         "labels": "labels",

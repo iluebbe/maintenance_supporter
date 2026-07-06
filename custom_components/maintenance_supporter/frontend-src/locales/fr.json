@@ -679,5 +679,9 @@
   "replace_object": "Remplacer…",
   "replace_object_prompt": "Retire cet objet et crée un successeur. L'historique et les coûts restent archivés sur l'ancien ; les tâches et documents passent au nouveau, les compteurs repartent de zéro.",
   "replace_name_label": "Nom du successeur",
-  "object_replaced": "Objet remplacé — successeur créé"
+  "object_replaced": "Objet remplacé — successeur créé",
+  "reading_unit_label": "Unité de relevé (p. ex. kWh, m³)",
+  "reading_unit_help": "Affichée à côté de la valeur enregistrée lors de l'exécution de cette tâche.",
+  "reading_value_label": "Valeur relevée",
+  "reading_label": "Relevé"
 }

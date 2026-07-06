@@ -74,12 +74,7 @@ class MaintenanceEntity(CoordinatorEntity[MaintenanceCoordinator]):
 
         if parent_entry_id := obj.get("parent_entry_id"):
             parent = hass.config_entries.async_get_entry(parent_entry_id)
-            if (
-                parent is not None
-                and parent.domain == DOMAIN
-                and parent.unique_id
-                and parent.unique_id != GLOBAL_UNIQUE_ID
-            ):
+            if parent is not None and parent.domain == DOMAIN and parent.unique_id and parent.unique_id != GLOBAL_UNIQUE_ID:
                 device_info["via_device"] = (DOMAIN, parent.unique_id)
 
         return device_info

@@ -25,6 +25,7 @@ from .const import (
     CONF_TASK_NAME,
     CONF_TASK_NOTES,
     CONF_TASK_PRIORITY,
+    CONF_TASK_READING_UNIT,
     CONF_TASK_SCHEDULE_TYPE,
     CONF_TASK_TYPE,
     CONF_TASK_WARNING_DAYS,
@@ -51,16 +52,13 @@ class AddTaskMixin:
     if TYPE_CHECKING:
         hass: HomeAssistant
         _on_cancel: Callable[[], ConfigFlowResult | Awaitable[ConfigFlowResult]] | None
+
         def _save_new_task(self) -> ConfigFlowResult: ...
         def _show_init_menu(self) -> ConfigFlowResult: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
-        async def async_step_opt_sensor_select(
-            self, user_input: dict[str, Any] | None = None
-        ) -> ConfigFlowResult: ...
+        async def async_step_opt_sensor_select(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult: ...
 
-    async def async_step_add_task(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_add_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add a new task — step 1: name, type, schedule."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -77,6 +75,8 @@ class AddTaskMixin:
                 self._current_task[CONF_TASK_PRIORITY] = user_input[CONF_TASK_PRIORITY]
             if user_input.get(CONF_TASK_LABELS_TEXT):
                 self._current_task[CONF_TASK_LABELS_TEXT] = user_input[CONF_TASK_LABELS_TEXT]
+            if user_input.get(CONF_TASK_READING_UNIT):
+                self._current_task[CONF_TASK_READING_UNIT] = user_input[CONF_TASK_READING_UNIT].strip()
 
             self._trigger_on_complete = self._save_new_task
             self._on_cancel = self._show_init_menu
@@ -111,18 +111,14 @@ class AddTaskMixin:
                     vol.Required(CONF_TASK_NAME): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
-                    vol.Required(
-                        CONF_TASK_TYPE, default=MaintenanceTypeEnum.CLEANING
-                    ): selector.SelectSelector(
+                    vol.Required(CONF_TASK_TYPE, default=MaintenanceTypeEnum.CLEANING): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=type_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="maintenance_type",
                         )
                     ),
-                    vol.Required(
-                        CONF_TASK_SCHEDULE_TYPE, default=ScheduleType.TIME_BASED
-                    ): selector.SelectSelector(
+                    vol.Required(CONF_TASK_SCHEDULE_TYPE, default=ScheduleType.TIME_BASED): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=schedule_options,
                             mode=selector.SelectSelectorMode.LIST,
@@ -140,16 +136,16 @@ class AddTaskMixin:
                     vol.Optional(CONF_TASK_LABELS_TEXT): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³").
+                    vol.Optional(CONF_TASK_READING_UNIT): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                    ),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )
 
-    async def async_step_opt_time_based(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_time_based(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure time-based schedule for new task."""
         errors: dict[str, str] = {}
 
@@ -166,9 +162,7 @@ class AddTaskMixin:
                 self._current_task[CONF_TASK_WARNING_DAYS] = user_input.get(
                     CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
                 )
-                self._current_task[CONF_TASK_INTERVAL_ANCHOR] = user_input.get(
-                    CONF_TASK_INTERVAL_ANCHOR, "completion"
-                )
+                self._current_task[CONF_TASK_INTERVAL_ANCHOR] = user_input.get(CONF_TASK_INTERVAL_ANCHOR, "completion")
                 last_performed = user_input.get("last_performed")
                 if last_performed:
                     self._current_task["last_performed"] = str(last_performed)
@@ -179,19 +173,11 @@ class AddTaskMixin:
             step_id="opt_time_based",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
-                        )
+                    vol.Required(CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX)
                     ),
-                    vol.Optional(
-                        CONF_TASK_INTERVAL_UNIT, default="days"
-                    ): interval_unit_selector(),
-                    vol.Optional(
-                        CONF_TASK_INTERVAL_ANCHOR, default="completion"
-                    ): selector.SelectSelector(
+                    vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+                    vol.Optional(CONF_TASK_INTERVAL_ANCHOR, default="completion"): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=[
                                 selector.SelectOptionDict(value="completion", label="From completion date"),
@@ -209,17 +195,13 @@ class AddTaskMixin:
                             min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
         )
 
-    async def async_step_opt_calendar(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_calendar(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure a calendar recurrence kind for a new task."""
         errors: dict[str, str] = {}
         kind = self._current_task.get(CONF_TASK_SCHEDULE_TYPE, KIND_WEEKDAYS)
@@ -239,25 +221,25 @@ class AddTaskMixin:
                     self._current_task["last_performed"] = str(user_input["last_performed"])
                 return self._save_new_task()
 
-        schema = calendar_schema(kind).extend({
-            vol.Optional("last_performed"): selector.DateSelector(),
-            vol.Optional(
-                CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            ),
-            vol.Optional("go_back", default=False): selector.BooleanSelector(),
-        })
+        schema = calendar_schema(kind).extend(
+            {
+                vol.Optional("last_performed"): selector.DateSelector(),
+                vol.Optional(CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Optional("go_back", default=False): selector.BooleanSelector(),
+            }
+        )
         return self.async_show_form(
-            step_id="opt_calendar", data_schema=schema, errors=errors,
+            step_id="opt_calendar",
+            data_schema=schema,
+            errors=errors,
             description_placeholders={"kind": kind},
         )
 
-    async def async_step_opt_one_time(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_one_time(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure a one-time (non-recurring) task for new task."""
         errors: dict[str, str] = {}
 
@@ -288,17 +270,13 @@ class AddTaskMixin:
                             min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
                         )
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
         )
 
-    async def async_step_opt_manual(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_manual(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure manual schedule for new task."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -326,13 +304,9 @@ class AddTaskMixin:
                         )
                     ),
                     vol.Optional(CONF_TASK_NOTES): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT, multiline=True
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )

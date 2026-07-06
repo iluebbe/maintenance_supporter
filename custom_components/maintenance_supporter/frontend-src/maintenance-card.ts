@@ -290,6 +290,8 @@ export class MaintenanceSupporterCard extends LitElement {
                                 dlg.taskName = task.name;
                                 dlg.checklist = task.checklist || [];
                                 dlg.adaptiveEnabled = !!task.adaptive_config?.enabled;
+                                dlg.taskType = task.type || "";
+                                dlg.readingUnit = (task as any).reading_unit || "";
                                 dlg.lang = L;
                                 dlg.open();
                               }}

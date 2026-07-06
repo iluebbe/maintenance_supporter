@@ -28,18 +28,12 @@ from custom_components.maintenance_supporter.helpers.interval_analyzer import (
 # Helper to generate history completions at specific dates
 def _make_history(dates: list[str]) -> list[dict[str, str]]:
     """Create history entries from ISO date strings."""
-    return [
-        {"timestamp": f"{d}T10:00:00", "type": "completed"}
-        for d in dates
-    ]
+    return [{"timestamp": f"{d}T10:00:00", "type": "completed"} for d in dates]
 
 
 def _make_history_with_feedback(dates: list[str], feedback: str = "needed") -> list[dict[str, str]]:
     """Create history entries with feedback from ISO date strings."""
-    return [
-        {"timestamp": f"{d}T10:00:00", "type": "completed", "feedback": feedback}
-        for d in dates
-    ]
+    return [{"timestamp": f"{d}T10:00:00", "type": "completed", "feedback": feedback} for d in dates]
 
 
 # ============================================================================
@@ -75,11 +69,14 @@ class TestComputeIntervalsWithMonths:
 
     def test_multiple_intervals(self) -> None:
         analyzer = IntervalAnalyzer()
-        history = _make_history([
-            "2025-06-01", "2025-06-15",  # 14 days, end June
-            "2025-07-15",                 # 30 days, end July
-            "2025-12-15",                 # 153 days, end December
-        ])
+        history = _make_history(
+            [
+                "2025-06-01",
+                "2025-06-15",  # 14 days, end June
+                "2025-07-15",  # 30 days, end July
+                "2025-12-15",  # 153 days, end December
+            ]
+        )
         result = analyzer._compute_intervals_with_months(history)
         assert result == [(14, 6), (30, 7), (153, 12)]
 
@@ -138,8 +135,15 @@ class TestComputeMonthlyFactors:
         # Summer (Jun, Jul, Aug): 14-day intervals
         # Winter (Dec, Jan, Feb): 45-day intervals
         intervals = [
-            (14, 6), (14, 6), (14, 7), (14, 7), (14, 8), (14, 8),  # Summer: 14d
-            (45, 12), (45, 1), (45, 2),  # Winter: 45d
+            (14, 6),
+            (14, 6),
+            (14, 7),
+            (14, 7),
+            (14, 8),
+            (14, 8),  # Summer: 14d
+            (45, 12),
+            (45, 1),
+            (45, 2),  # Winter: 45d
         ]
         result = analyzer._compute_monthly_factors(intervals, "north")
         assert result.has_sufficient_data
@@ -157,15 +161,19 @@ class TestComputeMonthlyFactors:
         analyzer = IntervalAnalyzer()
         # Only have June data (summer) and December data (winter)
         intervals = [
-            (14, 6), (14, 6), (14, 6),  # June: 14d
-            (45, 12), (45, 12), (45, 12),  # December: 45d
+            (14, 6),
+            (14, 6),
+            (14, 6),  # June: 14d
+            (45, 12),
+            (45, 12),
+            (45, 12),  # December: 45d
         ]
         result = analyzer._compute_monthly_factors(intervals, "north")
 
         # July and August (same summer quarter as June) should get June's factor
         june_factor = result.monthly_factors[5]  # index 5 = June
-        july_factor = result.monthly_factors[6]   # index 6 = July
-        aug_factor = result.monthly_factors[7]    # index 7 = August
+        july_factor = result.monthly_factors[6]  # index 6 = July
+        aug_factor = result.monthly_factors[7]  # index 7 = August
         assert abs(july_factor - june_factor) < 0.01
         assert abs(aug_factor - june_factor) < 0.01
 
@@ -181,8 +189,12 @@ class TestComputeMonthlyFactors:
         analyzer = IntervalAnalyzer()
         # In southern hemisphere, December = summer
         intervals = [
-            (14, 12), (14, 12), (14, 12),  # Dec (summer in south): 14d
-            (45, 6), (45, 6), (45, 6),      # Jun (winter in south): 45d
+            (14, 12),
+            (14, 12),
+            (14, 12),  # Dec (summer in south): 14d
+            (45, 6),
+            (45, 6),
+            (45, 6),  # Jun (winter in south): 45d
         ]
         result = analyzer._compute_monthly_factors(intervals, "south")
 
@@ -198,34 +210,34 @@ class TestComputeMonthlyFactors:
         analyzer = IntervalAnalyzer()
         intervals = [(30, m) for m in range(1, 13)]  # Uniform
         overrides = {7: 0.5, 1: 2.0}  # July: 0.5, January: 2.0
-        result = analyzer._compute_monthly_factors(
-            intervals, "north", manual_overrides=overrides
-        )
+        result = analyzer._compute_monthly_factors(intervals, "north", manual_overrides=overrides)
 
-        assert result.monthly_factors[6] == 0.5   # July overridden
-        assert result.monthly_factors[0] == 2.0    # January overridden
+        assert result.monthly_factors[6] == 0.5  # July overridden
+        assert result.monthly_factors[0] == 2.0  # January overridden
         assert abs(result.monthly_factors[2] - 1.0) < 0.01  # March: learned (1.0)
 
     def test_manual_overrides_without_history(self) -> None:
         """Manual overrides work even with no history data."""
         analyzer = IntervalAnalyzer()
         overrides = {6: 0.7, 7: 0.7, 8: 0.7, 12: 1.5, 1: 1.5, 2: 1.5}
-        result = analyzer._compute_monthly_factors(
-            [], "north", manual_overrides=overrides
-        )
+        result = analyzer._compute_monthly_factors([], "north", manual_overrides=overrides)
 
         assert not result.has_sufficient_data
-        assert result.monthly_factors[5] == 0.7   # June
+        assert result.monthly_factors[5] == 0.7  # June
         assert result.monthly_factors[11] == 1.5  # December
-        assert result.monthly_factors[3] == 1.0   # April: no override, default 1.0
+        assert result.monthly_factors[3] == 1.0  # April: no override, default 1.0
 
     def test_clamping(self) -> None:
         """Factors are clamped to [MIN, MAX]."""
         analyzer = IntervalAnalyzer()
         # Extreme variance: 1-day in summer vs 500-day in winter
         intervals = [
-            (1, 6), (1, 6), (1, 7),
-            (500, 12), (500, 1), (500, 2),
+            (1, 6),
+            (1, 6),
+            (1, 7),
+            (500, 12),
+            (500, 1),
+            (500, 2),
         ]
         result = analyzer._compute_monthly_factors(intervals, "north")
 
@@ -342,9 +354,7 @@ class TestAnalyzeWithSeasonal:
         """With < 6 intervals, no seasonal adjustment."""
         analyzer = IntervalAnalyzer()
         # Only 3 completions = 2 intervals
-        history = _make_history_with_feedback([
-            "2026-01-01", "2026-01-31", "2026-03-02"
-        ])
+        history = _make_history_with_feedback(["2026-01-01", "2026-01-31", "2026-03-02"])
         task_data = {
             "interval_days": 30,
             "history": history,
@@ -396,9 +406,7 @@ class TestAnalyzeWithSeasonal:
     def test_backward_compat_no_seasonal_fields(self) -> None:
         """Old adaptive_config without seasonal fields works fine."""
         analyzer = IntervalAnalyzer()
-        history = _make_history_with_feedback([
-            "2026-01-01", "2026-01-31", "2026-03-02", "2026-04-01"
-        ])
+        history = _make_history_with_feedback(["2026-01-01", "2026-01-31", "2026-03-02", "2026-04-01"])
         task_data = {"interval_days": 30, "history": history}
         # Old-style config without seasonal fields
         config = {

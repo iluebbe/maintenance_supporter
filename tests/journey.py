@@ -35,15 +35,10 @@ async def simulate_restart(hass: HomeAssistant, *entries: MockConfigEntry) -> No
         await hass.async_block_till_done()
 
 
-def registry_snapshot(
-    hass: HomeAssistant, entry: MockConfigEntry
-) -> dict[str, str]:
+def registry_snapshot(hass: HomeAssistant, entry: MockConfigEntry) -> dict[str, str]:
     """{unique_id: entity_id} for the entry — the entity-identity invariant."""
     reg = er.async_get(hass)
-    return {
-        e.unique_id: e.entity_id
-        for e in er.async_entries_for_config_entry(reg, entry.entry_id)
-    }
+    return {e.unique_id: e.entity_id for e in er.async_entries_for_config_entry(reg, entry.entry_id)}
 
 
 def assert_no_orphans(
@@ -56,9 +51,7 @@ def assert_no_orphans(
     reg = er.async_get(hass)
     for reg_entry in er.async_entries_for_config_entry(reg, entry.entry_id):
         for task_id in deleted_task_ids:
-            assert task_id not in (reg_entry.unique_id or ""), (
-                f"orphaned entity {reg_entry.entity_id} for deleted task {task_id}"
-            )
+            assert task_id not in (reg_entry.unique_id or ""), f"orphaned entity {reg_entry.entity_id} for deleted task {task_id}"
     tasks = entry.data.get(CONF_TASKS, {})
     for task_id in deleted_task_ids:
         assert task_id not in tasks, f"deleted task {task_id} still in entry data"
@@ -70,13 +63,9 @@ def assert_entry_fully_gone(hass: HomeAssistant, entry_id: str) -> None:
     """After deleting an object: no config entry, no device, no entities."""
     assert hass.config_entries.async_get_entry(entry_id) is None
     dev_reg = dr.async_get(hass)
-    assert not dr.async_entries_for_config_entry(dev_reg, entry_id), (
-        "device(s) survived object deletion"
-    )
+    assert not dr.async_entries_for_config_entry(dev_reg, entry_id), "device(s) survived object deletion"
     ent_reg = er.async_get(hass)
-    assert not er.async_entries_for_config_entry(ent_reg, entry_id), (
-        "entities survived object deletion"
-    )
+    assert not er.async_entries_for_config_entry(ent_reg, entry_id), "entities survived object deletion"
 
 
 __all__ = [

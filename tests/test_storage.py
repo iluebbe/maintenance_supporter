@@ -352,9 +352,7 @@ def test_extract_dynamic_trigger_state() -> None:
             "type": "threshold",
             "entity_id": "sensor.temp",
             "trigger_above": 30,
-            "_trigger_state": {
-                "sensor.temp": {"baseline_value": 25.0}
-            },
+            "_trigger_state": {"sensor.temp": {"baseline_value": 25.0}},
         },
     }
     static, dynamic = extract_dynamic_from_task(task)
@@ -529,7 +527,6 @@ def test_extract_dynamic_with_trigger_state() -> None:
     assert "trigger_runtime" in dynamic
     assert dynamic["trigger_runtime"] == {"baseline_value": 10.0}
     assert "_trigger_state" not in static.get("trigger_config", {})
-
 
 
 # ─── storage.py lines 229, 232-233 — merge_task_data with trigger_runtime ────

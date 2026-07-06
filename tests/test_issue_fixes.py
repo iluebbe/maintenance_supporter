@@ -143,11 +143,13 @@ class TestTimesPerformedWithLastPerformed:
 
         # This is the logic added in the fix
         task_data["last_performed"] = last_performed
-        task_data["history"].append({
-            "timestamp": last_performed + "T00:00:00",
-            "type": HistoryEntryType.COMPLETED,
-            "notes": "Initial value set during task creation",
-        })
+        task_data["history"].append(
+            {
+                "timestamp": last_performed + "T00:00:00",
+                "type": HistoryEntryType.COMPLETED,
+                "notes": "Initial value set during task creation",
+            }
+        )
 
         assert len(task_data["history"]) == 1
         assert task_data["history"][0]["type"] == "completed"
@@ -172,139 +174,181 @@ class TestTriggerConfigValidation:
     def test_valid_threshold_config(self, hass: HomeAssistant) -> None:
         """Valid threshold config should produce no errors."""
         set_sensor_state(hass, "sensor.test", "42.0")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "threshold",
-            "trigger_above": 50.0,
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "threshold",
+                "trigger_above": 50.0,
+            },
+        )
         assert errors == []
         assert warnings == []
 
     def test_missing_entity_id(self, hass: HomeAssistant) -> None:
         """Missing entity_id should return an error."""
-        errors, warnings = _validate_trigger_config(hass, {
-            "type": "threshold",
-            "trigger_above": 50.0,
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "type": "threshold",
+                "trigger_above": 50.0,
+            },
+        )
         assert any("entity_id" in e for e in errors)
 
     def test_invalid_trigger_type(self, hass: HomeAssistant) -> None:
         """Invalid trigger type should return an error."""
         set_sensor_state(hass, "sensor.test", "42.0")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "bogus",
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "bogus",
+            },
+        )
         assert any("bogus" in e for e in errors)
 
     def test_threshold_without_above_or_below(self, hass: HomeAssistant) -> None:
         """Threshold without above or below should return an error."""
         set_sensor_state(hass, "sensor.test", "42.0")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "threshold",
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "threshold",
+            },
+        )
         assert any("trigger_above" in e for e in errors)
 
     def test_counter_missing_target_value(self, hass: HomeAssistant) -> None:
         """Counter without target_value should return an error."""
         set_sensor_state(hass, "sensor.test", "42.0")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "counter",
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "counter",
+            },
+        )
         assert any("trigger_target_value" in e for e in errors)
 
     def test_runtime_missing_hours(self, hass: HomeAssistant) -> None:
         """Runtime without hours should return an error."""
         set_sensor_state(hass, "sensor.test", "on")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "runtime",
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "runtime",
+            },
+        )
         assert any("trigger_runtime_hours" in e for e in errors)
 
     def test_nonexistent_entity_warning(self, hass: HomeAssistant) -> None:
         """Non-existent entity should produce a warning, not error."""
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.does_not_exist",
-            "type": "threshold",
-            "trigger_above": 50.0,
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.does_not_exist",
+                "type": "threshold",
+                "trigger_above": 50.0,
+            },
+        )
         assert errors == []
         assert any("does not exist" in w for w in warnings)
 
     def test_unknown_state_warning(self, hass: HomeAssistant) -> None:
         """Entity with unknown state should produce a warning."""
         set_sensor_state(hass, "sensor.test", "unknown")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "threshold",
-            "trigger_above": 50.0,
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "threshold",
+                "trigger_above": 50.0,
+            },
+        )
         assert errors == []
         assert any("unknown" in w for w in warnings)
 
     def test_state_change_valid_with_minimal_config(self, hass: HomeAssistant) -> None:
         """State change type needs no extra required fields."""
         set_sensor_state(hass, "sensor.test", "on")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "state_change",
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "state_change",
+            },
+        )
         assert errors == []
 
     def test_valid_counter_config(self, hass: HomeAssistant) -> None:
         """Valid counter config should produce no errors."""
         set_sensor_state(hass, "sensor.test", "100")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "counter",
-            "trigger_target_value": 1000,
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "counter",
+                "trigger_target_value": 1000,
+            },
+        )
         assert errors == []
 
     def test_valid_runtime_config(self, hass: HomeAssistant) -> None:
         """Valid runtime config should produce no errors."""
         set_sensor_state(hass, "sensor.test", "on")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "runtime",
-            "trigger_runtime_hours": 100.0,
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "runtime",
+                "trigger_runtime_hours": 100.0,
+            },
+        )
         assert errors == []
 
     def test_runtime_with_valid_on_states(self, hass: HomeAssistant) -> None:
         """Valid trigger_on_states list should pass validation."""
         set_sensor_state(hass, "sensor.test", "in_use")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "runtime",
-            "trigger_runtime_hours": 100.0,
-            "trigger_on_states": ["in_use", "running"],
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "runtime",
+                "trigger_runtime_hours": 100.0,
+                "trigger_on_states": ["in_use", "running"],
+            },
+        )
         assert errors == []
 
     def test_runtime_with_invalid_on_states(self, hass: HomeAssistant) -> None:
         """Non-list trigger_on_states should produce an error."""
         set_sensor_state(hass, "sensor.test", "on")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "runtime",
-            "trigger_runtime_hours": 100.0,
-            "trigger_on_states": "in_use",  # string, not list
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "runtime",
+                "trigger_runtime_hours": 100.0,
+                "trigger_on_states": "in_use",  # string, not list
+            },
+        )
         assert any("trigger_on_states" in e for e in errors)
 
     def test_runtime_with_empty_on_states(self, hass: HomeAssistant) -> None:
         """Empty trigger_on_states list should produce an error."""
         set_sensor_state(hass, "sensor.test", "on")
-        errors, warnings = _validate_trigger_config(hass, {
-            "entity_id": "sensor.test",
-            "type": "runtime",
-            "trigger_runtime_hours": 100.0,
-            "trigger_on_states": [],
-        })
+        errors, warnings = _validate_trigger_config(
+            hass,
+            {
+                "entity_id": "sensor.test",
+                "type": "runtime",
+                "trigger_runtime_hours": 100.0,
+                "trigger_on_states": [],
+            },
+        )
         assert any("trigger_on_states" in e for e in errors)
 
 
@@ -364,9 +408,7 @@ class TestRuntimeTriggerCustomOnStates:
         assert trigger._is_on("cool") is True
         assert trigger._is_on("COOL") is True
 
-    def test_empty_or_invalid_on_states_falls_back_to_default(
-        self, hass: HomeAssistant
-    ) -> None:
+    def test_empty_or_invalid_on_states_falls_back_to_default(self, hass: HomeAssistant) -> None:
         """Invalid trigger_on_states should fall back to defaults."""
         entity = _make_mock_entity(hass)
         # Non-list value

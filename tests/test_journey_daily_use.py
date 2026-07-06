@@ -37,10 +37,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -52,18 +55,19 @@ def _conn() -> MagicMock:
     return conn
 
 
-async def test_every_completion_surface_produces_the_same_envelope(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_every_completion_surface_produces_the_same_envelope(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     task = build_task_data(
-        task_id=TASK_ID_1, name="Filter Swap",
+        task_id=TASK_ID_1,
+        name="Filter Swap",
         last_performed=(dt_util.now().date() - timedelta(days=40)).isoformat(),
         interval_days=30,
     )
     task["nfc_tag_id"] = "b3-nfc-tag"
     task["quick_complete_defaults"] = {"notes": "qc"}
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Espresso",
         data=build_object_entry_data(
             object_data=build_object_data(name="Espresso"),
@@ -81,10 +85,7 @@ async def test_every_completion_surface_produces_the_same_envelope(
     from homeassistant.helpers import entity_registry as er
 
     reg = er.async_get(hass)
-    entities = {
-        e.unique_id: e.entity_id
-        for e in er.async_entries_for_config_entry(reg, obj_entry.entry_id)
-    }
+    entities = {e.unique_id: e.entity_id for e in er.async_entries_for_config_entry(reg, obj_entry.entry_id)}
     sensor_eid = entities[f"maintenance_supporter_espresso_{TASK_ID_1}"]
     button_eid = entities[f"maintenance_supporter_espresso_{TASK_ID_1}_complete"]
 
@@ -93,31 +94,43 @@ async def test_every_completion_surface_produces_the_same_envelope(
             ws_complete_task,
         )
 
-        await call_ws_handler(ws_complete_task, hass, _conn(), {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1,
-        })
+        await call_ws_handler(
+            ws_complete_task,
+            hass,
+            _conn(),
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/complete",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+            },
+        )
 
     async def surface_service() -> None:
         await hass.services.async_call(
-            DOMAIN, "complete", {"entity_id": sensor_eid}, blocking=True,
+            DOMAIN,
+            "complete",
+            {"entity_id": sensor_eid},
+            blocking=True,
         )
 
     async def surface_button() -> None:
         await hass.services.async_call(
-            "button", "press", {"entity_id": button_eid}, blocking=True,
+            "button",
+            "press",
+            {"entity_id": button_eid},
+            blocking=True,
         )
 
     async def surface_todo() -> None:
         from homeassistant.components.todo import TodoItem, TodoItemStatus
 
-        todo_eid = next(
-            e.entity_id for e in reg.entities.values() if e.domain == "todo"
-        )
+        todo_eid = next(e.entity_id for e in reg.entities.values() if e.domain == "todo")
         entity = hass.data["todo"].get_entity(todo_eid)
         await entity.async_update_todo_item(
             TodoItem(
-                uid=f"{obj_entry.entry_id}:{TASK_ID_1}", summary="x",
+                uid=f"{obj_entry.entry_id}:{TASK_ID_1}",
+                summary="x",
                 status=TodoItemStatus.COMPLETED,
             )
         )
@@ -127,14 +140,22 @@ async def test_every_completion_surface_produces_the_same_envelope(
             ws_quick_complete_task,
         )
 
-        await call_ws_handler(ws_quick_complete_task, hass, _conn(), {
-            "id": 1, "type": "maintenance_supporter/task/quick_complete",
-            "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1,
-        })
+        await call_ws_handler(
+            ws_quick_complete_task,
+            hass,
+            _conn(),
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/quick_complete",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+            },
+        )
 
     async def surface_nfc() -> None:
         hass.bus.async_fire(
-            "tag_scanned", {"tag_id": "b3-nfc-tag", "device_id": "phone"},
+            "tag_scanned",
+            {"tag_id": "b3-nfc-tag", "device_id": "phone"},
         )
 
     surfaces: dict[str, Any] = {
@@ -171,9 +192,16 @@ async def test_every_completion_surface_produces_the_same_envelope(
         # Re-arm for the next surface: reset far into the past so the task is
         # overdue again (todo check-off needs a needs-action item).
         long_ago = (dt_util.now().date() - timedelta(days=40)).isoformat()
-        await call_ws_handler(ws_reset_task, hass, _conn(), {
-            "id": 99, "type": "maintenance_supporter/task/reset",
-            "entry_id": obj_entry.entry_id, "task_id": TASK_ID_1,
-            "date": long_ago,
-        })
+        await call_ws_handler(
+            ws_reset_task,
+            hass,
+            _conn(),
+            {
+                "id": 99,
+                "type": "maintenance_supporter/task/reset",
+                "entry_id": obj_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "date": long_ago,
+            },
+        )
         await hass.async_block_till_done()

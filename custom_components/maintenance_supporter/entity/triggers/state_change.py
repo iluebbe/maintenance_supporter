@@ -53,14 +53,11 @@ class StateChangeTrigger(BaseTrigger):
         state = self.hass.states.get(self.entity_id)
         if state is None:
             _LOGGER.info(
-                "Trigger entity %s not yet available — listener registered, "
-                "waiting for entity to appear",
+                "Trigger entity %s not yet available — listener registered, waiting for entity to appear",
                 self.entity_id,
             )
             # Register listener anyway so we catch the entity appearing
-            self._unsub_listener = async_track_state_change_event(
-                self.hass, [self.entity_id], self._handle_state_transition
-            )
+            self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
             return
 
         self._last_state = state.state
@@ -75,9 +72,7 @@ class StateChangeTrigger(BaseTrigger):
             )
 
         # Register state change listener (override base: we handle events differently)
-        self._unsub_listener = async_track_state_change_event(
-            self.hass, [self.entity_id], self._handle_state_transition
-        )
+        self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
 
         _LOGGER.debug(
             "State change trigger setup: %s (target=%d, count=%d, from=%s, to=%s)",

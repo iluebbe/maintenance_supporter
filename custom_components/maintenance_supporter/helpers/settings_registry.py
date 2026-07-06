@@ -147,18 +147,10 @@ _SPEC_BY_KEY: dict[str, SettingSpec] = {s.key: s for s in SETTING_SPECS}
 
 # ─── Derived views (single source → the tables the handler used to hand-keep) ─
 
-ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {
-    s.key: s.py_type for s in SETTING_SPECS
-}
-INT_RANGES: dict[str, tuple[int, int]] = {
-    s.key: s.int_range for s in SETTING_SPECS if s.int_range is not None
-}
-FLOAT_RANGES: dict[str, tuple[float, float]] = {
-    s.key: s.float_range for s in SETTING_SPECS if s.float_range is not None
-}
-STR_MAX_LENGTHS: dict[str, int] = {
-    s.key: s.max_len for s in SETTING_SPECS if s.max_len is not None
-}
+ALLOWED_SETTING_KEYS: dict[str, type | vol.Any] = {s.key: s.py_type for s in SETTING_SPECS}
+INT_RANGES: dict[str, tuple[int, int]] = {s.key: s.int_range for s in SETTING_SPECS if s.int_range is not None}
+FLOAT_RANGES: dict[str, tuple[float, float]] = {s.key: s.float_range for s in SETTING_SPECS if s.float_range is not None}
+STR_MAX_LENGTHS: dict[str, int] = {s.key: s.max_len for s in SETTING_SPECS if s.max_len is not None}
 
 
 def int_range(key: str) -> tuple[int, int]:
