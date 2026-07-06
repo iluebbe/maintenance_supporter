@@ -56,9 +56,7 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
     # Static path is registered once per versioned URL; on a forced re-register
     # the URL is unchanged (same bundle hash), so guard against re-adding it.
     if hass.data.get(DOMAIN, {}).get("_panel_static_url") != versioned_url:
-        await hass.http.async_register_static_paths(
-            [StaticPathConfig(versioned_url, str(panel_path), False)]
-        )
+        await hass.http.async_register_static_paths([StaticPathConfig(versioned_url, str(panel_path), False)])
         hass.data.setdefault(DOMAIN, {})["_panel_static_url"] = versioned_url
 
     await panel_custom.async_register_panel(

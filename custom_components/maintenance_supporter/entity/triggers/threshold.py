@@ -54,6 +54,7 @@ class ThresholdTrigger(BaseTrigger):
                 # use dt_util.utcnow().isoformat() (TZ-aware).
                 if parsed.tzinfo is None:
                     from datetime import UTC
+
                     parsed = parsed.replace(tzinfo=UTC)
                 self._exceeded_since_dt = parsed
                 self._exceeded_since = exceeded_since
@@ -79,22 +80,17 @@ class ThresholdTrigger(BaseTrigger):
 
                     # Restart recovery: check persisted exceeded_since
                     if self._exceeded_since_dt is not None:
-                        elapsed = (
-                            dt_util.utcnow() - self._exceeded_since_dt
-                        ).total_seconds()
+                        elapsed = (dt_util.utcnow() - self._exceeded_since_dt).total_seconds()
                         if elapsed >= self._for_minutes * 60:
                             _LOGGER.debug(
-                                "Threshold recovery: elapsed %.0fs >= %ds, "
-                                "triggering immediately: %s",
+                                "Threshold recovery: elapsed %.0fs >= %ds, triggering immediately: %s",
                                 elapsed,
                                 self._for_minutes * 60,
                                 self.entity_id,
                             )
                             self._triggered = True
                             return True
-                        remaining = max(
-                            self._for_minutes * 60 - elapsed, 0
-                        )
+                        remaining = max(self._for_minutes * 60 - elapsed, 0)
                         _LOGGER.debug(
                             "Threshold recovery: %.0fs remaining: %s",
                             remaining,
@@ -134,11 +130,7 @@ class ThresholdTrigger(BaseTrigger):
         restarts.
         """
         self._cancel_timer()
-        duration = (
-            remaining_seconds
-            if remaining_seconds is not None
-            else self._for_minutes * 60
-        )
+        duration = remaining_seconds if remaining_seconds is not None else self._for_minutes * 60
 
         @callback
         def _timer_fired(_now: datetime) -> None:
@@ -152,9 +144,7 @@ class ThresholdTrigger(BaseTrigger):
                 self._triggered = True
                 self._on_trigger_activated(self._current_value or 0.0)
 
-        self._timer_cancel = async_call_later(
-            self.hass, duration, _timer_fired
-        )
+        self._timer_cancel = async_call_later(self.hass, duration, _timer_fired)
 
     def _cancel_timer(self) -> None:
         """Cancel the for-duration timer."""

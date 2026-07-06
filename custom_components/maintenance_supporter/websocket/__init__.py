@@ -85,14 +85,16 @@ def _build_task_summary(
         for eid in entity_ids:
             state_obj = hass.states.get(eid)
             if state_obj is not None:
-                infos.append({
-                    "entity_id": eid,
-                    "friendly_name": state_obj.attributes.get("friendly_name", eid),
-                    "unit_of_measurement": state_obj.attributes.get("unit_of_measurement"),
-                    "min": state_obj.attributes.get("min"),
-                    "max": state_obj.attributes.get("max"),
-                    "step": state_obj.attributes.get("step"),
-                })
+                infos.append(
+                    {
+                        "entity_id": eid,
+                        "friendly_name": state_obj.attributes.get("friendly_name", eid),
+                        "unit_of_measurement": state_obj.attributes.get("unit_of_measurement"),
+                        "min": state_obj.attributes.get("min"),
+                        "max": state_obj.attributes.get("max"),
+                        "step": state_obj.attributes.get("step"),
+                    }
+                )
 
         # Backwards compat: trigger_entity_info is the first entity
         if infos:
@@ -127,6 +129,8 @@ def _build_task_summary(
         "documentation_url": task_data.get("documentation_url"),
         "custom_icon": task_data.get("custom_icon"),
         "nfc_tag_id": task_data.get("nfc_tag_id"),
+        # v2.20 (#83): unit for `reading`-type tasks; values live in history.
+        "reading_unit": task_data.get("reading_unit"),
         "priority": task_data.get("priority", "normal"),
         # v2.10.0 archive: archived_at is the persisted timestamp (None = active);
         # `archived` is the convenience bool the frontend filters on; reason is
@@ -145,15 +149,21 @@ def _build_task_summary(
         # user has renamed it). None when registry lookup fails (rare).
         "sensor_entity_id": (
             er.async_get(hass).async_get_entity_id(
-                "sensor", "maintenance_supporter",
+                "sensor",
+                "maintenance_supporter",
                 f"maintenance_supporter_{object_slug}_{task_id}",
-            ) if object_slug else None
+            )
+            if object_slug
+            else None
         ),
         "binary_sensor_entity_id": (
             er.async_get(hass).async_get_entity_id(
-                "binary_sensor", "maintenance_supporter",
+                "binary_sensor",
+                "maintenance_supporter",
                 f"maintenance_supporter_{object_slug}_{task_id}_overdue",
-            ) if object_slug else None
+            )
+            if object_slug
+            else None
         ),
         "trigger_config": trigger_config,
         "trigger_entity_info": trigger_entity_info,
@@ -214,19 +224,14 @@ def _build_object_response(hass: HomeAssistant, entry: ConfigEntry, coordinator_
     ct_tasks = (coordinator_data or {}).get(CONF_TASKS, {})
     object_slug = slugify_object_name(obj_data.get("name", "unknown"))
 
-    tasks = [
-        _build_task_summary(hass, tid, tdata, ct_tasks.get(tid), object_slug)
-        for tid, tdata in tasks_data.items()
-    ]
+    tasks = [_build_task_summary(hass, tid, tdata, ct_tasks.get(tid), object_slug) for tid, tdata in tasks_data.items()]
 
     # (roadmap P2) attached-document count for the objects-table paperclip badge.
     from .. import DOCUMENT_STORE_KEY
 
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     object_id = obj_data.get("id", "")
-    document_count = (
-        len(doc_store.for_object(object_id)) if doc_store is not None and object_id else 0
-    )
+    document_count = len(doc_store.for_object(object_id)) if doc_store is not None and object_id else 0
 
     return {
         "entry_id": entry.entry_id,
@@ -340,7 +345,8 @@ def cleanup_group_refs(
     for gid, group in groups.items():
         old_refs = group.get("task_refs", [])
         new_refs = [
-            ref for ref in old_refs
+            ref
+            for ref in old_refs
             if not (
                 (entry_id is not None and ref.get("entry_id") == entry_id)
                 or (task_id is not None and ref.get("task_id") == task_id)

@@ -37,8 +37,8 @@ from .dates import (
 KIND_INTERVAL = "interval"
 KIND_ONE_TIME = "one_time"
 KIND_MANUAL = "manual"
-KIND_WEEKDAYS = "weekdays"          # e.g. every Mon & Thu
-KIND_NTH_WEEKDAY = "nth_weekday"    # e.g. 1st Saturday of the month
+KIND_WEEKDAYS = "weekdays"  # e.g. every Mon & Thu
+KIND_NTH_WEEKDAY = "nth_weekday"  # e.g. 1st Saturday of the month
 KIND_DAY_OF_MONTH = "day_of_month"  # e.g. the 15th
 
 # The calendar kinds are fixed schedules (occurrences are absolute dates), so the
@@ -75,18 +75,18 @@ class Schedule:
     by the coordinator's status precedence, not here."""
 
     kind: str = KIND_MANUAL
-    every: int | None = None          # interval count (legacy: interval_days)
-    unit: str = "days"                # days | weeks | months | years
-    anchor: str = "completion"        # completion | planned
-    due_date: date | None = None      # one_time
-    weekdays: tuple[int, ...] = ()    # weekdays kind: 0=Mon … 6=Sun
-    nth: int | None = None            # nth_weekday kind: 1..5, or -1 = last
-    weekday: int | None = None        # nth_weekday kind: 0=Mon … 6=Sun
-    day: int | None = None            # day_of_month kind: 1..31 (clamped), -1 = last day
-    months: tuple[int, ...] = ()      # nth_weekday/day_of_month: restrict months (1..12)
+    every: int | None = None  # interval count (legacy: interval_days)
+    unit: str = "days"  # days | weeks | months | years
+    anchor: str = "completion"  # completion | planned
+    due_date: date | None = None  # one_time
+    weekdays: tuple[int, ...] = ()  # weekdays kind: 0=Mon … 6=Sun
+    nth: int | None = None  # nth_weekday kind: 1..5, or -1 = last
+    weekday: int | None = None  # nth_weekday kind: 0=Mon … 6=Sun
+    day: int | None = None  # day_of_month kind: 1..31 (clamped), -1 = last day
+    months: tuple[int, ...] = ()  # nth_weekday/day_of_month: restrict months (1..12)
     # (#83) end-of-month scheduling extras — calendar kinds only:
-    business: bool = False            # day_of_month: roll a weekend date back to Friday
-    offset_days: int = 0              # shift the computed occurrence by ±N days
+    business: bool = False  # day_of_month: roll a weekend date back to Friday
+    offset_days: int = 0  # shift the computed occurrence by ±N days
 
     @classmethod
     def from_legacy(
@@ -206,9 +206,7 @@ class Schedule:
         if self.kind == KIND_NTH_WEEKDAY:
             if self.nth is None or self.weekday is None:
                 return None
-            return next_nth_weekday(
-                ref, self.nth, self.weekday, months, inclusive=inclusive
-            )
+            return next_nth_weekday(ref, self.nth, self.weekday, months, inclusive=inclusive)
         if self.kind == KIND_DAY_OF_MONTH:
             if self.day is None:
                 return None
@@ -438,9 +436,7 @@ def read_legacy_fields(task: Mapping[str, Any]) -> dict[str, Any]:
         }
     sched = Schedule.from_dict(nested)
     return {
-        "schedule_type": legacy_schedule_type(
-            sched, has_trigger=bool(task.get("trigger_config"))
-        ),
+        "schedule_type": legacy_schedule_type(sched, has_trigger=bool(task.get("trigger_config"))),
         "interval_days": sched.every,
         "interval_unit": sched.unit,
         "interval_anchor": sched.anchor,

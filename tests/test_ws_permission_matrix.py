@@ -124,9 +124,13 @@ async def registered(hass: HomeAssistant) -> HomeAssistant:
     data[CONF_OPERATOR_WRITE_ENABLED] = True
     data[CONF_ADMIN_PANEL_USER_IDS] = [OPERATOR_ID]
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=data,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, entry)
@@ -164,10 +168,7 @@ async def test_command_inventory_frozen(registered: HomeAssistant) -> None:
         f"_EXPECTED_TIERS — choose admin/write/read consciously: "
         f"{sorted(missing_from_test)}"
     )
-    assert not gone_from_code, (
-        f"Command(s) in _EXPECTED_TIERS no longer registered: "
-        f"{sorted(gone_from_code)}"
-    )
+    assert not gone_from_code, f"Command(s) in _EXPECTED_TIERS no longer registered: {sorted(gone_from_code)}"
 
 
 async def test_write_commands_reject_plain_user(registered: HomeAssistant) -> None:
@@ -188,10 +189,7 @@ async def test_write_commands_reject_plain_user(registered: HomeAssistant) -> No
             failures.append(cmd)
         except Unauthorized:
             pass
-    assert not failures, (
-        f"Write-tier command(s) did NOT reject a plain user — missing or "
-        f"misplaced @require_write: {failures}"
-    )
+    assert not failures, f"Write-tier command(s) did NOT reject a plain user — missing or misplaced @require_write: {failures}"
 
 
 async def test_admin_commands_reject_operator_even_with_delegation(
@@ -212,10 +210,7 @@ async def test_admin_commands_reject_operator_even_with_delegation(
             failures.append(cmd)
         except Unauthorized:
             pass
-    assert not failures, (
-        f"Admin-tier command(s) did NOT reject an allowlisted operator — "
-        f"escalation boundary broken: {failures}"
-    )
+    assert not failures, f"Admin-tier command(s) did NOT reject an allowlisted operator — escalation boundary broken: {failures}"
 
 
 async def test_write_commands_reject_operator_when_delegation_off(
@@ -227,9 +222,13 @@ async def test_write_commands_reject_operator_when_delegation_off(
     data[CONF_OPERATOR_WRITE_ENABLED] = False
     data[CONF_ADMIN_PANEL_USER_IDS] = [OPERATOR_ID]
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=data,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, entry)
@@ -245,7 +244,4 @@ async def test_write_commands_reject_operator_when_delegation_off(
             failures.append(cmd)
         except Unauthorized:
             pass
-    assert not failures, (
-        f"Write-tier command(s) accepted an operator while delegation is OFF "
-        f"(shipped default): {failures}"
-    )
+    assert not failures, f"Write-tier command(s) accepted an operator while delegation is OFF (shipped default): {failures}"

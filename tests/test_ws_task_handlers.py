@@ -64,10 +64,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -77,7 +80,9 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -91,17 +96,25 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_ws_create_task_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test creating a basic task via WS."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Oil Change",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Oil Change",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -110,25 +123,33 @@ async def test_ws_create_task_basic(
 
 
 async def test_ws_create_task_with_all_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test creating a task with all optional fields."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Full Task",
-        "task_type": "inspection",
-        "schedule_type": "sensor_based",
-        "interval_days": 60,
-        "warning_days": 14,
-        "notes": "Check everything",
-        "documentation_url": "https://example.com/docs",
-        "responsible_user_id": "user123",
-        "entity_slug": "pump_filter",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Full Task",
+            "task_type": "inspection",
+            "schedule_type": "sensor_based",
+            "interval_days": 60,
+            "warning_days": 14,
+            "notes": "Check everything",
+            "documentation_url": "https://example.com/docs",
+            "responsible_user_id": "user123",
+            "entity_slug": "pump_filter",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -136,7 +157,9 @@ async def test_ws_create_task_with_all_fields(
 
 
 async def test_ws_create_task_with_last_performed(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that creating task with last_performed adds history entry.
 
@@ -157,12 +180,18 @@ async def test_ws_create_task_with_last_performed(
         await store.async_save()
 
     with patch.object(store, "async_delay_save", side_effect=lambda: hass.async_create_task(_immediate_save())):
-        await call_ws_handler(ws_create_task, hass, conn, {
-            "id": 1, "type": "maintenance_supporter/task/create",
-            "entry_id": object_entry.entry_id,
-            "name": "Test Task",
-            "last_performed": "2024-01-15",
-        })
+        await call_ws_handler(
+            ws_create_task,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/create",
+                "entry_id": object_entry.entry_id,
+                "name": "Test Task",
+                "last_performed": "2024-01-15",
+            },
+        )
 
     result = conn.send_result.call_args[0][1]
     task_id = result["task_id"]
@@ -174,117 +203,162 @@ async def test_ws_create_task_with_last_performed(
 
 
 async def test_ws_create_task_with_trigger_config(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test creating a task with trigger configuration."""
     await setup_integration(hass, global_entry, object_entry)
     hass.states.async_set("sensor.test_temp", "25.0")
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Triggered Task",
-        "schedule_type": "sensor_based",
-        "trigger_config": {
-            "type": "threshold",
-            "entity_id": "sensor.test_temp",
-            "trigger_above": 30.0,
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Triggered Task",
+            "schedule_type": "sensor_based",
+            "trigger_config": {
+                "type": "threshold",
+                "entity_id": "sensor.test_temp",
+                "trigger_above": 30.0,
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
     conn.send_error.assert_not_called()
 
 
 async def test_ws_create_task_invalid_trigger(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test creating a task with invalid trigger (missing entity_id)."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Bad Trigger",
-        "trigger_config": {"type": "threshold"},
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Bad Trigger",
+            "trigger_config": {"type": "threshold"},
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert "entity_id" in conn.send_error.call_args[0][2]
 
 
 async def test_ws_create_task_invalid_entity_slug(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test creating a task with invalid entity_slug."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Bad Slug",
-        "entity_slug": "Invalid-Slug!",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Bad Slug",
+            "entity_slug": "Invalid-Slug!",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert "entity_slug" in conn.send_error.call_args[0][2]
 
 
 async def test_ws_create_task_accepts_valid_schedule_time(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Voluptuous schema accepts HH:MM strings in the valid range."""
     import voluptuous as vol_mod
+
     await setup_integration(hass, global_entry, object_entry)
     schema = vol_mod.Schema(ws_create_task._ws_schema, extra=vol_mod.PREVENT_EXTRA)  # type: ignore[attr-defined]
 
     for good in ("00:00", "09:30", "13:45", "23:59"):
-        schema({
-            "id": 1, "type": "maintenance_supporter/task/create",
-            "entry_id": object_entry.entry_id, "name": "X",
-            "schedule_time": good,
-        })
+        schema(
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/create",
+                "entry_id": object_entry.entry_id,
+                "name": "X",
+                "schedule_time": good,
+            }
+        )
 
     # None also accepted (clears the time → back to midnight semantic)
-    schema({
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id, "name": "X",
-        "schedule_time": None,
-    })
+    schema(
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "X",
+            "schedule_time": None,
+        }
+    )
 
 
 async def test_ws_create_task_rejects_malformed_schedule_time(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Voluptuous schema rejects malformed HH:MM inputs."""
     import voluptuous as vol_mod
+
     await setup_integration(hass, global_entry, object_entry)
     schema = vol_mod.Schema(ws_create_task._ws_schema, extra=vol_mod.PREVENT_EXTRA)  # type: ignore[attr-defined]
 
     bad_inputs = ("25:00", "9:00", "99:99", "abc", "12:5", "", "12:00:00")
     for bad in bad_inputs:
         try:
-            schema({
-                "id": 1, "type": "maintenance_supporter/task/create",
-                "entry_id": object_entry.entry_id, "name": "X",
-                "schedule_time": bad,
-            })
+            schema(
+                {
+                    "id": 1,
+                    "type": "maintenance_supporter/task/create",
+                    "entry_id": object_entry.entry_id,
+                    "name": "X",
+                    "schedule_time": bad,
+                }
+            )
         except vol_mod.Invalid:
             continue
         raise AssertionError(f"schema accepted bad schedule_time={bad!r}")
 
 
 async def test_ws_create_task_rejects_oversize_strings(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Voluptuous schema must reject oversized inputs at the boundary so they
     can never reach storage. Covers the hardening pass that added length caps
     to all formerly-unbounded str fields (entry_id, last_performed,
     entity_slug) and the interval_days overflow guard."""
     import voluptuous as vol_mod
+
     await setup_integration(hass, global_entry, object_entry)
 
     # The schema dict is attached by HA's @websocket_command decorator and is
@@ -304,7 +378,8 @@ async def test_ws_create_task_rejects_oversize_strings(
     ]
     for extra in payloads_that_must_fail:
         msg = {
-            "id": 1, "type": "maintenance_supporter/task/create",
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
             "entry_id": extra.get("entry_id", object_entry.entry_id),
             **{k: v for k, v in extra.items() if k != "entry_id"},
         }
@@ -316,31 +391,46 @@ async def test_ws_create_task_rejects_oversize_strings(
 
 
 async def test_ws_duplicate_task_copies_config_resets_state(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Duplicate clones config, starts clean, and drops per-task-unique keys."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
     # A rich source task: config + a unique slug + a checklist.
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Stage 1 filter",
-        "task_type": "replacement",
-        "interval_days": 90,
-        "checklist": ["remove", "rinse", "reinstall"],
-        "entity_slug": "stage_1_filter",
-        "nfc_tag_id": "abc-123",
-        "last_performed": "2024-01-01",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Stage 1 filter",
+            "task_type": "replacement",
+            "interval_days": 90,
+            "checklist": ["remove", "rinse", "reinstall"],
+            "entity_slug": "stage_1_filter",
+            "nfc_tag_id": "abc-123",
+            "last_performed": "2024-01-01",
+        },
+    )
     src_id = conn.send_result.call_args[0][1]["task_id"]
 
     conn.send_result.reset_mock()
-    await call_ws_handler(ws_duplicate_task, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/task/duplicate",
-        "entry_id": object_entry.entry_id, "task_id": src_id,
-    })
+    await call_ws_handler(
+        ws_duplicate_task,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/duplicate",
+            "entry_id": object_entry.entry_id,
+            "task_id": src_id,
+        },
+    )
     conn.send_error.assert_not_called()
     new_id = conn.send_result.call_args[0][1]["task_id"]
     assert new_id != src_id
@@ -370,17 +460,26 @@ async def test_ws_duplicate_task_copies_config_resets_state(
 
 
 async def test_ws_duplicate_task_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Duplicating a missing task returns not_found, no new task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
     before = len(object_entry.data.get(CONF_TASKS, {}))
 
-    await call_ws_handler(ws_duplicate_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/duplicate",
-        "entry_id": object_entry.entry_id, "task_id": "nonexistent00000000000000000000",
-    })
+    await call_ws_handler(
+        ws_duplicate_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/duplicate",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent00000000000000000000",
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
@@ -389,7 +488,9 @@ async def test_ws_duplicate_task_not_found(
 
 
 async def test_ws_create_task_dry_run(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test dry run creates no persistent data."""
     await setup_integration(hass, global_entry, object_entry)
@@ -397,12 +498,18 @@ async def test_ws_create_task_dry_run(
 
     initial_task_count = len(object_entry.data.get(CONF_TASKS, {}))
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Dry Run Task",
-        "dry_run": True,
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Dry Run Task",
+            "dry_run": True,
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["valid"] is True
@@ -414,23 +521,31 @@ async def test_ws_create_task_dry_run(
 
 
 async def test_ws_create_task_dry_run_warnings(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test dry run with trigger warnings (entity doesn't exist)."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Dry Run Warnings",
-        "trigger_config": {
-            "type": "threshold",
-            "entity_id": "sensor.nonexistent",
-            "trigger_above": 50.0,
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Dry Run Warnings",
+            "trigger_config": {
+                "type": "threshold",
+                "entity_id": "sensor.nonexistent",
+                "trigger_above": 50.0,
+            },
+            "dry_run": True,
         },
-        "dry_run": True,
-    })
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["valid"] is True
@@ -439,34 +554,48 @@ async def test_ws_create_task_dry_run_warnings(
 
 
 async def test_ws_create_task_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test creating task on non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": "nonexistent",
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": "nonexistent",
+            "name": "Test",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_ws_create_task_global_rejected(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test creating task on global entry is rejected."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": global_entry.entry_id,
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": global_entry.entry_id,
+            "name": "Test",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -475,18 +604,26 @@ async def test_ws_create_task_global_rejected(
 
 
 async def test_ws_update_task_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating a task name."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "name": "Updated Name",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "name": "Updated Name",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -498,21 +635,29 @@ async def test_ws_update_task_basic(
 
 
 async def test_ws_update_task_multiple_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating multiple fields at once."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "name": "New Name",
-        "warning_days": 14,
-        "enabled": False,
-        "notes": "Updated notes",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "name": "New Name",
+            "warning_days": 14,
+            "enabled": False,
+            "notes": "Updated notes",
+        },
+    )
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
@@ -525,72 +670,103 @@ async def test_ws_update_task_multiple_fields(
 
 
 async def test_ws_update_task_with_trigger(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating task with valid trigger config."""
     await setup_integration(hass, global_entry, object_entry)
     hass.states.async_set("sensor.test_temp", "22.0")
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "trigger_config": {
-            "type": "threshold",
-            "entity_id": "sensor.test_temp",
-            "trigger_above": 30.0,
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "trigger_config": {
+                "type": "threshold",
+                "entity_id": "sensor.test_temp",
+                "trigger_above": 30.0,
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
 
 
 async def test_ws_update_task_invalid_trigger(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating task with invalid trigger config."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "trigger_config": {"type": "threshold"},
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "trigger_config": {"type": "threshold"},
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_ws_update_task_not_found_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test updating task on non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_ws_update_task_not_found_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating non-existent task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task_id",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task_id",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -600,17 +776,25 @@ async def test_ws_update_task_not_found_task(
 
 
 async def test_ws_delete_task_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test deleting a task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/delete",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -618,39 +802,56 @@ async def test_ws_delete_task_basic(
 
 
 async def test_ws_delete_task_not_found_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test deleting task on non-existent entry."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/delete",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_ws_delete_task_not_found_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test deleting non-existent task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/delete",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task_id",
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task_id",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
 
 async def test_ws_delete_task_cleans_entity_registry(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that deleting a task removes its entity registry entries."""
     await setup_integration(hass, global_entry, object_entry)
@@ -662,11 +863,17 @@ async def test_ws_delete_task_cleans_entity_registry(
     assert len(task_entities) >= 1, "Expected at least sensor + binary_sensor entities"
 
     conn = _mock_connection()
-    await call_ws_handler(ws_delete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/delete",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     await hass.async_block_till_done()
 
     conn.send_result.assert_called_once()
@@ -678,29 +885,43 @@ async def test_ws_delete_task_cleans_entity_registry(
 
 
 async def test_ws_delete_task_cleans_group_refs(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that deleting a task removes its references from groups."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
     # Create a group referencing the task we'll delete
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 10, "type": "maintenance_supporter/group/create",
-        "name": "Test Group",
-        "task_refs": [
-            {"entry_id": object_entry.entry_id, "task_id": TASK_ID_1},
-        ],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 10,
+            "type": "maintenance_supporter/group/create",
+            "name": "Test Group",
+            "task_refs": [
+                {"entry_id": object_entry.entry_id, "task_id": TASK_ID_1},
+            ],
+        },
+    )
     group_id = conn.send_result.call_args[0][1]["group_id"]
     conn.reset_mock()
 
     # Delete the task
-    await call_ws_handler(ws_delete_task, hass, conn, {
-        "id": 11, "type": "maintenance_supporter/task/delete",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_delete_task,
+        hass,
+        conn,
+        {
+            "id": 11,
+            "type": "maintenance_supporter/task/delete",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn.send_result.assert_called_once()
 
     # Verify group no longer references the deleted task
@@ -714,15 +935,22 @@ async def test_ws_delete_task_cleans_group_refs(
 
 
 async def test_ws_list_tasks_all(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test listing all tasks."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    ws_list_tasks(hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/list",
-    })
+    ws_list_tasks(
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/list",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -732,16 +960,23 @@ async def test_ws_list_tasks_all(
 
 
 async def test_ws_list_tasks_filtered(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test listing tasks filtered by entry_id."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    ws_list_tasks(hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/list",
-        "entry_id": object_entry.entry_id,
-    })
+    ws_list_tasks(
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/list",
+            "entry_id": object_entry.entry_id,
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["tasks"]) == 1
@@ -749,15 +984,21 @@ async def test_ws_list_tasks_filtered(
 
 
 async def test_ws_list_tasks_empty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test listing tasks when none exist."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    ws_list_tasks(hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/list",
-    })
+    ws_list_tasks(
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tasks"] == []
@@ -767,38 +1008,54 @@ async def test_ws_list_tasks_empty(
 
 
 async def test_ws_complete_task_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test completing a task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_result.assert_called_once()
     assert conn.send_result.call_args[0][1]["success"] is True
 
 
 async def test_ws_complete_task_with_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test completing a task with optional fields."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "notes": "All good",
-        "cost": 25.50,
-        "duration": 30,
-        "feedback": "needed",
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "notes": "All good",
+            "cost": 25.50,
+            "duration": 30,
+            "feedback": "needed",
+        },
+    )
 
     conn.send_result.assert_called_once()
     # Audit (c)#1: don't stop at the success flag — the optional fields must
@@ -816,17 +1073,24 @@ async def test_ws_complete_task_with_fields(
 
 
 async def test_ws_complete_task_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test completing task when coordinator not found."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -835,34 +1099,49 @@ async def test_ws_complete_task_not_found(
 
 
 async def test_ws_skip_task_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test skipping a task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_skip_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/skip",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_skip_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/skip",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_result.assert_called_once()
     assert conn.send_result.call_args[0][1]["success"] is True
 
 
 async def test_ws_skip_task_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test skipping task when coordinator not found."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_skip_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/skip",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_skip_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/skip",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -871,69 +1150,100 @@ async def test_ws_skip_task_not_found(
 
 
 async def test_ws_reset_task_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test resetting a task without date."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_reset_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/reset",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_result.assert_called_once()
     assert conn.send_result.call_args[0][1]["success"] is True
 
 
 async def test_ws_reset_task_with_date(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test resetting a task with specific date."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_reset_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/reset",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "date": "2024-06-15",
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "date": "2024-06-15",
+        },
+    )
 
     conn.send_result.assert_called_once()
 
 
 async def test_ws_reset_task_invalid_date(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test resetting a task with invalid date."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_reset_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/reset",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "date": "not-a-date",
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "date": "not-a-date",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_date"
 
 
 async def test_ws_reset_task_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test resetting task when coordinator not found."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_reset_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/reset",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -1072,10 +1382,13 @@ def _covws_conn() -> MagicMock:
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -1085,7 +1398,9 @@ def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def covws_object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -1105,13 +1420,19 @@ async def test_create_task_interval_unit_weeks(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": covws_object_entry.entry_id,
-        "name": "Weekly Check",
-        "interval_days": 2,
-        "interval_unit": "weeks",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": covws_object_entry.entry_id,
+            "name": "Weekly Check",
+            "interval_days": 2,
+            "interval_unit": "weeks",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -1148,7 +1469,8 @@ async def test_async_create_task_simple_empty_name(
 
 # Line 382: async_create_task_simple — missing/wrong entry_id raises ValueError
 async def test_async_create_task_simple_bad_entry(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """async_create_task_simple: invalid entry_id raises ValueError."""
     from custom_components.maintenance_supporter.websocket.tasks import (
@@ -1175,13 +1497,19 @@ async def test_create_task_interval_anchor_planned(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": covws_object_entry.entry_id,
-        "name": "Planned Task",
-        "interval_days": 30,
-        "interval_anchor": "planned",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": covws_object_entry.entry_id,
+            "name": "Planned Task",
+            "interval_days": 30,
+            "interval_anchor": "planned",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -1203,13 +1531,19 @@ async def test_create_task_with_due_date(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": covws_object_entry.entry_id,
-        "name": "One Time Task",
-        "schedule_type": "one_time",
-        "due_date": "2027-01-01",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": covws_object_entry.entry_id,
+            "name": "One Time Task",
+            "schedule_type": "one_time",
+            "due_date": "2027-01-01",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -1231,12 +1565,18 @@ async def test_create_task_invalid_last_performed(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": covws_object_entry.entry_id,
-        "name": "Bad Date Task",
-        "last_performed": "not-a-date",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": covws_object_entry.entry_id,
+            "name": "Bad Date Task",
+            "last_performed": "not-a-date",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_format"
@@ -1252,12 +1592,18 @@ async def test_update_task_empty_name(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": covws_object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "name": "   ",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": covws_object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "name": "   ",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_input"
@@ -1273,12 +1619,18 @@ async def test_update_task_invalid_last_performed(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/update",
-        "entry_id": covws_object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "last_performed": "not-a-date",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": covws_object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "last_performed": "not-a-date",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_format"
@@ -1295,7 +1647,9 @@ async def test_list_tasks_filtered_by_entry(
     # Add a second object entry to confirm filtering works
     task2 = build_task_data(task_id=TASK_ID_2, name="Other Task")
     entry2 = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Other Object",
         data=build_object_entry_data(tasks={TASK_ID_2: task2}),
         source="user",
@@ -1310,10 +1664,15 @@ async def test_list_tasks_filtered_by_entry(
     unwrapped = ws_list_tasks
     while hasattr(unwrapped, "__wrapped__"):
         unwrapped = unwrapped.__wrapped__
-    unwrapped(hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/list",
-        "entry_id": covws_object_entry.entry_id,
-    })
+    unwrapped(
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/list",
+            "entry_id": covws_object_entry.entry_id,
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert "tasks" in result
@@ -1324,17 +1683,24 @@ async def test_list_tasks_filtered_by_entry(
 
 # Lines 956-957: ws_quick_complete_task — coordinator not found → not_found
 async def test_quick_complete_no_coordinator(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """ws_quick_complete_task: missing runtime_data → not_found error."""
     await setup_integration(hass, covws_global_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_quick_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/quick_complete",
-        "entry_id": "nonexistent",
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_quick_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/quick_complete",
+            "entry_id": "nonexistent",
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -1351,11 +1717,17 @@ async def test_quick_complete_entry_not_found(
     conn = _covws_conn()
 
     # Provide valid entry_id (so coordinator lookup works) but wrong entry for task
-    await call_ws_handler(ws_quick_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/quick_complete",
-        "entry_id": covws_object_entry.entry_id,
-        "task_id": "no_such_task" * 2,  # keeps len=24 — still "not found" path
-    })
+    await call_ws_handler(
+        ws_quick_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/quick_complete",
+            "entry_id": covws_object_entry.entry_id,
+            "task_id": "no_such_task" * 2,  # keeps len=24 — still "not found" path
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -1371,11 +1743,17 @@ async def test_quick_complete_no_defaults(
     await setup_integration(hass, covws_global_entry, covws_object_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_quick_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/quick_complete",
-        "entry_id": covws_object_entry.entry_id,
-        "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_quick_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/quick_complete",
+            "entry_id": covws_object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "no_defaults"
@@ -1403,12 +1781,18 @@ async def test_update_history_entry_no_store(
         "custom_components.maintenance_supporter.websocket.tasks_history._get_runtime_data",
         return_value=fake_rd,
     ):
-        await call_ws_handler(ws_update_history_entry, hass, conn, {
-            "id": 1, "type": "maintenance_supporter/task/history/update",
-            "entry_id": covws_object_entry.entry_id,
-            "task_id": TASK_ID_1,
-            "original_timestamp": "2024-06-01T00:00:00",
-        })
+        await call_ws_handler(
+            ws_update_history_entry,
+            hass,
+            conn,
+            {
+                "id": 1,
+                "type": "maintenance_supporter/task/history/update",
+                "entry_id": covws_object_entry.entry_id,
+                "task_id": TASK_ID_1,
+                "original_timestamp": "2024-06-01T00:00:00",
+            },
+        )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_loaded"
@@ -1436,7 +1820,9 @@ def test_validate_trigger_config_strips_unknown_keys(hass: HomeAssistant) -> Non
 
 
 async def test_ws_create_task_with_notes(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """ws_create_task creates a task with notes field persisted to entry data."""
     from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
@@ -1473,7 +1859,9 @@ async def test_ws_create_task_with_notes(
 
 
 async def test_ws_quick_complete_task_entry_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """ws_quick_complete_task returns not_found when entry doesn't exist."""
     from custom_components.maintenance_supporter.websocket.tasks import ws_quick_complete_task
@@ -1556,14 +1944,18 @@ def test_is_safe_url_exception() -> None:
 
 
 async def test_nfc_tag_duplicate_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Line 67: duplicate NFC tag returns warning string."""
     task = build_task_data()
     task["nfc_tag_id"] = "TAG_ABC"
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Pump1", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pump1",
+        source="user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         unique_id="maintenance_supporter_nfc_dup1",
     )
@@ -1577,14 +1969,18 @@ async def test_nfc_tag_duplicate_found(
 
 
 async def test_nfc_tag_duplicate_excluded(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Excluding the same task_id should not report duplicate."""
     task = build_task_data()
     task["nfc_tag_id"] = "TAG_XYZ"
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Pump2", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pump2",
+        source="user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         unique_id="maintenance_supporter_nfc_dup2",
     )
@@ -1600,53 +1996,65 @@ async def test_nfc_tag_duplicate_excluded(
 
 def test_validate_compound_trigger_invalid_logic(hass: HomeAssistant) -> None:
     """Line 186: invalid compound_logic."""
-    errors, _ = _validate_trigger_config(hass, {
-        "type": "compound",
-        "compound_logic": "XOR",
-        "conditions": [
-            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
-            {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 20},
-        ],
-    })
+    errors, _ = _validate_trigger_config(
+        hass,
+        {
+            "type": "compound",
+            "compound_logic": "XOR",
+            "conditions": [
+                {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+                {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 20},
+            ],
+        },
+    )
     assert any("compound_logic" in e for e in errors)
 
 
 def test_validate_compound_trigger_non_dict_condition(hass: HomeAssistant) -> None:
     """Lines 199-200: non-dict condition."""
-    errors, _ = _validate_trigger_config(hass, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [
-            "not_a_dict",
-            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
-        ],
-    })
+    errors, _ = _validate_trigger_config(
+        hass,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                "not_a_dict",
+                {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+            ],
+        },
+    )
     assert any("must be a dict" in e for e in errors)
 
 
 def test_validate_compound_trigger_nested_compound(hass: HomeAssistant) -> None:
     """Nested compound triggers are not allowed."""
-    errors, _ = _validate_trigger_config(hass, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [
-            {"type": "compound", "conditions": []},
-            {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
-        ],
-    })
+    errors, _ = _validate_trigger_config(
+        hass,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {"type": "compound", "conditions": []},
+                {"type": "threshold", "entity_id": "sensor.a", "trigger_above": 10},
+            ],
+        },
+    )
     assert any("nested compound" in e for e in errors)
 
 
 def test_validate_compound_trigger_sub_errors(hass: HomeAssistant) -> None:
     """Line 210: sub-condition errors are prefixed with condition index."""
-    errors, _ = _validate_trigger_config(hass, {
-        "type": "compound",
-        "compound_logic": "AND",
-        "conditions": [
-            {"type": "threshold", "entity_id": "sensor.a"},  # missing above/below
-            {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 10},
-        ],
-    })
+    errors, _ = _validate_trigger_config(
+        hass,
+        {
+            "type": "compound",
+            "compound_logic": "AND",
+            "conditions": [
+                {"type": "threshold", "entity_id": "sensor.a"},  # missing above/below
+                {"type": "threshold", "entity_id": "sensor.b", "trigger_above": 10},
+            ],
+        },
+    )
     assert any("Condition 0:" in e for e in errors)
 
 
@@ -1668,45 +2076,64 @@ def test_validate_trigger_entity_ids_backfill(hass: HomeAssistant) -> None:
 
 
 async def test_create_task_global_entry_rejected(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Line 275: creating task on global entry returns not_found."""
     await setup_integration(hass, global_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
-        "entry_id": global_entry.entry_id,
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/create",
+            "entry_id": global_entry.entry_id,
+            "name": "Test",
+        },
+    )
     conn.send_error.assert_called_once()
     assert "not_found" in str(conn.send_error.call_args)
 
 
 async def test_create_task_unsafe_url(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 301-302: unsafe documentation_url rejected."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Bad URL",
-        "documentation_url": "javascript:alert(1)",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Bad URL",
+            "documentation_url": "javascript:alert(1)",
+        },
+    )
     conn.send_error.assert_called_once()
     assert "invalid_url" in str(conn.send_error.call_args)
 
 
 async def test_create_task_nfc_duplicate_warning(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Lines 323, 325, 370: NFC duplicate warning + checklist in create result."""
     task = build_task_data()
     task["nfc_tag_id"] = "TAG_DUP_CREATE"
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Pump NFC", source="user",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pump NFC",
+        source="user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         unique_id="maintenance_supporter_nfc_create",
     )
@@ -1715,13 +2142,19 @@ async def test_create_task_nfc_duplicate_warning(
     conn = _c97_conn()
 
     # Create second task with same NFC tag + checklist
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
-        "entry_id": obj_entry.entry_id,
-        "name": "New Task",
-        "nfc_tag_id": "TAG_DUP_CREATE",
-        "checklist": ["Step 1", "Step 2"],
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/create",
+            "entry_id": obj_entry.entry_id,
+            "name": "New Task",
+            "nfc_tag_id": "TAG_DUP_CREATE",
+            "checklist": ["Step 1", "Step 2"],
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert "warnings" in result
@@ -1729,7 +2162,9 @@ async def test_create_task_nfc_duplicate_warning(
 
 
 async def test_create_task_legacy_store_path(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 359-363: legacy path when Store is None writes to ConfigEntry.data."""
     await setup_integration(hass, global_entry, object_entry)
@@ -1742,12 +2177,18 @@ async def test_create_task_legacy_store_path(
     rd.store = None
 
     conn = _c97_conn()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/create",
-        "entry_id": object_entry.entry_id,
-        "name": "Legacy Task",
-        "last_performed": "2024-03-01",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_entry.entry_id,
+            "name": "Legacy Task",
+            "last_performed": "2024-03-01",
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert "task_id" in result
@@ -1760,34 +2201,44 @@ async def test_create_task_legacy_store_path(
 
 
 async def test_update_task_invalid_entity_slug(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 431-438: invalid entity_slug rejected."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "entity_slug": "INVALID-Slug!",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "entity_slug": "INVALID-Slug!",
+        },
+    )
     conn.send_error.assert_called_once()
     assert "invalid_entity_slug" in str(conn.send_error.call_args)
 
 
 async def test_update_task_nfc_duplicate_warning(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Lines 444, 497: NFC duplicate warning on update."""
     task1 = build_task_data(task_id=TASK_ID_1, name="Task A")
     task1["nfc_tag_id"] = "TAG_UP1"
     task2 = build_task_data(task_id=TASK_ID_2, name="Task B")
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Multi Task", source="user",
-        data=build_object_entry_data(
-            tasks={TASK_ID_1: task1, TASK_ID_2: task2}
-        ),
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Multi Task",
+        source="user",
+        data=build_object_entry_data(tasks={TASK_ID_1: task1, TASK_ID_2: task2}),
         unique_id="maintenance_supporter_nfc_update",
     )
     obj_entry.add_to_hass(hass)
@@ -1795,29 +2246,43 @@ async def test_update_task_nfc_duplicate_warning(
     conn = _c97_conn()
 
     # Update task2 to have same NFC tag as task1
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/update",
-        "entry_id": obj_entry.entry_id,
-        "task_id": TASK_ID_2,
-        "nfc_tag_id": "TAG_UP1",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/update",
+            "entry_id": obj_entry.entry_id,
+            "task_id": TASK_ID_2,
+            "nfc_tag_id": "TAG_UP1",
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert result.get("warnings")
 
 
 async def test_update_task_unsafe_url(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 448-449: unsafe documentation_url on update."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_update_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/update",
-        "entry_id": object_entry.entry_id,
-        "task_id": TASK_ID_1,
-        "documentation_url": "//evil.com/payload",
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+            "documentation_url": "//evil.com/payload",
+        },
+    )
     conn.send_error.assert_called_once()
     assert "invalid_url" in str(conn.send_error.call_args)
 
@@ -1826,15 +2291,22 @@ async def test_update_task_unsafe_url(
 
 
 async def test_list_tasks_filtered_by_entry_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Line 590: entry_id filter skips non-matching entries."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    ws_list_tasks(hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/list",
-        "entry_id": object_entry.entry_id,
-    })
+    ws_list_tasks(
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/list",
+            "entry_id": object_entry.entry_id,
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert len(result["tasks"]) == 1
@@ -1845,49 +2317,75 @@ async def test_list_tasks_filtered_by_entry_id(
 
 
 async def test_complete_task_not_found_c97(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 641-642: task not found in ws_complete_task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/complete",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task_id_zzz",
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task_id_zzz",
+        },
+    )
     conn.send_error.assert_called_once()
 
 
 async def test_skip_task_not_found_c97(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 677-678: task not found in ws_skip_task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_skip_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/skip",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task_id_zzz",
-    })
+    await call_ws_handler(
+        ws_skip_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/skip",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task_id_zzz",
+        },
+    )
     conn.send_error.assert_called_once()
 
 
 async def test_reset_task_not_found_c97(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Lines 711-712: task not found in ws_reset_task."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
-    await call_ws_handler(ws_reset_task, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/task/reset",
-        "entry_id": object_entry.entry_id,
-        "task_id": "nonexistent_task_id_zzz",
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nonexistent_task_id_zzz",
+        },
+    )
     conn.send_error.assert_called_once()
 
 
 async def test_snooze_task_suppresses_notifications(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """task/snooze marks the task's notification keys snoozed."""
     from custom_components.maintenance_supporter import (
@@ -1897,10 +2395,17 @@ async def test_snooze_task_suppresses_notifications(
 
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_snooze_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/snooze",
-        "entry_id": object_entry.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_snooze_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/snooze",
+            "entry_id": object_entry.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn.send_result.assert_called_once()
 
     nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
@@ -1909,14 +2414,23 @@ async def test_snooze_task_suppresses_notifications(
 
 
 async def test_snooze_task_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """task/snooze on an unknown task errors."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_snooze_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/snooze",
-        "entry_id": object_entry.entry_id, "task_id": "nope_zzz",
-    })
+    await call_ws_handler(
+        ws_snooze_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/snooze",
+            "entry_id": object_entry.entry_id,
+            "task_id": "nope_zzz",
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"

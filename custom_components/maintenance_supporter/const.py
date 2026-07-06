@@ -17,6 +17,8 @@ def slugify_object_name(name: str) -> str:
     consecutive underscores, and strips leading/trailing underscores.
     """
     return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]", "_", name.lower())).strip("_")
+
+
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
@@ -146,8 +148,8 @@ DEFAULT_OBJECTS_TABLE_COLUMNS = [
 # vacation window plus an N-day buffer (so a task that comes due the day
 # of return doesn't immediately fire).
 CONF_VACATION_ENABLED = "vacation_enabled"
-CONF_VACATION_START = "vacation_start"           # ISO date "YYYY-MM-DD"
-CONF_VACATION_END = "vacation_end"               # ISO date
+CONF_VACATION_START = "vacation_start"  # ISO date "YYYY-MM-DD"
+CONF_VACATION_END = "vacation_end"  # ISO date
 CONF_VACATION_BUFFER_DAYS = "vacation_buffer_days"
 CONF_VACATION_EXEMPT_TASK_IDS = "vacation_exempt_task_ids"
 DEFAULT_VACATION_BUFFER_DAYS = 3
@@ -262,6 +264,9 @@ CONF_TASK_NOTES = "notes"
 CONF_TASK_DOCUMENTATION_URL = "documentation_url"
 CONF_TASK_ICON = "custom_icon"
 CONF_TASK_NFC_TAG = "nfc_tag_id"
+# v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...).
+CONF_TASK_READING_UNIT = "reading_unit"
+MAX_READING_UNIT_LENGTH = 32
 CONF_TASK_INTERVAL_ANCHOR = "interval_anchor"
 CONF_TASK_SCHEDULE_TIME = "schedule_time"
 CONF_TASK_PRIORITY = "priority"
@@ -466,9 +471,7 @@ class ScheduleType(StrEnum):
 # Schedule kinds expressed by the FLAT recurrence fields (interval/due_date),
 # as opposed to the nested calendar kinds (weekdays/nth_weekday/day_of_month)
 # or a sensor trigger. Used to decide flat-vs-calendar handling on task edit.
-FLAT_SCHEDULE_TYPES = frozenset(
-    {ScheduleType.TIME_BASED, ScheduleType.ONE_TIME, ScheduleType.MANUAL}
-)
+FLAT_SCHEDULE_TYPES = frozenset({ScheduleType.TIME_BASED, ScheduleType.ONE_TIME, ScheduleType.MANUAL})
 
 
 class TriggerType(StrEnum):
@@ -540,24 +543,24 @@ MANUAL_COMPLETION_DEDUP_SECONDS = 30
 
 # --- Input Validation Limits ---
 MAX_NAME_LENGTH = 200
-MAX_TEXT_LENGTH = 2000          # notes, reason, feedback, description
+MAX_TEXT_LENGTH = 2000  # notes, reason, feedback, description
 MAX_URL_LENGTH = 2048
-MAX_ICON_LENGTH = 100           # "mdi:icon-name"
-MAX_META_LENGTH = 200           # manufacturer, model, user_id, area_id, etc.
-MAX_PANEL_TITLE_LENGTH = 50     # sidebar panel title override
-MAX_TYPE_LENGTH = 50            # task_type, schedule_type
+MAX_ICON_LENGTH = 100  # "mdi:icon-name"
+MAX_META_LENGTH = 200  # manufacturer, model, user_id, area_id, etc.
+MAX_PANEL_TITLE_LENGTH = 50  # sidebar panel title override
+MAX_TYPE_LENGTH = 50  # task_type, schedule_type
 MAX_CHECKLIST_ITEMS = 100
 MAX_CHECKLIST_ITEM_LENGTH = 500
-MAX_LABELS = 25                 # cross-cutting tags per task
-MAX_LABEL_LENGTH = 40           # single label/tag
+MAX_LABELS = 25  # cross-cutting tags per task
+MAX_LABEL_LENGTH = 40  # single label/tag
 MAX_GROUP_TASK_REFS = 200
-MAX_ID_LENGTH = 64              # entry_id, task_id, group_id (uuid hex = 32)
-MAX_DATE_LENGTH = 20            # ISO 8601 date strings (e.g. 2026-04-21)
-MAX_ENTITY_ID_LENGTH = 255      # HA entity_id max
-MAX_ENTITY_SLUG_LENGTH = 64     # task entity_slug
-MAX_INTERVAL_DAYS = 3650        # 10 years — caps date arithmetic overflow
+MAX_ID_LENGTH = 64  # entry_id, task_id, group_id (uuid hex = 32)
+MAX_DATE_LENGTH = 20  # ISO 8601 date strings (e.g. 2026-04-21)
+MAX_ENTITY_ID_LENGTH = 255  # HA entity_id max
+MAX_ENTITY_SLUG_LENGTH = 64  # task entity_slug
+MAX_INTERVAL_DAYS = 3650  # 10 years — caps date arithmetic overflow
 MAX_IMPORT_PAYLOAD_BYTES = 1_048_576  # 1 MB for csv_content / json_content
-MAX_SCHEDULE_TIME_LENGTH = 5    # "HH:MM"
+MAX_SCHEDULE_TIME_LENGTH = 5  # "HH:MM"
 
 # --- Trigger Entity Availability ---
 STARTUP_GRACE_PERIOD_SECONDS = 300  # 5 minutes

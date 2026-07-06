@@ -44,9 +44,7 @@ def _aggregate(per_entity: list[bool], entity_logic: str) -> bool:
     return all(per_entity) if entity_logic == "all" else any(per_entity)
 
 
-def _numeric_entity_value(
-    get_state: StateGetter, entity_id: str, attribute: str | None
-) -> float | None:
+def _numeric_entity_value(get_state: StateGetter, entity_id: str, attribute: str | None) -> float | None:
     """Read a numeric value from an entity state/attribute (None when unusable)."""
     state = get_state(entity_id)
     if state is None or state.state in ("unavailable", "unknown"):
@@ -80,9 +78,7 @@ def evaluate_threshold(
             per_entity.append(False)
             continue
         last_value = value
-        exceeds = (above is not None and value > above) or (
-            below is not None and value < below
-        )
+        exceeds = (above is not None and value > above) or (below is not None and value < below)
         per_entity.append(exceeds)
 
     aggregated = _aggregate(per_entity, entity_logic) if per_entity else False
@@ -124,9 +120,7 @@ def evaluate_counter(
             baseline = trigger_state.get(eid, {}).get("baseline_value")
             if baseline is None:
                 baseline = trigger_config.get("trigger_baseline_value")
-            per_entity.append(
-                baseline is not None and (value - baseline) >= target
-            )
+            per_entity.append(baseline is not None and (value - baseline) >= target)
         else:
             per_entity.append(value >= target)
 
@@ -192,6 +186,7 @@ def evaluate_runtime(
                 # threshold.py's exceeded_since handling.
                 if on_dt.tzinfo is None:
                     from datetime import UTC
+
                     on_dt = on_dt.replace(tzinfo=UTC)
                 total += max(0.0, (dt_util.utcnow() - on_dt).total_seconds())
         hours = total / 3600.0

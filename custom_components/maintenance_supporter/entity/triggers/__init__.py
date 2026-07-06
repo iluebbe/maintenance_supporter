@@ -54,9 +54,7 @@ def normalize_entity_ids(trigger_config: dict[str, Any]) -> list[str]:
     return []
 
 
-def _migrate_flat_to_per_entity(
-    config: dict[str, Any], first_entity_id: str
-) -> dict[str, dict[str, Any]]:
+def _migrate_flat_to_per_entity(config: dict[str, Any], first_entity_id: str) -> dict[str, dict[str, Any]]:
     """Create ``_trigger_state`` from legacy flat keys on first load.
 
     Returns a dict keyed by entity_id with per-entity state.  Only creates
@@ -86,9 +84,7 @@ def _migrate_flat_to_per_entity(
     return {}
 
 
-def _inject_per_entity_state(
-    config: dict[str, Any], entity_state: dict[str, Any]
-) -> None:
+def _inject_per_entity_state(config: dict[str, Any], entity_state: dict[str, Any]) -> None:
     """Inject per-entity persisted state into a trigger config for construction.
 
     Overwrites the flat keys that each trigger reads in ``__init__`` so that
@@ -166,9 +162,7 @@ def create_triggers(
 
     # Ensure _trigger_state exists (migrate from flat keys if needed)
     if "_trigger_state" not in trigger_config:
-        trigger_config["_trigger_state"] = _migrate_flat_to_per_entity(
-            trigger_config, entity_ids[0]
-        )
+        trigger_config["_trigger_state"] = _migrate_flat_to_per_entity(trigger_config, entity_ids[0])
 
     # Multi-entity: one trigger per entity_id
     triggers: list[BaseTrigger] = []

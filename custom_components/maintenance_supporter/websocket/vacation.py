@@ -32,9 +32,7 @@ def _state_payload(hass: HomeAssistant) -> dict[str, Any]:
     return get_vacation_state(hass).as_wire_dict()
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/vacation/state"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/vacation/state"})
 @websocket_api.async_response
 async def ws_vacation_state(
     hass: HomeAssistant,
@@ -49,12 +47,8 @@ async def ws_vacation_state(
     {
         vol.Required("type"): f"{DOMAIN}/vacation/update",
         vol.Optional("enabled"): bool,
-        vol.Optional("start"): vol.Any(
-            vol.All(str, vol.Length(max=10)), None
-        ),
-        vol.Optional("end"): vol.Any(
-            vol.All(str, vol.Length(max=10)), None
-        ),
+        vol.Optional("start"): vol.Any(vol.All(str, vol.Length(max=10)), None),
+        vol.Optional("end"): vol.Any(vol.All(str, vol.Length(max=10)), None),
         vol.Optional("buffer_days"): vol.All(int, vol.Range(min=0, max=14)),
         vol.Optional("exempt_task_ids"): vol.All(
             [vol.All(str, vol.Length(max=MAX_ID_LENGTH))],
@@ -108,9 +102,7 @@ async def ws_vacation_update(
     if sd and ed:
         try:
             if date.fromisoformat(ed) < date.fromisoformat(sd):
-                connection.send_error(
-                    msg["id"], "invalid_range", "end must be on or after start"
-                )
+                connection.send_error(msg["id"], "invalid_range", "end must be on or after start")
                 return
         except (TypeError, ValueError):
             pass  # Already rejected above
@@ -138,9 +130,7 @@ async def ws_vacation_update(
     connection.send_result(msg["id"], _state_payload(hass))
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/vacation/preview"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/vacation/preview"})
 @websocket_api.async_response
 async def ws_vacation_preview(
     hass: HomeAssistant,
@@ -172,9 +162,7 @@ async def ws_vacation_preview(
         # Merge dynamic store fields (last_performed, etc.) when available.
         rd = getattr(entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
-        merged: dict[str, dict[str, Any]] = (
-            store.merge_all_tasks(tasks_data) if store is not None else dict(tasks_data)
-        )
+        merged: dict[str, dict[str, Any]] = store.merge_all_tasks(tasks_data) if store is not None else dict(tasks_data)
 
         for task_id, task_data in merged.items():
             sched = read_legacy_fields(task_data)
@@ -206,9 +194,7 @@ async def ws_vacation_preview(
     )
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/vacation/end_now"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/vacation/end_now"})
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_vacation_end_now(

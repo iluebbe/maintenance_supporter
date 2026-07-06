@@ -50,6 +50,7 @@ def build_qr_url(
         # Try HA's get_url() which considers external/internal/cloud URLs
         try:
             from homeassistant.helpers.network import get_url
+
             base = get_url(hass).rstrip("/")
         except Exception:  # noqa: BLE001 - get_url() can raise NoURLAvailableError + various network helpers
             if hass.config.external_url:
@@ -58,8 +59,7 @@ def build_qr_url(
                 base = hass.config.internal_url.rstrip("/")
             else:
                 raise ValueError(
-                    "No Home Assistant URL configured. "
-                    "Set an external or internal URL in Settings → System → Network."
+                    "No Home Assistant URL configured. Set an external or internal URL in Settings → System → Network."
                 ) from None
 
     params: dict[str, str] = {"entry_id": entry_id}

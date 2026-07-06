@@ -206,6 +206,7 @@ async def test_qr_generator_build_url_companion_mode(hass: HomeAssistant) -> Non
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_build_qr_url_companion_mode() -> None:
     """Line 56 area: companion mode returns homeassistant://navigate URL."""
     from custom_components.maintenance_supporter.helpers.qr_generator import build_qr_url
@@ -215,6 +216,7 @@ def test_build_qr_url_companion_mode() -> None:
     assert url.startswith("homeassistant://navigate")
     assert "abc123" in url
 
+
 def test_build_qr_url_local_mode() -> None:
     """Local mode returns homeassistant.local URL."""
     from custom_components.maintenance_supporter.helpers.qr_generator import build_qr_url
@@ -222,6 +224,7 @@ def test_build_qr_url_local_mode() -> None:
     hass = MagicMock()
     url = build_qr_url(hass, "abc123", url_mode="local")
     assert url.startswith("http://homeassistant.local:8123")
+
 
 def test_icon_elements_info() -> None:
     """Lines 102+: _icon_elements returns SVG for info icon."""
@@ -231,12 +234,14 @@ def test_icon_elements_info() -> None:
     assert "<circle" in svg
     assert "<rect" in svg
 
+
 def test_icon_elements_check() -> None:
     """_icon_elements returns SVG for check icon."""
     from custom_components.maintenance_supporter.helpers.qr_generator import _icon_elements
 
     svg = _icon_elements("check", 10.0, 10.0, 5.0, "#FFF")
     assert "<polyline" in svg
+
 
 def test_icon_elements_lightning() -> None:
     """Lines 102-117: _icon_elements returns SVG for lightning icon."""
@@ -245,12 +250,14 @@ def test_icon_elements_lightning() -> None:
     svg = _icon_elements("lightning", 10.0, 10.0, 5.0, "#FFF")
     assert "<polygon" in svg
 
+
 def test_icon_elements_unknown_returns_empty() -> None:
     """Line 117 (implicit): unknown icon returns empty string."""
     from custom_components.maintenance_supporter.helpers.qr_generator import _icon_elements
 
     svg = _icon_elements("unknown_icon", 10.0, 10.0, 5.0, "#000")
     assert svg == ""
+
 
 def test_generate_qr_svg_with_icons() -> None:
     """generate_qr_svg embeds logo when icon is set (all three variants)."""
@@ -264,6 +271,7 @@ def test_generate_qr_svg_with_icons() -> None:
         # Logo circle should be embedded
         assert "<circle" in svg
 
+
 def test_generate_qr_svg_no_icon() -> None:
     """generate_qr_svg without icon: no embedded logo circle from our code."""
     from custom_components.maintenance_supporter.helpers.qr_generator import generate_qr_svg
@@ -271,6 +279,7 @@ def test_generate_qr_svg_no_icon() -> None:
     svg = generate_qr_svg("https://example.com/test")
     assert "<svg" in svg
     assert "</svg>" in svg
+
 
 def test_generate_qr_svg_custom_colors() -> None:
     """Line 56: custom dark/light color replacement in SVG."""

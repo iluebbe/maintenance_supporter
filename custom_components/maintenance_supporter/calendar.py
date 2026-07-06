@@ -326,15 +326,10 @@ class MaintenanceCalendar(CalendarEntity):
     def event(self) -> CalendarEvent | None:
         """Return the next upcoming event (cached for up to 1 hour)."""
         now = dt_util.now()
-        if (
-            self._cache_time is not None
-            and (now - self._cache_time).total_seconds() < 3600
-        ):
+        if self._cache_time is not None and (now - self._cache_time).total_seconds() < 3600:
             return self._cached_next_event
 
-        events = self._get_all_events(
-            now, now + timedelta(days=365)
-        )
+        events = self._get_all_events(now, now + timedelta(days=365))
         if events:
             # Events mix all-day (date) and timed (datetime) starts since v1.0.41.
             # Normalise to datetime for comparison so sort doesn't TypeError.
@@ -343,6 +338,7 @@ class MaintenanceCalendar(CalendarEntity):
                 if isinstance(s, datetime):
                     return s if s.tzinfo else s.replace(tzinfo=dt_util.DEFAULT_TIME_ZONE)
                 return datetime.combine(s, time.min, tzinfo=dt_util.DEFAULT_TIME_ZONE)
+
             events.sort(key=_key)
             self._cached_next_event = events[0]
         else:
@@ -431,9 +427,7 @@ class MaintenanceCalendar(CalendarEntity):
                 if live.get("_trigger_current_value") is not None:
                     task._trigger_current_value = live["_trigger_current_value"]
 
-                event = self._create_event_for_task(
-                    task, obj_name, start_d, end_d
-                )
+                event = self._create_event_for_task(task, obj_name, start_d, end_d)
                 if event:
                     events.append(event)
 

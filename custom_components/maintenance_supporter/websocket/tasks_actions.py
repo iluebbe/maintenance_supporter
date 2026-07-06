@@ -64,6 +64,9 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # Optional completion photo: the doc_id of an already-uploaded image
         # (via the document upload endpoint, tagged "photo").
         vol.Optional("photo_doc_id"): vol.Any(vol.All(str, vol.Length(max=MAX_ID_LENGTH)), None),
+        # Meter readings (v2.20, #83): the recorded value for `reading` tasks.
+        # Wide numeric bounds — meters count high, temperatures go negative.
+        vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
     }
 )
 @websocket_api.async_response
@@ -85,7 +88,8 @@ async def ws_complete_task(
 
     if _completion_blocked(rd, msg["task_id"]):
         connection.send_error(
-            msg["id"], "too_early",
+            msg["id"],
+            "too_early",
             "Task can only be completed closer to its due date",
         )
         return
@@ -98,6 +102,7 @@ async def ws_complete_task(
         checklist_state=msg.get("checklist_state"),
         feedback=msg.get("feedback"),
         photo_doc_id=msg.get("photo_doc_id"),
+        reading_value=msg.get("reading_value"),
     )
     connection.send_result(msg["id"], {"success": True})
 
@@ -136,7 +141,8 @@ async def ws_quick_complete_task(
 
     if _completion_blocked(rd, msg["task_id"]):
         connection.send_error(
-            msg["id"], "too_early",
+            msg["id"],
+            "too_early",
             "Task can only be completed closer to its due date",
         )
         return
@@ -146,7 +152,8 @@ async def ws_quick_complete_task(
         # Frontend fallback: open the normal complete dialog so the user
         # is never stuck staring at a useless QR scan.
         connection.send_error(
-            msg["id"], "no_defaults",
+            msg["id"],
+            "no_defaults",
             "Task has no quick_complete_defaults; open complete dialog instead",
         )
         return
@@ -271,4 +278,3 @@ async def ws_snooze_task(
         return
     nm.snooze_task(msg["entry_id"], msg["task_id"])
     connection.send_result(msg["id"], {"success": True})
-

@@ -6,6 +6,15 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### ✨ New
 
+- **Meter readings** (#83, part 2) — the *Reading* task type (introduced in
+  2.18) now does what it promises: give the task a unit ("kWh", "m³", …) in
+  the task dialog or config flow, and the completion dialog asks for the
+  **reading value**. Every value lands on its history entry, and the timeline
+  shows each reading with its **delta vs the previous one** (+123.5 kWh).
+  Automations can record readings through the `complete` service and the
+  `task/complete` WS command (`reading_value`); the unit round-trips through
+  JSON and CSV export/import.
+
 - **Seasonal pause** (journey N3) — pause a whole object (pool, lawn mower,
   AC) for the off-season: tasks read a new *Paused* status, schedules freeze,
   triggers tear down, nothing notifies, and the calendar / To-do list skip

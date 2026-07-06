@@ -80,6 +80,12 @@ Result: `{"success": true}`.
 result `{"success": true, "archived_at": "<iso>"}`. Unarchive restores those
 tasks (recurring ones re-anchored). Errors: `already_archived` / `not_archived`.
 
+### Meter readings (v2.20, #83)
+`reading`-type tasks accept `reading_unit` (str ≤32, e.g. "kWh") on
+`task/create`/`task/update`, and `task/complete` accepts `reading_value`
+(float) which is stored on the completion history entry. The panel derives
+the delta between consecutive readings client-side.
+
 ### `object/pause` / `object/resume` — `@require_write` (v2.20)
 Seasonal pause. Pause: `{entry_id, until?}` (`until` = ISO date, must be in the
 future; omit for an open-ended pause) → `{"success": true, "paused_at",

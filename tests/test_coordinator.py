@@ -39,10 +39,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -55,7 +58,9 @@ def _make_object_entry(
     unique_id: str = "test_coord",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -72,7 +77,8 @@ def _make_object_entry(
 
 
 async def test_update_data_basic_status(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that status is correctly computed: OK, DUE_SOON, OVERDUE."""
     recent = (dt_util.now().date() - timedelta(days=5)).isoformat()
@@ -94,13 +100,16 @@ async def test_update_data_basic_status(
 
 
 async def test_update_data_disabled_task(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that disabled tasks get status OK."""
     overdue_date = (dt_util.now().date() - timedelta(days=60)).isoformat()
     task = build_task_data(
-        task_id=TASK_ID_1, last_performed=overdue_date,
-        interval_days=30, enabled=False,
+        task_id=TASK_ID_1,
+        last_performed=overdue_date,
+        interval_days=30,
+        enabled=False,
     )
     obj_entry = _make_object_entry(hass, {TASK_ID_1: task}, unique_id="disabled")
     await setup_integration(hass, global_entry, obj_entry)
@@ -112,11 +121,13 @@ async def test_update_data_disabled_task(
 
 
 async def test_update_data_preserves_trigger_state(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that live trigger state is preserved between refreshes."""
     task = build_task_data(
-        task_id=TASK_ID_1, last_performed="2024-01-01",
+        task_id=TASK_ID_1,
+        last_performed="2024-01-01",
         schedule_type=ScheduleType.SENSOR_BASED,
         trigger_config={"type": "threshold", "entity_id": "sensor.temp", "trigger_above": 30},
     )
@@ -146,7 +157,8 @@ async def test_update_data_preserves_trigger_state(
 
 
 async def test_fallback_threshold_above(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test fallback: value above threshold triggers."""
     hass.states.async_set("sensor.temp", "35.0")
@@ -165,7 +177,8 @@ async def test_fallback_threshold_above(
 
 
 async def test_fallback_threshold_below(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test fallback: value below threshold triggers."""
     hass.states.async_set("sensor.temp", "5.0")
@@ -184,7 +197,8 @@ async def test_fallback_threshold_below(
 
 
 async def test_fallback_threshold_multi_any(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test multi-entity threshold: any triggered = active."""
     hass.states.async_set("sensor.temp1", "35.0")  # above
@@ -210,7 +224,8 @@ async def test_fallback_threshold_multi_any(
 
 
 async def test_fallback_threshold_multi_all(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test multi-entity threshold 'all': both above → True."""
     hass.states.async_set("sensor.temp1", "35.0")  # above
@@ -236,7 +251,8 @@ async def test_fallback_threshold_multi_all(
 
 
 async def test_fallback_threshold_unavailable(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test fallback with unavailable entity."""
     hass.states.async_set("sensor.temp", "unavailable")
@@ -255,7 +271,8 @@ async def test_fallback_threshold_unavailable(
 
 
 async def test_fallback_threshold_attribute(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test fallback reads attribute instead of state."""
     hass.states.async_set("sensor.temp", "ok", {"temperature": 35.0})
@@ -263,8 +280,10 @@ async def test_fallback_threshold_attribute(
         task_id=TASK_ID_1,
         schedule_type=ScheduleType.SENSOR_BASED,
         trigger_config={
-            "type": "threshold", "entity_id": "sensor.temp",
-            "attribute": "temperature", "trigger_above": 30,
+            "type": "threshold",
+            "entity_id": "sensor.temp",
+            "attribute": "temperature",
+            "trigger_above": 30,
         },
     )
     obj_entry = _make_object_entry(hass, {TASK_ID_1: task}, unique_id="fb_attr")
@@ -277,7 +296,8 @@ async def test_fallback_threshold_attribute(
 
 
 async def test_fallback_counter_absolute(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test counter fallback: absolute value >= target."""
     hass.states.async_set("sensor.counter", "150")
@@ -285,7 +305,8 @@ async def test_fallback_counter_absolute(
         task_id=TASK_ID_1,
         schedule_type=ScheduleType.SENSOR_BASED,
         trigger_config={
-            "type": "counter", "entity_id": "sensor.counter",
+            "type": "counter",
+            "entity_id": "sensor.counter",
             "trigger_target_value": 100,
         },
     )
@@ -299,7 +320,8 @@ async def test_fallback_counter_absolute(
 
 
 async def test_fallback_counter_delta(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test counter fallback: delta from baseline >= target."""
     hass.states.async_set("sensor.counter", "150")
@@ -307,7 +329,8 @@ async def test_fallback_counter_delta(
         task_id=TASK_ID_1,
         schedule_type=ScheduleType.SENSOR_BASED,
         trigger_config={
-            "type": "counter", "entity_id": "sensor.counter",
+            "type": "counter",
+            "entity_id": "sensor.counter",
             "trigger_target_value": 50,
             "trigger_delta_mode": True,
             "trigger_baseline_value": 100,
@@ -329,7 +352,8 @@ async def test_fallback_counter_delta(
 
 
 async def test_check_issues_available_clears(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that available entity clears any existing issue."""
     hass.states.async_set("sensor.temp", "25.0")
@@ -348,7 +372,8 @@ async def test_check_issues_available_clears(
 
 
 async def test_check_issues_startup_grace(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that missing entity during startup grace period doesn't create issue."""
     # Entity does NOT exist - will be "missing"
@@ -371,7 +396,8 @@ async def test_check_issues_startup_grace(
 
 
 async def test_check_issues_unavailable_logs_once(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that unavailable entity warning is logged once."""
     hass.states.async_set("sensor.temp", "unavailable")
@@ -393,7 +419,8 @@ async def test_check_issues_unavailable_logs_once(
 
 
 async def test_check_issues_compound_missing_entity_creates_repair(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that a missing entity in a compound trigger condition creates a repair issue.
 
@@ -434,20 +461,15 @@ async def test_check_issues_compound_missing_entity_creates_repair(
     from custom_components.maintenance_supporter.models.maintenance_task import (
         MaintenanceTask,
     )
-    tasks = {
-        tid: MaintenanceTask.from_dict(td)
-        for tid, td in entry.data.get(CONF_TASKS, {}).items()
-    }
+
+    tasks = {tid: MaintenanceTask.from_dict(td) for tid, td in entry.data.get(CONF_TASKS, {}).items()}
     for _ in range(MISSING_ENTITY_THRESHOLD_REFRESHES):
         await coordinator._async_check_for_issues(tasks)
 
     # Compound sub-entity tracking key matches per-entity scheme
     entity_key = f"{TASK_ID_1}_sensor.gone"
     assert coordinator._entity_missing_refresh_count.get(entity_key) is not None
-    assert (
-        coordinator._entity_missing_refresh_count[entity_key]
-        >= MISSING_ENTITY_THRESHOLD_REFRESHES
-    )
+    assert coordinator._entity_missing_refresh_count[entity_key] >= MISSING_ENTITY_THRESHOLD_REFRESHES
     # Repair issue should exist for the missing sub-entity
     from homeassistant.helpers import issue_registry as ir
 
@@ -455,16 +477,12 @@ async def test_check_issues_compound_missing_entity_creates_repair(
     issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
     assert issue is not None
     # No issue for the present entity
-    assert (
-        ir.async_get(hass).async_get_issue(
-            DOMAIN, f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_sensor.present"
-        )
-        is None
-    )
+    assert ir.async_get(hass).async_get_issue(DOMAIN, f"missing_trigger_{obj_entry.entry_id}_{TASK_ID_1}_sensor.present") is None
 
 
 async def test_check_issues_compound_all_available_no_repair(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that a compound trigger with all sub-entities available creates no repair issue."""
     hass.states.async_set("sensor.a", "20.0")
@@ -495,10 +513,8 @@ async def test_check_issues_compound_all_available_no_repair(
     from custom_components.maintenance_supporter.models.maintenance_task import (
         MaintenanceTask,
     )
-    tasks = {
-        tid: MaintenanceTask.from_dict(td)
-        for tid, td in entry.data.get(CONF_TASKS, {}).items()
-    }
+
+    tasks = {tid: MaintenanceTask.from_dict(td) for tid, td in entry.data.get(CONF_TASKS, {}).items()}
     await coordinator._async_check_for_issues(tasks)
 
     # No missing tracking and no repair issues for any sub-entity
@@ -518,7 +534,9 @@ async def test_budget_disabled_no_alert(
 ) -> None:
     """Test no budget alert when budget alerts disabled."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(notifications_enabled=True, notify_service="notify.test"),
         options={
@@ -526,7 +544,8 @@ async def test_budget_disabled_no_alert(
             CONF_NOTIFY_SERVICE: "notify.test",
             CONF_BUDGET_ALERTS_ENABLED: False,
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
@@ -542,7 +561,8 @@ async def test_budget_disabled_no_alert(
 
 
 async def test_complete_maintenance_history(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that complete_maintenance adds history entry."""
     last = (dt_util.now().date() - timedelta(days=20)).isoformat()
@@ -555,7 +575,10 @@ async def test_complete_maintenance_history(
     coordinator = entry.runtime_data.coordinator
 
     await coordinator.complete_maintenance(
-        task_id=TASK_ID_1, notes="Done", cost=50.0, duration=30,
+        task_id=TASK_ID_1,
+        notes="Done",
+        cost=50.0,
+        duration=30,
     )
 
     state = get_task_store_state(hass, obj_entry.entry_id, TASK_ID_1)
@@ -567,7 +590,8 @@ async def test_complete_maintenance_history(
 
 
 async def test_skip_maintenance(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that skip_maintenance adds skip history entry."""
     last = (dt_util.now().date() - timedelta(days=20)).isoformat()
@@ -589,7 +613,8 @@ async def test_skip_maintenance(
 
 
 async def test_reset_maintenance(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that reset_maintenance updates last_performed."""
     last = (dt_util.now().date() - timedelta(days=60)).isoformat()
@@ -609,7 +634,8 @@ async def test_reset_maintenance(
 
 
 async def test_persist_trigger_runtime_per_entity(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test persisting per-entity trigger runtime data."""
     task = build_task_data(
@@ -636,7 +662,8 @@ async def test_persist_trigger_runtime_per_entity(
 
 
 async def test_register_calendar_entity(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test registering calendar entity for state updates."""
     task = build_task_data(task_id=TASK_ID_1)
@@ -660,7 +687,8 @@ async def test_register_calendar_entity(
 
 
 async def test_complete_maintenance_updates_adaptive(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that complete_maintenance updates adaptive config if enabled."""
     last = (dt_util.now().date() - timedelta(days=20)).isoformat()

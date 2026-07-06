@@ -50,9 +50,7 @@ _DELETE = "maintenance_supporter/documents/delete"
 
 
 @pytest.fixture(autouse=True)
-def _isolate_docs_dir(
-    hass: HomeAssistant, _isolate_document_blobs: None
-) -> Iterator[None]:
+def _isolate_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Iterator[None]:
     """Blobs live on the shared test config dir — give each test a clean one.
 
     Depends on _isolate_document_blobs (conftest) so the per-test tmp redirect is
@@ -68,9 +66,13 @@ def _isolate_docs_dir(
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -79,9 +81,13 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 @pytest.fixture
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Pool Pump",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pool Pump",
         data=build_object_entry_data(object_data=build_object_data(name="Pool Pump")),
-        source="user", unique_id="ms_docs_obj",
+        source="user",
+        unique_id="ms_docs_obj",
     )
     entry.add_to_hass(hass)
     return entry
@@ -104,27 +110,39 @@ def _store(hass: HomeAssistant) -> DocumentStore:
 
 
 async def test_ws_list_empty(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
     await call_ws_handler(
-        ws_documents_list, hass, conn,
+        ws_documents_list,
+        hass,
+        conn,
         {"id": 1, "type": _LIST, "entry_id": object_entry.entry_id},
     )
     assert conn.send_result.call_args[0][1] == {"documents": []}
 
 
 async def test_ws_list_returns_docs(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     doc = await _store(hass).async_add_file(
-        OBJECT_ID_1, content=b"pdf", filename="m.pdf", mime="application/pdf", tags=["manual"],
+        OBJECT_ID_1,
+        content=b"pdf",
+        filename="m.pdf",
+        mime="application/pdf",
+        tags=["manual"],
     )
     conn = _conn()
     await call_ws_handler(
-        ws_documents_list, hass, conn,
+        ws_documents_list,
+        hass,
+        conn,
         {"id": 1, "type": _LIST, "entry_id": object_entry.entry_id},
     )
     documents = conn.send_result.call_args[0][1]["documents"]
@@ -133,7 +151,9 @@ async def test_ws_list_returns_docs(
 
 
 async def test_object_response_includes_document_count(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """(P2) The object WS response carries document_count for the objects-table badge."""
     from custom_components.maintenance_supporter.websocket.objects import ws_get_object
@@ -145,14 +165,18 @@ async def test_object_response_includes_document_count(
 
     conn = _conn()
     await call_ws_handler(
-        ws_get_object, hass, conn,
+        ws_get_object,
+        hass,
+        conn,
         {"id": 1, "type": "maintenance_supporter/object", "entry_id": object_entry.entry_id},
     )
     assert conn.send_result.call_args[0][1]["object"]["document_count"] == 2
 
 
 async def test_export_import_roundtrips_documents(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """(P6) Export carries documents; import recreates them on the new object."""
     import json as _json
@@ -184,7 +208,9 @@ async def test_export_import_roundtrips_documents(
 
 
 async def test_ws_documents_search(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """(P7) Global search matches by filename/tag and carries the object name."""
     from custom_components.maintenance_supporter.websocket.documents import (
@@ -193,7 +219,9 @@ async def test_ws_documents_search(
 
     await setup_integration(hass, global_entry, object_entry)
     store = _store(hass)
-    await store.async_add_file(OBJECT_ID_1, content=b"x", filename="Bedienungsanleitung.pdf", mime="application/pdf", tags=["manual"])
+    await store.async_add_file(
+        OBJECT_ID_1, content=b"x", filename="Bedienungsanleitung.pdf", mime="application/pdf", tags=["manual"]
+    )
     await store.async_add_weblink(OBJECT_ID_1, url="https://x/warranty", title="Garantie", tags=["warranty"])
 
     conn = _conn()
@@ -213,12 +241,15 @@ async def test_ws_documents_search(
 
 
 async def test_ws_list_unknown_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
     await call_ws_handler(
-        ws_documents_list, hass, conn,
+        ws_documents_list,
+        hass,
+        conn,
         {"id": 1, "type": _LIST, "entry_id": "does_not_exist"},
     )
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -228,11 +259,16 @@ async def test_ws_list_unknown_entry(
 
 
 async def test_ws_storage_summary(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     await _store(hass).async_add_file(
-        OBJECT_ID_1, content=b"1234567890", filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1,
+        content=b"1234567890",
+        filename="a.pdf",
+        mime="application/pdf",
     )
     conn = _conn()
     await call_ws_handler(ws_documents_storage, hass, conn, {"id": 1, "type": _STORAGE})
@@ -245,15 +281,23 @@ async def test_ws_storage_summary(
 
 
 async def test_ws_add_link(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
     await call_ws_handler(
-        ws_documents_add_link, hass, conn,
+        ws_documents_add_link,
+        hass,
+        conn,
         {
-            "id": 1, "type": _ADD_LINK, "entry_id": object_entry.entry_id,
-            "url": "https://example.com/manual.pdf", "title": "Online", "tags": ["manual"],
+            "id": 1,
+            "type": _ADD_LINK,
+            "entry_id": object_entry.entry_id,
+            "url": "https://example.com/manual.pdf",
+            "title": "Online",
+            "tags": ["manual"],
         },
     )
     doc = conn.send_result.call_args[0][1]
@@ -264,24 +308,31 @@ async def test_ws_add_link(
 
 
 async def test_ws_add_link_rejects_non_http(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     conn = _conn()
     await call_ws_handler(
-        ws_documents_add_link, hass, conn,
+        ws_documents_add_link,
+        hass,
+        conn,
         {"id": 1, "type": _ADD_LINK, "entry_id": object_entry.entry_id, "url": "javascript:alert(1)"},
     )
     assert conn.send_error.call_args[0][1] == "invalid_url"
 
 
 async def test_ws_add_link_unknown_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
     await call_ws_handler(
-        ws_documents_add_link, hass, conn,
+        ws_documents_add_link,
+        hass,
+        conn,
         {"id": 1, "type": _ADD_LINK, "entry_id": "nope", "url": "https://x/m.pdf"},
     )
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -291,18 +342,29 @@ async def test_ws_add_link_unknown_entry(
 
 
 async def test_ws_update(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     doc = await _store(hass).async_add_file(
-        OBJECT_ID_1, content=b"y", filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1,
+        content=b"y",
+        filename="a.pdf",
+        mime="application/pdf",
     )
     conn = _conn()
     await call_ws_handler(
-        ws_documents_update, hass, conn,
+        ws_documents_update,
+        hass,
+        conn,
         {
-            "id": 1, "type": _UPDATE, "doc_id": doc["id"],
-            "title": "Renamed", "tags": ["warranty"], "task_ids": ["t1"],
+            "id": 1,
+            "type": _UPDATE,
+            "doc_id": doc["id"],
+            "title": "Renamed",
+            "tags": ["warranty"],
+            "task_ids": ["t1"],
         },
     )
     result = conn.send_result.call_args[0][1]
@@ -312,36 +374,49 @@ async def test_ws_update(
 
 
 async def test_ws_update_task_pages(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Per-task jump-to page hints persist, clear on 0, and prune when unlinked."""
     await setup_integration(hass, global_entry, object_entry)
     doc = await _store(hass).async_add_file(
-        OBJECT_ID_1, content=b"y", filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1,
+        content=b"y",
+        filename="a.pdf",
+        mime="application/pdf",
     )
     conn = _conn()
     # Link to a task + set a page.
     await call_ws_handler(
-        ws_documents_update, hass, conn,
+        ws_documents_update,
+        hass,
+        conn,
         {"id": 1, "type": _UPDATE, "doc_id": doc["id"], "task_ids": ["t1"], "task_pages": {"t1": 12}},
     )
     assert conn.send_result.call_args[0][1]["task_pages"] == {"t1": 12}
 
     # Page 0 clears that task's page; the now-empty map is dropped.
     await call_ws_handler(
-        ws_documents_update, hass, conn,
+        ws_documents_update,
+        hass,
+        conn,
         {"id": 2, "type": _UPDATE, "doc_id": doc["id"], "task_pages": {"t1": 0}},
     )
     assert "task_pages" not in conn.send_result.call_args[0][1]
 
     # Re-set, then unlinking the task prunes its orphaned page hint.
     await call_ws_handler(
-        ws_documents_update, hass, conn,
+        ws_documents_update,
+        hass,
+        conn,
         {"id": 3, "type": _UPDATE, "doc_id": doc["id"], "task_pages": {"t1": 5}},
     )
     assert conn.send_result.call_args[0][1]["task_pages"] == {"t1": 5}
     await call_ws_handler(
-        ws_documents_update, hass, conn,
+        ws_documents_update,
+        hass,
+        conn,
         {"id": 4, "type": _UPDATE, "doc_id": doc["id"], "task_ids": []},
     )
     assert "task_pages" not in conn.send_result.call_args[0][1]
@@ -358,22 +433,23 @@ def test_task_pages_schema_accepts_task_id_map() -> None:
         _TASK_PAGES_SCHEMA,
     )
 
-    assert _TASK_PAGES_SCHEMA({"de4c9800869142eab17283dde701d0b9": 12}) == {
-        "de4c9800869142eab17283dde701d0b9": 12
-    }
+    assert _TASK_PAGES_SCHEMA({"de4c9800869142eab17283dde701d0b9": 12}) == {"de4c9800869142eab17283dde701d0b9": 12}
     assert _TASK_PAGES_SCHEMA({}) == {}
     with pytest.raises(vol.Invalid):
-        _TASK_PAGES_SCHEMA({"t1": 10 ** 9})  # page out of range
+        _TASK_PAGES_SCHEMA({"t1": 10**9})  # page out of range
 
 
 async def test_ws_update_missing(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
     # No title in the message → exercises the "title absent" branch too.
     await call_ws_handler(
-        ws_documents_update, hass, conn,
+        ws_documents_update,
+        hass,
+        conn,
         {"id": 1, "type": _UPDATE, "doc_id": "nope", "tags": ["x"]},
     )
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -383,15 +459,22 @@ async def test_ws_update_missing(
 
 
 async def test_ws_delete(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     doc = await _store(hass).async_add_file(
-        OBJECT_ID_1, content=b"bye", filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1,
+        content=b"bye",
+        filename="a.pdf",
+        mime="application/pdf",
     )
     conn = _conn()
     await call_ws_handler(
-        ws_documents_delete, hass, conn,
+        ws_documents_delete,
+        hass,
+        conn,
         {"id": 1, "type": _DELETE, "doc_id": doc["id"]},
     )
     assert conn.send_result.call_args[0][1] == {"success": True, "bytes_freed": len(b"bye")}
@@ -399,12 +482,15 @@ async def test_ws_delete(
 
 
 async def test_ws_delete_missing(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
     await call_ws_handler(
-        ws_documents_delete, hass, conn,
+        ws_documents_delete,
+        hass,
+        conn,
         {"id": 1, "type": _DELETE, "doc_id": "nope"},
     )
     assert conn.send_error.call_args[0][1] == "not_found"
@@ -414,8 +500,10 @@ async def test_ws_delete_missing(
 
 
 async def test_upload_and_serve_roundtrip(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator,
-    global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     client = await hass_client()
@@ -440,7 +528,9 @@ async def test_upload_and_serve_roundtrip(
 
 
 async def test_upload_unknown_entry(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     client = await hass_client()
@@ -452,8 +542,10 @@ async def test_upload_unknown_entry(
 
 
 async def test_upload_missing_file(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator,
-    global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     client = await hass_client()
@@ -464,8 +556,10 @@ async def test_upload_missing_file(
 
 
 async def test_upload_too_large(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator,
-    global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(docmod, "MAX_DOC_BYTES", 4)
@@ -488,7 +582,9 @@ async def test_upload_forbidden_for_non_writer(hass: HomeAssistant) -> None:
 
 
 async def test_serve_unknown_doc(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry)
     client = await hass_client()
@@ -497,8 +593,10 @@ async def test_serve_unknown_doc(
 
 
 async def test_serve_weblink_is_404(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator,
-    global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     doc = await _store(hass).async_add_weblink(OBJECT_ID_1, url="https://x/manual.pdf")
@@ -508,8 +606,10 @@ async def test_serve_weblink_is_404(
 
 
 async def test_serve_dangling_blob_is_404(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator,
-    global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     await setup_integration(hass, global_entry, object_entry)
     store = _store(hass)
@@ -517,8 +617,10 @@ async def test_serve_dangling_blob_is_404(
     # can't race another test that stored the same bytes (blobs are dedup'd by
     # content hash; a shared digest would collide across parallel xdist workers).
     doc = await store.async_add_file(
-        OBJECT_ID_1, content=b"dangling-blob-unique-content",
-        filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1,
+        content=b"dangling-blob-unique-content",
+        filename="a.pdf",
+        mime="application/pdf",
     )
     store.blob_path(doc["hash"]).unlink()  # delete the blob behind the doc's back
     client = await hass_client()
@@ -527,16 +629,25 @@ async def test_serve_dangling_blob_is_404(
 
 
 async def test_serve_corrupt_hash_is_404(
-    hass: HomeAssistant, hass_client: ClientSessionGenerator,
-    global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """A file doc whose stored hash isn't a valid digest fails path validation."""
     await setup_integration(hass, global_entry, object_entry)
     store = _store(hass)
     store.documents["corrupt"] = {
-        "object_id": OBJECT_ID_1, "kind": "file", "hash": "NOThex",
-        "title": "x", "filename": "x.pdf", "mime": "application/pdf",
-        "size": 1, "tags": [], "task_ids": [], "added_at": "2026-01-01T00:00:00",
+        "object_id": OBJECT_ID_1,
+        "kind": "file",
+        "hash": "NOThex",
+        "title": "x",
+        "filename": "x.pdf",
+        "mime": "application/pdf",
+        "size": 1,
+        "tags": [],
+        "task_ids": [],
+        "added_at": "2026-01-01T00:00:00",
     }
     client = await hass_client()
     resp = await client.get(SERVE_URL.format(doc_id="corrupt"))
@@ -547,14 +658,12 @@ async def test_serve_corrupt_hash_is_404(
 
 
 def test_content_disposition_ascii() -> None:
-    assert _content_disposition("manual.pdf") == (
-        "inline; filename=\"manual.pdf\"; filename*=UTF-8''manual.pdf"
-    )
+    assert _content_disposition("manual.pdf") == ("inline; filename=\"manual.pdf\"; filename*=UTF-8''manual.pdf")
 
 
 def test_content_disposition_unicode_stripped_and_encoded() -> None:
     got = _content_disposition("Anleitung_Öl.pdf")
-    assert 'filename="Anleitung_l.pdf"' in got            # non-ASCII dropped from fallback
+    assert 'filename="Anleitung_l.pdf"' in got  # non-ASCII dropped from fallback
     assert "filename*=UTF-8''Anleitung_%C3%96l.pdf" in got  # full name RFC 5987-encoded
 
 
@@ -566,13 +675,18 @@ def test_content_disposition_all_unicode_falls_back() -> None:
 
 
 async def test_object_delete_removes_documents(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Permanently deleting an object reclaims its (unshared) document storage."""
     await setup_integration(hass, global_entry, object_entry)
     store = _store(hass)
     doc = await store.async_add_file(
-        OBJECT_ID_1, content=b"del-me", filename="a.pdf", mime="application/pdf",
+        OBJECT_ID_1,
+        content=b"del-me",
+        filename="a.pdf",
+        mime="application/pdf",
     )
     assert store.for_object(OBJECT_ID_1)
 
@@ -580,12 +694,14 @@ async def test_object_delete_removes_documents(
     await hass.async_block_till_done()
 
     assert store.for_object(OBJECT_ID_1) == []
-    assert doc["hash"] not in store.blobs          # unshared blob freed
+    assert doc["hash"] not in store.blobs  # unshared blob freed
     assert not store.blob_path(doc["hash"]).exists()
 
 
 async def test_object_delete_keeps_shared_blob(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """A blob shared with another object survives the delete (refcount-aware)."""
     await setup_integration(hass, global_entry, object_entry)
@@ -603,7 +719,9 @@ async def test_object_delete_keeps_shared_blob(
 
 
 async def test_object_archive_keeps_documents(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Archiving (unlike deleting) leaves the object's documents intact."""
     from custom_components.maintenance_supporter.websocket.objects import (
@@ -616,7 +734,9 @@ async def test_object_archive_keeps_documents(
 
     conn = _conn()
     await call_ws_handler(
-        ws_archive_object, hass, conn,
+        ws_archive_object,
+        hass,
+        conn,
         {"id": 1, "type": "maintenance_supporter/object/archive", "entry_id": object_entry.entry_id},
     )
     await hass.async_block_till_done()

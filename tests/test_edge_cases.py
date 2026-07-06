@@ -281,7 +281,8 @@ class TestNumericValueExtraction:
         entity._task_id = "test"
 
         trigger = ThresholdTrigger(
-            hass, entity,
+            hass,
+            entity,
             {"entity_id": "sensor.test", "attribute": None, "type": "threshold", "trigger_above": 50},
         )
 
@@ -305,7 +306,8 @@ class TestNumericValueExtraction:
         entity._task_id = "test"
 
         trigger = ThresholdTrigger(
-            hass, entity,
+            hass,
+            entity,
             {"entity_id": "sensor.test", "attribute": "pressure", "type": "threshold", "trigger_above": 2.0},
         )
 
@@ -329,7 +331,8 @@ class TestNumericValueExtraction:
         entity._task_id = "test"
 
         trigger = ThresholdTrigger(
-            hass, entity,
+            hass,
+            entity,
             {"entity_id": "sensor.test", "attribute": None, "type": "threshold", "trigger_above": 50},
         )
 
@@ -353,9 +356,7 @@ async def test_coordinator_complete_unknown_task(
     runtime = object_config_entry.runtime_data
     if runtime and runtime.coordinator:
         # Should not raise
-        await runtime.coordinator.complete_maintenance(
-            task_id="nonexistent_task_id"
-        )
+        await runtime.coordinator.complete_maintenance(task_id="nonexistent_task_id")
 
 
 async def test_coordinator_persist_trigger_runtime(

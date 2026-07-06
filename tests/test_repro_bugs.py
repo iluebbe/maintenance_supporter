@@ -1,4 +1,5 @@
 """Reproduce bugs #11, #12, #14 reported by byoung79."""
+
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -22,16 +23,21 @@ from tests.test_ws_objects import _mock_connection, call_ws_handler
 async def test_bug11_type_resets_to_cleaning(hass: HomeAssistant) -> None:
     """Bug #11: task type resets to 'cleaning' when editing via options flow."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     task = build_task_data(task_type="service", last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Test Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Test Object"),
@@ -54,7 +60,8 @@ async def test_bug11_type_resets_to_cleaning(hass: HomeAssistant) -> None:
 
     # Submit form without explicitly setting type — should preserve "service"
     r = await hass.config_entries.options.async_configure(
-        r["flow_id"], user_input={"name": "Edited Name", "warning_days": 7},
+        r["flow_id"],
+        user_input={"name": "Edited Name", "warning_days": 7},
     )
 
     updated = entry.data["tasks"][TASK_ID_1]
@@ -64,16 +71,21 @@ async def test_bug11_type_resets_to_cleaning(hass: HomeAssistant) -> None:
 async def test_bug12_reset_with_date(hass: HomeAssistant) -> None:
     """Bug #12: 'extra keys not allowed @ data[reset_date]' when resetting."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Test Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Test Object"),
@@ -88,12 +100,18 @@ async def test_bug12_reset_with_date(hass: HomeAssistant) -> None:
     conn = _mock_connection()
 
     # This should work but currently fails with "extra keys not allowed"
-    await call_ws_handler(ws_reset_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/reset",
-        "entry_id": entry.entry_id,
-        "task_id": TASK_ID_1,
-        "reset_date": "2026-04-01",
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": entry.entry_id,
+            "task_id": TASK_ID_1,
+            "reset_date": "2026-04-01",
+        },
+    )
 
     # If bug exists, send_error was called instead of send_result
     if conn.send_error.called:
@@ -105,15 +123,20 @@ async def test_bug12_reset_with_date(hass: HomeAssistant) -> None:
 async def test_bug14_create_task_with_enabled(hass: HomeAssistant) -> None:
     """Bug #14: task/create rejects 'enabled' field sent by frontend."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Test Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Test Object"),
@@ -128,15 +151,21 @@ async def test_bug14_create_task_with_enabled(hass: HomeAssistant) -> None:
     conn = _mock_connection()
 
     # Frontend sends 'enabled: true' — currently rejected by schema
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": entry.entry_id,
-        "name": "Bug14 Test Task",
-        "task_type": "cleaning",
-        "schedule_type": "time_based",
-        "interval_days": 30,
-        "enabled": True,
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": entry.entry_id,
+            "name": "Bug14 Test Task",
+            "task_type": "cleaning",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "enabled": True,
+        },
+    )
 
     if conn.send_error.called:
         error_msg = conn.send_error.call_args[0][2] if conn.send_error.call_args else ""

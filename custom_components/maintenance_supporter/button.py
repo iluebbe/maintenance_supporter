@@ -61,14 +61,10 @@ async def async_setup_entry(
     coordinator = runtime_data.coordinator
     tasks = entry.data.get(CONF_TASKS, {})
     entities = [
-        MaintenanceActionButton(coordinator, task_id, action, label)
-        for task_id in tasks
-        for action, label in _TASK_ACTIONS
+        MaintenanceActionButton(coordinator, task_id, action, label) for task_id in tasks for action, label in _TASK_ACTIONS
     ]
     async_add_entities(entities)
-    _LOGGER.debug(
-        "Added %d button entities for %s", len(entities), entry.title
-    )
+    _LOGGER.debug("Added %d button entities for %s", len(entities), entry.title)
 
 
 class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
@@ -93,9 +89,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
 
-        self._attr_unique_id = (
-            f"maintenance_supporter_{object_slug}_{task_id}_{action}"
-        )
+        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_{action}"
         self._attr_translation_key = f"button_{action}"
         # Custom entity_slug → stable, language-independent entity_id/name.
         entity_slug = task_data.get("entity_slug")
@@ -113,9 +107,7 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
         # Archived task → its complete/skip/reset buttons go unavailable (inert).
         if self._task_data.get("archived_at") is not None:
             return False
-        task_cfg = self.coordinator.entry.data.get(CONF_TASKS, {}).get(
-            self._task_id, {}
-        )
+        task_cfg = self.coordinator.entry.data.get(CONF_TASKS, {}).get(self._task_id, {})
         return bool(task_cfg.get(CONF_TASK_ENABLED, True))
 
     async def async_press(self) -> None:
@@ -123,12 +115,8 @@ class MaintenanceActionButton(MaintenanceEntity, ButtonEntity):
         if not self._task_data:
             raise HomeAssistantError(f"Task {self._task_id} no longer exists")
         if self._action == "complete":
-            await self.coordinator.complete_maintenance(
-                self._task_id, notes="Completed from dashboard button"
-            )
+            await self.coordinator.complete_maintenance(self._task_id, notes="Completed from dashboard button")
         elif self._action == "skip":
-            await self.coordinator.skip_maintenance(
-                self._task_id, reason="Skipped from dashboard button"
-            )
+            await self.coordinator.skip_maintenance(self._task_id, reason="Skipped from dashboard button")
         elif self._action == "reset":
             await self.coordinator.reset_maintenance(self._task_id)

@@ -46,10 +46,13 @@ def global_entry_notifications(hass: HomeAssistant) -> MockConfigEntry:
         notify_service="notify.test",
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -67,10 +70,13 @@ def global_entry_budget(hass: HomeAssistant) -> MockConfigEntry:
     data[CONF_BUDGET_YEARLY] = 1000.0
     data[CONF_BUDGET_ALERT_THRESHOLD] = 80
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -86,10 +92,13 @@ def global_entry_bundled(hass: HomeAssistant) -> MockConfigEntry:
     data[CONF_NOTIFICATION_BUNDLING_ENABLED] = True
     data[CONF_NOTIFICATION_BUNDLE_THRESHOLD] = 2
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -99,10 +108,14 @@ def _make_overdue_entry(hass: HomeAssistant, unique_id: str, days_overdue: int =
     """Create an entry with an overdue task."""
     last = (dt_util.now().date() - timedelta(days=days_overdue)).isoformat()
     task = build_task_data(
-        task_id=TASK_ID_1, last_performed=last, interval_days=30,
+        task_id=TASK_ID_1,
+        last_performed=last,
+        interval_days=30,
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Overdue Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Overdue Object"),
@@ -116,28 +129,37 @@ def _make_overdue_entry(hass: HomeAssistant, unique_id: str, days_overdue: int =
 
 
 def _make_cost_entry(
-    hass: HomeAssistant, unique_id: str, monthly_cost: float = 0, yearly_cost: float = 0,
+    hass: HomeAssistant,
+    unique_id: str,
+    monthly_cost: float = 0,
+    yearly_cost: float = 0,
 ) -> MockConfigEntry:
     """Create entry with cost history."""
     now = datetime.now()
     history: list[dict[str, Any]] = []
     if monthly_cost > 0:
-        history.append({
-            "timestamp": now.isoformat(),
-            "type": "completed",
-            "cost": monthly_cost,
-        })
+        history.append(
+            {
+                "timestamp": now.isoformat(),
+                "type": "completed",
+                "cost": monthly_cost,
+            }
+        )
     if yearly_cost > 0:
-        history.append({
-            "timestamp": now.replace(month=max(1, now.month - 2)).isoformat(),
-            "type": "completed",
-            "cost": yearly_cost,
-        })
+        history.append(
+            {
+                "timestamp": now.replace(month=max(1, now.month - 2)).isoformat(),
+                "type": "completed",
+                "cost": yearly_cost,
+            }
+        )
 
     task = build_task_data(task_id=TASK_ID_1, last_performed="2024-06-01")
     task["history"] = history
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Cost Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Cost Object"),
@@ -154,7 +176,8 @@ def _make_cost_entry(
 
 
 async def test_notify_overdue_task(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test that overdue task triggers notification dispatch."""
     obj_entry = _make_overdue_entry(hass, "notif_overdue", 60)
@@ -170,7 +193,8 @@ async def test_notify_overdue_task(
 
 
 async def test_notify_bundled_sends(
-    hass: HomeAssistant, global_entry_bundled: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_bundled: MockConfigEntry,
 ) -> None:
     """Test that bundled notifications are sent when threshold met."""
     # Create an entry with 2 overdue tasks
@@ -178,7 +202,9 @@ async def test_notify_bundled_sends(
     task1 = build_task_data(task_id=TASK_ID_1, name="Task 1", last_performed=last, interval_days=30)
     task2 = build_task_data(task_id=TASK_ID_2, name="Task 2", last_performed=last, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Multi Overdue",
         data=build_object_entry_data(
             object_data=build_object_data(name="Multi Overdue"),
@@ -201,7 +227,8 @@ async def test_notify_bundled_sends(
 
 
 async def test_budget_monthly_check(
-    hass: HomeAssistant, global_entry_budget: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_budget: MockConfigEntry,
 ) -> None:
     """Test budget check finds monthly cost data."""
     obj_entry = _make_cost_entry(hass, "budget_monthly", monthly_cost=90.0)
@@ -223,10 +250,13 @@ async def test_budget_no_alerts_disabled(
     )
     global_data[CONF_BUDGET_ALERTS_ENABLED] = False
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=global_data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
@@ -240,7 +270,8 @@ async def test_budget_no_alerts_disabled(
 
 
 async def test_missing_trigger_entity_startup_grace(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test that missing entity during startup is handled gracefully."""
     # Don't set the entity state — it won't exist
@@ -254,7 +285,9 @@ async def test_missing_trigger_entity_startup_grace(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Missing Entity",
         data=build_object_entry_data(
             object_data=build_object_data(name="Missing Entity"),
@@ -276,14 +309,17 @@ async def test_missing_trigger_entity_startup_grace(
 
 
 async def test_fallback_no_trigger_config(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test fallback does nothing when trigger_config is None."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(task_id=TASK_ID_1, last_performed=last)
     # No trigger_config → time-based only
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="No Trigger",
         data=build_object_entry_data(
             object_data=build_object_data(name="No Trigger"),
@@ -306,7 +342,8 @@ async def test_fallback_no_trigger_config(
 
 
 async def test_fallback_unavailable_entity(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test threshold fallback with unavailable entity."""
     hass.states.async_set("sensor.temp_unav", "unavailable")
@@ -320,7 +357,9 @@ async def test_fallback_unavailable_entity(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Unavailable",
         data=build_object_entry_data(
             object_data=build_object_data(name="Unavailable"),
@@ -343,7 +382,8 @@ async def test_fallback_unavailable_entity(
 
 
 async def test_fallback_counter_delta(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test counter trigger with delta mode."""
     hass.states.async_set("sensor.counter", "150")
@@ -359,7 +399,9 @@ async def test_fallback_counter_delta(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Counter Delta",
         data=build_object_entry_data(
             object_data=build_object_data(name="Counter Delta"),
@@ -379,7 +421,8 @@ async def test_fallback_counter_delta(
 
 
 async def test_fallback_counter_absolute_triggered(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test counter trigger without delta mode — absolute value >= target."""
     hass.states.async_set("sensor.counter_abs", "150")
@@ -394,7 +437,9 @@ async def test_fallback_counter_absolute_triggered(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Counter Abs",
         data=build_object_entry_data(
             object_data=build_object_data(name="Counter Abs"),
@@ -417,7 +462,8 @@ async def test_fallback_counter_absolute_triggered(
 
 
 async def test_fallback_threshold_attribute(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test threshold trigger reading from an entity attribute."""
     hass.states.async_set("sensor.device", "ok", {"temperature": 35.0})
@@ -432,7 +478,9 @@ async def test_fallback_threshold_attribute(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Attr Threshold",
         data=build_object_entry_data(
             object_data=build_object_data(name="Attr Threshold"),
@@ -454,13 +502,16 @@ async def test_fallback_threshold_attribute(
 
 
 async def test_complete_updates_history(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test that complete_maintenance adds history entry."""
     last = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Complete Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Complete Test"),
@@ -489,13 +540,16 @@ async def test_complete_updates_history(
 
 
 async def test_skip_maintenance(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test skip_maintenance adds skip entry."""
     last = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Skip Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Skip Test"),
@@ -516,13 +570,16 @@ async def test_skip_maintenance(
 
 
 async def test_reset_maintenance(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Test reset_maintenance clears last_performed."""
     last = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Reset Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Reset Test"),
@@ -544,10 +601,13 @@ async def test_reset_maintenance(
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -562,7 +622,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -651,6 +713,7 @@ async def test_coordinator_disabled_task_status_ok(hass: HomeAssistant) -> None:
     assert coord.data is not None
     task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
     from custom_components.maintenance_supporter.const import MaintenanceStatus
+
     assert task_result.get("_status") == MaintenanceStatus.OK
 
 
@@ -786,8 +849,7 @@ async def test_coordinator_stale_action_entity_clears_issue(hass: HomeAssistant)
     # No stale issue should be present for our entry
     issue_reg = ir.async_get(hass)
     stale_ids = [
-        iid for (dom, iid) in issue_reg.issues
-        if dom == DOMAIN and "stale_action_entity" in iid and obj_entry.entry_id in iid
+        iid for (dom, iid) in issue_reg.issues if dom == DOMAIN and "stale_action_entity" in iid and obj_entry.entry_id in iid
     ]
     assert len(stale_ids) == 0
 
@@ -869,6 +931,7 @@ async def test_coordinator_seeds_startup_state_for_overdue(hass: HomeAssistant) 
 
     coord = obj_entry.runtime_data.coordinator
     from custom_components.maintenance_supporter.const import MaintenanceStatus
+
     task_result = coord.data[CONF_TASKS].get(TASK_ID_1, {})
     assert task_result.get("_status") == MaintenanceStatus.OVERDUE
     # Startup state must be seeded (no direct assertion possible but code ran)
@@ -895,6 +958,7 @@ async def test_coordinator_persist_dynamic_state_clears_planned_due(hass: HomeAs
 
     # Create a task object with last_planned_due=None (won't appear in to_dict)
     from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+
     merged = coord._get_merged_tasks_data()
     task_obj = MaintenanceTask.from_dict(merged[TASK_ID_1])
     # last_planned_due comes from store merge; clear it on the task object directly
@@ -913,7 +977,9 @@ async def test_coordinator_persist_dynamic_state_clears_planned_due(hass: HomeAs
 
 def _recovery_entry(hass: HomeAssistant, task: dict, uid: str) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Recovery Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Recovery Test"),
@@ -927,7 +993,8 @@ def _recovery_entry(hass: HomeAssistant, task: dict, uid: str) -> MockConfigEntr
 
 
 async def test_auto_complete_on_recovery_records_completion(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """The recovery hook runs the canonical complete path."""
     last = (dt_util.now().date() - timedelta(days=40)).isoformat()
@@ -947,7 +1014,8 @@ async def test_auto_complete_on_recovery_records_completion(
 
 
 async def test_auto_complete_skips_recent_completion(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """A completion recorded moments ago suppresses the auto-complete."""
     last = (dt_util.now().date() - timedelta(days=40)).isoformat()
@@ -967,7 +1035,8 @@ async def test_auto_complete_skips_recent_completion(
 
 
 async def test_auto_complete_skips_archived_task(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Archived (inert) tasks never auto-complete."""
     last = (dt_util.now().date() - timedelta(days=40)).isoformat()
@@ -988,7 +1057,8 @@ async def test_auto_complete_skips_archived_task(
 
 
 async def test_state_change_count_visible_in_refresh(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """The persisted change count surfaces as trigger_current_value."""
     hass.states.async_set("input_boolean.washer", "off")
@@ -1004,7 +1074,9 @@ async def test_state_change_count_visible_in_refresh(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Washer",
         data=build_object_entry_data(
             object_data=build_object_data(name="Washer"),
@@ -1024,7 +1096,8 @@ async def test_state_change_count_visible_in_refresh(
 
 
 async def test_runtime_hours_visible_in_refresh(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Accumulated runtime hours surface (and flip active at the target)."""
     hass.states.async_set("input_boolean.compressor", "off")
@@ -1045,7 +1118,9 @@ async def test_runtime_hours_visible_in_refresh(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Compressor",
         data=build_object_entry_data(
             object_data=build_object_data(name="Compressor"),
@@ -1065,7 +1140,8 @@ async def test_runtime_hours_visible_in_refresh(
 
 
 async def test_trigger_runtime_never_persists_into_entry_data(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Tripwire: dynamic trigger state lives in the Store, never in entry.data.
 
@@ -1086,7 +1162,9 @@ async def test_trigger_runtime_never_persists_into_entry_data(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Tripwire",
         data=build_object_entry_data(
             object_data=build_object_data(name="Tripwire"),
@@ -1103,15 +1181,16 @@ async def test_trigger_runtime_never_persists_into_entry_data(
 
     # Persist some runtime state the way a trigger would.
     await coord.async_persist_trigger_runtime(
-        TASK_ID_1, {"change_count": 7}, entity_id="input_boolean.tripwire",
+        TASK_ID_1,
+        {"change_count": 7},
+        entity_id="input_boolean.tripwire",
         immediate=True,
     )
 
     # The static config entry must NOT carry dynamic state.
     stored_tc = entry.data[CONF_TASKS][TASK_ID_1]["trigger_config"]
     assert "_trigger_state" not in stored_tc, (
-        "dynamic trigger state leaked into ConfigEntry.data — it must live in "
-        "the Store only"
+        "dynamic trigger state leaked into ConfigEntry.data — it must live in the Store only"
     )
     # But it IS visible via the merge-on-read model (Store -> _trigger_state).
     merged = coord._get_merged_tasks_data()
@@ -1120,7 +1199,8 @@ async def test_trigger_runtime_never_persists_into_entry_data(
 
 
 async def test_counter_delta_baseline_after_completion(
-    hass: HomeAssistant, global_entry_notifications: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry_notifications: MockConfigEntry,
 ) -> None:
     """Repro (#runtime-graph): after completing a delta-counter task, the chart
     baseline must move to the current reading so 'progress since service' is 0,
@@ -1144,12 +1224,16 @@ async def test_counter_delta_baseline_after_completion(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Delta Meter",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Delta Meter",
         data=build_object_entry_data(
             object_data=build_object_data(name="Delta Meter"),
             tasks={TASK_ID_1: task},
         ),
-        source="user", unique_id="maintenance_supporter_delta_meter_repro",
+        source="user",
+        unique_id="maintenance_supporter_delta_meter_repro",
     )
     obj_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry_notifications, obj_entry)

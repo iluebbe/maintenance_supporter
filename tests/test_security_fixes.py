@@ -68,9 +68,7 @@ def _conn(user_id: str | None, *, is_admin: bool) -> MagicMock:
     return conn
 
 
-def _add_global(
-    hass: HomeAssistant, allowlist: list[Any], *, write_enabled: bool = False
-) -> None:
+def _add_global(hass: HomeAssistant, allowlist: list[Any], *, write_enabled: bool = False) -> None:
     MockConfigEntry(
         domain=DOMAIN,
         unique_id=GLOBAL_UNIQUE_ID,

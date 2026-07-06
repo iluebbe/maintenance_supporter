@@ -14,6 +14,9 @@ export class MaintenanceCompleteDialog extends LitElement {
   @property() public lang = "en";
   @property({ type: Array }) public checklist: string[] = [];
   @property({ type: Boolean }) public adaptiveEnabled = false;
+  // v2.20 (#83): task type + unit drive the reading-value field below.
+  @property() public taskType = "";
+  @property() public readingUnit = "";
   @state() private _open = false;
   @state() private _notes = "";
   @state() private _cost = "";
@@ -25,6 +28,7 @@ export class MaintenanceCompleteDialog extends LitElement {
   @state() private _photoDocId = "";
   @state() private _photoPreview = "";
   @state() private _photoUploading = false;
+  @state() private _readingValue = "";
 
   public open(): void {
     if (this._open) return;
@@ -38,6 +42,7 @@ export class MaintenanceCompleteDialog extends LitElement {
     this._photoDocId = "";
     this._photoPreview = "";
     this._photoUploading = false;
+    this._readingValue = "";
   }
 
   private _toggleCheck(idx: number): void {
@@ -120,6 +125,10 @@ export class MaintenanceCompleteDialog extends LitElement {
       if (this._photoDocId) {
         data.photo_doc_id = this._photoDocId;
       }
+      if (this._readingValue !== "") {
+        const rv = parseFloat(this._readingValue);
+        if (!isNaN(rv)) data.reading_value = rv;
+      }
       await this.hass.connection.sendMessagePromise(data);
       this._open = false;
       this.dispatchEvent(new CustomEvent("task-completed"));
@@ -153,6 +162,15 @@ export class MaintenanceCompleteDialog extends LitElement {
               `)}
             </div>
           ` : nothing}
+          ${this.taskType === "reading"
+            ? html`
+              <label class="field">
+                <span class="field-label">${t("reading_value_label", L)}${this.readingUnit ? ` (${this.readingUnit})` : ""}</span>
+                <input type="number" step="any" class="field-input"
+                  .value=${this._readingValue}
+                  @input=${(e: Event) => (this._readingValue = (e.target as HTMLInputElement).value)} />
+              </label>`
+            : nothing}
           <!-- Native <input>s rather than <ha-textfield>: when this dialog
                is opened from a Lovelace card via dialog-mount, ha-textfield
                isn't yet registered (HA loads it lazily when its own panels

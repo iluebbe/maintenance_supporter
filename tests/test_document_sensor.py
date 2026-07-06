@@ -34,9 +34,13 @@ def _isolate_docs_dir(hass: HomeAssistant) -> Iterator[None]:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -58,7 +62,7 @@ async def test_sensor_metadata_and_value(hass: HomeAssistant) -> None:
     assert sensor.native_value == 13  # 10 + 3 (the shared 10-byte blob counts once)
 
     attrs = sensor.extra_state_attributes
-    assert attrs["logical_bytes"] == 23           # 10 + 10 + 3
+    assert attrs["logical_bytes"] == 23  # 10 + 10 + 3
     assert attrs["dedup_savings_bytes"] == 10
     assert attrs["file_count"] == 3
     assert attrs["link_count"] == 1
@@ -67,7 +71,8 @@ async def test_sensor_metadata_and_value(hass: HomeAssistant) -> None:
 
 
 async def test_sensor_registered_and_updates_live(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """The sensor is registered on the global device and refreshes on changes."""
     await setup_integration(hass, global_entry)

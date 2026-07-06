@@ -137,7 +137,9 @@ async def test_entity_rename_rewrites_trigger_config_and_reloads(
         "environmental_entity": "sensor.old_name",
     }
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Renamable",
         data=build_object_entry_data(
             object_data=build_object_data(name="Renamable"),
@@ -185,9 +187,7 @@ async def test_entity_rename_ignores_unrelated_event(
 ) -> None:
     """Non-rename entity_registry events must not touch entry.data."""
     await setup_integration(hass, global_config_entry, object_config_entry)
-    before = dict(
-        hass.config_entries.async_get_entry(object_config_entry.entry_id).data
-    )
+    before = dict(hass.config_entries.async_get_entry(object_config_entry.entry_id).data)
 
     # action=create has no "changes" — must be a no-op
     hass.bus.async_fire(
@@ -213,7 +213,9 @@ async def test_orphan_responsible_user_id_cleared_at_setup(
     task["responsible_user_id"] = "ghost-user-uuid"  # no such user
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Has ghost user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -222,10 +224,13 @@ async def test_orphan_responsible_user_id_cleared_at_setup(
     entry.add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -246,7 +251,9 @@ async def test_real_responsible_user_id_kept(
     task["responsible_user_id"] = "active-user"
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Has real user",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -255,10 +262,13 @@ async def test_real_responsible_user_id_kept(
     entry.add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -278,7 +288,9 @@ async def test_orphan_check_skipped_when_no_users(
     task["responsible_user_id"] = "synthetic-test-user"
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="No users at all",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -286,10 +298,13 @@ async def test_orphan_check_skipped_when_no_users(
     )
     entry.add_to_hass(hass)
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -309,15 +324,20 @@ async def test_async_remove_entry_cleans_group_refs(
     # the entry we're about to remove.
     obj_unique = "maintenance_supporter_grouped_obj"
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Grouped",
         data=build_object_entry_data(tasks={TASK_ID_1: build_task_data()}),
-        source="user", unique_id=obj_unique,
+        source="user",
+        unique_id=obj_unique,
     )
     obj_entry.add_to_hass(hass)
 
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options={
@@ -331,7 +351,8 @@ async def test_async_remove_entry_cleans_group_refs(
                 },
             },
         },
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, obj_entry)

@@ -676,7 +676,8 @@
           "custom_icon": "Icona attività",
           "nfc_tag_id": "ID tag NFC",
           "go_back": "Indietro",
-          "interval_anchor": "Ancoraggio intervallo"
+          "interval_anchor": "Ancoraggio intervallo",
+          "reading_unit": "Unità di lettura (per attività di lettura, es. kWh)"
         },
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
@@ -862,7 +863,8 @@
           "type": "Tipo di manutenzione",
           "schedule_type": "Tipo di pianificazione",
           "custom_icon": "Icona attività",
-          "go_back": "Indietro"
+          "go_back": "Indietro",
+          "reading_unit": "Unità di lettura (per attività di lettura, es. kWh)"
         },
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Durata",
           "description": "Durata della manutenzione in minuti."
+        },
+        "reading_value": {
+          "name": "Valore letto",
+          "description": "Valore registrato per attività di lettura (lettura contatore, controllo livello)."
         }
       }
     },

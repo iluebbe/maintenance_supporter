@@ -679,5 +679,9 @@
   "replace_object": "Ersätt…",
   "replace_object_prompt": "Pensionera detta objekt och skapa en efterträdare. Historik och kostnader arkiveras på det gamla; uppgifter och dokument följer med till det nya, räknare börjar om.",
   "replace_name_label": "Efterträdarens namn",
-  "object_replaced": "Objekt ersatt — efterträdare skapad"
+  "object_replaced": "Objekt ersatt — efterträdare skapad",
+  "reading_unit_label": "Avläsningsenhet (t.ex. kWh, m³)",
+  "reading_unit_help": "Visas bredvid det registrerade värdet när uppgiften slutförs.",
+  "reading_value_label": "Avläst värde",
+  "reading_label": "Avläsning"
 }

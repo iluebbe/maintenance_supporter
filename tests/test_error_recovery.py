@@ -41,10 +41,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -58,13 +61,16 @@ async def test_notify_service_unavailable(
 ) -> None:
     """Notify service raises error → caught, no crash."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(
             notifications_enabled=True,
             notify_service="notify.nonexistent",
         ),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
         options={
             CONF_NOTIFICATIONS_ENABLED: True,
             CONF_NOTIFY_SERVICE: "notify.nonexistent",
@@ -79,7 +85,9 @@ async def test_notify_service_unavailable(
     last_performed = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(last_performed=last_performed, interval_days=30)
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Notify Fail",
         data=build_object_entry_data(
             object_data=build_object_data(name="Notify Fail"),
@@ -116,7 +124,8 @@ async def test_notify_service_unavailable(
 
 
 async def test_trigger_entity_disappears(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Sensor entity removed mid-operation → graceful handling."""
     set_sensor_state(hass, "sensor.disappearing", "25.0")
@@ -131,7 +140,9 @@ async def test_trigger_entity_disappears(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Disappear Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Disappear Test"),
@@ -161,7 +172,8 @@ async def test_trigger_entity_disappears(
 
 
 async def test_trigger_entity_unavailable(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Sensor state='unavailable' → trigger not activated."""
     set_sensor_state(hass, "sensor.flaky", "0.5")
@@ -176,7 +188,9 @@ async def test_trigger_entity_unavailable(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Unavailable Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Unavailable Test"),
@@ -203,7 +217,8 @@ async def test_trigger_entity_unavailable(
 
 
 async def test_store_missing_on_reload(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Store file deleted → reload → Store re-initializes, no crash."""
     task = build_task_data(
@@ -211,7 +226,9 @@ async def test_store_missing_on_reload(
         interval_days=30,
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Store Missing",
         data=build_object_entry_data(
             object_data=build_object_data(name="Store Missing"),
@@ -229,6 +246,7 @@ async def test_store_missing_on_reload(
 
     # Delete store file (simulate corruption/loss)
     import os
+
     store_path = hass.config.path(f".storage/maintenance_supporter.{obj_entry.entry_id}")
     if os.path.exists(store_path):
         os.remove(store_path)
@@ -244,7 +262,8 @@ async def test_store_missing_on_reload(
 
 
 async def test_invalid_history_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Malformed history entry in Store → coordinator handles gracefully."""
     task = build_task_data(
@@ -252,7 +271,9 @@ async def test_invalid_history_entry(
         interval_days=30,
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Bad History",
         data=build_object_entry_data(
             object_data=build_object_data(name="Bad History"),
@@ -270,12 +291,15 @@ async def test_invalid_history_entry(
     coordinator = entry.runtime_data.coordinator
 
     # Inject malformed history entries into the store
-    store.set_history(TASK_ID_1, [
-        {"type": "completed", "timestamp": "not-a-date", "cost": "not-a-number"},
-        {},  # completely empty entry
-        {"type": "unknown_type"},
-        {"type": "completed", "timestamp": dt_util.now().isoformat()},  # valid
-    ])
+    store.set_history(
+        TASK_ID_1,
+        [
+            {"type": "completed", "timestamp": "not-a-date", "cost": "not-a-number"},
+            {},  # completely empty entry
+            {"type": "unknown_type"},
+            {"type": "completed", "timestamp": dt_util.now().isoformat()},  # valid
+        ],
+    )
 
     # Refresh should not crash despite malformed history
     await coordinator.async_refresh()
@@ -286,11 +310,14 @@ async def test_invalid_history_entry(
 
 
 async def test_calendar_with_no_tasks(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Object with 0 tasks → calendar returns empty events."""
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Empty Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Empty Object"),
@@ -306,15 +333,14 @@ async def test_calendar_with_no_tasks(
     calendar = hass.data.get(DOMAIN, {}).get("_calendar_entity")
     if calendar is not None:
         now = dt_util.now()
-        events = await calendar.async_get_events(
-            hass, now, now + timedelta(days=365)
-        )
+        events = await calendar.async_get_events(hass, now, now + timedelta(days=365))
         # Should be empty list, not an error
         assert isinstance(events, list)
 
 
 async def test_threshold_trigger_non_numeric_state(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Sensor returns 'unknown' → no ValueError, trigger not activated."""
     hass.states.async_set("sensor.bad_data", "unknown")
@@ -329,7 +355,9 @@ async def test_threshold_trigger_non_numeric_state(
         },
     )
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Bad Data Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Bad Data Test"),

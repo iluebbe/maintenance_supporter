@@ -46,13 +46,16 @@ NOTIFICATION_MANAGER_KEY = "_notification_manager"
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(
             notifications_enabled=True,
             notify_service="notify.mobile_app",
         ),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
         options={
             CONF_NOTIFICATIONS_ENABLED: True,
             CONF_NOTIFY_SERVICE: "notify.mobile_app",
@@ -76,7 +79,9 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     last_performed = (dt_util.now().date() - timedelta(days=20)).isoformat()
     task = build_task_data(last_performed=last_performed)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -106,14 +111,16 @@ async def test_old_status_correct_on_first_transition(
     mock_notify = AsyncMock()
 
     with patch.object(nm, "async_task_status_changed", mock_notify):
-        await coordinator._async_notify_status_changes({
-            TASK_ID_1: {
-                "name": "Filter Cleaning",
-                "_status": MaintenanceStatus.DUE_SOON,
-                "_days_until_due": 5,
-                "_next_due": "2026-03-07",
+        await coordinator._async_notify_status_changes(
+            {
+                TASK_ID_1: {
+                    "name": "Filter Cleaning",
+                    "_status": MaintenanceStatus.DUE_SOON,
+                    "_days_until_due": 5,
+                    "_next_due": "2026-03-07",
+                }
             }
-        })
+        )
 
     # Notification should have been sent
     mock_notify.assert_called_once()
@@ -144,14 +151,16 @@ async def test_old_status_correct_on_second_transition(
     mock_notify = AsyncMock()
 
     with patch.object(nm, "async_task_status_changed", mock_notify):
-        await coordinator._async_notify_status_changes({
-            TASK_ID_1: {
-                "name": "Filter Cleaning",
-                "_status": MaintenanceStatus.DUE_SOON,
-                "_days_until_due": 5,
-                "_next_due": "2026-03-07",
+        await coordinator._async_notify_status_changes(
+            {
+                TASK_ID_1: {
+                    "name": "Filter Cleaning",
+                    "_status": MaintenanceStatus.DUE_SOON,
+                    "_days_until_due": 5,
+                    "_next_due": "2026-03-07",
+                }
             }
-        })
+        )
 
     # Notification should have been sent with the correct new_status
     mock_notify.assert_called_once()
@@ -180,14 +189,16 @@ async def test_old_status_due_soon_to_overdue(
     mock_notify = AsyncMock()
 
     with patch.object(nm, "async_task_status_changed", mock_notify):
-        await coordinator._async_notify_status_changes({
-            TASK_ID_1: {
-                "name": "Filter Cleaning",
-                "_status": MaintenanceStatus.OVERDUE,
-                "_days_until_due": -2,
-                "_next_due": "2026-02-28",
+        await coordinator._async_notify_status_changes(
+            {
+                TASK_ID_1: {
+                    "name": "Filter Cleaning",
+                    "_status": MaintenanceStatus.OVERDUE,
+                    "_days_until_due": -2,
+                    "_next_due": "2026-02-28",
+                }
             }
-        })
+        )
 
     mock_notify.assert_called_once()
     call_kwargs = mock_notify.call_args.kwargs
@@ -216,13 +227,15 @@ async def test_previous_statuses_updated_when_no_notifiable(
 
     with patch.object(nm, "async_task_status_changed", mock_notify):
         # "ok" is not a notifiable status, so no notification sent
-        await coordinator._async_notify_status_changes({
-            TASK_ID_1: {
-                "name": "Filter Cleaning",
-                "_status": MaintenanceStatus.OK,
-                "_days_until_due": 25,
+        await coordinator._async_notify_status_changes(
+            {
+                TASK_ID_1: {
+                    "name": "Filter Cleaning",
+                    "_status": MaintenanceStatus.OK,
+                    "_days_until_due": 25,
+                }
             }
-        })
+        )
 
     # No notification should have been sent
     mock_notify.assert_not_called()
@@ -251,20 +264,20 @@ async def test_cache_not_updated_before_notification_sent(
         # Capture what _previous_statuses holds at the moment of the call.
         # Before the fix, this would already be "overdue". After the fix,
         # it should still be "ok" (not yet updated).
-        captured_cache_at_call.append(
-            coordinator._previous_statuses.get(TASK_ID_1)
-        )
+        captured_cache_at_call.append(coordinator._previous_statuses.get(TASK_ID_1))
 
     nm = hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY]
     with patch.object(nm, "async_task_status_changed", AsyncMock(side_effect=_capture_cache)):
-        await coordinator._async_notify_status_changes({
-            TASK_ID_1: {
-                "name": "Filter Cleaning",
-                "_status": MaintenanceStatus.OVERDUE,
-                "_days_until_due": -1,
-                "_next_due": "2026-03-01",
+        await coordinator._async_notify_status_changes(
+            {
+                TASK_ID_1: {
+                    "name": "Filter Cleaning",
+                    "_status": MaintenanceStatus.OVERDUE,
+                    "_days_until_due": -1,
+                    "_next_due": "2026-03-01",
+                }
             }
-        })
+        )
 
     # At call time, cache should still hold the OLD value
     assert captured_cache_at_call == [MaintenanceStatus.OK]

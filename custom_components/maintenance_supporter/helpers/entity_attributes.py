@@ -168,9 +168,7 @@ DOMAIN_ATTRIBUTE_MAP: dict[str, dict[str, Any]] = {
 }
 
 
-def get_entity_attributes(
-    hass: HomeAssistant, entity_id: str
-) -> dict[str, Any]:
+def get_entity_attributes(hass: HomeAssistant, entity_id: str) -> dict[str, Any]:
     """Get relevant attributes for an entity, combining domain mapping with live state.
 
     Returns a dict with:
@@ -217,11 +215,13 @@ def get_entity_attributes(
         except (ValueError, TypeError):
             pass
 
-        available.append({
-            "name": attr_name,
-            "value": attr_value if isinstance(attr_value, (str, int, float, bool, type(None))) else str(attr_value),
-            "numeric": is_numeric,
-        })
+        available.append(
+            {
+                "name": attr_name,
+                "value": attr_value if isinstance(attr_value, (str, int, float, bool, type(None))) else str(attr_value),
+                "numeric": is_numeric,
+            }
+        )
 
     # Suggested attributes: from domain mapping, filtered to those actually present
     suggested = domain_info.get("attributes", [])

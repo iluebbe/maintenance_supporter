@@ -676,7 +676,8 @@
           "custom_icon": "Ícone da tarefa",
           "nfc_tag_id": "ID da etiqueta NFC",
           "go_back": "Voltar",
-          "interval_anchor": "Âncora do intervalo"
+          "interval_anchor": "Âncora do intervalo",
+          "reading_unit": "Unidade de leitura (para tarefas de leitura, p. ex. kWh)"
         },
         "data_description": {
           "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
@@ -862,7 +863,8 @@
           "type": "Tipo de manutenção",
           "schedule_type": "Tipo de agendamento",
           "custom_icon": "Ícone da tarefa",
-          "go_back": "Voltar"
+          "go_back": "Voltar",
+          "reading_unit": "Unidade de leitura (para tarefas de leitura, p. ex. kWh)"
         },
         "data_description": {
           "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Duração",
           "description": "Duração da manutenção em minutos."
+        },
+        "reading_value": {
+          "name": "Valor de leitura",
+          "description": "Valor registado para tarefas de leitura (leitura de contador, verificação de nível)."
         }
       }
     },

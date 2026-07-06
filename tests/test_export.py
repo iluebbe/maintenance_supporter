@@ -32,6 +32,7 @@ from custom_components.maintenance_supporter.const import (
 def test_export_yaml_normal() -> None:
     """serialize_export with fmt='yaml' produces valid YAML containing expected keys."""
     from custom_components.maintenance_supporter.export import serialize_export
+
     yaml = pytest.importorskip("yaml")
     data = {"version": 1, "objects": [{"entry_id": "abc", "object": {"name": "Pump"}, "tasks": []}]}
     result = serialize_export(data, fmt="yaml")
@@ -43,6 +44,7 @@ def test_export_yaml_normal() -> None:
 def test_export_yaml_import_error_fallback() -> None:
     """When PyYAML is unavailable, serialize_export falls back to JSON."""
     from custom_components.maintenance_supporter.export import serialize_export
+
     data = {"version": 1, "objects": []}
     with patch.dict("sys.modules", {"yaml": None}):
         result = serialize_export(data, fmt="yaml")
@@ -97,10 +99,13 @@ def test_export_default_anchor() -> None:
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -115,7 +120,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",

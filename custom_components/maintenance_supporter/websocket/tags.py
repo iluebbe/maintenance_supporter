@@ -17,9 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 _TAG_DOMAIN = "tag"
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/tags/list"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/tags/list"})
 @websocket_api.async_response
 async def ws_list_tags(
     hass: HomeAssistant,
@@ -44,9 +42,7 @@ async def ws_list_tags(
                     # which is why the dropdown looked fine "until I restart,
                     # then they only show up as UUIDs" (forum report). Resolve
                     # exactly like HA's own tag/list handler does.
-                    entity_id = ent_reg.async_get_entity_id(
-                        _TAG_DOMAIN, _TAG_DOMAIN, tag_id
-                    )
+                    entity_id = ent_reg.async_get_entity_id(_TAG_DOMAIN, _TAG_DOMAIN, tag_id)
                     if entity_id and (entity := ent_reg.async_get(entity_id)):
                         tag_name = entity.name or entity.original_name or ""
                 tags.append({"id": tag_id, "name": tag_name or tag_id})

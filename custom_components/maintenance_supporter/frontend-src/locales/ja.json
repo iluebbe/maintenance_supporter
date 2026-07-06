@@ -679,5 +679,9 @@
   "replace_object": "置き換え…",
   "replace_object_prompt": "このオブジェクトを退役させ、後継を作成します。履歴とコストは旧オブジェクトにアーカイブされたまま残り、タスクと文書は新しいオブジェクトへ引き継がれ、カウンターはリセットされます。",
   "replace_name_label": "後継の名前",
-  "object_replaced": "オブジェクトを置き換えました — 後継を作成"
+  "object_replaced": "オブジェクトを置き換えました — 後継を作成",
+  "reading_unit_label": "検針単位（例: kWh、m³）",
+  "reading_unit_help": "このタスクの完了時に記録値の横に表示されます。",
+  "reading_value_label": "検針値",
+  "reading_label": "検針"
 }

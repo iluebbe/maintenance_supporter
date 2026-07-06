@@ -29,14 +29,10 @@ from .conftest import (
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
 
-def _get_sensor_entity_id(
-    hass: HomeAssistant, config_entry: ConfigEntry
-) -> str | None:
+def _get_sensor_entity_id(hass: HomeAssistant, config_entry: ConfigEntry) -> str | None:
     """Get the first sensor entity ID for a config entry."""
     entity_reg = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(
-        entity_reg, config_entry.entry_id
-    )
+    entities = er.async_entries_for_config_entry(entity_reg, config_entry.entry_id)
     sensor_entities = [e for e in entities if e.domain == "sensor"]
     if sensor_entities:
         return sensor_entities[0].entity_id

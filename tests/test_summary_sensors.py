@@ -53,9 +53,7 @@ def _obj_entry(
     """Register an object entry with one time-based task at a known status."""
     last_performed = None
     if last_performed_days is not None:
-        last_performed = (
-            dt_util.now().date() - timedelta(days=last_performed_days)
-        ).isoformat()
+        last_performed = (dt_util.now().date() - timedelta(days=last_performed_days)).isoformat()
     task = build_task_data(
         last_performed=last_performed,
         interval_days=interval,
@@ -67,9 +65,7 @@ def _obj_entry(
         minor_version=1,
         domain=DOMAIN,
         title=name,
-        data=build_object_entry_data(
-            object_data=build_object_data(name=name), tasks={TASK_ID_1: task}
-        ),
+        data=build_object_entry_data(object_data=build_object_data(name=name), tasks={TASK_ID_1: task}),
         source="user",
         unique_id=unique,
     )
@@ -82,17 +78,11 @@ async def _setup_mixed(hass: HomeAssistant, global_config_entry: MockConfigEntry
     e_overdue = _obj_entry(hass, "Over", "ms_over", last_performed_days=60)
     e_due = _obj_entry(hass, "Due", "ms_due", last_performed_days=27)  # due in 3d
     e_ok = _obj_entry(hass, "Ok", "ms_ok", last_performed_days=1)
-    e_disabled = _obj_entry(
-        hass, "Disabled", "ms_dis", last_performed_days=60, enabled=False
-    )
-    await setup_integration(
-        hass, global_config_entry, e_overdue, e_due, e_ok, e_disabled
-    )
+    e_disabled = _obj_entry(hass, "Disabled", "ms_dis", last_performed_days=60, enabled=False)
+    await setup_integration(hass, global_config_entry, e_overdue, e_due, e_ok, e_disabled)
 
 
-async def test_statistics_ws_matches_aggregator(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_statistics_ws_matches_aggregator(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """DRY tripwire: the statistics WS payload equals compute_status_counts."""
     await _setup_mixed(hass, global_config_entry)
 
@@ -113,9 +103,7 @@ async def test_statistics_ws_matches_aggregator(
         assert payload[key] == counts[key], f"WS/aggregator disagree on {key}"
 
 
-async def test_summary_coordinator_reflects_counts(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_summary_coordinator_reflects_counts(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """The global summary coordinator holds the same counts."""
     await _setup_mixed(hass, global_config_entry)
 
@@ -128,13 +116,9 @@ async def test_summary_coordinator_reflects_counts(
     assert summary.data["needs_attention"] == 2
 
 
-async def test_disabled_task_counts_as_ok_not_overdue(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_disabled_task_counts_as_ok_not_overdue(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """A disabled task that would be overdue must not inflate 'overdue'."""
-    e_disabled = _obj_entry(
-        hass, "Disabled", "ms_dis_only", last_performed_days=90, enabled=False
-    )
+    e_disabled = _obj_entry(hass, "Disabled", "ms_dis_only", last_performed_days=90, enabled=False)
     await setup_integration(hass, global_config_entry, e_disabled)
 
     counts = compute_status_counts(hass)
@@ -143,9 +127,7 @@ async def test_disabled_task_counts_as_ok_not_overdue(
     assert counts["needs_attention"] == 0
 
 
-async def test_zero_objects_all_zero(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_zero_objects_all_zero(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """With only the global entry, every count is zero (and available)."""
     await setup_integration(hass, global_config_entry)
 
@@ -164,9 +146,7 @@ async def test_zero_objects_all_zero(
     assert summary.data["overdue"] == 0
 
 
-async def test_object_removal_updates_counts(
-    hass: HomeAssistant, global_config_entry: MockConfigEntry
-) -> None:
+async def test_object_removal_updates_counts(hass: HomeAssistant, global_config_entry: MockConfigEntry) -> None:
     """Deleting an object refreshes the summary counts immediately.
 
     The coordinator listens for SIGNAL_OBJECT_ENTRY_REMOVED (dispatched from
@@ -201,9 +181,7 @@ async def test_object_removal_updates_counts(
         ("total_tasks", 10),
     ],
 )
-def test_summary_sensor_native_value(
-    hass: HomeAssistant, key: str, expected: int
-) -> None:
+def test_summary_sensor_native_value(hass: HomeAssistant, key: str, expected: int) -> None:
     """Each summary sensor returns its slice of the coordinator data."""
     coordinator = MaintenanceSummaryCoordinator(hass)
     coordinator.data = {

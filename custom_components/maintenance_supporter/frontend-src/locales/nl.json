@@ -679,5 +679,9 @@
   "replace_object": "Vervangen…",
   "replace_object_prompt": "Dit object uitfaseren en een opvolger aanmaken. Geschiedenis en kosten blijven gearchiveerd bij het oude; taken en documenten gaan mee naar het nieuwe, tellers beginnen opnieuw.",
   "replace_name_label": "Naam van de opvolger",
-  "object_replaced": "Object vervangen — opvolger aangemaakt"
+  "object_replaced": "Object vervangen — opvolger aangemaakt",
+  "reading_unit_label": "Meeteenheid (bijv. kWh, m³)",
+  "reading_unit_help": "Wordt naast de vastgelegde waarde getoond bij het afronden van deze taak.",
+  "reading_value_label": "Meterstand",
+  "reading_label": "Meting"
 }

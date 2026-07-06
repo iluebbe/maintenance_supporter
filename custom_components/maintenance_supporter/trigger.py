@@ -44,18 +44,10 @@ else:
     }
 
     TRIGGERS = {
-        "task_became_overdue": make_entity_target_state_trigger(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.OVERDUE
-        ),
-        "task_became_due_soon": make_entity_target_state_trigger(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.DUE_SOON
-        ),
-        "sensor_trigger_activated": make_entity_target_state_trigger(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.TRIGGERED
-        ),
-        "task_became_ok": make_entity_target_state_trigger(
-            _TASK_SENSOR_SPECS, MaintenanceStatus.OK
-        ),
+        "task_became_overdue": make_entity_target_state_trigger(_TASK_SENSOR_SPECS, MaintenanceStatus.OVERDUE),
+        "task_became_due_soon": make_entity_target_state_trigger(_TASK_SENSOR_SPECS, MaintenanceStatus.DUE_SOON),
+        "sensor_trigger_activated": make_entity_target_state_trigger(_TASK_SENSOR_SPECS, MaintenanceStatus.TRIGGERED),
+        "task_became_ok": make_entity_target_state_trigger(_TASK_SENSOR_SPECS, MaintenanceStatus.OK),
     }
 
 

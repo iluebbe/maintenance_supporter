@@ -100,7 +100,6 @@ async def mock_dependencies(hass: HomeAssistant) -> AsyncGenerator[None]:
         yield
 
 
-
 # ─── Constants for testing ──────────────────────────────────────────────
 
 TASK_ID_1 = "a" * 32
@@ -180,9 +179,7 @@ def build_task_data(
     return data
 
 
-def get_task_store_state(
-    hass: HomeAssistant, entry_id: str, task_id: str
-) -> dict[str, Any]:
+def get_task_store_state(hass: HomeAssistant, entry_id: str, task_id: str) -> dict[str, Any]:
     """Get the dynamic state for a task from the Store.
 
     Returns the Store's task state dict, or falls back to reading from
@@ -348,9 +345,7 @@ def assert_ws_success(connection: MagicMock) -> dict[str, Any]:
     conn.send_result.call_args[0][1]` snippet that was duplicated
     across ~19 test files.
     """
-    assert connection.send_error.call_count == 0, (
-        f"WS handler returned an error: {connection.send_error.call_args}"
-    )
+    assert connection.send_error.call_count == 0, f"WS handler returned an error: {connection.send_error.call_args}"
     assert connection.send_result.call_count == 1, (
         f"WS handler did not send a result (calls: {connection.send_result.call_count})"
     )
@@ -362,12 +357,8 @@ def assert_ws_error(connection: MagicMock, code: str | None = None) -> tuple[str
 
     If ``code`` is provided, also asserts the error code matches.
     """
-    assert connection.send_result.call_count == 0, (
-        f"Expected send_error but got send_result: {connection.send_result.call_args}"
-    )
-    assert connection.send_error.call_count == 1, (
-        f"Expected exactly one send_error (got {connection.send_error.call_count})"
-    )
+    assert connection.send_result.call_count == 0, f"Expected send_error but got send_result: {connection.send_result.call_args}"
+    assert connection.send_error.call_count == 1, f"Expected exactly one send_error (got {connection.send_error.call_count})"
     args = connection.send_error.call_args[0]
     err_code, err_msg = args[1], args[2]
     if code is not None:

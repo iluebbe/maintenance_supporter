@@ -205,9 +205,7 @@ def _detail_suffix(data: Mapping[str, Any]) -> str:
 @callback
 def async_describe_events(
     hass: HomeAssistant,
-    async_describe_event: Callable[
-        [str, str, Callable[[Event], dict[str, Any]]], None
-    ],
+    async_describe_event: Callable[[str, str, Callable[[Event], dict[str, Any]]], None],
 ) -> None:
     """Describe the integration's bus events for the activity timeline."""
 
@@ -243,9 +241,7 @@ def async_describe_events(
         data = event.data
         entry = {
             LOGBOOK_ENTRY_NAME: _entry_name(data),
-            LOGBOOK_ENTRY_MESSAGE: _t(
-                hass, "reset", date=str(data.get("date") or "?")
-            ),
+            LOGBOOK_ENTRY_MESSAGE: _t(hass, "reset", date=str(data.get("date") or "?")),
             LOGBOOK_ENTRY_ICON: "mdi:restore",
         }
         if entity_id := _task_entity_id(hass, data):

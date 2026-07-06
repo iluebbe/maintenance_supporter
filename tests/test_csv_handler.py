@@ -23,6 +23,7 @@ def test_csv_roundtrip_interval_anchor() -> None:
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_import_csv_skips_rows_without_task_name() -> None:
     """Line 180: rows with empty task_name are skipped."""
     from custom_components.maintenance_supporter.helpers.csv_handler import import_objects_csv
@@ -33,29 +34,26 @@ def test_import_csv_skips_rows_without_task_name() -> None:
     assert len(result) == 1
     assert result[0]["tasks"] == {}
 
+
 def test_import_csv_last_performed_set() -> None:
     """Line 218: last_performed is stored when non-empty."""
     from custom_components.maintenance_supporter.helpers.csv_handler import import_objects_csv
 
-    csv_content = (
-        "object_name,task_name,schedule_type,last_performed\n"
-        "Pump,Filter clean,time_based,2026-04-01\n"
-    )
+    csv_content = "object_name,task_name,schedule_type,last_performed\nPump,Filter clean,time_based,2026-04-01\n"
     result = import_objects_csv(csv_content)
     task = next(iter(result[0]["tasks"].values()))
     assert task["last_performed"] == "2026-04-01"
+
 
 def test_import_csv_notes_set_when_non_empty() -> None:
     """Line 222: notes are stored when non-empty."""
     from custom_components.maintenance_supporter.helpers.csv_handler import import_objects_csv
 
-    csv_content = (
-        "object_name,task_name,schedule_type,notes\n"
-        "Pump,Filter clean,time_based,Check valve too\n"
-    )
+    csv_content = "object_name,task_name,schedule_type,notes\nPump,Filter clean,time_based,Check valve too\n"
     result = import_objects_csv(csv_content)
     task = next(iter(result[0]["tasks"].values()))
     assert task["notes"] == "Check valve too"
+
 
 def test_safe_int_none_returns_default() -> None:
     """Lines 265, 268-269: _safe_int handles None and invalid strings."""

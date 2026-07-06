@@ -40,9 +40,7 @@ _CONDITIONS = [
 ]
 
 
-async def _captured_condition_configs(
-    hass: HomeAssistant, persisted_conditions: list[dict[str, Any]]
-) -> list[dict[str, Any]]:
+async def _captured_condition_configs(hass: HomeAssistant, persisted_conditions: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Run CompoundTrigger.async_setup and capture the per-condition configs."""
     hass.states.async_set("sensor.temp", "25")
     hass.states.async_set("sensor.humidity", "60")

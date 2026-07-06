@@ -676,7 +676,8 @@
           "custom_icon": "Oppgaveikon",
           "nfc_tag_id": "NFC-tagg-ID",
           "go_back": "Gå tilbake",
-          "interval_anchor": "Intervallanker"
+          "interval_anchor": "Intervallanker",
+          "reading_unit": "Avlesningsenhet (for avlesningsoppgaver, f.eks. kWh)"
         },
         "data_description": {
           "name": "Et beskrivende navn for denne oppgaven (f.eks. «Filterrengjøring», «Oljeskift»).",
@@ -862,7 +863,8 @@
           "type": "Vedlikeholdstype",
           "schedule_type": "Planleggingstype",
           "custom_icon": "Oppgaveikon",
-          "go_back": "Gå tilbake"
+          "go_back": "Gå tilbake",
+          "reading_unit": "Avlesningsenhet (for avlesningsoppgaver, f.eks. kWh)"
         },
         "data_description": {
           "name": "Et beskrivende navn for denne oppgaven (f.eks. «Filterrengjøring», «Oljeskift»).",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Varighet",
           "description": "Varigheten på vedlikeholdet i minutter."
+        },
+        "reading_value": {
+          "name": "Avlest verdi",
+          "description": "Registrert verdi for avlesningsoppgaver (måleravlesning, nivåkontroll)."
         }
       }
     },

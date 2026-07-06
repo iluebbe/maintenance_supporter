@@ -84,9 +84,7 @@ def require_write(func: WebSocketCommandHandler) -> WebSocketCommandHandler:
     """
 
     @wraps(func)
-    def with_write(
-        hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]
-    ) -> None:
+    def with_write(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
         """Check write permission and call the wrapped handler."""
         if not user_may_write(hass, connection):
             raise Unauthorized

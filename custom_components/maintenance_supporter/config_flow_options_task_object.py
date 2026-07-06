@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
+
 class ObjectSettingsMixin:
     """Edit the maintenance object's metadata."""
 
@@ -32,12 +33,11 @@ class ObjectSettingsMixin:
     if TYPE_CHECKING:
         hass: HomeAssistant
         config_entry: ConfigEntry
+
         def _show_init_menu(self) -> ConfigFlowResult: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
 
-    async def async_step_object_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_object_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Edit object settings."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -51,8 +51,10 @@ class ObjectSettingsMixin:
             from .helpers.entity_rename import migrate_object_unique_ids
 
             migrate_object_unique_ids(
-                self.hass, self.config_entry,
-                obj.get("name"), user_input.get(CONF_OBJECT_NAME, obj.get("name")),
+                self.hass,
+                self.config_entry,
+                obj.get("name"),
+                user_input.get(CONF_OBJECT_NAME, obj.get("name")),
             )
             obj[CONF_OBJECT_NAME] = user_input.get(CONF_OBJECT_NAME, obj.get("name"))
             obj[CONF_OBJECT_MANUFACTURER] = user_input.get(CONF_OBJECT_MANUFACTURER)
@@ -60,21 +62,13 @@ class ObjectSettingsMixin:
             obj[CONF_OBJECT_SERIAL_NUMBER] = user_input.get(CONF_OBJECT_SERIAL_NUMBER)
             obj[CONF_OBJECT_AREA] = user_input.get(CONF_OBJECT_AREA)
             if user_input.get(CONF_OBJECT_INSTALLATION_DATE):
-                obj[CONF_OBJECT_INSTALLATION_DATE] = str(
-                    user_input[CONF_OBJECT_INSTALLATION_DATE]
-                )
+                obj[CONF_OBJECT_INSTALLATION_DATE] = str(user_input[CONF_OBJECT_INSTALLATION_DATE])
             if user_input.get(CONF_OBJECT_WARRANTY_EXPIRY):
-                obj[CONF_OBJECT_WARRANTY_EXPIRY] = str(
-                    user_input[CONF_OBJECT_WARRANTY_EXPIRY]
-                )
+                obj[CONF_OBJECT_WARRANTY_EXPIRY] = str(user_input[CONF_OBJECT_WARRANTY_EXPIRY])
             # v1.4.0 (#43)
-            obj[CONF_OBJECT_DOCUMENTATION_URL] = (
-                user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
-            )
+            obj[CONF_OBJECT_DOCUMENTATION_URL] = user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
             # v1.4.10 (#46)
-            obj[CONF_OBJECT_NOTES] = (
-                (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
-            )
+            obj[CONF_OBJECT_NOTES] = (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
             cap_object_fields(obj)
             new_data[CONF_OBJECT] = obj
 
@@ -109,35 +103,25 @@ class ObjectSettingsMixin:
             step_id="object_settings",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_OBJECT_NAME, default=obj.get("name", "")
-                    ): selector.TextSelector(
+                    vol.Required(CONF_OBJECT_NAME, default=obj.get("name", "")): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(
                         CONF_OBJECT_MANUFACTURER,
                         default=obj.get("manufacturer", ""),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
-                    vol.Optional(
-                        CONF_OBJECT_MODEL, default=obj.get("model", "")
-                    ): selector.TextSelector(
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    vol.Optional(CONF_OBJECT_MODEL, default=obj.get("model", "")): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(
                         CONF_OBJECT_SERIAL_NUMBER,
                         default=obj.get("serial_number") or "",
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     # v1.4.0 (#43): place under serial_number
                     vol.Optional(
                         CONF_OBJECT_DOCUMENTATION_URL,
                         default=obj.get("documentation_url") or "",
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
-                    ),
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.URL)),
                     # v1.4.10 (#46): free-form notes (multiline)
                     vol.Optional(
                         CONF_OBJECT_NOTES,
@@ -151,9 +135,7 @@ class ObjectSettingsMixin:
                     area_key: selector.AreaSelector(),
                     install_date_key: selector.DateSelector(),
                     warranty_key: selector.DateSelector(),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )

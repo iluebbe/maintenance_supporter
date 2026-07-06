@@ -64,6 +64,11 @@ class MaintenanceTask:
     nfc_tag_id: str | None = None
     priority: str = "normal"
     labels: list[str] = field(default_factory=list)
+    # --- Meter readings (v2.20, #83) ---
+    # Display unit for the recorded value of a `reading`-type task ("kWh",
+    # "m³", …). The value itself lives per completion in the history entry
+    # (`reading_value`), so the unit is task-level config, not state.
+    reading_unit: str | None = None
 
     # --- Archive (v2.10.0) ---
     # archived_at is an ISO timestamp; None means active. When set, the task
@@ -227,19 +232,12 @@ class MaintenanceTask:
         "archived" — see ``archived`` — which is the retire-but-retain state
         added in v2.10.0 and reserved for that feature.)
         """
-        return (
-            self.schedule_type == ScheduleType.ONE_TIME
-            and self.last_performed is not None
-        )
+        return self.schedule_type == ScheduleType.ONE_TIME and self.last_performed is not None
 
     @property
     def times_performed(self) -> int:
         """Count the number of completed maintenance entries in history."""
-        return sum(
-            1
-            for entry in self.history
-            if entry.get("type") == HistoryEntryType.COMPLETED
-        )
+        return sum(1 for entry in self.history if entry.get("type") == HistoryEntryType.COMPLETED)
 
     @property
     def total_cost(self) -> float:
@@ -261,8 +259,7 @@ class MaintenanceTask:
         durations = [
             entry["duration"]
             for entry in self.history
-            if entry.get("type") == HistoryEntryType.COMPLETED
-            and entry.get("duration") is not None
+            if entry.get("type") == HistoryEntryType.COMPLETED and entry.get("duration") is not None
         ]
         if not durations:
             return None
@@ -286,6 +283,7 @@ class MaintenanceTask:
         feedback: str | None = None,
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
+        reading_value: float | None = None,
     ) -> None:
         """Mark this task as completed."""
         # Save current next_due as anchor for planned mode before resetting
@@ -306,6 +304,7 @@ class MaintenanceTask:
             feedback=feedback,
             completed_by=completed_by,
             photo_doc_id=photo_doc_id,
+            reading_value=reading_value,
         )
 
         # Shared tasks: rotate the "currently responsible" pointer to the next
@@ -387,6 +386,7 @@ class MaintenanceTask:
         feedback: str | None = None,
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
+        reading_value: float | None = None,
     ) -> None:
         """Add an entry to the maintenance history."""
         entry: dict[str, Any] = {
@@ -409,6 +409,10 @@ class MaintenanceTask:
             entry["completed_by"] = completed_by
         if photo_doc_id is not None:
             entry["photo_doc_id"] = photo_doc_id
+        # Meter readings (v2.20, #83): the recorded value rides on the
+        # completion entry — the delta view derives from consecutive entries.
+        if reading_value is not None:
+            entry["reading_value"] = reading_value
 
         self.history.append(entry)
 
@@ -470,6 +474,8 @@ class MaintenanceTask:
             data["custom_icon"] = self.custom_icon
         if self.nfc_tag_id is not None:
             data["nfc_tag_id"] = self.nfc_tag_id
+        if self.reading_unit is not None:
+            data["reading_unit"] = self.reading_unit
         # Only persist a non-default priority to keep stored dicts lean.
         if self.priority and self.priority != "normal":
             data["priority"] = self.priority
@@ -526,6 +532,7 @@ class MaintenanceTask:
             documentation_url=data.get("documentation_url"),
             custom_icon=data.get("custom_icon"),
             nfc_tag_id=data.get("nfc_tag_id"),
+            reading_unit=data.get("reading_unit"),
             priority=data.get("priority", "normal"),
             labels=data.get("labels", []),
             archived_at=data.get("archived_at"),

@@ -676,7 +676,8 @@
           "custom_icon": "Icône de tâche",
           "nfc_tag_id": "ID de tag NFC",
           "go_back": "Retour",
-          "interval_anchor": "Ancrage d'intervalle"
+          "interval_anchor": "Ancrage d'intervalle",
+          "reading_unit": "Unité de relevé (pour les tâches de relevé, p. ex. kWh)"
         },
         "data_description": {
           "name": "Un nom descriptif pour cette tâche (ex. 'Nettoyage du filtre', 'Vidange').",
@@ -862,7 +863,8 @@
           "type": "Type de maintenance",
           "schedule_type": "Type de planification",
           "custom_icon": "Icône de tâche",
-          "go_back": "Retour"
+          "go_back": "Retour",
+          "reading_unit": "Unité de relevé (pour les tâches de relevé, p. ex. kWh)"
         },
         "data_description": {
           "name": "Un nom descriptif pour cette tâche (ex. 'Nettoyage du filtre', 'Vidange').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Durée",
           "description": "Durée de la maintenance en minutes."
+        },
+        "reading_value": {
+          "name": "Valeur relevée",
+          "description": "Valeur enregistrée pour les tâches de relevé (relevé de compteur, contrôle de niveau)."
         }
       }
     },

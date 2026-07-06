@@ -34,10 +34,13 @@ from .journey import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -51,8 +54,11 @@ def _conn() -> MagicMock:
 
 async def _status(hass: HomeAssistant, entry_id: str, task_id: str) -> str:
     listed = await hass.services.async_call(
-        DOMAIN, "list_tasks", {"entry_id": entry_id},
-        blocking=True, return_response=True,
+        DOMAIN,
+        "list_tasks",
+        {"entry_id": entry_id},
+        blocking=True,
+        return_response=True,
     )
     for row in listed["tasks"]:
         if row["task_id"] == task_id:
@@ -60,27 +66,32 @@ async def _status(hass: HomeAssistant, entry_id: str, task_id: str) -> str:
     return "archived"  # list_tasks hides archived tasks by design
 
 
-async def test_old_appliance_is_retired_and_finally_deleted(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_old_appliance_is_retired_and_finally_deleted(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     await setup_integration(hass, global_entry)
 
     obj = await hass.services.async_call(
-        DOMAIN, "add_object", {"name": "Old Dryer"},
-        blocking=True, return_response=True,
+        DOMAIN,
+        "add_object",
+        {"name": "Old Dryer"},
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     entry_id = obj["entry_id"]
     keep = await hass.services.async_call(
-        DOMAIN, "add_task",
+        DOMAIN,
+        "add_task",
         {"entry_id": entry_id, "name": "Lint filter", "interval_days": 14},
-        blocking=True, return_response=True,
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     scrap = await hass.services.async_call(
-        DOMAIN, "add_task",
+        DOMAIN,
+        "add_task",
         {"entry_id": entry_id, "name": "Belt check", "interval_days": 180},
-        blocking=True, return_response=True,
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     keep_id, scrap_id = keep["task_id"], scrap["task_id"]
@@ -89,10 +100,17 @@ async def test_old_appliance_is_retired_and_finally_deleted(
     baseline = registry_snapshot(hass, entry)
 
     # ── Archive one task; it must stay inert ACROSS a restart ─────────────
-    await call_ws_handler(ws_archive_task, hass, _conn(), {
-        "id": 1, "type": "maintenance_supporter/task/archive",
-        "entry_id": entry_id, "task_id": scrap_id,
-    })
+    await call_ws_handler(
+        ws_archive_task,
+        hass,
+        _conn(),
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/archive",
+            "entry_id": entry_id,
+            "task_id": scrap_id,
+        },
+    )
     await hass.async_block_till_done()
     await simulate_restart(hass, global_entry, entry)
 
@@ -103,16 +121,24 @@ async def test_old_appliance_is_retired_and_finally_deleted(
     assert registry_snapshot(hass, entry) == baseline
 
     # ── Change of plans: unarchive re-arms a fresh cycle ───────────────────
-    await call_ws_handler(ws_unarchive_task, hass, _conn(), {
-        "id": 2, "type": "maintenance_supporter/task/unarchive",
-        "entry_id": entry_id, "task_id": scrap_id,
-    })
+    await call_ws_handler(
+        ws_unarchive_task,
+        hass,
+        _conn(),
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/unarchive",
+            "entry_id": entry_id,
+            "task_id": scrap_id,
+        },
+    )
     await hass.async_block_till_done()
     assert await _status(hass, entry_id, scrap_id) == "ok"
 
     # ── The dryer dies: delete one task, then the whole object ─────────────
     await hass.services.async_call(
-        DOMAIN, "delete_task",
+        DOMAIN,
+        "delete_task",
         {"entry_id": entry_id, "task_id": scrap_id},
         blocking=True,
     )
@@ -120,10 +146,16 @@ async def test_old_appliance_is_retired_and_finally_deleted(
     entry = hass.config_entries.async_get_entry(entry_id)
     assert_no_orphans(hass, entry, deleted_task_ids=(scrap_id,))
 
-    await call_ws_handler(ws_delete_object, hass, _conn(), {
-        "id": 3, "type": "maintenance_supporter/object/delete",
-        "entry_id": entry_id,
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        _conn(),
+        {
+            "id": 3,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": entry_id,
+        },
+    )
     await hass.async_block_till_done()
     assert_entry_fully_gone(hass, entry_id)
 

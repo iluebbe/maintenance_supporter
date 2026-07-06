@@ -1,4 +1,5 @@
 """Quick check of adaptive scheduling state."""
+
 import asyncio
 import os
 
@@ -6,6 +7,7 @@ import aiohttp
 
 TOKEN = os.environ["HA_TOKEN"]
 BASE = "http://localhost:8123"
+
 
 async def main():
     async with aiohttp.ClientSession() as session:
@@ -40,5 +42,6 @@ async def main():
                         print("  feedback_count:", fc)
                         print("  confidence:", co)
                         print()
+
 
 asyncio.run(main())

@@ -56,7 +56,9 @@ def test_no_restriction_always_completable() -> None:
 def test_blocked_before_window() -> None:
     # Due in ~30 days, window 0 → not yet completable.
     task = MaintenanceTask(
-        name="X", interval_days=30, last_performed=_iso_days_ago(0),
+        name="X",
+        interval_days=30,
+        last_performed=_iso_days_ago(0),
         earliest_completion_days=0,
     )
     assert task.can_complete_now is False
@@ -65,7 +67,9 @@ def test_blocked_before_window() -> None:
 def test_allowed_within_window() -> None:
     # Due in ~2 days, window 7 → within → completable.
     task = MaintenanceTask(
-        name="X", interval_days=30, last_performed=_iso_days_ago(28),
+        name="X",
+        interval_days=30,
+        last_performed=_iso_days_ago(28),
         earliest_completion_days=7,
     )
     assert task.can_complete_now is True
@@ -73,7 +77,9 @@ def test_allowed_within_window() -> None:
 
 def test_overdue_always_completable() -> None:
     task = MaintenanceTask(
-        name="X", interval_days=30, last_performed=_iso_days_ago(60),
+        name="X",
+        interval_days=30,
+        last_performed=_iso_days_ago(60),
         earliest_completion_days=0,
     )
     assert task.can_complete_now is True
@@ -137,9 +143,13 @@ def _conn() -> MagicMock:
 
 def _global(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=build_global_entry_data(),
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -147,12 +157,16 @@ def _global(hass: HomeAssistant) -> MockConfigEntry:
 
 def _object(hass: HomeAssistant, task: dict, *, uid: str) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Pool Pump",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pool Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Pool Pump"),
             tasks={TASK_ID_1: task},
         ),
-        source="user", unique_id=f"maintenance_supporter_{uid}",
+        source="user",
+        unique_id=f"maintenance_supporter_{uid}",
     )
     entry.add_to_hass(hass)
     return entry
@@ -160,24 +174,44 @@ def _object(hass: HomeAssistant, task: dict, *, uid: str) -> MockConfigEntry:
 
 async def _history(hass: HomeAssistant, obj: MockConfigEntry) -> list[dict]:
     conn = _conn()
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 9, "type": "maintenance_supporter/object", "entry_id": obj.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 9,
+            "type": "maintenance_supporter/object",
+            "entry_id": obj.entry_id,
+        },
+    )
     tasks = conn.send_result.call_args[0][1]["tasks"]
     return next(t for t in tasks if t["id"] == TASK_ID_1)["history"]
 
 
 async def test_ws_complete_blocked_before_window(hass: HomeAssistant) -> None:
-    obj = _object(hass, build_task_data(
-        interval_days=30, last_performed=_iso_days_ago(0),
-    ) | {"earliest_completion_days": 0}, uid="cw_block")
+    obj = _object(
+        hass,
+        build_task_data(
+            interval_days=30,
+            last_performed=_iso_days_ago(0),
+        )
+        | {"earliest_completion_days": 0},
+        uid="cw_block",
+    )
     await setup_integration(hass, _global(hass), obj)
 
     conn = _conn()
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": obj.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "too_early"
     # Nothing recorded.
@@ -185,46 +219,83 @@ async def test_ws_complete_blocked_before_window(hass: HomeAssistant) -> None:
 
 
 async def test_ws_complete_allowed_when_overdue(hass: HomeAssistant) -> None:
-    obj = _object(hass, build_task_data(
-        interval_days=30, last_performed=_iso_days_ago(60),
-    ) | {"earliest_completion_days": 0}, uid="cw_ok")
+    obj = _object(
+        hass,
+        build_task_data(
+            interval_days=30,
+            last_performed=_iso_days_ago(60),
+        )
+        | {"earliest_completion_days": 0},
+        uid="cw_ok",
+    )
     await setup_integration(hass, _global(hass), obj)
 
     conn = _conn()
-    await call_ws_handler(ws_complete_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": obj.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn.send_result.assert_called_once()
     assert [h for h in await _history(hass, obj) if h["type"] == "completed"]
 
 
 async def test_ws_skip_overdue_records_missed(hass: HomeAssistant) -> None:
-    obj = _object(hass, build_task_data(
-        interval_days=30, last_performed=_iso_days_ago(60),
-    ), uid="cw_missed")
+    obj = _object(
+        hass,
+        build_task_data(
+            interval_days=30,
+            last_performed=_iso_days_ago(60),
+        ),
+        uid="cw_missed",
+    )
     await setup_integration(hass, _global(hass), obj)
 
     conn = _conn()
-    await call_ws_handler(ws_skip_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/skip",
-        "entry_id": obj.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_skip_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/skip",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn.send_result.assert_called_once()
     assert [h for h in await _history(hass, obj) if h["type"] == HistoryEntryType.MISSED]
 
 
 async def test_ws_skip_not_due_records_skipped(hass: HomeAssistant) -> None:
-    obj = _object(hass, build_task_data(
-        interval_days=30, last_performed=_iso_days_ago(0),
-    ), uid="cw_skip")
+    obj = _object(
+        hass,
+        build_task_data(
+            interval_days=30,
+            last_performed=_iso_days_ago(0),
+        ),
+        uid="cw_skip",
+    )
     await setup_integration(hass, _global(hass), obj)
 
     conn = _conn()
-    await call_ws_handler(ws_skip_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/skip",
-        "entry_id": obj.entry_id, "task_id": TASK_ID_1,
-    })
+    await call_ws_handler(
+        ws_skip_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/skip",
+            "entry_id": obj.entry_id,
+            "task_id": TASK_ID_1,
+        },
+    )
     conn.send_result.assert_called_once()
     hist = await _history(hass, obj)
     assert [h for h in hist if h["type"] == HistoryEntryType.SKIPPED]

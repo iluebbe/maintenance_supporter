@@ -676,7 +676,8 @@
           "custom_icon": "Aufgaben-Icon",
           "nfc_tag_id": "NFC-Tag-ID",
           "go_back": "Zurück",
-          "interval_anchor": "Intervall-Anker"
+          "interval_anchor": "Intervall-Anker",
+          "reading_unit": "Ableseeinheit (für Ablese-Aufgaben, z. B. kWh)"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -769,7 +770,8 @@
           "type": "Wartungstyp",
           "schedule_type": "Planungsart",
           "custom_icon": "Aufgabensymbol",
-          "go_back": "Zurück"
+          "go_back": "Zurück",
+          "reading_unit": "Ableseeinheit (für Ablese-Aufgaben, z. B. kWh)"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Dauer",
           "description": "Dauer der Wartung in Minuten."
+        },
+        "reading_value": {
+          "name": "Ablesewert",
+          "description": "Erfasster Wert für Ablese-Aufgaben (Zählerstand, Füllstandskontrolle)."
         }
       }
     },

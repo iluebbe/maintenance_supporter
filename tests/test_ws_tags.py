@@ -32,10 +32,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -45,7 +48,8 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_ws_list_tags_with_items(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test listing tags when tag integration has registered tags."""
     await setup_integration(hass, global_entry)
@@ -58,9 +62,15 @@ async def test_ws_list_tags_with_items(
     ]
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["tags"]) == 2
@@ -69,7 +79,8 @@ async def test_ws_list_tags_with_items(
 
 
 async def test_ws_list_tags_with_object_items(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test listing tags when items are objects with attributes (not dicts)."""
     await setup_integration(hass, global_entry)
@@ -90,9 +101,15 @@ async def test_ws_list_tags_with_object_items(
     hass.data["tag"].async_items.return_value = [tag1, tag2]
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["tags"]) == 2
@@ -102,7 +119,8 @@ async def test_ws_list_tags_with_object_items(
 
 
 async def test_ws_list_tags_no_tag_integration(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test listing tags when tag integration is not loaded."""
     await setup_integration(hass, global_entry)
@@ -111,16 +129,23 @@ async def test_ws_list_tags_no_tag_integration(
     hass.data.pop("tag", None)
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tags"] == []
 
 
 async def test_ws_list_tags_empty_registry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test listing tags when registry exists but is empty."""
     await setup_integration(hass, global_entry)
@@ -129,16 +154,23 @@ async def test_ws_list_tags_empty_registry(
     hass.data["tag"].async_items.return_value = []
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tags"] == []
 
 
 async def test_ws_list_tags_exception_handling(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that exceptions in tag registry are handled gracefully."""
     await setup_integration(hass, global_entry)
@@ -147,9 +179,15 @@ async def test_ws_list_tags_exception_handling(
     hass.data["tag"].async_items.side_effect = RuntimeError("Tag store broken")
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     # Should return empty list, not error
     result = conn.send_result.call_args[0][1]
@@ -158,7 +196,8 @@ async def test_ws_list_tags_exception_handling(
 
 
 async def test_ws_list_tags_name_fallback_to_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that tags with empty name use id as display name."""
     await setup_integration(hass, global_entry)
@@ -170,9 +209,15 @@ async def test_ws_list_tags_name_fallback_to_id(
     ]
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tags"][0]["name"] == "tag-no-name"  # Fallback to id
@@ -180,7 +225,8 @@ async def test_ws_list_tags_name_fallback_to_id(
 
 
 async def test_ws_list_tags_resolves_name_from_entity_registry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Post-restart shape: storage items have NO name (HA strips it on save
     and keeps it in the entity registry) — the handler must resolve it there,
@@ -192,9 +238,7 @@ async def test_ws_list_tags_resolves_name_from_entity_registry(
     await setup_integration(hass, global_entry)
 
     ent_reg = er.async_get(hass)
-    entry = ent_reg.async_get_or_create(
-        "tag", "tag", "tag-restart-1", original_name="Tag tag-restart-1"
-    )
+    entry = ent_reg.async_get_or_create("tag", "tag", "tag-restart-1", original_name="Tag tag-restart-1")
     ent_reg.async_update_entity(entry.entity_id, name="Washer NFC")
 
     # Storage after a restart: id only, no name key.
@@ -202,16 +246,23 @@ async def test_ws_list_tags_resolves_name_from_entity_registry(
     hass.data["tag"].async_items.return_value = [{"id": "tag-restart-1"}]
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tags"] == [{"id": "tag-restart-1", "name": "Washer NFC"}]
 
 
 async def test_ws_list_tags_falls_back_to_original_name(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A tag never renamed by the user resolves to its original name."""
     from homeassistant.helpers import entity_registry as er
@@ -219,16 +270,20 @@ async def test_ws_list_tags_falls_back_to_original_name(
     await setup_integration(hass, global_entry)
 
     ent_reg = er.async_get(hass)
-    ent_reg.async_get_or_create(
-        "tag", "tag", "tag-restart-2", original_name="Tag tag-restart-2"
-    )
+    ent_reg.async_get_or_create("tag", "tag", "tag-restart-2", original_name="Tag tag-restart-2")
     hass.data["tag"] = MagicMock()
     hass.data["tag"].async_items.return_value = [{"id": "tag-restart-2"}]
 
     conn = _mock_connection()
-    await call_ws_handler(ws_list_tags, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/tags/list",
-    })
+    await call_ws_handler(
+        ws_list_tags,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/tags/list",
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["tags"] == [{"id": "tag-restart-2", "name": "Tag tag-restart-2"}]

@@ -676,7 +676,8 @@
           "custom_icon": "Uppgiftsikon",
           "nfc_tag_id": "NFC-tagg-ID",
           "go_back": "Tillbaka",
-          "interval_anchor": "Intervallankare"
+          "interval_anchor": "Intervallankare",
+          "reading_unit": "Avläsningsenhet (för avläsningsuppgifter, t.ex. kWh)"
         },
         "data_description": {
           "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
@@ -862,7 +863,8 @@
           "type": "Underhållstyp",
           "schedule_type": "Schematyp",
           "custom_icon": "Uppgiftsikon",
-          "go_back": "Tillbaka"
+          "go_back": "Tillbaka",
+          "reading_unit": "Avläsningsenhet (för avläsningsuppgifter, t.ex. kWh)"
         },
         "data_description": {
           "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Varaktighet",
           "description": "Underhållets varaktighet i minuter."
+        },
+        "reading_value": {
+          "name": "Avläst värde",
+          "description": "Registrerat värde för avläsningsuppgifter (mätaravläsning, nivåkontroll)."
         }
       }
     },

@@ -376,17 +376,21 @@ class TestPlannedAnchorOnComplete:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
 
 
 async def test_sensor_exposes_interval_anchor(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that the sensor entity exposes interval_anchor in its attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -394,7 +398,9 @@ async def test_sensor_exposes_interval_anchor(
     task["interval_anchor"] = "planned"
 
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Anchor Test",
         data=build_object_entry_data(
             object_data=build_object_data(name="Anchor Test"),
@@ -417,14 +423,17 @@ async def test_sensor_exposes_interval_anchor(
 
 
 async def test_sensor_default_anchor_completion(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test that the default interval_anchor is 'completion' in sensor attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(task_id=TASK_ID_1, last_performed=last)
 
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Default Anchor",
         data=build_object_entry_data(
             object_data=build_object_data(name="Default Anchor"),
@@ -456,8 +465,10 @@ class TestResetClearsPlannedAnchor:
         mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
 
         task = MaintenanceTask(
-            id=TASK_ID_1, name="Test",
-            last_performed="2026-02-01", interval_days=30,
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-02-01",
+            interval_days=30,
             interval_anchor="planned",
             last_planned_due="2026-01-15",
         )
@@ -473,8 +484,10 @@ class TestResetClearsPlannedAnchor:
         mock_dt.now.return_value.date.return_value = date(2026, 2, 15)
 
         task = MaintenanceTask(
-            id=TASK_ID_1, name="Test",
-            last_performed="2026-02-01", interval_days=30,
+            id=TASK_ID_1,
+            name="Test",
+            last_performed="2026-02-01",
+            interval_days=30,
             interval_anchor="completion",
         )
         task.reset(reset_date=date(2026, 2, 10))
@@ -490,9 +503,10 @@ def test_compute_intervals_bad_timestamps() -> None:
     from custom_components.maintenance_supporter.helpers.interval_analyzer import (
         IntervalAnalyzer,
     )
+
     history: list[dict[str, Any]] = [
-        {"type": "completed", "timestamp": None},        # line 351: falsy
-        {"type": "completed", "timestamp": "bad_date"},   # line 357-358
+        {"type": "completed", "timestamp": None},  # line 351: falsy
+        {"type": "completed", "timestamp": "bad_date"},  # line 357-358
         {"type": "completed", "timestamp": "2024-01-01T00:00:00"},
         {"type": "completed", "timestamp": "2024-02-01T00:00:00"},
     ]
@@ -505,6 +519,7 @@ def test_weibull_fit_few_valid_points() -> None:
     from custom_components.maintenance_supporter.helpers.interval_analyzer import (
         IntervalAnalyzer,
     )
+
     # Only 3 positive values → below DEFAULT_ADAPTIVE_WEIBULL_MIN (5)
     result = IntervalAnalyzer._weibull_fit([10, 20, 30])
     assert result is None
@@ -515,6 +530,7 @@ def test_weibull_fit_few_xy_pairs() -> None:
     from custom_components.maintenance_supporter.helpers.interval_analyzer import (
         IntervalAnalyzer,
     )
+
     # 5 identical values → all get same rank, log calculations might produce <3 valid pairs
     # Actually, 5 positive distinct values should work. Let's use values that cause
     # log(-log(1-f)) to fail for most points.
@@ -531,9 +547,10 @@ def test_seasonal_intervals_bad_timestamps() -> None:
     from custom_components.maintenance_supporter.helpers.interval_analyzer import (
         IntervalAnalyzer,
     )
+
     history: list[dict[str, Any]] = [
-        {"type": "completed", "timestamp": None},        # line 549
-        {"type": "completed", "timestamp": "bad"},        # line 555-556
+        {"type": "completed", "timestamp": None},  # line 549
+        {"type": "completed", "timestamp": "bad"},  # line 555-556
         {"type": "completed", "timestamp": "2024-01-01T00:00:00"},
         {"type": "completed", "timestamp": "2024-02-15T00:00:00"},
     ]
@@ -605,6 +622,7 @@ class TestAnalysisDatetimeFix:
 
 # === migrated from test_cov_helpers.py (behaviour-based split) ===
 
+
 def test_weibull_fit_with_sufficient_data() -> None:
     """Lines 443-453: Weibull fit succeeds with enough valid data points."""
     from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
@@ -618,6 +636,7 @@ def test_weibull_fit_with_sufficient_data() -> None:
     assert eta > 0
     assert 0.0 <= r_squared <= 1.0
 
+
 def test_weibull_fit_insufficient_data_returns_none() -> None:
     """Line 423: Weibull fit returns None with fewer than min required points."""
     from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
@@ -625,6 +644,7 @@ def test_weibull_fit_insufficient_data_returns_none() -> None:
     analyzer = IntervalAnalyzer()
     result = analyzer._weibull_fit([10.0, 20.0])  # less than DEFAULT_ADAPTIVE_WEIBULL_MIN
     assert result is None
+
 
 def test_weibull_fit_all_zeros_returns_none() -> None:
     """Lines 449-450: ValueError in log(0) is caught, continues."""
@@ -634,6 +654,7 @@ def test_weibull_fit_all_zeros_returns_none() -> None:
     # Zeros filtered by 'valid' check; if not enough valid, returns None
     result = analyzer._weibull_fit([0.0, 0.0, 0.0, 0.0, 0.0])
     assert result is None
+
 
 def test_weibull_recommended_interval_invalid_params() -> None:
     """Lines 514-515: _weibull_recommended_interval returns 0 for invalid params."""
@@ -647,6 +668,7 @@ def test_weibull_recommended_interval_invalid_params() -> None:
     # eta <= 0
     assert IntervalAnalyzer._weibull_recommended_interval(1.5, -1.0, 0.9) == 0
 
+
 def test_weibull_recommended_interval_valid() -> None:
     """_weibull_recommended_interval returns positive int for valid params."""
     from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
@@ -654,6 +676,7 @@ def test_weibull_recommended_interval_valid() -> None:
     result = IntervalAnalyzer._weibull_recommended_interval(2.0, 30.0, 0.9)
     assert isinstance(result, int)
     assert result >= 1
+
 
 def test_weibull_fit_denom_zero_returns_none() -> None:
     """Line 464-465: denom < 1e-10 → returns None (all x_vals identical)."""
@@ -664,6 +687,7 @@ def test_weibull_fit_denom_zero_returns_none() -> None:
     result = analyzer._weibull_fit([30.0] * 7)
     # This might or might not produce None depending on fp precision; just assert no crash
     assert result is None or isinstance(result, tuple)
+
 
 def test_compute_confidence_levels() -> None:
     """Lines 471-480 / 527-531: _compute_confidence returns correct level."""
@@ -676,6 +700,7 @@ def test_compute_confidence_levels() -> None:
     assert IntervalAnalyzer._compute_confidence(8) == "high"
     assert IntervalAnalyzer._compute_confidence(100) == "high"
 
+
 def test_weibull_beta_nonpositive_returns_none() -> None:
     """Line 471: beta <= 0 returns None after regression."""
     from custom_components.maintenance_supporter.helpers.interval_analyzer import IntervalAnalyzer
@@ -686,6 +711,7 @@ def test_weibull_beta_nonpositive_returns_none() -> None:
     result = analyzer._weibull_fit([100.0, 80.0, 60.0, 40.0, 20.0, 10.0])
     # Could be None (beta<=0) or a valid fit depending on data; just no crash
     assert result is None or (isinstance(result, tuple) and len(result) == 3)
+
 
 def test_weibull_eta_zero_overflow_returns_none() -> None:
     """Lines 476-477, 480: OverflowError/ZeroDivisionError → None; eta <= 0 → None."""

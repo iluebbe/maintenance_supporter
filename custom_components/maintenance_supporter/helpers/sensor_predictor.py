@@ -144,18 +144,14 @@ class SensorPredictor:
         # 2. Threshold prediction (synchronous math)
         threshold_prediction = None
         if degradation and degradation.slope_per_day is not None:
-            threshold_prediction = self._compute_threshold_prediction(
-                degradation, trigger_config
-            )
+            threshold_prediction = self._compute_threshold_prediction(degradation, trigger_config)
 
         # 3. Environmental analysis (optional)
         environmental = None
         env_entity = adaptive_config.get("environmental_entity")
         if env_entity:
             env_attribute = adaptive_config.get("environmental_attribute")
-            environmental = await self._async_analyze_environmental(
-                env_entity, env_attribute, task_data
-            )
+            environmental = await self._async_analyze_environmental(env_entity, env_attribute, task_data)
 
         return SensorPredictionResult(
             degradation=degradation,
@@ -174,9 +170,7 @@ class SensorPredictor:
         lookback_days: int,
     ) -> DegradationAnalysis:
         """Compute degradation rate using linear regression on recorder data."""
-        points = await self._async_fetch_statistics_points(
-            entity_id, lookback_days
-        )
+        points = await self._async_fetch_statistics_points(entity_id, lookback_days)
 
         if len(points) < DEFAULT_DEGRADATION_MIN_POINTS:
             return DegradationAnalysis(
@@ -344,9 +338,7 @@ class SensorPredictor:
         4. If |correlation| > threshold, compute adjustment factor
         """
         # Fetch environmental stats
-        env_points = await self._async_fetch_statistics_points(
-            env_entity_id, DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS
-        )
+        env_points = await self._async_fetch_statistics_points(env_entity_id, DEFAULT_ENVIRONMENTAL_LOOKBACK_DAYS)
 
         # Get current environmental value
         current_env: float | None = None
@@ -376,10 +368,7 @@ class SensorPredictor:
 
         # Extract completion intervals with env values at completion time
         history = task_data.get("history") or []
-        completed = [
-            h for h in history
-            if h.get("type") == "completed" and h.get("timestamp")
-        ]
+        completed = [h for h in history if h.get("type") == "completed" and h.get("timestamp")]
         completed.sort(key=lambda h: h["timestamp"])
 
         if len(completed) < 2:
@@ -509,9 +498,7 @@ class SensorPredictor:
                 )
             )
         except Exception:  # noqa: BLE001 - recorder fetch can fail many ways (DB lock, timeout, schema mismatch); empty list is a safe fallback
-            _LOGGER.debug(
-                "Failed to fetch statistics for %s", entity_id, exc_info=True
-            )
+            _LOGGER.debug("Failed to fetch statistics for %s", entity_id, exc_info=True)
             return []
 
         rows = result.get(entity_id, [])
@@ -589,9 +576,7 @@ class SensorPredictor:
         if abs(ss_tot) < 1e-15:
             r_squared = 1.0 if abs(slope) < 1e-15 else 0.0
         else:
-            ss_res = sum(
-                (p[1] - (slope * p[0] + intercept)) ** 2 for p in points
-            )
+            ss_res = sum((p[1] - (slope * p[0] + intercept)) ** 2 for p in points)
             r_squared = max(0.0, 1.0 - ss_res / ss_tot)
 
         return slope, intercept, r_squared
@@ -642,9 +627,7 @@ class SensorPredictor:
         # Check neighbors
         best_idx = lo
         if lo > 0:
-            if abs(points[lo - 1][0] - target_ts) < abs(
-                points[lo][0] - target_ts
-            ):
+            if abs(points[lo - 1][0] - target_ts) < abs(points[lo][0] - target_ts):
                 best_idx = lo - 1
 
         # Only return if within 24 hours

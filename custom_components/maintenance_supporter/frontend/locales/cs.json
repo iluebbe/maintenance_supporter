@@ -679,5 +679,9 @@
   "replace_object": "Nahradit…",
   "replace_object_prompt": "Vyřadit tento objekt a vytvořit nástupce. Historie a náklady zůstávají archivované u starého; úkoly a dokumenty přecházejí na nový, počítadla začínají od nuly.",
   "replace_name_label": "Název nástupce",
-  "object_replaced": "Objekt nahrazen — nástupce vytvořen"
+  "object_replaced": "Objekt nahrazen — nástupce vytvořen",
+  "reading_unit_label": "Jednotka odečtu (např. kWh, m³)",
+  "reading_unit_help": "Zobrazí se vedle zaznamenané hodnoty při dokončení tohoto úkolu.",
+  "reading_value_label": "Hodnota odečtu",
+  "reading_label": "Odečet"
 }

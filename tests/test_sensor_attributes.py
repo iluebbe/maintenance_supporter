@@ -33,10 +33,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -49,7 +52,9 @@ def _make_entry(
     unique_id: str = "sensor_attrs",
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -76,7 +81,8 @@ def _get_sensor_state(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
 
 
 async def test_basic_attributes(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test type, schedule, interval, warning, parent_object attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -95,12 +101,11 @@ async def test_basic_attributes(
 
 
 async def test_interval_unit_attribute(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A non-default interval_unit (months) is exposed as a sensor attribute."""
-    task = build_task_data(
-        task_id=TASK_ID_1, last_performed="2026-01-15", interval_days=3
-    )
+    task = build_task_data(task_id=TASK_ID_1, last_performed="2026-01-15", interval_days=3)
     task["interval_unit"] = "months"
     obj_entry = _make_entry(hass, task, unique_id="interval_unit_attrs")
     await setup_integration(hass, global_entry, obj_entry)
@@ -111,7 +116,8 @@ async def test_interval_unit_attribute(
 
 
 async def test_one_time_due_date_attribute(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A one-time task exposes its schedule_type and due_date as attributes."""
     task = build_task_data(task_id=TASK_ID_1, interval_days=30)
@@ -126,7 +132,8 @@ async def test_one_time_due_date_attribute(
 
 
 async def test_times_performed_and_cost(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test times_performed, total_cost, average_duration."""
     task = build_task_data(task_id=TASK_ID_1, last_performed="2024-06-01")
@@ -146,7 +153,8 @@ async def test_times_performed_and_cost(
 
 
 async def test_notes_and_documentation_url_attributes(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """notes + documentation_url ARE exposed as sensor attributes.
 
@@ -170,7 +178,8 @@ async def test_notes_and_documentation_url_attributes(
 
 
 async def test_threshold_trigger_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold trigger specific attributes."""
     hass.states.async_set("sensor.temp", "25.0")
@@ -197,7 +206,8 @@ async def test_threshold_trigger_attrs(
 
 
 async def test_counter_trigger_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test counter trigger specific attributes."""
     hass.states.async_set("sensor.counter", "50")
@@ -223,7 +233,8 @@ async def test_counter_trigger_attrs(
 
 
 async def test_state_change_trigger_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test state_change trigger specific attributes."""
     hass.states.async_set("binary_sensor.door", "off")
@@ -251,7 +262,8 @@ async def test_state_change_trigger_attrs(
 
 
 async def test_runtime_trigger_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test runtime trigger attributes (fallback from config)."""
     hass.states.async_set("sensor.pump", "on")
@@ -275,7 +287,8 @@ async def test_runtime_trigger_attrs(
 
 
 async def test_compound_trigger_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test compound trigger attributes."""
     hass.states.async_set("sensor.temp", "25.0")
@@ -306,7 +319,8 @@ async def test_compound_trigger_attrs(
 
 
 async def test_adaptive_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test adaptive scheduling attributes."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -327,7 +341,8 @@ async def test_adaptive_attrs(
 
 
 async def test_weibull_beta_interpretation(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test Weibull beta interpretation ranges."""
 
@@ -366,7 +381,8 @@ async def test_weibull_beta_interpretation(
 
 
 async def test_degradation_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test degradation rate and trend attributes appear when set."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -395,7 +411,8 @@ async def test_degradation_attrs(
 
 
 async def test_threshold_prediction_attrs(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test threshold prediction attributes appear when set."""
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
@@ -419,7 +436,8 @@ async def test_threshold_prediction_attrs(
 
 
 async def test_update_trigger_state_single(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test single-entity trigger state is directly assigned."""
     hass.states.async_set("sensor.temp", "25.0")
@@ -427,7 +445,9 @@ async def test_update_trigger_state_single(
         task_id=TASK_ID_1,
         schedule_type=ScheduleType.SENSOR_BASED,
         trigger_config={
-            "type": "threshold", "entity_id": "sensor.temp", "trigger_above": 30,
+            "type": "threshold",
+            "entity_id": "sensor.temp",
+            "trigger_above": 30,
         },
     )
     obj_entry = _make_entry(hass, task, unique_id="trigger_single")
@@ -443,7 +463,8 @@ async def test_update_trigger_state_single(
 
 
 async def test_update_trigger_state_multi_any(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test multi-entity 'any' logic: one triggered = True."""
     hass.states.async_set("sensor.temp1", "35.0")  # above threshold
@@ -470,7 +491,8 @@ async def test_update_trigger_state_multi_any(
 
 
 async def test_update_trigger_state_multi_all(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test multi-entity 'all' logic: both above → True."""
     hass.states.async_set("sensor.temp1", "35.0")  # above
@@ -499,7 +521,8 @@ async def test_update_trigger_state_multi_all(
 
 
 async def test_sensor_entity_slug_sets_name(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """When a task has entity_slug, sensor._attr_name is set to that slug."""
     from custom_components.maintenance_supporter.sensor import MaintenanceSensor
@@ -538,7 +561,9 @@ async def test_sensor_runtime_fallback_attributes(
         },
     )
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="RT Fallback",
         data=build_object_entry_data(
             object_data=build_object_data(name="RT Fallback"),
@@ -604,10 +629,13 @@ async def test_sensor_weibull_random_failures(
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -622,7 +650,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -649,9 +679,13 @@ async def test_sensor_no_coordinator(hass: HomeAssistant) -> None:
     await setup_integration(hass, global_entry)
 
     fake_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Fake Sensor", data=build_object_entry_data(),
-        source="user", unique_id="fake_no_coord_sensor",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Fake Sensor",
+        data=build_object_entry_data(),
+        source="user",
+        unique_id="fake_no_coord_sensor",
     )
     fake_entry.add_to_hass(hass)
     fake_entry.runtime_data = MaintenanceSupporterData(coordinator=None)

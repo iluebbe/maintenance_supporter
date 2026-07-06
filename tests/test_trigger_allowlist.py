@@ -31,13 +31,8 @@ def mock_hass():
     hass.states.get.return_value = None
     return hass
 
-_TRIGGER_PKG = (
-    Path(__file__).parent.parent
-    / "custom_components"
-    / "maintenance_supporter"
-    / "entity"
-    / "triggers"
-)
+
+_TRIGGER_PKG = Path(__file__).parent.parent / "custom_components" / "maintenance_supporter" / "entity" / "triggers"
 
 
 def _trigger_config_keys_used_by_trigger_classes() -> set[str]:
@@ -54,17 +49,19 @@ def _trigger_config_keys_used_by_trigger_classes() -> set[str]:
 # Per-entity runtime state is injected at trigger construction by
 # `_inject_per_entity_state` (entity/triggers/__init__.py) — it never travels
 # over the WS save path, so it is intentionally NOT in the allowlist.
-_RUNTIME_INJECTED_KEYS = frozenset({
-    "trigger_change_count",
-    "trigger_baseline_value",
-    "trigger_accumulated_seconds",
-    "trigger_on_since",
-    "trigger_threshold_exceeded_since",
-    # Compound trigger runtime state (per-condition triggered flags).
-    # Written by compound.py at runtime; extracted out of the save path by
-    # storage.py before the dict ever reaches the WS save validator.
-    "_trigger_state",
-})
+_RUNTIME_INJECTED_KEYS = frozenset(
+    {
+        "trigger_change_count",
+        "trigger_baseline_value",
+        "trigger_accumulated_seconds",
+        "trigger_on_since",
+        "trigger_threshold_exceeded_since",
+        # Compound trigger runtime state (per-condition triggered flags).
+        # Written by compound.py at runtime; extracted out of the save path by
+        # storage.py before the dict ever reaches the WS save validator.
+        "_trigger_state",
+    }
+)
 
 
 def test_allowlist_covers_every_trigger_config_key_read_by_trigger_classes() -> None:

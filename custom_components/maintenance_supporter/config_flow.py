@@ -89,15 +89,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         self._template_category: str = ""
         self._selected_template: ObjectTemplate | None = None
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle the initial step."""
         # Check if global entry exists
-        global_exists = any(
-            entry.unique_id == GLOBAL_UNIQUE_ID
-            for entry in self.hass.config_entries.async_entries(DOMAIN)
-        )
+        global_exists = any(entry.unique_id == GLOBAL_UNIQUE_ID for entry in self.hass.config_entries.async_entries(DOMAIN))
 
         if not global_exists:
             return await self.async_step_global_setup()
@@ -107,9 +102,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             menu_options=["create_object", "create_from_template"],
         )
 
-    async def async_step_global_setup(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_global_setup(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Set up global configuration."""
         errors: dict[str, str] = {}
 
@@ -126,12 +119,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 return self.async_create_entry(
                     title="Maintenance Supporter",
                     data={
-                        CONF_DEFAULT_WARNING_DAYS: user_input.get(
-                            CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS
-                        ),
-                        CONF_NOTIFICATIONS_ENABLED: user_input.get(
-                            CONF_NOTIFICATIONS_ENABLED, False
-                        ),
+                        CONF_DEFAULT_WARNING_DAYS: user_input.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
+                        CONF_NOTIFICATIONS_ENABLED: user_input.get(CONF_NOTIFICATIONS_ENABLED, False),
                         CONF_NOTIFY_SERVICE: normalized,
                     },
                 )
@@ -143,9 +132,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         # format-only validation above never blocks on existence). Matches the
         # picker in the options flow + panel.
         notify_targets = {
-            f"notify.{name}"
-            for name in self.hass.services.async_services().get("notify", {})
-            if name != "send_message"
+            f"notify.{name}" for name in self.hass.services.async_services().get("notify", {}) if name != "send_message"
         }
         notify_targets.update(self.hass.states.async_entity_ids("notify"))
         notify_services = sorted(notify_targets)
@@ -154,19 +141,11 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             step_id="global_setup",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        CONF_DEFAULT_WARNING_DAYS, default=DEFAULT_WARNING_DAYS
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1, max=365, step=1, mode=selector.NumberSelectorMode.BOX
-                        )
+                    vol.Optional(CONF_DEFAULT_WARNING_DAYS, default=DEFAULT_WARNING_DAYS): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=1, max=365, step=1, mode=selector.NumberSelectorMode.BOX)
                     ),
-                    vol.Optional(
-                        CONF_NOTIFICATIONS_ENABLED, default=False
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_NOTIFY_SERVICE, default=""
-                    ): selector.SelectSelector(
+                    vol.Optional(CONF_NOTIFICATIONS_ENABLED, default=False): selector.BooleanSelector(),
+                    vol.Optional(CONF_NOTIFY_SERVICE, default=""): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=notify_services,
                             mode=selector.SelectSelectorMode.DROPDOWN,
@@ -178,9 +157,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             errors=errors,
         )
 
-    async def async_step_create_from_template(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_create_from_template(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 1: Select a template category."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -212,9 +189,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             ),
         )
 
-    async def async_step_template_select(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_template_select(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 2: Select a template from the chosen category."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -249,9 +224,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             ),
         )
 
-    async def async_step_template_customize(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_template_customize(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 3: Customize the template before creating the entry."""
         errors: dict[str, str] = {}
         template = self._selected_template
@@ -319,28 +292,18 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             step_id="template_customize",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_OBJECT_NAME, default=template.name
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                    vol.Required(CONF_OBJECT_NAME, default=template.name): selector.TextSelector(
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(CONF_OBJECT_AREA): selector.AreaSelector(),
                     vol.Optional(CONF_OBJECT_MANUFACTURER): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(CONF_OBJECT_MODEL): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(CONF_OBJECT_SERIAL_NUMBER): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
@@ -353,9 +316,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             },
         )
 
-    async def async_step_reconfigure(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Allow user to reconfigure object settings."""
         entry = self._get_reconfigure_entry()
         obj_data = dict(entry.data.get(CONF_OBJECT, {}))
@@ -365,16 +326,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             name = user_input[CONF_OBJECT_NAME]
             # Validate unique name (skip self)
             for other in self.hass.config_entries.async_entries(DOMAIN):
-                if (
-                    other.entry_id != entry.entry_id
-                    and other.unique_id != GLOBAL_UNIQUE_ID
-                ):
-                    if (
-                        other.data.get(CONF_OBJECT, {})
-                        .get("name", "")
-                        .lower()
-                        == name.lower()
-                    ):
+                if other.entry_id != entry.entry_id and other.unique_id != GLOBAL_UNIQUE_ID:
+                    if other.data.get(CONF_OBJECT, {}).get("name", "").lower() == name.lower():
                         errors["base"] = "name_exists"
                         break
 
@@ -383,34 +336,22 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 # name (see helpers.entity_rename.migrate_object_unique_ids).
                 from .helpers.entity_rename import migrate_object_unique_ids
 
-                migrate_object_unique_ids(
-                    self.hass, entry, obj_data.get("name"), name
-                )
+                migrate_object_unique_ids(self.hass, entry, obj_data.get("name"), name)
                 obj_data["name"] = name
                 obj_data["area_id"] = user_input.get(CONF_OBJECT_AREA)
                 obj_data["manufacturer"] = user_input.get(CONF_OBJECT_MANUFACTURER)
                 obj_data["model"] = user_input.get(CONF_OBJECT_MODEL)
                 obj_data["serial_number"] = user_input.get(CONF_OBJECT_SERIAL_NUMBER)
-                obj_data["installation_date"] = user_input.get(
-                    CONF_OBJECT_INSTALLATION_DATE
-                )
-                obj_data["warranty_expiry"] = user_input.get(
-                    CONF_OBJECT_WARRANTY_EXPIRY
-                )
+                obj_data["installation_date"] = user_input.get(CONF_OBJECT_INSTALLATION_DATE)
+                obj_data["warranty_expiry"] = user_input.get(CONF_OBJECT_WARRANTY_EXPIRY)
                 # v1.4.0 (#43)
-                obj_data["documentation_url"] = (
-                    user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
-                )
+                obj_data["documentation_url"] = user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None
                 # v1.4.10 (#46)
-                obj_data["notes"] = (
-                    (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
-                )
+                obj_data["notes"] = (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
 
                 new_data = dict(entry.data)
                 new_data[CONF_OBJECT] = obj_data
-                return self.async_update_reload_and_abort(
-                    entry, data=new_data, title=name
-                )
+                return self.async_update_reload_and_abort(entry, data=new_data, title=name)
 
         suggested: dict[str, Any] = {
             CONF_OBJECT_NAME: obj_data.get("name", ""),
@@ -423,13 +364,9 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         if obj_data.get("area_id"):
             suggested[CONF_OBJECT_AREA] = obj_data["area_id"]
         if obj_data.get("installation_date"):
-            suggested[CONF_OBJECT_INSTALLATION_DATE] = obj_data[
-                "installation_date"
-            ]
+            suggested[CONF_OBJECT_INSTALLATION_DATE] = obj_data["installation_date"]
         if obj_data.get("warranty_expiry"):
-            suggested[CONF_OBJECT_WARRANTY_EXPIRY] = obj_data[
-                "warranty_expiry"
-            ]
+            suggested[CONF_OBJECT_WARRANTY_EXPIRY] = obj_data["warranty_expiry"]
 
         schema = self.add_suggested_values_to_schema(
             vol.Schema(
@@ -468,9 +405,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             description_placeholders={"name": entry.title},
         )
 
-    async def async_step_websocket(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_websocket(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle object creation from the WebSocket API (no UI)."""
         from homeassistant.util import dt as dt_util
 
@@ -514,9 +449,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             },
         )
 
-    async def async_step_create_object(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_create_object(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Create a new maintenance object."""
         errors: dict[str, str] = {}
 
@@ -543,23 +476,13 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     CONF_OBJECT_AREA: user_input.get(CONF_OBJECT_AREA),
                     CONF_OBJECT_MANUFACTURER: user_input.get(CONF_OBJECT_MANUFACTURER),
                     CONF_OBJECT_MODEL: user_input.get(CONF_OBJECT_MODEL),
-                    CONF_OBJECT_SERIAL_NUMBER: user_input.get(
-                        CONF_OBJECT_SERIAL_NUMBER
-                    ),
-                    CONF_OBJECT_INSTALLATION_DATE: user_input.get(
-                        CONF_OBJECT_INSTALLATION_DATE
-                    ),
-                    CONF_OBJECT_WARRANTY_EXPIRY: user_input.get(
-                        CONF_OBJECT_WARRANTY_EXPIRY
-                    ),
+                    CONF_OBJECT_SERIAL_NUMBER: user_input.get(CONF_OBJECT_SERIAL_NUMBER),
+                    CONF_OBJECT_INSTALLATION_DATE: user_input.get(CONF_OBJECT_INSTALLATION_DATE),
+                    CONF_OBJECT_WARRANTY_EXPIRY: user_input.get(CONF_OBJECT_WARRANTY_EXPIRY),
                     # v1.4.0 (#43)
-                    CONF_OBJECT_DOCUMENTATION_URL: user_input.get(
-                        CONF_OBJECT_DOCUMENTATION_URL
-                    ) or None,
+                    CONF_OBJECT_DOCUMENTATION_URL: user_input.get(CONF_OBJECT_DOCUMENTATION_URL) or None,
                     # v1.4.10 (#46)
-                    CONF_OBJECT_NOTES: (
-                        (user_input.get(CONF_OBJECT_NOTES) or "").strip() or None
-                    ),
+                    CONF_OBJECT_NOTES: ((user_input.get(CONF_OBJECT_NOTES) or "").strip() or None),
                 }
                 cap_object_fields(self._object_data)
                 self._tasks = {}
@@ -570,37 +493,23 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_OBJECT_NAME): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(CONF_OBJECT_AREA): selector.AreaSelector(),
                     vol.Optional(CONF_OBJECT_MANUFACTURER): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(CONF_OBJECT_MODEL): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional(CONF_OBJECT_SERIAL_NUMBER): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
-                    vol.Optional(
-                        CONF_OBJECT_INSTALLATION_DATE
-                    ): selector.DateSelector(),
-                    vol.Optional(
-                        CONF_OBJECT_WARRANTY_EXPIRY
-                    ): selector.DateSelector(),
+                    vol.Optional(CONF_OBJECT_INSTALLATION_DATE): selector.DateSelector(),
+                    vol.Optional(CONF_OBJECT_WARRANTY_EXPIRY): selector.DateSelector(),
                     # v1.4.0 (#43): place under serial_number per the request
                     vol.Optional(CONF_OBJECT_DOCUMENTATION_URL): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.URL
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
                     ),
                     # v1.4.10 (#46): free-form notes (multiline)
                     vol.Optional(CONF_OBJECT_NOTES): selector.TextSelector(
@@ -615,9 +524,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             errors=errors,
         )
 
-    async def async_step_task_menu(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_task_menu(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show menu to add tasks or finish."""
         return self.async_show_menu(
             step_id="task_menu",
@@ -628,9 +535,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             },
         )
 
-    async def async_step_add_task(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_add_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add a maintenance task."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -675,22 +580,16 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_TASK_NAME): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
-                    vol.Required(
-                        CONF_TASK_TYPE, default=MaintenanceTypeEnum.CLEANING
-                    ): selector.SelectSelector(
+                    vol.Required(CONF_TASK_TYPE, default=MaintenanceTypeEnum.CLEANING): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=type_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                             translation_key="maintenance_type",
                         )
                     ),
-                    vol.Required(
-                        CONF_TASK_SCHEDULE_TYPE, default=ScheduleType.TIME_BASED
-                    ): selector.SelectSelector(
+                    vol.Required(CONF_TASK_SCHEDULE_TYPE, default=ScheduleType.TIME_BASED): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=schedule_options,
                             mode=selector.SelectSelectorMode.LIST,
@@ -706,9 +605,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                         )
                     ),
                     vol.Optional(CONF_TASK_LABELS_TEXT): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
@@ -718,9 +615,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             },
         )
 
-    async def async_step_time_based(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_time_based(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure time-based schedule."""
         errors: dict[str, str] = {}
 
@@ -747,9 +642,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             step_id="time_based",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS
-                    ): selector.NumberSelector(
+                    vol.Required(CONF_TASK_INTERVAL_DAYS, default=DEFAULT_INTERVAL_DAYS): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=1,
                             max=3650,
@@ -757,9 +650,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
-                    vol.Optional(
-                        CONF_TASK_INTERVAL_UNIT, default="days"
-                    ): interval_unit_selector(),
+                    vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
                     vol.Optional("last_performed"): selector.DateSelector(),
                     vol.Optional(
                         CONF_TASK_WARNING_DAYS,
@@ -778,9 +669,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             errors=errors,
         )
 
-    async def async_step_calendar(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_calendar(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure a calendar recurrence kind (weekdays / nth_weekday /
         day_of_month) during initial setup."""
         errors: dict[str, str] = {}
@@ -799,23 +688,23 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 )
                 return self._save_task_and_return()
 
-        schema = calendar_schema(kind).extend({
-            vol.Optional(
-                CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            ),
-            vol.Optional("go_back", default=False): selector.BooleanSelector(),
-        })
+        schema = calendar_schema(kind).extend(
+            {
+                vol.Optional(CONF_TASK_WARNING_DAYS, default=get_default_warning_days(self.hass)): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Optional("go_back", default=False): selector.BooleanSelector(),
+            }
+        )
         return self.async_show_form(
-            step_id="calendar", data_schema=schema, errors=errors,
+            step_id="calendar",
+            data_schema=schema,
+            errors=errors,
         )
 
-    async def async_step_one_time(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_one_time(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure a one-time (non-recurring) task."""
         errors: dict[str, str] = {}
 
@@ -857,9 +746,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     # --- Sensor trigger steps (thin wrappers delegating to TriggerConfigMixin) ---
 
-    async def async_step_sensor_select(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_sensor_select(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select sensor entity for trigger."""
         self._on_cancel = lambda: self.async_step_add_task()
         return await self._trigger_sensor_select(
@@ -868,9 +755,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             next_step=self.async_step_sensor_attribute,
         )
 
-    async def async_step_sensor_attribute(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_sensor_attribute(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select attribute to monitor."""
         self._on_cancel = lambda: self.async_step_sensor_select()
         return await self._trigger_sensor_attribute(
@@ -880,9 +765,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             error_step_id="sensor_select",
         )
 
-    async def async_step_trigger_type(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_trigger_type(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select trigger type."""
         self._on_cancel = lambda: self.async_step_sensor_attribute()
         return await self._trigger_type_select(
@@ -895,9 +778,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             compound_step=self.async_step_compound_logic,
         )
 
-    async def async_step_trigger_threshold(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_trigger_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure threshold trigger."""
         self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_threshold_config(
@@ -906,9 +787,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             on_complete=self._save_task_and_return,
         )
 
-    async def async_step_trigger_counter(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_trigger_counter(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure counter trigger."""
         self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_counter_config(
@@ -917,9 +796,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             on_complete=self._save_task_and_return,
         )
 
-    async def async_step_trigger_state_change(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_trigger_state_change(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure state change trigger."""
         self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_state_change_config(
@@ -928,9 +805,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             on_complete=self._save_task_and_return,
         )
 
-    async def async_step_trigger_runtime(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_trigger_runtime(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure runtime trigger."""
         self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_runtime_config(
@@ -941,9 +816,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     # --- Compound Trigger Steps ---
 
-    async def async_step_compound_logic(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_logic(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select compound trigger logic."""
         self._on_cancel = lambda: self.async_step_trigger_type()
         return await self._trigger_compound_logic(
@@ -952,9 +825,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             next_step=self.async_step_compound_condition_entity,
         )
 
-    async def async_step_compound_condition_entity(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_condition_entity(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select entity for compound condition."""
         if getattr(self, "_compound_conditions", []):
             self._on_cancel = lambda: self.async_step_compound_review()
@@ -966,9 +837,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             next_step=self.async_step_compound_condition_type,
         )
 
-    async def async_step_compound_condition_type(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_condition_type(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select trigger type for compound condition."""
         self._on_cancel = lambda: self.async_step_compound_condition_entity()
         return await self._trigger_compound_condition_type(
@@ -980,53 +849,47 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             runtime_step=self.async_step_compound_condition_runtime,
         )
 
-    async def async_step_compound_condition_threshold(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_condition_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure threshold for compound condition."""
         self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
-            user_input, "threshold",
+            user_input,
+            "threshold",
             step_id="compound_condition_threshold",
             on_complete=self.async_step_compound_review,
         )
 
-    async def async_step_compound_condition_counter(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_condition_counter(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure counter for compound condition."""
         self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
-            user_input, "counter",
+            user_input,
+            "counter",
             step_id="compound_condition_counter",
             on_complete=self.async_step_compound_review,
         )
 
-    async def async_step_compound_condition_state_change(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_condition_state_change(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure state_change for compound condition."""
         self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
-            user_input, "state_change",
+            user_input,
+            "state_change",
             step_id="compound_condition_state_change",
             on_complete=self.async_step_compound_review,
         )
 
-    async def async_step_compound_condition_runtime(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_condition_runtime(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure runtime for compound condition."""
         self._on_cancel = lambda: self.async_step_compound_condition_type()
         return await self._trigger_compound_condition_config(
-            user_input, "runtime",
+            user_input,
+            "runtime",
             step_id="compound_condition_runtime",
             on_complete=self.async_step_compound_review,
         )
 
-    async def async_step_compound_review(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_compound_review(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Review compound trigger conditions."""
         self._on_cancel = lambda: self.async_step_compound_logic()
         return await self._trigger_compound_review(
@@ -1038,9 +901,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
 
     # --- Manual & Finish ---
 
-    async def async_step_manual(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_manual(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure manual schedule."""
         if user_input is not None:
             if user_input.get("go_back"):
@@ -1078,9 +939,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             ),
         )
 
-    async def async_step_finish(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_finish(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Finish the object setup and create the config entry."""
         if not self._tasks:
             # No tasks defined: go back to task menu with error
@@ -1107,10 +966,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             data={
                 CONF_OBJECT: self._object_data,
                 # Store recurrence in the canonical nested `schedule` shape.
-                CONF_TASKS: {
-                    tid: normalize_task_storage(td)
-                    for tid, td in self._tasks.items()
-                },
+                CONF_TASKS: {tid: normalize_task_storage(td) for tid, td in self._tasks.items()},
             },
         )
 
@@ -1127,12 +983,8 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             "name": self._current_task.get(CONF_TASK_NAME, ""),
             "type": self._current_task.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CUSTOM),
             "enabled": True,
-            "schedule_type": self._current_task.get(
-                CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED
-            ),
-            "warning_days": self._current_task.get(
-                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
-            ),
+            "schedule_type": self._current_task.get(CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED),
+            "warning_days": self._current_task.get(CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)),
             "history": [],
             # Anchor for next_due fallback when last_performed is None (issue #30).
             "created_at": dt_util.now().date().isoformat(),
@@ -1144,9 +996,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             task_data["schedule"] = self._current_task["schedule"]
 
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
-            task_data["interval_days"] = int(
-                self._current_task[CONF_TASK_INTERVAL_DAYS]
-            )
+            task_data["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
         if CONF_TASK_INTERVAL_UNIT in self._current_task:
             task_data["interval_unit"] = self._current_task[CONF_TASK_INTERVAL_UNIT]
         if CONF_TASK_DUE_DATE in self._current_task:
@@ -1162,9 +1012,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
         if CONF_TASK_PRIORITY in self._current_task:
             task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
         if self._current_task.get(CONF_TASK_LABELS_TEXT):
-            task_data["labels"] = parse_labels_text(
-                self._current_task[CONF_TASK_LABELS_TEXT]
-            )
+            task_data["labels"] = parse_labels_text(self._current_task[CONF_TASK_LABELS_TEXT])
 
         cap_task_fields(task_data)
         self._tasks[task_id] = task_data

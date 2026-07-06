@@ -1,4 +1,5 @@
 """Check history data for Family Car tasks."""
+
 import asyncio
 import os
 
@@ -6,6 +7,7 @@ import aiohttp
 
 TOKEN = os.environ["HA_TOKEN"]
 BASE = "http://localhost:8123"
+
 
 async def main():
     async with aiohttp.ClientSession() as session:
@@ -39,5 +41,6 @@ async def main():
                         notes = h.get("notes", "")[:50]
                         print(f"  {ts}  type={etype:12s}  cost={cost}  dur={dur}  fb={fb}  {notes}")
                     print()
+
 
 asyncio.run(main())

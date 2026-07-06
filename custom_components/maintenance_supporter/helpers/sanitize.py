@@ -45,6 +45,7 @@ _TASK_STR_LIMITS: dict[str, int] = {
     "created_at": MAX_DATE_LENGTH,
     "schedule_time": MAX_SCHEDULE_TIME_LENGTH,
     "priority": MAX_TYPE_LENGTH,
+    "reading_unit": 32,
 }
 
 _OBJECT_STR_LIMITS: dict[str, int] = {
@@ -114,11 +115,8 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
             task_data.pop("checklist", None)
         else:
             from ..const import MAX_CHECKLIST_ITEM_LENGTH, MAX_CHECKLIST_ITEMS
-            cleaned = [
-                item.strip()[:MAX_CHECKLIST_ITEM_LENGTH]
-                for item in cl
-                if isinstance(item, str)
-            ]
+
+            cleaned = [item.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for item in cl if isinstance(item, str)]
             cleaned = [c for c in cleaned if c]
             task_data["checklist"] = cleaned[:MAX_CHECKLIST_ITEMS]
 
@@ -132,6 +130,7 @@ def cap_task_fields(task_data: dict[str, Any]) -> dict[str, Any]:
     rs = task_data.get("rotation_strategy")
     if rs is not None:
         from ..const import ROTATION_STRATEGIES
+
         if rs not in ROTATION_STRATEGIES:
             task_data.pop("rotation_strategy", None)
 
@@ -165,6 +164,7 @@ def sanitize_labels(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     from ..const import MAX_LABEL_LENGTH, MAX_LABELS
+
     seen: set[str] = set()
     out: list[str] = []
     for item in value:
@@ -182,6 +182,7 @@ def sanitize_assignee_pool(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     from ..const import MAX_ASSIGNEE_POOL
+
     seen: set[str] = set()
     out: list[str] = []
     for item in value:
@@ -208,9 +209,7 @@ _MAX_TARGET_FIELD_LENGTH = 200
 # escalation (an allowlisted operator setting an action that runs with system
 # rights when the task is completed). Domain-specific services stay available
 # (e.g. light.turn_on instead of the generic homeassistant.turn_on).
-_FORBIDDEN_ACTION_DOMAINS = frozenset(
-    {"shell_command", "python_script", "hassio", "homeassistant", "recorder", "backup"}
-)
+_FORBIDDEN_ACTION_DOMAINS = frozenset({"shell_command", "python_script", "hassio", "homeassistant", "recorder", "backup"})
 
 
 def cap_action_field(task_data: dict[str, Any]) -> None:
@@ -252,10 +251,7 @@ def cap_action_field(task_data: dict[str, Any]) -> None:
             if isinstance(v, str) and 0 < len(v) <= _MAX_TARGET_FIELD_LENGTH:
                 cleaned_target[key] = v
             elif isinstance(v, list):
-                cleaned_list = [
-                    s for s in v
-                    if isinstance(s, str) and 0 < len(s) <= _MAX_TARGET_FIELD_LENGTH
-                ]
+                cleaned_list = [s for s in v if isinstance(s, str) and 0 < len(s) <= _MAX_TARGET_FIELD_LENGTH]
                 if cleaned_list:
                     cleaned_target[key] = cleaned_list[:50]  # cap target list length
         if cleaned_target:
@@ -265,6 +261,7 @@ def cap_action_field(task_data: dict[str, Any]) -> None:
     if isinstance(data, dict):
         # Cheap size guard via JSON serialisation
         import json
+
         try:
             serialised = json.dumps(data)
         except (TypeError, ValueError):

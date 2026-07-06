@@ -259,9 +259,7 @@ class TestTemplateLibrary:
         """Test that the config flow includes a template creation option."""
         await setup_integration(hass, global_config_entry)
 
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         assert result["type"] == FlowResultType.MENU
         assert "create_from_template" in result["menu_options"]
 
@@ -398,9 +396,7 @@ class TestMaintenanceChecklists:
         )
 
         # Verify history entry contains checklist_state (dynamic state in Store)
-        state = get_task_store_state(
-            hass, object_with_checklist.entry_id, TASK_ID_1
-        )
+        state = get_task_store_state(hass, object_with_checklist.entry_id, TASK_ID_1)
         history = state.get("history", [])
         assert len(history) >= 1
         latest = history[-1]
@@ -563,9 +559,7 @@ class TestBudgetTracking:
             options={**global_config_entry.options, CONF_ADVANCED_BUDGET: True},
         )
 
-        result = await hass.config_entries.options.async_init(
-            global_config_entry.entry_id
-        )
+        result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
         assert result["type"] == FlowResultType.MENU
         assert "budget_settings" in result["menu_options"]
 
@@ -581,9 +575,7 @@ class TestBudgetTracking:
             options={**global_config_entry.options, CONF_ADVANCED_BUDGET: True},
         )
 
-        result = await hass.config_entries.options.async_init(
-            global_config_entry.entry_id
-        )
+        result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -638,9 +630,7 @@ class TestBudgetTracking:
             mock_hass.services.async_call = AsyncMock()
             mock_hass.config_entries = hass.config_entries
 
-            await nm.async_budget_alert(
-                period="monthly", spent=85.0, budget=100.0
-            )
+            await nm.async_budget_alert(period="monthly", spent=85.0, budget=100.0)
 
             mock_hass.services.async_call.assert_called_once()
             call_args = mock_hass.services.async_call.call_args
@@ -732,11 +722,7 @@ class TestCSVImportExport:
             import_objects_csv,
         )
 
-        csv_content = (
-            "object_name,task_name,task_type\n"
-            ",Oil Change,service\n"
-            "  ,Tire Rotation,service\n"
-        )
+        csv_content = "object_name,task_name,task_type\n,Oil Change,service\n  ,Tire Rotation,service\n"
         objects = import_objects_csv(csv_content)
         assert len(objects) == 0
 
@@ -872,9 +858,7 @@ class TestMaintenanceGroups:
             options={**global_config_entry.options, CONF_ADVANCED_GROUPS: True},
         )
 
-        result = await hass.config_entries.options.async_init(
-            global_config_entry.entry_id
-        )
+        result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
         assert result["type"] == FlowResultType.MENU
         assert "manage_groups" in result["menu_options"]
 
@@ -890,9 +874,7 @@ class TestMaintenanceGroups:
             options={**global_config_entry.options, CONF_ADVANCED_GROUPS: True},
         )
 
-        result = await hass.config_entries.options.async_init(
-            global_config_entry.entry_id
-        )
+        result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -913,9 +895,7 @@ class TestMaintenanceGroups:
             options={**global_config_entry.options, CONF_ADVANCED_GROUPS: True},
         )
 
-        result = await hass.config_entries.options.async_init(
-            global_config_entry.entry_id
-        )
+        result = await hass.config_entries.options.async_init(global_config_entry.entry_id)
 
         # Navigate to manage_groups → add_group (since no groups exist)
         result = await hass.config_entries.options.async_configure(

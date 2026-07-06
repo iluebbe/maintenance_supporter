@@ -679,5 +679,9 @@
   "replace_object": "Zastąp…",
   "replace_object_prompt": "Wycofaj ten obiekt i utwórz następcę. Historia i koszty pozostają zarchiwizowane przy starym; zadania i dokumenty przechodzą do nowego, liczniki startują od zera.",
   "replace_name_label": "Nazwa następcy",
-  "object_replaced": "Obiekt zastąpiony — utworzono następcę"
+  "object_replaced": "Obiekt zastąpiony — utworzono następcę",
+  "reading_unit_label": "Jednostka odczytu (np. kWh, m³)",
+  "reading_unit_help": "Wyświetlana obok zarejestrowanej wartości przy ukończeniu tego zadania.",
+  "reading_value_label": "Wartość odczytu",
+  "reading_label": "Odczyt"
 }

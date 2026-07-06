@@ -36,6 +36,7 @@ from . import (
 # latest type=completed/reset/skipped entry — otherwise the next_due math
 # uses a stale anchor.
 
+
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/task/history/update",
@@ -84,7 +85,8 @@ async def ws_update_history_entry(
                 raise ValueError("not a datetime")
         except (ValueError, TypeError):
             connection.send_error(
-                msg["id"], "invalid_date",
+                msg["id"],
+                "invalid_date",
                 "timestamp must be an ISO datetime string",
             )
             return
@@ -97,7 +99,8 @@ async def ws_update_history_entry(
             break
     if target_index is None:
         connection.send_error(
-            msg["id"], "not_found",
+            msg["id"],
+            "not_found",
             f"No history entry with timestamp {msg['original_timestamp']!r}",
         )
         return
@@ -128,9 +131,7 @@ async def ws_update_history_entry(
         HistoryEntryType.RESET,
         HistoryEntryType.SKIPPED,
     }
-    lifecycle_entries = [
-        h for h in history if h.get("type") in LIFECYCLE_TYPES
-    ]
+    lifecycle_entries = [h for h in history if h.get("type") in LIFECYCLE_TYPES]
     if lifecycle_entries:
         # "Latest" by timestamp — sort defensively (entries are usually
         # already in append order, but a timestamp edit may have changed that).

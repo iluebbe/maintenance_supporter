@@ -1,4 +1,5 @@
 """Debug WS response format."""
+
 import asyncio
 import json
 import os
@@ -6,8 +7,10 @@ import os
 TOKEN = os.environ["HA_TOKEN"]
 BASE = "http://localhost:8123"
 
+
 async def main():
     import aiohttp
+
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect(f"{BASE}/api/websocket") as ws:
             auth_msg = await ws.receive_json()
@@ -31,5 +34,6 @@ async def main():
                 print(f"Result: {json.dumps(result, indent=2)[:500]}")
             else:
                 print(f"Result: {result}")
+
 
 asyncio.run(main())

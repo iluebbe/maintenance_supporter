@@ -25,9 +25,7 @@ from . import (
 )
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/users/list"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/users/list"})
 @websocket_api.async_response
 async def ws_list_users(
     hass: HomeAssistant,
@@ -131,12 +129,8 @@ async def ws_tasks_by_user(
     # Authorization: a user may query their OWN assignments; querying another
     # user's requires write access (admin or operator) — prevents a plain user
     # from enumerating another user's task assignments.
-    if connection.user is None or (
-        user_id != connection.user.id and not user_may_write(hass, connection)
-    ):
-        connection.send_error(
-            msg["id"], "unauthorized", "Not authorized to view another user's tasks"
-        )
+    if connection.user is None or (user_id != connection.user.id and not user_may_write(hass, connection)):
+        connection.send_error(msg["id"], "unauthorized", "Not authorized to view another user's tasks")
         return
     entries = _get_object_entries(hass)
     result = []

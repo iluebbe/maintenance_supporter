@@ -111,9 +111,7 @@ async def test_trigger_events_attach_to_entity(hass: HomeAssistant) -> None:
     assert on["entity_id"] == "sensor.hvac_filter"
     assert on["message"] == "sensor trigger activated (sensor.hvac_airflow: 54.2)"
 
-    off = callbacks[EVENT_TRIGGER_DEACTIVATED](
-        Event(EVENT_TRIGGER_DEACTIVATED, {"entity_id": "sensor.hvac_filter"})
-    )
+    off = callbacks[EVENT_TRIGGER_DEACTIVATED](Event(EVENT_TRIGGER_DEACTIVATED, {"entity_id": "sensor.hvac_filter"}))
     assert off["message"] == "sensor trigger cleared"
 
 
@@ -124,7 +122,8 @@ async def test_entries_attach_to_the_task_sensor_entity(hass: HomeAssistant) -> 
 
     reg = er.async_get(hass)
     entry = reg.async_get_or_create(
-        "sensor", "maintenance_supporter",
+        "sensor",
+        "maintenance_supporter",
         "maintenance_supporter_family_car_t1",
         suggested_object_id="family_car_oil_change",
     )
@@ -134,8 +133,7 @@ async def test_entries_attach_to_the_task_sensor_entity(hass: HomeAssistant) -> 
         out = callbacks[event_type](
             Event(
                 event_type,
-                {"task_id": "t1", "task_name": "Oil Change",
-                 "object_name": "Family Car", "date": "2026-01-01"},
+                {"task_id": "t1", "task_name": "Oil Change", "object_name": "Family Car", "date": "2026-01-01"},
             )
         )
         assert out["entity_id"] == entry.entity_id, event_type

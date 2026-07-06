@@ -32,6 +32,13 @@ complete:
           max: 1440
           step: 1
           mode: box
+    reading_value:
+      name: Reading value
+      description: Recorded value for reading-type tasks (meter reading, level check).
+      selector:
+        number:
+          mode: box
+          step: any
 
 reset:
   name: Reset Maintenance

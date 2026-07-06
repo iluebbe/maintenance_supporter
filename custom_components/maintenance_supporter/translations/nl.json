@@ -676,7 +676,8 @@
           "custom_icon": "Taakicoon",
           "nfc_tag_id": "NFC-tag-ID",
           "go_back": "Terug",
-          "interval_anchor": "Interval-anker"
+          "interval_anchor": "Interval-anker",
+          "reading_unit": "Meeteenheid (voor aflees-taken, bijv. kWh)"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
@@ -862,7 +863,8 @@
           "type": "Onderhoudstype",
           "schedule_type": "Planningstype",
           "custom_icon": "Taakicoon",
-          "go_back": "Terug"
+          "go_back": "Terug",
+          "reading_unit": "Meeteenheid (voor aflees-taken, bijv. kWh)"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Duur",
           "description": "Duur van het onderhoud in minuten."
+        },
+        "reading_value": {
+          "name": "Meterstand",
+          "description": "Vastgelegde waarde voor aflees-taken (meterstand, niveaucontrole)."
         }
       }
     },

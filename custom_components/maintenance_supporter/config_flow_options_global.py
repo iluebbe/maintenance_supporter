@@ -107,9 +107,7 @@ def _safe_time(value: Any, fallback: str) -> str:
     return fallback
 
 
-def validate_notify_service(
-    raw: str, hass: HomeAssistant | None = None
-) -> tuple[str, str | None]:
+def validate_notify_service(raw: str, hass: HomeAssistant | None = None) -> tuple[str, str | None]:
     """Normalize and validate a notify service string.
 
     Returns (normalized_value, error_key | None).
@@ -123,12 +121,7 @@ def validate_notify_service(
         value = f"notify.{value}"
 
     parts = value.split(".")
-    if (
-        len(parts) != 2
-        or parts[0] != "notify"
-        or not parts[1]
-        or not _VALID_SERVICE_PART.match(parts[1])
-    ):
+    if len(parts) != 2 or parts[0] != "notify" or not parts[1] or not _VALID_SERVICE_PART.match(parts[1]):
         return (value, "invalid_notify_service")
 
     # Check service existence (only when hass available, i.e. options flow)
@@ -219,9 +212,7 @@ def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
     return texts.get(key, texts.get("failed", key))
 
 
-async def send_test_notification(
-    hass: HomeAssistant, options: dict[str, Any]
-) -> str:
+async def send_test_notification(hass: HomeAssistant, options: dict[str, Any]) -> str:
     """Send a test notification using the configured notify service.
 
     Returns a result key ("success", "no_service", "invalid_service", "failed")
@@ -280,9 +271,7 @@ class GlobalOptionsFlow(OptionsFlow):
         """Merge user input into options and return to the menu."""
         merged = self._current
         merged.update(user_input)
-        self.hass.config_entries.async_update_entry(
-            self.config_entry, options=merged
-        )
+        self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
         return self.async_show_menu(
             step_id="global_init",
             menu_options=self._menu_options(),
@@ -297,51 +286,41 @@ class GlobalOptionsFlow(OptionsFlow):
         if current.get(CONF_ADVANCED_GROUPS, False):
             options.append("manage_groups")
         if current.get(CONF_NOTIFICATIONS_ENABLED, False):
-            options.extend([
-                "notification_settings",
-                "notification_actions",
-                "test_notification",
-            ])
+            options.extend(
+                [
+                    "notification_settings",
+                    "notification_actions",
+                    "test_notification",
+                ]
+            )
         options.append("done")
         return options
 
     # --- Menu ---
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show global options menu."""
         return self.async_show_menu(
             step_id="global_init",
             menu_options=self._menu_options(),
         )
 
-    async def async_step_global_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_global_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Handle menu selection redirect."""
         return await self.async_step_init()
 
     # Keep old step name as redirect for HA compatibility
-    async def async_step_global_options(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_global_options(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Redirect old step name."""
         return await self.async_step_init()
 
-    async def async_step_done(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_done(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Finish and close the options flow."""
-        return self.async_create_entry(
-            title="", data=self._current
-        )
+        return self.async_create_entry(title="", data=self._current)
 
     # --- Advanced Features ---
 
-    async def async_step_advanced_features(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_advanced_features(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Toggle visibility of advanced feature sections."""
         if user_input is not None:
             return self._save_and_return(user_input)
@@ -390,9 +369,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- Panel Access (per-user override) ---
 
-    async def async_step_panel_access(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_panel_access(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Operator write delegation + the non-admin allowlist.
 
         Admins always have full write access. The ``operator_write_enabled``
@@ -406,10 +383,7 @@ class GlobalOptionsFlow(OptionsFlow):
         # Build the multi-select option list from the HA auth registry,
         # mirroring the panel's own users/list filter (active humans only).
         users = await self.hass.auth.async_get_users()
-        non_admin = [
-            u for u in users
-            if not u.is_admin and not u.system_generated and u.is_active
-        ]
+        non_admin = [u for u in users if not u.is_admin and not u.system_generated and u.is_active]
         options = [
             selector.SelectOptionDict(
                 value=u.id,
@@ -421,22 +395,24 @@ class GlobalOptionsFlow(OptionsFlow):
         current = self._current
         return self.async_show_form(
             step_id="panel_access",
-            data_schema=vol.Schema({
-                vol.Optional(
-                    CONF_OPERATOR_WRITE_ENABLED,
-                    default=current.get(CONF_OPERATOR_WRITE_ENABLED, False),
-                ): selector.BooleanSelector(),
-                vol.Optional(
-                    CONF_ADMIN_PANEL_USER_IDS,
-                    default=current.get(CONF_ADMIN_PANEL_USER_IDS, []),
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=options,
-                        multiple=True,
-                        mode=selector.SelectSelectorMode.LIST,
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_OPERATOR_WRITE_ENABLED,
+                        default=current.get(CONF_OPERATOR_WRITE_ENABLED, False),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_ADMIN_PANEL_USER_IDS,
+                        default=current.get(CONF_ADMIN_PANEL_USER_IDS, []),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=options,
+                            multiple=True,
+                            mode=selector.SelectSelectorMode.LIST,
+                        ),
                     ),
-                ),
-            }),
+                }
+            ),
             description_placeholders={
                 "user_count": str(len(non_admin)),
             },
@@ -444,9 +420,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- General Settings ---
 
-    async def async_step_general_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_general_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """General settings: warning days, notifications toggle, service, panel."""
         errors: dict[str, str] = {}
 
@@ -475,8 +449,7 @@ class GlobalOptionsFlow(OptionsFlow):
         current = self._current
         currency_code = current.get(CONF_BUDGET_CURRENCY, DEFAULT_BUDGET_CURRENCY)
         currency_options = [
-            selector.SelectOptionDict(value=code, label=f"{code} ({symbol})")
-            for code, symbol in BUDGET_CURRENCIES.items()
+            selector.SelectOptionDict(value=code, label=f"{code} ({symbol})") for code, symbol in BUDGET_CURRENCIES.items()
         ]
 
         # Offer every notify target as a dropdown so users don't have to guess
@@ -484,9 +457,7 @@ class GlobalOptionsFlow(OptionsFlow):
         # the generic send_message, plus the current saved value) is shared with
         # the panel via build_notify_targets so the two surfaces can't drift.
         # ``custom_value`` keeps free text working for not-yet-loaded targets.
-        notify_services = build_notify_targets(
-            self.hass, current=current.get(CONF_NOTIFY_SERVICE, "")
-        )
+        notify_services = build_notify_targets(self.hass, current=current.get(CONF_NOTIFY_SERVICE, ""))
 
         return self.async_show_form(
             step_id="general_settings",
@@ -496,9 +467,7 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_DEFAULT_WARNING_DAYS,
                         default=current.get(CONF_DEFAULT_WARNING_DAYS, DEFAULT_WARNING_DAYS),
                     ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=_WARN_MIN, max=_WARN_MAX, step=1, mode=selector.NumberSelectorMode.BOX
-                        )
+                        selector.NumberSelectorConfig(min=_WARN_MIN, max=_WARN_MAX, step=1, mode=selector.NumberSelectorMode.BOX)
                     ),
                     vol.Optional(
                         CONF_BUDGET_CURRENCY,
@@ -532,14 +501,8 @@ class GlobalOptionsFlow(OptionsFlow):
                     # custom value, or empty when none is set.
                     vol.Optional(
                         CONF_PANEL_TITLE,
-                        description={
-                            "suggested_value": current.get(CONF_PANEL_TITLE, "")
-                        },
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
-                    ),
+                        description={"suggested_value": current.get(CONF_PANEL_TITLE, "")},
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                 }
             ),
             errors=errors,
@@ -547,9 +510,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- Notification Settings ---
 
-    async def async_step_notification_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_notification_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Per-status notification toggles, intervals, quiet hours, daily limit."""
         if user_input is not None:
             return self._save_and_return(user_input)
@@ -622,9 +583,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     # --- Daily Limit ---
                     vol.Optional(
                         CONF_MAX_NOTIFICATIONS_PER_DAY,
-                        default=current.get(
-                            CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY
-                        ),
+                        default=current.get(CONF_MAX_NOTIFICATIONS_PER_DAY, DEFAULT_MAX_NOTIFICATIONS_PER_DAY),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_MAX_PER_DAY_MIN, max=_MAX_PER_DAY_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -660,9 +619,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- Notification Actions ---
 
-    async def async_step_notification_actions(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_notification_actions(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Interactive action buttons for mobile notifications."""
         if user_input is not None:
             return self._save_and_return(user_input)
@@ -687,9 +644,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_SNOOZE_DURATION_HOURS,
-                        default=current.get(
-                            CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS
-                        ),
+                        default=current.get(CONF_SNOOZE_DURATION_HOURS, DEFAULT_SNOOZE_DURATION_HOURS),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_SNOOZE_MIN, max=_SNOOZE_MAX, step=1, mode=selector.NumberSelectorMode.BOX
@@ -701,9 +656,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- Test Notification ---
 
-    async def async_step_test_notification(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_test_notification(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Send a test notification and show the result."""
         if user_input is not None:
             # User acknowledged the result — return to menu
@@ -725,9 +678,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- Budget Settings ---
 
-    async def async_step_budget_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_budget_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Budget settings: monthly/yearly budget, alerts."""
         if user_input is not None:
             return self._save_and_return(user_input)
@@ -745,7 +696,9 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_MONTHLY, 0.0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=_BUDGET_MONTHLY_MIN, max=_BUDGET_MONTHLY_MAX, step=0.01,
+                            min=_BUDGET_MONTHLY_MIN,
+                            max=_BUDGET_MONTHLY_MAX,
+                            step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
                             unit_of_measurement=currency_symbol,
                         )
@@ -755,7 +708,9 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_YEARLY, 0.0),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=_BUDGET_YEARLY_MIN, max=_BUDGET_YEARLY_MAX, step=0.01,
+                            min=_BUDGET_YEARLY_MIN,
+                            max=_BUDGET_YEARLY_MAX,
+                            step=0.01,
                             mode=selector.NumberSelectorMode.BOX,
                             unit_of_measurement=currency_symbol,
                         )
@@ -769,7 +724,9 @@ class GlobalOptionsFlow(OptionsFlow):
                         default=current.get(CONF_BUDGET_ALERT_THRESHOLD, 80),
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=_ALERT_MIN, max=_ALERT_MAX, step=5,
+                            min=_ALERT_MIN,
+                            max=_ALERT_MAX,
+                            step=5,
                             mode=selector.NumberSelectorMode.SLIDER,
                             unit_of_measurement="%",
                         )
@@ -780,9 +737,7 @@ class GlobalOptionsFlow(OptionsFlow):
 
     # --- Manage Groups ---
 
-    async def async_step_manage_groups(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_manage_groups(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """List and manage maintenance groups."""
         from .const import CONF_GROUPS
 
@@ -807,9 +762,7 @@ class GlobalOptionsFlow(OptionsFlow):
             )
             for gid, gdata in groups.items()
         ]
-        options.append(
-            selector.SelectOptionDict(value="_add_new", label="+ Add New Group")
-        )
+        options.append(selector.SelectOptionDict(value="_add_new", label="+ Add New Group"))
 
         return self.async_show_form(
             step_id="manage_groups",
@@ -825,9 +778,7 @@ class GlobalOptionsFlow(OptionsFlow):
             ),
         )
 
-    async def async_step_add_group(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_add_group(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add a new maintenance group."""
         from .const import CONF_GROUPS
         from .helpers.sanitize import cap_group_fields
@@ -846,9 +797,7 @@ class GlobalOptionsFlow(OptionsFlow):
                 cap_group_fields(new_group)
                 groups[group_id] = new_group
                 merged[CONF_GROUPS] = groups
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, options=merged
-                )
+                self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
             return self.async_show_menu(
                 step_id="global_init",
                 menu_options=self._menu_options(),
@@ -859,9 +808,7 @@ class GlobalOptionsFlow(OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required("group_name"): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
                     vol.Optional("group_description", default=""): selector.TextSelector(
                         selector.TextSelectorConfig(
@@ -881,9 +828,7 @@ class GlobalOptionsFlow(OptionsFlow):
         groups = dict(merged.get(CONF_GROUPS, {}))
         groups.pop(group_id, None)
         merged[CONF_GROUPS] = groups
-        self.hass.config_entries.async_update_entry(
-            self.config_entry, options=merged
-        )
+        self.hass.config_entries.async_update_entry(self.config_entry, options=merged)
         return self.async_show_menu(
             step_id="global_init",
             menu_options=self._menu_options(),

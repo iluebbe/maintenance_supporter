@@ -679,5 +679,9 @@
   "replace_object": "Sustituir…",
   "replace_object_prompt": "Retira este objeto y crea un sucesor. El historial y los costes quedan archivados en el antiguo; las tareas y los documentos pasan al nuevo, los contadores empiezan de cero.",
   "replace_name_label": "Nombre del sucesor",
-  "object_replaced": "Objeto sustituido — sucesor creado"
+  "object_replaced": "Objeto sustituido — sucesor creado",
+  "reading_unit_label": "Unidad de lectura (p. ej. kWh, m³)",
+  "reading_unit_help": "Se muestra junto al valor registrado al completar esta tarea.",
+  "reading_value_label": "Valor de lectura",
+  "reading_label": "Lectura"
 }

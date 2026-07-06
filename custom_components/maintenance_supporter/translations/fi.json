@@ -676,7 +676,8 @@
           "custom_icon": "Tehtävän kuvake",
           "nfc_tag_id": "NFC-tunnisteen tunnus",
           "go_back": "Palaa takaisin",
-          "interval_anchor": "Aikavälin ankkuri"
+          "interval_anchor": "Aikavälin ankkuri",
+          "reading_unit": "Lukeman yksikkö (lukematehtäville, esim. kWh)"
         },
         "data_description": {
           "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
@@ -862,7 +863,8 @@
           "type": "Huoltotyyppi",
           "schedule_type": "Aikataulutyyppi",
           "custom_icon": "Tehtävän kuvake",
-          "go_back": "Palaa takaisin"
+          "go_back": "Palaa takaisin",
+          "reading_unit": "Lukeman yksikkö (lukematehtäville, esim. kWh)"
         },
         "data_description": {
           "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Kesto",
           "description": "Huollon kesto minuutteina."
+        },
+        "reading_value": {
+          "name": "Lukema",
+          "description": "Kirjattu arvo lukematehtäville (mittarilukema, tason tarkistus)."
         }
       }
     },

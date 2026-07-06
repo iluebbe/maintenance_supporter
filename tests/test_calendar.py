@@ -37,9 +37,7 @@ async def test_calendar_entity_created(
 
     entity_reg = er.async_get(hass)
     # Calendar is created on the global entry
-    entities = er.async_entries_for_config_entry(
-        entity_reg, global_config_entry.entry_id
-    )
+    entities = er.async_entries_for_config_entry(entity_reg, global_config_entry.entry_id)
     calendar_entities = [e for e in entities if e.domain == "calendar"]
     assert len(calendar_entities) == 1
     assert calendar_entities[0].unique_id == "maintenance_supporter_calendar"
@@ -59,9 +57,7 @@ async def test_calendar_shows_time_based_event(
     # Calendar entity is disabled by default, so check the entity registry
     # instead of hass.states
     entity_reg = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(
-        entity_reg, global_config_entry.entry_id
-    )
+    entities = er.async_entries_for_config_entry(entity_reg, global_config_entry.entry_id)
     calendar_entities = [e for e in entities if e.domain == "calendar"]
     assert len(calendar_entities) >= 1
 
@@ -79,9 +75,7 @@ async def test_calendar_event_overdue_prefix(
 
     # Get calendar events via the entity
     entity_reg = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(
-        entity_reg, global_config_entry.entry_id
-    )
+    entities = er.async_entries_for_config_entry(entity_reg, global_config_entry.entry_id)
     calendar_entities = [e for e in entities if e.domain == "calendar"]
 
     if calendar_entities:
@@ -128,9 +122,7 @@ async def test_calendar_manual_task_not_shown(
     calendar_ref = hass.data.get(DOMAIN, {}).get("_calendar_entity")
     if calendar_ref and isinstance(calendar_ref, MaintenanceCalendar):
         now = dt_util.now()
-        events = await calendar_ref.async_get_events(
-            hass, now, now + timedelta(days=365)
-        )
+        events = await calendar_ref.async_get_events(hass, now, now + timedelta(days=365))
         manual_events = [e for e in events if "Manual Object" in (e.summary or "")]
         # Manual tasks without triggers should not show
         # (only triggered manual tasks show as today's event)
@@ -155,12 +147,14 @@ async def test_calendar_aggregates_multiple_objects(
         title="Object A",
         data=build_object_entry_data(
             object_data=build_object_data(name="Object A"),
-            tasks={TASK_ID_1: build_task_data(
-                task_id=TASK_ID_1,
-                name="Task A",
-                interval_days=30,
-                last_performed=last1,
-            )},
+            tasks={
+                TASK_ID_1: build_task_data(
+                    task_id=TASK_ID_1,
+                    name="Task A",
+                    interval_days=30,
+                    last_performed=last1,
+                )
+            },
         ),
         source="user",
         unique_id="maintenance_supporter_object_a",
@@ -174,13 +168,15 @@ async def test_calendar_aggregates_multiple_objects(
         title="Object B",
         data=build_object_entry_data(
             object_data=build_object_data(name="Object B", object_id="d" * 32),
-            tasks={TASK_ID_2: build_task_data(
-                task_id=TASK_ID_2,
-                name="Task B",
-                interval_days=30,
-                last_performed=last2,
-                object_id="d" * 32,
-            )},
+            tasks={
+                TASK_ID_2: build_task_data(
+                    task_id=TASK_ID_2,
+                    name="Task B",
+                    interval_days=30,
+                    last_performed=last2,
+                    object_id="d" * 32,
+                )
+            },
         ),
         source="user",
         unique_id="maintenance_supporter_object_b",
@@ -194,9 +190,7 @@ async def test_calendar_aggregates_multiple_objects(
     calendar_ref = hass.data.get(DOMAIN, {}).get("_calendar_entity")
     if calendar_ref and isinstance(calendar_ref, MaintenanceCalendar):
         now = dt_util.now()
-        events = await calendar_ref.async_get_events(
-            hass, now, now + timedelta(days=365)
-        )
+        events = await calendar_ref.async_get_events(hass, now, now + timedelta(days=365))
         # Should have events from both objects
         summaries = [e.summary for e in events]
         has_a = any("Object A" in s for s in summaries)

@@ -42,10 +42,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -58,11 +61,15 @@ def _conn() -> MagicMock:
 
 
 def _make_entry(
-    hass: HomeAssistant, unique_id: str, name: str = "Edge Object",
+    hass: HomeAssistant,
+    unique_id: str,
+    name: str = "Edge Object",
     task: dict[str, Any] | None = None,
 ) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(
             object_data=build_object_data(name=name),
@@ -78,22 +85,25 @@ def _make_entry(
 # ─── WS handlers: device link through the real commands ────────────────────
 
 
-async def test_ws_create_object_rejects_unknown_device(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_ws_create_object_rejects_unknown_device(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     await setup_integration(hass, global_entry)
     conn = _conn()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "X", "ha_device_id": "does-not-exist",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "X",
+            "ha_device_id": "does-not-exist",
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_device"
 
 
-async def test_ws_create_object_with_valid_links(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_ws_create_object_with_valid_links(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     parent = _make_entry(hass, "edge_parent", name="Parent")
     await setup_integration(hass, global_entry, parent)
 
@@ -106,12 +116,18 @@ async def test_ws_create_object_with_valid_links(
     )
 
     conn = _conn()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Linked Child",
-        "ha_device_id": device.id,
-        "parent_entry_id": parent.entry_id,
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Linked Child",
+            "ha_device_id": device.id,
+            "parent_entry_id": parent.entry_id,
+        },
+    )
     await hass.async_block_till_done()
     conn.send_result.assert_called_once()
     entry_id = conn.send_result.call_args[0][1]["entry_id"]
@@ -120,9 +136,7 @@ async def test_ws_create_object_with_valid_links(
     assert obj["parent_entry_id"] == parent.entry_id
 
 
-async def test_ws_update_object_link_change_schedules_reload(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_ws_update_object_link_change_schedules_reload(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     obj_entry = _make_entry(hass, "edge_reload", name="Reloader")
     await setup_integration(hass, global_entry, obj_entry)
 
@@ -134,34 +148,53 @@ async def test_ws_update_object_link_change_schedules_reload(
     )
 
     conn = _conn()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": obj_entry.entry_id, "ha_device_id": device.id,
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": obj_entry.entry_id,
+            "ha_device_id": device.id,
+        },
+    )
     await hass.async_block_till_done()
     conn.send_result.assert_called_once()
     assert obj_entry.data["object"]["ha_device_id"] == device.id
 
     # Clearing the link goes through the same changed-path.
     conn2 = _conn()
-    await call_ws_handler(ws_update_object, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/object/update",
-        "entry_id": obj_entry.entry_id, "ha_device_id": None,
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": obj_entry.entry_id,
+            "ha_device_id": None,
+        },
+    )
     await hass.async_block_till_done()
     assert obj_entry.data["object"]["ha_device_id"] is None
 
 
-async def test_ws_update_object_rejects_bad_parent(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_ws_update_object_rejects_bad_parent(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     obj_entry = _make_entry(hass, "edge_badparent", name="Child")
     await setup_integration(hass, global_entry, obj_entry)
     conn = _conn()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": obj_entry.entry_id, "parent_entry_id": global_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": obj_entry.entry_id,
+            "parent_entry_id": global_entry.entry_id,
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_parent"
 
@@ -178,9 +211,7 @@ def _next_due_sensor(hass: HomeAssistant, entry: MockConfigEntry) -> Any:
     return MaintenanceNextDueSensor(coordinator, TASK_ID_1)
 
 
-async def test_next_due_sensor_edge_values(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_next_due_sensor_edge_values(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     last = (dt_util.now().date() - timedelta(days=10)).isoformat()
     task = build_task_data(task_id=TASK_ID_1, last_performed=last, interval_days=30)
     task["schedule_time"] = "junk"  # malformed → midnight fallback
@@ -217,9 +248,7 @@ async def test_next_due_sensor_edge_values(
 # ─── Orphan sweep: handover + no-pool branches ──────────────────────────────
 
 
-async def test_sweep_clears_pointer_without_pool(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_sweep_clears_pointer_without_pool(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """Orphaned pointer with NO pool → cleared (not handed over)."""
     MockUser(id="edge-live", name="Live").add_to_hass(hass)
     task = build_task_data(task_id=TASK_ID_1, interval_days=30)
@@ -231,9 +260,7 @@ async def test_sweep_clears_pointer_without_pool(
     assert "responsible_user_id" not in stored
 
 
-async def test_sweep_keeps_valid_assignments_untouched(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_sweep_keeps_valid_assignments_untouched(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     MockUser(id="edge-a", name="A").add_to_hass(hass)
     MockUser(id="edge-b", name="B").add_to_hass(hass)
     task = build_task_data(task_id=TASK_ID_1, interval_days=30)

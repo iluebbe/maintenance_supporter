@@ -22,9 +22,7 @@ _SEND_MESSAGE = "send_message"
 _SEND_MESSAGE_ENTITY = f"notify.{_SEND_MESSAGE}"
 
 
-def build_notify_targets(
-    hass: HomeAssistant, *, current: str | None = None
-) -> list[str]:
+def build_notify_targets(hass: HomeAssistant, *, current: str | None = None) -> list[str]:
     """Return the sorted set of pickable notify targets.
 
     Merges legacy notify *services* (mobile_app devices, notify groups) from
@@ -34,16 +32,8 @@ def build_notify_targets(
     non-empty saved value it is always included, so an already-configured but
     currently-unavailable target still shows up as selected.
     """
-    targets: set[str] = {
-        f"notify.{name}"
-        for name in hass.services.async_services().get("notify", {})
-        if name != _SEND_MESSAGE
-    }
-    targets.update(
-        entity_id
-        for entity_id in hass.states.async_entity_ids("notify")
-        if entity_id != _SEND_MESSAGE_ENTITY
-    )
+    targets: set[str] = {f"notify.{name}" for name in hass.services.async_services().get("notify", {}) if name != _SEND_MESSAGE}
+    targets.update(entity_id for entity_id in hass.states.async_entity_ids("notify") if entity_id != _SEND_MESSAGE_ENTITY)
     if current:
         targets.add(current)
     return sorted(targets)

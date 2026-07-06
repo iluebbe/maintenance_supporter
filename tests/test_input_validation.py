@@ -63,29 +63,35 @@ def _mock_connection() -> MagicMock:
 
 def test_task_name_too_long_rejected() -> None:
     """Task name exceeding MAX_NAME_LENGTH should be rejected by schema."""
-    schema = vol.Schema({
-        vol.Required("type"): str,
-        vol.Required("entry_id"): str,
-        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Required("type"): str,
+            vol.Required("entry_id"): str,
+            vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"type": "t", "entry_id": "e", "name": "A" * (MAX_NAME_LENGTH + 1)})
 
 
 def test_task_name_empty_rejected() -> None:
     """Empty task name should be rejected by schema (min=1)."""
-    schema = vol.Schema({
-        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"name": ""})
 
 
 def test_notes_too_long_rejected() -> None:
     """Notes exceeding MAX_TEXT_LENGTH should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
-    })
+    schema = vol.Schema(
+        {
+            vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"notes": "X" * (MAX_TEXT_LENGTH + 1)})
     # None and valid strings should pass
@@ -95,48 +101,56 @@ def test_notes_too_long_rejected() -> None:
 
 def test_checklist_too_many_items_rejected() -> None:
     """Checklist exceeding MAX_CHECKLIST_ITEMS should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("checklist"): vol.Any(
-            vol.All(
-                [vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))],
-                vol.Length(max=MAX_CHECKLIST_ITEMS),
+    schema = vol.Schema(
+        {
+            vol.Optional("checklist"): vol.Any(
+                vol.All(
+                    [vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))],
+                    vol.Length(max=MAX_CHECKLIST_ITEMS),
+                ),
+                None,
             ),
-            None,
-        ),
-    })
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"checklist": ["item"] * (MAX_CHECKLIST_ITEMS + 1)})
 
 
 def test_checklist_item_too_long_rejected() -> None:
     """Individual checklist item exceeding limit should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("checklist"): vol.Any(
-            vol.All(
-                [vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))],
-                vol.Length(max=MAX_CHECKLIST_ITEMS),
+    schema = vol.Schema(
+        {
+            vol.Optional("checklist"): vol.Any(
+                vol.All(
+                    [vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))],
+                    vol.Length(max=MAX_CHECKLIST_ITEMS),
+                ),
+                None,
             ),
-            None,
-        ),
-    })
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"checklist": ["X" * (MAX_CHECKLIST_ITEM_LENGTH + 1)]})
 
 
 def test_object_name_too_long_rejected() -> None:
     """Object name exceeding MAX_NAME_LENGTH should be rejected."""
-    schema = vol.Schema({
-        vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"name": "O" * (MAX_NAME_LENGTH + 1)})
 
 
 def test_group_description_too_long_rejected() -> None:
     """Group description exceeding MAX_TEXT_LENGTH should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"description": "D" * (MAX_TEXT_LENGTH + 1)})
 
@@ -146,60 +160,66 @@ def test_group_description_too_long_rejected() -> None:
 
 def test_cost_negative_rejected() -> None:
     """Negative cost should be rejected by schema."""
-    schema = vol.Schema({
-        vol.Optional("cost"): vol.Any(
-            vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None
-        ),
-    })
+    schema = vol.Schema(
+        {
+            vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"cost": -1.0})
 
 
 def test_cost_too_high_rejected() -> None:
     """Cost above 1M should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("cost"): vol.Any(
-            vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None
-        ),
-    })
+    schema = vol.Schema(
+        {
+            vol.Optional("cost"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=0, max=1_000_000)), None),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"cost": 1_000_001.0})
 
 
 def test_duration_negative_rejected() -> None:
     """Negative duration should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("duration"): vol.Any(
-            vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)), None
-        ),
-    })
+    schema = vol.Schema(
+        {
+            vol.Optional("duration"): vol.Any(vol.All(vol.Coerce(int), vol.Range(min=0, max=525_600)), None),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"duration": -1})
 
 
 def test_warning_days_too_high_rejected() -> None:
     """Warning days above 365 should be rejected."""
-    schema = vol.Schema({
-        vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Optional("warning_days"): vol.All(int, vol.Range(min=0, max=365)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"warning_days": 366})
 
 
 def test_apply_suggestion_interval_zero_rejected() -> None:
     """Interval of 0 should be rejected (min=1)."""
-    schema = vol.Schema({
-        vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"interval": 0})
 
 
 def test_apply_suggestion_interval_too_high_rejected() -> None:
     """Interval above 3650 should be rejected."""
-    schema = vol.Schema({
-        vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
-    })
+    schema = vol.Schema(
+        {
+            vol.Required("interval"): vol.All(int, vol.Range(min=1, max=3650)),
+        }
+    )
     with pytest.raises(vol.Invalid):
         schema({"interval": 4000})
 
@@ -210,16 +230,21 @@ def test_apply_suggestion_interval_too_high_rejected() -> None:
 async def test_task_name_stripped_on_create(hass: HomeAssistant) -> None:
     """Task name with leading/trailing spaces should be stored stripped."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     task = build_task_data(last_performed="2024-06-01")
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -230,18 +255,23 @@ async def test_task_name_stripped_on_create(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/task/create",
-        "entry_id": obj_entry.entry_id,
-        "name": "  Spacey Name  ",
-        "task_type": "custom",
-        "schedule_type": "time_based",
-        "interval_days": 30,
-        "warning_days": 7,
-        "interval_anchor": "completion",
-        "dry_run": False,
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": obj_entry.entry_id,
+            "name": "  Spacey Name  ",
+            "task_type": "custom",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "warning_days": 7,
+            "interval_anchor": "completion",
+            "dry_run": False,
+        },
+    )
 
     # Should succeed, not error
     conn.send_result.assert_called_once()
@@ -259,16 +289,21 @@ async def test_task_name_stripped_on_create(hass: HomeAssistant) -> None:
 async def test_task_name_whitespace_only_rejected(hass: HomeAssistant) -> None:
     """Task name that is only spaces should be rejected after strip."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     task = build_task_data(last_performed="2024-06-01")
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(tasks={TASK_ID_1: task}),
         source="user",
@@ -279,18 +314,23 @@ async def test_task_name_whitespace_only_rejected(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/task/create",
-        "entry_id": obj_entry.entry_id,
-        "name": "   ",
-        "task_type": "custom",
-        "schedule_type": "time_based",
-        "interval_days": 30,
-        "warning_days": 7,
-        "interval_anchor": "completion",
-        "dry_run": False,
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": obj_entry.entry_id,
+            "name": "   ",
+            "task_type": "custom",
+            "schedule_type": "time_based",
+            "interval_days": 30,
+            "warning_days": 7,
+            "interval_anchor": "completion",
+            "dry_run": False,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert "empty" in conn.send_error.call_args[0][2].lower()
@@ -299,22 +339,30 @@ async def test_task_name_whitespace_only_rejected(hass: HomeAssistant) -> None:
 async def test_object_name_stripped_on_create(hass: HomeAssistant) -> None:
     """Object name with spaces should be stripped before creation."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/object/create",
-        "name": "  Test Object  ",
-        "dry_run": True,
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "  Test Object  ",
+            "dry_run": True,
+        },
+    )
 
     # Dry run should succeed with valid=True
     conn.send_result.assert_called_once()
@@ -325,22 +373,30 @@ async def test_object_name_stripped_on_create(hass: HomeAssistant) -> None:
 async def test_object_name_whitespace_only_rejected(hass: HomeAssistant) -> None:
     """Object name of only spaces should be rejected."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/object/create",
-        "name": "   ",
-        "dry_run": False,
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "   ",
+            "dry_run": False,
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert "empty" in conn.send_error.call_args[0][2].lower()
@@ -349,15 +405,20 @@ async def test_object_name_whitespace_only_rejected(hass: HomeAssistant) -> None
 async def test_object_update_name_stripped(hass: HomeAssistant) -> None:
     """Object name should be stripped on update."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(),
         source="user",
@@ -368,12 +429,17 @@ async def test_object_update_name_stripped(hass: HomeAssistant) -> None:
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/object/update",
-        "entry_id": obj_entry.entry_id,
-        "name": "  Updated Name  ",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": obj_entry.entry_id,
+            "name": "  Updated Name  ",
+        },
+    )
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
@@ -384,15 +450,20 @@ async def test_object_update_name_stripped(hass: HomeAssistant) -> None:
 async def test_object_update_whitespace_name_rejected(hass: HomeAssistant) -> None:
     """Object update with whitespace-only name should be rejected."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(),
         source="user",
@@ -403,12 +474,17 @@ async def test_object_update_whitespace_name_rejected(hass: HomeAssistant) -> No
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/object/update",
-        "entry_id": obj_entry.entry_id,
-        "name": "  ",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": obj_entry.entry_id,
+            "name": "  ",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -416,15 +492,20 @@ async def test_object_update_whitespace_name_rejected(hass: HomeAssistant) -> No
 async def test_object_installation_date_invalid_rejected(hass: HomeAssistant) -> None:
     """Invalid installation_date format should be rejected."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
 
     obj_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(),
         source="user",
@@ -435,12 +516,17 @@ async def test_object_installation_date_invalid_rejected(hass: HomeAssistant) ->
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1,
-        "type": "maintenance_supporter/object/update",
-        "entry_id": obj_entry.entry_id,
-        "installation_date": "not-a-date",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": obj_entry.entry_id,
+            "installation_date": "not-a-date",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert "invalid_date" in conn.send_error.call_args[0][1]
@@ -449,24 +535,32 @@ async def test_object_installation_date_invalid_rejected(hass: HomeAssistant) ->
 async def test_group_name_stripped_on_create(hass: HomeAssistant) -> None:
     """Group name should be stripped and validated."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1,
-        "type": f"{DOMAIN}/group/create",
-        "name": "  My Group  ",
-        "description": "",
-        "task_refs": [],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/group/create",
+            "name": "  My Group  ",
+            "description": "",
+            "task_refs": [],
+        },
+    )
 
     conn.send_result.assert_called_once()
 
@@ -474,24 +568,32 @@ async def test_group_name_stripped_on_create(hass: HomeAssistant) -> None:
 async def test_group_whitespace_name_rejected(hass: HomeAssistant) -> None:
     """Group with whitespace-only name should be rejected."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 1,
-        "type": f"{DOMAIN}/group/create",
-        "name": "   ",
-        "description": "",
-        "task_refs": [],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/group/create",
+            "name": "   ",
+            "description": "",
+            "task_refs": [],
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert "empty" in conn.send_error.call_args[0][2].lower()
@@ -503,22 +605,30 @@ async def test_group_whitespace_name_rejected(hass: HomeAssistant) -> None:
 async def test_global_settings_negative_warning_days_dropped(hass: HomeAssistant) -> None:
     """Negative default_warning_days should be silently dropped."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": f"{DOMAIN}/global/update",
-        "settings": {CONF_DEFAULT_WARNING_DAYS: -5},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/global/update",
+            "settings": {CONF_DEFAULT_WARNING_DAYS: -5},
+        },
+    )
 
     # Should error because the only key was dropped, leaving no valid keys
     conn.send_error.assert_called_once()
@@ -528,22 +638,30 @@ async def test_global_settings_negative_warning_days_dropped(hass: HomeAssistant
 async def test_global_settings_huge_max_notifications_dropped(hass: HomeAssistant) -> None:
     """max_notifications_per_day=9999 should be dropped (max 1000)."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": f"{DOMAIN}/global/update",
-        "settings": {CONF_MAX_NOTIFICATIONS_PER_DAY: 9999},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/global/update",
+            "settings": {CONF_MAX_NOTIFICATIONS_PER_DAY: 9999},
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -551,22 +669,30 @@ async def test_global_settings_huge_max_notifications_dropped(hass: HomeAssistan
 async def test_global_settings_non_finite_budget_dropped(hass: HomeAssistant) -> None:
     """NaN/Inf budget values should be silently dropped."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": f"{DOMAIN}/global/update",
-        "settings": {CONF_BUDGET_MONTHLY: float("nan")},
-    })
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/global/update",
+            "settings": {CONF_BUDGET_MONTHLY: float("nan")},
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -574,25 +700,33 @@ async def test_global_settings_non_finite_budget_dropped(hass: HomeAssistant) ->
 async def test_global_settings_valid_passes(hass: HomeAssistant) -> None:
     """Valid settings should pass range checks."""
     global_entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
         options=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     global_entry.add_to_hass(hass)
     await setup_integration(hass, global_entry)
 
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_global_settings, hass, conn, {
-        "id": 1,
-        "type": f"{DOMAIN}/global/update",
-        "settings": {
-            CONF_DEFAULT_WARNING_DAYS: 14,
-            CONF_MAX_NOTIFICATIONS_PER_DAY: 10,
+    await call_ws_handler(
+        ws_update_global_settings,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": f"{DOMAIN}/global/update",
+            "settings": {
+                CONF_DEFAULT_WARNING_DAYS: 14,
+                CONF_MAX_NOTIFICATIONS_PER_DAY: 10,
+            },
         },
-    })
+    )
 
     conn.send_result.assert_called_once()
 
@@ -619,7 +753,9 @@ def test_csv_export_sanitizes_formula_names(hass: HomeAssistant) -> None:
     """Export should sanitize object/task names that start with formula chars."""
     # Create a mock entry with a dangerous name
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="=EVIL",
         data={
             CONF_OBJECT: {

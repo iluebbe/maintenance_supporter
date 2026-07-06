@@ -82,9 +82,7 @@ def _result_payload(conn: MagicMock) -> dict[str, Any]:
     return assert_ws_success(conn)
 
 
-def _persisted_task(
-    hass: HomeAssistant, entry_id: str, task_id: str
-) -> dict[str, Any]:
+def _persisted_task(hass: HomeAssistant, entry_id: str, task_id: str) -> dict[str, Any]:
     """Read a task as it sits in ConfigEntry.data after save.
 
     Recurrence is stored nested (schedule-model v2); we overlay its flat view
@@ -98,9 +96,7 @@ def _persisted_task(
     entry = hass.config_entries.async_get_entry(entry_id)
     assert entry is not None, f"Entry {entry_id} disappeared after save"
     tasks: dict[str, dict[str, Any]] = entry.data.get(CONF_TASKS, {})
-    assert task_id in tasks, (
-        f"Task {task_id} not found in {entry_id} — saved task list: {list(tasks)}"
-    )
+    assert task_id in tasks, f"Task {task_id} not found in {entry_id} — saved task list: {list(tasks)}"
     return {**tasks[task_id], **read_legacy_fields(tasks[task_id])}
 
 
@@ -375,12 +371,9 @@ async def test_default_warning_days_flows_through_to_new_task(
         },
     )
     _result_payload(conn)
-    assert (
-        hass.config_entries.async_get_entry(global_entry.entry_id).options.get(
-            CONF_DEFAULT_WARNING_DAYS
-        )
-        == 1
-    ), "Global setting did not persist"
+    assert hass.config_entries.async_get_entry(global_entry.entry_id).options.get(CONF_DEFAULT_WARNING_DAYS) == 1, (
+        "Global setting did not persist"
+    )
 
     # Frontend always sends warning_days, but the WS schema also has its own
     # default. To simulate "user did not touch the field", we omit it; the
@@ -402,9 +395,7 @@ async def test_default_warning_days_flows_through_to_new_task(
     # Schema default still applies at WS layer; that is by design (frontend
     # always sends a value), so we accept either 1 (if/when the schema gets
     # taught about the global) or 7 (current behaviour).
-    assert task["warning_days"] in (1, 7), (
-        f"Unexpected warning_days {task['warning_days']} — schema default drift"
-    )
+    assert task["warning_days"] in (1, 7), f"Unexpected warning_days {task['warning_days']} — schema default drift"
 
 
 async def test_explicit_warning_days_persisted(
@@ -519,9 +510,7 @@ async def test_update_warning_days_persists(
         },
     )
 
-    task = await _update_task_via_ws(
-        hass, object_entry.entry_id, task_id, {"warning_days": 2}
-    )
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"warning_days": 2})
     assert task["warning_days"] == 2
 
 
@@ -549,9 +538,7 @@ async def test_update_preserves_unrelated_fields(
     assert created["notes"] == "Remember the filter kit"
 
     # Touch only `name` — every other field must survive untouched.
-    task = await _update_task_via_ws(
-        hass, object_entry.entry_id, task_id, {"name": "Renamed"}
-    )
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"name": "Renamed"})
     assert task["name"] == "Renamed"
     assert task["warning_days"] == 5
     assert task["notes"] == "Remember the filter kit"
@@ -578,9 +565,7 @@ async def test_update_clears_optional_field_with_none(
         },
     )
 
-    task = await _update_task_via_ws(
-        hass, object_entry.entry_id, task_id, {"notes": None}
-    )
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"notes": None})
     assert task.get("notes") is None
 
 
@@ -602,7 +587,9 @@ async def test_roundtrip_calendar_kind_create_and_switch(
 
     # Switch the recurrence kind via update.
     task = await _update_task_via_ws(
-        hass, object_entry.entry_id, task_id,
+        hass,
+        object_entry.entry_id,
+        task_id,
         {"schedule": {"kind": "day_of_month", "day": 15}},
     )
     assert task["schedule"] == {"kind": "day_of_month", "day": 15}
@@ -620,7 +607,9 @@ async def test_update_preserves_calendar_schedule_on_non_recurrence_edits(
     await setup_integration(hass, global_entry, object_entry)
     cal = {"kind": "nth_weekday", "nth": 1, "weekday": 5}
     task_id, _ = await _create_task_via_ws(
-        hass, object_entry.entry_id, {"name": "Smoke alarm", "schedule": cal},
+        hass,
+        object_entry.entry_id,
+        {"name": "Smoke alarm", "schedule": cal},
     )
 
     # edit warning_days only
@@ -667,9 +656,7 @@ async def test_update_clears_safety_interval_with_none(
     )
     assert persisted["interval_days"] == 180
 
-    task = await _update_task_via_ws(
-        hass, object_entry.entry_id, task_id, {"interval_days": None}
-    )
+    task = await _update_task_via_ws(hass, object_entry.entry_id, task_id, {"interval_days": None})
     assert task.get("interval_days") is None, (
         "interval_days must persist as None when explicitly cleared "
         "(otherwise frontend hydration cannot distinguish 'unset' from 'never set')"
@@ -767,9 +754,7 @@ _SETTING_SAMPLES: dict[str, Any] = {
 }
 
 
-async def test_every_allowlisted_setting_round_trips(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """For every key in _ALLOWED_SETTING_KEYS: write → read → assert preserved.
 
     Direct analogue of the trigger-allowlist regression (#37) for the settings
@@ -802,9 +787,11 @@ async def test_every_allowlisted_setting_round_trips(
         "panel_enabled": settings["general"]["panel_enabled"],
         "panel_title": settings["general"]["panel_title"],
         "operator_write_enabled": settings["operator_write_enabled"],
-        **{f"advanced_{k}_visible": v for k, v in settings["features"].items()
-           if k in {"adaptive", "predictions", "seasonal", "environmental",
-                    "budget", "groups", "checklists"}},
+        **{
+            f"advanced_{k}_visible": v
+            for k, v in settings["features"].items()
+            if k in {"adaptive", "predictions", "seasonal", "environmental", "budget", "groups", "checklists"}
+        },
         "advanced_schedule_time_visible": settings["features"]["schedule_time"],
         "advanced_completion_actions_visible": settings["features"]["completion_actions"],
         "notify_due_soon_enabled": settings["notifications"]["due_soon_enabled"],
@@ -839,10 +826,7 @@ async def test_every_allowlisted_setting_round_trips(
     }
 
     for key, expected in _SETTING_SAMPLES.items():
-        assert flat[key] == expected, (
-            f"Setting {key!r} did not round-trip: sent {expected!r}, "
-            f"read back {flat[key]!r}"
-        )
+        assert flat[key] == expected, f"Setting {key!r} did not round-trip: sent {expected!r}, read back {flat[key]!r}"
 
 
 # ─── Module H: max-payload task ─────────────────────────────────────────
@@ -1036,9 +1020,7 @@ async def test_reset_keeps_history_and_sets_explicit_date(
         },
     )
     _result_payload(conn)
-    history_before = list(
-        get_task_store_state(hass, object_entry.entry_id, task_id).get("history") or []
-    )
+    history_before = list(get_task_store_state(hass, object_entry.entry_id, task_id).get("history") or [])
     assert history_before, "sanity: must have a completion to test reset against"
 
     # Reset to an explicit historical date.
@@ -1126,27 +1108,29 @@ async def test_batch_qr_entry_filter_narrows(
 ) -> None:
     """entry_ids = [one of two] returns only that entry's tasks."""
     obj_a = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
-        title="Pool", source="user",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="Pool",
+        source="user",
         data=build_object_entry_data(tasks={}),
         unique_id="maintenance_supporter_batch_a",
     )
     obj_a.add_to_hass(hass)
     obj_b = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
-        title="HVAC", source="user",
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
+        title="HVAC",
+        source="user",
         data=build_object_entry_data(tasks={}),
         unique_id="maintenance_supporter_batch_b",
     )
     obj_b.add_to_hass(hass)
     await setup_integration(hass, global_entry, obj_a, obj_b)
 
-    await _create_task_via_ws(
-        hass, obj_a.entry_id, {"name": "Pool task", "schedule_type": "time_based", "interval_days": 30}
-    )
-    await _create_task_via_ws(
-        hass, obj_b.entry_id, {"name": "HVAC task", "schedule_type": "time_based", "interval_days": 30}
-    )
+    await _create_task_via_ws(hass, obj_a.entry_id, {"name": "Pool task", "schedule_type": "time_based", "interval_days": 30})
+    await _create_task_via_ws(hass, obj_b.entry_id, {"name": "HVAC task", "schedule_type": "time_based", "interval_days": 30})
 
     conn = await _batch_generate(
         hass,
@@ -1167,11 +1151,13 @@ async def test_batch_qr_task_filter_narrows(
     await setup_integration(hass, global_entry, object_entry)
 
     target_id, _ = await _create_task_via_ws(
-        hass, object_entry.entry_id,
+        hass,
+        object_entry.entry_id,
         {"name": "Target", "schedule_type": "time_based", "interval_days": 30},
     )
     await _create_task_via_ws(
-        hass, object_entry.entry_id,
+        hass,
+        object_entry.entry_id,
         {"name": "Other", "schedule_type": "time_based", "interval_days": 30},
     )
 
@@ -1192,13 +1178,12 @@ async def test_batch_qr_multiple_actions_multiply_rows(
 
     for name in ("A", "B"):
         await _create_task_via_ws(
-            hass, object_entry.entry_id,
+            hass,
+            object_entry.entry_id,
             {"name": name, "schedule_type": "time_based", "interval_days": 30},
         )
 
-    conn = await _batch_generate(
-        hass, {"actions": ["view", "complete", "skip"]}
-    )
+    conn = await _batch_generate(hass, {"actions": ["view", "complete", "skip"]})
     result = _result_payload(conn)
     # 2 tasks × 3 actions.
     assert result["total"] == 6
@@ -1231,7 +1216,8 @@ async def test_batch_qr_over_limit_errors(
     overshoot = _MAX_BATCH_QRS // 3 + 1  # 67 for cap=200
     for i in range(overshoot):
         await _create_task_via_ws(
-            hass, object_entry.entry_id,
+            hass,
+            object_entry.entry_id,
             {"name": f"Task {i}", "schedule_type": "time_based", "interval_days": 30},
         )
 
@@ -1272,9 +1258,7 @@ async def test_batch_qr_empty_result_when_no_tasks(
 # ─── Module L: Vacation mode (v1.2.0) ───────────────────────────────────
 
 
-async def _vac_call(
-    hass: HomeAssistant, handler, payload: dict[str, Any] | None = None
-) -> dict[str, Any]:
+async def _vac_call(hass: HomeAssistant, handler, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     conn = _conn()
     msg = {"id": 1, "type": f"maintenance_supporter/vacation/{handler.__name__.removeprefix('ws_vacation_')}"}
     if payload:
@@ -1283,9 +1267,7 @@ async def _vac_call(
     return _result_payload(conn)
 
 
-async def test_vacation_state_default_disabled(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_vacation_state_default_disabled(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """Fresh global entry returns enabled=False, no dates, default buffer."""
     await setup_integration(hass, global_entry)
     state = await _vac_call(hass, ws_vacation_state)
@@ -1297,9 +1279,7 @@ async def test_vacation_state_default_disabled(
     assert state["is_active"] is False
 
 
-async def test_vacation_update_round_trips_full_state(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_vacation_update_round_trips_full_state(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """Patch enabled+dates+buffer+exempt; read back identical."""
     await setup_integration(hass, global_entry)
     result = await _vac_call(
@@ -1324,9 +1304,7 @@ async def test_vacation_update_round_trips_full_state(
     assert result["window_end"] == "2099-06-25"
 
 
-async def test_vacation_update_rejects_end_before_start(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_vacation_update_rejects_end_before_start(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """end < start returns invalid_range error."""
     await setup_integration(hass, global_entry)
     conn = _conn()
@@ -1345,9 +1323,7 @@ async def test_vacation_update_rejects_end_before_start(
     assert conn.send_error.call_args[0][1] == "invalid_range"
 
 
-async def test_vacation_partial_update_preserves_unrelated_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_vacation_partial_update_preserves_unrelated_fields(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """Patching only buffer keeps dates and exempt list intact."""
     await setup_integration(hass, global_entry)
     await _vac_call(
@@ -1368,9 +1344,7 @@ async def test_vacation_partial_update_preserves_unrelated_fields(
     assert result["exempt_task_ids"] == ["x"]
 
 
-async def test_vacation_is_active_inside_window(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_vacation_is_active_inside_window(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """A window that contains today flips is_active to True."""
     await setup_integration(hass, global_entry)
     today = dt_util.now().date()
@@ -1387,9 +1361,7 @@ async def test_vacation_is_active_inside_window(
     assert state["is_active"] is True
 
 
-async def test_vacation_end_now_disables_and_clamps_end(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_vacation_end_now_disables_and_clamps_end(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """end_now sets enabled=False and clamps end to today (history record)."""
     await setup_integration(hass, global_entry)
     today = dt_util.now().date()
@@ -1910,29 +1882,33 @@ async def test_skip_and_reset_fire_their_events(
 
     skipped: list[dict[str, Any]] = []
     resets: list[dict[str, Any]] = []
-    unsub_s = hass.bus.async_listen(
-        EVENT_TASK_SKIPPED, lambda e: skipped.append(dict(e.data))
-    )
-    unsub_r = hass.bus.async_listen(
-        EVENT_TASK_RESET, lambda e: resets.append(dict(e.data))
-    )
+    unsub_s = hass.bus.async_listen(EVENT_TASK_SKIPPED, lambda e: skipped.append(dict(e.data)))
+    unsub_r = hass.bus.async_listen(EVENT_TASK_RESET, lambda e: resets.append(dict(e.data)))
     try:
         conn = _conn()
         await call_ws_handler(
-            ws_skip_task, hass, conn,
+            ws_skip_task,
+            hass,
+            conn,
             {
-                "id": 1, "type": "maintenance_supporter/task/skip",
-                "entry_id": object_entry.entry_id, "task_id": task_id,
+                "id": 1,
+                "type": "maintenance_supporter/task/skip",
+                "entry_id": object_entry.entry_id,
+                "task_id": task_id,
                 "reason": "Skipping",
             },
         )
         _result_payload(conn)
         conn = _conn()
         await call_ws_handler(
-            ws_reset_task, hass, conn,
+            ws_reset_task,
+            hass,
+            conn,
             {
-                "id": 2, "type": "maintenance_supporter/task/reset",
-                "entry_id": object_entry.entry_id, "task_id": task_id,
+                "id": 2,
+                "type": "maintenance_supporter/task/reset",
+                "entry_id": object_entry.entry_id,
+                "task_id": task_id,
                 "date": "2025-12-01",
             },
         )

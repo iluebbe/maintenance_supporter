@@ -676,7 +676,8 @@
           "custom_icon": "Task icon",
           "nfc_tag_id": "NFC tag ID",
           "go_back": "Go back",
-          "interval_anchor": "Interval anchor"
+          "interval_anchor": "Interval anchor",
+          "reading_unit": "Reading unit (for reading tasks, e.g. kWh)"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
@@ -862,7 +863,8 @@
           "type": "Maintenance type",
           "schedule_type": "Schedule type",
           "custom_icon": "Task icon",
-          "go_back": "Go back"
+          "go_back": "Go back",
+          "reading_unit": "Reading unit (for reading tasks, e.g. kWh)"
         },
         "data_description": {
           "name": "A descriptive name for this task (e.g., 'Filter Cleaning', 'Oil Change').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Duration",
           "description": "Duration of the maintenance in minutes."
+        },
+        "reading_value": {
+          "name": "Reading value",
+          "description": "Recorded value for reading-type tasks (meter reading, level check)."
         }
       }
     },

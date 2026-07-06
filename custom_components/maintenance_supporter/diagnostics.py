@@ -37,9 +37,7 @@ TO_REDACT = {
 }
 
 
-async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry
-) -> dict[str, Any]:
+async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     is_global = entry.unique_id == GLOBAL_UNIQUE_ID
 
@@ -55,9 +53,7 @@ async def async_get_config_entry_diagnostics(
 
     if is_global:
         # Global entry diagnostics
-        diag["options"] = async_redact_data(
-            entry.options or {}, TO_REDACT
-        )
+        diag["options"] = async_redact_data(entry.options or {}, TO_REDACT)
         diag["overview"] = _get_integration_overview(hass)
     else:
         # Object entry diagnostics — merge Store dynamic data for stats
@@ -78,9 +74,7 @@ async def async_get_config_entry_diagnostics(
             coord = runtime_data.coordinator
             diag["coordinator"] = {
                 "last_update_success": coord.last_update_success,
-                "last_update_success_time": str(
-                    getattr(coord, "last_update_success_time", None)
-                ),
+                "last_update_success_time": str(getattr(coord, "last_update_success_time", None)),
                 "update_interval": str(coord.update_interval),
             }
 
@@ -124,9 +118,7 @@ def _calculate_statistics(data: Mapping[str, Any]) -> dict[str, Any]:
     stats: dict[str, Any] = {
         "total_tasks": len(tasks),
         "enabled_tasks": sum(1 for t in tasks.values() if t.get("enabled", True)),
-        "tasks_with_triggers": sum(
-            1 for t in tasks.values() if t.get("trigger_config")
-        ),
+        "tasks_with_triggers": sum(1 for t in tasks.values() if t.get("trigger_config")),
         "tasks_by_type": {},
         "tasks_by_schedule": {},
         "total_history_entries": 0,
@@ -135,15 +127,11 @@ def _calculate_statistics(data: Mapping[str, Any]) -> dict[str, Any]:
     for task in tasks.values():
         # By type
         task_type = task.get("type", "unknown")
-        stats["tasks_by_type"][task_type] = (
-            stats["tasks_by_type"].get(task_type, 0) + 1
-        )
+        stats["tasks_by_type"][task_type] = stats["tasks_by_type"].get(task_type, 0) + 1
 
         # By schedule (accepts flat v2.6.x or nested `schedule` storage)
         schedule = read_legacy_fields(task)["schedule_type"]
-        stats["tasks_by_schedule"][schedule] = (
-            stats["tasks_by_schedule"].get(schedule, 0) + 1
-        )
+        stats["tasks_by_schedule"][schedule] = stats["tasks_by_schedule"].get(schedule, 0) + 1
 
         # History
         stats["total_history_entries"] += len(task.get("history", []))
@@ -151,9 +139,7 @@ def _calculate_statistics(data: Mapping[str, Any]) -> dict[str, Any]:
     return stats
 
 
-def _check_trigger_status(
-    hass: HomeAssistant, data: Mapping[str, Any]
-) -> list[dict[str, Any]]:
+def _check_trigger_status(hass: HomeAssistant, data: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Check the status of all configured triggers."""
     results = []
     tasks = data.get(CONF_TASKS, {})
@@ -163,9 +149,7 @@ def _check_trigger_status(
         if not trigger_config:
             continue
 
-        entity_ids: list[str] = list(trigger_config.get(
-            "entity_ids", []
-        ))
+        entity_ids: list[str] = list(trigger_config.get("entity_ids", []))
         if not entity_ids:
             single = trigger_config.get("entity_id")
             if single:
@@ -227,14 +211,10 @@ def _check_data_quality(data: Mapping[str, Any]) -> list[str]:
 
         sched = read_legacy_fields(task)
         if sched["schedule_type"] == "time_based" and not sched["interval_days"]:
-            warnings.append(
-                f"Task '{task.get('name', task_id)}' is time-based but has no interval"
-            )
+            warnings.append(f"Task '{task.get('name', task_id)}' is time-based but has no interval")
 
         trigger = task.get("trigger_config")
         if trigger and trigger.get("type") != "compound" and not trigger.get("entity_id"):
-            warnings.append(
-                f"Task '{task.get('name', task_id)}' has trigger config but no entity"
-            )
+            warnings.append(f"Task '{task.get('name', task_id)}' has trigger config but no entity")
 
     return warnings

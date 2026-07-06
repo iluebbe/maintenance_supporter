@@ -35,10 +35,13 @@ from .journey import simulate_restart
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -59,31 +62,42 @@ def _task_response(hass: HomeAssistant, entry_id: str, task_id: str) -> dict[str
     return next(t for t in resp["tasks"] if t["id"] == task_id)
 
 
-async def test_wrong_cost_is_corrected_and_survives_restart(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_wrong_cost_is_corrected_and_survives_restart(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     await setup_integration(hass, global_entry)
 
     obj = await hass.services.async_call(
-        DOMAIN, "add_object", {"name": "Car"},
-        blocking=True, return_response=True,
+        DOMAIN,
+        "add_object",
+        {"name": "Car"},
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     entry_id = obj["entry_id"]
     res = await hass.services.async_call(
-        DOMAIN, "add_task",
+        DOMAIN,
+        "add_task",
         {"entry_id": entry_id, "name": "Oil change", "interval_days": 365},
-        blocking=True, return_response=True,
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     task_id = res["task_id"]
 
     # Fat-fingered: 1250 instead of 125.
-    await call_ws_handler(ws_complete_task, hass, _conn(), {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": entry_id, "task_id": task_id,
-        "notes": "5W30", "cost": 1250.0,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        _conn(),
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": entry_id,
+            "task_id": task_id,
+            "notes": "5W30",
+            "cost": 1250.0,
+        },
+    )
     await hass.async_block_till_done()
 
     task = _task_response(hass, entry_id, task_id)
@@ -91,12 +105,20 @@ async def test_wrong_cost_is_corrected_and_survives_restart(
     original_ts = task["history"][-1]["timestamp"]
 
     # The correction (panel history edit → task/history/update).
-    await call_ws_handler(ws_update_history_entry, hass, _conn(), {
-        "id": 2, "type": "maintenance_supporter/task/history/update",
-        "entry_id": entry_id, "task_id": task_id,
-        "original_timestamp": original_ts,
-        "cost": 125.0, "notes": "5W30 (typo fixed)",
-    })
+    await call_ws_handler(
+        ws_update_history_entry,
+        hass,
+        _conn(),
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/history/update",
+            "entry_id": entry_id,
+            "task_id": task_id,
+            "original_timestamp": original_ts,
+            "cost": 125.0,
+            "notes": "5W30 (typo fixed)",
+        },
+    )
     await hass.async_block_till_done()
 
     # The handler's request_refresh is debounced (10s cooldown after the
@@ -117,39 +139,57 @@ async def test_wrong_cost_is_corrected_and_survives_restart(
     assert task["times_performed"] == 1
 
 
-async def test_backdating_a_completion_recomputes_status(
-    hass: HomeAssistant, global_entry: MockConfigEntry
-) -> None:
+async def test_backdating_a_completion_recomputes_status(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """Moving a completion's timestamp back must flip status accordingly."""
     await setup_integration(hass, global_entry)
 
     obj = await hass.services.async_call(
-        DOMAIN, "add_object", {"name": "Filter"},
-        blocking=True, return_response=True,
+        DOMAIN,
+        "add_object",
+        {"name": "Filter"},
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     entry_id = obj["entry_id"]
     res = await hass.services.async_call(
-        DOMAIN, "add_task",
+        DOMAIN,
+        "add_task",
         {"entry_id": entry_id, "name": "Swap", "interval_days": 30},
-        blocking=True, return_response=True,
+        blocking=True,
+        return_response=True,
     )
     await hass.async_block_till_done()
     task_id = res["task_id"]
 
-    await call_ws_handler(ws_complete_task, hass, _conn(), {
-        "id": 1, "type": "maintenance_supporter/task/complete",
-        "entry_id": entry_id, "task_id": task_id,
-    })
+    await call_ws_handler(
+        ws_complete_task,
+        hass,
+        _conn(),
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": entry_id,
+            "task_id": task_id,
+        },
+    )
     await hass.async_block_till_done()
     assert _task_response(hass, entry_id, task_id)["status"] == "ok"
 
     # "I actually did that 45 days ago" → reset to the real date.
     real_date = (dt_util.now().date() - timedelta(days=45)).isoformat()
-    await call_ws_handler(ws_reset_task, hass, _conn(), {
-        "id": 2, "type": "maintenance_supporter/task/reset",
-        "entry_id": entry_id, "task_id": task_id, "date": real_date,
-    })
+    await call_ws_handler(
+        ws_reset_task,
+        hass,
+        _conn(),
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/reset",
+            "entry_id": entry_id,
+            "task_id": task_id,
+            "date": real_date,
+        },
+    )
     await hass.async_block_till_done()
 
     entry = hass.config_entries.async_get_entry(entry_id)

@@ -54,24 +54,12 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for entry in get_object_entries(self.hass):
             self._attach_entry(entry.entry_id)
 
-        self._unsubs.append(
-            async_dispatcher_connect(
-                self.hass, SIGNAL_NEW_OBJECT_ENTRY, self._on_new_entry
-            )
-        )
-        self._unsubs.append(
-            async_dispatcher_connect(
-                self.hass, SIGNAL_OBJECT_ENTRY_REMOVED, self._on_removed
-            )
-        )
+        self._unsubs.append(async_dispatcher_connect(self.hass, SIGNAL_NEW_OBJECT_ENTRY, self._on_new_entry))
+        self._unsubs.append(async_dispatcher_connect(self.hass, SIGNAL_OBJECT_ENTRY_REMOVED, self._on_removed))
         # Trigger activation/deactivation updates a task's _status in place but
         # does NOT notify coordinator listeners, so listen for it explicitly.
-        self._unsubs.append(
-            self.hass.bus.async_listen(EVENT_TRIGGER_ACTIVATED, self._on_event)
-        )
-        self._unsubs.append(
-            self.hass.bus.async_listen(EVENT_TRIGGER_DEACTIVATED, self._on_event)
-        )
+        self._unsubs.append(self.hass.bus.async_listen(EVENT_TRIGGER_ACTIVATED, self._on_event))
+        self._unsubs.append(self.hass.bus.async_listen(EVENT_TRIGGER_DEACTIVATED, self._on_event))
 
     def _attach_entry(self, entry_id: str) -> None:
         """Register a listener on a single object coordinator (once)."""
@@ -79,9 +67,7 @@ class MaintenanceSummaryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return
         rd = get_runtime_data(self.hass, entry_id)
         if rd and rd.coordinator:
-            self._attached[entry_id] = rd.coordinator.async_add_listener(
-                self._schedule
-            )
+            self._attached[entry_id] = rd.coordinator.async_add_listener(self._schedule)
 
     @callback
     def _on_new_entry(self, entry_id: str) -> None:

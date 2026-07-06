@@ -48,12 +48,8 @@ class RuntimeTrigger(BaseTrigger):
         """Initialize runtime trigger."""
         super().__init__(hass, entity, trigger_config)
 
-        self._target_hours: float = trigger_config.get(
-            "trigger_runtime_hours", 100.0
-        )
-        self._accumulated_seconds: float = trigger_config.get(
-            "trigger_accumulated_seconds", 0.0
-        )
+        self._target_hours: float = trigger_config.get("trigger_runtime_hours", 100.0)
+        self._accumulated_seconds: float = trigger_config.get("trigger_accumulated_seconds", 0.0)
 
         # Restore on_since timestamp for restart recovery
         on_since_str = trigger_config.get("trigger_on_since")
@@ -68,9 +64,7 @@ class RuntimeTrigger(BaseTrigger):
         # Custom ON states (default: on, 1, true)
         custom_on = trigger_config.get("trigger_on_states")
         if custom_on and isinstance(custom_on, list):
-            self._on_states: frozenset[str] = frozenset(
-                s.lower().strip() for s in custom_on if isinstance(s, str) and s.strip()
-            )
+            self._on_states: frozenset[str] = frozenset(s.lower().strip() for s in custom_on if isinstance(s, str) and s.strip())
         else:
             self._on_states = _DEFAULT_ON_STATES
 
@@ -81,8 +75,7 @@ class RuntimeTrigger(BaseTrigger):
         state = self.hass.states.get(self.entity_id)
         if state is None:
             _LOGGER.info(
-                "Runtime trigger entity %s not yet available — listener "
-                "registered, waiting for entity to appear",
+                "Runtime trigger entity %s not yet available — listener registered, waiting for entity to appear",
                 self.entity_id,
             )
             self._unsub_listener = async_track_state_change_event(
@@ -293,7 +286,9 @@ class RuntimeTrigger(BaseTrigger):
             "on_since": self._on_since,
         }
         await self._coordinator.async_persist_trigger_runtime(
-            self._task_id, data, entity_id=self.entity_id,
+            self._task_id,
+            data,
+            entity_id=self.entity_id,
         )
 
     def reset(self) -> None:

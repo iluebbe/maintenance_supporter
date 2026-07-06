@@ -25,10 +25,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -40,9 +43,22 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def test_domain_map_has_expected_domains() -> None:
     """Test that the domain map includes all expected HA domains."""
     expected = {
-        "climate", "vacuum", "cover", "fan", "light", "sensor",
-        "binary_sensor", "water_heater", "humidifier", "media_player",
-        "weather", "air_quality", "switch", "lock", "valve", "lawn_mower",
+        "climate",
+        "vacuum",
+        "cover",
+        "fan",
+        "light",
+        "sensor",
+        "binary_sensor",
+        "water_heater",
+        "humidifier",
+        "media_player",
+        "weather",
+        "air_quality",
+        "switch",
+        "lock",
+        "valve",
+        "lawn_mower",
     }
     assert set(DOMAIN_ATTRIBUTE_MAP.keys()) == expected
 
@@ -77,15 +93,19 @@ def test_vacuum_has_maintenance_attributes() -> None:
 
 async def test_existing_entity_with_attributes(hass: HomeAssistant) -> None:
     """Test with an entity that has relevant attributes."""
-    hass.states.async_set("climate.living_room", "heat", {
-        "friendly_name": "Living Room AC",
-        "current_temperature": 22.5,
-        "temperature": 24.0,
-        "hvac_action": "heating",
-        "fan_mode": "auto",
-        "supported_features": 31,
-        "icon": "mdi:thermostat",
-    })
+    hass.states.async_set(
+        "climate.living_room",
+        "heat",
+        {
+            "friendly_name": "Living Room AC",
+            "current_temperature": 22.5,
+            "temperature": 24.0,
+            "hvac_action": "heating",
+            "fan_mode": "auto",
+            "supported_features": 31,
+            "icon": "mdi:thermostat",
+        },
+    )
 
     result = get_entity_attributes(hass, "climate.living_room")
 
@@ -109,11 +129,15 @@ async def test_existing_entity_with_attributes(hass: HomeAssistant) -> None:
 
 async def test_numeric_detection(hass: HomeAssistant) -> None:
     """Test that numeric attributes are correctly flagged."""
-    hass.states.async_set("sensor.power", "100", {
-        "voltage": 230.5,
-        "status": "active",
-        "count": 42,
-    })
+    hass.states.async_set(
+        "sensor.power",
+        "100",
+        {
+            "voltage": 230.5,
+            "status": "active",
+            "count": 42,
+        },
+    )
 
     result = get_entity_attributes(hass, "sensor.power")
     available = {a["name"]: a for a in result["available_attributes"]}
@@ -126,10 +150,14 @@ async def test_numeric_detection(hass: HomeAssistant) -> None:
 
 async def test_private_attributes_filtered(hass: HomeAssistant) -> None:
     """Test that private (underscore) attributes are filtered out."""
-    hass.states.async_set("sensor.test", "on", {
-        "_internal": "hidden",
-        "public_attr": "visible",
-    })
+    hass.states.async_set(
+        "sensor.test",
+        "on",
+        {
+            "_internal": "hidden",
+            "public_attr": "visible",
+        },
+    )
 
     result = get_entity_attributes(hass, "sensor.test")
     attr_names = [a["name"] for a in result["available_attributes"]]
@@ -139,17 +167,21 @@ async def test_private_attributes_filtered(hass: HomeAssistant) -> None:
 
 async def test_framework_attributes_filtered(hass: HomeAssistant) -> None:
     """Test that standard HA framework attributes are filtered out."""
-    hass.states.async_set("sensor.test", "42", {
-        "friendly_name": "Test",
-        "icon": "mdi:test",
-        "entity_picture": "/local/pic.png",
-        "device_class": "temperature",
-        "state_class": "measurement",
-        "unit_of_measurement": "°C",
-        "attribution": "Source XYZ",
-        "options": ["a", "b"],
-        "actual_data": 123,
-    })
+    hass.states.async_set(
+        "sensor.test",
+        "42",
+        {
+            "friendly_name": "Test",
+            "icon": "mdi:test",
+            "entity_picture": "/local/pic.png",
+            "device_class": "temperature",
+            "state_class": "measurement",
+            "unit_of_measurement": "°C",
+            "attribution": "Source XYZ",
+            "options": ["a", "b"],
+            "actual_data": 123,
+        },
+    )
 
     result = get_entity_attributes(hass, "sensor.test")
     attr_names = [a["name"] for a in result["available_attributes"]]
@@ -183,9 +215,13 @@ async def test_nonexistent_entity_unknown_domain(hass: HomeAssistant) -> None:
 
 async def test_sensor_domain_returns_description(hass: HomeAssistant) -> None:
     """Test sensor domain returns 'Sensor' description (state-based domain)."""
-    hass.states.async_set("sensor.sun_elevation", "-5.0", {
-        "friendly_name": "Sun Elevation",
-    })
+    hass.states.async_set(
+        "sensor.sun_elevation",
+        "-5.0",
+        {
+            "friendly_name": "Sun Elevation",
+        },
+    )
 
     result = get_entity_attributes(hass, "sensor.sun_elevation")
     assert result["domain_description"] == "Sensor"
@@ -198,10 +234,14 @@ async def test_sensor_domain_returns_description(hass: HomeAssistant) -> None:
 
 async def test_complex_attribute_value_converted_to_string(hass: HomeAssistant) -> None:
     """Test that complex (non-primitive) attribute values are stringified."""
-    hass.states.async_set("climate.test", "heat", {
-        "preset_modes": ["eco", "comfort", "boost"],
-        "temperature": 22.0,
-    })
+    hass.states.async_set(
+        "climate.test",
+        "heat",
+        {
+            "preset_modes": ["eco", "comfort", "boost"],
+            "temperature": 22.0,
+        },
+    )
 
     result = get_entity_attributes(hass, "climate.test")
     available = {a["name"]: a for a in result["available_attributes"]}
@@ -223,12 +263,16 @@ def _mock_connection() -> MagicMock:
 
 async def test_ws_entity_attributes_handler(hass: HomeAssistant) -> None:
     """Test the WS handler via get_entity_attributes for a vacuum entity."""
-    hass.states.async_set("vacuum.roborock", "docked", {
-        "battery_level": 85,
-        "fan_speed": "max",
-        "cleaning_count": 42,
-        "friendly_name": "Roborock",
-    })
+    hass.states.async_set(
+        "vacuum.roborock",
+        "docked",
+        {
+            "battery_level": 85,
+            "fan_speed": "max",
+            "cleaning_count": 42,
+            "friendly_name": "Roborock",
+        },
+    )
 
     result = get_entity_attributes(hass, "vacuum.roborock")
     assert result["domain"] == "vacuum"

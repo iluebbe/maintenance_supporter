@@ -676,7 +676,8 @@
           "custom_icon": "Ikona zadania",
           "nfc_tag_id": "ID tagu NFC",
           "go_back": "Wróć",
-          "interval_anchor": "Punkt odniesienia interwału"
+          "interval_anchor": "Punkt odniesienia interwału",
+          "reading_unit": "Jednostka odczytu (dla zadań odczytu, np. kWh)"
         },
         "data_description": {
           "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
@@ -862,7 +863,8 @@
           "type": "Typ konserwacji",
           "schedule_type": "Typ harmonogramu",
           "custom_icon": "Ikona zadania",
-          "go_back": "Wróć"
+          "go_back": "Wróć",
+          "reading_unit": "Jednostka odczytu (dla zadań odczytu, np. kWh)"
         },
         "data_description": {
           "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Czas trwania",
           "description": "Czas trwania konserwacji w minutach."
+        },
+        "reading_value": {
+          "name": "Wartość odczytu",
+          "description": "Zarejestrowana wartość dla zadań odczytu (odczyt licznika, kontrola poziomu)."
         }
       }
     },

@@ -186,9 +186,7 @@ class TestThresholdTrigger:
         await trigger.async_teardown()
         assert trigger._unsub_listener is None
 
-    async def test_threshold_restart_recovery_immediate(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_threshold_restart_recovery_immediate(self, hass: HomeAssistant) -> None:
         """After restart, if elapsed >= for_minutes → trigger immediately."""
         entity = _make_mock_entity(hass)
         exceeded_at = (dt_util.utcnow() - timedelta(minutes=10)).isoformat()
@@ -206,9 +204,7 @@ class TestThresholdTrigger:
         assert trigger.evaluate(60.0) is True
         assert trigger._triggered is True
 
-    async def test_threshold_restart_recovery_remaining(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_threshold_restart_recovery_remaining(self, hass: HomeAssistant) -> None:
         """After restart, if elapsed < for_minutes → timer with remaining."""
         entity = _make_mock_entity(hass)
         exceeded_at = (dt_util.utcnow() - timedelta(minutes=2)).isoformat()
@@ -232,9 +228,7 @@ class TestThresholdTrigger:
         # doesn't flag a lingering call_later at teardown.
         await trigger.async_teardown()
 
-    async def test_threshold_restart_recovery_value_normal(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_threshold_restart_recovery_value_normal(self, hass: HomeAssistant) -> None:
         """After restart, if value is back in range → clear persisted state."""
         entity = _make_mock_entity(hass)
         exceeded_at = (dt_util.utcnow() - timedelta(minutes=2)).isoformat()
@@ -255,9 +249,7 @@ class TestThresholdTrigger:
         assert trigger._exceeded_since is None
         assert trigger._threshold_exceeded is False
 
-    async def test_threshold_fresh_timer_persists(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_threshold_fresh_timer_persists(self, hass: HomeAssistant) -> None:
         """Fresh timer start persists exceeded_since timestamp."""
         entity = _make_mock_entity(hass)
         config = {
@@ -281,9 +273,7 @@ class TestThresholdTrigger:
         # a lingering call_later at teardown.
         await trigger.async_teardown()
 
-    async def test_threshold_for_minutes_zero_no_persistence(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_threshold_for_minutes_zero_no_persistence(self, hass: HomeAssistant) -> None:
         """for_minutes=0 triggers immediately without persistence."""
         entity = _make_mock_entity(hass)
         config = {
@@ -299,9 +289,7 @@ class TestThresholdTrigger:
         assert trigger._exceeded_since is None
         entity.coordinator.async_persist_trigger_runtime.assert_not_called()
 
-    async def test_threshold_reset_clears_persisted_state(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_threshold_reset_clears_persisted_state(self, hass: HomeAssistant) -> None:
         """reset() clears exceeded_since and persists None."""
         entity = _make_mock_entity(hass)
         config = {
@@ -370,9 +358,7 @@ class TestCounterTrigger:
         assert trigger.evaluate(599) is False  # delta=99
         assert trigger.evaluate(600) is True  # delta=100
 
-    async def test_delta_mode_initializes_baseline(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_delta_mode_initializes_baseline(self, hass: HomeAssistant) -> None:
         """Test that delta mode sets baseline on first value."""
         entity = _make_mock_entity(hass)
         config = {
@@ -422,9 +408,7 @@ class TestCounterTrigger:
         trigger.reset_baseline()
         assert trigger._baseline_value == 600
 
-    async def test_delta_rebaselines_on_source_counter_reset(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_delta_rebaselines_on_source_counter_reset(self, hass: HomeAssistant) -> None:
         """M3: a source-counter reset/rollover (value < baseline) re-baselines to
         the new lower value instead of waiting for it to climb past the old one."""
         entity = _make_mock_entity(hass)
@@ -444,9 +428,7 @@ class TestCounterTrigger:
         assert trigger.evaluate(399) is False
         assert trigger.evaluate(400) is True
 
-    async def test_reset_baseline_deferred_when_source_unavailable(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_reset_baseline_deferred_when_source_unavailable(self, hass: HomeAssistant) -> None:
         """M4: completing while the source is unavailable defers the re-baseline
         to the next real value, so a stale baseline can't immediately re-trigger."""
         entity = _make_mock_entity(hass)
@@ -470,9 +452,7 @@ class TestCounterTrigger:
         assert trigger._baseline_value == 900
         assert trigger._reset_pending is False
 
-    async def test_counter_setup_persists_baseline(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_counter_setup_persists_baseline(self, hass: HomeAssistant) -> None:
         """Test that setup initializes baseline for delta mode.
 
         During async_setup, BaseTrigger.async_setup() calls _evaluate_and_update
@@ -500,9 +480,7 @@ class TestCounterTrigger:
 
         await trigger.async_teardown()
 
-    async def test_delta_baseline_persisted_on_state_change(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_delta_baseline_persisted_on_state_change(self, hass: HomeAssistant) -> None:
         """Test baseline is persisted when initialized via _evaluate_and_update.
 
         When the entity is unavailable at setup time, the baseline isn't set.
@@ -544,9 +522,7 @@ class TestCounterTrigger:
 class TestStateChangeTrigger:
     """Tests for StateChangeTrigger."""
 
-    async def test_counts_matching_transitions(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_counts_matching_transitions(self, hass: HomeAssistant) -> None:
         """Test counting state transitions."""
         set_sensor_state(hass, "binary_sensor.door", "off")
         entity = _make_mock_entity(hass)
@@ -589,9 +565,7 @@ class TestStateChangeTrigger:
 
         await trigger.async_teardown()
 
-    async def test_ignores_non_matching_transitions(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_ignores_non_matching_transitions(self, hass: HomeAssistant) -> None:
         """Test that non-matching transitions are ignored."""
         set_sensor_state(hass, "binary_sensor.door", "off")
         entity = _make_mock_entity(hass)
@@ -636,9 +610,7 @@ class TestStateChangeTrigger:
         trigger.reset_count()
         assert trigger.change_count == 0
 
-    async def test_restores_count_from_config(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_restores_count_from_config(self, hass: HomeAssistant) -> None:
         """Test that change count is restored from config."""
         set_sensor_state(hass, "sensor.test", "a")
         entity = _make_mock_entity(hass)
@@ -660,9 +632,7 @@ class TestStateChangeTrigger:
 
         await trigger.async_teardown()
 
-    async def test_ignores_unavailable_states(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_ignores_unavailable_states(self, hass: HomeAssistant) -> None:
         """Test that unavailable states don't count."""
         set_sensor_state(hass, "sensor.test", "a")
         entity = _make_mock_entity(hass)
@@ -681,9 +651,7 @@ class TestStateChangeTrigger:
 
         await trigger.async_teardown()
 
-    async def test_unavailable_recovery_no_false_positive(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_unavailable_recovery_no_false_positive(self, hass: HomeAssistant) -> None:
         """Test off→unavailable→off does NOT count as a transition.
 
         When an entity returns from unavailable to the same state it had
@@ -720,9 +688,7 @@ class TestStateChangeTrigger:
 
         await trigger.async_teardown()
 
-    async def test_unavailable_recovery_different_state_counts(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_unavailable_recovery_different_state_counts(self, hass: HomeAssistant) -> None:
         """Test off→unavailable→on DOES count as a transition.
 
         When an entity returns from unavailable to a different state,
@@ -859,7 +825,8 @@ class TestRuntimeTrigger:
         # Should now be triggered (3500 + 300 = 3800 seconds = 1.0556 hours)
         assert trigger._triggered is True
         entity.async_update_trigger_state.assert_called_with(
-            is_triggered=True, current_value=pytest.approx(1.0556, abs=0.01),
+            is_triggered=True,
+            current_value=pytest.approx(1.0556, abs=0.01),
             trigger_entity_id="input_boolean.pump",
         )
 
@@ -891,9 +858,7 @@ class TestRuntimeTrigger:
 
         await trigger.async_teardown()
 
-    async def test_unavailable_pauses_accumulation(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_unavailable_pauses_accumulation(self, hass: HomeAssistant) -> None:
         """Test runtime pauses when entity becomes unavailable."""
         set_sensor_state(hass, "switch.pump", "on")
         entity = _make_mock_entity(hass)
@@ -1954,10 +1919,7 @@ class TestMultiEntityThreshold:
         await hass.async_block_till_done()
 
         # Find the call from sensor.a
-        a_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.a"
-        ]
+        a_calls = [c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.a"]
         assert len(a_calls) >= 1
         assert a_calls[-1].kwargs["is_triggered"] is True
 
@@ -1965,10 +1927,7 @@ class TestMultiEntityThreshold:
         set_sensor_state(hass, "sensor.b", "2.0")
         await hass.async_block_till_done()
 
-        b_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.b"
-        ]
+        b_calls = [c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.b"]
         assert len(b_calls) >= 1
         assert b_calls[-1].kwargs["is_triggered"] is True
 
@@ -2049,8 +2008,7 @@ class TestMultiEntityCounter:
         await hass.async_block_till_done()
 
         c1_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.c1"
+            c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.c1"
         ]
         assert len(c1_calls) >= 1
         assert c1_calls[-1].kwargs["is_triggered"] is True
@@ -2082,8 +2040,7 @@ class TestMultiEntityCounter:
         await hass.async_block_till_done()
 
         c1_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.c1"
+            c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.c1"
         ]
         assert len(c1_calls) >= 1
         assert c1_calls[-1].kwargs["is_triggered"] is True
@@ -2093,8 +2050,7 @@ class TestMultiEntityCounter:
         await hass.async_block_till_done()
 
         c2_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.c2"
+            c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.c2"
         ]
         assert len(c2_calls) >= 1
         assert c2_calls[-1].kwargs["is_triggered"] is True
@@ -2156,8 +2112,7 @@ class TestMultiEntityCounter:
         await hass.async_block_till_done()
 
         d1_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.d1"
+            c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.d1"
         ]
         assert len(d1_calls) >= 1
         assert d1_calls[-1].kwargs["is_triggered"] is True
@@ -2286,8 +2241,7 @@ class TestMultiEntityStateChange:
         await hass.async_block_till_done()
 
         sc1_calls = [
-            c for c in entity.async_update_trigger_state.call_args_list
-            if c.kwargs.get("trigger_entity_id") == "sensor.sc1"
+            c for c in entity.async_update_trigger_state.call_args_list if c.kwargs.get("trigger_entity_id") == "sensor.sc1"
         ]
         assert len(sc1_calls) >= 1
         assert sc1_calls[-1].kwargs["is_triggered"] is True
@@ -2719,9 +2673,7 @@ class TestCompoundValidation:
 class TestBugFixRegressions:
     """Regression tests for bugs identified in external code analysis."""
 
-    async def test_single_entity_trigger_state_injection(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_single_entity_trigger_state_injection(self, hass: HomeAssistant) -> None:
         """Test that single-entity triggers also get per-entity state injected.
 
         Bug 1D fix: create_triggers() previously only called
@@ -2745,9 +2697,7 @@ class TestBugFixRegressions:
         # Baseline should be injected from _trigger_state, not None
         assert triggers[0]._baseline_value == 350
 
-    async def test_counter_baseline_restore_before_evaluate(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_counter_baseline_restore_before_evaluate(self, hass: HomeAssistant) -> None:
         """Test that CounterTrigger restores baseline from _trigger_state before evaluate().
 
         Bug 1A fix: async_setup() now reads baseline from _trigger_state
@@ -2806,9 +2756,7 @@ class TestTriggerUnavailableNoOp:
     at OK. Fix: treat unavailable/unknown as "no new data" — no deactivation.
     """
 
-    async def test_unknown_does_not_deactivate_active_threshold(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_unknown_does_not_deactivate_active_threshold(self, hass: HomeAssistant) -> None:
         set_sensor_state(hass, "sensor.pressure", "1.5")
         entity = _make_mock_entity(hass)
         config = {
@@ -2820,26 +2768,18 @@ class TestTriggerUnavailableNoOp:
         trigger = ThresholdTrigger(hass, entity, config)
 
         # Pressure drops below threshold → triggers (for_minutes=0 = immediate)
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.5", "1.3")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.5", "1.3"))
         assert trigger._triggered is True
 
         # Sensor blips to unknown → must NOT deactivate
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.3", "unknown")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.3", "unknown"))
         assert trigger._triggered is True
 
         # Value returns, still below threshold → stays triggered
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "unknown", "1.3")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "unknown", "1.3"))
         assert trigger._triggered is True
 
-    async def test_unavailable_does_not_deactivate_active_threshold(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_unavailable_does_not_deactivate_active_threshold(self, hass: HomeAssistant) -> None:
         set_sensor_state(hass, "sensor.pressure", "1.5")
         entity = _make_mock_entity(hass)
         config = {
@@ -2849,18 +2789,12 @@ class TestTriggerUnavailableNoOp:
             "trigger_below": 1.4,
         }
         trigger = ThresholdTrigger(hass, entity, config)
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.5", "1.3")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.5", "1.3"))
         assert trigger._triggered is True
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.3", "unavailable")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.3", "unavailable"))
         assert trigger._triggered is True
 
-    async def test_stuck_ok_repro_for_minutes_latch(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_stuck_ok_repro_for_minutes_latch(self, hass: HomeAssistant) -> None:
         """Exact prod sequence with the 60-min debounce latch already set."""
         set_sensor_state(hass, "sensor.pressure", "1.3")
         entity = _make_mock_entity(hass)
@@ -2878,16 +2812,12 @@ class TestTriggerUnavailableNoOp:
         trigger._current_value = 1.3
 
         # unknown blip → keeps state, keeps latch
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.3", "unknown")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.3", "unknown"))
         assert trigger._triggered is True
         assert trigger._threshold_exceeded is True
 
         # value returns still below 1.4 → must stay triggered (was stuck OK)
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "unknown", "1.3")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "unknown", "1.3"))
         assert trigger._triggered is True
 
     async def test_non_numeric_text_is_noop(self, hass: HomeAssistant) -> None:
@@ -2900,19 +2830,13 @@ class TestTriggerUnavailableNoOp:
             "trigger_below": 1.4,
         }
         trigger = ThresholdTrigger(hass, entity, config)
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.5", "1.3")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.5", "1.3"))
         assert trigger._triggered is True
         # A non-numeric, non-unavailable state is ignored (no deactivation)
-        trigger._handle_state_change_event(
-            _state_event("sensor.pressure", "1.3", "n/a")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.pressure", "1.3", "n/a"))
         assert trigger._triggered is True
 
-    async def test_unknown_does_not_deactivate_active_counter(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_unknown_does_not_deactivate_active_counter(self, hass: HomeAssistant) -> None:
         """Counter shares the base handler → same fix applies."""
         set_sensor_state(hass, "sensor.cycles", "5")
         entity = _make_mock_entity(hass)
@@ -2923,18 +2847,12 @@ class TestTriggerUnavailableNoOp:
             "trigger_target_value": 10,
         }
         trigger = CounterTrigger(hass, entity, config)
-        trigger._handle_state_change_event(
-            _state_event("sensor.cycles", "5", "10")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.cycles", "5", "10"))
         assert trigger._triggered is True
-        trigger._handle_state_change_event(
-            _state_event("sensor.cycles", "10", "unknown")
-        )
+        trigger._handle_state_change_event(_state_event("sensor.cycles", "10", "unknown"))
         assert trigger._triggered is True
 
-    async def test_debounce_still_resets_on_return_to_normal(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_debounce_still_resets_on_return_to_normal(self, hass: HomeAssistant) -> None:
         """Pre-trigger flapping (1.3 → 1.4) must still cancel the debounce."""
         entity = _make_mock_entity(hass)
         config = {
@@ -2961,6 +2879,7 @@ async def test_counter_trigger_delta_mode_no_current(
     from custom_components.maintenance_supporter.entity.triggers.counter import (
         CounterTrigger,
     )
+
     trigger = CounterTrigger.__new__(CounterTrigger)
     trigger._delta_mode = False
     trigger._baseline_value = 10.0
@@ -2980,6 +2899,7 @@ async def test_state_change_evaluate(
     from custom_components.maintenance_supporter.entity.triggers.state_change import (
         StateChangeTrigger,
     )
+
     trigger = StateChangeTrigger.__new__(StateChangeTrigger)
     trigger._triggered = False
     assert trigger.evaluate(0.0) is False  # line 177
@@ -3007,9 +2927,7 @@ class TestCompoundProxyImmediate:
 
         # Should NOT raise TypeError
         asyncio.get_event_loop().run_until_complete(
-            proxy.async_persist_trigger_runtime(
-                "task1", {"baseline_value": 42}, entity_id="sensor.x", immediate=True
-            )
+            proxy.async_persist_trigger_runtime("task1", {"baseline_value": 42}, entity_id="sensor.x", immediate=True)
         )
         store.set_trigger_runtime.assert_called_once()
         store.async_save.assert_awaited_once()
@@ -3029,9 +2947,7 @@ class TestCompoundProxyImmediate:
         proxy = _CompoundCoordinatorProxy(real_coordinator, 1)
 
         asyncio.get_event_loop().run_until_complete(
-            proxy.async_persist_trigger_runtime(
-                "task1", {"val": 1}, entity_id="sensor.y"
-            )
+            proxy.async_persist_trigger_runtime("task1", {"val": 1}, entity_id="sensor.y")
         )
         store.async_delay_save.assert_called_once()
         store.async_save.assert_not_called()
@@ -3089,10 +3005,13 @@ class TestStateChangeLastStateFallback:
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -3107,7 +3026,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",
@@ -3406,39 +3327,41 @@ async def test_create_triggers_multi_entity(hass: HomeAssistant) -> None:
 class TestAutoCompleteOnRecovery:
     """The opt-in recovery hook fires only on the evaluate path (#53)."""
 
-    async def test_recovery_auto_completes_when_opted_in(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_recovery_auto_completes_when_opted_in(self, hass: HomeAssistant) -> None:
         """Active → recovered via a sensor change records a completion."""
         entity = _make_mock_entity(hass)
-        trigger = ThresholdTrigger(hass, entity, {
-            "entity_id": "sensor.salt",
-            "attribute": None,
-            "type": TriggerType.THRESHOLD,
-            "trigger_below": 20.0,
-            "auto_complete_on_recovery": True,
-        })
+        trigger = ThresholdTrigger(
+            hass,
+            entity,
+            {
+                "entity_id": "sensor.salt",
+                "attribute": None,
+                "type": TriggerType.THRESHOLD,
+                "trigger_below": 20.0,
+                "auto_complete_on_recovery": True,
+            },
+        )
 
         trigger._evaluate_and_update(15.0)  # activates
         assert trigger._triggered is True
         trigger._evaluate_and_update(80.0)  # salt refilled → recovers
         await hass.async_block_till_done()
 
-        entity.coordinator.async_auto_complete_on_recovery.assert_awaited_once_with(
-            TASK_ID_1, 80.0
-        )
+        entity.coordinator.async_auto_complete_on_recovery.assert_awaited_once_with(TASK_ID_1, 80.0)
 
-    async def test_recovery_ignored_without_opt_in(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_recovery_ignored_without_opt_in(self, hass: HomeAssistant) -> None:
         """Default (flag absent): recovery never records a completion."""
         entity = _make_mock_entity(hass)
-        trigger = ThresholdTrigger(hass, entity, {
-            "entity_id": "sensor.salt",
-            "attribute": None,
-            "type": TriggerType.THRESHOLD,
-            "trigger_below": 20.0,
-        })
+        trigger = ThresholdTrigger(
+            hass,
+            entity,
+            {
+                "entity_id": "sensor.salt",
+                "attribute": None,
+                "type": TriggerType.THRESHOLD,
+                "trigger_below": 20.0,
+            },
+        )
 
         trigger._evaluate_and_update(15.0)
         trigger._evaluate_and_update(80.0)
@@ -3446,29 +3369,29 @@ class TestAutoCompleteOnRecovery:
 
         entity.coordinator.async_auto_complete_on_recovery.assert_not_awaited()
 
-    async def test_manual_reset_never_auto_completes(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_manual_reset_never_auto_completes(self, hass: HomeAssistant) -> None:
         """reset() (the manual complete path) bypasses the recovery hook."""
         entity = _make_mock_entity(hass)
-        trigger = ThresholdTrigger(hass, entity, {
-            "entity_id": "sensor.salt",
-            "attribute": None,
-            "type": TriggerType.THRESHOLD,
-            "trigger_below": 20.0,
-            "auto_complete_on_recovery": True,
-        })
+        trigger = ThresholdTrigger(
+            hass,
+            entity,
+            {
+                "entity_id": "sensor.salt",
+                "attribute": None,
+                "type": TriggerType.THRESHOLD,
+                "trigger_below": 20.0,
+                "auto_complete_on_recovery": True,
+            },
+        )
 
         trigger._evaluate_and_update(15.0)  # activates
-        trigger.reset()                     # manual complete resets the trigger
+        trigger.reset()  # manual complete resets the trigger
         await hass.async_block_till_done()
 
         assert trigger._triggered is False
         entity.coordinator.async_auto_complete_on_recovery.assert_not_awaited()
 
-    async def test_validator_keeps_and_coerces_the_flag(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_validator_keeps_and_coerces_the_flag(self, hass: HomeAssistant) -> None:
         """The WS validator whitelists the flag and coerces it to a bool."""
         from custom_components.maintenance_supporter.websocket.tasks import (
             _validate_trigger_config,

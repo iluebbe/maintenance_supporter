@@ -1448,6 +1448,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     dlg.lang = this._lang;
     dlg.checklist = checklist || [];
     dlg.adaptiveEnabled = !!adaptiveEnabled;
+    // v2.20 (#83): reading tasks get a value field — resolve type + unit here
+    // so none of the many call sites need to thread them through.
+    const tk = this._objects
+      .find((o) => o.entry_id === entryId)
+      ?.tasks.find((tsk) => tsk.id === taskId);
+    dlg.taskType = tk?.type || "";
+    dlg.readingUnit = tk?.reading_unit || "";
     dlg.open();
   }
 
@@ -2694,6 +2701,14 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   /** Build the context the history renderers need from panel state. */
   private _historyCtx(): HistoryContext {
+    // v2.20 (#83): reading tasks show value + delta per entry. The delta is
+    // against the chronologically PREVIOUS entry that carries a reading.
+    const task = this._selectedEntryId && this._selectedTaskId
+      ? this._getObject(this._selectedEntryId)?.tasks.find((tk) => tk.id === this._selectedTaskId)
+      : undefined;
+    const readings = (task?.history || [])
+      .filter((h) => h.reading_value != null)
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     return {
       lang: this._lang,
       hass: this.hass,
@@ -2703,6 +2718,12 @@ export class MaintenanceSupporterPanel extends LitElement {
       setFilter: (f) => { this._historyFilter = f; },
       setSearch: (s) => { this._historySearch = s; },
       openEdit: (entry) => this._openHistoryEdit(entry),
+      readingUnit: task?.reading_unit ?? null,
+      readingDelta: (entry) => {
+        const idx = readings.findIndex((h) => h.timestamp === entry.timestamp);
+        if (idx <= 0) return null;
+        return (entry.reading_value as number) - (readings[idx - 1].reading_value as number);
+      },
     };
   }
 

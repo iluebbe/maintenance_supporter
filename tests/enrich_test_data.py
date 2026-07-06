@@ -67,26 +67,24 @@ def make_reset(dt, notes=None):
 
 # ─── Data generation for each task ────────────────────────────────────────────
 
+
 def generate_pool_pump_annual_inspection():
     """Annual Inspection - manual, ~yearly, expensive."""
     # Annual inspection done twice historically: 2025-02 and 2026-02
     now = datetime(2026, 2, 9, 10, 0, tzinfo=TZ)
     history = [
         make_completed(
-            datetime(2024, 3, 15, 9, 30, tzinfo=TZ),
-            cost=250.0, duration=120, notes="Full annual inspection by service tech"
+            datetime(2024, 3, 15, 9, 30, tzinfo=TZ), cost=250.0, duration=120, notes="Full annual inspection by service tech"
         ),
         make_completed(
             datetime(2025, 3, 10, 10, 0, tzinfo=TZ),
-            cost=275.0, duration=135, notes="Annual inspection - pump bearing showing wear"
+            cost=275.0,
+            duration=135,
+            notes="Annual inspection - pump bearing showing wear",
         ),
-        make_skipped(
-            datetime(2025, 9, 1, 8, 0, tzinfo=TZ),
-            notes="Skipped mid-year check, pool winterized early"
-        ),
+        make_skipped(datetime(2025, 9, 1, 8, 0, tzinfo=TZ), notes="Skipped mid-year check, pool winterized early"),
         make_completed(
-            datetime(2026, 2, 8, 14, 0, tzinfo=TZ),
-            cost=290.0, duration=150, notes="Pre-season inspection, replaced seal"
+            datetime(2026, 2, 8, 14, 0, tzinfo=TZ), cost=290.0, duration=150, notes="Pre-season inspection, replaced seal"
         ),
     ]
     return history, "2026-02-08"
@@ -100,18 +98,18 @@ def generate_pool_pump_filter_cleaning():
 
     # 12 monthly completions over a year
     scenarios = [
-        (28, 8.50, 12, "needed",     "Filter clogged with debris"),
-        (32, 10.00, 15, "needed",    "Heavy pollen season, very dirty"),
+        (28, 8.50, 12, "needed", "Filter clogged with debris"),
+        (32, 10.00, 15, "needed", "Heavy pollen season, very dirty"),
         (27, 7.00, 10, "not_needed", "Light usage month, filter OK"),
-        (35, 12.00, 20, "needed",    "Overdue - pump pressure was dropping"),
-        (30, 9.00, 14, "needed",     "Normal cleaning cycle"),
-        (26, 8.00, 11, "not_sure",   "Moderate buildup, hard to tell"),
-        (33, 11.00, 18, "needed",    "Storm brought extra debris"),
+        (35, 12.00, 20, "needed", "Overdue - pump pressure was dropping"),
+        (30, 9.00, 14, "needed", "Normal cleaning cycle"),
+        (26, 8.00, 11, "not_sure", "Moderate buildup, hard to tell"),
+        (33, 11.00, 18, "needed", "Storm brought extra debris"),
         (29, 8.50, 13, "not_needed", "Still fairly clean"),
-        (31, 9.50, 15, "needed",     "Regular maintenance, good timing"),
-        (28, 8.00, 12, "needed",     "Leaves clogging intake"),
-        (34, 10.50, 16, "needed",    "Delayed due to weather"),
-        (30, 9.00, 14, "needed",     "Standard monthly cleaning"),
+        (31, 9.50, 15, "needed", "Regular maintenance, good timing"),
+        (28, 8.00, 12, "needed", "Leaves clogging intake"),
+        (34, 10.50, 16, "needed", "Delayed due to weather"),
+        (30, 9.00, 14, "needed", "Standard monthly cleaning"),
     ]
 
     current_date = base_date
@@ -149,31 +147,50 @@ def generate_hvac_filter_tausch():
     # Trigger events + completions over 1.5 years
     events = [
         # (date, type, kwargs)
-        (datetime(2024, 11, 1, 8, 0, tzinfo=TZ),  "triggered", {"trigger_value": 72.0}),
-        (datetime(2024, 11, 5, 14, 0, tzinfo=TZ),  "triggered", {"trigger_value": 78.0}),
-        (datetime(2024, 11, 8, 10, 0, tzinfo=TZ),  "completed", {"cost": 35.0, "duration": 25, "notes": "Filter replaced, airflow restored"}),
-
-        (datetime(2025, 2, 10, 9, 0, tzinfo=TZ),   "triggered", {"trigger_value": 68.0}),
-        (datetime(2025, 2, 14, 11, 0, tzinfo=TZ),  "triggered", {"trigger_value": 75.0}),
-        (datetime(2025, 2, 15, 10, 0, tzinfo=TZ),  "completed", {"cost": 35.0, "duration": 20, "notes": "Winterfilter gewechselt"}),
-
-        (datetime(2025, 5, 18, 8, 0, tzinfo=TZ),   "triggered", {"trigger_value": 70.0}),
-        (datetime(2025, 5, 20, 16, 0, tzinfo=TZ),  "triggered", {"trigger_value": 82.0}),
-        (datetime(2025, 5, 22, 10, 0, tzinfo=TZ),  "completed", {"cost": 38.0, "duration": 22, "notes": "Pollenzeit - Filter sehr verschmutzt"}),
-
-        (datetime(2025, 8, 12, 9, 0, tzinfo=TZ),   "triggered", {"trigger_value": 65.0}),
-        (datetime(2025, 8, 15, 14, 0, tzinfo=TZ),  "triggered", {"trigger_value": 74.0}),
-        (datetime(2025, 8, 16, 10, 30, tzinfo=TZ), "skipped",   {"notes": "Filter noch OK, nächsten Monat"}),
-        (datetime(2025, 9, 10, 9, 0, tzinfo=TZ),   "triggered", {"trigger_value": 85.0}),
-        (datetime(2025, 9, 12, 10, 0, tzinfo=TZ),  "completed", {"cost": 35.0, "duration": 25, "notes": "Verspätet gewechselt, Luftqualität war schlecht"}),
-
-        (datetime(2025, 12, 5, 8, 30, tzinfo=TZ),  "triggered", {"trigger_value": 71.0}),
-        (datetime(2025, 12, 8, 15, 0, tzinfo=TZ),  "triggered", {"trigger_value": 80.0}),
-        (datetime(2025, 12, 10, 10, 0, tzinfo=TZ), "completed", {"cost": 42.0, "duration": 30, "notes": "HEPA-Filter Upgrade eingebaut"}),
-
-        (datetime(2026, 2, 5, 9, 0, tzinfo=TZ),    "triggered", {"trigger_value": 69.0}),
-        (datetime(2026, 2, 7, 11, 0, tzinfo=TZ),   "triggered", {"trigger_value": 76.0}),
-        (datetime(2026, 2, 8, 10, 0, tzinfo=TZ),   "completed", {"cost": 42.0, "duration": 28, "notes": "Regelmäßiger Filtertausch"}),
+        (datetime(2024, 11, 1, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 72.0}),
+        (datetime(2024, 11, 5, 14, 0, tzinfo=TZ), "triggered", {"trigger_value": 78.0}),
+        (
+            datetime(2024, 11, 8, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 35.0, "duration": 25, "notes": "Filter replaced, airflow restored"},
+        ),
+        (datetime(2025, 2, 10, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 68.0}),
+        (datetime(2025, 2, 14, 11, 0, tzinfo=TZ), "triggered", {"trigger_value": 75.0}),
+        (
+            datetime(2025, 2, 15, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 35.0, "duration": 20, "notes": "Winterfilter gewechselt"},
+        ),
+        (datetime(2025, 5, 18, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 70.0}),
+        (datetime(2025, 5, 20, 16, 0, tzinfo=TZ), "triggered", {"trigger_value": 82.0}),
+        (
+            datetime(2025, 5, 22, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 38.0, "duration": 22, "notes": "Pollenzeit - Filter sehr verschmutzt"},
+        ),
+        (datetime(2025, 8, 12, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 65.0}),
+        (datetime(2025, 8, 15, 14, 0, tzinfo=TZ), "triggered", {"trigger_value": 74.0}),
+        (datetime(2025, 8, 16, 10, 30, tzinfo=TZ), "skipped", {"notes": "Filter noch OK, nächsten Monat"}),
+        (datetime(2025, 9, 10, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 85.0}),
+        (
+            datetime(2025, 9, 12, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 35.0, "duration": 25, "notes": "Verspätet gewechselt, Luftqualität war schlecht"},
+        ),
+        (datetime(2025, 12, 5, 8, 30, tzinfo=TZ), "triggered", {"trigger_value": 71.0}),
+        (datetime(2025, 12, 8, 15, 0, tzinfo=TZ), "triggered", {"trigger_value": 80.0}),
+        (
+            datetime(2025, 12, 10, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 42.0, "duration": 30, "notes": "HEPA-Filter Upgrade eingebaut"},
+        ),
+        (datetime(2026, 2, 5, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 69.0}),
+        (datetime(2026, 2, 7, 11, 0, tzinfo=TZ), "triggered", {"trigger_value": 76.0}),
+        (
+            datetime(2026, 2, 8, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 42.0, "duration": 28, "notes": "Regelmäßiger Filtertausch"},
+        ),
     ]
 
     for dt, etype, kwargs in events:
@@ -193,14 +210,14 @@ def generate_family_car_tire_rotation():
     history = []
 
     scenarios = [
-        (datetime(2023, 4, 10, 9, 0, tzinfo=TZ),  170, 45.0, 30, "needed",     "Spring rotation, front tires more worn"),
-        (datetime(2023, 10, 5, 10, 0, tzinfo=TZ),  178, 48.0, 35, "needed",     "Fall rotation before winter"),
-        (datetime(2024, 3, 28, 9, 30, tzinfo=TZ),  174, 45.0, 30, "not_needed", "Wear was even, could have waited"),
-        (datetime(2024, 10, 1, 11, 0, tzinfo=TZ),  187, 52.0, 40, "needed",     "Overdue - front tires showing uneven wear"),
-        (datetime(2025, 3, 15, 10, 0, tzinfo=TZ),  165, 45.0, 30, "needed",     "Pre-summer rotation"),
-        (datetime(2025, 5, 20, 9, 0, tzinfo=TZ),   None, None, None, None, None),  # skipped
-        (datetime(2025, 9, 22, 10, 0, tzinfo=TZ),  190, 50.0, 35, "needed",     "Long summer trips, good timing"),
-        (datetime(2026, 2, 9, 10, 0, tzinfo=TZ),   140, 55.0, 40, "not_sure",   "Early rotation, new tires on rear"),
+        (datetime(2023, 4, 10, 9, 0, tzinfo=TZ), 170, 45.0, 30, "needed", "Spring rotation, front tires more worn"),
+        (datetime(2023, 10, 5, 10, 0, tzinfo=TZ), 178, 48.0, 35, "needed", "Fall rotation before winter"),
+        (datetime(2024, 3, 28, 9, 30, tzinfo=TZ), 174, 45.0, 30, "not_needed", "Wear was even, could have waited"),
+        (datetime(2024, 10, 1, 11, 0, tzinfo=TZ), 187, 52.0, 40, "needed", "Overdue - front tires showing uneven wear"),
+        (datetime(2025, 3, 15, 10, 0, tzinfo=TZ), 165, 45.0, 30, "needed", "Pre-summer rotation"),
+        (datetime(2025, 5, 20, 9, 0, tzinfo=TZ), None, None, None, None, None),  # skipped
+        (datetime(2025, 9, 22, 10, 0, tzinfo=TZ), 190, 50.0, 35, "needed", "Long summer trips, good timing"),
+        (datetime(2026, 2, 9, 10, 0, tzinfo=TZ), 140, 55.0, 40, "not_sure", "Early rotation, new tires on rear"),
     ]
 
     for _i, (dt, _interval, cost, duration, feedback, notes) in enumerate(scenarios):
@@ -237,27 +254,43 @@ def generate_family_car_oil_change():
     history = []
 
     events = [
-        (datetime(2024, 3, 20, 9, 0, tzinfo=TZ),   "triggered", {"trigger_value": 8500.0}),
-        (datetime(2024, 4, 2, 14, 0, tzinfo=TZ),    "triggered", {"trigger_value": 9200.0}),
-        (datetime(2024, 4, 5, 10, 0, tzinfo=TZ),    "completed", {"cost": 85.0, "duration": 45, "notes": "Oil change at 9500km, synthetic 5W-30"}),
-
-        (datetime(2024, 10, 15, 8, 0, tzinfo=TZ),   "triggered", {"trigger_value": 8800.0}),
-        (datetime(2024, 10, 28, 16, 0, tzinfo=TZ),  "triggered", {"trigger_value": 9600.0}),
-        (datetime(2024, 11, 2, 10, 30, tzinfo=TZ),  "completed", {"cost": 92.0, "duration": 50, "notes": "Oil dark, filter also replaced"}),
-
-        (datetime(2025, 4, 8, 9, 0, tzinfo=TZ),     "triggered", {"trigger_value": 8200.0}),
-        (datetime(2025, 4, 20, 11, 0, tzinfo=TZ),   "triggered", {"trigger_value": 9100.0}),
-        (datetime(2025, 4, 22, 10, 0, tzinfo=TZ),   "skipped",   {"notes": "Trip planned, will do after"}),
-        (datetime(2025, 5, 5, 9, 30, tzinfo=TZ),    "triggered", {"trigger_value": 9800.0}),
-        (datetime(2025, 5, 8, 10, 0, tzinfo=TZ),    "completed", {"cost": 89.0, "duration": 45, "notes": "Delayed oil change, oil was very dark"}),
-
-        (datetime(2025, 11, 20, 8, 30, tzinfo=TZ),  "triggered", {"trigger_value": 8600.0}),
-        (datetime(2025, 12, 1, 14, 0, tzinfo=TZ),   "triggered", {"trigger_value": 9300.0}),
-        (datetime(2025, 12, 5, 10, 0, tzinfo=TZ),   "completed", {"cost": 95.0, "duration": 55, "notes": "Winter oil change, upgraded to full synthetic"}),
-
-        (datetime(2026, 2, 5, 9, 0, tzinfo=TZ),     "triggered", {"trigger_value": 5200.0}),
-        (datetime(2026, 2, 7, 11, 0, tzinfo=TZ),    "triggered", {"trigger_value": 6100.0}),
-        (datetime(2026, 2, 8, 10, 0, tzinfo=TZ),    "completed", {"cost": 89.0, "duration": 48, "notes": "Regular oil change, good condition"}),
+        (datetime(2024, 3, 20, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 8500.0}),
+        (datetime(2024, 4, 2, 14, 0, tzinfo=TZ), "triggered", {"trigger_value": 9200.0}),
+        (
+            datetime(2024, 4, 5, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 85.0, "duration": 45, "notes": "Oil change at 9500km, synthetic 5W-30"},
+        ),
+        (datetime(2024, 10, 15, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 8800.0}),
+        (datetime(2024, 10, 28, 16, 0, tzinfo=TZ), "triggered", {"trigger_value": 9600.0}),
+        (
+            datetime(2024, 11, 2, 10, 30, tzinfo=TZ),
+            "completed",
+            {"cost": 92.0, "duration": 50, "notes": "Oil dark, filter also replaced"},
+        ),
+        (datetime(2025, 4, 8, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 8200.0}),
+        (datetime(2025, 4, 20, 11, 0, tzinfo=TZ), "triggered", {"trigger_value": 9100.0}),
+        (datetime(2025, 4, 22, 10, 0, tzinfo=TZ), "skipped", {"notes": "Trip planned, will do after"}),
+        (datetime(2025, 5, 5, 9, 30, tzinfo=TZ), "triggered", {"trigger_value": 9800.0}),
+        (
+            datetime(2025, 5, 8, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 89.0, "duration": 45, "notes": "Delayed oil change, oil was very dark"},
+        ),
+        (datetime(2025, 11, 20, 8, 30, tzinfo=TZ), "triggered", {"trigger_value": 8600.0}),
+        (datetime(2025, 12, 1, 14, 0, tzinfo=TZ), "triggered", {"trigger_value": 9300.0}),
+        (
+            datetime(2025, 12, 5, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 95.0, "duration": 55, "notes": "Winter oil change, upgraded to full synthetic"},
+        ),
+        (datetime(2026, 2, 5, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 5200.0}),
+        (datetime(2026, 2, 7, 11, 0, tzinfo=TZ), "triggered", {"trigger_value": 6100.0}),
+        (
+            datetime(2026, 2, 8, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 89.0, "duration": 48, "notes": "Regular oil change, good condition"},
+        ),
     ]
 
     for dt, etype, kwargs in events:
@@ -277,34 +310,58 @@ def generate_water_softener_refill_salt():
     history = []
 
     events = [
-        (datetime(2025, 5, 2, 8, 0, tzinfo=TZ),    "triggered", {"trigger_value": 25.0}),
-        (datetime(2025, 5, 5, 10, 0, tzinfo=TZ),    "completed", {"cost": 18.0, "duration": 10, "notes": "Salz nachgefüllt, 25kg Sack"}),
-
-        (datetime(2025, 6, 3, 9, 0, tzinfo=TZ),     "triggered", {"trigger_value": 22.0}),
-        (datetime(2025, 6, 6, 10, 30, tzinfo=TZ),   "completed", {"cost": 18.0, "duration": 10, "notes": "Nachfüllung, Verbrauch normal"}),
-
-        (datetime(2025, 7, 8, 8, 30, tzinfo=TZ),    "triggered", {"trigger_value": 28.0}),
-        (datetime(2025, 7, 10, 10, 0, tzinfo=TZ),   "completed", {"cost": 18.0, "duration": 12, "notes": "Hoher Verbrauch im Sommer"}),
-
-        (datetime(2025, 8, 5, 9, 0, tzinfo=TZ),     "triggered", {"trigger_value": 30.0}),
-        (datetime(2025, 8, 8, 15, 0, tzinfo=TZ),    "skipped",   {"notes": "Urlaub, Salt noch ausreichend"}),
-        (datetime(2025, 8, 22, 8, 0, tzinfo=TZ),    "triggered", {"trigger_value": 35.0}),
-        (datetime(2025, 8, 24, 10, 0, tzinfo=TZ),   "completed", {"cost": 22.0, "duration": 15, "notes": "Verzögert nach Urlaub, fast leer"}),
-
-        (datetime(2025, 9, 20, 9, 0, tzinfo=TZ),    "triggered", {"trigger_value": 24.0}),
-        (datetime(2025, 9, 22, 10, 0, tzinfo=TZ),   "completed", {"cost": 18.0, "duration": 10, "notes": "Regelmäßige Nachfüllung"}),
-
-        (datetime(2025, 10, 25, 8, 0, tzinfo=TZ),   "triggered", {"trigger_value": 20.0}),
-        (datetime(2025, 10, 28, 10, 0, tzinfo=TZ),  "completed", {"cost": 18.0, "duration": 10, "notes": "Herbst, weniger Verbrauch"}),
-
-        (datetime(2025, 12, 2, 9, 0, tzinfo=TZ),    "triggered", {"trigger_value": 18.0}),
-        (datetime(2025, 12, 5, 10, 0, tzinfo=TZ),   "completed", {"cost": 19.50, "duration": 12, "notes": "Preiserhöhung beim Salz"}),
-
-        (datetime(2026, 1, 8, 8, 30, tzinfo=TZ),    "triggered", {"trigger_value": 22.0}),
-        (datetime(2026, 1, 10, 10, 0, tzinfo=TZ),   "completed", {"cost": 19.50, "duration": 10, "notes": "Normaler Winterverbrauch"}),
-
-        (datetime(2026, 2, 6, 9, 0, tzinfo=TZ),     "triggered", {"trigger_value": 26.0}),
-        (datetime(2026, 2, 8, 10, 0, tzinfo=TZ),    "completed", {"cost": 19.50, "duration": 11, "notes": "Letzte Nachfüllung"}),
+        (datetime(2025, 5, 2, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 25.0}),
+        (
+            datetime(2025, 5, 5, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 18.0, "duration": 10, "notes": "Salz nachgefüllt, 25kg Sack"},
+        ),
+        (datetime(2025, 6, 3, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 22.0}),
+        (
+            datetime(2025, 6, 6, 10, 30, tzinfo=TZ),
+            "completed",
+            {"cost": 18.0, "duration": 10, "notes": "Nachfüllung, Verbrauch normal"},
+        ),
+        (datetime(2025, 7, 8, 8, 30, tzinfo=TZ), "triggered", {"trigger_value": 28.0}),
+        (
+            datetime(2025, 7, 10, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 18.0, "duration": 12, "notes": "Hoher Verbrauch im Sommer"},
+        ),
+        (datetime(2025, 8, 5, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 30.0}),
+        (datetime(2025, 8, 8, 15, 0, tzinfo=TZ), "skipped", {"notes": "Urlaub, Salt noch ausreichend"}),
+        (datetime(2025, 8, 22, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 35.0}),
+        (
+            datetime(2025, 8, 24, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 22.0, "duration": 15, "notes": "Verzögert nach Urlaub, fast leer"},
+        ),
+        (datetime(2025, 9, 20, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 24.0}),
+        (
+            datetime(2025, 9, 22, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 18.0, "duration": 10, "notes": "Regelmäßige Nachfüllung"},
+        ),
+        (datetime(2025, 10, 25, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 20.0}),
+        (
+            datetime(2025, 10, 28, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 18.0, "duration": 10, "notes": "Herbst, weniger Verbrauch"},
+        ),
+        (datetime(2025, 12, 2, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 18.0}),
+        (
+            datetime(2025, 12, 5, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 19.50, "duration": 12, "notes": "Preiserhöhung beim Salz"},
+        ),
+        (datetime(2026, 1, 8, 8, 30, tzinfo=TZ), "triggered", {"trigger_value": 22.0}),
+        (
+            datetime(2026, 1, 10, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 19.50, "duration": 10, "notes": "Normaler Winterverbrauch"},
+        ),
+        (datetime(2026, 2, 6, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 26.0}),
+        (datetime(2026, 2, 8, 10, 0, tzinfo=TZ), "completed", {"cost": 19.50, "duration": 11, "notes": "Letzte Nachfüllung"}),
     ]
 
     for dt, etype, kwargs in events:
@@ -324,28 +381,43 @@ def generate_washing_machine_drum_cleaning():
     history = []
 
     events = [
-        (datetime(2024, 8, 10, 8, 0, tzinfo=TZ),   "triggered", {"trigger_value": 145.0}),
-        (datetime(2024, 8, 12, 10, 0, tzinfo=TZ),   "triggered", {"trigger_value": 155.0}),
-        (datetime(2024, 8, 15, 9, 30, tzinfo=TZ),   "completed", {"cost": 5.0, "duration": 90, "notes": "Hot wash cycle with cleaner tablet"}),
-
-        (datetime(2025, 1, 22, 9, 0, tzinfo=TZ),    "triggered", {"trigger_value": 148.0}),
-        (datetime(2025, 1, 25, 14, 0, tzinfo=TZ),   "triggered", {"trigger_value": 160.0}),
-        (datetime(2025, 1, 28, 10, 0, tzinfo=TZ),   "completed", {"cost": 8.0, "duration": 95, "notes": "Trommelreinigung + Dichtung geputzt"}),
-
-        (datetime(2025, 5, 5, 8, 0, tzinfo=TZ),     "triggered", {"trigger_value": 140.0}),
-        (datetime(2025, 5, 8, 16, 0, tzinfo=TZ),    "skipped",   {"notes": "Noch kein Geruch, warte noch"}),
-
-        (datetime(2025, 7, 15, 9, 0, tzinfo=TZ),    "triggered", {"trigger_value": 165.0}),
-        (datetime(2025, 7, 18, 10, 0, tzinfo=TZ),   "triggered", {"trigger_value": 178.0}),
-        (datetime(2025, 7, 20, 9, 0, tzinfo=TZ),    "completed", {"cost": 12.0, "duration": 100, "notes": "Gründliche Reinigung, leichter Geruch vorher"}),
-
-        (datetime(2025, 12, 10, 8, 30, tzinfo=TZ),  "triggered", {"trigger_value": 150.0}),
-        (datetime(2025, 12, 15, 14, 0, tzinfo=TZ),  "triggered", {"trigger_value": 162.0}),
-        (datetime(2025, 12, 18, 10, 0, tzinfo=TZ),  "completed", {"cost": 8.0, "duration": 90, "notes": "Jahresend-Reinigung, alles gut"}),
-
-        (datetime(2026, 2, 3, 9, 0, tzinfo=TZ),     "triggered", {"trigger_value": 130.0}),
-        (datetime(2026, 2, 6, 11, 0, tzinfo=TZ),    "triggered", {"trigger_value": 142.0}),
-        (datetime(2026, 2, 8, 10, 0, tzinfo=TZ),    "completed", {"cost": 8.0, "duration": 92, "notes": "Regelmäßige Trommelreinigung"}),
+        (datetime(2024, 8, 10, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 145.0}),
+        (datetime(2024, 8, 12, 10, 0, tzinfo=TZ), "triggered", {"trigger_value": 155.0}),
+        (
+            datetime(2024, 8, 15, 9, 30, tzinfo=TZ),
+            "completed",
+            {"cost": 5.0, "duration": 90, "notes": "Hot wash cycle with cleaner tablet"},
+        ),
+        (datetime(2025, 1, 22, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 148.0}),
+        (datetime(2025, 1, 25, 14, 0, tzinfo=TZ), "triggered", {"trigger_value": 160.0}),
+        (
+            datetime(2025, 1, 28, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 8.0, "duration": 95, "notes": "Trommelreinigung + Dichtung geputzt"},
+        ),
+        (datetime(2025, 5, 5, 8, 0, tzinfo=TZ), "triggered", {"trigger_value": 140.0}),
+        (datetime(2025, 5, 8, 16, 0, tzinfo=TZ), "skipped", {"notes": "Noch kein Geruch, warte noch"}),
+        (datetime(2025, 7, 15, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 165.0}),
+        (datetime(2025, 7, 18, 10, 0, tzinfo=TZ), "triggered", {"trigger_value": 178.0}),
+        (
+            datetime(2025, 7, 20, 9, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 12.0, "duration": 100, "notes": "Gründliche Reinigung, leichter Geruch vorher"},
+        ),
+        (datetime(2025, 12, 10, 8, 30, tzinfo=TZ), "triggered", {"trigger_value": 150.0}),
+        (datetime(2025, 12, 15, 14, 0, tzinfo=TZ), "triggered", {"trigger_value": 162.0}),
+        (
+            datetime(2025, 12, 18, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 8.0, "duration": 90, "notes": "Jahresend-Reinigung, alles gut"},
+        ),
+        (datetime(2026, 2, 3, 9, 0, tzinfo=TZ), "triggered", {"trigger_value": 130.0}),
+        (datetime(2026, 2, 6, 11, 0, tzinfo=TZ), "triggered", {"trigger_value": 142.0}),
+        (
+            datetime(2026, 2, 8, 10, 0, tzinfo=TZ),
+            "completed",
+            {"cost": 8.0, "duration": 92, "notes": "Regelmäßige Trommelreinigung"},
+        ),
     ]
 
     for dt, etype, kwargs in events:
@@ -360,6 +432,7 @@ def generate_washing_machine_drum_cleaning():
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
+
 
 def main():
     print("Reading HA config entries storage...")

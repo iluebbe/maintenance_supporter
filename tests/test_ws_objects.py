@@ -54,10 +54,13 @@ def _mock_connection() -> MagicMock:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -67,12 +70,16 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     task = build_task_data(last_performed="2024-06-01")
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Pool Pump",
         data=build_object_entry_data(
             object_data=build_object_data(
-                name="Pool Pump", area_id="backyard",
-                manufacturer="Pentair", model="SuperFlo",
+                name="Pool Pump",
+                area_id="backyard",
+                manufacturer="Pentair",
+                model="SuperFlo",
             ),
             tasks={TASK_ID_1: task},
         ),
@@ -84,7 +91,8 @@ def object_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_ws_create_from_template(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Creating from a template builds the object + all its template tasks."""
     from custom_components.maintenance_supporter.const import (
@@ -100,10 +108,17 @@ async def test_ws_create_from_template(
     tpl = get_template_by_id("home_hvac")
     assert tpl is not None and len(tpl.tasks) > 0
 
-    await call_ws_handler(ws_create_from_template, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/from_template",
-        "template_id": "home_hvac", "name": "Living-room HVAC",
-    })
+    await call_ws_handler(
+        ws_create_from_template,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/from_template",
+            "template_id": "home_hvac",
+            "name": "Living-room HVAC",
+        },
+    )
     conn.send_error.assert_not_called()
     entry_id = conn.send_result.call_args[0][1]["entry_id"]
 
@@ -118,21 +133,30 @@ async def test_ws_create_from_template(
 
 
 async def test_ws_create_from_template_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Unknown template id returns not_found."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_create_from_template, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/from_template",
-        "template_id": "does_not_exist",
-    })
+    await call_ws_handler(
+        ws_create_from_template,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/from_template",
+            "template_id": "does_not_exist",
+        },
+    )
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "not_found"
 
 
 async def test_ws_duplicate_object_clones_object_and_tasks(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Duplicate clones the object + its tasks into a fresh, un-started entry."""
     from custom_components.maintenance_supporter.const import (
@@ -160,10 +184,16 @@ async def test_ws_duplicate_object_clones_object_and_tasks(
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_duplicate_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/duplicate",
-        "entry_id": object_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_duplicate_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/duplicate",
+            "entry_id": object_entry.entry_id,
+        },
+    )
     conn.send_error.assert_not_called()
     new_entry_id = conn.send_result.call_args[0][1]["entry_id"]
     assert new_entry_id != object_entry.entry_id
@@ -172,9 +202,9 @@ async def test_ws_duplicate_object_clones_object_and_tasks(
     assert new_entry is not None
     new_obj = new_entry.data[CONF_OBJECT]
     assert new_obj[CONF_OBJECT_NAME] == "Pool Pump (copy)"
-    assert new_obj["manufacturer"] == "Pentair"          # config carried over
-    assert new_obj[CONF_OBJECT_SERIAL_NUMBER] is None     # serial dropped
-    assert new_obj["id"] != obj["id"]                     # fresh object id
+    assert new_obj["manufacturer"] == "Pentair"  # config carried over
+    assert new_obj[CONF_OBJECT_SERIAL_NUMBER] is None  # serial dropped
+    assert new_obj["id"] != obj["id"]  # fresh object id
 
     new_tasks = new_entry.data[CONF_TASKS]
     assert len(new_tasks) == 1
@@ -185,8 +215,9 @@ async def test_ws_duplicate_object_clones_object_and_tasks(
     from custom_components.maintenance_supporter.helpers.schedule import (
         read_legacy_fields,
     )
-    assert read_legacy_fields(copied)["interval_days"] == 45   # task config kept
-    assert "entity_slug" not in copied                   # unique key dropped
+
+    assert read_legacy_fields(copied)["interval_days"] == 45  # task config kept
+    assert "entity_slug" not in copied  # unique key dropped
     assert "history" not in copied and "last_performed" not in copied
     assert new_obj["task_ids"] == [copied_id]
 
@@ -198,7 +229,9 @@ async def test_ws_duplicate_object_clones_object_and_tasks(
 
 
 async def test_ws_get_objects(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test getting all objects."""
     await setup_integration(hass, global_entry, object_entry)
@@ -214,7 +247,8 @@ async def test_ws_get_objects(
 
 
 async def test_ws_get_objects_empty(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test getting objects when none exist."""
     await setup_integration(hass, global_entry)
@@ -230,16 +264,24 @@ async def test_ws_get_objects_empty(
 
 
 async def test_ws_get_object(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test getting a single object."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object",
-        "entry_id": object_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object",
+            "entry_id": object_entry.entry_id,
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -248,7 +290,8 @@ async def test_ws_get_object(
 
 
 async def test_ws_get_object_exposes_completion_action_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Regression for issue #50.
 
@@ -266,7 +309,9 @@ async def test_ws_get_object_exposes_completion_action_fields(
     }
     task["quick_complete_defaults"] = {"notes": "vacuum dock pressed", "cost": 0.0}
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Vacuum",
         data=build_object_entry_data(
             object_data=build_object_data(name="Vacuum"),
@@ -279,10 +324,16 @@ async def test_ws_get_object_exposes_completion_action_fields(
     await setup_integration(hass, global_entry, entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object",
+            "entry_id": entry.entry_id,
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert len(result["tasks"]) == 1
@@ -297,16 +348,16 @@ async def test_ws_get_object_exposes_completion_action_fields(
         "target": {"entity_id": "button.james_reset_sensor"},
     }
 
-    assert "quick_complete_defaults" in task_resp, (
-        "Issue #50 follow-up: quick_complete_defaults has the same bug pattern"
-    )
+    assert "quick_complete_defaults" in task_resp, "Issue #50 follow-up: quick_complete_defaults has the same bug pattern"
     assert task_resp["quick_complete_defaults"] == {
-        "notes": "vacuum dock pressed", "cost": 0.0,
+        "notes": "vacuum dock pressed",
+        "cost": 0.0,
     }
 
 
 async def test_ws_get_object_exposes_every_persisted_task_field(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Audit test for the issue #50 + #48 pattern: ANY field that lives in
     ``entry.data[CONF_TASKS][task_id]`` and that the frontend's
@@ -381,7 +432,9 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
         "warning_days": 5,
     }
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Audit",
         data=build_object_entry_data(
             object_data=build_object_data(name="Audit"),
@@ -394,10 +447,16 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
     await setup_integration(hass, global_entry, entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object",
+            "entry_id": entry.entry_id,
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     task_resp = next(t for t in result["tasks"] if t["name"] == "Audit Task")
@@ -407,23 +466,35 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
     # internal; created_at is backend-only — both intentionally excluded.
     # due_date is one_time-only, guarded via ot_resp below.)
     expected_persisted_fields = [
-        "id", "name", "type", "enabled", "schedule_type",
-        "interval_days", "interval_unit",
-        "interval_anchor", "warning_days",
+        "id",
+        "name",
+        "type",
+        "enabled",
+        "schedule_type",
+        "interval_days",
+        "interval_unit",
+        "interval_anchor",
+        "warning_days",
         # nested recurrence object (schedule-model v2) — the canonical form the
         # dialog reads for the calendar kinds; must be exposed (issue #50 class).
         "schedule",
-        "last_performed", "schedule_time",
-        "notes", "documentation_url",
-        "entity_slug", "custom_icon", "nfc_tag_id", "priority",
-        "checklist", "labels", "assignee_pool", "rotation_strategy",
+        "last_performed",
+        "schedule_time",
+        "notes",
+        "documentation_url",
+        "entity_slug",
+        "custom_icon",
+        "nfc_tag_id",
+        "priority",
+        "checklist",
+        "labels",
+        "assignee_pool",
+        "rotation_strategy",
         "earliest_completion_days",
-        "on_complete_action", "quick_complete_defaults",
+        "on_complete_action",
+        "quick_complete_defaults",
     ]
-    missing: list[str] = [
-        f for f in expected_persisted_fields
-        if f not in task_resp or task_resp[f] in (None, "")
-    ]
+    missing: list[str] = [f for f in expected_persisted_fields if f not in task_resp or task_resp[f] in (None, "")]
     assert not missing, (
         f"Tripwire: WS response is missing or null for persisted fields: "
         f"{missing}. Same failure mode as issue #50 — extend "
@@ -431,9 +502,7 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
     )
     # due_date is one_time-only (schedule-model v2 discriminated union).
     assert ot_resp["schedule_type"] == "one_time"
-    assert ot_resp["due_date"] == "2026-09-01", (
-        "Tripwire: one_time due_date must round-trip in the WS response."
-    )
+    assert ot_resp["due_date"] == "2026-09-01", "Tripwire: one_time due_date must round-trip in the WS response."
 
     # Spot-check exact value preservation for the v1.3.0 fields that
     # caused the original regression
@@ -442,7 +511,8 @@ async def test_ws_get_object_exposes_every_persisted_task_field(
 
 
 async def test_ws_get_object_exposes_every_persisted_object_field(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Tripwire (issue #50 pattern) for the object meta — same audit as
     the task version but for ``_build_object_response.object``. Object
@@ -463,7 +533,9 @@ async def test_ws_get_object_exposes_every_persisted_object_field(
     obj_data["notes"] = "Audit notes"
 
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Audit Object",
         data=build_object_entry_data(object_data=obj_data),
         source="user",
@@ -473,20 +545,32 @@ async def test_ws_get_object_exposes_every_persisted_object_field(
     await setup_integration(hass, global_entry, entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object",
-        "entry_id": entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object",
+            "entry_id": entry.entry_id,
+        },
+    )
 
     obj_resp = conn.send_result.call_args[0][1]["object"]
 
     expected_fields = [
-        "id", "name", "area_id", "manufacturer", "model",
-        "serial_number", "installation_date", "warranty_expiry",
-        "documentation_url", "notes",
+        "id",
+        "name",
+        "area_id",
+        "manufacturer",
+        "model",
+        "serial_number",
+        "installation_date",
+        "warranty_expiry",
+        "documentation_url",
+        "notes",
     ]
-    missing = [f for f in expected_fields
-               if f not in obj_resp or obj_resp[f] in (None, "")]
+    missing = [f for f in expected_fields if f not in obj_resp or obj_resp[f] in (None, "")]
     assert not missing, (
         f"Tripwire (issue #50 pattern, object edition): _build_object_response "
         f"is missing/null for persisted object fields: {missing}"
@@ -494,16 +578,23 @@ async def test_ws_get_object_exposes_every_persisted_object_field(
 
 
 async def test_ws_get_object_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test getting non-existent object."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_get_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object",
-        "entry_id": "nonexistent",
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object",
+            "entry_id": "nonexistent",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -512,16 +603,23 @@ async def test_ws_get_object_not_found(
 
 
 async def test_ws_create_object_basic(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test creating a basic object."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "New Object",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "New Object",
+        },
+    )
 
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
@@ -529,20 +627,27 @@ async def test_ws_create_object_basic(
 
 
 async def test_ws_create_object_all_fields(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test creating object with all optional fields."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Full Object",
-        "area_id": "garage",
-        "manufacturer": "Bosch",
-        "model": "X100",
-        "serial_number": "SN-12345",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Full Object",
+            "area_id": "garage",
+            "manufacturer": "Bosch",
+            "model": "X100",
+            "serial_number": "SN-12345",
+        },
+    )
 
     conn.send_result.assert_called_once()
     # Verify serial_number persisted to the new config entry
@@ -552,17 +657,24 @@ async def test_ws_create_object_all_fields(
 
 
 async def test_ws_create_object_dry_run(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test dry run for object creation."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Dry Run Object",
-        "dry_run": True,
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Dry Run Object",
+            "dry_run": True,
+        },
+    )
 
     result = conn.send_result.call_args[0][1]
     assert result["valid"] is True
@@ -573,17 +685,25 @@ async def test_ws_create_object_dry_run(
 
 
 async def test_ws_update_object_name(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating object name."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "name": "Updated Pump",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "name": "Updated Pump",
+        },
+    )
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
@@ -593,20 +713,28 @@ async def test_ws_update_object_name(
 
 
 async def test_ws_update_object_multiple(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test updating multiple object fields."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "manufacturer": "Hayward",
-        "model": "MaxFlo",
-        "serial_number": "ABC-789",
-        "area_id": "pool_house",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "manufacturer": "Hayward",
+            "model": "MaxFlo",
+            "serial_number": "ABC-789",
+            "area_id": "pool_house",
+        },
+    )
 
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
@@ -619,7 +747,8 @@ async def test_ws_update_object_multiple(
 
 
 async def test_ws_create_and_update_object_with_documentation_url(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """v1.4.0 (#43): documentation_url round-trips through create + update.
@@ -632,11 +761,17 @@ async def test_ws_create_and_update_object_with_documentation_url(
 
     # Update with valid URL → persisted
     conn = _mock_connection()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "documentation_url": "https://example.com/manual.pdf",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "documentation_url": "https://example.com/manual.pdf",
+        },
+    )
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
@@ -644,11 +779,17 @@ async def test_ws_create_and_update_object_with_documentation_url(
 
     # Update with javascript: URL → rejected
     conn = _mock_connection()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "documentation_url": "javascript:alert(1)",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "documentation_url": "javascript:alert(1)",
+        },
+    )
     conn.send_error.assert_called_once()
     err_args = conn.send_error.call_args[0]
     assert err_args[1] == "invalid_url"
@@ -658,33 +799,43 @@ async def test_ws_create_and_update_object_with_documentation_url(
 
     # Update with null → cleared
     conn = _mock_connection()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 3, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "documentation_url": None,
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "documentation_url": None,
+        },
+    )
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry.data[CONF_OBJECT]["documentation_url"] is None
 
     # Create with documentation_url → persisted on the new entry
     conn = _mock_connection()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 4, "type": "maintenance_supporter/object/create",
-        "name": "Object With Manual",
-        "documentation_url": "https://vendor.example/Quick-Guide.pdf",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 4,
+            "type": "maintenance_supporter/object/create",
+            "name": "Object With Manual",
+            "documentation_url": "https://vendor.example/Quick-Guide.pdf",
+        },
+    )
     conn.send_result.assert_called_once()
-    entries = [
-        e for e in hass.config_entries.async_entries("maintenance_supporter")
-        if e.title == "Object With Manual"
-    ]
+    entries = [e for e in hass.config_entries.async_entries("maintenance_supporter") if e.title == "Object With Manual"]
     assert len(entries) == 1
     assert entries[0].data[CONF_OBJECT]["documentation_url"] == "https://vendor.example/Quick-Guide.pdf"
 
 
 async def test_ws_create_and_update_object_with_notes(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
     object_entry: MockConfigEntry,
 ) -> None:
     """v1.4.10 (#46): notes round-trips through create + update.
@@ -697,11 +848,17 @@ async def test_ws_create_and_update_object_with_notes(
     # Update with multiline note → persisted, internal newlines kept
     note = "Filter: PN ACE-7800-X\nReplacement procedure: 1. Power off  2. Open\n3. Replace cartridge"
     conn = _mock_connection()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "notes": note,
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "notes": note,
+        },
+    )
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry is not None
@@ -709,54 +866,76 @@ async def test_ws_create_and_update_object_with_notes(
 
     # Whitespace-only string → cleared to None (treated as "no notes")
     conn = _mock_connection()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 2, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "notes": "   \n  ",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "notes": "   \n  ",
+        },
+    )
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry.data[CONF_OBJECT]["notes"] is None
 
     # Explicit null → cleared
     conn = _mock_connection()
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 3, "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "notes": None,
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 3,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "notes": None,
+        },
+    )
     conn.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     assert entry.data[CONF_OBJECT]["notes"] is None
 
     # Create with notes → persisted on the new entry
     conn = _mock_connection()
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 4, "type": "maintenance_supporter/object/create",
-        "name": "Object With Notes",
-        "notes": "Spare key in garage drawer",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 4,
+            "type": "maintenance_supporter/object/create",
+            "name": "Object With Notes",
+            "notes": "Spare key in garage drawer",
+        },
+    )
     conn.send_result.assert_called_once()
-    entries = [
-        e for e in hass.config_entries.async_entries("maintenance_supporter")
-        if e.title == "Object With Notes"
-    ]
+    entries = [e for e in hass.config_entries.async_entries("maintenance_supporter") if e.title == "Object With Notes"]
     assert len(entries) == 1
     assert entries[0].data[CONF_OBJECT]["notes"] == "Spare key in garage drawer"
 
 
 async def test_ws_update_object_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test updating non-existent object."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/update",
-        "entry_id": "nonexistent",
-        "name": "Test",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/update",
+            "entry_id": "nonexistent",
+            "name": "Test",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -765,45 +944,67 @@ async def test_ws_update_object_not_found(
 
 
 async def test_ws_delete_object(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test deleting an object."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/delete",
-        "entry_id": object_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": object_entry.entry_id,
+        },
+    )
 
     conn.send_result.assert_called_once()
     assert conn.send_result.call_args[0][1]["success"] is True
 
 
 async def test_ws_delete_object_cleans_group_refs(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test that deleting an object removes its references from groups."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _mock_connection()
 
     # Create a group referencing a task in the object we'll delete
-    await call_ws_handler(ws_create_group, hass, conn, {
-        "id": 10, "type": "maintenance_supporter/group/create",
-        "name": "Test Group",
-        "task_refs": [
-            {"entry_id": object_entry.entry_id, "task_id": TASK_ID_1},
-            {"entry_id": "other_entry", "task_id": "other_task"},
-        ],
-    })
+    await call_ws_handler(
+        ws_create_group,
+        hass,
+        conn,
+        {
+            "id": 10,
+            "type": "maintenance_supporter/group/create",
+            "name": "Test Group",
+            "task_refs": [
+                {"entry_id": object_entry.entry_id, "task_id": TASK_ID_1},
+                {"entry_id": "other_entry", "task_id": "other_task"},
+            ],
+        },
+    )
     group_id = conn.send_result.call_args[0][1]["group_id"]
     conn.reset_mock()
 
     # Delete the object
-    await call_ws_handler(ws_delete_object, hass, conn, {
-        "id": 11, "type": "maintenance_supporter/object/delete",
-        "entry_id": object_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        conn,
+        {
+            "id": 11,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": object_entry.entry_id,
+        },
+    )
     conn.send_result.assert_called_once()
 
     # Verify group no longer references the deleted object's tasks
@@ -815,16 +1016,23 @@ async def test_ws_delete_object_cleans_group_refs(
 
 
 async def test_ws_delete_object_not_found(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test deleting non-existent object."""
     await setup_integration(hass, global_entry)
     conn = _mock_connection()
 
-    await call_ws_handler(ws_delete_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/delete",
-        "entry_id": "nonexistent",
-    })
+    await call_ws_handler(
+        ws_delete_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/delete",
+            "entry_id": "nonexistent",
+        },
+    )
 
     conn.send_error.assert_called_once()
 
@@ -834,13 +1042,18 @@ async def test_ws_delete_object_not_found(
 
 def test_build_task_summary_trigger_info(hass: HomeAssistant) -> None:
     """Test _build_task_summary enriches trigger entity info."""
-    hass.states.async_set("sensor.temp", "25.0", {
-        "friendly_name": "Temperature",
-        "unit_of_measurement": "°C",
-    })
+    hass.states.async_set(
+        "sensor.temp",
+        "25.0",
+        {
+            "friendly_name": "Temperature",
+            "unit_of_measurement": "°C",
+        },
+    )
 
     task_data = {
-        "name": "Test", "type": "custom",
+        "name": "Test",
+        "type": "custom",
         "trigger_config": {"entity_id": "sensor.temp", "type": "threshold"},
     }
 
@@ -856,7 +1069,8 @@ def test_build_task_summary_multi_entity(hass: HomeAssistant) -> None:
     hass.states.async_set("sensor.temp2", "30.0", {"friendly_name": "Temp 2"})
 
     task_data = {
-        "name": "Test", "type": "custom",
+        "name": "Test",
+        "type": "custom",
         "trigger_config": {
             "entity_ids": ["sensor.temp1", "sensor.temp2"],
             "type": "threshold",
@@ -894,69 +1108,86 @@ def test_build_task_summary_custom_icon_nfc_default_none(hass: HomeAssistant) ->
 
 def test_build_task_summary_priority(hass: HomeAssistant) -> None:
     """priority is surfaced; a task without it defaults to 'normal'."""
-    high = _build_task_summary(
-        hass, "tid", {"name": "T", "type": "custom", "priority": "high"}, None
-    )
+    high = _build_task_summary(hass, "tid", {"name": "T", "type": "custom", "priority": "high"}, None)
     assert high["priority"] == "high"
     default = _build_task_summary(hass, "tid", {"name": "T", "type": "custom"}, None)
     assert default["priority"] == "normal"
 
 
-async def test_ws_create_task_persists_priority(
-    hass: HomeAssistant, global_config_entry, object_config_entry
-) -> None:
+async def test_ws_create_task_persists_priority(hass: HomeAssistant, global_config_entry, object_config_entry) -> None:
     """task/create accepts priority and it round-trips through the object read."""
     from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
 
     await setup_integration(hass, global_config_entry, object_config_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_config_entry.entry_id,
-        "name": "Priority Task", "priority": "high",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_config_entry.entry_id,
+            "name": "Priority Task",
+            "priority": "high",
+        },
+    )
     task_id = conn.send_result.call_args[0][1]["task_id"]
 
     conn2 = _mock_connection()
-    await call_ws_handler(ws_get_object, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/object",
-        "entry_id": object_config_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object",
+            "entry_id": object_config_entry.entry_id,
+        },
+    )
     tasks = conn2.send_result.call_args[0][1]["tasks"]
     created = next(t for t in tasks if t["id"] == task_id)
     assert created["priority"] == "high"
 
 
-async def test_ws_create_task_persists_labels(
-    hass: HomeAssistant, global_config_entry, object_config_entry
-) -> None:
+async def test_ws_create_task_persists_labels(hass: HomeAssistant, global_config_entry, object_config_entry) -> None:
     """task/create accepts labels; they sanitize (trim/dedup) and round-trip."""
     from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
 
     await setup_integration(hass, global_config_entry, object_config_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_config_entry.entry_id,
-        "name": "Labelled Task",
-        "labels": ["  safety ", "seasonal", "safety", ""],
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_config_entry.entry_id,
+            "name": "Labelled Task",
+            "labels": ["  safety ", "seasonal", "safety", ""],
+        },
+    )
     task_id = conn.send_result.call_args[0][1]["task_id"]
 
     conn2 = _mock_connection()
-    await call_ws_handler(ws_get_object, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/object",
-        "entry_id": object_config_entry.entry_id,
-    })
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object",
+            "entry_id": object_config_entry.entry_id,
+        },
+    )
     tasks = conn2.send_result.call_args[0][1]["tasks"]
     created = next(t for t in tasks if t["id"] == task_id)
     # trimmed, deduped, empty dropped, order preserved
     assert created["labels"] == ["safety", "seasonal"]
 
 
-async def test_ws_update_task_clears_labels(
-    hass: HomeAssistant, global_config_entry, object_config_entry
-) -> None:
+async def test_ws_update_task_clears_labels(hass: HomeAssistant, global_config_entry, object_config_entry) -> None:
     """task/update with an empty labels list removes them from storage."""
     from custom_components.maintenance_supporter.const import CONF_TASKS
     from custom_components.maintenance_supporter.websocket.tasks import (
@@ -966,50 +1197,72 @@ async def test_ws_update_task_clears_labels(
 
     await setup_integration(hass, global_config_entry, object_config_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_config_entry.entry_id,
-        "name": "Labelled Task", "labels": ["safety"],
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_config_entry.entry_id,
+            "name": "Labelled Task",
+            "labels": ["safety"],
+        },
+    )
     task_id = conn.send_result.call_args[0][1]["task_id"]
 
     conn2 = _mock_connection()
-    await call_ws_handler(ws_update_task, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/task/update",
-        "entry_id": object_config_entry.entry_id,
-        "task_id": task_id, "labels": [],
-    })
+    await call_ws_handler(
+        ws_update_task,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/task/update",
+            "entry_id": object_config_entry.entry_id,
+            "task_id": task_id,
+            "labels": [],
+        },
+    )
     conn2.send_result.assert_called_once()
     entry = hass.config_entries.async_get_entry(object_config_entry.entry_id)
     assert entry is not None
     assert not entry.data[CONF_TASKS][task_id].get("labels")
 
 
-async def test_ws_create_task_persists_rotation(
-    hass: HomeAssistant, global_config_entry, object_config_entry
-) -> None:
+async def test_ws_create_task_persists_rotation(hass: HomeAssistant, global_config_entry, object_config_entry) -> None:
     """task/create accepts assignee_pool + rotation_strategy and they round-trip."""
     from custom_components.maintenance_supporter.websocket.tasks import ws_create_task
 
     await setup_integration(hass, global_config_entry, object_config_entry)
     conn = _mock_connection()
-    await call_ws_handler(ws_create_task, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/task/create",
-        "entry_id": object_config_entry.entry_id,
-        "name": "Shared Task",
-        "assignee_pool": ["user-a", "user-b", "user-a"],
-        "rotation_strategy": "round_robin",
-    })
+    await call_ws_handler(
+        ws_create_task,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": object_config_entry.entry_id,
+            "name": "Shared Task",
+            "assignee_pool": ["user-a", "user-b", "user-a"],
+            "rotation_strategy": "round_robin",
+        },
+    )
     task_id = conn.send_result.call_args[0][1]["task_id"]
 
     conn2 = _mock_connection()
-    await call_ws_handler(ws_get_object, hass, conn2, {
-        "id": 2, "type": "maintenance_supporter/object",
-        "entry_id": object_config_entry.entry_id,
-    })
-    created = next(
-        t for t in conn2.send_result.call_args[0][1]["tasks"] if t["id"] == task_id
+    await call_ws_handler(
+        ws_get_object,
+        hass,
+        conn2,
+        {
+            "id": 2,
+            "type": "maintenance_supporter/object",
+            "entry_id": object_config_entry.entry_id,
+        },
     )
+    created = next(t for t in conn2.send_result.call_args[0][1]["tasks"] if t["id"] == task_id)
     assert created["assignee_pool"] == ["user-a", "user-b"]  # deduped
     assert created["rotation_strategy"] == "round_robin"
 
@@ -1093,7 +1346,9 @@ def test_build_task_summary_compound_trigger_deduplicates(hass: HomeAssistant) -
 
 
 def test_build_object_response_structure(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Test _build_object_response returns correct structure."""
     result = _build_object_response(hass, object_entry, None)
@@ -1110,7 +1365,8 @@ def test_build_object_response_structure(
 
 
 def test_build_object_response_exposes_documentation_url_value(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """v1.4.3 regression: a saved documentation_url must reach the frontend."""
     from .conftest import build_object_data, build_object_entry_data
@@ -1119,7 +1375,9 @@ def test_build_object_response_exposes_documentation_url_value(
     obj_data = build_object_data(name="With Manual")
     obj_data["documentation_url"] = "https://example.com/manual.pdf"
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="With Manual",
         data=build_object_entry_data(object_data=obj_data, tasks={}),
         source="user",
@@ -1129,13 +1387,13 @@ def test_build_object_response_exposes_documentation_url_value(
 
     result = _build_object_response(hass, entry, None)
     assert result["object"]["documentation_url"] == "https://example.com/manual.pdf", (
-        "documentation_url must round-trip through _build_object_response so "
-        "the panel can render the manual link"
+        "documentation_url must round-trip through _build_object_response so the panel can render the manual link"
     )
 
 
 def test_build_object_response_exposes_notes(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """v1.4.10 (#46): a saved notes string must reach the frontend.
 
@@ -1147,7 +1405,9 @@ def test_build_object_response_exposes_notes(
     obj_data = build_object_data(name="With Notes")
     obj_data["notes"] = "PN ACE-7800-X\nProcedure: see manual"
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="With Notes",
         data=build_object_entry_data(object_data=obj_data, tasks={}),
         source="user",
@@ -1157,13 +1417,14 @@ def test_build_object_response_exposes_notes(
 
     result = _build_object_response(hass, entry, None)
     assert result["object"]["notes"] == "PN ACE-7800-X\nProcedure: see manual", (
-        "notes must round-trip through _build_object_response so the "
-        "panel can render the notes block in the object detail header"
+        "notes must round-trip through _build_object_response so the panel can render the notes block in the object detail header"
     )
     # Also verify the key is always present even when notes are unset
     obj_data_empty = build_object_data(name="Without Notes")
     entry2 = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Without Notes",
         data=build_object_entry_data(object_data=obj_data_empty, tasks={}),
         source="user",
@@ -1194,10 +1455,13 @@ def _covws_conn() -> MagicMock:
 @pytest.fixture
 def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -1205,17 +1469,24 @@ def covws_global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 # Lines 169-175: ws_create_object — invalid installation_date format → invalid_date
 async def test_create_object_invalid_installation_date(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """ws_create_object: bad installation_date format → invalid_date error."""
     await setup_integration(hass, covws_global_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Test Object",
-        "installation_date": "not-a-date",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Test Object",
+            "installation_date": "not-a-date",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_date"
@@ -1223,17 +1494,24 @@ async def test_create_object_invalid_installation_date(
 
 # Lines 180-181: ws_create_object — unsafe documentation_url → invalid_url
 async def test_create_object_unsafe_documentation_url(
-    hass: HomeAssistant, covws_global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    covws_global_entry: MockConfigEntry,
 ) -> None:
     """ws_create_object: javascript: URL in documentation_url → invalid_url error."""
     await setup_integration(hass, covws_global_entry)
     conn = _covws_conn()
 
-    await call_ws_handler(ws_create_object, hass, conn, {
-        "id": 1, "type": "maintenance_supporter/object/create",
-        "name": "Test Object",
-        "documentation_url": "javascript:alert('xss')",
-    })
+    await call_ws_handler(
+        ws_create_object,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/object/create",
+            "name": "Test Object",
+            "documentation_url": "javascript:alert('xss')",
+        },
+    )
 
     conn.send_error.assert_called_once()
     assert conn.send_error.call_args[0][1] == "invalid_url"
@@ -1288,9 +1566,11 @@ class TestChecklistWsApi:
         import voluptuous as vol
 
         # The schema is defined as a decorator, test by constructing the expected vol schema
-        schema = vol.Schema({
-            vol.Optional("checklist"): vol.Any([str], None),
-        })
+        schema = vol.Schema(
+            {
+                vol.Optional("checklist"): vol.Any([str], None),
+            }
+        )
         # Should validate successfully
         result = schema({"checklist": ["Step 1", "Step 2"]})
         assert result["checklist"] == ["Step 1", "Step 2"]
@@ -1331,15 +1611,24 @@ def _c97_conn() -> MagicMock:
 
 def test_ws_entity_attributes(hass: HomeAssistant) -> None:
     """Lines 209-212: ws_entity_attributes returns entity attribute info."""
-    hass.states.async_set("sensor.test_cov97", "25.0", {
-        "unit_of_measurement": "°C",
-        "friendly_name": "Test Sensor",
-    })
+    hass.states.async_set(
+        "sensor.test_cov97",
+        "25.0",
+        {
+            "unit_of_measurement": "°C",
+            "friendly_name": "Test Sensor",
+        },
+    )
     conn = _c97_conn()
-    ws_entity_attributes(hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/entity/attributes",
-        "entity_id": "sensor.test_cov97",
-    })
+    ws_entity_attributes(
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/entity/attributes",
+            "entity_id": "sensor.test_cov97",
+        },
+    )
     conn.send_result.assert_called_once()
 
 
@@ -1347,7 +1636,8 @@ def test_ws_entity_attributes(hass: HomeAssistant) -> None:
 
 
 async def test_create_object_failure(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Line 118: create_failed when flow doesn't produce create_entry."""
     await setup_integration(hass, global_entry)
@@ -1355,13 +1645,20 @@ async def test_create_object_failure(
 
     # Mock config flow to return abort instead of create_entry
     with patch.object(
-        hass.config_entries.flow, "async_init",
+        hass.config_entries.flow,
+        "async_init",
         return_value={"type": "abort", "reason": "test"},
     ):
-        await call_ws_handler(ws_create_object, hass, conn, {
-            "id": _c97_nid(), "type": "maintenance_supporter/object/create",
-            "name": "Test Object",
-        })
+        await call_ws_handler(
+            ws_create_object,
+            hass,
+            conn,
+            {
+                "id": _c97_nid(),
+                "type": "maintenance_supporter/object/create",
+                "name": "Test Object",
+            },
+        )
     conn.send_error.assert_called_once()
     assert "create_failed" in str(conn.send_error.call_args)
 
@@ -1370,17 +1667,25 @@ async def test_create_object_failure(
 
 
 async def test_update_object_installation_date(
-    hass: HomeAssistant, global_entry: MockConfigEntry, object_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
 ) -> None:
     """Line 159: installation_date field update."""
     await setup_integration(hass, global_entry, object_entry)
     conn = _c97_conn()
 
-    await call_ws_handler(ws_update_object, hass, conn, {
-        "id": _c97_nid(), "type": "maintenance_supporter/object/update",
-        "entry_id": object_entry.entry_id,
-        "installation_date": "2023-01-15",
-    })
+    await call_ws_handler(
+        ws_update_object,
+        hass,
+        conn,
+        {
+            "id": _c97_nid(),
+            "type": "maintenance_supporter/object/update",
+            "entry_id": object_entry.entry_id,
+            "installation_date": "2023-01-15",
+        },
+    )
     conn.send_result.assert_called_once()
     result = conn.send_result.call_args[0][1]
     assert result["success"] is True

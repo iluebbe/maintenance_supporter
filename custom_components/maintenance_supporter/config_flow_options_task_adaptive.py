@@ -28,6 +28,7 @@ from .helpers.schedule import (
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
+
 class AdaptiveMixin:
     """Adaptive scheduling configuration."""
 
@@ -35,13 +36,12 @@ class AdaptiveMixin:
     if TYPE_CHECKING:
         config_entry: ConfigEntry
         _selected_task_id: str | None
+
         def _show_task_action_menu(self) -> ConfigFlowResult: ...
         def _update_config_entry(self, new_data: dict[str, Any]) -> None: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
 
-    async def async_step_adaptive_scheduling(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_adaptive_scheduling(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure adaptive scheduling for a task."""
         # Read adaptive_config from Store (merged) data
         rd = getattr(self.config_entry, "runtime_data", None)
@@ -60,15 +60,9 @@ class AdaptiveMixin:
             enabled = user_input.get(CONF_ADAPTIVE_ENABLED, False)
             adaptive_config: dict[str, Any] = dict(current_adaptive)
             adaptive_config["enabled"] = enabled
-            adaptive_config[CONF_ADAPTIVE_EWA_ALPHA] = user_input.get(
-                CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA
-            )
-            min_iv = int(
-                user_input.get(CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL)
-            )
-            max_iv = int(
-                user_input.get(CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL)
-            )
+            adaptive_config[CONF_ADAPTIVE_EWA_ALPHA] = user_input.get(CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA)
+            min_iv = int(user_input.get(CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL))
+            max_iv = int(user_input.get(CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL))
             if min_iv > max_iv:
                 return self.async_show_form(
                     step_id="adaptive_scheduling",
@@ -78,14 +72,10 @@ class AdaptiveMixin:
             adaptive_config[CONF_ADAPTIVE_MIN_INTERVAL] = min_iv
             adaptive_config[CONF_ADAPTIVE_MAX_INTERVAL] = max_iv
             # Seasonal awareness toggle
-            adaptive_config["seasonal_enabled"] = user_input.get(
-                "seasonal_enabled", True
-            )
+            adaptive_config["seasonal_enabled"] = user_input.get("seasonal_enabled", True)
 
             # Sensor prediction toggle (Phase 3)
-            adaptive_config[CONF_SENSOR_PREDICTION_ENABLED] = user_input.get(
-                CONF_SENSOR_PREDICTION_ENABLED, True
-            )
+            adaptive_config[CONF_SENSOR_PREDICTION_ENABLED] = user_input.get(CONF_SENSOR_PREDICTION_ENABLED, True)
             env_entity = user_input.get(CONF_ENVIRONMENTAL_ENTITY)
             if env_entity:
                 adaptive_config["environmental_entity"] = env_entity
@@ -129,9 +119,7 @@ class AdaptiveMixin:
         """Build the adaptive scheduling form schema."""
         env_entity = current_adaptive.get("environmental_entity")
         env_key = (
-            vol.Optional(CONF_ENVIRONMENTAL_ENTITY, default=env_entity)
-            if env_entity
-            else vol.Optional(CONF_ENVIRONMENTAL_ENTITY)
+            vol.Optional(CONF_ENVIRONMENTAL_ENTITY, default=env_entity) if env_entity else vol.Optional(CONF_ENVIRONMENTAL_ENTITY)
         )
         return vol.Schema(
             {
@@ -141,35 +129,35 @@ class AdaptiveMixin:
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     CONF_ADAPTIVE_EWA_ALPHA,
-                    default=current_adaptive.get(
-                        CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA
-                    ),
+                    default=current_adaptive.get(CONF_ADAPTIVE_EWA_ALPHA, DEFAULT_ADAPTIVE_EWA_ALPHA),
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=0.1, max=0.9, step=0.1,
+                        min=0.1,
+                        max=0.9,
+                        step=0.1,
                         mode=selector.NumberSelectorMode.SLIDER,
                     )
                 ),
                 vol.Optional(
                     CONF_ADAPTIVE_MIN_INTERVAL,
-                    default=current_adaptive.get(
-                        CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL
-                    ),
+                    default=current_adaptive.get(CONF_ADAPTIVE_MIN_INTERVAL, DEFAULT_ADAPTIVE_MIN_INTERVAL),
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1, max=365, step=1,
+                        min=1,
+                        max=365,
+                        step=1,
                         mode=selector.NumberSelectorMode.BOX,
                         unit_of_measurement="days",
                     )
                 ),
                 vol.Optional(
                     CONF_ADAPTIVE_MAX_INTERVAL,
-                    default=current_adaptive.get(
-                        CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL
-                    ),
+                    default=current_adaptive.get(CONF_ADAPTIVE_MAX_INTERVAL, DEFAULT_ADAPTIVE_MAX_INTERVAL),
                 ): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1, max=3650, step=1,
+                        min=1,
+                        max=3650,
+                        step=1,
                         mode=selector.NumberSelectorMode.BOX,
                         unit_of_measurement="days",
                     )
@@ -180,9 +168,7 @@ class AdaptiveMixin:
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     CONF_SENSOR_PREDICTION_ENABLED,
-                    default=current_adaptive.get(
-                        CONF_SENSOR_PREDICTION_ENABLED, True
-                    ),
+                    default=current_adaptive.get(CONF_SENSOR_PREDICTION_ENABLED, True),
                 ): selector.BooleanSelector(),
                 env_key: selector.EntitySelector(
                     selector.EntitySelectorConfig(
@@ -191,8 +177,6 @@ class AdaptiveMixin:
                         multiple=False,
                     )
                 ),
-                vol.Optional(
-                    "go_back", default=False
-                ): selector.BooleanSelector(),
+                vol.Optional("go_back", default=False): selector.BooleanSelector(),
             }
         )

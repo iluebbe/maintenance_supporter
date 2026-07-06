@@ -14,9 +14,7 @@ from custom_components.maintenance_supporter.helpers.documents import DocumentSt
 
 
 @pytest.fixture(autouse=True)
-def _isolate_docs_dir(
-    hass: HomeAssistant, _isolate_document_blobs: None
-) -> Iterator[None]:
+def _isolate_docs_dir(hass: HomeAssistant, _isolate_document_blobs: None) -> Iterator[None]:
     """Blobs live on the shared test config dir — give each test a clean one.
 
     Depends on _isolate_document_blobs (conftest) so the per-test tmp redirect is
@@ -38,8 +36,12 @@ async def _store(hass: HomeAssistant) -> DocumentStore:
 async def test_add_file_creates_blob_and_metadata(hass: HomeAssistant) -> None:
     s = await _store(hass)
     doc = await s.async_add_file(
-        "obj1", content=b"manual A", filename="a.pdf", mime="application/pdf",
-        title="Manual", tags=["manual"],
+        "obj1",
+        content=b"manual A",
+        filename="a.pdf",
+        mime="application/pdf",
+        title="Manual",
+        tags=["manual"],
     )
     assert doc["kind"] == "file"
     assert doc["deduped"] is False
@@ -120,8 +122,8 @@ async def test_storage_summary_physical_vs_logical(hass: HomeAssistant) -> None:
     await s.async_add_weblink("obj1", url="https://x")
 
     summ = s.storage_summary()
-    assert summ["total_bytes"] == 10 + 3          # unique blobs (physical / backup cost)
-    assert summ["logical_bytes"] == 10 + 10 + 3   # per-doc (shared counted twice)
+    assert summ["total_bytes"] == 10 + 3  # unique blobs (physical / backup cost)
+    assert summ["logical_bytes"] == 10 + 10 + 3  # per-doc (shared counted twice)
     assert summ["dedup_savings_bytes"] == 10
     assert summ["file_count"] == 3
     assert summ["link_count"] == 1
@@ -177,7 +179,7 @@ async def test_add_file_adopts_orphan_blob_on_disk(hass: HomeAssistant) -> None:
     s.blob_path(digest).write_bytes(content)  # on disk but not in the registry
     doc = await s.async_add_file("obj1", content=content, filename="a.pdf", mime="application/pdf")
     assert doc["hash"] == digest
-    assert doc["deduped"] is False           # absent from registry → not a dedup
+    assert doc["deduped"] is False  # absent from registry → not a dedup
     assert s.blobs[digest]["refcount"] == 1  # adopted into the registry
 
 
@@ -194,8 +196,12 @@ async def test_remove_object_without_docs_returns_zero(hass: HomeAssistant) -> N
 async def test_remove_file_doc_with_missing_hash(hass: HomeAssistant) -> None:
     s = await _store(hass)
     s.documents["d"] = {
-        "object_id": "o", "kind": "file", "title": "x",
-        "tags": [], "task_ids": [], "added_at": "2026-01-01T00:00:00",
+        "object_id": "o",
+        "kind": "file",
+        "title": "x",
+        "tags": [],
+        "task_ids": [],
+        "added_at": "2026-01-01T00:00:00",
     }
     assert await s.async_remove("d") == 0  # no "hash" → deref is a no-op
 
@@ -203,8 +209,13 @@ async def test_remove_file_doc_with_missing_hash(hass: HomeAssistant) -> None:
 async def test_remove_file_doc_blob_not_in_registry(hass: HomeAssistant) -> None:
     s = await _store(hass)
     s.documents["d"] = {
-        "object_id": "o", "kind": "file", "hash": "a" * 64, "title": "x",
-        "tags": [], "task_ids": [], "added_at": "2026-01-01T00:00:00",
+        "object_id": "o",
+        "kind": "file",
+        "hash": "a" * 64,
+        "title": "x",
+        "tags": [],
+        "task_ids": [],
+        "added_at": "2026-01-01T00:00:00",
     }
     assert await s.async_remove("d") == 0  # valid hex but unknown blob → no-op
 
@@ -212,12 +223,15 @@ async def test_remove_file_doc_blob_not_in_registry(hass: HomeAssistant) -> None
 async def test_find_issues_without_blobs_dir(hass: HomeAssistant) -> None:
     s = await _store(hass)  # no files added → the blobs dir never gets created
     assert await s.async_find_issues() == {
-        "orphan_blobs": [], "zero_refcount": [], "dangling_docs": [],
+        "orphan_blobs": [],
+        "zero_refcount": [],
+        "dangling_docs": [],
     }
 
 
 async def test_delete_blob_oserror_is_swallowed(
-    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch,
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     s = await _store(hass)
     doc = await s.async_add_file("obj1", content=b"z", filename="a.pdf", mime="application/pdf")
@@ -242,14 +256,24 @@ async def test_list_blob_files_ignores_foreign_names(hass: HomeAssistant) -> Non
 
 async def test_import_documents_recreates_metadata(hass: HomeAssistant) -> None:
     s = await _store(hass)
-    n = await s.async_import_documents("obj1", [
-        {"kind": "weblink", "url": "https://x/manual", "title": "Online", "tags": ["manual"]},
-        {"kind": "file", "hash": "a" * 64, "title": "Manual", "filename": "m.pdf",
-         "mime": "application/pdf", "size": 1234, "tags": ["warranty"]},
-        {"kind": "file", "hash": "NOThex"},  # invalid digest -> skipped
-        {"kind": "weblink"},                 # no url -> skipped
-        "not-a-dict",                        # -> skipped
-    ])
+    n = await s.async_import_documents(
+        "obj1",
+        [
+            {"kind": "weblink", "url": "https://x/manual", "title": "Online", "tags": ["manual"]},
+            {
+                "kind": "file",
+                "hash": "a" * 64,
+                "title": "Manual",
+                "filename": "m.pdf",
+                "mime": "application/pdf",
+                "size": 1234,
+                "tags": ["warranty"],
+            },
+            {"kind": "file", "hash": "NOThex"},  # invalid digest -> skipped
+            {"kind": "weblink"},  # no url -> skipped
+            "not-a-dict",  # -> skipped
+        ],
+    )
     assert n == 2
     docs = s.for_object("obj1")
     assert {d["kind"] for d in docs} == {"weblink", "file"}
@@ -301,18 +325,21 @@ async def test_cleanup_reclaims_orphans_zero_and_dangling(hass: HomeAssistant) -
 
     # Everything reconciled, and the live doc + blob are untouched.
     assert await s.async_find_issues() == {
-        "orphan_blobs": [], "zero_refcount": [], "dangling_docs": [],
+        "orphan_blobs": [],
+        "zero_refcount": [],
+        "dangling_docs": [],
     }
     assert not s.blob_path(orphan).exists()
     assert not s.blob_path(zero).exists()
-    assert dangling["hash"] not in s.blobs      # phantom registry entry gone
+    assert dangling["hash"] not in s.blobs  # phantom registry entry gone
     assert s.get(dangling["id"]) is None
     assert s.get(keep["id"]) is not None
     assert s.blob_path(keep["hash"]).exists()
 
 
 async def test_list_blob_files_tolerates_dir_vanishing_mid_scan(
-    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch,
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """_list_blob_files must not raise if the blobs dir vanishes mid-scan.
 

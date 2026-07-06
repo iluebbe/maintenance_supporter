@@ -62,9 +62,7 @@ async def async_setup_entry(
     coordinator = runtime_data.coordinator
     tasks = entry.data.get(CONF_TASKS, {})
 
-    entities = [
-        MaintenanceBinarySensor(coordinator, task_id) for task_id in tasks
-    ]
+    entities = [MaintenanceBinarySensor(coordinator, task_id) for task_id in tasks]
 
     async_add_entities(entities)
     _LOGGER.debug(
@@ -96,9 +94,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
         task_data = coordinator.entry.data.get(CONF_TASKS, {}).get(task_id, {})
 
         object_slug = slugify_object_name(obj_data.get("name", "unknown"))
-        self._attr_unique_id = (
-            f"maintenance_supporter_{object_slug}_{task_id}_overdue"
-        )
+        self._attr_unique_id = f"maintenance_supporter_{object_slug}_{task_id}_overdue"
 
         entity_slug = task_data.get("entity_slug")
         if entity_slug:
@@ -137,11 +133,7 @@ class MaintenanceBinarySensor(MaintenanceEntity, BinarySensorEntity):
             entry_id=self.coordinator.entry.entry_id,
             task_id=self._task_id,
         )
-        self.async_on_remove(
-            async_dispatcher_connect(
-                self.hass, signal, self._handle_task_reset
-            )
-        )
+        self.async_on_remove(async_dispatcher_connect(self.hass, signal, self._handle_task_reset))
 
     @callback
     def _handle_task_reset(self) -> None:

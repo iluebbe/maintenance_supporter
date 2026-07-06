@@ -61,10 +61,13 @@ from .conftest import (
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -73,7 +76,9 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 @pytest.fixture
 def object_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Air Purifier",
         data=build_object_entry_data(tasks={}),
         source="user",
@@ -88,15 +93,17 @@ def _conn() -> MagicMock:
     return make_ws_connection()
 
 
-async def _create_task(
-    hass: HomeAssistant, entry_id: str, payload: dict[str, Any]
-) -> str:
+async def _create_task(hass: HomeAssistant, entry_id: str, payload: dict[str, Any]) -> str:
     conn = make_ws_connection()
     await call_ws_handler(
-        ws_create_task, hass, conn,
+        ws_create_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/create",
-            "entry_id": entry_id, **payload,
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": entry_id,
+            **payload,
         },
     )
     return assert_ws_success(conn)["task_id"]
@@ -114,7 +121,8 @@ async def test_action_listener_invokes_configured_service(
     await setup_integration(hass, global_entry, object_entry)
 
     task_id = await _create_task(
-        hass, object_entry.entry_id,
+        hass,
+        object_entry.entry_id,
         {
             "name": "Listener happy path",
             "schedule_type": "time_based",
@@ -136,10 +144,14 @@ async def test_action_listener_invokes_configured_service(
 
     conn = _conn()
     await call_ws_handler(
-        ws_complete_task, hass, conn,
+        ws_complete_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": object_entry.entry_id, "task_id": task_id,
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
         },
     )
     assert conn.send_error.call_count == 0
@@ -160,7 +172,8 @@ async def test_action_listener_skips_when_no_action_configured(
     await setup_integration(hass, global_entry, object_entry)
 
     task_id = await _create_task(
-        hass, object_entry.entry_id,
+        hass,
+        object_entry.entry_id,
         {
             "name": "No action",
             "schedule_type": "time_based",
@@ -177,10 +190,14 @@ async def test_action_listener_skips_when_no_action_configured(
 
     conn = _conn()
     await call_ws_handler(
-        ws_complete_task, hass, conn,
+        ws_complete_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": object_entry.entry_id, "task_id": task_id,
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
         },
     )
     await hass.async_block_till_done()
@@ -197,7 +214,8 @@ async def test_action_listener_swallows_service_errors(
     await setup_integration(hass, global_entry, object_entry)
 
     task_id = await _create_task(
-        hass, object_entry.entry_id,
+        hass,
+        object_entry.entry_id,
         {
             "name": "Failing action",
             "schedule_type": "time_based",
@@ -215,10 +233,14 @@ async def test_action_listener_swallows_service_errors(
 
     conn = _conn()
     await call_ws_handler(
-        ws_complete_task, hass, conn,
+        ws_complete_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": object_entry.entry_id, "task_id": task_id,
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
         },
     )
     await hass.async_block_till_done()
@@ -236,7 +258,8 @@ async def test_action_listener_ignores_unknown_service(
     await setup_integration(hass, global_entry, object_entry)
 
     task_id = await _create_task(
-        hass, object_entry.entry_id,
+        hass,
+        object_entry.entry_id,
         {
             "name": "Unknown service",
             "schedule_type": "time_based",
@@ -247,10 +270,14 @@ async def test_action_listener_ignores_unknown_service(
 
     conn = _conn()
     await call_ws_handler(
-        ws_complete_task, hass, conn,
+        ws_complete_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/complete",
-            "entry_id": object_entry.entry_id, "task_id": task_id,
+            "id": 1,
+            "type": "maintenance_supporter/task/complete",
+            "entry_id": object_entry.entry_id,
+            "task_id": task_id,
         },
     )
     await hass.async_block_till_done()
@@ -272,11 +299,14 @@ async def test_action_listener_runs_only_for_owning_entry(
 
     hass.services.async_register("test_listener", "should_not_fire2", _capture)
 
-    hass.bus.async_fire(EVENT_TASK_COMPLETED, {
-        "entry_id": "totally_made_up_entry",
-        "task_id": "x" * 32,
-        "task_name": "ghost",
-    })
+    hass.bus.async_fire(
+        EVENT_TASK_COMPLETED,
+        {
+            "entry_id": "totally_made_up_entry",
+            "task_id": "x" * 32,
+            "task_name": "ghost",
+        },
+    )
     await hass.async_block_till_done()
     assert calls == []
 
@@ -305,7 +335,9 @@ def _make_object_entry_with_action(
         "target": {"entity_id": entity_id},
     }
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Stale-Action Object",
         data=build_object_entry_data(
             object_data=build_object_data(name="Stale-Action Object"),
@@ -319,9 +351,12 @@ def _make_object_entry_with_action(
 
 
 def _make_stale_flow(
-    hass: HomeAssistant, entry_id: str, entity_id: str = "light.dead_target",
+    hass: HomeAssistant,
+    entry_id: str,
+    entity_id: str = "light.dead_target",
 ) -> StaleActionEntityRepairFlow:
     from .conftest import TASK_ID_1
+
     flow = StaleActionEntityRepairFlow()
     flow.hass = hass
     flow.data = {
@@ -334,7 +369,8 @@ def _make_stale_flow(
 
 
 async def test_stale_action_init_shows_two_options(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """init step exposes replace_entity + remove_action."""
     obj_entry = _make_object_entry_with_action(hass)
@@ -349,7 +385,8 @@ async def test_stale_action_init_shows_two_options(
 
 
 async def test_stale_action_replace_updates_entity_id(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Picking a new entity rewrites on_complete_action.target.entity_id."""
     from .conftest import TASK_ID_1
@@ -358,9 +395,7 @@ async def test_stale_action_replace_updates_entity_id(
     await setup_integration(hass, global_entry, obj_entry)
 
     flow = _make_stale_flow(hass, obj_entry.entry_id)
-    result = await flow.async_step_replace_entity(
-        {"new_entity": "light.new_target"}
-    )
+    result = await flow.async_step_replace_entity({"new_entity": "light.new_target"})
 
     assert result["type"] == "create_entry"
     entry = hass.config_entries.async_get_entry(obj_entry.entry_id)
@@ -372,7 +407,8 @@ async def test_stale_action_replace_updates_entity_id(
 
 
 async def test_stale_action_remove_drops_action_entirely(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """The remove path strips on_complete_action from the task."""
     from .conftest import TASK_ID_1
@@ -406,10 +442,13 @@ async def test_stale_action_create_fix_flow_routes_correctly(
 
 def _make_global(hass: HomeAssistant, **kw) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(**kw),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -424,7 +463,9 @@ def _make_object(
 ) -> MockConfigEntry:
     od = object_data or build_object_data(name=name)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title=name,
         data=build_object_entry_data(object_data=od, tasks=tasks or {}),
         source="user",

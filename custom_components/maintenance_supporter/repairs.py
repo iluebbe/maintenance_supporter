@@ -69,9 +69,7 @@ def _entry_has_task(entry: Any, task_id: str | None) -> bool:
     return task_id in entry.data.get(CONF_TASKS, {})
 
 
-def _replace_entity_in_dict(
-    cfg: dict[str, Any], old: str, new: str
-) -> dict[str, Any]:
+def _replace_entity_in_dict(cfg: dict[str, Any], old: str, new: str) -> dict[str, Any]:
     """Return a copy of ``cfg`` with entity_id/entity_ids replaced if matching."""
     cfg = dict(cfg)
     eids = cfg.get("entity_ids")
@@ -82,9 +80,7 @@ def _replace_entity_in_dict(
     return cfg
 
 
-def _replace_entity_in_condition(
-    cond: dict[str, Any], old: str, new: str
-) -> dict[str, Any]:
+def _replace_entity_in_condition(cond: dict[str, Any], old: str, new: str) -> dict[str, Any]:
     """Replace ``old`` entity with ``new`` in a compound trigger condition.
 
     Conditions may have entity references at top level OR in a nested
@@ -97,9 +93,7 @@ def _replace_entity_in_condition(
     return cond
 
 
-def _strip_entity_from_dict(
-    cfg: dict[str, Any], target: str
-) -> tuple[dict[str, Any], bool]:
+def _strip_entity_from_dict(cfg: dict[str, Any], target: str) -> tuple[dict[str, Any], bool]:
     """Strip ``target`` from a flat trigger config dict.
 
     Returns (modified copy, has_remaining_entity).
@@ -120,9 +114,7 @@ def _strip_entity_from_dict(
     return cfg, has_remaining
 
 
-def _strip_entity_from_condition(
-    cond: dict[str, Any], target: str
-) -> tuple[dict[str, Any], bool]:
+def _strip_entity_from_condition(cond: dict[str, Any], target: str) -> tuple[dict[str, Any], bool]:
     """Strip ``target`` from a compound condition.
 
     Returns (modified copy, keep_condition). The condition is kept if it
@@ -152,9 +144,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         }
     """
 
-    async def async_step_init(
-        self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
         """Show a menu with repair options."""
         issue_data = self.data or {}
         return self.async_show_menu(
@@ -167,9 +157,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_replace_entity(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_replace_entity(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         """Let the user pick a replacement entity."""
         issue_data = self.data or {}
 
@@ -201,9 +189,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_remove_trigger(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_remove_trigger(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         """Confirm removal of the trigger (convert to time_based or manual)."""
         issue_data = self.data or {}
 
@@ -225,9 +211,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_dismiss(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_dismiss(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         """Dismiss the issue (it will reappear if entity is still missing)."""
         return self.async_create_entry(data={})
 
@@ -261,18 +245,14 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         if trigger_config.get("type") == "compound":
             # Recurse into conditions
             new_conditions = [
-                _replace_entity_in_condition(cond, old_entity_id, new_entity_id)
-                for cond in trigger_config.get("conditions", [])
+                _replace_entity_in_condition(cond, old_entity_id, new_entity_id) for cond in trigger_config.get("conditions", [])
             ]
             trigger_config["conditions"] = new_conditions
         else:
             # Flat trigger: update entity_ids list if present
             entity_ids = trigger_config.get("entity_ids", [])
             if entity_ids and old_entity_id in entity_ids:
-                entity_ids = [
-                    new_entity_id if eid == old_entity_id else eid
-                    for eid in entity_ids
-                ]
+                entity_ids = [new_entity_id if eid == old_entity_id else eid for eid in entity_ids]
                 trigger_config["entity_ids"] = entity_ids
 
             # Update entity_id (for backwards compat / single-entity)
@@ -355,13 +335,9 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         history_notes: str
 
         if trigger_config.get("type") == "compound":
-            history_notes = self._remove_from_compound(
-                task_dict, trigger_config, missing_entity_id
-            )
+            history_notes = self._remove_from_compound(task_dict, trigger_config, missing_entity_id)
         else:
-            history_notes = self._remove_from_flat(
-                task_dict, trigger_config, missing_entity_id
-            )
+            history_notes = self._remove_from_flat(task_dict, trigger_config, missing_entity_id)
 
         # Write static changes to ConfigEntry (recurrence normalized to nested)
         tasks_data[task_id] = normalize_task_storage(task_dict)
@@ -419,10 +395,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             trigger_config["entity_ids"] = remaining
             trigger_config["entity_id"] = remaining[0]
             task_dict["trigger_config"] = trigger_config
-            return (
-                f"Entity {missing_entity_id} removed from multi-entity trigger. "
-                f"Remaining: {', '.join(remaining)}"
-            )
+            return f"Entity {missing_entity_id} removed from multi-entity trigger. Remaining: {', '.join(remaining)}"
 
         old_entity_id = trigger_config.get("entity_id", missing_entity_id)
         safety_interval = trigger_config.get("interval_days")
@@ -444,10 +417,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
             new_type = ScheduleType.MANUAL
             task_dict["schedule_type"] = new_type
 
-        return (
-            f"Sensor trigger removed (entity was: {old_entity_id}). "
-            f"Schedule converted to {new_type}."
-        )
+        return f"Sensor trigger removed (entity was: {old_entity_id}). Schedule converted to {new_type}."
 
     def _remove_from_compound(
         self,
@@ -477,10 +447,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         if len(new_conditions) >= 2:
             trigger_config["conditions"] = new_conditions
             task_dict["trigger_config"] = trigger_config
-            return (
-                f"Entity {missing_entity_id} removed from compound trigger; "
-                f"{len(new_conditions)} conditions remain."
-            )
+            return f"Entity {missing_entity_id} removed from compound trigger; {len(new_conditions)} conditions remain."
 
         if len(new_conditions) == 1:
             sole = new_conditions[0]
@@ -519,9 +486,7 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
         }
     """
 
-    async def async_step_init(
-        self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
         """Show a confirmation form, then remove on submit."""
         issue_data = self.data or {}
         if user_input is not None:
@@ -534,9 +499,7 @@ class OrphanAdminPanelUserRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_remove_user_id(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_remove_user_id(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         """Remove the orphaned id from admin_panel_user_ids and persist."""
         issue_data = self.data or {}
         entry = _entry_for_issue(self.hass, issue_data)
@@ -570,9 +533,7 @@ class StaleActionEntityRepairFlow(RepairsFlow):
         }
     """
 
-    async def async_step_init(
-        self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
         return self.async_show_menu(
             step_id="init",
             menu_options=["replace_entity", "remove_action"],
@@ -582,9 +543,7 @@ class StaleActionEntityRepairFlow(RepairsFlow):
             },
         )
 
-    async def async_step_replace_entity(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_replace_entity(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         if user_input is not None:
             entry = self._entry()
             if entry is None:
@@ -596,18 +555,18 @@ class StaleActionEntityRepairFlow(RepairsFlow):
             return self.async_create_entry(data={})
         return self.async_show_form(
             step_id="replace_entity",
-            data_schema=vol.Schema({
-                vol.Required("new_entity"): selector.EntitySelector(),
-            }),
+            data_schema=vol.Schema(
+                {
+                    vol.Required("new_entity"): selector.EntitySelector(),
+                }
+            ),
             description_placeholders={
                 "task_name": str((self.data or {}).get("task_name", "?")),
                 "stale_entity": str((self.data or {}).get("stale_entity", "?")),
             },
         )
 
-    async def async_step_remove_action(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_remove_action(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         if user_input is not None:
             entry = self._entry()
             if entry is None:
@@ -661,9 +620,7 @@ class DocumentStorageRepairFlow(RepairsFlow):
     reappears. To leave things alone, use HA's built-in **Ignore** button.
     """
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
         """Confirm, then reclaim orphaned/dangling storage on submit."""
         if user_input is not None:
             from . import DOCUMENT_STORE_KEY

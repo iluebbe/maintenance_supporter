@@ -63,13 +63,9 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         if tasks:
             new_data = {
                 **new_data,
-                CONF_TASKS: {
-                    tid: normalize_task_storage(td) for tid, td in tasks.items()
-                },
+                CONF_TASKS: {tid: normalize_task_storage(td) for tid, td in tasks.items()},
             }
-        self.hass.config_entries.async_update_entry(
-            self.config_entry, data=new_data
-        )
+        self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
 
     def _save_new_task(self) -> ConfigFlowResult:
         """Save the current task and return to init."""
@@ -84,12 +80,8 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             "name": self._current_task.get(CONF_TASK_NAME, ""),
             "type": self._current_task.get(CONF_TASK_TYPE, MaintenanceTypeEnum.CUSTOM),
             "enabled": True,
-            "schedule_type": self._current_task.get(
-                CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED
-            ),
-            "warning_days": self._current_task.get(
-                CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)
-            ),
+            "schedule_type": self._current_task.get(CONF_TASK_SCHEDULE_TYPE, ScheduleType.TIME_BASED),
+            "warning_days": self._current_task.get(CONF_TASK_WARNING_DAYS, get_default_warning_days(self.hass)),
             # Anchor for next_due fallback when last_performed is None (issue #30).
             "created_at": dt_util.now().date().isoformat(),
         }
@@ -117,9 +109,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         if CONF_TASK_PRIORITY in self._current_task:
             task_data["priority"] = self._current_task[CONF_TASK_PRIORITY]
         if self._current_task.get(CONF_TASK_LABELS_TEXT):
-            task_data["labels"] = parse_labels_text(
-                self._current_task[CONF_TASK_LABELS_TEXT]
-            )
+            task_data["labels"] = parse_labels_text(self._current_task[CONF_TASK_LABELS_TEXT])
 
         cap_task_fields(task_data)
         new_data = dict(self.config_entry.data)
@@ -165,24 +155,18 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             description_placeholders={"object_info": object_info},
         )
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show main options menu."""
         return self._show_init_menu()
 
-    async def async_step_done(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_done(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Close the options flow."""
         # Flush store and reload to pick up config changes from this flow
         rd = getattr(self.config_entry, "runtime_data", None)
         store = getattr(rd, "store", None) if rd else None
         if store is not None:
             await store.async_save()
-        self.hass.async_create_task(
-            self.hass.config_entries.async_reload(self.config_entry.entry_id)
-        )
+        self.hass.async_create_task(self.hass.config_entries.async_reload(self.config_entry.entry_id))
         return self.async_create_entry(title="", data=self.config_entry.options)
 
     def _get_global_options(self) -> dict[str, Any]:

@@ -679,5 +679,9 @@
   "replace_object": "Ersetzen…",
   "replace_object_prompt": "Dieses Objekt ausmustern und einen Nachfolger anlegen. Historie und Kosten bleiben am alten Objekt archiviert; Aufgaben und Dokumente wandern zum neuen, Zähler starten frisch.",
   "replace_name_label": "Name des Nachfolgers",
-  "object_replaced": "Objekt ersetzt — Nachfolger angelegt"
+  "object_replaced": "Objekt ersetzt — Nachfolger angelegt",
+  "reading_unit_label": "Ableseeinheit (z. B. kWh, m³)",
+  "reading_unit_help": "Wird beim Erledigen dieser Aufgabe neben dem erfassten Wert angezeigt.",
+  "reading_value_label": "Ablesewert",
+  "reading_label": "Ablesung"
 }

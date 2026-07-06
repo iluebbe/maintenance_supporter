@@ -75,6 +75,8 @@ export interface HistoryEntry {
   feedback?: string | null;
   completed_by?: string | null;
   photo_doc_id?: string | null;
+  /** v2.20 (#83): recorded value for `reading`-type tasks. */
+  reading_value?: number | null;
 }
 
 export interface AdaptiveConfig {
@@ -211,6 +213,8 @@ export interface MaintenanceTask {
   responsible_user_id?: string | null;
   custom_icon?: string | null;
   nfc_tag_id?: string | null;
+  /** v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...). */
+  reading_unit?: string | null;
   priority?: string | null;
   entity_slug?: string | null;
   // Auto-derived sensor + binary_sensor entity_ids (since 1.0.45)

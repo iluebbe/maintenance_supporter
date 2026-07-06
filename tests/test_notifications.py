@@ -422,16 +422,20 @@ async def test_daily_limit_blocks(
 
         # First notification sends
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Task 1", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Task 1",
+            object_name="Obj",
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
 
         # Second notification blocked by daily limit
         await nm.async_task_status_changed(
-            entry_id="e2", task_id="t2",
-            task_name="Task 2", object_name="Obj",
+            entry_id="e2",
+            task_id="t2",
+            task_name="Task 2",
+            object_name="Obj",
             new_status=MaintenanceStatus.OVERDUE,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -457,8 +461,10 @@ async def test_daily_limit_resets_new_day(
         mock_hass.config_entries = hass.config_entries
 
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="New Day", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="New Day",
+            object_name="Obj",
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -514,8 +520,10 @@ async def test_due_soon_disabled(hass: HomeAssistant) -> None:
         mock_hass.config_entries = hass.config_entries
 
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Task", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Task",
+            object_name="Obj",
             new_status=MaintenanceStatus.DUE_SOON,
         )
 
@@ -535,8 +543,10 @@ async def test_overdue_disabled(hass: HomeAssistant) -> None:
         mock_hass.config_entries = hass.config_entries
 
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Task", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Task",
+            object_name="Obj",
             new_status=MaintenanceStatus.OVERDUE,
         )
 
@@ -563,16 +573,20 @@ async def test_interval_zero_sends_once(
 
         # First notification sends (interval=0 from fixture)
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Once Only", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Once Only",
+            object_name="Obj",
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
 
         # Second attempt is suppressed (sent once = never repeat)
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Once Only", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Once Only",
+            object_name="Obj",
             new_status=MaintenanceStatus.DUE_SOON,
         )
         assert mock_hass.services.async_call.call_count == 1
@@ -674,8 +688,10 @@ async def test_weekly_digest_silent_when_no_service(
     nm = hass.data.get(DOMAIN, {}).get("_notification_manager")
     assert nm is not None
 
-    with patch.object(nm, "hass") as mock_hass, \
-         patch.object(type(nm), "notify_service", new_callable=PropertyMock, return_value=""):
+    with (
+        patch.object(nm, "hass") as mock_hass,
+        patch.object(type(nm), "notify_service", new_callable=PropertyMock, return_value=""),
+    ):
         mock_hass.services = MagicMock()
         mock_hass.services.async_call = AsyncMock()
         mock_hass.config_entries = hass.config_entries
@@ -849,8 +865,10 @@ async def test_action_buttons_included(hass: HomeAssistant) -> None:
         mock_hass.config_entries = hass.config_entries
 
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Filter", object_name="Pump",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Filter",
+            object_name="Pump",
             new_status=MaintenanceStatus.DUE_SOON,
             days_until_due=3,
         )
@@ -909,8 +927,10 @@ async def test_notification_deep_link_without_actions(hass: HomeAssistant) -> No
         mock_hass.config_entries = hass.config_entries
 
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Filter", object_name="Pump",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Filter",
+            object_name="Pump",
             new_status=MaintenanceStatus.DUE_SOON,
             days_until_due=3,
         )
@@ -949,8 +969,10 @@ async def test_user_targeted_notification(
             return_value=["notify.mobile_app_user_phone"],
         ):
             await nm.async_task_status_changed(
-                entry_id="e1", task_id="t1",
-                task_name="User Task", object_name="Obj",
+                entry_id="e1",
+                task_id="t1",
+                task_name="User Task",
+                object_name="Obj",
                 new_status=MaintenanceStatus.DUE_SOON,
                 responsible_user_id="user123",
             )
@@ -980,8 +1002,10 @@ async def test_user_fallback_to_global(
             return_value=[],
         ):
             await nm.async_task_status_changed(
-                entry_id="e1", task_id="t1",
-                task_name="Fallback", object_name="Obj",
+                entry_id="e1",
+                task_id="t1",
+                task_name="Fallback",
+                object_name="Obj",
                 new_status=MaintenanceStatus.DUE_SOON,
                 responsible_user_id="user123",
             )
@@ -999,8 +1023,12 @@ def test_build_message_overdue() -> None:
     """Test overdue message is correctly built."""
     nm = NotificationManager.__new__(NotificationManager)
     title, message = nm._build_message(
-        MaintenanceStatus.OVERDUE, "en",
-        "Oil Change", "Car", -5, None,
+        MaintenanceStatus.OVERDUE,
+        "en",
+        "Oil Change",
+        "Car",
+        -5,
+        None,
     )
     assert title == "Maintenance Overdue!"
     assert "Oil Change" in message
@@ -1012,8 +1040,12 @@ def test_build_message_triggered() -> None:
     """Test triggered message is correctly built."""
     nm = NotificationManager.__new__(NotificationManager)
     title, message = nm._build_message(
-        MaintenanceStatus.TRIGGERED, "en",
-        "Pressure Check", "Pump", None, None,
+        MaintenanceStatus.TRIGGERED,
+        "en",
+        "Pressure Check",
+        "Pump",
+        None,
+        None,
     )
     assert title == "Maintenance Triggered"
     assert "Pressure Check" in message
@@ -1024,8 +1056,12 @@ def test_build_message_german() -> None:
     """Test German translation of notification messages."""
     nm = NotificationManager.__new__(NotificationManager)
     title, message = nm._build_message(
-        MaintenanceStatus.DUE_SOON, "de",
-        "Filterwechsel", "Pumpe", 3, "2024-12-15",
+        MaintenanceStatus.DUE_SOON,
+        "de",
+        "Filterwechsel",
+        "Pumpe",
+        3,
+        "2024-12-15",
     )
     assert title == "Wartung bald fällig"
     assert "Filterwechsel" in message
@@ -1082,15 +1118,15 @@ async def test_service_failure_handled(
 
     with patch.object(nm, "hass") as mock_hass:
         mock_hass.services = MagicMock()
-        mock_hass.services.async_call = AsyncMock(
-            side_effect=HomeAssistantError("Service not found")
-        )
+        mock_hass.services.async_call = AsyncMock(side_effect=HomeAssistantError("Service not found"))
         mock_hass.config_entries = hass.config_entries
 
         # Should not raise
         await nm.async_task_status_changed(
-            entry_id="e1", task_id="t1",
-            task_name="Failing", object_name="Obj",
+            entry_id="e1",
+            task_id="t1",
+            task_name="Failing",
+            object_name="Obj",
             new_status=MaintenanceStatus.DUE_SOON,
         )
 

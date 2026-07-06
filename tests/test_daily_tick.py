@@ -42,9 +42,13 @@ def _global(hass: HomeAssistant, *, digest: bool) -> MockConfigEntry:
     data = build_global_entry_data(notifications_enabled=True, notify_service="notify.test")
     data[CONF_WEEKLY_DIGEST_ENABLED] = digest
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
-        title="Maintenance Supporter", data=data,
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Maintenance Supporter",
+        data=data,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -53,12 +57,16 @@ def _global(hass: HomeAssistant, *, digest: bool) -> MockConfigEntry:
 def _overdue_object(hass: HomeAssistant) -> MockConfigEntry:
     lp = (dt_util.now().date() - timedelta(days=60)).isoformat()
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Pool Pump",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Pool Pump",
         data=build_object_entry_data(
             object_data=build_object_data(name="Pool Pump"),
             tasks={TASK_ID_1: build_task_data(interval_days=30, last_performed=lp)},
         ),
-        source="user", unique_id="maintenance_supporter_tick_obj",
+        source="user",
+        unique_id="maintenance_supporter_tick_obj",
     )
     entry.add_to_hass(hass)
     return entry
@@ -75,7 +83,8 @@ def _mock_nm(hass: HomeAssistant) -> MagicMock:
 
 
 async def test_maybe_weekly_digest_fires_on_monday_with_live_counts(
-    hass: HomeAssistant, freezer,
+    hass: HomeAssistant,
+    freezer,
 ) -> None:
     """On a Monday, the wrapper computes counts from live coordinators and
     forwards them to the manager."""
@@ -92,7 +101,8 @@ async def test_maybe_weekly_digest_fires_on_monday_with_live_counts(
 
 
 async def test_maybe_weekly_digest_silent_on_other_weekdays(
-    hass: HomeAssistant, freezer,
+    hass: HomeAssistant,
+    freezer,
 ) -> None:
     """The Monday gate: identical setup on a Tuesday sends nothing."""
     freezer.move_to("2026-07-07 09:00:00+00:00")  # a Tuesday
@@ -108,7 +118,8 @@ async def test_maybe_weekly_digest_silent_on_other_weekdays(
 
 
 async def test_maybe_weekly_digest_respects_enabled_flag(
-    hass: HomeAssistant, freezer,
+    hass: HomeAssistant,
+    freezer,
 ) -> None:
     freezer.move_to("2026-07-06 09:00:00+00:00")  # a Monday
     await setup_integration(hass, _global(hass, digest=False), _overdue_object(hass))
@@ -119,18 +130,23 @@ async def test_maybe_weekly_digest_respects_enabled_flag(
 
 
 async def test_maybe_weekly_digest_silent_when_nothing_to_report(
-    hass: HomeAssistant, freezer,
+    hass: HomeAssistant,
+    freezer,
 ) -> None:
     """No overdue/due-soon tasks → stay silent even on Monday/force."""
     freezer.move_to("2026-07-06 09:00:00+00:00")
     lp = dt_util.now().date().isoformat()  # completed today → ok
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN, title="Fresh",
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Fresh",
         data=build_object_entry_data(
             object_data=build_object_data(name="Fresh"),
             tasks={TASK_ID_1: build_task_data(interval_days=3650, last_performed=lp)},
         ),
-        source="user", unique_id="maintenance_supporter_tick_fresh",
+        source="user",
+        unique_id="maintenance_supporter_tick_fresh",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, _global(hass, digest=True), entry)
@@ -144,7 +160,8 @@ async def test_maybe_weekly_digest_silent_when_nothing_to_report(
 
 
 async def test_daily_tick_dispatches_digest_warranty_and_lead_reminders(
-    hass: HomeAssistant, freezer,
+    hass: HomeAssistant,
+    freezer,
 ) -> None:
     """Firing the 08:00 time-change tick runs all three maybe_* helpers —
     proving the digest, warranty, and lead-reminder features are actually
@@ -152,16 +169,20 @@ async def test_daily_tick_dispatches_digest_warranty_and_lead_reminders(
     freezer.move_to("2026-07-06 07:59:50+00:00")
     await setup_integration(hass, _global(hass, digest=True), _overdue_object(hass))
 
-    with patch(
-        "custom_components.maintenance_supporter.async_maybe_send_weekly_digest",
-        new_callable=AsyncMock,
-    ) as digest, patch(
-        "custom_components.maintenance_supporter.async_maybe_send_warranty_reminders",
-        new_callable=AsyncMock,
-    ) as warranty, patch(
-        "custom_components.maintenance_supporter.async_maybe_send_lead_reminders",
-        new_callable=AsyncMock,
-    ) as leads:
+    with (
+        patch(
+            "custom_components.maintenance_supporter.async_maybe_send_weekly_digest",
+            new_callable=AsyncMock,
+        ) as digest,
+        patch(
+            "custom_components.maintenance_supporter.async_maybe_send_warranty_reminders",
+            new_callable=AsyncMock,
+        ) as warranty,
+        patch(
+            "custom_components.maintenance_supporter.async_maybe_send_lead_reminders",
+            new_callable=AsyncMock,
+        ) as leads,
+    ):
         # Advance past the next local 08:00:00 so async_track_time_change fires.
         target = dt_util.now().replace(hour=8, minute=0, second=0, microsecond=0)
         if target <= dt_util.now():

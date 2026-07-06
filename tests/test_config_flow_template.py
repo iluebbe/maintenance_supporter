@@ -31,10 +31,13 @@ from .conftest import build_global_entry_data, setup_integration
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     entry.add_to_hass(hass)
     return entry
@@ -44,14 +47,13 @@ def global_entry(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_create_from_template_show_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test template category selection form is shown."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert result["type"] == FlowResultType.MENU
     assert "create_from_template" in result["menu_options"]
 
@@ -64,14 +66,13 @@ async def test_create_from_template_show_form(
 
 
 async def test_create_from_template_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from template category returns to user menu."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -85,14 +86,13 @@ async def test_create_from_template_go_back(
 
 
 async def test_template_select_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test template selection form for a chosen category."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -106,14 +106,13 @@ async def test_template_select_form(
 
 
 async def test_template_select_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from template select returns to category selection."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -131,14 +130,13 @@ async def test_template_select_go_back(
 
 
 async def test_template_customize_form(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test template customization form is shown."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -156,14 +154,13 @@ async def test_template_customize_form(
 
 
 async def test_template_customize_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from template customize returns to template select."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -185,14 +182,13 @@ async def test_template_customize_go_back(
 
 
 async def test_template_customize_submit_creates_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test submitting template customization creates a config entry."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -224,14 +220,17 @@ async def test_template_customize_submit_creates_entry(
 
 
 async def test_template_customize_duplicate_name(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test duplicate name in template customize shows error."""
     await setup_integration(hass, global_entry)
 
     # Create an existing entry with the name
     existing = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="My Car",
         data={
             CONF_OBJECT: {CONF_OBJECT_NAME: "My Car"},
@@ -242,9 +241,7 @@ async def test_template_customize_duplicate_name(
     )
     existing.add_to_hass(hass)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_from_template"},
@@ -270,14 +267,13 @@ async def test_template_customize_duplicate_name(
 
 
 async def test_compound_condition_type_step(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test compound_condition_type step is accessible."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -312,14 +308,13 @@ async def test_compound_condition_type_step(
 
 
 async def test_manual_step(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test manual schedule step saves task and returns to menu."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -361,14 +356,13 @@ async def test_manual_step(
 
 
 async def test_manual_step_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from manual step returns to add_task."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -405,14 +399,13 @@ async def test_manual_step_go_back(
 
 
 async def test_finish_with_tasks_creates_entry(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test finishing with tasks creates the config entry."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -456,14 +449,13 @@ async def test_finish_with_tasks_creates_entry(
 
 
 async def test_finish_without_tasks_returns_to_menu(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test finishing without tasks returns to task_menu."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -490,14 +482,13 @@ async def test_finish_without_tasks_returns_to_menu(
 
 
 async def test_add_task_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from add_task returns to task_menu."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -531,14 +522,13 @@ async def test_add_task_go_back(
 
 
 async def test_time_based_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from time_based returns to add_task."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -579,14 +569,13 @@ async def test_time_based_go_back(
 
 
 async def test_create_object_go_back(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test go_back from create_object returns to user menu."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},
@@ -611,9 +600,7 @@ async def test_global_setup_invalid_notify(
     hass: HomeAssistant,
 ) -> None:
     """Test global setup with invalid notify service shows error."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     # No global entry → goes to global_setup
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "global_setup"
@@ -635,14 +622,13 @@ async def test_global_setup_invalid_notify(
 
 
 async def test_time_based_with_last_performed(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Test time-based step saves last_performed."""
     await setup_integration(hass, global_entry)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"}
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
         {"next_step_id": "create_object"},

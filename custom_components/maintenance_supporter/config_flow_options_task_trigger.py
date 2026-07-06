@@ -21,6 +21,7 @@ from .const import (
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
+
 class TriggerStepsMixin(TriggerConfigMixin):
     """Sensor-trigger editing steps; opt_* wrappers delegate to the
     shared TriggerConfigMixin. Owns the compound step aliases."""
@@ -29,13 +30,12 @@ class TriggerStepsMixin(TriggerConfigMixin):
     if TYPE_CHECKING:
         config_entry: ConfigEntry
         _selected_task_id: str | None
+
         def _show_task_action_menu(self) -> ConfigFlowResult: ...
         def _update_config_entry(self, new_data: dict[str, Any]) -> None: ...
         def async_show_menu(self, **kwargs: Any) -> ConfigFlowResult: ...
 
-    async def async_step_edit_trigger(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_edit_trigger(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Edit the trigger configuration for an existing task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -84,9 +84,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
         entity_ids = tc.get("entity_ids", [])
         if not entity_ids:
             eid = tc.get("entity_id", "")
-            entity_ids = [eid] if isinstance(eid, str) and eid else (
-                eid if isinstance(eid, list) else []
-            )
+            entity_ids = [eid] if isinstance(eid, str) and eid else (eid if isinstance(eid, list) else [])
         return ", ".join(entity_ids) if entity_ids else "—"
 
     @staticmethod
@@ -131,9 +129,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
                 config_parts.append(f"#{i} {ctype}: {c_entities} ({c_detail})")
         return config_parts
 
-    async def async_step_trigger_summary(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_trigger_summary(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show current trigger configuration summary before editing."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -173,9 +169,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             },
         )
 
-    async def async_step_edit_trigger_proceed(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_edit_trigger_proceed(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Proceed with editing the trigger after reviewing the summary."""
         self._current_task = {}
         self._trigger_on_complete = self._save_edited_trigger
@@ -193,13 +187,9 @@ class TriggerStepsMixin(TriggerConfigMixin):
         if CONF_TASK_SCHEDULE_TYPE in self._current_task:
             updated_task["schedule_type"] = self._current_task[CONF_TASK_SCHEDULE_TYPE]
         if CONF_TASK_INTERVAL_DAYS in self._current_task:
-            updated_task["interval_days"] = int(
-                self._current_task[CONF_TASK_INTERVAL_DAYS]
-            )
+            updated_task["interval_days"] = int(self._current_task[CONF_TASK_INTERVAL_DAYS])
         if CONF_TASK_WARNING_DAYS in self._current_task:
-            updated_task["warning_days"] = int(
-                self._current_task[CONF_TASK_WARNING_DAYS]
-            )
+            updated_task["warning_days"] = int(self._current_task[CONF_TASK_WARNING_DAYS])
 
         new_tasks[self._selected_task_id or ""] = updated_task
         new_data[CONF_TASKS] = new_tasks
@@ -208,9 +198,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
 
         return self._show_task_action_menu()
 
-    async def async_step_remove_trigger(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_remove_trigger(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm and remove trigger configuration from a task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -220,9 +208,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
         entity_ids = tc.get("entity_ids", [])
         if not entity_ids:
             eid = tc.get("entity_id", "")
-            entity_ids = [eid] if isinstance(eid, str) and eid else (
-                eid if isinstance(eid, list) else []
-            )
+            entity_ids = [eid] if isinstance(eid, str) and eid else (eid if isinstance(eid, list) else [])
         has_multiple = len(entity_ids) > 1
 
         if user_input is not None:
@@ -230,33 +216,23 @@ class TriggerStepsMixin(TriggerConfigMixin):
                 return self._show_task_action_menu()
 
             if user_input.get("confirm"):
-                entities_to_remove = user_input.get(
-                    "entities_to_remove", entity_ids
-                )
-                remaining = [
-                    e for e in entity_ids if e not in entities_to_remove
-                ]
+                entities_to_remove = user_input.get("entities_to_remove", entity_ids)
+                remaining = [e for e in entity_ids if e not in entities_to_remove]
 
                 new_data = dict(self.config_entry.data)
                 new_tasks = dict(new_data.get(CONF_TASKS, {}))
-                updated_task = dict(
-                    new_tasks.get(self._selected_task_id or "", {})
-                )
+                updated_task = dict(new_tasks.get(self._selected_task_id or "", {}))
 
                 if remaining:
                     # Partial removal — keep trigger with remaining entities
-                    updated_tc = dict(
-                        updated_task.get("trigger_config", {})
-                    )
+                    updated_tc = dict(updated_task.get("trigger_config", {}))
                     updated_tc["entity_ids"] = remaining
                     updated_tc.pop("entity_id", None)
                     updated_task["trigger_config"] = updated_tc
                 else:
                     # Full removal — remove entire trigger config
                     updated_task.pop("trigger_config", None)
-                    if updated_task.get(
-                        "schedule_type"
-                    ) == ScheduleType.SENSOR_BASED:
+                    if updated_task.get("schedule_type") == ScheduleType.SENSOR_BASED:
                         updated_task["schedule_type"] = ScheduleType.TIME_BASED
 
                 new_tasks[self._selected_task_id or ""] = updated_task
@@ -275,20 +251,14 @@ class TriggerStepsMixin(TriggerConfigMixin):
         # Build schema — add entity selector for multi-entity triggers
         schema_dict: dict[Any, Any] = {}
         if has_multiple:
-            schema_dict[
-                vol.Required("entities_to_remove")
-            ] = selector.EntitySelector(
+            schema_dict[vol.Required("entities_to_remove")] = selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=entity_ids,
                     multiple=True,
                 )
             )
-        schema_dict[
-            vol.Required("confirm", default=False)
-        ] = selector.BooleanSelector()
-        schema_dict[
-            vol.Optional("go_back", default=False)
-        ] = selector.BooleanSelector()
+        schema_dict[vol.Required("confirm", default=False)] = selector.BooleanSelector()
+        schema_dict[vol.Optional("go_back", default=False)] = selector.BooleanSelector()
 
         return self.async_show_form(
             step_id="remove_trigger",
@@ -301,9 +271,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             },
         )
 
-    async def async_step_opt_sensor_select(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_sensor_select(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select sensor entity for trigger."""
         # Pre-populate with existing entity_ids when editing a trigger
         existing = None
@@ -325,9 +293,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             default_entities=existing,
         )
 
-    async def async_step_opt_sensor_attribute(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_sensor_attribute(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select attribute to monitor."""
         return await self._trigger_sensor_attribute(
             user_input,
@@ -336,9 +302,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             error_step_id="opt_sensor_select",
         )
 
-    async def async_step_opt_trigger_type(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_trigger_type(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select trigger type."""
         return await self._trigger_type_select(
             user_input,
@@ -350,9 +314,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             compound_step=self.async_step_opt_compound_logic,
         )
 
-    async def async_step_opt_trigger_threshold(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_trigger_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure threshold trigger."""
         return await self._trigger_threshold_config(
             user_input,
@@ -360,9 +322,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             on_complete=self._trigger_on_complete,
         )
 
-    async def async_step_opt_trigger_counter(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_trigger_counter(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure counter trigger."""
         return await self._trigger_counter_config(
             user_input,
@@ -370,9 +330,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             on_complete=self._trigger_on_complete,
         )
 
-    async def async_step_opt_trigger_state_change(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_trigger_state_change(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure state change trigger."""
         return await self._trigger_state_change_config(
             user_input,
@@ -380,9 +338,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             on_complete=self._trigger_on_complete,
         )
 
-    async def async_step_opt_trigger_runtime(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_trigger_runtime(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure runtime trigger."""
         return await self._trigger_runtime_config(
             user_input,
@@ -390,9 +346,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             on_complete=self._trigger_on_complete,
         )
 
-    async def async_step_opt_compound_logic(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_logic(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select compound trigger logic."""
         return await self._trigger_compound_logic(
             user_input,
@@ -400,9 +354,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             next_step=self.async_step_opt_compound_condition_entity,
         )
 
-    async def async_step_opt_compound_condition_entity(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_condition_entity(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select entity for compound condition."""
         return await self._trigger_compound_condition_entity(
             user_input,
@@ -410,9 +362,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             next_step=self.async_step_opt_compound_condition_type,
         )
 
-    async def async_step_opt_compound_condition_type(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_condition_type(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Select trigger type for compound condition."""
         return await self._trigger_compound_condition_type(
             user_input,
@@ -423,49 +373,43 @@ class TriggerStepsMixin(TriggerConfigMixin):
             runtime_step=self.async_step_opt_compound_condition_runtime,
         )
 
-    async def async_step_opt_compound_condition_threshold(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_condition_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure threshold for compound condition."""
         return await self._trigger_compound_condition_config(
-            user_input, "threshold",
+            user_input,
+            "threshold",
             step_id="compound_condition_threshold",
             on_complete=self.async_step_opt_compound_review,
         )
 
-    async def async_step_opt_compound_condition_counter(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_condition_counter(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure counter for compound condition."""
         return await self._trigger_compound_condition_config(
-            user_input, "counter",
+            user_input,
+            "counter",
             step_id="compound_condition_counter",
             on_complete=self.async_step_opt_compound_review,
         )
 
-    async def async_step_opt_compound_condition_state_change(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_condition_state_change(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure state_change for compound condition."""
         return await self._trigger_compound_condition_config(
-            user_input, "state_change",
+            user_input,
+            "state_change",
             step_id="compound_condition_state_change",
             on_complete=self.async_step_opt_compound_review,
         )
 
-    async def async_step_opt_compound_condition_runtime(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_condition_runtime(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure runtime for compound condition."""
         return await self._trigger_compound_condition_config(
-            user_input, "runtime",
+            user_input,
+            "runtime",
             step_id="compound_condition_runtime",
             on_complete=self.async_step_opt_compound_review,
         )
 
-    async def async_step_opt_compound_review(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_opt_compound_review(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Review compound trigger conditions."""
         return await self._trigger_compound_review(
             user_input,
@@ -473,7 +417,6 @@ class TriggerStepsMixin(TriggerConfigMixin):
             add_condition_step=self.async_step_opt_compound_condition_entity,
             on_complete=self._trigger_on_complete,
         )
-
 
     # Compound step aliases — HA routes by async_step_<step_id>;
     # these expose the opt_* compound steps under their bare names.

@@ -1,4 +1,5 @@
 """Check history data for ALL tasks."""
+
 import asyncio
 import os
 
@@ -6,6 +7,7 @@ import aiohttp
 
 TOKEN = os.environ["HA_TOKEN"]
 BASE = "http://localhost:8123"
+
 
 async def main():
     async with aiohttp.ClientSession() as session:
@@ -60,5 +62,6 @@ async def main():
                     print("    skipped:", len(skipped))
                     print("  unique completion dates:", sorted(dates))
                     print()
+
 
 asyncio.run(main())

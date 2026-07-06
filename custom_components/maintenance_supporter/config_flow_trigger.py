@@ -128,19 +128,13 @@ class TriggerConfigMixin:
 
     _on_cancel: Callable[[], ConfigFlowResult | Awaitable[ConfigFlowResult]] | None = None
 
-    async def _mixin_check_go_back(
-        self, user_input: dict[str, Any] | None
-    ) -> ConfigFlowResult | None:
+    async def _mixin_check_go_back(self, user_input: dict[str, Any] | None) -> ConfigFlowResult | None:
         """Return cancel result when user checked go_back, else None.
 
         Handles both sync callbacks (options flow) and async callbacks
         (config flow step methods).
         """
-        if (
-            user_input
-            and user_input.get("go_back")
-            and self._on_cancel is not None
-        ):
+        if user_input and user_input.get("go_back") and self._on_cancel is not None:
             result = self._on_cancel()
             if inspect.isawaitable(result):
                 return await result
@@ -150,9 +144,7 @@ class TriggerConfigMixin:
     def _mixin_add_go_back(self, schema_dict: dict[Any, Any]) -> dict[Any, Any]:
         """Append go_back toggle to schema dict when cancelling is enabled."""
         if self._on_cancel is not None:
-            schema_dict[
-                vol.Optional("go_back", default=False)
-            ] = selector.BooleanSelector()
+            schema_dict[vol.Optional("go_back", default=False)] = selector.BooleanSelector()
         return schema_dict
 
     async def _trigger_sensor_select(
@@ -197,9 +189,7 @@ class TriggerConfigMixin:
                     return await next_step()
 
         entity_key = (
-            vol.Required(CONF_TRIGGER_ENTITY, default=default_entities)
-            if default_entities
-            else vol.Required(CONF_TRIGGER_ENTITY)
+            vol.Required(CONF_TRIGGER_ENTITY, default=default_entities) if default_entities else vol.Required(CONF_TRIGGER_ENTITY)
         )
         schema_dict: dict[Any, Any] = {
             entity_key: selector.EntitySelector(
@@ -239,11 +229,7 @@ class TriggerConfigMixin:
                 "entity_id": entity_ids[0] if entity_ids else self._trigger_entity_id,
                 "entity_ids": entity_ids,
                 "attribute": None if attr == "_state" else attr,
-                **(
-                    {"auto_complete_on_recovery": True}
-                    if prev_tc.get("auto_complete_on_recovery")
-                    else {}
-                ),
+                **({"auto_complete_on_recovery": True} if prev_tc.get("auto_complete_on_recovery") else {}),
             }
             return await next_step()
 
@@ -298,9 +284,7 @@ class TriggerConfigMixin:
         unit = state.attributes.get("unit_of_measurement", "")
 
         schema_dict: dict[Any, Any] = {
-            vol.Required(
-                CONF_TRIGGER_ATTRIBUTE, default="_state"
-            ): selector.SelectSelector(
+            vol.Required(CONF_TRIGGER_ATTRIBUTE, default="_state"): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=options,
                     mode=selector.SelectSelectorMode.LIST,
@@ -350,9 +334,7 @@ class TriggerConfigMixin:
         trigger_options = [t.value for t in TriggerType]
 
         schema_dict: dict[Any, Any] = {
-            vol.Required(
-                CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD
-            ): selector.SelectSelector(
+            vol.Required(CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=trigger_options,
                     mode=selector.SelectSelectorMode.LIST,
@@ -391,16 +373,12 @@ class TriggerConfigMixin:
                     tc[CONF_TRIGGER_ABOVE] = above
                 if below is not None:
                     tc[CONF_TRIGGER_BELOW] = below
-                tc[CONF_TRIGGER_FOR_MINUTES] = user_input.get(
-                    CONF_TRIGGER_FOR_MINUTES, 0
-                )
+                tc[CONF_TRIGGER_FOR_MINUTES] = user_input.get(CONF_TRIGGER_FOR_MINUTES, 0)
 
                 # Multi-entity: store entity_logic if multiple entities selected
                 entity_ids = tc.get("entity_ids", [])
                 if len(entity_ids) > 1:
-                    tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(
-                        CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC
-                    )
+                    tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC)
 
                 self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.SENSOR_BASED
                 interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
@@ -415,9 +393,7 @@ class TriggerConfigMixin:
 
         # Get statistics-based suggestions
         attribute = self._current_task.get("trigger_config", {}).get("attribute", "state")
-        suggestions = await async_get_threshold_suggestions(
-            self.hass, self._trigger_entity_id, self._current_task
-        )
+        suggestions = await async_get_threshold_suggestions(self.hass, self._trigger_entity_id, self._current_task)
 
         # Build schema fields
         schema_fields: dict[Any, Any] = {
@@ -433,21 +409,15 @@ class TriggerConfigMixin:
                     step="any",
                 )
             ),
-            vol.Optional(
-                CONF_TRIGGER_FOR_MINUTES, default=0
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX
-                )
+            vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0, max=1440, step=1, mode=selector.NumberSelectorMode.BOX)
             ),
         }
 
         # Add entity_logic selector when multiple entities are selected
         entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
         if len(entity_ids) > 1:
-            schema_fields[vol.Optional(
-                CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC
-            )] = selector.SelectSelector(
+            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(value="any", label="Any entity triggers"),
@@ -458,35 +428,33 @@ class TriggerConfigMixin:
                 )
             )
 
-        schema_fields.update({
-            vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1,
-                    max=3650,
-                    step=1,
-                    mode=selector.NumberSelectorMode.BOX,
-                )
-            ),
-            vol.Optional(
-                CONF_TASK_INTERVAL_UNIT, default="days"
-            ): interval_unit_selector(),
-            vol.Optional(
-                CONF_TASK_WARNING_DAYS,
-                default=get_default_warning_days(self.hass),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            ),
-        })
+        schema_fields.update(
+            {
+                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1,
+                        max=3650,
+                        step=1,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+                vol.Optional(
+                    CONF_TASK_WARNING_DAYS,
+                    default=get_default_warning_days(self.hass),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id=step_id,
             data_schema=vol.Schema(self._mixin_add_go_back(schema_fields)),
             errors=errors,
-            description_placeholders=format_threshold_placeholders(
-                self._trigger_entity_id, attribute, suggestions
-            ),
+            description_placeholders=format_threshold_placeholders(self._trigger_entity_id, attribute, suggestions),
         )
 
     async def _trigger_counter_config(
@@ -509,9 +477,7 @@ class TriggerConfigMixin:
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
             if len(entity_ids) > 1:
-                tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(
-                    CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC
-                )
+                tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC)
 
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.SENSOR_BASED
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
@@ -544,17 +510,13 @@ class TriggerConfigMixin:
                     step="any",
                 )
             ),
-            vol.Optional(
-                CONF_TRIGGER_DELTA_MODE, default=False
-            ): selector.BooleanSelector(),
+            vol.Optional(CONF_TRIGGER_DELTA_MODE, default=False): selector.BooleanSelector(),
         }
 
         # Add entity_logic selector when multiple entities are selected
         entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
         if len(entity_ids) > 1:
-            schema_fields[vol.Optional(
-                CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC
-            )] = selector.SelectSelector(
+            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(value="any", label="Any entity triggers"),
@@ -565,27 +527,27 @@ class TriggerConfigMixin:
                 )
             )
 
-        schema_fields.update({
-            vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1,
-                    max=3650,
-                    step=1,
-                    mode=selector.NumberSelectorMode.BOX,
-                )
-            ),
-            vol.Optional(
-                CONF_TASK_INTERVAL_UNIT, default="days"
-            ): interval_unit_selector(),
-            vol.Optional(
-                CONF_TASK_WARNING_DAYS,
-                default=get_default_warning_days(self.hass),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            ),
-        })
+        schema_fields.update(
+            {
+                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1,
+                        max=3650,
+                        step=1,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+                vol.Optional(
+                    CONF_TASK_WARNING_DAYS,
+                    default=get_default_warning_days(self.hass),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id=step_id,
@@ -620,16 +582,12 @@ class TriggerConfigMixin:
             to_state = (user_input.get(CONF_TRIGGER_TO_STATE) or "").strip().lower()
             if to_state:
                 tc[CONF_TRIGGER_TO_STATE] = to_state
-            tc[CONF_TRIGGER_TARGET_CHANGES] = user_input.get(
-                CONF_TRIGGER_TARGET_CHANGES, 1
-            )
+            tc[CONF_TRIGGER_TARGET_CHANGES] = user_input.get(CONF_TRIGGER_TARGET_CHANGES, 1)
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
             if len(entity_ids) > 1:
-                tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(
-                    CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC
-                )
+                tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC)
 
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.SENSOR_BASED
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
@@ -644,18 +602,12 @@ class TriggerConfigMixin:
 
         schema_fields: dict[Any, Any] = {
             vol.Optional(CONF_TRIGGER_FROM_STATE): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT
-                )
+                selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
             ),
             vol.Optional(CONF_TRIGGER_TO_STATE): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT
-                )
+                selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
             ),
-            vol.Required(
-                CONF_TRIGGER_TARGET_CHANGES, default=1
-            ): selector.NumberSelector(
+            vol.Required(CONF_TRIGGER_TARGET_CHANGES, default=1): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=1,
                     max=10000,
@@ -668,9 +620,7 @@ class TriggerConfigMixin:
         # Add entity_logic selector when multiple entities are selected
         entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
         if len(entity_ids) > 1:
-            schema_fields[vol.Optional(
-                CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC
-            )] = selector.SelectSelector(
+            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(value="any", label="Any entity triggers"),
@@ -681,27 +631,27 @@ class TriggerConfigMixin:
                 )
             )
 
-        schema_fields.update({
-            vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1,
-                    max=3650,
-                    step=1,
-                    mode=selector.NumberSelectorMode.BOX,
-                )
-            ),
-            vol.Optional(
-                CONF_TASK_INTERVAL_UNIT, default="days"
-            ): interval_unit_selector(),
-            vol.Optional(
-                CONF_TASK_WARNING_DAYS,
-                default=get_default_warning_days(self.hass),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            ),
-        })
+        schema_fields.update(
+            {
+                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1,
+                        max=3650,
+                        step=1,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+                vol.Optional(
+                    CONF_TASK_WARNING_DAYS,
+                    default=get_default_warning_days(self.hass),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id=step_id,
@@ -730,20 +680,14 @@ class TriggerConfigMixin:
             # Parse comma-separated ON states
             raw_states = user_input.get(CONF_TRIGGER_ON_STATES, "")
             if raw_states and raw_states.strip():
-                tc[CONF_TRIGGER_ON_STATES] = [
-                    s.strip().lower()
-                    for s in raw_states.split(",")
-                    if s.strip()
-                ]
+                tc[CONF_TRIGGER_ON_STATES] = [s.strip().lower() for s in raw_states.split(",") if s.strip()]
             else:
                 tc.pop(CONF_TRIGGER_ON_STATES, None)
 
             # Multi-entity: store entity_logic if multiple entities selected
             entity_ids = tc.get("entity_ids", [])
             if len(entity_ids) > 1:
-                tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(
-                    CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC
-                )
+                tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC)
 
             self._current_task[CONF_TASK_SCHEDULE_TYPE] = ScheduleType.SENSOR_BASED
             interval = user_input.get(CONF_TASK_INTERVAL_DAYS)
@@ -771,9 +715,7 @@ class TriggerConfigMixin:
                     unit_of_measurement="h",
                 )
             ),
-            vol.Optional(
-                CONF_TRIGGER_ON_STATES, default=default_states
-            ): selector.TextSelector(
+            vol.Optional(CONF_TRIGGER_ON_STATES, default=default_states): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.TEXT,
                 )
@@ -783,9 +725,7 @@ class TriggerConfigMixin:
         # Add entity_logic selector when multiple entities are selected
         entity_ids = self._current_task.get("trigger_config", {}).get("entity_ids", [])
         if len(entity_ids) > 1:
-            schema_fields[vol.Optional(
-                CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC
-            )] = selector.SelectSelector(
+            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(value="any", label="Any entity triggers"),
@@ -796,27 +736,27 @@ class TriggerConfigMixin:
                 )
             )
 
-        schema_fields.update({
-            vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1,
-                    max=3650,
-                    step=1,
-                    mode=selector.NumberSelectorMode.BOX,
-                )
-            ),
-            vol.Optional(
-                CONF_TASK_INTERVAL_UNIT, default="days"
-            ): interval_unit_selector(),
-            vol.Optional(
-                CONF_TASK_WARNING_DAYS,
-                default=get_default_warning_days(self.hass),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
-                )
-            ),
-        })
+        schema_fields.update(
+            {
+                vol.Optional(CONF_TASK_INTERVAL_DAYS): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1,
+                        max=3650,
+                        step=1,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(CONF_TASK_INTERVAL_UNIT, default="days"): interval_unit_selector(),
+                vol.Optional(
+                    CONF_TASK_WARNING_DAYS,
+                    default=get_default_warning_days(self.hass),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id=step_id,
@@ -851,11 +791,7 @@ class TriggerConfigMixin:
                 "type": TriggerType.COMPOUND,
                 CONF_COMPOUND_LOGIC: logic,
                 CONF_COMPOUND_CONDITIONS: [],
-                **(
-                    {"auto_complete_on_recovery": True}
-                    if prev_tc.get("auto_complete_on_recovery")
-                    else {}
-                ),
+                **({"auto_complete_on_recovery": True} if prev_tc.get("auto_complete_on_recovery") else {}),
             }
             if not hasattr(self, "_compound_conditions"):
                 self._compound_conditions: list[dict[str, Any]] = []
@@ -864,9 +800,7 @@ class TriggerConfigMixin:
             return await next_step()
 
         schema_dict: dict[Any, Any] = {
-            vol.Required(
-                CONF_COMPOUND_LOGIC, default="and"
-            ): selector.SelectSelector(
+            vol.Required(CONF_COMPOUND_LOGIC, default="and"): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(
@@ -926,8 +860,7 @@ class TriggerConfigMixin:
         schema_dict: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_ENTITY): selector.EntitySelector(
                 selector.EntitySelectorConfig(
-                    domain=["sensor", "binary_sensor", "number",
-                            "input_number", "input_boolean", "switch"],
+                    domain=["sensor", "binary_sensor", "number", "input_number", "input_boolean", "switch"],
                     multiple=True,
                 )
             ),
@@ -966,14 +899,10 @@ class TriggerConfigMixin:
                 return await runtime_step()
             return await state_change_step()
 
-        trigger_options = [
-            t.value for t in TriggerType if t != TriggerType.COMPOUND
-        ]
+        trigger_options = [t.value for t in TriggerType if t != TriggerType.COMPOUND]
 
         schema_dict: dict[Any, Any] = {
-            vol.Required(
-                CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD
-            ): selector.SelectSelector(
+            vol.Required(CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=trigger_options,
                     mode=selector.SelectSelectorMode.LIST,
@@ -1013,12 +942,8 @@ class TriggerConfigMixin:
                 if for_min:
                     cond["trigger_for_minutes"] = for_min
             elif condition_type == TriggerType.COUNTER:
-                cond["trigger_target_value"] = user_input.get(
-                    CONF_TRIGGER_TARGET_VALUE, 0
-                )
-                cond["trigger_delta_mode"] = user_input.get(
-                    CONF_TRIGGER_DELTA_MODE, False
-                )
+                cond["trigger_target_value"] = user_input.get(CONF_TRIGGER_TARGET_VALUE, 0)
+                cond["trigger_delta_mode"] = user_input.get(CONF_TRIGGER_DELTA_MODE, False)
             elif condition_type == TriggerType.STATE_CHANGE:
                 from_state = (user_input.get(CONF_TRIGGER_FROM_STATE) or "").strip().lower()
                 if from_state:
@@ -1026,16 +951,12 @@ class TriggerConfigMixin:
                 to_state = (user_input.get(CONF_TRIGGER_TO_STATE) or "").strip().lower()
                 if to_state:
                     cond["trigger_to_state"] = to_state
-                cond["trigger_target_changes"] = user_input.get(
-                    CONF_TRIGGER_TARGET_CHANGES, 1
-                )
+                cond["trigger_target_changes"] = user_input.get(CONF_TRIGGER_TARGET_CHANGES, 1)
             elif condition_type == TriggerType.RUNTIME:
                 cond["trigger_runtime_hours"] = user_input[CONF_TRIGGER_RUNTIME_HOURS]
                 raw_states = user_input.get(CONF_TRIGGER_ON_STATES, "")
                 if raw_states and raw_states.strip():
-                    cond["trigger_on_states"] = [
-                        s.strip().lower() for s in raw_states.split(",") if s.strip()
-                    ]
+                    cond["trigger_on_states"] = [s.strip().lower() for s in raw_states.split(",") if s.strip()]
 
             entity_ids = cond.get("entity_ids", [])
             if len(entity_ids) > 1 and user_input.get(CONF_TRIGGER_ENTITY_LOGIC):
@@ -1049,20 +970,16 @@ class TriggerConfigMixin:
         if condition_type == TriggerType.THRESHOLD:
             schema_fields = {
                 vol.Optional(CONF_TRIGGER_ABOVE): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        mode=selector.NumberSelectorMode.BOX
-                    )
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
                 ),
                 vol.Optional(CONF_TRIGGER_BELOW): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        mode=selector.NumberSelectorMode.BOX
-                    )
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
                 ),
-                vol.Optional(
-                    CONF_TRIGGER_FOR_MINUTES, default=0
-                ): selector.NumberSelector(
+                vol.Optional(CONF_TRIGGER_FOR_MINUTES, default=0): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=0, max=1440, step=1,
+                        min=0,
+                        max=1440,
+                        step=1,
                         mode=selector.NumberSelectorMode.BOX,
                         unit_of_measurement="min",
                     )
@@ -1071,13 +988,9 @@ class TriggerConfigMixin:
         elif condition_type == TriggerType.COUNTER:
             schema_fields = {
                 vol.Required(CONF_TRIGGER_TARGET_VALUE): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        mode=selector.NumberSelectorMode.BOX
-                    )
+                    selector.NumberSelectorConfig(mode=selector.NumberSelectorMode.BOX)
                 ),
-                vol.Optional(
-                    CONF_TRIGGER_DELTA_MODE, default=False
-                ): selector.BooleanSelector(),
+                vol.Optional(CONF_TRIGGER_DELTA_MODE, default=False): selector.BooleanSelector(),
             }
         elif condition_type == TriggerType.STATE_CHANGE:
             schema_fields = {
@@ -1087,11 +1000,11 @@ class TriggerConfigMixin:
                 vol.Optional(CONF_TRIGGER_TO_STATE): selector.TextSelector(
                     selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                 ),
-                vol.Required(
-                    CONF_TRIGGER_TARGET_CHANGES, default=1
-                ): selector.NumberSelector(
+                vol.Required(CONF_TRIGGER_TARGET_CHANGES, default=1): selector.NumberSelector(
                     selector.NumberSelectorConfig(
-                        min=1, max=10000, step=1,
+                        min=1,
+                        max=10000,
+                        step=1,
                         mode=selector.NumberSelectorMode.BOX,
                     )
                 ),
@@ -1101,7 +1014,9 @@ class TriggerConfigMixin:
                 vol.Required(CONF_TRIGGER_RUNTIME_HOURS): selector.NumberSelector(
                     selector.NumberSelectorConfig(
                         mode=selector.NumberSelectorMode.BOX,
-                        step=1, min=1, max=100000,
+                        step=1,
+                        min=1,
+                        max=100000,
                         unit_of_measurement="h",
                     )
                 ),
@@ -1112,9 +1027,7 @@ class TriggerConfigMixin:
 
         entity_ids = cond.get("entity_ids", [])
         if len(entity_ids) > 1:
-            schema_fields[vol.Optional(
-                CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC
-            )] = selector.SelectSelector(
+            schema_fields[vol.Optional(CONF_TRIGGER_ENTITY_LOGIC, default=DEFAULT_ENTITY_LOGIC)] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
                         selector.SelectOptionDict(value="any", label="Any entity triggers"),
@@ -1172,9 +1085,7 @@ class TriggerConfigMixin:
             )
 
         schema_dict: dict[Any, Any] = {
-            vol.Required(
-                "compound_action", default="finish"
-            ): selector.SelectSelector(
+            vol.Required("compound_action", default="finish"): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=options,
                     mode=selector.SelectSelectorMode.LIST,

@@ -21,11 +21,7 @@ _FORBIDDEN = re.compile(r"(_cov_|coverage_\d|_final\b|_97\b|_98\b|_99\b)")
 
 def test_no_coverage_milestone_test_files() -> None:
     tests_dir = pathlib.Path(__file__).parent
-    bad = sorted(
-        p.name
-        for p in tests_dir.glob("test_*.py")
-        if _FORBIDDEN.search(p.name)
-    )
+    bad = sorted(p.name for p in tests_dir.glob("test_*.py") if _FORBIDDEN.search(p.name))
     assert not bad, (
         "Coverage-milestone test filenames are forbidden — name the test after "
         "the behaviour/module under test and add it to that file instead of "

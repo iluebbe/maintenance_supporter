@@ -223,14 +223,8 @@ async def test_register_panel_force_reregisters_with_new_title(
         assert hass.data[DOMAIN].get("_panel_registered") is True
 
         # User renames the panel; options entry now holds the new title.
-        entry = next(
-            e
-            for e in hass.config_entries.async_entries(DOMAIN)
-            if e.unique_id == GLOBAL_UNIQUE_ID
-        )
-        hass.config_entries.async_update_entry(
-            entry, options={CONF_PANEL_TITLE: "Second"}
-        )
+        entry = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID)
+        hass.config_entries.async_update_entry(entry, options={CONF_PANEL_TITLE: "Second"})
 
         with patch(
             "custom_components.maintenance_supporter.panel.frontend.async_remove_panel",
@@ -306,8 +300,8 @@ async def test_suggestions_narrow_range_stddev(hass: HomeAssistant) -> None:
         std_dev=2.0,
         minimum=20.0,
         maximum=30.0,
-        percentile_10=24.0,   # P10*0.8 = 19.2
-        percentile_90=24.5,   # P90*1.2 = 29.4 -- but 29.4 > 19.2, so OK
+        percentile_10=24.0,  # P10*0.8 = 19.2
+        percentile_90=24.5,  # P90*1.2 = 29.4 -- but 29.4 > 19.2, so OK
         period_days=30,
         recent_trend="stable",
     )
@@ -319,8 +313,8 @@ async def test_suggestions_narrow_range_stddev(hass: HomeAssistant) -> None:
         std_dev=2.0,
         minimum=20.0,
         maximum=30.0,
-        percentile_10=26.0,   # P10*0.8 = 20.8
-        percentile_90=17.0,   # P90*1.2 = 20.4, which is <= 20.8
+        percentile_10=26.0,  # P10*0.8 = 20.8
+        percentile_90=17.0,  # P90*1.2 = 20.4, which is <= 20.8
         period_days=30,
         recent_trend="stable",
     )
@@ -367,14 +361,16 @@ async def test_non_numeric_unit_only(hass: HomeAssistant) -> None:
 
 async def test_attribute_based(hass: HomeAssistant) -> None:
     """Test suggestions based on entity attribute."""
-    hass.states.async_set("sensor.device", "ok", {
-        "unit_of_measurement": "",
-        "temperature": 45.0,
-    })
+    hass.states.async_set(
+        "sensor.device",
+        "ok",
+        {
+            "unit_of_measurement": "",
+            "temperature": 45.0,
+        },
+    )
     calc = ThresholdCalculator(hass)
-    with patch(
-        "custom_components.maintenance_supporter.helpers.threshold_calculator.EntityAnalyzer"
-    ) as MockAnalyzer:
+    with patch("custom_components.maintenance_supporter.helpers.threshold_calculator.EntityAnalyzer") as MockAnalyzer:
         instance = MockAnalyzer.return_value
         instance.async_analyze_entity = AsyncMock(return_value=MagicMock(statistics=None))
         result = await calc.async_calculate_suggestions("sensor.device", attribute="temperature")
@@ -394,17 +390,20 @@ async def test_full_flow_with_stats(hass: HomeAssistant) -> None:
     mock_analysis = EntityAnalysis(
         entity_id="sensor.temp",
         statistics=StatisticsInfo(
-            has_data=True, mean=25.0, std_dev=5.0,
-            minimum=10.0, maximum=40.0,
-            percentile_10=15.0, percentile_90=35.0,
-            period_days=30, recent_trend="rising",
+            has_data=True,
+            mean=25.0,
+            std_dev=5.0,
+            minimum=10.0,
+            maximum=40.0,
+            percentile_10=15.0,
+            percentile_90=35.0,
+            period_days=30,
+            recent_trend="rising",
         ),
     )
 
     calc = ThresholdCalculator(hass)
-    with patch(
-        "custom_components.maintenance_supporter.helpers.threshold_calculator.EntityAnalyzer"
-    ) as MockAnalyzer:
+    with patch("custom_components.maintenance_supporter.helpers.threshold_calculator.EntityAnalyzer") as MockAnalyzer:
         instance = MockAnalyzer.return_value
         instance.async_analyze_entity = AsyncMock(return_value=mock_analysis)
 

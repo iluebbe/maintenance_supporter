@@ -676,7 +676,8 @@
           "custom_icon": "Opgaveikon",
           "nfc_tag_id": "NFC-mærke-id",
           "go_back": "Gå tilbage",
-          "interval_anchor": "Intervalanker"
+          "interval_anchor": "Intervalanker",
+          "reading_unit": "Aflæsningsenhed (til aflæsningsopgaver, f.eks. kWh)"
         },
         "data_description": {
           "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
@@ -862,7 +863,8 @@
           "type": "Vedligeholdelsestype",
           "schedule_type": "Planlægningstype",
           "custom_icon": "Opgaveikon",
-          "go_back": "Gå tilbage"
+          "go_back": "Gå tilbage",
+          "reading_unit": "Aflæsningsenhed (til aflæsningsopgaver, f.eks. kWh)"
         },
         "data_description": {
           "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
@@ -1479,6 +1481,10 @@
         "duration": {
           "name": "Varighed",
           "description": "Vedligeholdelsens varighed i minutter."
+        },
+        "reading_value": {
+          "name": "Aflæst værdi",
+          "description": "Registreret værdi for aflæsningsopgaver (måleraflæsning, niveaukontrol)."
         }
       }
     },

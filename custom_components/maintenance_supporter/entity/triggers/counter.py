@@ -34,9 +34,7 @@ class CounterTrigger(BaseTrigger):
 
         self._target_value: float = trigger_config.get("trigger_target_value", 0)
         self._delta_mode: bool = trigger_config.get("trigger_delta_mode", False)
-        self._baseline_value: float | None = trigger_config.get(
-            "trigger_baseline_value"
-        )
+        self._baseline_value: float | None = trigger_config.get("trigger_baseline_value")
         # Set when reset_baseline is called while the source is unavailable, so
         # the re-baseline is applied against the next real value (M4).
         self._reset_pending: bool = False
@@ -47,9 +45,7 @@ class CounterTrigger(BaseTrigger):
         # evaluate().  Without this, evaluate() sets _baseline_value to the
         # current sensor value, discarding the saved baseline from the Store.
         if self._delta_mode and self._baseline_value is None:
-            saved = self.config.get("_trigger_state", {}).get(
-                self.entity_id, {}
-            ).get("baseline_value")
+            saved = self.config.get("_trigger_state", {}).get(self.entity_id, {}).get("baseline_value")
             if saved is not None:
                 self._baseline_value = saved
                 _LOGGER.debug(

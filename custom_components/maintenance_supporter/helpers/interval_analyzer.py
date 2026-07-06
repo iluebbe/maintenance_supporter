@@ -38,9 +38,9 @@ from .schedule import read_legacy_fields
 
 # Feedback multipliers for EWA: adjusts effective interval based on need
 FEEDBACK_MULTIPLIERS: dict[str, float] = {
-    MaintenanceFeedback.NEEDED: 1.0,      # interval was right or too long
-    MaintenanceFeedback.NOT_NEEDED: 1.3,   # can extend interval
-    MaintenanceFeedback.NOT_SURE: 1.1,     # slight extension
+    MaintenanceFeedback.NEEDED: 1.0,  # interval was right or too long
+    MaintenanceFeedback.NOT_NEEDED: 1.3,  # can extend interval
+    MaintenanceFeedback.NOT_SURE: 1.1,  # slight extension
 }
 
 
@@ -78,8 +78,8 @@ class IntervalAnalysis:
     seasonal_adjustment_reason: str | None = None  # "learned" | "manual" | None
     # Weibull advanced statistics (Phase 4)
     weibull_r_squared: float | None = None
-    confidence_interval_low: int | None = None    # R=0.95 (conservative)
-    confidence_interval_high: int | None = None   # R=0.80 (aggressive)
+    confidence_interval_low: int | None = None  # R=0.95 (conservative)
+    confidence_interval_high: int | None = None  # R=0.80 (aggressive)
     # Sensor predictions (Phase 3)
     degradation_rate: float | None = None  # units/day
     degradation_trend: str | None = None  # "rising"|"falling"|"stable"
@@ -102,9 +102,7 @@ class IntervalAnalyzer:
     Both are blended using confidence-weighted averaging.
     """
 
-    def analyze(
-        self, task_data: dict[str, Any], adaptive_config: dict[str, Any]
-    ) -> IntervalAnalysis:
+    def analyze(self, task_data: dict[str, Any], adaptive_config: dict[str, Any]) -> IntervalAnalysis:
         """Analyze a task's history and return interval recommendations.
 
         Called from coordinator._async_update_data() on each refresh.
@@ -117,20 +115,14 @@ class IntervalAnalyzer:
         Returns:
             IntervalAnalysis with all computed metrics and recommendation.
         """
-        current_interval = (
-            read_legacy_fields(task_data)["interval_days"] or DEFAULT_INTERVAL_DAYS
-        )
+        current_interval = read_legacy_fields(task_data)["interval_days"] or DEFAULT_INTERVAL_DAYS
         history = task_data.get("history", [])
         intervals = self._compute_intervals_from_history(history)
         data_points = len(intervals)
 
         alpha = adaptive_config.get("ewa_alpha", DEFAULT_ADAPTIVE_EWA_ALPHA)
-        min_interval = adaptive_config.get(
-            "min_interval_days", DEFAULT_ADAPTIVE_MIN_INTERVAL
-        )
-        max_interval = adaptive_config.get(
-            "max_interval_days", DEFAULT_ADAPTIVE_MAX_INTERVAL
-        )
+        min_interval = adaptive_config.get("min_interval_days", DEFAULT_ADAPTIVE_MIN_INTERVAL)
+        max_interval = adaptive_config.get("max_interval_days", DEFAULT_ADAPTIVE_MAX_INTERVAL)
         feedback_count = adaptive_config.get("feedback_count", 0)
         confidence = self._compute_confidence(feedback_count)
 
@@ -145,9 +137,7 @@ class IntervalAnalyzer:
         # EWA — use stored smoothed value if available, otherwise compute
         ewa_prediction: float | None = adaptive_config.get("smoothed_interval")
         if ewa_prediction is None and intervals:
-            ewa_prediction = self._exponential_weighted_average(
-                [float(i) for i in intervals], alpha
-            )
+            ewa_prediction = self._exponential_weighted_average([float(i) for i in intervals], alpha)
 
         # Weibull
         weibull_beta: float | None = adaptive_config.get("weibull_beta")
@@ -161,19 +151,11 @@ class IntervalAnalyzer:
             fit = self._weibull_fit([float(i) for i in intervals])
             if fit is not None:
                 weibull_beta, weibull_eta, weibull_r_squared = fit
-                reliability = adaptive_config.get(
-                    "reliability_target", DEFAULT_ADAPTIVE_RELIABILITY_TARGET
-                )
-                weibull_prediction = self._weibull_recommended_interval(
-                    weibull_beta, weibull_eta, reliability
-                )
+                reliability = adaptive_config.get("reliability_target", DEFAULT_ADAPTIVE_RELIABILITY_TARGET)
+                weibull_prediction = self._weibull_recommended_interval(weibull_beta, weibull_eta, reliability)
                 # Confidence interval bounds (Phase 4)
-                confidence_low = self._weibull_recommended_interval(
-                    weibull_beta, weibull_eta, 0.95
-                )
-                confidence_high = self._weibull_recommended_interval(
-                    weibull_beta, weibull_eta, 0.80
-                )
+                confidence_low = self._weibull_recommended_interval(weibull_beta, weibull_eta, 0.95)
+                confidence_high = self._weibull_recommended_interval(weibull_beta, weibull_eta, 0.80)
 
         # Blend recommendations
         recommended: int | None = None
@@ -202,13 +184,9 @@ class IntervalAnalyzer:
 
             current_month = adaptive_config.get("_current_month") or dt_util.now().month
 
-            seasonal = self._compute_monthly_factors(
-                intervals_with_months, hemisphere, manual_overrides, current_month
-            )
+            seasonal = self._compute_monthly_factors(intervals_with_months, hemisphere, manual_overrides, current_month)
 
-            seasonal_factors_list = [
-                round(f, 2) for f in seasonal.monthly_factors
-            ]
+            seasonal_factors_list = [round(f, 2) for f in seasonal.monthly_factors]
 
             if seasonal.has_sufficient_data or manual_overrides:
                 factor = seasonal.monthly_factors[current_month - 1]
@@ -219,18 +197,12 @@ class IntervalAnalyzer:
                 elif seasonal.has_sufficient_data:
                     seasonal_reason = "learned"
 
-                recommended = self._apply_seasonal_adjustment(
-                    recommended, factor, min_interval, max_interval
-                )
+                recommended = self._apply_seasonal_adjustment(recommended, factor, min_interval, max_interval)
                 # Apply seasonal adjustment to confidence bounds too
                 if confidence_low is not None:
-                    confidence_low = self._apply_seasonal_adjustment(
-                        confidence_low, factor, min_interval, max_interval
-                    )
+                    confidence_low = self._apply_seasonal_adjustment(confidence_low, factor, min_interval, max_interval)
                 if confidence_high is not None:
-                    confidence_high = self._apply_seasonal_adjustment(
-                        confidence_high, factor, min_interval, max_interval
-                    )
+                    confidence_high = self._apply_seasonal_adjustment(confidence_high, factor, min_interval, max_interval)
                 if reason:
                     reason = f"{reason}_seasonal"
 
@@ -250,9 +222,7 @@ class IntervalAnalyzer:
             seasonal_factor=seasonal_factor,
             seasonal_factors=seasonal_factors_list,
             seasonal_adjustment_reason=seasonal_reason,
-            weibull_r_squared=(
-                round(weibull_r_squared, 4) if weibull_r_squared is not None else None
-            ),
+            weibull_r_squared=(round(weibull_r_squared, 4) if weibull_r_squared is not None else None),
             confidence_interval_low=confidence_low if confidence_low else None,
             confidence_interval_high=confidence_high if confidence_high else None,
         )
@@ -277,17 +247,11 @@ class IntervalAnalyzer:
         """
         config = dict(adaptive_config)
         alpha = config.get("ewa_alpha", DEFAULT_ADAPTIVE_EWA_ALPHA)
-        min_interval = config.get(
-            "min_interval_days", DEFAULT_ADAPTIVE_MIN_INTERVAL
-        )
-        max_interval = config.get(
-            "max_interval_days", DEFAULT_ADAPTIVE_MAX_INTERVAL
-        )
+        min_interval = config.get("min_interval_days", DEFAULT_ADAPTIVE_MIN_INTERVAL)
+        max_interval = config.get("max_interval_days", DEFAULT_ADAPTIVE_MAX_INTERVAL)
 
         # Apply feedback multiplier to get effective interval
-        multiplier = FEEDBACK_MULTIPLIERS.get(
-            feedback or MaintenanceFeedback.NEEDED, 1.0
-        )
+        multiplier = FEEDBACK_MULTIPLIERS.get(feedback or MaintenanceFeedback.NEEDED, 1.0)
         effective_interval = actual_interval * multiplier
 
         # Update EWA smoothed interval
@@ -304,9 +268,7 @@ class IntervalAnalyzer:
             config["feedback_count"] = config.get("feedback_count", 0) + 1
 
         # Update confidence
-        config["confidence"] = self._compute_confidence(
-            config.get("feedback_count", 0)
-        )
+        config["confidence"] = self._compute_confidence(config.get("feedback_count", 0))
 
         # Update recommendation
         recommended, reason = self._blend_recommendations(
@@ -324,9 +286,7 @@ class IntervalAnalyzer:
             if seasonal_enabled and stored_factors and len(stored_factors) == 12:
                 current_month = config.get("_current_month") or dt_util.now().month
                 factor = stored_factors[current_month - 1]
-                recommended = self._apply_seasonal_adjustment(
-                    recommended, factor, min_interval, max_interval
-                )
+                recommended = self._apply_seasonal_adjustment(recommended, factor, min_interval, max_interval)
                 if reason:
                     reason = f"{reason}_seasonal"
 
@@ -393,9 +353,7 @@ class IntervalAnalyzer:
         return intervals
 
     @staticmethod
-    def _exponential_weighted_average(
-        intervals: list[float], alpha: float
-    ) -> float:
+    def _exponential_weighted_average(intervals: list[float], alpha: float) -> float:
         """Compute EWA over a list of intervals.
 
         More recent values have higher weight.
@@ -490,7 +448,10 @@ class IntervalAnalyzer:
         # eta = exp(-b / beta)
         try:
             eta = math.exp(-b / beta)
-        except (OverflowError, ZeroDivisionError):  # pragma: no cover  (defensive: beta>0 rules out div-zero; overflow needs pathological data)
+        except (
+            OverflowError,
+            ZeroDivisionError,
+        ):  # pragma: no cover  (defensive: beta>0 rules out div-zero; overflow needs pathological data)
             return None
 
         if eta <= 0:  # pragma: no cover  (math.exp is always > 0)
@@ -499,18 +460,13 @@ class IntervalAnalyzer:
         # Compute R-squared for goodness-of-fit
         mean_y = sum_y / n_pts
         ss_tot = sum((y - mean_y) ** 2 for y in y_vals)
-        ss_res = sum(
-            (y - (beta * x + b)) ** 2
-            for x, y in zip(x_vals, y_vals, strict=True)
-        )
+        ss_res = sum((y - (beta * x + b)) ** 2 for x, y in zip(x_vals, y_vals, strict=True))
         r_squared = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
 
         return (beta, eta, r_squared)
 
     @staticmethod
-    def _weibull_recommended_interval(
-        beta: float, eta: float, reliability: float
-    ) -> int:
+    def _weibull_recommended_interval(beta: float, eta: float, reliability: float) -> int:
         """Calculate recommended interval from Weibull parameters.
 
         t = eta * (-ln(R))^(1/beta)
@@ -623,16 +579,10 @@ class IntervalAnalyzer:
                     factors[month - 1] = mean_val / annual_mean
 
                 # Quarterly fallback for months without data
-                seasons = (
-                    NORTHERN_SEASONS if hemisphere == "north" else SOUTHERN_SEASONS
-                )
+                seasons = NORTHERN_SEASONS if hemisphere == "north" else SOUTHERN_SEASONS
                 for _season_name, season_months in seasons.items():
                     # Compute average factor for months in this quarter that have data
-                    season_factors = [
-                        factors[m - 1]
-                        for m in season_months
-                        if m in monthly_means
-                    ]
+                    season_factors = [factors[m - 1] for m in season_months if m in monthly_means]
                     if season_factors:
                         quarter_avg = statistics.mean(season_factors)
                         # Fill missing months in this quarter
@@ -647,14 +597,9 @@ class IntervalAnalyzer:
                     factors[month_num - 1] = factor_val
 
         # Clamp all factors
-        factors = [
-            max(DEFAULT_SEASONAL_FACTOR_MIN, min(DEFAULT_SEASONAL_FACTOR_MAX, f))
-            for f in factors
-        ]
+        factors = [max(DEFAULT_SEASONAL_FACTOR_MIN, min(DEFAULT_SEASONAL_FACTOR_MAX, f)) for f in factors]
 
-        data_months = len(
-            {m for _, m in intervals_with_months}
-        ) if intervals_with_months else 0
+        data_months = len({m for _, m in intervals_with_months}) if intervals_with_months else 0
 
         return SeasonalAnalysis(
             monthly_factors=factors,

@@ -55,46 +55,34 @@ class TestNextDueAcrossBoundaries:
 
     def test_year_boundary(self) -> None:
         """Dec 31 + 1 day → Jan 1 of next year."""
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=1, last_performed="2025-12-31")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=1, last_performed="2025-12-31"))
         assert task.next_due == date(2026, 1, 1)
 
     def test_month_boundary_31_to_30(self) -> None:
         """Mar 31 + 31 days → May 1 (April has 30 days)."""
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=31, last_performed="2026-03-31")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=31, last_performed="2026-03-31"))
         assert task.next_due == date(2026, 5, 1)
 
     def test_leap_day(self) -> None:
         """Feb 29 (leap) + 365 days → Feb 28 next year."""
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=365, last_performed="2024-02-29")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=365, last_performed="2024-02-29"))
         assert task.next_due == date(2025, 2, 28)
 
     def test_leap_day_interval_one_year(self) -> None:
         """Feb 29 + 366 days lands on Feb 29 of the next leap year cycle."""
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=366, last_performed="2024-02-29")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=366, last_performed="2024-02-29"))
         assert task.next_due == date(2025, 3, 1)
 
     def test_dst_spring_forward_unaffected(self) -> None:
         """DST does not affect date-only arithmetic (timedelta(days=N) is calendar days)."""
         # In Europe/Berlin DST switches on last Sunday of March
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=7, last_performed="2026-03-25")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=7, last_performed="2026-03-25"))
         # 2026-03-29 is the DST switch day (CET → CEST in Berlin)
         assert task.next_due == date(2026, 4, 1)
 
     def test_dst_fall_back_unaffected(self) -> None:
         """DST end (fall back) likewise does not affect date math."""
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=7, last_performed="2026-10-22")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=7, last_performed="2026-10-22"))
         # 2026-10-25 is DST end in Europe
         assert task.next_due == date(2026, 10, 29)
 
@@ -104,25 +92,27 @@ class TestNextDueAnchorPriority:
 
     def test_last_performed_overrides_created_at(self) -> None:
         """Even if created_at is newer, last_performed wins."""
-        task = MaintenanceTask.from_dict({
-            **build_task_data(interval_days=10, last_performed="2024-01-01"),
-            "created_at": "2026-01-01",
-        })
+        task = MaintenanceTask.from_dict(
+            {
+                **build_task_data(interval_days=10, last_performed="2024-01-01"),
+                "created_at": "2026-01-01",
+            }
+        )
         assert task.next_due == date(2024, 1, 11)
 
     def test_created_at_used_when_no_last_performed(self) -> None:
-        task = MaintenanceTask.from_dict({
-            **build_task_data(interval_days=14, last_performed=None),
-            "created_at": "2026-01-01",
-        })
+        task = MaintenanceTask.from_dict(
+            {
+                **build_task_data(interval_days=14, last_performed=None),
+                "created_at": "2026-01-01",
+            }
+        )
         assert task.next_due == date(2026, 1, 15)
 
     @freeze_time("2026-04-19 12:00:00", tz_offset=2)
     def test_no_anchor_falls_back_to_today_local(self) -> None:
         """Legacy fallback uses HA-TZ-aware today, not naive system date."""
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=7, last_performed=None)
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=7, last_performed=None))
         # dt_util.now().date() with TZ offset +2: still 2026-04-19 at noon UTC
         assert task.next_due == date(2026, 4, 26)
 
@@ -131,28 +121,24 @@ class TestNextDueDefensive:
     """Invalid or pathological inputs should not crash."""
 
     def test_invalid_last_performed_returns_none(self) -> None:
-        task = MaintenanceTask(
-            id=TASK_ID_1, name="x", interval_days=30, last_performed="not-a-date"
-        )
+        task = MaintenanceTask(id=TASK_ID_1, name="x", interval_days=30, last_performed="not-a-date")
         assert task.next_due is None
 
     def test_invalid_created_at_falls_back_to_today(self) -> None:
-        task = MaintenanceTask.from_dict({
-            **build_task_data(interval_days=7, last_performed=None),
-            "created_at": "garbage",
-        })
+        task = MaintenanceTask.from_dict(
+            {
+                **build_task_data(interval_days=7, last_performed=None),
+                "created_at": "garbage",
+            }
+        )
         assert task.next_due == dt_util.now().date() + timedelta(days=7)
 
     def test_zero_interval_returns_none(self) -> None:
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=0, last_performed="2026-01-01")
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=0, last_performed="2026-01-01"))
         assert task.next_due is None
 
     def test_negative_interval_returns_none(self) -> None:
-        task = MaintenanceTask(
-            id=TASK_ID_1, name="x", interval_days=-5, last_performed="2026-01-01"
-        )
+        task = MaintenanceTask(id=TASK_ID_1, name="x", interval_days=-5, last_performed="2026-01-01")
         assert task.next_due is None
 
     def test_future_last_performed_yields_future_next_due(self) -> None:
@@ -161,9 +147,7 @@ class TestNextDueDefensive:
         We don't crash; status simply remains OK until the future date arrives.
         """
         future = (dt_util.now().date() + timedelta(days=30)).isoformat()
-        task = MaintenanceTask.from_dict(
-            build_task_data(interval_days=10, last_performed=future)
-        )
+        task = MaintenanceTask.from_dict(build_task_data(interval_days=10, last_performed=future))
         assert task.next_due == date.fromisoformat(future) + timedelta(days=10)
         assert task.status == MaintenanceStatus.OK
 
@@ -244,11 +228,13 @@ class TestIntervalAnalyzerTimezones:
         # Build 12 months of history so seasonal is computed
         history = []
         for month in range(1, 13):
-            history.append({
-                "type": "completed",
-                "timestamp": f"2025-{month:02d}-15T12:00:00+00:00",
-                "feedback": "needed",
-            })
+            history.append(
+                {
+                    "type": "completed",
+                    "timestamp": f"2025-{month:02d}-15T12:00:00+00:00",
+                    "feedback": "needed",
+                }
+            )
         result = analyzer.analyze(
             task_data={"interval_days": 30, "history": history},
             adaptive_config={
@@ -269,17 +255,21 @@ class TestIntervalAnalyzerTimezones:
 @pytest.fixture
 def global_entry(hass: HomeAssistant) -> MockConfigEntry:
     e = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="Maintenance Supporter",
         data=build_global_entry_data(),
-        source="user", unique_id=GLOBAL_UNIQUE_ID,
+        source="user",
+        unique_id=GLOBAL_UNIQUE_ID,
     )
     e.add_to_hass(hass)
     return e
 
 
 async def test_migrate_uses_dt_util_today_not_system_today(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """Backfilled created_at uses HA TZ — not system date.
 
@@ -291,13 +281,16 @@ async def test_migrate_uses_dt_util_today_not_system_today(
     task = build_task_data(last_performed=None, history=[])
     task.pop("created_at", None)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="TZ Migrate",
         data=build_object_entry_data(
             object_data=build_object_data(name="TZ Object"),
             tasks={TASK_ID_1: task},
         ),
-        source="user", unique_id="maintenance_supporter_tz_mig",
+        source="user",
+        unique_id="maintenance_supporter_tz_mig",
     )
     entry.add_to_hass(hass)
 
@@ -310,7 +303,8 @@ async def test_migrate_uses_dt_util_today_not_system_today(
 
 
 async def test_migrate_picks_earliest_history_only_date_part(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """When history has multiple entries with TZ suffixes, earliest YYYY-MM-DD wins."""
     from custom_components.maintenance_supporter import async_migrate_entry
@@ -323,13 +317,16 @@ async def test_migrate_picks_earliest_history_only_date_part(
     task = build_task_data(last_performed=None, history=history)
     task.pop("created_at", None)
     entry = MockConfigEntry(
-        version=1, minor_version=1, domain=DOMAIN,
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
         title="TZ Hist",
         data=build_object_entry_data(
             object_data=build_object_data(name="TZ Hist Obj"),
             tasks={TASK_ID_1: task},
         ),
-        source="user", unique_id="maintenance_supporter_tz_hist",
+        source="user",
+        unique_id="maintenance_supporter_tz_hist",
     )
     entry.add_to_hass(hass)
 
@@ -347,7 +344,8 @@ async def test_migrate_picks_earliest_history_only_date_part(
 
 
 async def test_ws_create_with_last_performed_writes_tz_aware_history(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """initial_history timestamp from ws_create_task carries a TZ suffix."""
     from unittest.mock import MagicMock
@@ -357,10 +355,13 @@ async def test_ws_create_with_last_performed_writes_tz_aware_history(
     from .conftest import call_ws_handler, setup_integration
 
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="LP Create",
         data=build_object_entry_data(tasks={}),
-        source="user", unique_id="maintenance_supporter_lp_create",
+        source="user",
+        unique_id="maintenance_supporter_lp_create",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)
@@ -369,11 +370,16 @@ async def test_ws_create_with_last_performed_writes_tz_aware_history(
     conn.send_result = MagicMock()
     conn.send_error = MagicMock()
     await call_ws_handler(
-        ws_create_task, hass, conn,
+        ws_create_task,
+        hass,
+        conn,
         {
-            "id": 1, "type": "maintenance_supporter/task/create",
-            "entry_id": entry.entry_id, "name": "T",
-            "interval_days": 30, "last_performed": "2025-06-01",
+            "id": 1,
+            "type": "maintenance_supporter/task/create",
+            "entry_id": entry.entry_id,
+            "name": "T",
+            "interval_days": 30,
+            "last_performed": "2025-06-01",
         },
     )
     new_id = conn.send_result.call_args[0][1]["task_id"]
@@ -396,7 +402,8 @@ async def test_ws_create_with_last_performed_writes_tz_aware_history(
 
 @freeze_time("2026-01-01 00:30:00", tz_offset=-3)
 async def test_budget_naive_timestamp_at_year_boundary(
-    hass: HomeAssistant, global_entry: MockConfigEntry,
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
 ) -> None:
     """A naive 'just-before-midnight' entry is attributed to the local-TZ year.
 
@@ -416,13 +423,16 @@ async def test_budget_naive_timestamp_at_year_boundary(
     ]
     task = build_task_data(last_performed="2026-01-15", history=history)
     entry = MockConfigEntry(
-        version=1, minor_version=2, domain=DOMAIN,
+        version=1,
+        minor_version=2,
+        domain=DOMAIN,
         title="Budget TZ",
         data=build_object_entry_data(
             object_data=build_object_data(name="Budget Obj"),
             tasks={TASK_ID_1: task},
         ),
-        source="user", unique_id="maintenance_supporter_budget_tz",
+        source="user",
+        unique_id="maintenance_supporter_budget_tz",
     )
     entry.add_to_hass(hass)
     await setup_integration(hass, global_entry, entry)

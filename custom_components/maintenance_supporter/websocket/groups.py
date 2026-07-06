@@ -20,9 +20,7 @@ from ..helpers.permissions import require_write
 from . import _get_global_entry
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/groups"}
-)
+@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/groups"})
 @websocket_api.async_response
 async def ws_get_groups(
     hass: HomeAssistant,
@@ -47,12 +45,15 @@ async def ws_get_groups(
         vol.Required("type"): f"{DOMAIN}/group/create",
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("description", default=""): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
-        vol.Optional("task_refs", default=[]): vol.All([
-            {
-                vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-            }
-        ], vol.Length(max=MAX_GROUP_TASK_REFS)),
+        vol.Optional("task_refs", default=[]): vol.All(
+            [
+                {
+                    vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                    vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                }
+            ],
+            vol.Length(max=MAX_GROUP_TASK_REFS),
+        ),
     }
 )
 @require_write
@@ -95,12 +96,15 @@ async def ws_create_group(
         vol.Required("group_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("description"): vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)),
-        vol.Optional("task_refs"): vol.All([
-            {
-                vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-                vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
-            }
-        ], vol.Length(max=MAX_GROUP_TASK_REFS)),
+        vol.Optional("task_refs"): vol.All(
+            [
+                {
+                    vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                    vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+                }
+            ],
+            vol.Length(max=MAX_GROUP_TASK_REFS),
+        ),
     }
 )
 @require_write

@@ -157,6 +157,8 @@ export class MaintenanceTaskDialog extends LitElement {
   // NFC
   @state() private _lastPerformed = "";
   @state() private _nfcTagId = "";
+  // v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...)
+  @state() private _readingUnit = "";
   @state() private _availableTags: Array<{id: string; name: string}> = [];
 
   // User assignment
@@ -255,6 +257,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._enabled = task.enabled !== false;
     this._lastPerformed = task.last_performed || "";
     this._nfcTagId = task.nfc_tag_id || "";
+    this._readingUnit = task.reading_unit || "";
     this._responsibleUserId = task.responsible_user_id || null;
     this._assigneePool = [...(task.assignee_pool || [])];
     this._rotationStrategy = task.rotation_strategy || "";
@@ -350,6 +353,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._enabled = true;
     this._lastPerformed = "";
     this._nfcTagId = "";
+    this._readingUnit = "";
     this._responsibleUserId = null;
     this._assigneePool = [];
     this._rotationStrategy = "";
@@ -723,6 +727,7 @@ export class MaintenanceTaskDialog extends LitElement {
       data.enabled = this._enabled;
       data.last_performed = this._lastPerformed || null;
       data.nfc_tag_id = this._nfcTagId || null;
+      data.reading_unit = this._readingUnit.trim() || null;
       data.responsible_user_id = this._responsibleUserId;
       data.assignee_pool = this._assigneePool;
       data.rotation_strategy =
@@ -1327,6 +1332,16 @@ export class MaintenanceTaskDialog extends LitElement {
               )}
             </select>
           </div>
+          ${this._type === "reading"
+            ? html`
+                <ms-textfield
+                  label="${t("reading_unit_label", L)}"
+                  .value=${this._readingUnit}
+                  @input=${(e: Event) => (this._readingUnit = (e.target as HTMLInputElement).value)}
+                ></ms-textfield>
+                <div class="field-help">${t("reading_unit_help", L)}</div>
+              `
+            : nothing}
           <div class="select-row">
             <label>${t("priority", L)}</label>
             <select
