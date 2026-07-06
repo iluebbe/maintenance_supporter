@@ -20,6 +20,14 @@ export interface MaintenanceObject {
   /** v2.10.0 archive: archived (retire-but-retain) state; archived = archived_at != null. */
   archived?: boolean;
   archived_at?: string | null;
+  /** v2.20 (N3) seasonal pause: paused = paused_at != null; paused_until is
+   *  the optional auto-resume date. */
+  paused?: boolean;
+  paused_at?: string | null;
+  paused_until?: string | null;
+  /** v2.20 (N1) replace-flow lineage (both directions). */
+  predecessor_entry_id?: string | null;
+  replaced_by_entry_id?: string | null;
   /** (roadmap P2) number of attached documents (files + web-links); drives the
    *  objects-table paperclip badge. Computed server-side, not persisted. */
   document_count?: number;

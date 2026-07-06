@@ -85,23 +85,27 @@ all along via `notify_overdue_interval_hours`.
 
 ## Next (under consideration)
 
-### 💡 Replace an object (successor flow)
-When an appliance dies and is replaced, users today must either delete the
-object (losing its history) or rename+reset it (mixing the old machine's
-record into the new one's). A **Replace** flow would retire the old object
-(archive, preserving its full history/costs under a "predecessor" marker) and
-create the successor pre-filled from it — templates, tasks, documents carried
-over, counters starting fresh. Identified via the device-biography journey
-review (docs/design/user-journeys.md, N1).
+### ✅ Replace an object (successor flow)
+**Shipped** (unreleased). When an appliance dies and is replaced, deleting
+the object loses its history and rename+reset mixes two machines' records.
+**Replace…** (object detail header / `object/replace` WS) retires the old
+object in place — archived with a `replaced_by` marker, history and costs
+stay browsable — and creates the successor pre-filled from it: task
+configuration and documents carried over (blobs refcounted, not copied),
+counters fresh, installation date today, serial number and warranty cleared.
+Identified via the device-biography journey review
+(docs/design/user-journeys.md, N1).
 
-### 💡 Object pause / seasonal mode
-Seasonal equipment (pool, lawn mower, AC) is out of service for months at a
-time. Vacation mode is global and archive kills status entirely — neither
-fits "paused until spring". A per-object **pause** (optionally with a resume
-date) would silence notifications and freeze schedules while keeping the
-object visible and its history intact; resuming re-anchors like unarchive
-does. Identified via the device-biography journey review
-(docs/design/user-journeys.md, N3).
+### ✅ Object pause / seasonal mode
+**Shipped** (unreleased). Seasonal equipment (pool, lawn mower, AC) is out of
+service for months — vacation mode is global and archive retires entirely;
+neither fits "paused until spring". **Pause** (object detail header /
+`object/pause` WS, optional auto-resume date) freezes the object's schedules:
+tasks read a new `paused` status, triggers tear down, nothing notifies, the
+calendar and To-do list skip them — but the object stays visible with its
+history. Resume (manual or automatic on the set date) re-anchors recurring
+tasks to a fresh cycle, exactly like unarchive. Identified via the
+device-biography journey review (docs/design/user-journeys.md, N3).
 
 
 ### 💡 End-of-month scheduling (last day / last business day / ±N offset)

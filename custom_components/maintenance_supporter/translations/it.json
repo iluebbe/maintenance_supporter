@@ -1111,7 +1111,8 @@
           "due_soon": "In scadenza",
           "overdue": "In ritardo",
           "triggered": "Attivato",
-          "archived": "Archiviato"
+          "archived": "Archiviato",
+          "paused": "In pausa"
         },
         "state_attributes": {
           "maintenance_type": {

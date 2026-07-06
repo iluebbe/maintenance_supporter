@@ -666,5 +666,18 @@
   "doc_search_none": "Aucun document correspondant",
   "link_device_optional": "Lier à un appareil existant (optionnel)",
   "parent_object_optional": "Objet parent (optionnel)",
-  "parent_none": "(Aucun parent)"
+  "parent_none": "(Aucun parent)",
+  "paused": "En pause",
+  "pause_object": "Mettre en pause",
+  "resume_object": "Reprendre",
+  "pause_until_prompt": "Gèle les calendriers de cet objet — rien n'arrive à échéance et rien ne notifie jusqu'à la reprise. Optionnellement, fixez une date de reprise automatique.",
+  "pause_until_label": "Reprendre le (optionnel)",
+  "object_paused": "Objet mis en pause",
+  "object_resumed": "Objet repris — calendriers relancés",
+  "object_paused_badge": "En pause",
+  "paused_until_label": "jusqu'au",
+  "replace_object": "Remplacer…",
+  "replace_object_prompt": "Retire cet objet et crée un successeur. L'historique et les coûts restent archivés sur l'ancien ; les tâches et documents passent au nouveau, les compteurs repartent de zéro.",
+  "replace_name_label": "Nom du successeur",
+  "object_replaced": "Objet remplacé — successeur créé"
 }

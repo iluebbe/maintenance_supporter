@@ -533,6 +533,17 @@ export const panelStyles = css`
     color: var(--secondary-text-color, #888);
   }
   .doc-badge ha-icon { --mdc-icon-size: 14px; }
+  /* v2.20 (N3): paused marker on object cards + the detail meta line. */
+  .paused-badge {
+    display: inline-flex; align-items: center; vertical-align: middle;
+    margin-left: 8px; color: var(--info-color, #2196f3);
+  }
+  .paused-badge ha-icon { --mdc-icon-size: 16px; }
+  .paused-meta {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--info-color, #2196f3); font-weight: 500;
+  }
+  .paused-meta ha-icon { --mdc-icon-size: 16px; }
   .objects-table .oc-notes {
     max-width: 220px;
     overflow: hidden;

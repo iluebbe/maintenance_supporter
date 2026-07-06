@@ -666,5 +666,18 @@
   "doc_search_none": "Inga matchande dokument",
   "link_device_optional": "Länka till befintlig enhet (valfritt)",
   "parent_object_optional": "Överordnat objekt (valfritt)",
-  "parent_none": "(Inget överordnat)"
+  "parent_none": "(Inget överordnat)",
+  "paused": "Pausad",
+  "pause_object": "Pausa",
+  "resume_object": "Återuppta",
+  "pause_until_prompt": "Frys objektets scheman — inget förfaller och inget aviserar förrän det återupptas. Ange valfritt ett datum för automatisk återupptagning.",
+  "pause_until_label": "Återuppta den (valfritt)",
+  "object_paused": "Objekt pausat",
+  "object_resumed": "Objekt återupptaget — scheman omstartade",
+  "object_paused_badge": "Pausad",
+  "paused_until_label": "till",
+  "replace_object": "Ersätt…",
+  "replace_object_prompt": "Pensionera detta objekt och skapa en efterträdare. Historik och kostnader arkiveras på det gamla; uppgifter och dokument följer med till det nya, räknare börjar om.",
+  "replace_name_label": "Efterträdarens namn",
+  "object_replaced": "Objekt ersatt — efterträdare skapad"
 }

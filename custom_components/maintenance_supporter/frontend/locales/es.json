@@ -666,5 +666,18 @@
   "doc_search_none": "Ningún documento coincidente",
   "link_device_optional": "Vincular a dispositivo existente (opcional)",
   "parent_object_optional": "Objeto principal (opcional)",
-  "parent_none": "(Sin objeto principal)"
+  "parent_none": "(Sin objeto principal)",
+  "paused": "Pausado",
+  "pause_object": "Pausar",
+  "resume_object": "Reanudar",
+  "pause_until_prompt": "Congela los calendarios de este objeto: nada vence ni notifica hasta reanudarlo. Opcionalmente, fija una fecha de reanudación automática.",
+  "pause_until_label": "Reanudar el (opcional)",
+  "object_paused": "Objeto pausado",
+  "object_resumed": "Objeto reanudado — calendarios reiniciados",
+  "object_paused_badge": "Pausado",
+  "paused_until_label": "hasta",
+  "replace_object": "Sustituir…",
+  "replace_object_prompt": "Retira este objeto y crea un sucesor. El historial y los costes quedan archivados en el antiguo; las tareas y los documentos pasan al nuevo, los contadores empiezan de cero.",
+  "replace_name_label": "Nombre del sucesor",
+  "object_replaced": "Objeto sustituido — sucesor creado"
 }

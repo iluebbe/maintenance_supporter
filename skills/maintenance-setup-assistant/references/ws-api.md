@@ -80,6 +80,21 @@ Result: `{"success": true}`.
 result `{"success": true, "archived_at": "<iso>"}`. Unarchive restores those
 tasks (recurring ones re-anchored). Errors: `already_archived` / `not_archived`.
 
+### `object/pause` / `object/resume` — `@require_write` (v2.20)
+Seasonal pause. Pause: `{entry_id, until?}` (`until` = ISO date, must be in the
+future; omit for an open-ended pause) → `{"success": true, "paused_at",
+"paused_until"}`. Tasks read status `paused` (frozen, nothing fires); the
+coordinator auto-resumes on `until`. Resume: `{entry_id}` → `{"success": true}`;
+recurring tasks re-anchor to a fresh cycle from today. Errors: `archived` /
+`already_paused` / `not_paused` / `invalid_date`.
+
+### `object/replace` — `@require_write` (v2.20)
+`{entry_id, name?}` → `{entry_id: "<successor>"}`. Retires the old object
+(archive cascade + `replaced_by_entry_id`) and creates a successor pre-filled
+from it: task configs with fresh ids/counters, documents carried over
+(refcounted), `installation_date` = today, serial/warranty cleared,
+`predecessor_entry_id` set. Error: `archived` (already retired).
+
 ### `object/from_template` — `@require_write`
 `{template_id (req), name?}` → `{entry_id}`. `object/duplicate` `{entry_id}` → `{entry_id}`.
 

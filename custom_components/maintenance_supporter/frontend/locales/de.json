@@ -666,5 +666,18 @@
   "doc_search_none": "Keine passenden Dokumente",
   "link_device_optional": "Mit bestehendem Gerät verknüpfen (optional)",
   "parent_object_optional": "Übergeordnetes Objekt (optional)",
-  "parent_none": "(Kein übergeordnetes Objekt)"
+  "parent_none": "(Kein übergeordnetes Objekt)",
+  "paused": "Pausiert",
+  "pause_object": "Pausieren",
+  "resume_object": "Fortsetzen",
+  "pause_until_prompt": "Zeitpläne dieses Objekts einfrieren — nichts wird fällig und nichts benachrichtigt, bis es fortgesetzt wird. Optional ein Datum für die automatische Fortsetzung festlegen.",
+  "pause_until_label": "Fortsetzen am (optional)",
+  "object_paused": "Objekt pausiert",
+  "object_resumed": "Objekt fortgesetzt — Zeitpläne neu gestartet",
+  "object_paused_badge": "Pausiert",
+  "paused_until_label": "bis",
+  "replace_object": "Ersetzen…",
+  "replace_object_prompt": "Dieses Objekt ausmustern und einen Nachfolger anlegen. Historie und Kosten bleiben am alten Objekt archiviert; Aufgaben und Dokumente wandern zum neuen, Zähler starten frisch.",
+  "replace_name_label": "Name des Nachfolgers",
+  "object_replaced": "Objekt ersetzt — Nachfolger angelegt"
 }

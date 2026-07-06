@@ -85,45 +85,32 @@ def _validate_device_link(
         from homeassistant.helpers import device_registry as dr
 
         if dr.async_get(hass).async_get(device_id) is None:
-            connection.send_error(
-                msg["id"], "invalid_device", f"No HA device {device_id!r}"
-            )
+            connection.send_error(msg["id"], "invalid_device", f"No HA device {device_id!r}")
             return False
 
     if parent_id := msg.get("parent_entry_id"):
         parent = hass.config_entries.async_get_entry(parent_id)
-        if (
-            parent is None
-            or parent.domain != DOMAIN
-            or parent.unique_id == GLOBAL_UNIQUE_ID
-        ):
-            connection.send_error(
-                msg["id"], "invalid_parent", f"No maintenance object {parent_id!r}"
-            )
+        if parent is None or parent.domain != DOMAIN or parent.unique_id == GLOBAL_UNIQUE_ID:
+            connection.send_error(msg["id"], "invalid_parent", f"No maintenance object {parent_id!r}")
             return False
         if self_entry_id is not None:
             cursor: str | None = parent_id
             for _ in range(20):
                 if cursor == self_entry_id:
                     connection.send_error(
-                        msg["id"], "invalid_parent",
+                        msg["id"],
+                        "invalid_parent",
                         "Parent chain would form a cycle",
                     )
                     return False
                 cur = hass.config_entries.async_get_entry(cursor) if cursor else None
-                cursor = (
-                    (cur.data.get(CONF_OBJECT, {}) or {}).get("parent_entry_id")
-                    if cur
-                    else None
-                )
+                cursor = (cur.data.get(CONF_OBJECT, {}) or {}).get("parent_entry_id") if cur else None
                 if not cursor:
                     break
     return True
 
 
-@websocket_api.websocket_command(
-    {vol.Required("type"): "maintenance_supporter/objects"}
-)
+@websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/objects"})
 @websocket_api.async_response
 async def ws_get_objects(
     hass: HomeAssistant,
@@ -198,22 +185,16 @@ async def async_create_object(
             CONF_OBJECT_INSTALLATION_DATE: installation_date,
             CONF_OBJECT_WARRANTY_EXPIRY: warranty_expiry,
             CONF_OBJECT_DOCUMENTATION_URL: (documentation_url or "").strip() or None,
-            CONF_OBJECT_NOTES: (
-                notes.strip() if isinstance(notes, str) and notes.strip() else None
-            ),
+            CONF_OBJECT_NOTES: (notes.strip() if isinstance(notes, str) and notes.strip() else None),
             "ha_device_id": ha_device_id,
             "parent_entry_id": parent_entry_id,
             "task_ids": [],
         },
         CONF_TASKS: {},
     }
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "websocket"}, data=data
-    )
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "websocket"}, data=data)
     if result["type"] != "create_entry":
-        raise ValueError(
-            f"Failed to create object: {result.get('reason', 'unknown')}"
-        )
+        raise ValueError(f"Failed to create object: {result.get('reason', 'unknown')}")
     return result["result"].entry_id
 
 
@@ -375,9 +356,7 @@ async def ws_update_object(
             msg["notes"] = stripped or None
 
     # 2.19: device link / parent hierarchy
-    if not _validate_device_link(
-        hass, connection, msg, self_entry_id=entry.entry_id
-    ):
+    if not _validate_device_link(hass, connection, msg, self_entry_id=entry.entry_id):
         return
 
     new_data = dict(entry.data)
@@ -492,9 +471,16 @@ async def ws_duplicate_object(
         task_id = uuid4().hex
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
-        for key in ("entity_slug", "nfc_tag_id", "history", "last_performed",
-                    "last_planned_due", "adaptive_config", "archived_at",
-                    "archived_reason"):
+        for key in (
+            "entity_slug",
+            "nfc_tag_id",
+            "history",
+            "last_performed",
+            "last_planned_due",
+            "adaptive_config",
+            "archived_at",
+            "archived_reason",
+        ):
             task.pop(key, None)
         if isinstance(task.get("trigger_config"), dict):
             task["trigger_config"].pop("_trigger_state", None)
@@ -502,13 +488,12 @@ async def ws_duplicate_object(
         new_obj["task_ids"].append(task_id)
 
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "websocket"},
+        DOMAIN,
+        context={"source": "websocket"},
         data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
     )
     if result["type"] != "create_entry":
-        connection.send_error(
-            msg["id"], "duplicate_failed", result.get("reason", "unknown")
-        )
+        connection.send_error(msg["id"], "duplicate_failed", result.get("reason", "unknown"))
         return
     connection.send_result(msg["id"], {"entry_id": result["result"].entry_id})
 
@@ -569,13 +554,12 @@ async def ws_create_from_template(
         new_obj["task_ids"].append(task_id)
 
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "websocket"},
+        DOMAIN,
+        context={"source": "websocket"},
         data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
     )
     if result["type"] != "create_entry":
-        connection.send_error(
-            msg["id"], "create_failed", result.get("reason", "unknown")
-        )
+        connection.send_error(msg["id"], "create_failed", result.get("reason", "unknown"))
         return
     connection.send_result(msg["id"], {"entry_id": result["result"].entry_id})
 
@@ -609,26 +593,39 @@ async def ws_archive_object(
         return
 
     now_iso = dt_util.now().isoformat()
-    obj["archived_at"] = now_iso
-
-    tasks_data = dict(entry.data.get(CONF_TASKS, {}))
-    new_tasks: dict[str, Any] = {}
-    for tid, td in tasks_data.items():
-        td = dict(td)
-        if td.get("archived_at") is None:  # cascade only to active tasks
-            td["archived_at"] = now_iso
-            td["archived_reason"] = ARCHIVE_REASON_OBJECT
-        new_tasks[tid] = td
-
-    new_data = dict(entry.data)
-    new_data[CONF_OBJECT] = obj
-    new_data[CONF_TASKS] = new_tasks
+    new_data = _archived_entry_data(entry.data, now_iso)
     hass.config_entries.async_update_entry(entry, data=new_data)
 
     # Reload so the object's tasks' triggers tear down and entities go inert.
     await hass.config_entries.async_reload(entry.entry_id)
 
     connection.send_result(msg["id"], {"success": True, "archived_at": now_iso})
+
+
+def _archived_entry_data(entry_data: Any, now_iso: str) -> dict[str, Any]:
+    """New entry data with the object archived and active tasks cascaded.
+
+    Shared by ``object/archive`` and the replace flow (which retires the
+    predecessor with exactly the same semantics).
+    """
+    obj = dict(entry_data.get(CONF_OBJECT, {}))
+    obj["archived_at"] = now_iso
+    # Archiving supersedes a seasonal pause — don't leave both markers.
+    obj.pop("paused_at", None)
+    obj.pop("paused_until", None)
+
+    new_tasks: dict[str, Any] = {}
+    for tid, td in dict(entry_data.get(CONF_TASKS, {})).items():
+        td = dict(td)
+        if td.get("archived_at") is None:  # cascade only to active tasks
+            td["archived_at"] = now_iso
+            td["archived_reason"] = ARCHIVE_REASON_OBJECT
+        new_tasks[tid] = td
+
+    new_data = dict(entry_data)
+    new_data[CONF_OBJECT] = obj
+    new_data[CONF_TASKS] = new_tasks
+    return new_data
 
 
 @websocket_api.websocket_command(
@@ -693,6 +690,214 @@ async def ws_unarchive_object(
     await hass.config_entries.async_reload(entry.entry_id)
 
     connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/object/pause",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("until"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_pause_object(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Seasonally pause an object (journey N3).
+
+    Tasks stay visible but read status ``paused``: schedules freeze, triggers
+    tear down, nothing notifies. ``until`` (ISO date, optional) auto-resumes
+    on that day via the coordinator; without it the pause holds until an
+    explicit ``object/resume``.
+    """
+    from datetime import date as date_cls
+
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    obj = dict(entry.data.get(CONF_OBJECT, {}))
+    if obj.get("archived_at") is not None:
+        connection.send_error(msg["id"], "archived", "An archived object cannot be paused")
+        return
+    if obj.get("paused_at") is not None:
+        connection.send_error(msg["id"], "already_paused", "Object already paused")
+        return
+
+    until = msg.get("until")
+    if until:
+        try:
+            until_date = date_cls.fromisoformat(until)
+        except ValueError:
+            connection.send_error(msg["id"], "invalid_date", "Invalid until format (expected YYYY-MM-DD)")
+            return
+        if until_date <= dt_util.now().date():
+            connection.send_error(msg["id"], "invalid_date", "until must be a future date")
+            return
+
+    now_iso = dt_util.now().isoformat()
+    obj["paused_at"] = now_iso
+    obj["paused_until"] = until or None
+
+    new_data = dict(entry.data)
+    new_data[CONF_OBJECT] = obj
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    # Reload so triggers tear down and every entity repaints as paused.
+    await hass.config_entries.async_reload(entry.entry_id)
+
+    connection.send_result(
+        msg["id"],
+        {"success": True, "paused_at": now_iso, "paused_until": until or None},
+    )
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/object/resume",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_resume_object(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """End a seasonal pause: schedules re-anchor to a fresh cycle from today.
+
+    Same core as the coordinator's ``paused_until`` auto-resume — the pool
+    pump comes back with a clean slate, not five months overdue.
+    """
+    from ..helpers.pause import build_resumed_entry_data
+
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    obj = entry.data.get(CONF_OBJECT, {})
+    if obj.get("paused_at") is None:
+        connection.send_error(msg["id"], "not_paused", "Object is not paused")
+        return
+
+    rd = _get_runtime_data(hass, entry.entry_id)
+    store = getattr(rd, "store", None) if rd else None
+    new_data = build_resumed_entry_data(dict(entry.data), store, dt_util.now().date().isoformat())
+    hass.config_entries.async_update_entry(entry, data=new_data)
+    if store is not None:
+        await store.async_save()
+
+    await hass.config_entries.async_reload(entry.entry_id)
+
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/object/replace",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Optional("name"): vol.Any(vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)), None),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_replace_object(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Replace a worn-out object with a successor (journey N1).
+
+    The predecessor is archived in place — its full history, costs and
+    documents remain browsable, marked with ``replaced_by_entry_id``. The
+    successor starts as a pre-filled fresh unit: same task configuration
+    (fresh ids, no history), the documents carried over (manuals usually
+    outlive the individual machine; blobs are refcounted, not copied), the
+    installation date set to today, and serial number / warranty cleared —
+    those belong to the specific old unit.
+    """
+    from copy import deepcopy
+
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+
+    src_obj = entry.data.get(CONF_OBJECT, {})
+    if src_obj.get("archived_at") is not None:
+        connection.send_error(msg["id"], "archived", "An archived object cannot be replaced")
+        return
+
+    name = (msg.get("name") or "").strip() or str(src_obj.get(CONF_OBJECT_NAME, "")).strip() or "Object"
+
+    new_obj = deepcopy(dict(src_obj))
+    new_obj["id"] = uuid4().hex
+    new_obj[CONF_OBJECT_NAME] = name[:MAX_NAME_LENGTH]
+    # Unit-specific identity does not transfer to the new machine.
+    new_obj[CONF_OBJECT_SERIAL_NUMBER] = None
+    new_obj[CONF_OBJECT_WARRANTY_EXPIRY] = None
+    new_obj[CONF_OBJECT_INSTALLATION_DATE] = dt_util.now().date().isoformat()
+    new_obj["task_ids"] = []
+    for key in ("archived_at", "paused_at", "paused_until", "replaced_by_entry_id"):
+        new_obj.pop(key, None)
+    new_obj["predecessor_entry_id"] = entry.entry_id
+
+    new_tasks: dict[str, Any] = {}
+    for src_task in entry.data.get(CONF_TASKS, {}).values():
+        task = deepcopy(dict(src_task))
+        task_id = uuid4().hex
+        task["id"] = task_id
+        task["object_id"] = new_obj["id"]
+        for key in (
+            "entity_slug",
+            "nfc_tag_id",
+            "history",
+            "last_performed",
+            "last_planned_due",
+            "adaptive_config",
+            "archived_at",
+            "archived_reason",
+        ):
+            task.pop(key, None)
+        if isinstance(task.get("trigger_config"), dict):
+            task["trigger_config"].pop("_trigger_state", None)
+        new_tasks[task_id] = task
+        new_obj["task_ids"].append(task_id)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "websocket"},
+        data={CONF_OBJECT: new_obj, CONF_TASKS: new_tasks},
+    )
+    if result["type"] != "create_entry":
+        connection.send_error(msg["id"], "replace_failed", result.get("reason", "unknown"))
+        return
+    new_entry_id: str = result["result"].entry_id
+
+    # Carry the document library over — manuals outlive the machine. Blob
+    # refcounts increase; nothing is copied on disk.
+    from .. import DOCUMENT_STORE_KEY
+    from . import object_id_for_entry
+
+    doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if doc_store is not None:
+        src_docs = doc_store.for_object(object_id_for_entry(entry))
+        if src_docs:
+            await doc_store.async_import_documents(new_obj["id"], src_docs)
+
+    # Retire the predecessor (archive cascade) with the successor pointer.
+    now_iso = dt_util.now().isoformat()
+    retired = _archived_entry_data(entry.data, now_iso)
+    retired_obj = dict(retired[CONF_OBJECT])
+    retired_obj["replaced_by_entry_id"] = new_entry_id
+    retired[CONF_OBJECT] = retired_obj
+    hass.config_entries.async_update_entry(entry, data=retired)
+    await hass.config_entries.async_reload(entry.entry_id)
+
+    connection.send_result(msg["id"], {"entry_id": new_entry_id})
 
 
 @websocket_api.websocket_command(

@@ -666,5 +666,18 @@
   "doc_search_none": "Ingen samsvarende dokumenter",
   "link_device_optional": "Koble til eksisterende enhet (valgfritt)",
   "parent_object_optional": "Overordnet objekt (valgfritt)",
-  "parent_none": "(Ingen overordnet)"
+  "parent_none": "(Ingen overordnet)",
+  "paused": "Satt på pause",
+  "pause_object": "Sett på pause",
+  "resume_object": "Gjenoppta",
+  "pause_until_prompt": "Frys objektets planer — ingenting forfaller og ingenting varsler før det gjenopptas. Angi eventuelt en dato for automatisk gjenopptakelse.",
+  "pause_until_label": "Gjenoppta den (valgfritt)",
+  "object_paused": "Objekt satt på pause",
+  "object_resumed": "Objekt gjenopptatt — planer startet på nytt",
+  "object_paused_badge": "På pause",
+  "paused_until_label": "til",
+  "replace_object": "Erstatt…",
+  "replace_object_prompt": "Pensjoner dette objektet og opprett en etterfølger. Historikk og kostnader forblir arkivert på det gamle; oppgaver og dokumenter følger med til det nye, tellere starter på nytt.",
+  "replace_name_label": "Etterfølgerens navn",
+  "object_replaced": "Objekt erstattet — etterfølger opprettet"
 }

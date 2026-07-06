@@ -392,6 +392,10 @@ class MaintenanceCalendar(CalendarEntity):
             # tasks are cascade-archived too, but skip the whole entry up front).
             if obj_data.get("archived_at") is not None:
                 continue
+            # v2.20 (N3): a seasonally paused object's schedules are frozen —
+            # projecting due dates would show events that won't fire.
+            if obj_data.get("paused_at") is not None:
+                continue
 
             # Use live coordinator data (has trigger state) if available,
             # fall back to config entry data

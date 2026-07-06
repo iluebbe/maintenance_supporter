@@ -328,6 +328,13 @@ async def ws_import_json(
             # keep them valid; stale ids degrade gracefully at read time.
             "ha_device_id": obj_data.get("ha_device_id"),
             "parent_entry_id": obj_data.get("parent_entry_id"),
+            # 2.20: seasonal pause round-trips (a paused pool restored in
+            # winter stays paused); replace-flow lineage ids are the same
+            # instance-specific story as parent_entry_id above.
+            "paused_at": obj_data.get("paused_at"),
+            "paused_until": obj_data.get("paused_until"),
+            "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
+            "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
             "task_ids": [],
         }
 

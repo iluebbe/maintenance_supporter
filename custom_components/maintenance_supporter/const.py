@@ -431,6 +431,13 @@ class MaintenanceStatus(StrEnum):
     # except budget/cost history (which is read from completion history, not
     # status, so it is archive-agnostic by design).
     ARCHIVED = "archived"
+    # v2.20 (journey N3): seasonal pause. Tasks of a paused OBJECT read
+    # `paused`: schedules freeze and nothing fires — but unlike archived the
+    # object stays a first-class citizen in every view. Resuming re-anchors
+    # recurring tasks like an object unarchive does. Object-wide only (no
+    # per-task pause); injected by the coordinator, below ARCHIVED in
+    # precedence.
+    PAUSED = "paused"
 
 
 class MaintenanceTypeEnum(StrEnum):

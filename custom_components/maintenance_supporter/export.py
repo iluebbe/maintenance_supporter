@@ -143,6 +143,13 @@ def _build_export_object(
             # on a foreign instance are harmless (device_info falls back).
             "ha_device_id": obj_data.get("ha_device_id"),
             "parent_entry_id": obj_data.get("parent_entry_id"),
+            # 2.20: seasonal pause (a paused pool restored in winter stays
+            # paused) + replace-flow lineage (instance-specific entry ids,
+            # same caveat as parent_entry_id above).
+            "paused_at": obj_data.get("paused_at"),
+            "paused_until": obj_data.get("paused_until"),
+            "predecessor_entry_id": obj_data.get("predecessor_entry_id"),
+            "replaced_by_entry_id": obj_data.get("replaced_by_entry_id"),
         },
         "tasks": tasks,
         "documents": documents,

@@ -1111,7 +1111,8 @@
           "due_soon": "Forfalder snart",
           "overdue": "Overskredet",
           "triggered": "Udløst",
-          "archived": "Arkiveret"
+          "archived": "Arkiveret",
+          "paused": "Sat på pause"
         },
         "state_attributes": {
           "maintenance_type": {

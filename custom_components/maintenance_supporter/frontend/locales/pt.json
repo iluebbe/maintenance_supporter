@@ -666,5 +666,18 @@
   "doc_search_none": "Nenhum documento correspondente",
   "link_device_optional": "Associar a dispositivo existente (opcional)",
   "parent_object_optional": "Objeto principal (opcional)",
-  "parent_none": "(Sem objeto principal)"
+  "parent_none": "(Sem objeto principal)",
+  "paused": "Pausado",
+  "pause_object": "Pausar",
+  "resume_object": "Retomar",
+  "pause_until_prompt": "Congela os agendamentos deste objeto — nada vence nem notifica até ser retomado. Opcionalmente, defina uma data de retoma automática.",
+  "pause_until_label": "Retomar em (opcional)",
+  "object_paused": "Objeto pausado",
+  "object_resumed": "Objeto retomado — agendamentos reiniciados",
+  "object_paused_badge": "Pausado",
+  "paused_until_label": "até",
+  "replace_object": "Substituir…",
+  "replace_object_prompt": "Retire este objeto e crie um sucessor. O histórico e os custos ficam arquivados no antigo; as tarefas e os documentos passam para o novo, os contadores começam do zero.",
+  "replace_name_label": "Nome do sucessor",
+  "object_replaced": "Objeto substituído — sucessor criado"
 }

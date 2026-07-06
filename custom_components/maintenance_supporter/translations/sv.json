@@ -1111,7 +1111,8 @@
           "due_soon": "Snart förfaller",
           "overdue": "Försenat",
           "triggered": "Utlöst",
-          "archived": "Arkiverad"
+          "archived": "Arkiverad",
+          "paused": "Pausad"
         },
         "state_attributes": {
           "maintenance_type": {

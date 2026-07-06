@@ -1111,7 +1111,8 @@
           "due_soon": "Bijna verlopen",
           "overdue": "Achterstallig",
           "triggered": "Geactiveerd",
-          "archived": "Gearchiveerd"
+          "archived": "Gearchiveerd",
+          "paused": "Gepauzeerd"
         },
         "state_attributes": {
           "maintenance_type": {

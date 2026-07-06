@@ -126,7 +126,9 @@ class MaintenanceTodoList(TodoListEntity):
                     continue
                 task_live = live.get(task_id, {})
                 status = task_live.get("_status", MaintenanceStatus.OK)
-                if status == MaintenanceStatus.ARCHIVED:
+                # Archived is retired; paused (v2.20, N3) is frozen — neither
+                # belongs on the actionable To-do list.
+                if status in (MaintenanceStatus.ARCHIVED, MaintenanceStatus.PAUSED):
                     continue
                 due_iso = task_live.get("_next_due")
                 due: date | None = None

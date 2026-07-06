@@ -2,6 +2,27 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ New
+
+- **Seasonal pause** (journey N3) — pause a whole object (pool, lawn mower,
+  AC) for the off-season: tasks read a new *Paused* status, schedules freeze,
+  triggers tear down, nothing notifies, and the calendar / To-do list skip
+  them — but the object and its history stay fully visible. Optionally set an
+  auto-resume date (the object resumes itself on that day); resuming restarts
+  every recurring task with a fresh cycle instead of months of fake overdue.
+  Panel: Pause/Resume in the object header, a paused badge on object cards;
+  WS: `object/pause` / `object/resume`.
+- **Replace an object** (journey N1) — when a machine dies, *Replace…*
+  retires it in place (archived; history, costs and documents stay browsable,
+  marked with its successor) and creates the new unit pre-filled: same task
+  configuration with fresh counters, the document library carried over
+  (content-addressed blobs are refcounted, not copied), installation date set
+  to today, serial number and warranty cleared. Both objects link to each
+  other (`predecessor` / `replaced_by`). Panel: Replace… in the object
+  header; WS: `object/replace`.
+
 ## [2.19.1] - 2026-07-06
 
 A pure bugfix release: the user-journey test methodology introduced in 2.19.0

@@ -1111,7 +1111,8 @@
           "due_soon": "Bald fällig",
           "overdue": "Überfällig",
           "triggered": "Ausgelöst",
-          "archived": "Archiviert"
+          "archived": "Archiviert",
+          "paused": "Pausiert"
         },
         "state_attributes": {
           "maintenance_type": {

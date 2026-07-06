@@ -8,6 +8,7 @@ import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { downloadTextFile } from "./helpers/download";
+import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
 import type {
   HomeAssistant,
@@ -1206,6 +1207,77 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  // v2.20 (N3): seasonal pause / resume. Pausing asks for an optional
+  // auto-resume date; resuming re-anchors recurring tasks to a fresh cycle.
+  private async _togglePauseObject(entryId: string, paused: boolean): Promise<void> {
+    if (!paused) {
+      const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+      const result = await dlg?.prompt({
+        title: t("pause_object", this._lang),
+        message: t("pause_until_prompt", this._lang),
+        confirmText: t("pause_object", this._lang),
+        inputLabel: t("pause_until_label", this._lang),
+        inputType: "date",
+      });
+      if (!result?.confirmed) return;
+      try {
+        const msg: Record<string, unknown> = {
+          type: "maintenance_supporter/object/pause",
+          entry_id: entryId,
+        };
+        if (result.value) msg.until = result.value;
+        await this.hass.connection.sendMessagePromise(msg);
+        await this._loadData();
+        this._showUndoToast(t("object_paused", this._lang),
+          () => this._togglePauseObject(entryId, true));
+      } catch (e) {
+        this._showToast(describeWsError(e, this._lang));
+      }
+      return;
+    }
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/object/resume",
+        entry_id: entryId,
+      });
+      await this._loadData();
+      this._showToast(t("object_resumed", this._lang));
+    } catch (e) {
+      this._showToast(describeWsError(e, this._lang));
+    }
+  }
+
+  // v2.20 (N1): replace a worn-out object with a successor — the old one is
+  // archived in place (history/costs stay browsable), the new one starts as a
+  // pre-filled fresh unit with tasks and documents carried over.
+  private async _replaceObject(entryId: string, currentName: string): Promise<void> {
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    const result = await dlg?.prompt({
+      title: t("replace_object", this._lang),
+      message: t("replace_object_prompt", this._lang),
+      confirmText: t("replace_object", this._lang),
+      inputLabel: t("replace_name_label", this._lang),
+      inputType: "text",
+      inputValue: currentName,
+    });
+    if (!result?.confirmed) return;
+    this._actionLoading = true;
+    try {
+      const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
+        type: "maintenance_supporter/object/replace",
+        entry_id: entryId,
+        name: result.value || currentName,
+      });
+      await this._loadData();
+      this._showToast(t("object_replaced", this._lang));
+      if (res?.entry_id) this._showObject(res.entry_id);
+    } catch (e) {
+      this._showToast(describeWsError(e, this._lang));
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
   private async _skipTask(entryId: string, taskId: string, reason?: string): Promise<void> {
     this._actionLoading = true;
     try {
@@ -2026,6 +2098,11 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${overdue ? html`<span class="overdue-dot" title="${t("has_overdue", L)}"></span>` : nothing}
           <div class="object-card-header">
             <span class="object-card-name">${obj.object.name}</span>
+            ${obj.object.paused
+              ? html`<span class="paused-badge" title="${t("object_paused_badge", L)}${obj.object.paused_until ? ` — ${obj.object.paused_until}` : ""}">
+                  <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
+                </span>`
+              : nothing}
             ${obj.object.document_count
               ? html`<span class="doc-badge" title="${obj.object.document_count} ${t("documents", L)}">
                   <ha-icon icon="mdi:paperclip"></ha-icon>${obj.object.document_count}
@@ -2481,12 +2558,29 @@ export class MaintenanceSupporterPanel extends LitElement {
                 <ha-icon icon="${o.archived ? 'mdi:archive-arrow-up-outline' : 'mdi:archive-outline'}"></ha-icon>
                 ${o.archived ? t("unarchive_object", L) : t("archive_object", L)}
               </ha-button>
+              ${!o.archived ? html`
+                <ha-button appearance="plain" @click=${() => this._togglePauseObject(obj.entry_id, !!o.paused)}>
+                  <ha-icon icon="${o.paused ? 'mdi:play-circle-outline' : 'mdi:pause-circle-outline'}"></ha-icon>
+                  ${o.paused ? t("resume_object", L) : t("pause_object", L)}
+                </ha-button>
+                <ha-button appearance="plain" .disabled=${this._actionLoading} @click=${() => this._replaceObject(obj.entry_id, o.name)}>
+                  <ha-icon icon="mdi:swap-horizontal"></ha-icon> ${t("replace_object", L)}
+                </ha-button>
+              ` : nothing}
               <ha-button variant="danger" appearance="plain" @click=${() => this._deleteObject(obj.entry_id)}>${t("delete", L)}</ha-button>
             ` : nothing}
             <ha-button appearance="plain" @click=${() => this._openQrForObject(obj.entry_id, o.name)}><ha-icon icon="mdi:qrcode"></ha-icon> ${t("qr_code", L)}</ha-button>
             <ha-button appearance="plain" @click=${() => this._printObjectReport(obj.entry_id)}><ha-icon icon="mdi:file-document-outline"></ha-icon> ${t("report_button", L)}</ha-button>
           </div>
         </div>
+        ${o.paused
+          ? html`<p class="meta paused-meta">
+              <ha-icon icon="mdi:pause-circle-outline"></ha-icon>
+              ${t("object_paused_badge", L)}${o.paused_until
+                ? html` — ${t("paused_until_label", L)} ${formatDate(o.paused_until, L)}`
+                : nothing}
+            </p>`
+          : nothing}
         ${o.manufacturer || o.model
           ? html`<p class="meta">${[o.manufacturer, o.model].filter(Boolean).join(" ")}</p>`
           : nothing}

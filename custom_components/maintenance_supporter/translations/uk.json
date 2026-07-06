@@ -1111,7 +1111,8 @@
           "due_soon": "Незабаром",
           "overdue": "Прострочено",
           "triggered": "Спрацювало",
-          "archived": "В архіві"
+          "archived": "В архіві",
+          "paused": "Призупинено"
         },
         "state_attributes": {
           "maintenance_type": {

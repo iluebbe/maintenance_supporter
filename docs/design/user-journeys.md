@@ -157,9 +157,9 @@ especially across reload/restart.
 
 | # | Journey | Surfaces | Covered today | Gap |
 |---|---------|----------|---------------|-----|
-| N1 | **Replacement**: appliance dies → successor object; history preserved, counters fresh | P | — | ROADMAP: Replace flow; interim path (archive + duplicate) undocumented |
+| N1 | **Replacement**: appliance dies → successor object; history preserved, counters fresh | P, W | SHIPPED (v2.20): `object/replace` retires+links the predecessor, successor pre-filled (tasks fresh, documents refcount-carried); test_object_pause_replace | ✔ closed 2026-07-06 |
 | N2 | Warranty claim: history + invoice document + warranty date as one "claim package" | P, E | pdf report, documents | deferred — manual walkthrough (report + documents individually tested) |
-| N3 | Seasonal equipment: months-long pause ≠ archive ≠ global vacation | P | — | ROADMAP: object pause / seasonal mode |
+| N3 | Seasonal equipment: months-long pause ≠ archive ≠ global vacation | P, W | SHIPPED (v2.20): `object/pause`/`resume` + PAUSED status + auto-resume date; resume re-anchors like unarchive; test_object_pause_replace | ✔ closed 2026-07-06 |
 
 ### O. The user's own biography
 

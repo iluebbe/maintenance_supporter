@@ -30,6 +30,11 @@ def compute_status_from_task_dict(task: dict[str, Any]) -> str:
     # Archived takes precedence over everything (v2.10.0) — see the model twin.
     if task.get("archived_at") is not None:
         return MaintenanceStatus.ARCHIVED
+    # Seasonal pause (v2.20, N3): object-wide, injected by the coordinator.
+    # Keeps a live trigger event from flipping a frozen task to TRIGGERED
+    # between refreshes.
+    if task.get("_paused"):
+        return MaintenanceStatus.PAUSED
     if task.get("_trigger_active", False):
         return MaintenanceStatus.TRIGGERED
 
