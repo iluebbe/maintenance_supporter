@@ -145,6 +145,45 @@ especially across reload/restart.
 | L2 | Adaptive learning × history correction (D1): does EWA re-learn from corrected values? | P, W | — | untested |
 | L3 | Snooze state × task edit; groups × archive; printed QR × deleted task (scan UX) | Q, P | partial | untested |
 
+### M. The household as a social system
+
+| # | Journey | Surfaces | Covered today | Gap |
+|---|---------|----------|---------------|-----|
+| M1 | **Double-complete race**: two people tap Complete on the same task within seconds — one history entry, ONE rotation step | P, C, E | 30s manual-dedup window + test_journey_household | ✔ closed 2026-07-06 (was: duplicate history/cost + double rotation advance) |
+| M2 | House handover: transfer data to a new instance/person; anonymize completed_by | (ops) | — | untested |
+| M3 | The negligent returner: 6 months ignored, everything overdue → "fresh start" story via bulk actions | P | bulk actions exist | story-level walkthrough untested |
+
+### N. The equipment's biography
+
+| # | Journey | Surfaces | Covered today | Gap |
+|---|---------|----------|---------------|-----|
+| N1 | **Replacement**: appliance dies → successor object; history preserved, counters fresh | P | — | ROADMAP: Replace flow; interim path (archive + duplicate) undocumented |
+| N2 | Warranty claim: history + invoice document + warranty date as one "claim package" | P, E | pdf report, documents | claim-story walkthrough untested |
+| N3 | Seasonal equipment: months-long pause ≠ archive ≠ global vacation | P | — | ROADMAP: object pause / seasonal mode |
+
+### O. The user's own biography
+
+| # | Journey | Surfaces | Covered today | Gap |
+|---|---------|----------|---------------|-----|
+| O1 | Uninstall → reinstall later: fresh or restored? (define + test the contract) | F | — | untested |
+| O2 | Data portability: the export as a complete archive of record | P, W | round-trip tests | completeness-as-contract untested |
+| O3 | **Golden-master upgrades**: real v1.x/v2.x entry data fixtures → current code → invariants | (upgrade) | per-migration tests | full-chain fixtures missing |
+
+### P. Truth journeys (does every surface agree?)
+
+| # | Journey | Surfaces | Covered today | Gap |
+|---|---------|----------|---------------|-----|
+| P1 | **Read parity**: status/next_due/days_until_due identical in sensor, list_tasks, WS object, to-do, calendar | E, S, W | test_journey_household | ✔ closed 2026-07-06 |
+| P2 | Language switch: HA language change follows through panel/entities/notifications/logbook with no English leaks | (i18n) | per-surface i18n tests | switch-journey untested |
+
+### Q/R. Situational + meta
+
+| # | Journey | Surfaces | Covered today | Gap |
+|---|---------|----------|---------------|-----|
+| Q1 | Phone-only admin: every admin action reachable at 400px | P | mobile screenshots | untested |
+| Q2 | Offline LAN: everything works without internet; web-links/QR-external degrade cleanly | P, Q | no cloud deps by design | degradation untested |
+| R1 | Contributor: init-dev.sh from the README works end-to-end | (docs) | — | untested |
+
 ## Cross-cutting invariants (what journey tests assert)
 
 After **every** mutation step, and again after a simulated restart:

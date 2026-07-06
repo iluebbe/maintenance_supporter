@@ -525,6 +525,11 @@ SIGNAL_DOCUMENTS_UPDATED = f"{DOMAIN}_documents_updated"
 
 # --- Trigger Completion Cooldown ---
 TRIGGER_COMPLETION_COOLDOWN_SECONDS = 600  # 10 minutes
+# Household double-complete window: two people tapping Complete on the same
+# task within this many seconds count as ONE real-world action (journey M1).
+# Short on purpose — a deliberate complete → reset → complete-again correction
+# flow must never be caught by it.
+MANUAL_COMPLETION_DEDUP_SECONDS = 30
 
 # --- Input Validation Limits ---
 MAX_NAME_LENGTH = 200

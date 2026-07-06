@@ -37,6 +37,7 @@ from .const import (
     EVENT_TASK_RESET,
     EVENT_TASK_SKIPPED,
     GLOBAL_UNIQUE_ID,
+    MANUAL_COMPLETION_DEDUP_SECONDS,
     MISSING_ENTITY_THRESHOLD_REFRESHES,
     SIGNAL_TASK_RESET,
     STARTUP_GRACE_PERIOD_SECONDS,
@@ -83,6 +84,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Trigger completion cooldown tracking
         self._recently_completed: dict[str, float] = {}  # task_id -> monotonic timestamp
+        # Manual completions only — the double-tap dedup window (journey M1).
+        self._recent_manual_completions: dict[str, float] = {}
 
         # Trigger entity availability tracking
         self._startup_time: float = time.monotonic()
@@ -138,6 +141,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._recently_completed = {
             tid: ts for tid, ts in self._recently_completed.items()
             if now_mono - ts < TRIGGER_COMPLETION_COOLDOWN_SECONDS
+        }
+        self._recent_manual_completions = {
+            tid: ts for tid, ts in self._recent_manual_completions.items()
+            if now_mono - ts < MANUAL_COMPLETION_DEDUP_SECONDS
         }
 
         result: dict[str, Any] = {
@@ -949,6 +956,27 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
             return
 
+        # Household double-complete guard (journey M1): two people seeing the
+        # same overdue task and both tapping Complete within seconds would
+        # record two completions — duplicated history/cost and a DOUBLE
+        # rotation advance (skipping a pool member). Within a short window the
+        # second completion is treated as the same real-world action and
+        # dropped; the tap still "succeeds" from the user's perspective
+        # because the task is already completed. Deliberately a SEPARATE map
+        # from _recently_completed: that one is also stamped by skip/reset,
+        # and a complete right after a date-correction reset must go through.
+        last_manual = self._recent_manual_completions.get(task_id)
+        if (
+            last_manual is not None
+            and time.monotonic() - last_manual < MANUAL_COMPLETION_DEDUP_SECONDS
+        ):
+            _LOGGER.info(
+                "Ignoring duplicate completion of %s within %.0fs (double-tap "
+                "from a second device?)",
+                task_id, time.monotonic() - last_manual,
+            )
+            return
+
         task = MaintenanceTask.from_dict(merged[task_id])
         pre_rotation_responsible = task.responsible_user_id
 
@@ -996,6 +1024,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 task.adaptive_config = updated_config
 
+        self._recent_manual_completions[task_id] = time.monotonic()
         await self._persist_and_signal_task_change(task_id, task)
 
         # Shared-task rotation: advance_rotation() (inside task.complete)
@@ -1088,6 +1117,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         date: date | None = None,
     ) -> None:
         """Reset the last performed date of a task."""
+        # A reset starts a new cycle — a following completion is a NEW
+        # real-world action, never a double-tap of the previous one.
+        self._recent_manual_completions.pop(task_id, None)
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
@@ -1116,6 +1148,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         as_missed: bool = False,
     ) -> None:
         """Skip the current maintenance cycle for a task."""
+        # Same as reset: skipping restarts the cycle — clear the double-tap
+        # window so a follow-up completion counts.
+        self._recent_manual_completions.pop(task_id, None)
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
