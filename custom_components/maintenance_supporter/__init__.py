@@ -197,9 +197,7 @@ SERVICE_LIST_TASKS_SCHEMA = vol.Schema(
 )
 
 
-async def async_maybe_send_weekly_digest(
-    hass: HomeAssistant, *, force: bool = False
-) -> None:
+async def async_maybe_send_weekly_digest(hass: HomeAssistant, *, force: bool = False) -> None:
     """Send the opt-in weekly digest when it's due.
 
     Gated on: it being Monday (skipped when ``force``), the global
@@ -212,8 +210,7 @@ async def async_maybe_send_weekly_digest(
     if not force and dt_util.now().weekday() != 0:  # Monday only
         return
     global_entry = next(
-        (e for e in hass.config_entries.async_entries(DOMAIN)
-         if e.unique_id == GLOBAL_UNIQUE_ID),
+        (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
         None,
     )
     if global_entry is None:
@@ -233,9 +230,7 @@ async def async_maybe_send_weekly_digest(
         await nm.async_send_weekly_digest(overdue, due_soon)
 
 
-async def async_maybe_send_warranty_reminders(
-    hass: HomeAssistant, *, force: bool = False
-) -> None:
+async def async_maybe_send_warranty_reminders(hass: HomeAssistant, *, force: bool = False) -> None:
     """Remind about maintenance-object warranties nearing expiry.
 
     Opt-in (``warranty_reminder_enabled``). Fires the day an object's warranty is
@@ -253,8 +248,7 @@ async def async_maybe_send_warranty_reminders(
     )
 
     global_entry = next(
-        (e for e in hass.config_entries.async_entries(DOMAIN)
-         if e.unique_id == GLOBAL_UNIQUE_ID),
+        (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
         None,
     )
     if global_entry is None:
@@ -300,8 +294,7 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
     from .models.maintenance_task import MaintenanceTask
 
     global_entry = next(
-        (e for e in hass.config_entries.async_entries(DOMAIN)
-         if e.unique_id == GLOBAL_UNIQUE_ID),
+        (e for e in hass.config_entries.async_entries(DOMAIN) if e.unique_id == GLOBAL_UNIQUE_ID),
         None,
     )
     if global_entry is None:
@@ -353,6 +346,21 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Maintenance Supporter integration."""
+    return await _async_setup_shared(hass)
+
+
+async def _async_setup_shared(hass: HomeAssistant) -> bool:
+    """Build the entry-independent runtime (services, WS API, listeners,
+    notification manager, document store).
+
+    HA calls ``async_setup`` exactly once per boot, but unloading the LAST
+    entry pops ``hass.data[DOMAIN]`` — so an uninstall → reinstall within the
+    same HA run must rebuild all of this (journey O1). ``async_setup_entry``
+    re-invokes this when it finds the shared runtime missing. Re-running is
+    safe: service/WS registrations overwrite in place, and the HTTP-level
+    registrations (card static paths, document views) carry their own guards
+    outside the popped dict.
+    """
     hass.data.setdefault(DOMAIN, {})
 
     # "Business day" scheduling (the day-of-month `business` flag) follows the
@@ -513,18 +521,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             raise ServiceValidationError(str(err)) from err
         return {"task_id": task_id} if call.return_response else None
 
-    hass.services.async_register(
-        DOMAIN, SERVICE_COMPLETE, _handle_complete, schema=SERVICE_COMPLETE_SCHEMA
-    )
-    hass.services.async_register(
-        DOMAIN, SERVICE_RESET, _handle_reset, schema=SERVICE_RESET_SCHEMA
-    )
-    hass.services.async_register(
-        DOMAIN, SERVICE_SKIP, _handle_skip, schema=SERVICE_SKIP_SCHEMA
-    )
-    hass.services.async_register(
-        DOMAIN, SERVICE_EXPORT, _handle_export, schema=SERVICE_EXPORT_SCHEMA
-    )
+    hass.services.async_register(DOMAIN, SERVICE_COMPLETE, _handle_complete, schema=SERVICE_COMPLETE_SCHEMA)
+    hass.services.async_register(DOMAIN, SERVICE_RESET, _handle_reset, schema=SERVICE_RESET_SCHEMA)
+    hass.services.async_register(DOMAIN, SERVICE_SKIP, _handle_skip, schema=SERVICE_SKIP_SCHEMA)
+    hass.services.async_register(DOMAIN, SERVICE_EXPORT, _handle_export, schema=SERVICE_EXPORT_SCHEMA)
     hass.services.async_register(
         DOMAIN,
         SERVICE_ADD_OBJECT,
@@ -575,13 +575,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         entry_id = call.data["entry_id"]
         entry = hass.config_entries.async_get_entry(entry_id)
         if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
-            raise ServiceValidationError(
-                f"No maintenance object found for entry_id {entry_id!r}"
-            )
+            raise ServiceValidationError(f"No maintenance object found for entry_id {entry_id!r}")
         if not await async_delete_task(hass, entry, call.data["task_id"]):
-            raise ServiceValidationError(
-                f"No task {call.data['task_id']!r} in {entry.title!r}"
-            )
+            raise ServiceValidationError(f"No task {call.data['task_id']!r} in {entry.title!r}")
         await hass.config_entries.async_reload(entry_id)
 
     async def _handle_list_tasks(call: ServiceCall) -> dict[str, Any]:
@@ -659,13 +655,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         # entry_id is a 32-char hex UUID, task_id is a 32-char hex UUID
         if action.startswith("MS_COMPLETE_"):
             action_type = "complete"
-            remainder = action[len("MS_COMPLETE_"):]
+            remainder = action[len("MS_COMPLETE_") :]
         elif action.startswith("MS_SKIP_"):
             action_type = "skip"
-            remainder = action[len("MS_SKIP_"):]
+            remainder = action[len("MS_SKIP_") :]
         elif action.startswith("MS_SNOOZE_"):
             action_type = "snooze"
-            remainder = action[len("MS_SNOOZE_"):]
+            remainder = action[len("MS_SNOOZE_") :]
         else:
             return
 
@@ -680,9 +676,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         config_entry = hass.config_entries.async_get_entry(entry_id)
         runtime_data = getattr(config_entry, "runtime_data", None) if config_entry else None
         if not runtime_data or not hasattr(runtime_data, "coordinator") or not runtime_data.coordinator:
-            _LOGGER.warning(
-                "No coordinator found for notification action (entry_id=%s)", entry_id
-            )
+            _LOGGER.warning("No coordinator found for notification action (entry_id=%s)", entry_id)
             return
 
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
@@ -693,9 +687,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 await runtime_data.coordinator.complete_maintenance(task_id=task_id)
             elif action_type == "skip":
                 _LOGGER.info("Skipping task %s via notification action", task_id)
-                await runtime_data.coordinator.skip_maintenance(
-                    task_id=task_id, reason="Skipped from notification"
-                )
+                await runtime_data.coordinator.skip_maintenance(task_id=task_id, reason="Skipped from notification")
             elif action_type == "snooze":
                 _LOGGER.info("Snoozing task %s via notification action", task_id)
                 if nm is not None:
@@ -714,9 +706,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             await nm.async_dismiss_task_notification(task_id)
             nm.clear_task_state(entry_id, task_id)
 
-    unsub_notification = hass.bus.async_listen(
-        "mobile_app_notification_action", _handle_notification_action
-    )
+    unsub_notification = hass.bus.async_listen("mobile_app_notification_action", _handle_notification_action)
 
     # Register listener for NFC tag scans → complete linked tasks
     async def _handle_tag_scanned(event: Event) -> None:
@@ -735,9 +725,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     continue
                 # Found matching task
                 runtime_data = getattr(ce, "runtime_data", None)
-                if not runtime_data or not getattr(
-                    runtime_data, "coordinator", None
-                ):
+                if not runtime_data or not getattr(runtime_data, "coordinator", None):
                     _LOGGER.warning(
                         "No coordinator for NFC tag match (entry=%s)",
                         ce.entry_id,
@@ -788,11 +776,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             return
         for ce_id in device.config_entries:
             ce = hass.config_entries.async_get_entry(ce_id)
-            if (
-                ce is None
-                or ce.domain != DOMAIN
-                or ce.unique_id == GLOBAL_UNIQUE_ID
-            ):
+            if ce is None or ce.domain != DOMAIN or ce.unique_id == GLOBAL_UNIQUE_ID:
                 continue
             obj = dict(ce.data.get(CONF_OBJECT, {}))
             if obj.get("area_id") == device.area_id:
@@ -802,9 +786,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             hass.config_entries.async_update_entry(ce, data=new_data)
             return
 
-    unsub_device = hass.bus.async_listen(
-        dr.EVENT_DEVICE_REGISTRY_UPDATED, _on_device_registry_update
-    )
+    unsub_device = hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, _on_device_registry_update)
 
     # v1.5.4: rewrite stored entity_id references when HA renames an entity.
     # Without this, ``trigger_config["entity_id"]`` /
@@ -860,14 +842,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             # they re-instantiate against the new id.
             hass.config_entries.async_schedule_reload(ce.entry_id)
             _LOGGER.info(
-                "Rewrote entity references %s → %s for entry %s "
-                "(entry_data=%s, store=%s) and scheduled reload",
-                old_eid, new_eid, ce.entry_id, entry_changed, store_changed,
+                "Rewrote entity references %s → %s for entry %s (entry_data=%s, store=%s) and scheduled reload",
+                old_eid,
+                new_eid,
+                ce.entry_id,
+                entry_changed,
+                store_changed,
             )
 
-    unsub_entity = hass.bus.async_listen(
-        er.EVENT_ENTITY_REGISTRY_UPDATED, _on_entity_registry_update
-    )
+    unsub_entity = hass.bus.async_listen(er.EVENT_ENTITY_REGISTRY_UPDATED, _on_entity_registry_update)
 
     # v2.10.0: daily archive / auto-delete retention sweep (completed one-offs).
     # The pure decision logic + the sweep live in helpers/retention; this just
@@ -878,9 +861,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def _retention_tick(_now: Any) -> None:
         await async_run_retention_sweep(hass)
 
-    unsub_retention = async_track_time_interval(
-        hass, _retention_tick, timedelta(hours=24), cancel_on_shutdown=True
-    )
+    unsub_retention = async_track_time_interval(hass, _retention_tick, timedelta(hours=24), cancel_on_shutdown=True)
 
     # v2.15.0: opt-in weekly digest — one summary notification on Monday morning.
     # Fires daily at 08:00 local; the gating lives in async_maybe_send_weekly_digest.
@@ -889,9 +870,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await async_maybe_send_warranty_reminders(hass)
         await async_maybe_send_lead_reminders(hass)
 
-    unsub_digest = async_track_time_change(
-        hass, _weekly_digest_tick, hour=8, minute=0, second=0
-    )
+    unsub_digest = async_track_time_change(hass, _weekly_digest_tick, hour=8, minute=0, second=0)
     # async_track_time_change has no cancel_on_shutdown, so cancel it explicitly
     # on HA stop too — otherwise the daily timer lingers past shutdown when the
     # entries aren't formally unloaded (e.g. test teardown).
@@ -899,16 +878,19 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     # Store unsub callbacks so they can be cleaned up when domain is unloaded
     hass.data[DOMAIN]["_event_unsubs"] = [
-        unsub_notification, unsub_tag, unsub_action,
-        unsub_device, unsub_entity, unsub_retention, unsub_digest,
+        unsub_notification,
+        unsub_tag,
+        unsub_action,
+        unsub_device,
+        unsub_entity,
+        unsub_retention,
+        unsub_digest,
     ]
 
     return True
 
 
-def _detect_advanced_feature_usage(
-    hass: HomeAssistant, global_options: dict[str, Any]
-) -> dict[str, bool]:
+def _detect_advanced_feature_usage(hass: HomeAssistant, global_options: dict[str, Any]) -> dict[str, bool]:
     """Scan existing entries to detect which advanced features are in use."""
     adaptive = False
     predictions = False
@@ -936,10 +918,7 @@ def _detect_advanced_feature_usage(
             if task_data.get("schedule_time"):
                 schedule_time = True
 
-    budget = (
-        global_options.get(CONF_BUDGET_MONTHLY, 0) > 0
-        or global_options.get(CONF_BUDGET_YEARLY, 0) > 0
-    )
+    budget = global_options.get(CONF_BUDGET_MONTHLY, 0) > 0 or global_options.get(CONF_BUDGET_YEARLY, 0) > 0
     groups = bool(global_options.get(CONF_GROUPS, {}))
 
     return {
@@ -954,9 +933,7 @@ def _detect_advanced_feature_usage(
     }
 
 
-async def async_migrate_entry(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> bool:
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Migrate a config entry forward in version (HA pattern).
 
     minor_version 1 → 2 (issue #30): backfill ``created_at`` for tasks that
@@ -996,11 +973,7 @@ async def async_migrate_entry(
                     history = td.get("history") or []
                     if isinstance(history, list) and history:
                         timestamps: list[str] = [
-                            ts
-                            for h in history
-                            if isinstance(h, dict)
-                            and isinstance((ts := h.get("timestamp")), str)
-                            and ts
+                            ts for h in history if isinstance(h, dict) and isinstance((ts := h.get("timestamp")), str) and ts
                         ]
                         if timestamps:
                             # ISO timestamps sort lexicographically; take YYYY-MM-DD
@@ -1016,23 +989,23 @@ async def async_migrate_entry(
         if is_object_entry:
             tasks_data = data.get(CONF_TASKS, {})
             if tasks_data:
-                data[CONF_TASKS] = {
-                    task_id: normalize_task_storage(td)
-                    for task_id, td in tasks_data.items()
-                }
+                data[CONF_TASKS] = {task_id: normalize_task_storage(td) for task_id, td in tasks_data.items()}
         minor = 3
 
     hass.config_entries.async_update_entry(entry, data=data, minor_version=minor)
-    _LOGGER.info(
-        "Migrated entry %s to minor_version %s", entry.entry_id, minor
-    )
+    _LOGGER.info("Migrated entry %s to minor_version %s", entry.entry_id, minor)
     return True
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry) -> bool:
     """Set up Maintenance Supporter from a config entry."""
+    # Unloading the LAST entry pops hass.data[DOMAIN] (notification manager,
+    # document store, event listeners) and HA runs async_setup only once per
+    # boot — a reinstall in the same run must rebuild the shared runtime
+    # (journey O1: sensor setup crashed on the missing document store).
+    if NOTIFICATION_MANAGER_KEY not in hass.data.setdefault(DOMAIN, {}):
+        await _async_setup_shared(hass)
+
     is_global = entry.unique_id == GLOBAL_UNIQUE_ID
 
     if is_global:
@@ -1040,9 +1013,7 @@ async def async_setup_entry(
         # aggregates task status counts across all objects to back the global
         # summary sensors (sensor.maintenance_supporter_overdue, etc.).
         summary_coordinator = MaintenanceSummaryCoordinator(hass)
-        entry.runtime_data = MaintenanceSupporterData(
-            summary_coordinator=summary_coordinator
-        )
+        entry.runtime_data = MaintenanceSupporterData(summary_coordinator=summary_coordinator)
         summary_coordinator.async_setup_listeners()
         entry.async_on_unload(summary_coordinator.async_teardown_listeners)
         await summary_coordinator.async_refresh()
@@ -1060,9 +1031,7 @@ async def async_setup_entry(
             await async_register_panel(hass)
 
         # Listen for options changes (panel toggle)
-        entry.async_on_unload(
-            entry.add_update_listener(_async_global_options_updated)
-        )
+        entry.async_on_unload(entry.add_update_listener(_async_global_options_updated))
 
         # Initial orphan check for admin_panel_user_ids (HA users deleted
         # while the integration was offline land here as repair issues).
@@ -1080,9 +1049,7 @@ async def async_setup_entry(
         # Surface document-storage anomalies (orphan/dangling blobs after a
         # crash or partial restore) as a fixable repair issue. Deferred to
         # HA-started so the store has finished loading.
-        entry.async_on_unload(
-            async_at_started(hass, _check_document_storage_issues)
-        )
+        entry.async_on_unload(async_at_started(hass, _check_document_storage_issues))
 
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
@@ -1090,9 +1057,7 @@ async def async_setup_entry(
         store = MaintenanceStore(hass, entry.entry_id)
 
         # Migrate dynamic state from ConfigEntry.data → Store (one-time)
-        cleaned_data = await async_migrate_to_store(
-            hass, entry.entry_id, entry.data, store
-        )
+        cleaned_data = await async_migrate_to_store(hass, entry.entry_id, entry.data, store)
         if cleaned_data is not entry.data:
             hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
 
@@ -1102,14 +1067,13 @@ async def async_setup_entry(
         if pruned:
             _LOGGER.info(
                 "Pruned %d orphaned task state(s) from store for %s",
-                pruned, entry.title,
+                pruned,
+                entry.title,
             )
             await store.async_save()
 
         coordinator = MaintenanceCoordinator(hass, entry, store)
-        entry.runtime_data = MaintenanceSupporterData(
-            coordinator=coordinator, store=store
-        )
+        entry.runtime_data = MaintenanceSupporterData(coordinator=coordinator, store=store)
         await coordinator.async_config_entry_first_refresh()
 
         # v1.5.3 (#48): forward-sync obj fields → device_registry whenever the
@@ -1118,9 +1082,7 @@ async def async_setup_entry(
         # edits never reach the device unless we push them. Combined with the
         # global EVENT_DEVICE_REGISTRY_UPDATED listener registered in
         # async_setup, this gives the area a true bidirectional sync.
-        entry.async_on_unload(
-            entry.add_update_listener(_async_sync_obj_to_device)
-        )
+        entry.async_on_unload(entry.add_update_listener(_async_sync_obj_to_device))
 
         # Notify WS subscribers that a new object entry is available
         from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -1137,9 +1099,7 @@ async def async_setup_entry(
     return True
 
 
-async def _async_sync_obj_to_device(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> None:
+async def _async_sync_obj_to_device(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Push obj.* (area_id, name, manufacturer, model, serial_number) → device.
 
     Fires whenever an object entry's data is updated. Without this, the
@@ -1221,9 +1181,7 @@ async def _check_document_storage_issues(hass: HomeAssistant) -> None:
         ir.async_delete_issue(hass, DOMAIN, _DOC_STORAGE_ISSUE_ID)
 
 
-async def _async_global_options_updated(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> None:
+async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """React to global options changes (panel toggle / sidebar title)."""
     panel_enabled = entry.options.get(CONF_PANEL_ENABLED, DEFAULT_PANEL_ENABLED)
     if panel_enabled:
@@ -1289,7 +1247,9 @@ async def _check_task_responsible_user_orphans(
             if pruned_pool != pool:
                 _LOGGER.info(
                     "Removing %d deleted user(s) from assignee_pool on task %s (%s)",
-                    len(pool) - len(pruned_pool), tid, entry.title,
+                    len(pool) - len(pruned_pool),
+                    tid,
+                    entry.title,
                 )
                 if len(pruned_pool) >= 2:
                     new_td["assignee_pool"] = pruned_pool
@@ -1300,7 +1260,9 @@ async def _check_task_responsible_user_orphans(
             if resp_orphaned:
                 _LOGGER.info(
                     "Clearing orphaned responsible_user_id %s on task %s (%s)",
-                    ruid, tid, entry.title,
+                    ruid,
+                    tid,
+                    entry.title,
                 )
                 if len(pruned_pool) >= 2:
                     # Keep the shared task assigned: hand over to the pool.
@@ -1313,9 +1275,7 @@ async def _check_task_responsible_user_orphans(
             hass.config_entries.async_update_entry(entry, data=new_data)
 
 
-async def _check_admin_panel_user_orphans(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> None:
+async def _check_admin_panel_user_orphans(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Surface admin_panel_user_ids entries pointing at deleted HA users.
 
     Each orphaned id becomes a fixable repair issue. The repair flow lets
@@ -1336,12 +1296,9 @@ async def _check_admin_panel_user_orphans(
     #    Scope the iteration to OUR domain via the (domain, issue_id) tuple
     #    keys instead of scanning every integration's issues.
     issue_reg = ir.async_get(hass)
-    stale_issue_ids = [
-        iid for (dom, iid) in issue_reg.issues
-        if dom == DOMAIN and iid.startswith(_ORPHAN_ISSUE_PREFIX)
-    ]
+    stale_issue_ids = [iid for (dom, iid) in issue_reg.issues if dom == DOMAIN and iid.startswith(_ORPHAN_ISSUE_PREFIX)]
     for issue_id in stale_issue_ids:
-        target_uid = issue_id[len(_ORPHAN_ISSUE_PREFIX):]
+        target_uid = issue_id[len(_ORPHAN_ISSUE_PREFIX) :]
         if target_uid not in user_ids or target_uid in valid_ids:
             ir.async_delete_issue(hass, DOMAIN, issue_id)
 
@@ -1361,9 +1318,7 @@ async def _check_admin_panel_user_orphans(
         )
 
 
-async def async_unload_entry(
-    hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry
-) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterConfigEntry) -> bool:
     """Unload a config entry."""
     if entry.unique_id == GLOBAL_UNIQUE_ID:
         # Unregister panel when global entry is unloaded
@@ -1372,10 +1327,7 @@ async def async_unload_entry(
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     # Clean up domain data if no entries left
-    remaining = [
-        e for e in hass.config_entries.async_entries(DOMAIN)
-        if e.entry_id != entry.entry_id
-    ]
+    remaining = [e for e in hass.config_entries.async_entries(DOMAIN) if e.entry_id != entry.entry_id]
     if not remaining:
         nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
         if nm is not None:
@@ -1387,9 +1339,7 @@ async def async_unload_entry(
     return unload_ok
 
 
-async def async_remove_entry(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> None:
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Clean up store file when a config entry is permanently deleted."""
     if entry.unique_id == GLOBAL_UNIQUE_ID:
         return
@@ -1430,9 +1380,7 @@ async def async_remove_config_entry_device(
     return not er.async_entries_for_device(entity_registry, device_entry.id)
 
 
-def _get_coordinator_for_entity(
-    hass: HomeAssistant, entity_id: str
-) -> MaintenanceCoordinator | None:
+def _get_coordinator_for_entity(hass: HomeAssistant, entity_id: str) -> MaintenanceCoordinator | None:
     """Find the coordinator that manages the given entity."""
     entity_registry = er.async_get(hass)
     entry = entity_registry.async_get(entity_id)
@@ -1454,9 +1402,7 @@ def _get_coordinator_for_entity(
     return runtime_data.coordinator
 
 
-def _get_task_id_for_entity(
-    hass: HomeAssistant, entity_id: str
-) -> str | None:
+def _get_task_id_for_entity(hass: HomeAssistant, entity_id: str) -> str | None:
     """Extract the task ID from an entity's unique_id."""
     entity_registry = er.async_get(hass)
     entry = entity_registry.async_get(entity_id)
@@ -1485,6 +1431,7 @@ def _get_task_id_for_entity(
     # Sensor unique_id: maintenance_supporter_{slug}_{task_id}
     # Binary sensor: maintenance_supporter_{slug}_{task_id}_overdue
     from .const import CONF_TASKS
+
     tasks: dict[str, Any] = config_entry.data.get(CONF_TASKS, {})
     clean_id = unique_id.removesuffix("_overdue")
     for task_id in tasks:

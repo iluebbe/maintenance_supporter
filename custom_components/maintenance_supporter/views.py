@@ -33,13 +33,14 @@ from .helpers.permissions import user_can_write
 UPLOAD_URL = "/api/maintenance_supporter/document/upload"
 SERVE_URL = "/api/maintenance_supporter/document/{doc_id}"
 
+# Survives the hass.data[DOMAIN] pop on last-entry unload (see registrar).
+_VIEWS_REGISTERED_KEY = f"{DOMAIN}_views_registered"
+
 
 # MIME types safe to render inline on the HA origin. Anything else (notably
 # text/html and image/svg+xml, which can carry active content) is served as an
 # opaque attachment so a write-capable user's upload can't become stored XSS.
-_INLINE_SAFE_MIMES = frozenset(
-    {"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"}
-)
+_INLINE_SAFE_MIMES = frozenset({"application/pdf", "image/png", "image/jpeg", "image/gif", "image/webp"})
 
 
 def _content_disposition(filename: str, *, inline: bool = True) -> str:
@@ -50,10 +51,7 @@ def _content_disposition(filename: str, *, inline: bool = True) -> str:
     ``filename*`` form together handle non-ASCII names without letting quotes or
     control chars break the header.
     """
-    ascii_name = (
-        "".join(c for c in filename if c.isascii() and c not in '"\\\r\n').strip()
-        or "document"
-    )
+    ascii_name = "".join(c for c in filename if c.isascii() and c not in '"\\\r\n').strip() or "document"
     kind = "inline" if inline else "attachment"
     return f"{kind}; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename)}"
 
@@ -89,9 +87,7 @@ class DocumentUploadView(HomeAssistantView):
         entry_id = data.get("entry_id")
         file_field = data.get("file")
         if not isinstance(entry_id, str) or not isinstance(file_field, web.FileField):
-            return self.json_message(
-                "entry_id and file are required", HTTPStatus.BAD_REQUEST
-            )
+            return self.json_message("entry_id and file are required", HTTPStatus.BAD_REQUEST)
 
         entry = self.hass.config_entries.async_get_entry(entry_id)
         if entry is None or entry.domain != DOMAIN or entry.unique_id == GLOBAL_UNIQUE_ID:
@@ -104,11 +100,7 @@ class DocumentUploadView(HomeAssistantView):
         mime = file_field.content_type or "application/octet-stream"
 
         title = data.get("title")
-        tags = [
-            t.strip()
-            for t in data.getall("tags", [])
-            if isinstance(t, str) and t.strip()
-        ][:20]
+        tags = [t.strip() for t in data.getall("tags", []) if isinstance(t, str) and t.strip()][:20]
 
         try:
             doc = await _get_store(self.hass).async_add_file(
@@ -161,15 +153,21 @@ class DocumentServeView(HomeAssistantView):
             body=content,
             content_type=raw_mime if inline_safe else "application/octet-stream",
             headers={
-                hdrs.CONTENT_DISPOSITION: _content_disposition(
-                    doc.get("filename") or "document", inline=inline_safe
-                ),
+                hdrs.CONTENT_DISPOSITION: _content_disposition(doc.get("filename") or "document", inline=inline_safe),
                 "X-Content-Type-Options": "nosniff",
             },
         )
 
 
 def async_register_document_views(hass: HomeAssistant) -> None:
-    """Register the upload + serve views on the HTTP component."""
+    """Register the upload + serve views on the HTTP component.
+
+    Guarded outside hass.data[DOMAIN] (which is popped on last-entry unload):
+    the views stay mounted on the HTTP app, so a reinstall in the same HA run
+    must not add them a second time (journey O1).
+    """
+    if hass.data.get(_VIEWS_REGISTERED_KEY):
+        return
     hass.http.register_view(DocumentUploadView(hass))
     hass.http.register_view(DocumentServeView(hass))
+    hass.data[_VIEWS_REGISTERED_KEY] = True

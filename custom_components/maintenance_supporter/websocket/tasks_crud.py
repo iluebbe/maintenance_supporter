@@ -22,6 +22,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DOMAIN,
     FLAT_SCHEDULE_TYPES,
+    GLOBAL_UNIQUE_ID,
     MAX_ASSIGNEE_POOL,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
@@ -73,28 +74,40 @@ from .tasks_validation import (
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         vol.Optional("task_type", default="custom"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("schedule_type", default="time_based"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None),
+        vol.Optional("interval_days"): vol.Any(
+            vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None
+        ),
         vol.Optional("interval_unit", default="days"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor", default="completion"): vol.In(INTERVAL_ANCHORS),
         # Nested recurrence (calendar kinds: weekdays / nth_weekday / day_of_month).
         # Validated/canonicalized in the handler via Schedule.from_dict.
         vol.Optional("schedule"): vol.Any(dict, None),
-        vol.Optional("warning_days", default=DEFAULT_WARNING_DAYS): vol.All(int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
-        vol.Optional("earliest_completion_days"): vol.Any(vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None),
+        vol.Optional("warning_days", default=DEFAULT_WARNING_DAYS): vol.All(
+            int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])
+        ),
+        vol.Optional("earliest_completion_days"): vol.Any(
+            vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None
+        ),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("assignee_pool"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None),
+        vol.Optional("assignee_pool"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None
+        ),
         vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
-        vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
-        vol.Optional("labels"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None),
+        vol.Optional("checklist"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
+        ),
+        vol.Optional("labels"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None
+        ),
         # HH:MM strict (00–23 : 00–59). None clears the time → midnight semantic.
         vol.Optional("schedule_time"): vol.Any(
             vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
@@ -172,11 +185,13 @@ async def ws_create_task(
 
         lp_date = date.fromisoformat(msg["last_performed"])
         lp_dt = datetime.combine(lp_date, time.min, tzinfo=dt_util.DEFAULT_TIME_ZONE)
-        initial_history.append({
-            "timestamp": lp_dt.isoformat(),
-            "type": HistoryEntryType.COMPLETED,
-            "notes": "Initial value set during task creation",
-        })
+        initial_history.append(
+            {
+                "timestamp": lp_dt.isoformat(),
+                "type": HistoryEntryType.COMPLETED,
+                "notes": "Initial value set during task creation",
+            }
+        )
     trigger_config = msg.get("trigger_config")
     tc_errors: list[str] = []
     tc_warnings: list[str] = []
@@ -203,6 +218,7 @@ async def ws_create_task(
         task_data["earliest_completion_days"] = msg["earliest_completion_days"]
     if msg.get("assignee_pool"):
         from ..helpers.sanitize import sanitize_assignee_pool
+
         task_data["assignee_pool"] = sanitize_assignee_pool(msg["assignee_pool"])
     if msg.get("rotation_strategy"):
         task_data["rotation_strategy"] = msg["rotation_strategy"]
@@ -231,6 +247,7 @@ async def ws_create_task(
         task_data["checklist"] = msg["checklist"]
     if msg.get("labels"):
         from ..helpers.sanitize import sanitize_labels
+
         task_data["labels"] = sanitize_labels(msg["labels"])
     if msg.get("schedule_time"):
         task_data["schedule_time"] = msg["schedule_time"]
@@ -242,6 +259,7 @@ async def ws_create_task(
     if msg.get("quick_complete_defaults"):
         task_data["quick_complete_defaults"] = msg["quick_complete_defaults"]
     from ..helpers.sanitize import cap_action_field, cap_quick_complete_defaults_field
+
     cap_action_field(task_data)
     cap_quick_complete_defaults_field(task_data)
 
@@ -276,27 +294,37 @@ async def ws_create_task(
         vol.Optional("task_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
         vol.Optional("enabled"): bool,
         vol.Optional("schedule_type"): vol.All(str, vol.Length(max=MAX_TYPE_LENGTH)),
-        vol.Optional("interval_days"): vol.Any(vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None),
+        vol.Optional("interval_days"): vol.Any(
+            vol.All(int, vol.Range(min=INTERVAL_DAYS_RANGE[0], max=INTERVAL_DAYS_RANGE[1])), None
+        ),
         vol.Optional("interval_unit"): vol.In(INTERVAL_UNITS),
         vol.Optional("due_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("interval_anchor"): vol.In(INTERVAL_ANCHORS),
         # Nested recurrence (calendar kinds); see create schema.
         vol.Optional("schedule"): vol.Any(dict, None),
         vol.Optional("warning_days"): vol.All(int, vol.Range(min=WARNING_DAYS_RANGE[0], max=WARNING_DAYS_RANGE[1])),
-        vol.Optional("earliest_completion_days"): vol.Any(vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None),
+        vol.Optional("earliest_completion_days"): vol.Any(
+            vol.All(int, vol.Range(min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1])), None
+        ),
         vol.Optional("last_performed"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
         vol.Optional("trigger_config"): vol.Any(dict, None),
         vol.Optional("notes"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
         vol.Optional("documentation_url"): vol.Any(vol.All(str, vol.Length(max=MAX_URL_LENGTH)), None),
         vol.Optional("responsible_user_id"): vol.Any(vol.All(str, vol.Length(max=MAX_META_LENGTH)), None),
-        vol.Optional("assignee_pool"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None),
+        vol.Optional("assignee_pool"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None
+        ),
         vol.Optional("rotation_strategy"): vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
         vol.Optional("entity_slug"): vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
         vol.Optional("custom_icon"): vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
         vol.Optional("nfc_tag_id"): vol.Any(vol.All(str, vol.Length(max=256)), None),
         vol.Optional("priority"): vol.In(TASK_PRIORITIES),
-        vol.Optional("checklist"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None),
-        vol.Optional("labels"): vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None),
+        vol.Optional("checklist"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_CHECKLIST_ITEM_LENGTH))], vol.Length(max=MAX_CHECKLIST_ITEMS)), None
+        ),
+        vol.Optional("labels"): vol.Any(
+            vol.All([vol.All(str, vol.Length(max=MAX_LABEL_LENGTH))], vol.Length(max=MAX_LABELS)), None
+        ),
         vol.Optional("schedule_time"): vol.Any(
             vol.All(str, vol.Match(r"^([01]\d|2[0-3]):[0-5]\d$")),
             None,
@@ -423,9 +451,10 @@ async def ws_update_task(
     # schedule_type. A bare calendar-kind schedule_type (e.g. a client echoing
     # the derived "nth_weekday" the payload exposed) is NOT a flat rebuild signal
     # and must not collapse the calendar schedule to manual (the #58/#42 class).
-    _flat_recurrence_edit = any(
-        k in msg for k in ("interval_days", "interval_unit", "interval_anchor", "due_date")
-    ) or msg.get("schedule_type") in FLAT_SCHEDULE_TYPES
+    _flat_recurrence_edit = (
+        any(k in msg for k in ("interval_days", "interval_unit", "interval_anchor", "due_date"))
+        or msg.get("schedule_type") in FLAT_SCHEDULE_TYPES
+    )
     if msg.get("schedule"):
         for key in FLAT_RECURRENCE_KEYS:
             task.pop(key, None)
@@ -446,6 +475,7 @@ async def ws_update_task(
         sanitize_assignee_pool,
         sanitize_labels,
     )
+
     cap_action_field(task)
     cap_quick_complete_defaults_field(task)
     if "labels" in task:
@@ -563,13 +593,33 @@ async def async_delete_task(
     # Clean up group references
     cleanup_group_refs(hass, task_id=task_id)
 
+    # Clean up the global vacation exempt list (journey L1): the list is
+    # persistent and task-id keyed — without this, deleted ids accumulate
+    # there forever and confuse the vacation preview UI.
+    from ..const import CONF_VACATION_EXEMPT_TASK_IDS
+
+    for ge in hass.config_entries.async_entries(DOMAIN):
+        if ge.unique_id != GLOBAL_UNIQUE_ID:
+            continue
+        exempt = ge.options.get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+        if isinstance(exempt, list) and task_id in exempt:
+            hass.config_entries.async_update_entry(
+                ge,
+                options={
+                    **dict(ge.options),
+                    CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t != task_id],
+                },
+            )
+        break
+
     # Clean up any repair issues referencing this task
     if old_trigger_config:
         from ..entity.triggers import normalize_entity_ids
 
         for eid in normalize_entity_ids(old_trigger_config):
             ir.async_delete_issue(
-                hass, DOMAIN,
+                hass,
+                DOMAIN,
                 f"missing_trigger_{entry.entry_id}_{task_id}_{eid}",
             )
 
@@ -614,8 +664,7 @@ async def ws_duplicate_task(
     new_task["name"] = f"{base_name} (copy)"[:MAX_NAME_LENGTH]
     new_task["created_at"] = dt_util.now().date().isoformat()
     # Never carry over per-task-unique keys or any stray dynamic state.
-    for key in ("entity_slug", "nfc_tag_id", "history", "last_performed",
-                "last_planned_due", "adaptive_config"):
+    for key in ("entity_slug", "nfc_tag_id", "history", "last_performed", "last_planned_due", "adaptive_config"):
         new_task.pop(key, None)
     if isinstance(new_task.get("trigger_config"), dict):
         new_task["trigger_config"].pop("_trigger_state", None)
@@ -623,4 +672,3 @@ async def ws_duplicate_task(
     await async_persist_task(hass, entry, new_task)
 
     connection.send_result(msg["id"], {"task_id": new_task["id"]})
-
