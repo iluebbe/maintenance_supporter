@@ -683,5 +683,7 @@
   "reading_unit_label": "Reading unit (e.g. kWh, m³)",
   "reading_unit_help": "Shown next to the recorded value when completing this task.",
   "reading_value_label": "Reading value",
-  "reading_label": "Reading"
+  "reading_label": "Reading",
+  "settings_templates_label": "Template gallery",
+  "settings_templates_hint": "Untick templates you'll never need — they disappear from the \"From template\" pickers (panel and config flow). Nothing else changes; you can re-enable them any time."
 }

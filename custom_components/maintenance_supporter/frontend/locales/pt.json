@@ -683,5 +683,7 @@
   "reading_unit_label": "Unidade de leitura (p. ex. kWh, m³)",
   "reading_unit_help": "Mostrada ao lado do valor registado ao concluir esta tarefa.",
   "reading_value_label": "Valor de leitura",
-  "reading_label": "Leitura"
+  "reading_label": "Leitura",
+  "settings_templates_label": "Galeria de modelos",
+  "settings_templates_hint": "Desmarque modelos de que nunca precisará — desaparecem dos seletores \"A partir de modelo\" (painel e config flow). Nada mais muda; reativáveis a qualquer momento."
 }

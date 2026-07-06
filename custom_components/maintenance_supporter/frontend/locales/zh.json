@@ -683,5 +683,7 @@
   "reading_unit_label": "读数单位（如 kWh、m³）",
   "reading_unit_help": "完成此任务时显示在记录值旁边。",
   "reading_value_label": "读数值",
-  "reading_label": "读数"
+  "reading_label": "读数",
+  "settings_templates_label": "模板库",
+  "settings_templates_hint": "取消勾选你永远不需要的模板——它们会从\"从模板\"选择器（面板和配置流程）中消失。其他一切不变；可随时重新启用。"
 }

@@ -683,5 +683,7 @@
   "reading_unit_label": "Unità di lettura (es. kWh, m³)",
   "reading_unit_help": "Mostrata accanto al valore registrato al completamento di questa attività.",
   "reading_value_label": "Valore letto",
-  "reading_label": "Lettura"
+  "reading_label": "Lettura",
+  "settings_templates_label": "Galleria modelli",
+  "settings_templates_hint": "Deseleziona i modelli che non ti serviranno mai: spariscono dai selettori \"Da modello\" (pannello e config flow). Nient'altro cambia; riattivabili in qualsiasi momento."
 }

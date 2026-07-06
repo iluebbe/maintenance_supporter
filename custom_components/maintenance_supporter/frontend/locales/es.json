@@ -683,5 +683,7 @@
   "reading_unit_label": "Unidad de lectura (p. ej. kWh, m³)",
   "reading_unit_help": "Se muestra junto al valor registrado al completar esta tarea.",
   "reading_value_label": "Valor de lectura",
-  "reading_label": "Lectura"
+  "reading_label": "Lectura",
+  "settings_templates_label": "Galería de plantillas",
+  "settings_templates_hint": "Desmarca las plantillas que nunca necesitarás: desaparecen de los selectores \"Desde plantilla\" (panel y flujo de configuración). Nada más cambia; puedes reactivarlas cuando quieras."
 }

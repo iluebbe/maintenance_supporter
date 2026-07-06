@@ -683,5 +683,7 @@
   "reading_unit_label": "検針単位（例: kWh、m³）",
   "reading_unit_help": "このタスクの完了時に記録値の横に表示されます。",
   "reading_value_label": "検針値",
-  "reading_label": "検針"
+  "reading_label": "検針",
+  "settings_templates_label": "テンプレートギャラリー",
+  "settings_templates_hint": "不要なテンプレートのチェックを外すと、「テンプレートから」の選択肢（パネルと設定フロー）から消えます。それ以外は何も変わらず、いつでも再有効化できます。"
 }

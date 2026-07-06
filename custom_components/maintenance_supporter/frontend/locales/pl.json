@@ -683,5 +683,7 @@
   "reading_unit_label": "Jednostka odczytu (np. kWh, m³)",
   "reading_unit_help": "Wyświetlana obok zarejestrowanej wartości przy ukończeniu tego zadania.",
   "reading_value_label": "Wartość odczytu",
-  "reading_label": "Odczyt"
+  "reading_label": "Odczyt",
+  "settings_templates_label": "Galeria szablonów",
+  "settings_templates_hint": "Odznacz szablony, których nigdy nie użyjesz — znikną z wyboru „Z szablonu\" (panel i config flow). Nic więcej się nie zmienia; można je włączyć ponownie w każdej chwili."
 }

@@ -683,5 +683,7 @@
   "reading_unit_label": "Unité de relevé (p. ex. kWh, m³)",
   "reading_unit_help": "Affichée à côté de la valeur enregistrée lors de l'exécution de cette tâche.",
   "reading_value_label": "Valeur relevée",
-  "reading_label": "Relevé"
+  "reading_label": "Relevé",
+  "settings_templates_label": "Galerie de modèles",
+  "settings_templates_hint": "Décochez les modèles dont vous n'aurez jamais besoin — ils disparaissent des sélecteurs « Depuis un modèle » (panneau et config flow). Rien d'autre ne change ; réactivables à tout moment."
 }

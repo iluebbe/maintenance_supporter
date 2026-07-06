@@ -112,6 +112,12 @@ CONF_OPERATOR_WRITE_ENABLED = "operator_write_enabled"
 # never arbitrary state attributes.
 CONF_OBJECTS_TABLE_COLUMNS = "objects_table_columns"
 
+# v2.21: template-gallery curation — ids of built-in templates the admin has
+# hidden from the "From template" pickers (panel gallery + config flow). The
+# templates stay functional (direct WS calls still work); they are only
+# removed from the pickers so a growing catalog never clutters the UI.
+CONF_DISABLED_TEMPLATE_IDS = "disabled_template_ids"
+
 # Every column key the objects table can render. The Settings UI offers exactly
 # these; the WS update handler drops anything outside this set.
 KNOWN_OBJECT_TABLE_COLUMNS = [

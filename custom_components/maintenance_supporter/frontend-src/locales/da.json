@@ -683,5 +683,7 @@
   "reading_unit_label": "Aflæsningsenhed (f.eks. kWh, m³)",
   "reading_unit_help": "Vises ved siden af den registrerede værdi, når opgaven fuldføres.",
   "reading_value_label": "Aflæst værdi",
-  "reading_label": "Aflæsning"
+  "reading_label": "Aflæsning",
+  "settings_templates_label": "Skabelongalleri",
+  "settings_templates_hint": "Fravælg skabeloner, du aldrig får brug for — de forsvinder fra \"Fra skabelon\"-vælgerne (panel og config flow). Intet andet ændres; kan genaktiveres når som helst."
 }

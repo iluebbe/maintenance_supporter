@@ -35,6 +35,7 @@ from ..const import (
     CONF_BUDGET_YEARLY,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_DELETE_ARCHIVED_ONEOFF_DAYS,
+    CONF_DISABLED_TEMPLATE_IDS,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
@@ -125,6 +126,8 @@ def _build_full_settings(options: Mapping[str, Any], *, notify_targets: list[str
         "operator_write_enabled": options.get(CONF_OPERATOR_WRITE_ENABLED, False),
         # (#67): ordered objects-table columns for the panel All-Objects view.
         "objects_table_columns": options.get(CONF_OBJECTS_TABLE_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS),
+        # v2.21: template-gallery curation (ids hidden from the pickers).
+        "disabled_template_ids": options.get(CONF_DISABLED_TEMPLATE_IDS, []),
         # v2.10.0: archive automation thresholds (panel Settings → Archive).
         # oneoff_days: auto-archive a completed one-off after N days (0 = off).
         # delete_archived_oneoff_days: auto-delete an auto-archived one-off N
@@ -512,6 +515,18 @@ async def ws_update_global_settings(
             seen_cols.add(v)
             cols.append(v)
         filtered[CONF_OBJECTS_TABLE_COLUMNS] = cols or list(DEFAULT_OBJECTS_TABLE_COLUMNS)
+
+    # v2.21: disabled_template_ids — keep only ids of templates that actually
+    # exist (a typo/stale id must not linger invisibly), dedupe.
+    if CONF_DISABLED_TEMPLATE_IDS in filtered:
+        from ..templates import KNOWN_TEMPLATE_IDS
+
+        raw_tids = filtered[CONF_DISABLED_TEMPLATE_IDS]
+        tids: list[str] = []
+        for v in raw_tids:
+            if isinstance(v, str) and v in KNOWN_TEMPLATE_IDS and v not in tids:
+                tids.append(v)
+        filtered[CONF_DISABLED_TEMPLATE_IDS] = tids
 
     if not filtered:
         connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
