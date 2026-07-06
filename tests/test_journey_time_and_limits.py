@@ -104,12 +104,21 @@ async def test_downtime_catchup_no_storm_but_reminders_resume(
     assert not calls, f"boot after downtime sent {len(calls)} notifications"
 
     # The overdue repeat interval (12h default) later fires ONE reminder per
-    # task — reminders resume, they weren't lost.
+    # task — reminders resume, they weren't lost. Backdate the seeded
+    # last-notified stamps past the interval instead of shrinking the
+    # interval: a tiny interval (0.0001 h = 0.36 s) raced the wall clock on
+    # fast CI runners (seed → refresh in under 0.36 s ⇒ 0 sends, flaky red).
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
     nm = hass.data[DOMAIN]["_notification_manager"]
+    assert nm._last_notified, "boot did not seed the notification state"
+    for key, stamp in list(nm._last_notified.items()):
+        if isinstance(stamp, _dt):
+            nm._last_notified[key] = stamp - _td(hours=13)
+
     coordinator = obj_entry.runtime_data.coordinator
-    with patch.object(nm, "_is_quiet_hours", return_value=False), patch.object(
-        nm, "_get_interval_hours", return_value=0.0001
-    ):
+    with patch.object(nm, "_is_quiet_hours", return_value=False):
         await coordinator.async_refresh()
         await hass.async_block_till_done()
     assert len(calls) == 3, "repeat reminders did not resume after downtime"
