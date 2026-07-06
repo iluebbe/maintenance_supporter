@@ -97,12 +97,18 @@ export class MaintenanceConfirmDialog extends LitElement {
         <div class="content">
           ${this._message}
           ${this._inputLabel ? html`
-            <ha-textfield
-              label="${this._inputLabel}"
-              type="${this._inputType}"
-              .value=${this._inputValue}
-              @input=${(e: Event) => (this._inputValue = (e.target as HTMLInputElement).value)}
-            ></ha-textfield>
+            <!-- Native <input> rather than <ha-textfield>: HA loads
+                 ha-textfield lazily for its own panels, so inside this custom
+                 panel it can be unregistered and render with zero height —
+                 the prompt then shows no field at all (caught live testing
+                 the pause/replace prompts; same fix as complete-dialog). -->
+            <label class="field">
+              <span class="field-label">${this._inputLabel}</span>
+              <input class="field-input"
+                type="${this._inputType || "text"}"
+                .value=${this._inputValue}
+                @input=${(e: Event) => (this._inputValue = (e.target as HTMLInputElement).value)} />
+            </label>
           ` : nothing}
         </div>
         <div class="dialog-actions">
@@ -126,6 +132,16 @@ export class MaintenanceConfirmDialog extends LitElement {
       font-weight: 500;
       padding-bottom: 12px;
     }
+    .field { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; }
+    .field-label { font-size: 12px; color: var(--secondary-text-color); }
+    .field-input {
+      padding: 8px 10px; font-size: 14px;
+      background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color); border-radius: 6px;
+      font-family: inherit; width: 100%; box-sizing: border-box;
+    }
+    .field-input:focus { outline: none; border-color: var(--primary-color); }
     .content {
       padding: 8px 0;
       min-width: 280px;
