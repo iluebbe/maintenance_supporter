@@ -2,6 +2,57 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.19.1] - 2026-07-06
+
+A pure bugfix release: the user-journey test methodology introduced in 2.19.0
+was worked through to completion (every mapped journey is now either covered
+by a test or explicitly deferred with a reason) and surfaced five more
+lifecycle bugs on the way — all fixed here. No new features, no breaking
+changes.
+
+### 🐛 Fixed
+
+- **Two people completing the same task at once counted twice** — both
+  household members see "Lawn — overdue", both tap Complete within seconds:
+  the task recorded two completions (duplicated history and cost) and shared
+  tasks advanced the rotation twice, skipping a pool member. Duplicate
+  completions within 30 seconds are now treated as one real-world action;
+  deliberate later completions and completions after a reset/skip count
+  normally.
+- **Sensor flapping could evict real completions from the history** — the
+  500-entry history cap pruned strictly oldest-first, so a chatty sensor
+  trigger filled the log with activated/cleared noise until completions (and
+  the statistics computed from them) fell off. Pruning is now type-aware:
+  trigger noise goes first, real actions are kept.
+- **A damaged storage file no longer bricks the object at boot** —
+  a hand-edited or crash-truncated `.storage/maintenance_supporter.*` file
+  with structurally wrong content failed the whole config entry with an
+  error. Broken sections are now dropped with a log warning and the affected
+  tasks degrade to "never performed"; task configuration is untouched.
+- **Uninstall → reinstall without a restart crashed the integration** —
+  removing every entry tears down shared runtime that Home Assistant only
+  builds once per boot, so re-adding the integration in the same run failed
+  its sensor setup and silently lost notifications. The shared runtime is now
+  rebuilt on demand; reinstalling is a documented fresh start (export first
+  to carry data over).
+- **Deleted tasks leaked onto the vacation exempt list forever** — the
+  global "keep reminding during vacation" list is task-id keyed and was never
+  cleaned up on deletion, from any surface. All delete paths (panel/WS,
+  service, options flow) now share one cleanup routine — the options-flow
+  delete previously also skipped store-state, notification-state and
+  repair-issue cleanup, which is fixed by the same consolidation.
+
+### 🧪 Internal
+
+- Journey-test backlog completed: 4 new test files, 22 sequence tests
+  covering archive-cascades across restarts, document-blob lifecycle, full
+  uninstall, device link/unlink round-trips, import→restart parity,
+  golden-master upgrades from v1.x-shaped data, damaged-store recovery,
+  foreign-instance restore, export→wipe→import→re-export equality, a
+  full reminder ladder on a moving clock, schedule-type switching, DST and
+  year-rollover edges, live language switching, and repair-flow lifecycles.
+  Suite: 2560 backend tests, coverage 98.05%.
+
 ## [2.19.0] - 2026-07-05
 
 Deeper Home Assistant integration — the new automation editor, device
