@@ -46,9 +46,7 @@ class MaintenanceStore:
 
     def __init__(self, hass: HomeAssistant, entry_id: str) -> None:
         """Initialize the store."""
-        self._store: Store[dict[str, Any]] = Store(
-            hass, STORE_VERSION, f"{STORE_KEY_PREFIX}.{entry_id}"
-        )
+        self._store: Store[dict[str, Any]] = Store(hass, STORE_VERSION, f"{STORE_KEY_PREFIX}.{entry_id}")
         self._data: dict[str, Any] = {"version": STORE_VERSION, "tasks": {}}
 
     # ------------------------------------------------------------------
@@ -59,8 +57,55 @@ class MaintenanceStore:
         """Load store data.  Returns None if no store file exists."""
         raw = await self._store.async_load()
         if raw is not None:
-            self._data = raw
+            self._data = self._sanitize_loaded(raw)
         return raw
+
+    @staticmethod
+    def _sanitize_loaded(raw: Any) -> dict[str, Any]:
+        """Coerce loaded data to the expected structure (journey I2).
+
+        HA core already quarantines syntactically corrupt store files, but a
+        hand-edited or partially-written file can still be valid JSON with the
+        wrong SHAPE — and every accessor here assumes dicts and lists. Broken
+        parts must degrade to "never performed" instead of bricking the entry
+        at boot with an AttributeError.
+        """
+        if not isinstance(raw, dict):
+            _LOGGER.warning(
+                "Store payload is %s, expected dict — resetting dynamic state",
+                type(raw).__name__,
+            )
+            return {"version": STORE_VERSION, "tasks": {}}
+        data = dict(raw)
+        tasks = data.get("tasks")
+        if not isinstance(tasks, dict):
+            if tasks is not None:
+                _LOGGER.warning(
+                    "Store 'tasks' is %s, expected dict — resetting dynamic state",
+                    type(tasks).__name__,
+                )
+            data["tasks"] = {}
+            return data
+        clean: dict[str, Any] = {}
+        for tid, state in tasks.items():
+            if not isinstance(state, dict):
+                _LOGGER.warning(
+                    "Dropping malformed store state for task %s (%s)",
+                    tid,
+                    type(state).__name__,
+                )
+                continue
+            state = dict(state)
+            if "history" in state and not isinstance(state["history"], list):
+                _LOGGER.warning("Resetting malformed history for task %s", tid)
+                state["history"] = []
+            for key in ("trigger_runtime", "adaptive_config"):
+                if key in state and not isinstance(state[key], dict):
+                    _LOGGER.warning("Dropping malformed %s for task %s", key, tid)
+                    del state[key]
+            clean[tid] = state
+        data["tasks"] = clean
+        return data
 
     def async_delay_save(self) -> None:
         """Schedule a debounced save (coalesces rapid writes)."""
@@ -96,9 +141,7 @@ class MaintenanceStore:
         result: dict[str, Any] = tasks.get(task_id, {})
         return result
 
-    def init_task(
-        self, task_id: str, last_performed: str | None = None
-    ) -> None:
+    def init_task(self, task_id: str, last_performed: str | None = None) -> None:
         """Initialize state for a newly created task."""
         state = self._ensure_task(task_id)
         if last_performed is not None:
@@ -160,17 +203,13 @@ class MaintenanceStore:
         """Return the adaptive config (or None)."""
         return self.get_task_state(task_id).get("adaptive_config")
 
-    def set_adaptive_config(
-        self, task_id: str, config: dict[str, Any]
-    ) -> None:
+    def set_adaptive_config(self, task_id: str, config: dict[str, Any]) -> None:
         """Set the adaptive config."""
         self._ensure_task(task_id)["adaptive_config"] = config
 
     # --- trigger_runtime (per-entity) ---
 
-    def get_trigger_runtime(
-        self, task_id: str, entity_id: str | None = None
-    ) -> dict[str, Any]:
+    def get_trigger_runtime(self, task_id: str, entity_id: str | None = None) -> dict[str, Any]:
         """Return trigger runtime data.
 
         If *entity_id* is given, return per-entity runtime data.
@@ -204,9 +243,7 @@ class MaintenanceStore:
     # Merge / Split Helpers
     # ------------------------------------------------------------------
 
-    def merge_task_data(
-        self, task_id: str, static_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    def merge_task_data(self, task_id: str, static_data: dict[str, Any]) -> dict[str, Any]:
         """Merge static ConfigEntry data with dynamic Store data.
 
         Returns a unified task dict compatible with ``MaintenanceTask.from_dict``.
@@ -228,14 +265,9 @@ class MaintenanceStore:
             tc = dict(result["trigger_config"])
             # Restructure compound flat keys (_compound_N_key) into nested
             # conditions list that CompoundTrigger.async_setup() expects
-            compound_keys = [
-                k for k in trigger_runtime if k.startswith("_compound_")
-            ]
+            compound_keys = [k for k in trigger_runtime if k.startswith("_compound_")]
             if compound_keys:
-                non_compound = {
-                    k: v for k, v in trigger_runtime.items()
-                    if not k.startswith("_compound_")
-                }
+                non_compound = {k: v for k, v in trigger_runtime.items() if not k.startswith("_compound_")}
                 conditions: dict[int, dict[str, Any]] = {}
                 for k in compound_keys:
                     # Key format: _compound_<idx> or _compound_<idx>_<entity_id>
@@ -254,8 +286,7 @@ class MaintenanceStore:
                         sub_key = parts[3]
                         conditions.setdefault(idx, {})[sub_key] = trigger_runtime[k]
                 non_compound["conditions"] = [
-                    conditions.get(i, {})
-                    for i in range(max(conditions.keys()) + 1 if conditions else 0)
+                    conditions.get(i, {}) for i in range(max(conditions.keys()) + 1 if conditions else 0)
                 ]
                 tc["_trigger_state"] = non_compound
             else:
@@ -264,14 +295,9 @@ class MaintenanceStore:
 
         return result
 
-    def merge_all_tasks(
-        self, static_tasks: dict[str, Any]
-    ) -> dict[str, Any]:
+    def merge_all_tasks(self, static_tasks: dict[str, Any]) -> dict[str, Any]:
         """Merge all tasks' static data with Store dynamic data."""
-        return {
-            task_id: self.merge_task_data(task_id, task_data)
-            for task_id, task_data in static_tasks.items()
-        }
+        return {task_id: self.merge_task_data(task_id, task_data) for task_id, task_data in static_tasks.items()}
 
     # ------------------------------------------------------------------
     # Migration

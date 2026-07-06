@@ -22,6 +22,9 @@ _LOGGER = logging.getLogger(__name__)
 
 DATA_EXTRA_MODULE_URL = "frontend_extra_module_url"
 
+# Survives the hass.data[DOMAIN] pop on last-entry unload (see docstring).
+_CARD_REGISTERED_KEY = f"{DOMAIN}_card_registered"
+
 
 async def async_register_card(hass: HomeAssistant) -> None:
     """Register the Lovelace card + dashboard strategy JS modules.
@@ -31,8 +34,13 @@ async def async_register_card(hass: HomeAssistant) -> None:
     versions the registration is a silent no-op. We ship both unconditionally
     so users on any version get the card and 2026.5+ users additionally get
     the auto-generated dashboard in the "Add Dashboard" picker.
+
+    The already-registered guard lives OUTSIDE hass.data[DOMAIN]: that dict is
+    popped when the last entry unloads, but the static paths stay mounted on
+    the HTTP app — re-registering them after an uninstall → reinstall in the
+    same HA run would raise on the duplicate routes (journey O1).
     """
-    if hass.data.get(DOMAIN, {}).get("_card_registered"):
+    if hass.data.get(_CARD_REGISTERED_KEY):
         return
 
     frontend_dir = Path(__file__).parent
@@ -84,8 +92,10 @@ async def async_register_card(hass: HomeAssistant) -> None:
     extra.add(STRATEGY_SHIM_URL)
     extra.add(CALENDAR_CARD_URL)
 
-    hass.data.setdefault(DOMAIN, {})["_card_registered"] = True
+    hass.data[_CARD_REGISTERED_KEY] = True
     _LOGGER.debug(
         "Maintenance Supporter frontend resources registered: card=%s, strategy=%s, calendar=%s",
-        CARD_URL, STRATEGY_URL, CALENDAR_CARD_URL,
+        CARD_URL,
+        STRATEGY_URL,
+        CALENDAR_CARD_URL,
     )

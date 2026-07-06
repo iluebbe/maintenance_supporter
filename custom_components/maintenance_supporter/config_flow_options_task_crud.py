@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
@@ -18,7 +17,6 @@ from .config_flow_helpers import (
 )
 from .const import (
     CONF_ADVANCED_SCHEDULE_TIME,
-    CONF_OBJECT,
     CONF_RESPONSIBLE_USER_ID,
     CONF_TASK_ASSIGNEE_POOL,
     CONF_TASK_DOCUMENTATION_URL,
@@ -60,6 +58,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
+
 class TaskCrudMixin:
     """Manage, edit, delete tasks + checklist editing."""
 
@@ -67,15 +66,14 @@ class TaskCrudMixin:
     if TYPE_CHECKING:
         hass: HomeAssistant
         config_entry: ConfigEntry
+
         def _get_global_options(self) -> dict[str, Any]: ...
         def _show_init_menu(self) -> ConfigFlowResult: ...
         def _show_task_action_menu(self) -> ConfigFlowResult: ...
         def _update_config_entry(self, new_data: dict[str, Any]) -> None: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
 
-    async def async_step_manage_tasks(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_manage_tasks(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """List and manage existing tasks."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
 
@@ -109,22 +107,16 @@ class TaskCrudMixin:
                             mode=selector.SelectSelectorMode.LIST,
                         )
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
         )
 
-    async def async_step_task_action(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_task_action(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show actions for selected task."""
         return self._show_task_action_menu()
 
-    async def async_step_edit_task(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_edit_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Edit an existing task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -141,7 +133,8 @@ class TaskCrudMixin:
                 from .websocket.tasks import _check_nfc_tag_duplicate
 
                 dup_warn = _check_nfc_tag_duplicate(
-                    self.hass, nfc_val,
+                    self.hass,
+                    nfc_val,
                     exclude_task_id=self._selected_task_id,
                 )
                 if dup_warn:
@@ -188,17 +181,13 @@ class TaskCrudMixin:
                         updated_task.get("warning_days", get_default_warning_days(self.hass)),
                     )
                 )
-                updated_task[CONF_TASK_ENABLED] = user_input.get(
-                    CONF_TASK_ENABLED, updated_task.get(CONF_TASK_ENABLED, True)
-                )
+                updated_task[CONF_TASK_ENABLED] = user_input.get(CONF_TASK_ENABLED, updated_task.get(CONF_TASK_ENABLED, True))
                 if user_input.get(CONF_TASK_NOTES):
                     updated_task[CONF_TASK_NOTES] = user_input[CONF_TASK_NOTES]
                 if user_input.get(CONF_TASK_DOCUMENTATION_URL):
                     updated_task[CONF_TASK_DOCUMENTATION_URL] = user_input[CONF_TASK_DOCUMENTATION_URL]
                 if user_input.get(CONF_TASK_LAST_PERFORMED):
-                    updated_task[CONF_TASK_LAST_PERFORMED] = str(
-                        user_input[CONF_TASK_LAST_PERFORMED]
-                    )
+                    updated_task[CONF_TASK_LAST_PERFORMED] = str(user_input[CONF_TASK_LAST_PERFORMED])
                 pool = user_input.get(CONF_TASK_ASSIGNEE_POOL, [])
                 if pool:
                     updated_task["assignee_pool"] = pool
@@ -224,6 +213,7 @@ class TaskCrudMixin:
                 labels_text = user_input.get(CONF_TASK_LABELS_TEXT, "")
                 if labels_text.strip():
                     from .helpers.sanitize import parse_labels_text
+
                     updated_task["labels"] = parse_labels_text(labels_text)
                 else:
                     updated_task.pop("labels", None)
@@ -284,16 +274,10 @@ class TaskCrudMixin:
         for user in users:
             if not user.is_active or user.system_generated:
                 continue
-            user_options.append(
-                selector.SelectOptionDict(
-                    value=user.id, label=user.name or user.id
-                )
-            )
+            user_options.append(selector.SelectOptionDict(value=user.id, label=user.name or user.id))
 
         user_id_default = task.get(CONF_RESPONSIBLE_USER_ID, "")
-        user_id_key = vol.Optional(
-            CONF_RESPONSIBLE_USER_ID, default=user_id_default
-        )
+        user_id_key = vol.Optional(CONF_RESPONSIBLE_USER_ID, default=user_id_default)
         # Rotation pool options = the real users (no empty sentinel).
         pool_options = [o for o in user_options if o["value"]]
         pool_default = task.get("assignee_pool", [])
@@ -316,14 +300,10 @@ class TaskCrudMixin:
             step_id="edit_task",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONF_TASK_NAME, default=task.get("name", "")
-                    ): selector.TextSelector(
+                    vol.Required(CONF_TASK_NAME, default=task.get("name", "")): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
                     ),
-                    vol.Required(
-                        CONF_TASK_TYPE, default=task.get("type", MaintenanceTypeEnum.CLEANING)
-                    ): selector.SelectSelector(
+                    vol.Required(CONF_TASK_TYPE, default=task.get("type", MaintenanceTypeEnum.CLEANING)): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=type_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
@@ -336,9 +316,7 @@ class TaskCrudMixin:
                                 CONF_TASK_INTERVAL_DAYS,
                                 default=sched["interval_days"] or DEFAULT_INTERVAL_DAYS,
                             ): selector.NumberSelector(
-                                selector.NumberSelectorConfig(
-                                    min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX
-                                )
+                                selector.NumberSelectorConfig(min=1, max=3650, step=1, mode=selector.NumberSelectorMode.BOX)
                             ),
                             vol.Optional(
                                 CONF_TASK_INTERVAL_UNIT,
@@ -363,9 +341,7 @@ class TaskCrudMixin:
                                         default=task.get("schedule_time", ""),
                                     ): selector.TimeSelector(),
                                 }
-                                if self._get_global_options().get(
-                                    CONF_ADVANCED_SCHEDULE_TIME, False
-                                )
+                                if self._get_global_options().get(CONF_ADVANCED_SCHEDULE_TIME, False)
                                 else dict[Any, Any]()
                             ),
                         }
@@ -380,9 +356,7 @@ class TaskCrudMixin:
                     # Calendar kinds (Phase 4): per-kind fields, prefilled from
                     # the task's nested schedule.
                     **(
-                        calendar_schema(
-                            sched["schedule_type"], calendar_current(task)
-                        ).schema
+                        calendar_schema(sched["schedule_type"], calendar_current(task)).schema
                         if sched["schedule_type"] in CALENDAR_KIND_VALUES
                         else dict[Any, Any]()
                     ),
@@ -396,7 +370,10 @@ class TaskCrudMixin:
                     ),
                     ecd_key: selector.NumberSelector(
                         selector.NumberSelectorConfig(
-                            min=EARLIEST_COMPLETION_RANGE[0], max=EARLIEST_COMPLETION_RANGE[1], step=1, mode=selector.NumberSelectorMode.BOX
+                            min=EARLIEST_COMPLETION_RANGE[0],
+                            max=EARLIEST_COMPLETION_RANGE[1],
+                            step=1,
+                            mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
                     vol.Optional(
@@ -404,13 +381,9 @@ class TaskCrudMixin:
                         default=task.get(CONF_TASK_ENABLED, True),
                     ): selector.BooleanSelector(),
                     notes_key: selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT, multiline=True
-                        )
+                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, multiline=True)
                     ),
-                    doc_url_key: selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.URL)
-                    ),
+                    doc_url_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.URL)),
                     last_performed_key: selector.DateSelector(),
                     user_id_key: selector.SelectSelector(
                         selector.SelectSelectorConfig(
@@ -420,18 +393,14 @@ class TaskCrudMixin:
                     ),
                     **(
                         {
-                            vol.Optional(
-                                CONF_TASK_ASSIGNEE_POOL, default=pool_default
-                            ): selector.SelectSelector(
+                            vol.Optional(CONF_TASK_ASSIGNEE_POOL, default=pool_default): selector.SelectSelector(
                                 selector.SelectSelectorConfig(
                                     options=pool_options,
                                     mode=selector.SelectSelectorMode.LIST,
                                     multiple=True,
                                 )
                             ),
-                            vol.Optional(
-                                CONF_TASK_ROTATION_STRATEGY, default=rotation_default
-                            ): selector.SelectSelector(
+                            vol.Optional(CONF_TASK_ROTATION_STRATEGY, default=rotation_default): selector.SelectSelector(
                                 selector.SelectSelectorConfig(
                                     options=["", *ROTATION_STRATEGIES],
                                     mode=selector.SelectSelectorMode.DROPDOWN,
@@ -453,17 +422,9 @@ class TaskCrudMixin:
                     vol.Optional(
                         CONF_TASK_LABELS_TEXT,
                         default=", ".join(task.get("labels", [])),
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
-                    nfc_tag_key: selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
-                        )
-                    ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    nfc_tag_key: selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
@@ -472,9 +433,7 @@ class TaskCrudMixin:
             },
         )
 
-    async def async_step_edit_checklist(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_edit_checklist(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Edit the checklist for a task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -487,11 +446,7 @@ class TaskCrudMixin:
             # Per-item length and total-count caps mirror the WS schema so
             # neither path can grow ConfigEntry.data without bound.
             raw = user_input.get("checklist_text", "")
-            items = [
-                line.strip()[:MAX_CHECKLIST_ITEM_LENGTH]
-                for line in raw.splitlines()
-                if line.strip()
-            ][:MAX_CHECKLIST_ITEMS]
+            items = [line.strip()[:MAX_CHECKLIST_ITEM_LENGTH] for line in raw.splitlines() if line.strip()][:MAX_CHECKLIST_ITEMS]
 
             new_data = dict(self.config_entry.data)
             new_tasks = dict(new_data.get(CONF_TASKS, {}))
@@ -510,17 +465,13 @@ class TaskCrudMixin:
             step_id="edit_checklist",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(
-                        "checklist_text", default=default_text
-                    ): selector.TextSelector(
+                    vol.Optional("checklist_text", default=default_text): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
                             multiline=True,
                         )
                     ),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={
@@ -528,9 +479,7 @@ class TaskCrudMixin:
             },
         )
 
-    async def async_step_delete_task(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_delete_task(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm and delete a task."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
         task = tasks_data.get(self._selected_task_id or "", {})
@@ -540,35 +489,15 @@ class TaskCrudMixin:
                 return self._show_task_action_menu()
 
             if user_input.get("confirm"):
-                new_data = dict(self.config_entry.data)
-                new_tasks = dict(new_data.get(CONF_TASKS, {}))
-                new_tasks.pop(self._selected_task_id or "", None)
-                new_data[CONF_TASKS] = new_tasks
+                # Delegate to the shared delete helper so this surface gets
+                # the SAME side-state cleanup as the WS command and the
+                # delete_task service (Store, notification state, registry
+                # entries, group refs, vacation exempt list, repair issues).
+                # The inline copy this replaced missed most of those.
+                from .websocket.tasks_crud import async_delete_task
 
-                # Remove from task_ids
-                obj = dict(new_data.get(CONF_OBJECT, {}))
-                task_ids = [
-                    tid for tid in obj.get("task_ids", [])
-                    if tid != self._selected_task_id
-                ]
-                obj["task_ids"] = task_ids
-                new_data[CONF_OBJECT] = obj
-
-                self._update_config_entry(new_data)
-
-                # Remove orphaned entity registry entries for the deleted task
-                task_id = self._selected_task_id or ""
-                if task_id:
-                    ent_reg = er.async_get(self.hass)
-                    for ent_entry in er.async_entries_for_config_entry(
-                        ent_reg, self.config_entry.entry_id
-                    ):
-                        if ent_entry.unique_id and task_id in ent_entry.unique_id:
-                            ent_reg.async_remove(ent_entry.entity_id)
-
-                    # Clean up group references
-                    from .websocket import cleanup_group_refs
-                    cleanup_group_refs(self.hass, task_id=task_id)
+                if self._selected_task_id:
+                    await async_delete_task(self.hass, self.config_entry, self._selected_task_id)
 
                 return self._show_init_menu()
 
@@ -579,9 +508,7 @@ class TaskCrudMixin:
             data_schema=vol.Schema(
                 {
                     vol.Required("confirm", default=False): selector.BooleanSelector(),
-                    vol.Optional(
-                        "go_back", default=False
-                    ): selector.BooleanSelector(),
+                    vol.Optional("go_back", default=False): selector.BooleanSelector(),
                 }
             ),
             description_placeholders={

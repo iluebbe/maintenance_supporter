@@ -58,7 +58,7 @@ async def test_card_registered_on_async_setup(hass: HomeAssistant) -> None:
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
     assert CARD_URL in urls
     hass.http.async_register_static_paths.assert_called()  # type: ignore[attr-defined]
-    assert hass.data[DOMAIN].get("_card_registered") is True
+    assert hass.data.get(f"{DOMAIN}_card_registered") is True
 
 
 async def test_card_registration_idempotent(hass: HomeAssistant) -> None:
@@ -201,7 +201,7 @@ async def test_panel_and_card_registered_together(
 
     urls: set[str] = hass.data.get(DATA_EXTRA_MODULE_URL, set())
     assert CARD_URL in urls
-    assert hass.data[DOMAIN].get("_card_registered") is True
+    assert hass.data.get(f"{DOMAIN}_card_registered") is True
     assert hass.data[DOMAIN].get("_panel_registered") is True
 
 
