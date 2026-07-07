@@ -685,5 +685,12 @@
   "reading_value_label": "Ablesewert",
   "reading_label": "Ablesung",
   "settings_templates_label": "Vorlagen-Galerie",
-  "settings_templates_hint": "Vorlagen abwählen, die du nie brauchst — sie verschwinden aus den \"Aus Vorlage\"-Auswahlen (Panel und Config-Flow). Sonst ändert sich nichts; jederzeit wieder aktivierbar."
+  "settings_templates_hint": "Vorlagen abwählen, die du nie brauchst — sie verschwinden aus den \"Aus Vorlage\"-Auswahlen (Panel und Config-Flow). Sonst ändert sich nichts; jederzeit wieder aktivierbar.",
+  "worksheet": "Arbeitsblatt",
+  "worksheet_scan_view": "Scannen, um die Aufgabe zu öffnen",
+  "worksheet_scan_complete": "Scannen zum Erledigen",
+  "worksheet_manual_excerpt": "Handbuch-Auszug",
+  "worksheet_pages": "Seiten",
+  "worksheet_printed": "Gedruckt",
+  "worksheet_never": "Nie"
 }

@@ -106,6 +106,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     duplicateTask: () => undefined,
     promptReset: () => undefined,
     snoozeTask: () => undefined,
+    printWorksheet: () => undefined,
     deleteTask: () => undefined,
     applySuggestion: () => undefined,
     reanalyze: () => undefined,
@@ -161,19 +162,21 @@ describe("task-detail renderer", () => {
     expect(labels.some((l) => /archive/i.test(l))).to.be.false;
   });
 
-  it("open more-menu lists edit/duplicate/reset/snooze/delete and fires callbacks", () => {
+  it("open more-menu lists edit/duplicate/reset/snooze/worksheet/delete and fires callbacks", () => {
     const calls: string[] = [];
     const host = mount(task(), ctx({
       moreMenuOpen: true,
       closeMoreMenu: () => calls.push("close"),
       deleteTask: () => calls.push("delete"),
       snoozeTask: () => calls.push("snooze"),
+      printWorksheet: () => calls.push("worksheet"),
     }));
     const items = [...host.querySelectorAll(".popup-menu-item")];
-    expect(items.length).to.equal(5);
+    expect(items.length).to.equal(6);
     (items[3] as HTMLElement).click(); // snooze
-    (items[4] as HTMLElement).click(); // delete (danger)
-    expect(calls).to.deep.equal(["close", "snooze", "close", "delete"]);
+    (items[4] as HTMLElement).click(); // work sheet (v2.21)
+    (items[5] as HTMLElement).click(); // delete (danger)
+    expect(calls).to.deep.equal(["close", "snooze", "close", "worksheet", "close", "delete"]);
   });
 
   it("tab bar switches via setActiveTab; history tab renders the timeline", () => {

@@ -32,6 +32,7 @@ from .helpers.permissions import user_can_write
 
 UPLOAD_URL = "/api/maintenance_supporter/document/upload"
 SERVE_URL = "/api/maintenance_supporter/document/{doc_id}"
+EXCERPT_URL = "/api/maintenance_supporter/document/{doc_id}/excerpt"
 
 # Survives the hass.data[DOMAIN] pop on last-entry unload (see registrar).
 _VIEWS_REGISTERED_KEY = f"{DOMAIN}_views_registered"
@@ -159,6 +160,82 @@ class DocumentServeView(HomeAssistantView):
         )
 
 
+class DocumentExcerptView(HomeAssistantView):
+    """Serve a page range of a stored PDF as its own small PDF (v2.21).
+
+    Backs the task work sheet's "manual excerpt": the documents feature
+    stores a per-task page hint (``task_pages``), and this view cuts pages
+    ``start .. start+count-1`` out of the attached manual so the user can
+    print exactly the relevant section alongside the work sheet. Requires
+    ``pypdf`` (a manifest requirement); auth-gated like the serve view and
+    reachable through HA's signed-path mechanism.
+    """
+
+    url = EXCERPT_URL
+    name = "api:maintenance_supporter:document:excerpt"
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        """Store the hass reference (the view outlives any single request)."""
+        self.hass = hass
+
+    async def get(self, request: web.Request, doc_id: str) -> web.StreamResponse:
+        """Return pages ``start``..``start+count-1`` of the blob as a PDF."""
+        store = _get_store(self.hass)
+        doc = store.get(doc_id)
+        if doc is None or doc.get("kind") != KIND_FILE:
+            return web.Response(status=HTTPStatus.NOT_FOUND)
+        if (doc.get("mime") or "") != "application/pdf":
+            return web.Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+
+        try:
+            start = int(request.query.get("start", "1"))
+            count = int(request.query.get("count", "4"))
+        except ValueError:
+            return web.Response(status=HTTPStatus.BAD_REQUEST)
+        if start < 1 or not 1 <= count <= 20:
+            return web.Response(status=HTTPStatus.BAD_REQUEST)
+
+        try:
+            path = store.blob_path(cast(str, doc.get("hash")))
+        except (ValueError, TypeError):
+            return web.Response(status=HTTPStatus.NOT_FOUND)
+        if not await self.hass.async_add_executor_job(path.is_file):
+            return web.Response(status=HTTPStatus.NOT_FOUND)
+
+        def _extract() -> bytes | None:
+            import io as _io
+
+            from pypdf import PdfReader, PdfWriter
+
+            reader = PdfReader(str(path))
+            total = len(reader.pages)
+            if start > total:
+                return None
+            writer = PdfWriter()
+            for i in range(start - 1, min(start - 1 + count, total)):
+                writer.add_page(reader.pages[i])
+            buf = _io.BytesIO()
+            writer.write(buf)
+            return buf.getvalue()
+
+        try:
+            content = await self.hass.async_add_executor_job(_extract)
+        except Exception:  # noqa: BLE001 - a damaged PDF must 4xx, not 500-trace
+            return web.Response(status=HTTPStatus.UNPROCESSABLE_ENTITY)
+        if content is None:
+            return web.Response(status=HTTPStatus.BAD_REQUEST)
+
+        filename = f"excerpt-p{start}-{doc.get('filename') or 'document'}"
+        return web.Response(
+            body=content,
+            content_type="application/pdf",
+            headers={
+                hdrs.CONTENT_DISPOSITION: _content_disposition(filename, inline=True),
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+
 def async_register_document_views(hass: HomeAssistant) -> None:
     """Register the upload + serve views on the HTTP component.
 
@@ -170,4 +247,5 @@ def async_register_document_views(hass: HomeAssistant) -> None:
         return
     hass.http.register_view(DocumentUploadView(hass))
     hass.http.register_view(DocumentServeView(hass))
+    hass.http.register_view(DocumentExcerptView(hass))
     hass.data[_VIEWS_REGISTERED_KEY] = True

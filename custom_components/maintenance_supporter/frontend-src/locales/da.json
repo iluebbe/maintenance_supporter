@@ -685,5 +685,12 @@
   "reading_value_label": "Aflæst værdi",
   "reading_label": "Aflæsning",
   "settings_templates_label": "Skabelongalleri",
-  "settings_templates_hint": "Fravælg skabeloner, du aldrig får brug for — de forsvinder fra \"Fra skabelon\"-vælgerne (panel og config flow). Intet andet ændres; kan genaktiveres når som helst."
+  "settings_templates_hint": "Fravælg skabeloner, du aldrig får brug for — de forsvinder fra \"Fra skabelon\"-vælgerne (panel og config flow). Intet andet ændres; kan genaktiveres når som helst.",
+  "worksheet": "Arbejdsark",
+  "worksheet_scan_view": "Scan for at åbne opgaven",
+  "worksheet_scan_complete": "Scan for at fuldføre",
+  "worksheet_manual_excerpt": "Uddrag af manualen",
+  "worksheet_pages": "sider",
+  "worksheet_printed": "Udskrevet",
+  "worksheet_never": "Aldrig"
 }

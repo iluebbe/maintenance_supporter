@@ -685,5 +685,12 @@
   "reading_value_label": "Lukema",
   "reading_label": "Lukema",
   "settings_templates_label": "Mallipohjagalleria",
-  "settings_templates_hint": "Poista valinta mallipohjista, joita et koskaan tarvitse — ne katoavat \"Mallipohjasta\"-valitsimista (paneeli ja config flow). Mikään muu ei muutu; voi ottaa käyttöön uudelleen milloin tahansa."
+  "settings_templates_hint": "Poista valinta mallipohjista, joita et koskaan tarvitse — ne katoavat \"Mallipohjasta\"-valitsimista (paneeli ja config flow). Mikään muu ei muutu; voi ottaa käyttöön uudelleen milloin tahansa.",
+  "worksheet": "Työlomake",
+  "worksheet_scan_view": "Skannaa avataksesi tehtävän",
+  "worksheet_scan_complete": "Skannaa suorittaaksesi",
+  "worksheet_manual_excerpt": "Ote käyttöohjeesta",
+  "worksheet_pages": "sivut",
+  "worksheet_printed": "Tulostettu",
+  "worksheet_never": "Ei koskaan"
 }

@@ -685,5 +685,12 @@
   "reading_value_label": "读数值",
   "reading_label": "读数",
   "settings_templates_label": "模板库",
-  "settings_templates_hint": "取消勾选你永远不需要的模板——它们会从\"从模板\"选择器（面板和配置流程）中消失。其他一切不变；可随时重新启用。"
+  "settings_templates_hint": "取消勾选你永远不需要的模板——它们会从\"从模板\"选择器（面板和配置流程）中消失。其他一切不变；可随时重新启用。",
+  "worksheet": "工作单",
+  "worksheet_scan_view": "扫码打开任务",
+  "worksheet_scan_complete": "扫码完成",
+  "worksheet_manual_excerpt": "手册摘录",
+  "worksheet_pages": "页",
+  "worksheet_printed": "打印于",
+  "worksheet_never": "从未"
 }

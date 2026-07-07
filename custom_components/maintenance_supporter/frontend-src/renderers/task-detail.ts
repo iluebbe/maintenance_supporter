@@ -62,6 +62,8 @@ export interface TaskDetailContext {
   duplicateTask: () => void;
   promptReset: () => void;
   snoozeTask: () => void;
+  /** v2.21: open the printable one-pager for this task. */
+  printWorksheet: () => void;
   deleteTask: () => void;
   applySuggestion: (interval: number) => void;
   reanalyze: () => void;
@@ -130,6 +132,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
                 <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
+                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
                 <div class="popup-menu-divider"></div>
                 <div class="popup-menu-item danger" @click=${() => { ctx.closeMoreMenu(); ctx.deleteTask(); }}>${t("delete", L)}</div>
               </div>

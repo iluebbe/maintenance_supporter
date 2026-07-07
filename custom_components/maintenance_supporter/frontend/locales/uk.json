@@ -685,5 +685,12 @@
   "reading_value_label": "Показання",
   "reading_label": "Показання",
   "settings_templates_label": "Галерея шаблонів",
-  "settings_templates_hint": "Зніміть позначку з шаблонів, які вам не потрібні — вони зникнуть із вибору «З шаблону» (панель і config flow). Більше нічого не змінюється; можна ввімкнути знову будь-коли."
+  "settings_templates_hint": "Зніміть позначку з шаблонів, які вам не потрібні — вони зникнуть із вибору «З шаблону» (панель і config flow). Більше нічого не змінюється; можна ввімкнути знову будь-коли.",
+  "worksheet": "Робочий аркуш",
+  "worksheet_scan_view": "Скануйте, щоб відкрити задачу",
+  "worksheet_scan_complete": "Скануйте для виконання",
+  "worksheet_manual_excerpt": "Витяг з посібника",
+  "worksheet_pages": "сторінки",
+  "worksheet_printed": "Надруковано",
+  "worksheet_never": "Ніколи"
 }

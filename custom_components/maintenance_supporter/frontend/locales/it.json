@@ -685,5 +685,12 @@
   "reading_value_label": "Valore letto",
   "reading_label": "Lettura",
   "settings_templates_label": "Galleria modelli",
-  "settings_templates_hint": "Deseleziona i modelli che non ti serviranno mai: spariscono dai selettori \"Da modello\" (pannello e config flow). Nient'altro cambia; riattivabili in qualsiasi momento."
+  "settings_templates_hint": "Deseleziona i modelli che non ti serviranno mai: spariscono dai selettori \"Da modello\" (pannello e config flow). Nient'altro cambia; riattivabili in qualsiasi momento.",
+  "worksheet": "Scheda di lavoro",
+  "worksheet_scan_view": "Scansiona per aprire l'attività",
+  "worksheet_scan_complete": "Scansiona per completare",
+  "worksheet_manual_excerpt": "Estratto del manuale",
+  "worksheet_pages": "pagine",
+  "worksheet_printed": "Stampato",
+  "worksheet_never": "Mai"
 }

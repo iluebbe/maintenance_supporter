@@ -685,5 +685,12 @@
   "reading_value_label": "Reading value",
   "reading_label": "Reading",
   "settings_templates_label": "Template gallery",
-  "settings_templates_hint": "Untick templates you'll never need — they disappear from the \"From template\" pickers (panel and config flow). Nothing else changes; you can re-enable them any time."
+  "settings_templates_hint": "Untick templates you'll never need — they disappear from the \"From template\" pickers (panel and config flow). Nothing else changes; you can re-enable them any time.",
+  "worksheet": "Work sheet",
+  "worksheet_scan_view": "Scan to open the task",
+  "worksheet_scan_complete": "Scan to complete",
+  "worksheet_manual_excerpt": "Manual excerpt",
+  "worksheet_pages": "pages",
+  "worksheet_printed": "Printed",
+  "worksheet_never": "Never"
 }

@@ -685,5 +685,12 @@
   "reading_value_label": "Wartość odczytu",
   "reading_label": "Odczyt",
   "settings_templates_label": "Galeria szablonów",
-  "settings_templates_hint": "Odznacz szablony, których nigdy nie użyjesz — znikną z wyboru „Z szablonu\" (panel i config flow). Nic więcej się nie zmienia; można je włączyć ponownie w każdej chwili."
+  "settings_templates_hint": "Odznacz szablony, których nigdy nie użyjesz — znikną z wyboru „Z szablonu\" (panel i config flow). Nic więcej się nie zmienia; można je włączyć ponownie w każdej chwili.",
+  "worksheet": "Karta pracy",
+  "worksheet_scan_view": "Zeskanuj, aby otworzyć zadanie",
+  "worksheet_scan_complete": "Zeskanuj, aby ukończyć",
+  "worksheet_manual_excerpt": "Fragment instrukcji",
+  "worksheet_pages": "strony",
+  "worksheet_printed": "Wydrukowano",
+  "worksheet_never": "Nigdy"
 }
