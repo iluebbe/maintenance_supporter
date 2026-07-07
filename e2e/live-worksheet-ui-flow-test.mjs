@@ -96,9 +96,15 @@ const [sheet] = await Promise.all([
   ctx.waitForEvent("page"),
   p.locator("maintenance-supporter-panel .popup-menu-item", { hasText: /work sheet|arbeitsblatt/i }).click(),
 ]);
+sheet.on("console", (m) => { if (m.type() !== "log") console.log("SHEET:", m.type(), m.text().slice(0, 200)); });
 await sheet.waitForLoadState("domcontentloaded");
+// v2.21b: excerpt pages render inline via pdf.js — wait for the canvases.
+await sheet.waitForSelector(".excerpt-pages canvas", { timeout: 25000 });
 await sheet.waitForTimeout(1500);
 await sheet.screenshot({ path: OUT + "42-worksheet-ui-flow.png", fullPage: true });
+const canvases = await sheet.evaluate(() => document.querySelectorAll(".excerpt-pages canvas").length);
+log("inline excerpt canvases:", canvases);
+if (canvases !== 4) throw new Error("expected 4 inline pages, got " + canvases);
 const checks = await sheet.evaluate(async () => {
   const excerpt = document.querySelector(".excerpt");
   const a = excerpt?.querySelector("a");

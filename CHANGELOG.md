@@ -10,9 +10,12 @@ All notable changes to Maintenance Supporter are documented in this file.
   ⋮-menu: object + task details, the checklist as real tick boxes, the
   notes, and a QR pair (open the task / complete it) so the paper links
   back to the panel. When the task has a linked PDF manual with a page
-  hint, the sheet links a **manual excerpt**: a new auth-gated endpoint
+  hint, the sheet embeds a **manual excerpt**: a new auth-gated endpoint
   cuts "from page X, 4 pages" out of the stored PDF (pypdf — the
-  integration's first requirement) for printing alongside.
+  integration's first requirement), and the sheet renders those pages
+  **inline as downscaled images** (two per row, vendored pdf.js legacy
+  build loaded only by the sheet) — the whole work sheet prints as one
+  document, with the raw PDF link as fallback.
 - **Template-gallery curation** — Settings gains a "Template gallery"
   section listing every built-in template with an on/off toggle. Untick the
   ones you'll never need (no pool? hide the pool templates) and they

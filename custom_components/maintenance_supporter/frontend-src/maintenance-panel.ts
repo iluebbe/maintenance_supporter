@@ -1484,6 +1484,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             // Absolute URL: the sheet lives on a blob: page, where a
             // relative /api/... href cannot resolve (caught live).
             url: new URL(signed.path, window.location.origin).toString(),
+            vendorBase: new URL("/maintenance_supporter_vendor", window.location.origin).toString(),
           };
         }
       } catch { /* worksheet works without the excerpt */ }

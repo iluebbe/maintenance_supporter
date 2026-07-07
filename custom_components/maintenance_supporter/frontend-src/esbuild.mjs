@@ -83,4 +83,11 @@ await build({
 mkdirSync("../frontend/locales", { recursive: true });
 cpSync("locales", "../frontend/locales", { recursive: true });
 
+// v2.21: vendor pdf.js for the work sheet's inline manual excerpt. Copied,
+// not bundled — the work-sheet page loads it on demand from VENDOR_URL, so
+// the panel/card bundles stay untouched.
+mkdirSync("../frontend/vendor", { recursive: true });
+cpSync("node_modules/pdfjs-dist/legacy/build/pdf.min.mjs", "../frontend/vendor/pdf.min.mjs");
+cpSync("node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs", "../frontend/vendor/pdf.worker.min.mjs");
+
 console.log("Build complete.");
