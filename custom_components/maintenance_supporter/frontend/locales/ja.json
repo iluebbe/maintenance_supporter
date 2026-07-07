@@ -692,5 +692,6 @@
   "worksheet_manual_excerpt": "マニュアル抜粋",
   "worksheet_pages": "ページ",
   "worksheet_printed": "印刷日",
-  "worksheet_never": "未実施"
+  "worksheet_never": "未実施",
+  "card_all_caught_up": "すべて完了 — 対応が必要なものはありません"
 }

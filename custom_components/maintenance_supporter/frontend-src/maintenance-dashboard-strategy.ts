@@ -200,15 +200,22 @@ const SMALL_SCREEN_CONDITION: ViewColumnsCondition = {
 // truth shared with the panel KPI chips and the statistics WS endpoint — so the
 // numbers can't drift. Rendered live via a markdown template instead of being
 // counted client-side at generation time (which froze them until reload).
-function kpiMarkdownCard(): CardConfig {
+// (#86) Entity ids come registry-resolved from the statistics WS: the
+// documented sensor.maintenance_supporter_<key> ids are NOT guaranteed —
+// a user rename, a _2 collision suffix, or a pre-pinning install that
+// registered localized ids all made the hardcoded templates read "unknown".
+type SummaryEntityIds = Partial<Record<"overdue" | "triggered" | "due_soon" | "ok", string | null>>;
+
+function kpiMarkdownCard(ids: SummaryEntityIds = {}): CardConfig {
+  const eid = (key: keyof SummaryEntityIds) => ids[key] || `sensor.maintenance_supporter_${key}`;
   return {
     type: "markdown",
     text_only: true,
     content: [
-      "🔴 **{{ states('sensor.maintenance_supporter_overdue') }}** overdue",
-      "⚡ **{{ states('sensor.maintenance_supporter_triggered') }}** triggered",
-      "🟡 **{{ states('sensor.maintenance_supporter_due_soon') }}** due soon",
-      "🟢 **{{ states('sensor.maintenance_supporter_ok') }}** ok",
+      `🔴 **{{ states('${eid("overdue")}') }}** overdue`,
+      `⚡ **{{ states('${eid("triggered")}') }}** triggered`,
+      `🟡 **{{ states('${eid("due_soon")}') }}** due soon`,
+      `🟢 **{{ states('${eid("ok")}') }}** ok`,
     ].join(" · "),
   };
 }
@@ -263,8 +270,8 @@ function emptyStateView(): ViewConfig {
   };
 }
 
-function overviewView(): ViewConfig {
-  const kpiCard = kpiMarkdownCard();
+function overviewView(summaryIds: SummaryEntityIds = {}): ViewConfig {
+  const kpiCard = kpiMarkdownCard(summaryIds);
   return {
     title: "Overview",
     icon: "mdi:wrench-clock",
@@ -614,10 +621,19 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
       calendar: () => viewsByCalendar(objects),
     };
 
+    // Registry-resolved summary-sensor ids (#86); tolerate older backends.
+    let summaryIds: SummaryEntityIds = {};
+    try {
+      const stats = await hass.connection.sendMessagePromise<{ summary_entity_ids?: SummaryEntityIds }>({
+        type: "maintenance_supporter/statistics",
+      });
+      summaryIds = stats.summary_entity_ids || {};
+    } catch { /* fall back to the documented default ids */ }
+
     return {
       title: "Maintenance",
       views: [
-        overviewView(),
+        overviewView(summaryIds),
         ...(viewBuilders[groupBy] ?? viewBuilders.area)(),
       ],
     };

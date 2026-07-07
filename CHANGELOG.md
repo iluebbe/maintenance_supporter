@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Dashboard-strategy KPI chips could read "unknown" forever** (#86) —
+  the auto-dashboard's headline counters referenced the four summary
+  sensors by their documented entity_ids. Those ids are not guaranteed: a
+  user rename, a `_2` collision suffix, or an install that registered the
+  sensors before the ids were pinned all left the chips permanently on
+  "unknown". The statistics endpoint now returns the registry-resolved
+  entity_ids (looked up by the stable unique_ids) and the strategy embeds
+  those, falling back to the documented defaults.
+- **The Lovelace card no longer claims "No maintenance tasks yet" when
+  everything is simply OK** (#86) — the default card filters to
+  actionable tasks (overdue / due soon / triggered); with a healthy
+  install that list is empty and the card showed the first-run empty
+  state. It now says "All caught up — nothing needs attention" (in all
+  18 languages) whenever tasks exist but none match the filter.
+
 ## [2.21.1] - 2026-07-07
 
 The template catalog grows up: fully localized and with its first
