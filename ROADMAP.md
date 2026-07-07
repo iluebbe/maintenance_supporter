@@ -151,6 +151,34 @@ panel. When the task has a linked PDF manual with a page hint
 `document/{id}/excerpt` endpoint (pypdf) extracts "from page X, N pages" of
 the stored PDF for printing alongside.
 
+### 💡 Spare parts & consumables inventory
+Maintenance consumes things — filters, seals, descaler, softener salt,
+mower blades. A per-object **parts list** would track each part's name,
+product URL and current stock with a reorder threshold: dropping below it
+auto-creates a one-off "buy …" task, and completing a maintenance task that
+consumes a part optionally decrements its stock. Part datasheets/receipts
+attach through the existing document store; stock levels surface as sensor
+values for automations. Turns "the task is due" into "the task is due AND
+the filter is already on the shelf".
+
+### 💡 Saved filter views (profiles)
+The panel and card offer rich filtering, but every filter is transient. A
+**named, saved view** (combination of status / labels / areas / objects /
+assignee) would be reusable across the panel task list, the Lovelace card
+config, and — the interesting part — **notification routing**: "only notify
+me about tasks in view 'Garden'". Shared across devices via the global
+settings store.
+
+### 💡 Adopt problem sensors as triggered tasks
+Many integrations expose `binary_sensor` entities with
+`device_class: problem` (printer errors, filter warnings, battery alerts).
+An opt-in sync could mirror selected problem sensors as sensor-based tasks:
+the task triggers while the problem is active and resolves when it clears —
+putting one-off appliance complaints into the same inbox, history and
+notification pipeline as planned maintenance. Needs careful scoping
+(explicit include/exclude by entity, device, area or label) so a chatty
+integration can't flood the task list.
+
 ### 💡 Cross-cutting labels / tags
 Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
 across objects, areas, and groups for filtering and reporting — orthogonal to
