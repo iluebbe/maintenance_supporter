@@ -83,6 +83,18 @@ all along via `notify_overdue_interval_hours`.
 
 ---
 
+### 🛠️ Spare parts & consumables inventory (planned next)
+Maintenance consumes things — filters, seals, descaler, softener salt,
+mower blades. A per-object **parts list** tracks each part's name, product
+URL and current stock with a reorder threshold: dropping below it
+auto-creates a one-off "buy …" task, and completing a maintenance task that
+consumes a part optionally decrements its stock. Part datasheets/receipts
+attach through the existing document store; stock levels surface as sensor
+values for automations. Turns "the task is due" into "the task is due AND
+the filter is already on the shelf".
+
+---
+
 ## Next (under consideration)
 
 ### ✅ Replace an object (successor flow)
@@ -150,16 +162,6 @@ panel. When the task has a linked PDF manual with a page hint
 (`task_pages`), the sheet links a server-cut **manual excerpt** — the new
 `document/{id}/excerpt` endpoint (pypdf) extracts "from page X, N pages" of
 the stored PDF for printing alongside.
-
-### 💡 Spare parts & consumables inventory
-Maintenance consumes things — filters, seals, descaler, softener salt,
-mower blades. A per-object **parts list** would track each part's name,
-product URL and current stock with a reorder threshold: dropping below it
-auto-creates a one-off "buy …" task, and completing a maintenance task that
-consumes a part optionally decrements its stock. Part datasheets/receipts
-attach through the existing document store; stock levels surface as sensor
-values for automations. Turns "the task is due" into "the task is due AND
-the filter is already on the shelf".
 
 ### 💡 Saved filter views (profiles)
 The panel and card offer rich filtering, but every filter is transient. A

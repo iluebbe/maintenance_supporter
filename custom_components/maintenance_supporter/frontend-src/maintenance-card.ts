@@ -249,10 +249,16 @@ export class MaintenanceSupporterCard extends LitElement {
           </div>
         </div>
         ${tasks.length === 0
-          ? html`<div class="empty-card">
-              <div>${t("card_no_tasks_title", L)}</div>
-              <a class="empty-link" href="/maintenance-supporter">${t("card_no_tasks_cta", L)}</a>
-            </div>`
+          ? this._objects.some((o) => o.tasks.length > 0)
+            ? html`<div class="empty-card">
+                <!-- (#86) tasks exist but none match the filter (default:
+                     actionable-only) — "all caught up", NOT "no tasks yet". -->
+                <div class="all-caught-up">✓ ${t("card_all_caught_up", L)}</div>
+              </div>`
+            : html`<div class="empty-card">
+                <div>${t("card_no_tasks_title", L)}</div>
+                <a class="empty-link" href="/maintenance-supporter">${t("card_no_tasks_cta", L)}</a>
+              </div>`
           : html`
               <div class="task-list ${compact ? "compact" : ""}">
                 ${tasks.map(
@@ -366,6 +372,7 @@ export class MaintenanceSupporterCard extends LitElement {
         font-size: 13px;
       }
       .empty-link:hover { text-decoration: underline; }
+      .all-caught-up { color: var(--success-color, #4caf50); font-weight: 500; }
       .task-list { padding: 0 16px 16px; }
 
       .task-item {

@@ -69,6 +69,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DEFAULT_WARRANTY_REMINDER_DAYS,
     DOMAIN,
+    GLOBAL_UNIQUE_ID,
     KNOWN_OBJECT_TABLE_COLUMNS,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
@@ -242,9 +243,25 @@ async def ws_get_statistics(
     # Counts come from the shared aggregator (single source of truth) so the
     # panel/card chips and the global summary sensors can never diverge.
     counts = compute_status_counts(hass)
+
+    # (#86) Registry-resolved entity_ids of the four summary sensors. The
+    # dashboard strategy's KPI chips used to hardcode
+    # sensor.maintenance_supporter_<key>, which breaks whenever the actual id
+    # differs (renamed by the user, a _2 collision suffix, or a pre-pinning
+    # install that registered localized ids) — the chips then read "unknown"
+    # forever. unique_ids are stable, so resolve through the registry.
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    summary_entity_ids = {
+        key: ent_reg.async_get_entity_id("sensor", DOMAIN, f"{GLOBAL_UNIQUE_ID}_summary_{key}")
+        for key in ("overdue", "due_soon", "triggered", "ok")
+    }
+
     connection.send_result(
         msg["id"],
         {
+            "summary_entity_ids": summary_entity_ids,
             "total_objects": counts["total_objects"],
             "total_tasks": counts["total_tasks"],
             "overdue": counts["overdue"],
