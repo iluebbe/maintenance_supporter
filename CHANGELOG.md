@@ -2,7 +2,10 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.21.2] - 2026-07-07
+
+Two display fixes from one great bug report (#86 — thanks @jayg37 for
+the diagnostics!).
 
 ### 🐛 Fixed
 
