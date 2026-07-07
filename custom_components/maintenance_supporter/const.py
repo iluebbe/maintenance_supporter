@@ -239,6 +239,10 @@ CALENDAR_CARD_URL = "/maintenance_supporter_calendar_card"
 # fallback); the other languages live here, so a translation edit needs no
 # frontend bundle rebuild.
 LOCALES_URL = "/maintenance_supporter_locales"
+# v2.21: vendored third-party assets (pdf.js for the work sheet's inline
+# manual excerpt) — served statically, loaded ONLY by the work-sheet tab so
+# the panel bundle stays lean.
+VENDOR_URL = "/maintenance_supporter_vendor"
 
 # --- Config Keys: Object ---
 CONF_OBJECT = "object"

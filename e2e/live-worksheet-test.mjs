@@ -98,12 +98,19 @@ const [sheet] = await Promise.all([
   ctx.waitForEvent("page"),
   panel.locator(".popup-menu-item", { hasText: /work sheet|arbeitsblatt/i }).click(),
 ]);
+sheet.on("console", (m) => console.log("SHEET-CONSOLE:", m.type(), m.text().slice(0, 300)));
+sheet.on("pageerror", (e) => console.log("SHEET-ERROR:", String(e).slice(0, 300)));
 await sheet.waitForLoadState("domcontentloaded");
 await sheet.waitForTimeout(1500);
 await sheet.screenshot({ path: OUT + "40-worksheet.png", fullPage: true });
 log("shot 40 (work sheet)");
 
+// v2.21b: the excerpt pages render inline via pdf.js — wait for the canvases.
+await sheet.waitForSelector(".excerpt-pages canvas", { timeout: 20000 });
+await sheet.waitForTimeout(1500);
+await sheet.screenshot({ path: OUT + "43-worksheet-inline-pages.png", fullPage: true });
 const checks = await sheet.evaluate(() => ({
+  canvases: document.querySelectorAll(".excerpt-pages canvas").length,
   qrs: document.querySelectorAll(".qr img").length,
   boxes: document.querySelectorAll("ul.check .box").length,
   excerpt: document.querySelector(".excerpt")?.textContent || "",
@@ -113,6 +120,7 @@ log("VERIFY", JSON.stringify(checks));
 if (checks.qrs !== 2) throw new Error("expected 2 QR codes");
 if (checks.boxes !== 4) throw new Error("expected 4 checklist boxes");
 if (!/2–5|2-5/.test(checks.excerpt)) throw new Error("excerpt page range missing");
+if (checks.canvases !== 4) throw new Error("expected 4 inline excerpt pages, got " + checks.canvases);
 
 // The excerpt link actually serves a PDF.
 const excerptOk = await sheet.evaluate(async () => {

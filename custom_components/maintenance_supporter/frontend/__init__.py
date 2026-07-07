@@ -13,6 +13,7 @@ from ..const import (
     CARD_URL,
     DOMAIN,
     LOCALES_URL,
+    VENDOR_URL,
     STRATEGY_CHUNKS_URL,
     STRATEGY_SHIM_URL,
     STRATEGY_URL,
@@ -78,6 +79,9 @@ async def async_register_card(hass: HomeAssistant) -> None:
         # the panel/card on demand (only EN is bundled into the JS). cache=False
         # so a translation edit shows up on reload without a version bump.
         StaticPathConfig(LOCALES_URL, str(frontend_dir / "locales"), False),
+        # v2.21: pdf.js for the work sheet's inline manual excerpt (cache=True —
+        # versioned by release like the JS bundles).
+        StaticPathConfig(VENDOR_URL, str(frontend_dir / "vendor"), True),
     ]
     await hass.http.async_register_static_paths(static_paths)
 

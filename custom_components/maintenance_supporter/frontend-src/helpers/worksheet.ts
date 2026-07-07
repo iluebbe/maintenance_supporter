@@ -3,9 +3,10 @@
  *  Everything needed to actually DO the task, on one sheet of paper: object
  *  + task details, the checklist as real tick boxes, the notes, and a QR
  *  pair (open the task / complete it) so the paper links back to the panel.
- *  When the task has a linked PDF manual with a page hint, a "manual
- *  excerpt" line points at the server-cut excerpt PDF (opened & printed
- *  separately — browsers can't print an embedded PDF with the parent page).
+ *  When the task has a linked PDF manual with a page hint, the manual
+ *  excerpt pages are rendered INLINE (downscaled, two per row) via the
+ *  vendored pdf.js legacy build — the whole work sheet prints as one
+ *  document. The PDF link stays as the fallback when rendering fails.
  *
  *  Mirrors helpers/report.ts: pure function building a self-contained HTML
  *  document; the panel opens it in a new tab where the user prints or saves
@@ -38,7 +39,10 @@ export interface WorksheetExcerpt {
   title: string;
   startPage: number;
   endPage: number;
-  url: string; // signed excerpt-endpoint URL
+  url: string; // signed excerpt-endpoint URL (absolute)
+  /** Absolute base URL of the vendored pdf.js assets; when set, the sheet
+   *  renders the excerpt pages inline (downscaled 2-up) via pdf.js. */
+  vendorBase?: string;
 }
 
 const esc = (v: unknown): string =>
@@ -101,6 +105,9 @@ export function buildTaskWorksheetHtml(
          flex: 0 0 auto; margin-top: 2px; }
   .notes { white-space: pre-wrap; }
   .excerpt a { color: #0b57d0; word-break: break-all; }
+  .excerpt-pages { display: flex; flex-wrap: wrap; gap: 3mm; margin-top: 4mm; }
+  .excerpt-pages canvas { width: calc(50% - 2mm); height: auto;
+    border: 0.4px solid #ccc; break-inside: avoid; }
   footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 9px; color: #888;
            border-top: 1px solid #ddd; padding-top: 3px; }
   @media screen { body { max-width: 800px; margin: 24px auto; padding: 0 16px; } }
@@ -124,7 +131,27 @@ export function buildTaskWorksheetHtml(
   ${excerpt ? `<h2>${esc(L.manualExcerpt)}</h2>
     <div class="excerpt">${esc(excerpt.title)} — ${esc(L.pages)} ${excerpt.startPage}–${excerpt.endPage}:
       <a href="${esc(excerpt.url)}" target="_blank" rel="noopener">PDF</a>
-    </div>` : ""}
+    </div>
+    <div id="excerpt-pages" class="excerpt-pages"></div>
+    ${excerpt.vendorBase ? `<script type="module">
+      // Render the excerpt pages inline (downscaled, two per row) so the
+      // whole work sheet prints as ONE document. The link above stays as
+      // the fallback if pdf.js or the fetch fails.
+      try {
+        const pdfjs = await import(${JSON.stringify(excerpt.vendorBase + "/pdf.min.mjs")});
+        pdfjs.GlobalWorkerOptions.workerSrc = ${JSON.stringify(excerpt.vendorBase + "/pdf.worker.min.mjs")};
+        const doc = await pdfjs.getDocument({ url: ${JSON.stringify(excerpt.url)} }).promise;
+        const host = document.getElementById("excerpt-pages");
+        for (let n = 1; n <= doc.numPages; n++) {
+          const page = await doc.getPage(n);
+          const viewport = page.getViewport({ scale: 1.4 }); // crisp at ~50% print width
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width; canvas.height = viewport.height;
+          await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+          host.appendChild(canvas);
+        }
+      } catch (e) { console.warn("excerpt inline render failed", e); }
+    </script>` : ""}` : ""}
   <footer>${esc(objectName)} · ${esc(task.name)} · ${esc(L.printedOn)} ${esc(nowIso.slice(0, 10))}</footer>
 </body></html>`;
 }
