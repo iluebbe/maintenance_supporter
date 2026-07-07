@@ -503,6 +503,9 @@ async def ws_duplicate_object(
         vol.Required("type"): "maintenance_supporter/object/from_template",
         vol.Required("template_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Optional("name"): vol.Any(vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)), None),
+        # v2.21.1: the caller's UI language — created object/task names are
+        # localized (falls back to the server language).
+        vol.Optional("language"): vol.All(str, vol.Length(max=10)),
     }
 )
 @require_write
@@ -520,14 +523,17 @@ async def ws_create_from_template(
     """
     from uuid import uuid4
 
-    from ..templates import get_template_by_id
+    from ..helpers.i18n import normalize_language
+    from ..templates import get_template_by_id, localize_template_text
 
     template = get_template_by_id(msg["template_id"])
     if template is None:
         connection.send_error(msg["id"], "not_found", "Template not found")
         return
 
-    name = (msg.get("name") or template.name).strip() or template.name
+    lang = (msg.get("language") or normalize_language(hass))[:2].lower()
+    default_name = localize_template_text(template.name, lang) or template.name
+    name = (msg.get("name") or default_name).strip() or default_name
     object_id = uuid4().hex
     new_obj: dict[str, Any] = {
         "id": object_id,
@@ -540,7 +546,7 @@ async def ws_create_from_template(
         task: dict[str, Any] = {
             "id": task_id,
             "object_id": object_id,
-            "name": tt.name,
+            "name": localize_template_text(tt.name, lang),
             "type": tt.type,
             "enabled": True,
             "schedule_type": tt.schedule_type,
@@ -549,7 +555,7 @@ async def ws_create_from_template(
         if tt.interval_days is not None:
             task["interval_days"] = tt.interval_days
         if tt.notes:
-            task["notes"] = tt.notes
+            task["notes"] = localize_template_text(tt.notes, lang)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
 

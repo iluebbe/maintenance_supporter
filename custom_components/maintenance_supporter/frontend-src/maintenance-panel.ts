@@ -885,7 +885,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       const res = await this.hass.connection.sendMessagePromise<{
         categories: Record<string, { icon?: string }>;
         templates: Array<{ id: string; name: string; category: string; tasks: unknown[]; disabled?: boolean }>;
-      }>({ type: "maintenance_supporter/templates" });
+      }>({ type: "maintenance_supporter/templates", language: this._lang });
       this._templateCategories = res.categories || {};
       // v2.21: admin-hidden templates stay out of the gallery.
       this._templates = (res.templates || []).filter((tpl) => !tpl.disabled);
@@ -899,6 +899,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     try {
       const res = await this.hass.connection.sendMessagePromise<{ entry_id?: string }>({
         type: "maintenance_supporter/object/from_template",
+        language: this._lang,
         template_id: templateId,
       });
       this._templateGalleryOpen = false;

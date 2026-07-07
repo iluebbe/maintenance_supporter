@@ -4996,7 +4996,7 @@ ${d?`<div class="sub">${d}</div>`:""}
           </label>
         `)}
       </div>
-    `}async _loadTemplates(){if(!this._templatesRequested){this._templatesRequested=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates"});this._allTemplates=e.templates||[],this._templateCategories=e.categories||{}}catch{}}}_renderTemplateToggles(e){this._loadTemplates();let t=new Set(this._settings.disabled_template_ids||[]);return o`
+    `}async _loadTemplates(){if(!this._templatesRequested){this._templatesRequested=!0;try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates",language:this._lang});this._allTemplates=e.templates||[],this._templateCategories=e.categories||{}}catch{}}}_renderTemplateToggles(e){this._loadTemplates();let t=new Set(this._settings.disabled_template_ids||[]);return o`
       <div class="settings-section" data-section="templates">
         <h3>${s("settings_templates_label",e)}</h3>
         <p class="section-desc">${s("settings_templates_hint",e)}</p>
@@ -7067,7 +7067,7 @@ ${d?`<div class="sub">${d}</div>`:""}
           <div class="palette-hint">${s("palette_hint",e)}</div>
         </div>
       </div>
-    `}async _openTemplateGallery(){if(this._templateGalleryOpen=!0,!(this._templates.length>0))try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates"});this._templateCategories=e.categories||{},this._templates=(e.templates||[]).filter(t=>!t.disabled)}catch{this._showToast(s("action_error",this._lang))}}async _createFromTemplate(e){this._templateBusy=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/from_template",template_id:e});this._templateGalleryOpen=!1,await this._loadData(),this._showToast(s("template_created",this._lang)),t?.entry_id&&this._showObject(t.entry_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._templateBusy=!1}}_categoryName(e){let t=this._templateCategories[e];return t&&(t[`name_${this._lang}`]||t.name_en)||e}_renderTemplateGallery(){if(!this._templateGalleryOpen)return h;let e=this._lang,t=new Map;for(let i of this._templates)t.has(i.category)||t.set(i.category,[]),t.get(i.category).push(i);return o`
+    `}async _openTemplateGallery(){if(this._templateGalleryOpen=!0,!(this._templates.length>0))try{let e=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/templates",language:this._lang});this._templateCategories=e.categories||{},this._templates=(e.templates||[]).filter(t=>!t.disabled)}catch{this._showToast(s("action_error",this._lang))}}async _createFromTemplate(e){this._templateBusy=!0;try{let t=await this.hass.connection.sendMessagePromise({type:"maintenance_supporter/object/from_template",language:this._lang,template_id:e});this._templateGalleryOpen=!1,await this._loadData(),this._showToast(s("template_created",this._lang)),t?.entry_id&&this._showObject(t.entry_id)}catch{this._showToast(s("action_error",this._lang))}finally{this._templateBusy=!1}}_categoryName(e){let t=this._templateCategories[e];return t&&(t[`name_${this._lang}`]||t.name_en)||e}_renderTemplateGallery(){if(!this._templateGalleryOpen)return h;let e=this._lang,t=new Map;for(let i of this._templates)t.has(i.category)||t.set(i.category,[]),t.get(i.category).push(i);return o`
       <div class="palette-backdrop" @click=${()=>{this._templateGalleryOpen=!1}}>
         <div class="template-gallery" @click=${i=>i.stopPropagation()}>
           <div class="template-gallery-head">

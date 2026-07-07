@@ -2,6 +2,20 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ New
+
+- **Template catalog speaks your language** — the built-in template and
+  task names (and notes) are now translated into all 18 UI languages, in
+  the panel gallery, the Settings toggles, the config-flow picker AND on
+  the objects/tasks actually created from a template (a German user gets
+  "Ölwechsel", not "Oil Change"). One flat translation table keyed by the
+  English source string; anything untranslated falls back to English.
+- **Electric Car template** — a vehicle template without the combustion
+  tasks: tire rotation, cabin air filter, brake service (regenerative
+  braking leaves discs underused), brake fluid, and a 12V battery check.
+
 ## [2.21.0] - 2026-07-07
 
 Two quality-of-life features grown from community threads — the printable

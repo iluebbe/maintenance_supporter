@@ -13,7 +13,7 @@ from homeassistant.config_entries import (
     ConfigFlowResult,
     OptionsFlow,
 )
-from homeassistant.core import State, callback
+from homeassistant.core import HomeAssistant, State, callback
 from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
@@ -71,6 +71,13 @@ from .templates import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _localized_template_default_name(template: ObjectTemplate, hass: HomeAssistant) -> str:
+    """Localized prefill for the template-customize name field (v2.21.1)."""
+    from .templates import localize_template_text
+
+    return localize_template_text(template.name, normalize_language(hass)) or template.name
 
 
 class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMAIN):
@@ -201,14 +208,15 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             return await self.async_step_template_customize()
 
         # v2.21: admin-hidden templates stay out of the picker.
-        from .templates import get_disabled_template_ids
+        from .templates import get_disabled_template_ids, localize_template_text
 
+        lang = normalize_language(self.hass)
         disabled = get_disabled_template_ids(self.hass)
         templates = [t for t in get_templates_by_category(self._template_category) if t.id not in disabled]
         options = [
             selector.SelectOptionDict(
                 value=t.id,
-                label=t.name,
+                label=localize_template_text(t.name, lang) or t.name,
             )
             for t in templates
         ]
@@ -266,13 +274,16 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                 from .helpers.sanitize import cap_object_fields, cap_task_fields
 
                 today_iso = dt_util.now().date().isoformat()
+                from .templates import localize_template_text
+
+                create_lang = normalize_language(self.hass)
                 self._tasks = {}
                 for tt in template.tasks:
                     task_id = uuid4().hex
                     task_data = {
                         "id": task_id,
                         "object_id": self._object_data["id"],
-                        "name": tt.name,
+                        "name": localize_template_text(tt.name, create_lang),
                         "type": tt.type,
                         "enabled": True,
                         "schedule_type": tt.schedule_type,
@@ -283,7 +294,7 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
                     if tt.interval_days is not None:
                         task_data["interval_days"] = tt.interval_days
                     if tt.notes:
-                        task_data["notes"] = tt.notes
+                        task_data["notes"] = localize_template_text(tt.notes, create_lang)
                     cap_task_fields(task_data)
                     self._tasks[task_id] = task_data
                 cap_object_fields(self._object_data)
@@ -296,9 +307,10 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             step_id="template_customize",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_OBJECT_NAME, default=template.name): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
+                    vol.Required(
+                        CONF_OBJECT_NAME,
+                        default=_localized_template_default_name(template, self.hass),
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     vol.Optional(CONF_OBJECT_AREA): selector.AreaSelector(),
                     vol.Optional(CONF_OBJECT_MANUFACTURER): selector.TextSelector(
                         selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
