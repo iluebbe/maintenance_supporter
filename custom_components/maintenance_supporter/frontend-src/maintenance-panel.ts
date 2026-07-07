@@ -57,7 +57,11 @@ import { type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, isoDateLocal, type CalendarEvent } from "./helpers/calendar-bucket";
 import { renderTriggerProgress, renderMiniSparkline } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
-import { renderTaskDetail, renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
+import { renderUserBadge, type TaskDetailContext } from "./renderers/task-detail";
+// The task-detail sub-view as a web component (light-DOM, panel styles apply).
+// Side-effect import: type-only imports get tree-shaken and the element
+// would never register.
+import "./components/task-detail-view";
 import { computeWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 
 type View = "overview" | "object" | "task" | "all_objects";
@@ -2869,7 +2873,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!this._selectedEntryId || !this._selectedTaskId) return nothing;
     const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
     if (!task) return html`<p>Task not found.</p>`;
-    return renderTaskDetail(task, this._taskDetailCtx());
+    return html`<maintenance-task-detail-view
+      .task=${task}
+      .ctx=${this._taskDetailCtx()}
+    ></maintenance-task-detail-view>`;
   }
 
   /** v2.2.0: open the in-place history-edit dialog for the given entry.

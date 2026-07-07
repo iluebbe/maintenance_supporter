@@ -304,6 +304,10 @@ export const panelStyles = css`
     --mdc-icon-size: 26px;
   }
 
+  /* Custom elements default to display:inline; the task-detail component
+     renders light-DOM and must behave like the block it wraps. */
+  maintenance-task-detail-view { display: block; }
+
   .detail-section { padding: 16px 0; }
 
   .detail-header {

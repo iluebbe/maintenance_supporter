@@ -2,6 +2,16 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🔧 Internal
+
+- **Task detail is now a web component** — `<maintenance-task-detail-view>`
+  wraps the previously extracted task-detail renderers behind a real
+  element boundary (light-DOM rendering, so the panel's styles and dialog
+  ownership are untouched). No visual or behavioural change; completes the
+  incremental component migration started with the renderer extraction.
+
 ## [2.21.2] - 2026-07-07
 
 Two display fixes from one great bug report (#86 — thanks @jayg37 for
