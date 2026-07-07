@@ -2,7 +2,10 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.21.1] - 2026-07-07
+
+The template catalog grows up: fully localized and with its first
+EV-specific entry.
 
 ### ✨ New
 
