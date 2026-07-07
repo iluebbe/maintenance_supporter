@@ -740,11 +740,14 @@ export const sharedStyles = css`
     transition: width 0.3s;
   }
 
-  /* Trigger progress bar (overview rows) */
+  /* Trigger progress bar (overview rows). width:100% — the due-cell doesn't
+     stretch its children (align-items: flex-end), so without it the bar
+     shrinks to its label and reads shorter than the days-bar in other rows. */
   .trigger-progress {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    width: 100%;
     min-width: 90px;
   }
 

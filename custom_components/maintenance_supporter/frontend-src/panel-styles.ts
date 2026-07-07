@@ -593,6 +593,13 @@ export const panelStyles = css`
     border-radius: 12px;
     padding: 2px;
   }
+  /* Inside .cell-badges the parent's gap does the spacing — the badges' own
+     margin-left (meant for inline use, e.g. the detail header) would double
+     it and push the priority chevron out of line with the other badges. */
+  .cell-badges .nfc-badge,
+  .cell-badges .priority-badge {
+    margin-left: 0;
+  }
   .priority-badge ha-icon {
     --mdc-icon-size: 16px;
   }

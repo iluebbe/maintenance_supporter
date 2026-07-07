@@ -4,6 +4,16 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### 🐛 Fixed
+
+- **Dashboard rows: consistent bar width and badge spacing** — the
+  trigger-progress bar (rows with a sensor trigger / sparkline) shrank to
+  its label width and read shorter than the days-bar in neighboring rows;
+  it now spans the full due-column like every other bar. The priority
+  chevron (double-up = high, double-down = low priority) sat 12px from the
+  status chip instead of the 6px every other badge gets — its own margin
+  doubled the row's badge gap.
+
 ### 🔧 Internal
 
 - **Task detail is now a web component** — `<maintenance-task-detail-view>`

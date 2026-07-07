@@ -30,7 +30,7 @@ const log = (...a) => { const line = a.map((x) => typeof x === "string" ? x : JS
 process.on("unhandledRejection", (e) => { log("UNHANDLED", String(e && e.stack || e)); process.exit(2); });
 // The docker playwright-server browser can wedge silently (evaluate that
 // never resolves) — a watchdog turns a silent hang into a loggable failure.
-const watchdog = setTimeout(() => { log("WATCHDOG: run exceeded 10 minutes — aborting"); process.exit(3); }, 10 * 60e3);
+const watchdog = setTimeout(() => { log("WATCHDOG: run exceeded 20 minutes — aborting"); process.exit(3); }, 20 * 60e3);
 
 const j = (r) => r.json();
 const iso = (offsetDays) => { const d = new Date(Date.now() + offsetDays * 864e5); return d.toISOString().slice(0, 10); };
@@ -254,6 +254,36 @@ const PATCHES = [
   { object: "Washing Machine", task: "Door Seal Wipe", set: { priority: "low" } },
 ];
 
+// Node-side HA WebSocket client. The seed used to run as one giant in-page
+// evaluate; the dockered playwright-server wedges on those often enough that
+// the whole run died — plain WS from node has no browser in the loop.
+async function wsClient(url, accessToken) {
+  const ws = new WebSocket(url);
+  await new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("ws connect failed")); });
+  let nextId = 1;
+  const pending = new Map();
+  await new Promise((res, rej) => {
+    ws.onmessage = (ev) => {
+      const m = JSON.parse(ev.data);
+      if (m.type === "auth_required") ws.send(JSON.stringify({ type: "auth", access_token: accessToken }));
+      else if (m.type === "auth_ok") res();
+      else if (m.type === "auth_invalid") rej(new Error("ws auth invalid"));
+      else if (m.type === "result") {
+        const pr = pending.get(m.id);
+        if (!pr) return;
+        pending.delete(m.id);
+        m.success ? pr.res(m.result) : pr.rej(new Error(m.error ? JSON.stringify(m.error) : "ws error"));
+      }
+    };
+  });
+  const send = (msg) => new Promise((res, rej) => {
+    const id = nextId++;
+    pending.set(id, { res, rej });
+    ws.send(JSON.stringify({ ...msg, id }));
+  });
+  return { send, close: () => ws.close() };
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 log("ONBOARD");
@@ -261,25 +291,12 @@ const token = await onboardOrLogin();
 await ensureIntegration(token);
 log("INTEGRATION READY");
 
-const b = await chromium.connect(PW_WS, { timeout: 20000 });
-const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
-await ctx.addInitScript(({ t, ha }) => {
-  localStorage.setItem("hassTokens", JSON.stringify({
-    access_token: t, token_type: "Bearer", expires_in: 1800,
-    hassUrl: ha, clientId: ha + "/", expires: Date.now() + 9e11, refresh_token: "",
-  }));
-  localStorage.setItem("msp-overview-tab", "dashboard");
-}, { t: token, ha: HA });
-const p = await ctx.newPage();
-log("PAGE OPEN");
-await p.goto(HA + "/lovelace", { waitUntil: "domcontentloaded" });
-await p.waitForTimeout(6000);
-
-// Seed via WS from inside the page.
+// Seed via node-side WS (browser-free — see wsClient above).
 log("SEED START");
-const seed = await p.evaluate(async ({ importPayload, patches }) => {
-  const hass = document.querySelector("home-assistant").hass;
-  const send = (m) => hass.connection.sendMessagePromise(m);
+const api = await wsClient("ws://localhost:8131/api/websocket", token);
+const seed = await (async () => {
+  const importPayload = IMPORT, patches = PATCHES;
+  const send = api.send;
 
   // Demo household members → user badges + rotation in the shots.
   const anna = await send({ type: "config/auth/create", name: "Anna", group_ids: ["system-users"] });
@@ -329,7 +346,7 @@ const seed = await p.evaluate(async ({ importPayload, patches }) => {
 
   const imp = await send({ type: "maintenance_supporter/json/import", json_content: JSON.stringify(importPayload) });
   // Dark theme for everyone.
-  await hass.callService("frontend", "set_theme", { name: "default", mode: "dark" });
+  await send({ type: "call_service", domain: "frontend", service: "set_theme", service_data: { name: "default", mode: "dark" } });
   // Budget + features for richer screenshots.
   await send({ type: "maintenance_supporter/global/update", settings: {
     advanced_budget_visible: true, advanced_checklists_visible: true,
@@ -350,7 +367,7 @@ const seed = await p.evaluate(async ({ importPayload, patches }) => {
   const car = objs.objects.find((x) => x.object.name === "Family Car");
   const oil = car && car.tasks.find((x) => x.name === "Oil Change");
   return { patched, objects: objs.objects.length, carEntry: car && car.entry_id, oilTaskId: oil && oil.id };
-}, { importPayload: IMPORT, patches: PATCHES });
+})();
 log("SEED OK", JSON.stringify(seed));
 
 // Documents: upload a PDF manual to the Family Car + add a web link, and
@@ -365,16 +382,32 @@ const up = await fetch(REST + "/api/maintenance_supporter/document/upload", {
   method: "POST", headers: { Authorization: "Bearer " + token }, body: fd,
 }).then(j);
 log("DOC UPLOADED", JSON.stringify(up).slice(0, 200));
-await p.evaluate(async ({ entryId, docId, taskId }) => {
-  const hass = document.querySelector("home-assistant").hass;
-  const send = (m) => hass.connection.sendMessagePromise(m);
-  await send({ type: "maintenance_supporter/documents/add_link", entry_id: entryId,
+{
+  const docId = up.doc_id || (up.doc && up.doc.doc_id) || up.id;
+  await api.send({ type: "maintenance_supporter/documents/add_link", entry_id: seed.carEntry,
     url: "https://www.skoda-auto.com/service/maintenance", title: "Service schedule (web)", tags: ["service"] });
-  if (docId && taskId) {
-    await send({ type: "maintenance_supporter/documents/update", doc_id: docId,
-      task_ids: [taskId], task_pages: { [taskId]: 12 } });
+  if (docId && seed.oilTaskId) {
+    await api.send({ type: "maintenance_supporter/documents/update", doc_id: docId,
+      task_ids: [seed.oilTaskId], task_pages: { [seed.oilTaskId]: 12 } });
   }
-}, { entryId: seed.carEntry, docId: up.doc_id || (up.doc && up.doc.doc_id) || up.id, taskId: seed.oilTaskId });
+  api.close();
+}
+
+// Browser only from here on — everything above is REST/WS from node. The
+// page never visits /lovelace (a fresh 2026.6 instance redirects it to the
+// new /home dashboard, which wedged the dockered browser); every shot step
+// navigates to its own URL.
+const b = await chromium.connect(PW_WS, { timeout: 20000 });
+const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 }, colorScheme: "dark" });
+await ctx.addInitScript(({ t, ha }) => {
+  localStorage.setItem("hassTokens", JSON.stringify({
+    access_token: t, token_type: "Bearer", expires_in: 1800,
+    hassUrl: ha, clientId: ha + "/", expires: Date.now() + 9e11, refresh_token: "",
+  }));
+  localStorage.setItem("msp-overview-tab", "dashboard");
+}, { t: token, ha: HA });
+const p = await ctx.newPage();
+log("PAGE OPEN");
 
 await p.waitForTimeout(6000); // let the coordinator evaluate the new triggers
 

@@ -477,11 +477,14 @@ Test pressure`,checklist_help:"One step per line. Max 100 items.",err_too_long:"
     transition: width 0.3s;
   }
 
-  /* Trigger progress bar (overview rows) */
+  /* Trigger progress bar (overview rows). width:100% — the due-cell doesn't
+     stretch its children (align-items: flex-end), so without it the bar
+     shrinks to its label and reads shorter than the days-bar in other rows. */
   .trigger-progress {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    width: 100%;
     min-width: 90px;
   }
 
@@ -1833,6 +1836,13 @@ ${P(r.notes)}</div>`:""}
     margin-left: 6px;
     border-radius: 12px;
     padding: 2px;
+  }
+  /* Inside .cell-badges the parent's gap does the spacing — the badges' own
+     margin-left (meant for inline use, e.g. the detail header) would double
+     it and push the priority chevron out of line with the other badges. */
+  .cell-badges .nfc-badge,
+  .cell-badges .priority-badge {
+    margin-left: 0;
   }
   .priority-badge ha-icon {
     --mdc-icon-size: 16px;
