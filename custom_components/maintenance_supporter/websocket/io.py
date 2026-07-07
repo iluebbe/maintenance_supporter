@@ -37,7 +37,14 @@ from ..websocket.tasks import _check_nfc_tag_duplicate, _validate_trigger_config
 _LOGGER = logging.getLogger(__name__)
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/templates"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/templates",
+        # v2.21.1: the caller's UI language — template/task names arrive
+        # localized. Falls back to the server language.
+        vol.Optional("language"): vol.All(str, vol.Length(max=10)),
+    }
+)
 @websocket_api.async_response
 async def ws_get_templates(
     hass: HomeAssistant,
@@ -50,21 +57,28 @@ async def ws_get_templates(
     curation): the pickers hide disabled ones client-side, while the Settings
     section needs the full list to render the toggles.
     """
-    from ..templates import TEMPLATE_CATEGORIES, TEMPLATES, get_disabled_template_ids
+    from ..helpers.i18n import normalize_language
+    from ..templates import (
+        TEMPLATE_CATEGORIES,
+        TEMPLATES,
+        get_disabled_template_ids,
+        localize_template_text,
+    )
 
     disabled = get_disabled_template_ids(hass)
+    lang = (msg.get("language") or normalize_language(hass))[:2].lower()
 
     result = {
         "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},
         "templates": [
             {
                 "id": t.id,
-                "name": t.name,
+                "name": localize_template_text(t.name, lang),
                 "category": t.category,
                 "disabled": t.id in disabled,
                 "tasks": [
                     {
-                        "name": tt.name,
+                        "name": localize_template_text(tt.name, lang),
                         "type": tt.type,
                         "schedule_type": tt.schedule_type,
                         "interval_days": tt.interval_days,

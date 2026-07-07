@@ -373,6 +373,7 @@ export class MaintenanceSettingsView extends LitElement {
         categories: Record<string, Record<string, string>>;
       }>({
         type: "maintenance_supporter/templates",
+        language: this._lang,
       });
       this._allTemplates = res.templates || [];
       this._templateCategories = res.categories || {};

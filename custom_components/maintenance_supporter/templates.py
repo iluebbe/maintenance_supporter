@@ -98,6 +98,25 @@ TEMPLATES: list[ObjectTemplate] = [
         ],
     ),
     ObjectTemplate(
+        id="vehicle_ev",
+        name="Electric Car",
+        category="vehicle",
+        tasks=[
+            TaskTemplate("Tire Rotation", "service", "time_based", 180, 14),
+            TaskTemplate("Cabin Air Filter", "replacement", "time_based", 365, 30),
+            TaskTemplate(
+                "Brake Service",
+                "service",
+                "time_based",
+                365,
+                30,
+                "Regenerative braking leaves the discs underused — have them cleaned and exercised.",
+            ),
+            TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
+            TaskTemplate("12V Battery Check", "inspection", "time_based", 365, 30),
+        ],
+    ),
+    ObjectTemplate(
         id="vehicle_bicycle",
         name="Bicycle",
         category="vehicle",
@@ -240,6 +259,14 @@ def get_template_by_id(template_id: str) -> ObjectTemplate | None:
             return t
     return None
 
+
+# Re-export: template/task names + notes are localized through one flat table
+# (templates_i18n) keyed by the English source string.
+
+# Re-export (the `as` alias marks it as intentional for linters): template/task
+# names + notes are localized through one flat table keyed by the English
+# source string.
+from .templates_i18n import localize_template_text as localize_template_text
 
 KNOWN_TEMPLATE_IDS: frozenset[str] = frozenset(t.id for t in TEMPLATES)
 
