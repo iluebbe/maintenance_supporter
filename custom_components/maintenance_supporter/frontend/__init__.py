@@ -13,10 +13,10 @@ from ..const import (
     CARD_URL,
     DOMAIN,
     LOCALES_URL,
-    VENDOR_URL,
     STRATEGY_CHUNKS_URL,
     STRATEGY_SHIM_URL,
     STRATEGY_URL,
+    VENDOR_URL,
 )
 
 _LOGGER = logging.getLogger(__name__)
