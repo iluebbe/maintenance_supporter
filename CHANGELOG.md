@@ -2,7 +2,11 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.21.0] - 2026-07-07
+
+Two quality-of-life features grown from community threads — the printable
+task work sheet and per-template gallery curation. First release with a
+Python requirement (pypdf, installed automatically by Home Assistant).
 
 ### ✨ New
 

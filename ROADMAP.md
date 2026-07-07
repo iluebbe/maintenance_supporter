@@ -142,7 +142,7 @@ completion (the annual inspection can't be signed off three weeks early); the
 complete/quick-complete WS paths + the To-do list honour it.
 
 ### ✅ Task work sheet — a printable one-pager per task
-**Shipped** (unreleased). Print what you need at the machine, not a whole
+**Shipped** in v2.21.0. Print what you need at the machine, not a whole
 manual: *Work sheet* in the task ⋮-menu opens a print-ready one-pager with
 object + task details, the checklist as tick boxes, the notes, and a **QR
 code pair** (open the task / complete it) so the paper links back to the
