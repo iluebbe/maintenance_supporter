@@ -685,5 +685,12 @@
   "reading_value_label": "Hodnota odečtu",
   "reading_label": "Odečet",
   "settings_templates_label": "Galerie šablon",
-  "settings_templates_hint": "Odškrtněte šablony, které nikdy nevyužijete — zmizí z výběru „Ze šablony\" (panel i config flow). Nic jiného se nemění; kdykoli je lze znovu zapnout."
+  "settings_templates_hint": "Odškrtněte šablony, které nikdy nevyužijete — zmizí z výběru „Ze šablony\" (panel i config flow). Nic jiného se nemění; kdykoli je lze znovu zapnout.",
+  "worksheet": "Pracovní list",
+  "worksheet_scan_view": "Naskenujte pro otevření úkolu",
+  "worksheet_scan_complete": "Naskenujte pro dokončení",
+  "worksheet_manual_excerpt": "Výňatek z manuálu",
+  "worksheet_pages": "strany",
+  "worksheet_printed": "Vytištěno",
+  "worksheet_never": "Nikdy"
 }

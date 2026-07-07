@@ -8,6 +8,7 @@ import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
 import { downloadTextFile } from "./helpers/download";
+import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } from "./helpers/worksheet";
 import { describeWsError } from "./ws-errors";
 import { panelStyles } from "./panel-styles";
 import type {
@@ -1440,6 +1441,90 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
+  // v2.21: printable one-pager for a task — details, checklist tick boxes,
+  // QR pair, and (when a linked PDF manual has a page hint for this task) a
+  // link to the server-cut manual excerpt. Opens in a new tab for printing.
+  private async _printTaskWorksheet(entryId: string, taskId: string): Promise<void> {
+    const obj = this._getObject(entryId);
+    const task = obj?.tasks.find((tk) => tk.id === taskId);
+    if (!obj || !task) return;
+    this._actionLoading = true;
+    try {
+      const qrBase: Record<string, unknown> = {
+        type: "maintenance_supporter/qr/generate",
+        entry_id: entryId, task_id: taskId, url_mode: "server",
+      };
+      const [qrView, qrComplete] = await Promise.all([
+        this.hass.connection.sendMessagePromise<{ svg_data_uri?: string }>({ ...qrBase, action: "view" }).catch(() => null),
+        this.hass.connection.sendMessagePromise<{ svg_data_uri?: string }>({ ...qrBase, action: "complete" }).catch(() => null),
+      ]);
+
+      // Manual excerpt: first linked PDF with a page hint for this task.
+      let excerpt: WorksheetExcerpt | null = null;
+      try {
+        const docs = await this.hass.connection.sendMessagePromise<{
+          documents: Array<{ id: string; kind: string; mime?: string; title?: string;
+            filename?: string; task_ids?: string[]; task_pages?: Record<string, number> }>;
+        }>({ type: "maintenance_supporter/documents/list", entry_id: entryId });
+        const manual = (docs.documents || []).find(
+          (d) => d.kind === "file" && d.mime === "application/pdf"
+            && (d.task_ids || []).includes(taskId) && d.task_pages?.[taskId],
+        );
+        if (manual) {
+          const start = manual.task_pages![taskId];
+          const count = 4;
+          const signed = await this.hass.connection.sendMessagePromise<{ path: string }>({
+            type: "auth/sign_path",
+            path: `/api/maintenance_supporter/document/${manual.id}/excerpt?start=${start}&count=${count}`,
+            expires: 3600,
+          });
+          excerpt = {
+            title: manual.title || manual.filename || "Manual",
+            startPage: start, endPage: start + count - 1,
+            // Absolute URL: the sheet lives on a blob: page, where a
+            // relative /api/... href cannot resolve (caught live).
+            url: new URL(signed.path, window.location.origin).toString(),
+          };
+        }
+      } catch { /* worksheet works without the excerpt */ }
+
+      const L = this._lang;
+      const labels: WorksheetLabels = {
+        title: t("worksheet", L),
+        object: t("object", L),
+        type: t("maintenance_type", L),
+        interval: t("interval", L),
+        nextDue: t("next_due", L),
+        lastDone: t("last_performed", L),
+        priority: t("priority", L),
+        checklist: t("checklist", L),
+        notes: t("notes_label", L),
+        scanView: t("worksheet_scan_view", L),
+        scanComplete: t("worksheet_scan_complete", L),
+        manualExcerpt: t("worksheet_manual_excerpt", L),
+        pages: t("worksheet_pages", L),
+        printedOn: t("worksheet_printed", L),
+        never: t("worksheet_never", L),
+        typeLabel: (ty: string) => t(ty, L),
+        statusLabel: (st: string) => t(st, L),
+      };
+      const html = buildTaskWorksheetHtml(
+        task, obj.object.name, labels,
+        (iso) => formatDate(iso, L),
+        (tk) => formatRecurrence(tk, L),
+        qrView?.svg_data_uri || null,
+        qrComplete?.svg_data_uri || null,
+        excerpt,
+        new Date().toISOString(),
+      );
+      const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
   private _openCompleteDialog(entryId: string, taskId: string, taskName: string, checklist?: string[], adaptiveEnabled?: boolean): void {
     const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog");
     if (!dlg) return;
@@ -2769,6 +2854,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       duplicateTask: () => this._duplicateTask(entryId, taskId),
       promptReset: () => this._promptResetTask(entryId, taskId),
       snoozeTask: () => this._snoozeTask(entryId, taskId),
+      printWorksheet: () => this._printTaskWorksheet(entryId, taskId),
       deleteTask: () => this._deleteTask(entryId, taskId),
       applySuggestion: (interval) => this._applySuggestion(entryId, taskId, interval),
       reanalyze: () => this._reanalyzeInterval(entryId, taskId),

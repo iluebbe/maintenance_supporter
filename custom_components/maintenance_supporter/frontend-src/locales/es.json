@@ -685,5 +685,12 @@
   "reading_value_label": "Valor de lectura",
   "reading_label": "Lectura",
   "settings_templates_label": "Galería de plantillas",
-  "settings_templates_hint": "Desmarca las plantillas que nunca necesitarás: desaparecen de los selectores \"Desde plantilla\" (panel y flujo de configuración). Nada más cambia; puedes reactivarlas cuando quieras."
+  "settings_templates_hint": "Desmarca las plantillas que nunca necesitarás: desaparecen de los selectores \"Desde plantilla\" (panel y flujo de configuración). Nada más cambia; puedes reactivarlas cuando quieras.",
+  "worksheet": "Hoja de trabajo",
+  "worksheet_scan_view": "Escanea para abrir la tarea",
+  "worksheet_scan_complete": "Escanea para completar",
+  "worksheet_manual_excerpt": "Extracto del manual",
+  "worksheet_pages": "páginas",
+  "worksheet_printed": "Impreso",
+  "worksheet_never": "Nunca"
 }

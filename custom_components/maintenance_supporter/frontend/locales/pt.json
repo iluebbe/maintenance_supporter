@@ -685,5 +685,12 @@
   "reading_value_label": "Valor de leitura",
   "reading_label": "Leitura",
   "settings_templates_label": "Galeria de modelos",
-  "settings_templates_hint": "Desmarque modelos de que nunca precisará — desaparecem dos seletores \"A partir de modelo\" (painel e config flow). Nada mais muda; reativáveis a qualquer momento."
+  "settings_templates_hint": "Desmarque modelos de que nunca precisará — desaparecem dos seletores \"A partir de modelo\" (painel e config flow). Nada mais muda; reativáveis a qualquer momento.",
+  "worksheet": "Folha de trabalho",
+  "worksheet_scan_view": "Digitalize para abrir a tarefa",
+  "worksheet_scan_complete": "Digitalize para concluir",
+  "worksheet_manual_excerpt": "Excerto do manual",
+  "worksheet_pages": "páginas",
+  "worksheet_printed": "Impresso",
+  "worksheet_never": "Nunca"
 }

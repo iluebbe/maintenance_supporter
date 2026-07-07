@@ -685,5 +685,12 @@
   "reading_value_label": "Meterstand",
   "reading_label": "Meting",
   "settings_templates_label": "Sjabloongalerij",
-  "settings_templates_hint": "Vink sjablonen uit die je nooit nodig hebt — ze verdwijnen uit de \"Vanuit sjabloon\"-keuzes (paneel en config flow). Verder verandert er niets; altijd weer in te schakelen."
+  "settings_templates_hint": "Vink sjablonen uit die je nooit nodig hebt — ze verdwijnen uit de \"Vanuit sjabloon\"-keuzes (paneel en config flow). Verder verandert er niets; altijd weer in te schakelen.",
+  "worksheet": "Werkblad",
+  "worksheet_scan_view": "Scan om de taak te openen",
+  "worksheet_scan_complete": "Scan om af te ronden",
+  "worksheet_manual_excerpt": "Handleidingfragment",
+  "worksheet_pages": "pagina's",
+  "worksheet_printed": "Afgedrukt",
+  "worksheet_never": "Nooit"
 }

@@ -685,5 +685,12 @@
   "reading_value_label": "Valeur relevée",
   "reading_label": "Relevé",
   "settings_templates_label": "Galerie de modèles",
-  "settings_templates_hint": "Décochez les modèles dont vous n'aurez jamais besoin — ils disparaissent des sélecteurs « Depuis un modèle » (panneau et config flow). Rien d'autre ne change ; réactivables à tout moment."
+  "settings_templates_hint": "Décochez les modèles dont vous n'aurez jamais besoin — ils disparaissent des sélecteurs « Depuis un modèle » (panneau et config flow). Rien d'autre ne change ; réactivables à tout moment.",
+  "worksheet": "Fiche de travail",
+  "worksheet_scan_view": "Scanner pour ouvrir la tâche",
+  "worksheet_scan_complete": "Scanner pour terminer",
+  "worksheet_manual_excerpt": "Extrait du manuel",
+  "worksheet_pages": "pages",
+  "worksheet_printed": "Imprimé",
+  "worksheet_never": "Jamais"
 }

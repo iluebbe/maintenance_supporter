@@ -141,16 +141,15 @@ views. A per-task `earliest_completion_days` optionally restricts premature
 completion (the annual inspection can't be signed off three weeks early); the
 complete/quick-complete WS paths + the To-do list honour it.
 
-### 💡 Task work sheet — a printable one-pager per task
-Print what you need at the machine, not a whole manual: a single-page PDF for
-one task with everything required to actually do it — object + task details
-(interval, last done, priority), the checklist as tick boxes, the task notes,
-and a **QR code** pair (open the task / complete it) so the paper links back
-to the panel. Optionally append an **excerpt from the linked manual**: the
-documents feature already stores per-task page hints (`task_pages`), so "from
-page X, N pages" can pull exactly the relevant section of the attached PDF
-into the work sheet. Builds on the existing per-object report generator, the
-QR engine, and the document store.
+### ✅ Task work sheet — a printable one-pager per task
+**Shipped** (unreleased). Print what you need at the machine, not a whole
+manual: *Work sheet* in the task ⋮-menu opens a print-ready one-pager with
+object + task details, the checklist as tick boxes, the notes, and a **QR
+code pair** (open the task / complete it) so the paper links back to the
+panel. When the task has a linked PDF manual with a page hint
+(`task_pages`), the sheet links a server-cut **manual excerpt** — the new
+`document/{id}/excerpt` endpoint (pypdf) extracts "from page X, N pages" of
+the stored PDF for printing alongside.
 
 ### 💡 Cross-cutting labels / tags
 Lightweight tags (e.g. `#safety`, `#seasonal`, `#tenant-visible`) that cut
