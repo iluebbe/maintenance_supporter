@@ -77,7 +77,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component mypy babel pypdf
+        # `holidays` is the Workday integration's own dependency; we install it
+        # so the real-`holidays` loop-safety tests (#87) run here instead of
+        # skipping (they assert the country calendar is built off the event loop).
+        run: pip install pytest pytest-cov pytest-xdist pytest-homeassistant-custom-component mypy babel pypdf holidays
       - name: Type check
         run: mypy custom_components/maintenance_supporter/ --config-file mypy.ini
       # Parallel via pytest-xdist. The old blocker — the documents feature's
@@ -171,6 +174,30 @@ jobs:
           from custom_components.maintenance_supporter import __init__, config_flow, coordinator
           from custom_components.maintenance_supporter.websocket import __init__ as ws_init
           print(\"OK — all top-level modules import cleanly\")
+          "'
+
+      # Business-day scheduling builds a holiday calendar via the `holidays`
+      # package when the Workday integration is present (#87). Exercise the
+      # real builder inside the shipped HA image — BOTH configs: with a country
+      # (Workday sensor configured -> a real calendar) and without (no Workday
+      # sensor -> plain Mon-Fri, no holiday import). The off-the-event-loop
+      # regression guard for the blocking import lives in the pytest suite
+      # (test_workday_business_days); this proves the real package integrates.
+      - name: Workday holiday builder works with real holidays (with + without country)
+        run: |
+          docker exec ha-test pip install --quiet holidays
+          docker exec ha-test sh -c 'PYTHONPATH=/config python -c "
+          from datetime import date
+          from custom_components.maintenance_supporter.helpers.workday import build_provider_from_workday_options as b
+          # WITH a Workday sensor (country set): a real holiday calendar is built.
+          fn = b({\"country\": \"CA\", \"workdays\": [\"mon\",\"tue\",\"wed\",\"thu\",\"fri\"], \"excludes\": [\"sat\",\"sun\",\"holiday\"]})
+          assert fn is not None, \"provider not built with real holidays\"
+          assert fn(date(2026, 7, 1)) is False, \"Canada Day (Wed) should not be a business day\"
+          assert fn(date(2026, 7, 2)) is True, \"a non-holiday weekday should be a business day\"
+          # WITHOUT a Workday sensor (no country): plain Mon-Fri, no holiday import.
+          fn2 = b({\"workdays\": [\"mon\",\"tue\",\"wed\",\"thu\",\"fri\"], \"excludes\": [\"sat\",\"sun\"]})
+          assert fn2 is not None and fn2(date(2027, 7, 30)) is True and fn2(date(2027, 7, 31)) is False
+          print(\"OK — workday builder verified with real holidays (with + without country)\")
           "'
 
       # Any ERROR or traceback mentioning our integration at startup is a
