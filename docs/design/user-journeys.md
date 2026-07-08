@@ -63,7 +63,7 @@ especially across reload/restart.
 | C5 | Re-assign user; change rotation pool | P, W | test_ws_users, test_rotation, test_journey_rotation (round_robin advances a→b→c→a across completions AND persists the rotated pointer across restart — the "rotation never persisted" regression; completions spaced past the double-tap dedup window) | closed |
 | C6 | Move object: area change, device link, parent object | P, F, W | test_device_link, test_journey_lifecycle_complete (link → restart → unlink → restart, registry invariant) | closed |
 | C7 | Feature toggles off/on (data must survive hidden state) | P, F | test_ws_roundtrip settings, test_journey_mutations | ✔ closed 2026-07-05 |
-| C8 | Trigger entity replaced / renamed in HA | (registry) | test_entity_rename_rewrite, repairs | — |
+| C8 | Trigger entity replaced / renamed in HA | (registry) | test_entity_rename_rewrite, repairs, test_journey_entity_rename (trigger fires on old id → HA rename event rewrites trigger_config + reloads → old id inert, NEW id fires the trigger → survives restart) | closed |
 | C9 | Duplicate object; groups CRUD | P, W | test_ws_objects duplicate, groups tests | — |
 
 ### D. Corrections — *user emphasis*
@@ -74,7 +74,7 @@ especially across reload/restart.
 | D2 | Undo a completion | P, W | — | **there is no history-entry DELETE endpoint** — undo goes via reset/backdating (test_journey_corrections covers that); a real delete is a candidate feature |
 | D3 | Reset last_performed to a chosen date | P, E, S, W | test_services, test_journey_corrections | — |
 | D4 | Photo correction: remove/replace completion photo (blob refcount!) | P, W | test_completion_photos, test_document_store, test_journey_documents (same file on two objects → one blob refcount 2; delete one keeps blob, delete last frees; refcount persisted to disk; same-object dedup) | closed |
-| D5 | "Oops" import: re-import over existing data | P, W | test_ws_io duplicate handling | — |
+| D5 | "Oops" import: re-import over existing data | P, W | test_ws_io duplicate handling, test_journey_reimport (re-importing the same backup collides on unique_id → reported as errors, not duplicated; a renamed copy imports fine; no ghost dupes after restart) | closed |
 
 ### E. Retirement: archive / delete / uninstall
 
@@ -92,7 +92,7 @@ especially across reload/restart.
 | # | Journey | Surfaces | Covered today | Gap |
 |---|---------|----------|---------------|-----|
 | F1 | Trigger entity vanishes → grace → issue → fix flow (replace / remove / dismiss) → issue clears | repairs | test_repairs, test_repair_flow, test_journey_interactions (replace → restart → no re-issue) | closed |
-| F2 | Stale on_complete_action target → replace/remove flow | repairs | test_repair_flow | — |
+| F2 | Stale on_complete_action target → replace/remove flow | repairs | test_repair_flow, test_journey_stale_action (missing action target past grace → issue raised → remove OR replace fix → action cleared/repointed, rescan doesn't re-raise, survives restart) | closed |
 | F3 | Orphaned panel-access user → remove flow; user recreated → auto-clear | repairs | test_repairs | — |
 | F4 | notify_service_missing (non-fixable) appears/clears | repairs | test_repairs_notify | — |
 | F5 | Document storage hygiene (orphan/dangling blobs after crash) → cleanup flow | repairs | test_document_repairs | — |
