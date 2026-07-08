@@ -366,6 +366,24 @@ const seed = await (async () => {
   }
   const car = objs.objects.find((x) => x.object.name === "Family Car");
   const oil = car && car.tasks.find((x) => x.name === "Oil Change");
+
+  // (v2.22) Showcase the new scheduling markings in the docs shots:
+  //  - postpone a single occurrence → "postponed" indicator on the card row
+  //  - a seasonal window on a recurring reading task → season month chips
+  //    render selected in the schedule dialog (task-dialog-schedule.png)
+  try {
+    if (car && oil) {
+      await send({ type: "maintenance_supporter/task/postpone", entry_id: car.entry_id, task_id: oil.id, until: iso(21) });
+    }
+    const um = objs.objects.find((x) => x.object.name === "Utility Meters");
+    const wm = um && um.tasks.find((x) => x.name === "Water Meter Reading");
+    if (um && wm) {
+      const sched = wm.schedule && typeof wm.schedule === "object" ? wm.schedule : { kind: "interval", every: 30, unit: "days" };
+      await send({ type: "maintenance_supporter/task/update", entry_id: um.entry_id, task_id: wm.id,
+        schedule: { ...sched, season_months: [4, 5, 6, 7, 8, 9, 10] } });
+    }
+  } catch (e) { log("v2.22 marking seed skipped:", String(e && e.message || e)); }
+
   return { patched, objects: objs.objects.length, carEntry: car && car.entry_id, oilTaskId: oil && oil.id };
 })();
 log("SEED OK", JSON.stringify(seed));
