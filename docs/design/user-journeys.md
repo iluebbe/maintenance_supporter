@@ -46,7 +46,7 @@ flow, **W** WS API, **S** services, **E** entities (buttons/todo/calendar),
 | B3 | Complete via every OTHER surface: button entity, todo check-off, service, QR complete, quick-complete QR, NFC scan, notification action, voice | E, S, Q, N, V | per-surface tests + test_journey_daily_use (6 surfaces, envelope parity) | ✔ closed 2026-07-06 (notification-action + voice ride the service path) |
 | B4 | Skip / missed semantics / snooze (notification + panel) | P, N, W | test_ws_tasks_actions, test_notification_manager | — |
 | B5 | Being reminded: due-soon → overdue → lead-times → digest → quiet hours/vacation interplay | (time) | test_notification_manager, test_daily_tick, test_vacation | test_journey_biographies (frozen clock walks ok → due_soon push → same-day silence → overdue push → complete → next cycle re-arms; real repeat gating) — closed |
-| B6 | Sensor-triggered flow: threshold crosses → TRIGGERED → notification → complete → re-arm (or auto-complete on recovery) | (state) | test_triggers*, test_auto_complete_recovery | — |
+| B6 | Sensor-triggered flow: threshold crosses → TRIGGERED → notification → complete → re-arm (or auto-complete on recovery) | (state) | test_triggers*, test_auto_complete_recovery, test_journey_triggers (below→cross→TRIGGERED→complete→**restart while still high re-arms**→recover clears) | closed |
 | B7 | Consult: statistics, history, documents (open PDF at task), calendar views | P, E | test_statistics, test_document_* | — |
 
 ### C. Changes (mutations) — *the class that bit us*
@@ -73,7 +73,7 @@ especially across reload/restart.
 | D1 | Fix a completion: history edit (cost/notes/date/who) | P, W | test_ws_tasks_history, test_journey_corrections | ✔ closed 2026-07-05 (note: post-edit coordinator refresh is debounced ~10 s) |
 | D2 | Undo a completion | P, W | — | **there is no history-entry DELETE endpoint** — undo goes via reset/backdating (test_journey_corrections covers that); a real delete is a candidate feature |
 | D3 | Reset last_performed to a chosen date | P, E, S, W | test_services, test_journey_corrections | — |
-| D4 | Photo correction: remove/replace completion photo (blob refcount!) | P, W | test_completion_photos, test_document_store | — |
+| D4 | Photo correction: remove/replace completion photo (blob refcount!) | P, W | test_completion_photos, test_document_store, test_journey_documents (same file on two objects → one blob refcount 2; delete one keeps blob, delete last frees; refcount persisted to disk; same-object dedup) | closed |
 | D5 | "Oops" import: re-import over existing data | P, W | test_ws_io duplicate handling | — |
 
 ### E. Retirement: archive / delete / uninstall
@@ -84,7 +84,7 @@ especially across reload/restart.
 | E2 | Archive → restart (stays inert) → unarchive | P, W | test_ws_archive, test_journey_retirement, test_journey_lifecycle_complete (object cascade × restart × unarchive) | closed |
 | E3 | Delete task → all 6 per-task entities + store keys + group refs gone | P, F, W, S | test_entity_removal, test_services_crud | — |
 | E4 | Delete object → device, entities, documents (refcounted blobs), group refs gone | P, F, W | test_ws_objects, test_journey_retirement, test_journey_lifecycle_complete (blob freed, doc index empty) | closed |
-| E5 | Retention: auto-archive one-offs → auto-delete after N days | (time) | test_retention | — |
+| E5 | Retention: auto-archive one-offs → auto-delete after N days | (time) | test_archive, test_journey_retention (complete → sweep auto-archives at N days → restart keeps archived → sweep auto-deletes at M days, no orphans; a MANUAL archive is never auto-deleted) | closed |
 | E6 | Uninstall: remove all entries → nothing left in registries/storage | F | test_journey_lifecycle_complete (remove all entries → no devices/entities left) | closed |
 
 ### F. Repair flows — *user emphasis*
