@@ -4,6 +4,25 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+## [2.22.1] - 2026-07-08
+
+### 🐛 Fixed
+
+- **Dashboard KPI chips read "unknown" when the global entry was deleted**
+  (#86, follow-up) — if the global "Maintenance Supporter" entry is removed
+  while maintenance objects remain, the summary sensors no longer exist, so the
+  dashboard headline chips (which read those sensors) showed "unknown" forever.
+  The chips now render the real counts straight from the statistics endpoint
+  whenever a summary sensor is absent, so they stay correct regardless. (A
+  summary sensor's value is never "unknown" while it exists — the earlier
+  registry-resolution fix simply had no sensor to resolve in this case.)
+- **Orphaned object entries are now recoverable** — deleting the global entry
+  while objects remain is a broken state (no summary sensors, no sidebar panel,
+  no digests). It now raises a fixable repair issue whose one-click flow
+  recreates the global configuration with default settings; your objects and
+  tasks are left untouched. The issue clears itself once a global entry exists
+  again.
+
 ## [2.22.0] - 2026-07-08
 
 ### ✨ New — advanced scheduling
