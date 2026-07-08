@@ -374,7 +374,7 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
     # custom working weekdays instead of the plain Mon-Fri rule (#83 follow-up).
     from .helpers.workday import async_setup_business_days
 
-    async_setup_business_days(hass)
+    await async_setup_business_days(hass)
 
     # Create the notification manager (shared across all entries)
     hass.data[DOMAIN][NOTIFICATION_MANAGER_KEY] = NotificationManager(hass)
