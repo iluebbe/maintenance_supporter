@@ -131,6 +131,42 @@ meter readings. Builds on the nested `schedule` model (`helpers/schedule.py`,
 kinds weekdays / nth_weekday / day_of_month) — a natural `last_day` /
 `last_business_day` kind plus an `offset_days` field.
 
+### 💡 Finite recurring series (repeat N times / recur until a date)
+Today a task is either **one-time** or **recurs forever** — there is nothing in
+between. A **bounded series** would let a recurring task stop on its own: "oil
+it monthly, but only for the first 6 months after install", "quarterly checks
+until the warranty ends", "descale weekly, 8 times, done". Two end conditions,
+either or both: an **occurrence count** and/or an **until-date**. When the last
+occurrence is completed (or the until-date passes with the series satisfied)
+the task auto-archives instead of re-arming — reusing the existing archive
+lifecycle rather than lingering as permanently overdue. Fits the nested
+`schedule` model as an optional `ends` block (`{count?, until?}`) evaluated in
+`next_due`; the panel/dialogs show "3 of 6 done" and the calendar stops
+projecting past the end. Distinct from the one-off type and from the
+seasonal-pause `until` (which only auto-resumes, never ends the series).
+
+### 💡 Seasonal active window (only due in certain months)
+Complements the existing **seasonal factors** (soft 12-month interval scaling)
+and **manual seasonal pause** (a hand-set date range) with a *declarative*
+month window: "only due April–October; occurrences that would fall outside the
+season are automatically shifted to the next in-season date". Natural for
+mower service, pool care, or pre-winter heating checks, where a hard on/off by
+month is more honest than a soft factor and less manual than pausing every
+year. A `season_months` set on the schedule (e.g. `[4..10]`) consulted in
+`next_due`: a computed due date outside the window rolls forward to the window
+start of the next active period, so the task never sits "overdue" through the
+off-season. Pairs with, but is independent of, the seasonal factors.
+
+### 💡 Postpone a single occurrence (defer to a date, without completing)
+A lightweight "not this week — push this one to next Tuesday" that moves **only
+the current due date**, not the whole schedule anchor. Distinct from the two
+things we already have: **snooze** silences notifications but leaves the task
+due, and **reset to a date** re-anchors the entire recurrence. A per-occurrence
+**defer** would set a one-shot `due_override` for the current cycle; the next
+cycle after completion returns to the normal cadence. Small UX win for the
+"I'll get to it, just not now" case; surfaces as a "Postpone…" action beside
+Skip/Snooze in the task menu.
+
 ### ✅ "Meter reading" task type
 **Shipped** (enum value in 2.18; the reading-specific fields in v2.20.0). From [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
 Reading-type tasks now carry a per-task **unit** ("kWh", "m³", …) editable in
