@@ -388,6 +388,16 @@ async def ws_import_json(
                 "adaptive_config",
                 "checklist",
                 "schedule_time",
+                # v2.17+ / #83 fields — mirror the export builder so a JSON
+                # backup round-trips them (validated/clamped just below).
+                "priority",
+                "labels",
+                "earliest_completion_days",
+                "on_complete_action",
+                "quick_complete_defaults",
+                "assignee_pool",
+                "rotation_strategy",
+                "reading_unit",
             ):
                 val = task_entry.get(key)
                 if val is not None:

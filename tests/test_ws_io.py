@@ -388,6 +388,114 @@ async def test_json_export_import_roundtrips_doc_url_and_notes(
     assert imported["warranty_expiry"] == "2032-02-02"
 
 
+async def test_json_roundtrip_preserves_every_persisted_task_field(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+) -> None:
+    """Tripwire: a JSON export → import must not silently drop persisted task
+    fields (the #50/#67 class of bug). The whole v2.17+/#83 wave — priority,
+    labels, rotation (assignee_pool/rotation_strategy), completion actions
+    (on_complete_action/quick_complete_defaults), earliest_completion_days,
+    reading_unit, schedule_time — was missing from the export builder AND the
+    importer, so a JSON backup lost them. This pins the full round-trip.
+
+    When adding a new persisted task field, add it here (and to export.py +
+    websocket/io.py) — a green suite then proves the backup restores it.
+    """
+    # Real HA users: a setup-time reconcile prunes assignee_pool / responsible
+    # user ids that don't resolve to actual users, so fake ids wouldn't survive
+    # (that pruning is intentional and independent of the export gap).
+    user_a = await hass.auth.async_create_user("User A")
+    user_b = await hass.auth.async_create_user("User B")
+
+    task = build_task_data(task_type="reading", last_performed="2024-06-01")
+    task.update(
+        {
+            "priority": "high",
+            "labels": ["seasonal", "critical"],
+            "earliest_completion_days": 3,
+            "on_complete_action": {"service": "notify.test", "data": {"message": "done"}},
+            "quick_complete_defaults": {"notes": "std", "cost": 12.5, "duration": 20, "feedback": "needed"},
+            "assignee_pool": [user_a.id, user_b.id],
+            "rotation_strategy": "round_robin",
+            "reading_unit": "kWh",
+            "schedule_time": "08:30",
+            "custom_icon": "mdi:test-tube",
+            "nfc_tag_id": "04AABBCC",
+            "responsible_user_id": user_a.id,
+            "notes": "keep me",
+            "documentation_url": "https://x.test/m.pdf",
+            "checklist": ["step 1", "step 2"],
+            "history": [
+                {"timestamp": "2024-06-01T10:00:00+00:00", "type": "completed", "cost": 9.0, "reading_value": 1234.5},
+            ],
+        }
+    )
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Full Asset",
+        data=build_object_entry_data(object_data=build_object_data(name="Full Asset"), tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id="maintenance_supporter_full_asset",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    # ── Export side: every field must be present in the serialized task. ──
+    data = build_export_data(hass, include_history=True)
+    exported = next(e for e in data["objects"] if e["object"]["name"] == "Full Asset")
+    etask = exported["tasks"][0]
+    expected = {
+        "priority": "high",
+        "labels": ["seasonal", "critical"],
+        "earliest_completion_days": 3,
+        "on_complete_action": {"service": "notify.test", "data": {"message": "done"}},
+        "quick_complete_defaults": {"notes": "std", "cost": 12.5, "duration": 20, "feedback": "needed"},
+        "assignee_pool": [user_a.id, user_b.id],
+        "rotation_strategy": "round_robin",
+        "reading_unit": "kWh",
+        "schedule_time": "08:30",
+        "custom_icon": "mdi:test-tube",
+        "nfc_tag_id": "04AABBCC",
+        "responsible_user_id": user_a.id,
+        "notes": "keep me",
+        "documentation_url": "https://x.test/m.pdf",
+        "checklist": ["step 1", "step 2"],
+    }
+    for key, want in expected.items():
+        assert etask.get(key) == want, f"export dropped/changed task field {key!r}: {etask.get(key)!r} != {want!r}"
+    assert etask["history"][0]["reading_value"] == 1234.5, "history reading_value not exported"
+
+    # ── Import side: re-import a renamed copy; every field must survive. ──
+    exported["object"]["name"] = "Full Asset Copy"
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_import_json,
+        hass,
+        conn,
+        {
+            "id": 1,
+            "type": "maintenance_supporter/json/import",
+            "json_content": json.dumps({"objects": [exported]}),
+        },
+    )
+    conn.send_result.assert_called_once()
+
+    copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Full Asset Copy")
+    imported_task = next(iter(copy.data[CONF_TASKS].values()))
+    for key, want in expected.items():
+        assert imported_task.get(key) == want, (
+            f"import dropped/changed task field {key!r}: {imported_task.get(key)!r} != {want!r}"
+        )
+    # History is a dynamic field (kept in the Store, not entry.data), so read it
+    # back through a fresh export of the imported copy — the full read path.
+    reexport = build_export_data(hass, include_history=True)
+    copy_task = next(e for e in reexport["objects"] if e["object"]["name"] == "Full Asset Copy")["tasks"][0]
+    assert copy_task["history"][0]["reading_value"] == 1234.5, "history reading_value not imported"
+
+
 async def test_json_import_tolerates_malformed_entries(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,
