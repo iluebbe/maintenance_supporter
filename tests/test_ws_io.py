@@ -2451,3 +2451,141 @@ async def test_qr_generate_task_not_found(
         },
     )
     conn.send_error.assert_called_once()
+
+
+# ─── Roundtrip: new schedule features (season / finite series / postpone) ────
+
+
+def _scheduled_object(name: str, schedule: dict, *, extra: dict | None = None) -> MockConfigEntry:
+    task = build_task_data(name="Recurring", last_performed="2026-05-01")
+    task["schedule"] = schedule
+    if extra:
+        task.update(extra)
+    obj = build_object_data(name=name)
+    return MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title=name,
+        data=build_object_entry_data(object_data=obj, tasks={TASK_ID_1: task}),
+        source="user",
+        unique_id=f"maintenance_supporter_{name.lower().replace(' ', '_')}",
+    )
+
+
+async def _export_reimport(hass: HomeAssistant, name: str) -> dict:
+    """Export everything, re-import the named object as a renamed copy, return
+    the imported task's stored data."""
+    data = build_export_data(hass, include_history=True)
+    exported = next(e for e in data["objects"] if e["object"]["name"] == name)
+    exported["object"]["name"] = name + " Copy"
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_import_json,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/json/import", "json_content": json.dumps({"objects": [exported]})},
+    )
+    conn.send_result.assert_called_once()
+    copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == name + " Copy")
+    # Merge static (schedule/season/ends) with the Store's dynamic fields
+    # (history, last_performed, due_override) — the full task as read back.
+    tid, static = next(iter(copy.data[CONF_TASKS].items()))
+    return copy.runtime_data.store.merge_task_data(tid, static)
+
+
+async def test_json_roundtrip_preserves_seasonal_window(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    entry = _scheduled_object(
+        "Mower", {"kind": "interval", "every": 2, "unit": "weeks", "season_months": [4, 5, 6, 7, 8, 9, 10]}
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    data = build_export_data(hass, include_history=False)
+    exported = next(e for e in data["objects"] if e["object"]["name"] == "Mower")
+    assert exported["tasks"][0]["schedule"].get("season_months") == [4, 5, 6, 7, 8, 9, 10], "season lost on export"
+
+    imported = await _export_reimport(hass, "Mower")
+    assert imported["schedule"].get("season_months") == [4, 5, 6, 7, 8, 9, 10], "season lost on import"
+
+
+async def test_json_roundtrip_preserves_finite_series_and_progress(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    # A finite series already completed twice of two → the export carries both
+    # the `ends` config AND the completion history, so the imported copy is done.
+    history = [
+        {"type": "completed", "timestamp": "2026-03-01T09:00:00+00:00"},
+        {"type": "completed", "timestamp": "2026-04-01T09:00:00+00:00"},
+    ]
+    entry = _scheduled_object(
+        "Cure",
+        {"kind": "interval", "every": 1, "unit": "months", "ends": {"count": 2}},
+        extra={"history": history, "last_performed": "2026-04-01"},
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    data = build_export_data(hass, include_history=True)
+    exported = next(e for e in data["objects"] if e["object"]["name"] == "Cure")
+    assert exported["tasks"][0]["schedule"].get("ends") == {"count": 2}, "ends lost on export"
+
+    imported = await _export_reimport(hass, "Cure")
+    assert imported["schedule"].get("ends") == {"count": 2}, "ends lost on import"
+    # Reconstruct the model from the imported data: the ended series reads done.
+    from custom_components.maintenance_supporter.models.maintenance_task import MaintenanceTask
+
+    task = MaintenanceTask.from_dict(imported)
+    assert task.is_done is True, "imported finite series should still be done"
+    assert task.next_due is None, "ended series must not re-arm after import"
+
+
+async def test_json_roundtrip_preserves_due_override(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    entry = _scheduled_object(
+        "Postponed",
+        {"kind": "interval", "every": 1, "unit": "months"},
+        extra={"due_override": "2026-06-20"},
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    imported = await _export_reimport(hass, "Postponed")
+    assert imported.get("due_override") == "2026-06-20", "pending postpone lost across JSON roundtrip"
+
+
+async def test_yaml_roundtrip_preserves_schedule_extras(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    import yaml
+
+    from custom_components.maintenance_supporter.export import serialize_export
+
+    entry = _scheduled_object(
+        "SeasonFinite",
+        {"kind": "interval", "every": 1, "unit": "months", "season_months": [6, 7, 8], "ends": {"until": "2027-01-01"}},
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+
+    payload = serialize_export(build_export_data(hass, include_history=False), "yaml")
+    reparsed = yaml.safe_load(payload)
+    sched = next(e for e in reparsed["objects"] if e["object"]["name"] == "SeasonFinite")["tasks"][0]["schedule"]
+    assert sched.get("season_months") == [6, 7, 8]
+    assert sched.get("ends") == {"until": "2027-01-01"}
+
+    # And the YAML imports back cleanly through the same structured importer.
+    conn = _mock_connection()
+    reparsed["objects"][0]["object"]["name"] = "SeasonFinite Copy"
+    await call_ws_handler(
+        ws_import_json, hass, conn,
+        {"id": 1, "type": "maintenance_supporter/json/import", "json_content": payload.replace("SeasonFinite", "SeasonFinite Copy", 1)},
+    )
+    conn.send_result.assert_called_once()
+    copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "SeasonFinite Copy")
+    ct = next(iter(copy.data[CONF_TASKS].values()))
+    assert ct["schedule"].get("season_months") == [6, 7, 8]
+    assert ct["schedule"].get("ends") == {"until": "2027-01-01"}
