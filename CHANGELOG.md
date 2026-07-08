@@ -2,6 +2,21 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **JSON backup lost most v2.17+ task fields** — a JSON export → import
+  round-trip silently dropped `priority`, `labels`, `reading_unit`,
+  `schedule_time`, `earliest_completion_days`, the rotation fields
+  (`assignee_pool` / `rotation_strategy`) and the completion-action fields
+  (`on_complete_action` / `quick_complete_defaults`): they were never added
+  to the export builder or the importer when those features shipped. Backing
+  up and restoring an install quietly reset priorities, tags, meter units and
+  rotation. All persisted task fields now round-trip; a new tripwire test
+  asserts the full set survives export → import so this can't regress again.
+  (Same field-completeness class as #50/#67.)
+
 ## [2.21.3] - 2026-07-08
 
 ### 🐛 Fixed

@@ -100,6 +100,18 @@ def _build_export_object(
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),
             "checklist": tdata.get("checklist") or [],
+            "schedule_time": tdata.get("schedule_time"),
+            # v2.17+ / #83 task fields — persisted and user-facing, so a JSON
+            # backup must restore them (same field-completeness contract as #67
+            # for documentation_url/notes; import mirrors these keys).
+            "priority": tdata.get("priority", "normal"),
+            "labels": tdata.get("labels") or [],
+            "earliest_completion_days": tdata.get("earliest_completion_days"),
+            "on_complete_action": tdata.get("on_complete_action"),
+            "quick_complete_defaults": tdata.get("quick_complete_defaults"),
+            "assignee_pool": tdata.get("assignee_pool") or [],
+            "rotation_strategy": tdata.get("rotation_strategy"),
+            "reading_unit": tdata.get("reading_unit"),
             "status": ct.get("_status", "ok"),
             "days_until_due": ct.get("_days_until_due"),
             "next_due": ct.get("_next_due"),
