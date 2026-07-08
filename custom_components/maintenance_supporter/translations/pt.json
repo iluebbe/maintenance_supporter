@@ -677,7 +677,10 @@
           "nfc_tag_id": "ID da etiqueta NFC",
           "go_back": "Voltar",
           "interval_anchor": "Âncora do intervalo",
-          "reading_unit": "Unidade de leitura (para tarefas de leitura, p. ex. kWh)"
+          "reading_unit": "Unidade de leitura (para tarefas de leitura, p. ex. kWh)",
+          "season_months": "Janela sazonal (meses)",
+          "ends_count": "Termina apos (numero de vezes)",
+          "ends_until": "Termina na data"
         },
         "data_description": {
           "name": "Um nome descritivo para esta tarefa (ex.: 'Limpeza do Filtro', 'Mudança de Óleo').",
@@ -694,7 +697,10 @@
           "custom_icon": "Ícone personalizado opcional para esta tarefa (ex.: mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Associe uma etiqueta NFC a esta tarefa. Ao ler a etiqueta, a tarefa será automaticamente marcada como concluída.",
           "go_back": "Regressar às ações da tarefa sem guardar.",
-          "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original."
+          "interval_anchor": "Como a próxima data de vencimento é calculada após a conclusão. 'Planeado' evita desvios no agendamento ancorando à data de vencimento original.",
+          "season_months": "So vence nos meses selecionados; datas fora de epoca passam para o proximo mes ativo. Vazio = todo o ano.",
+          "ends_count": "Parar de repetir apos este numero de conclusoes (serie finita). Vazio = sem limite.",
+          "ends_until": "Parar de repetir quando a proxima ocorrencia cair apos esta data. Ignorado se 'Termina apos' estiver definido."
         }
       },
       "edit_checklist": {

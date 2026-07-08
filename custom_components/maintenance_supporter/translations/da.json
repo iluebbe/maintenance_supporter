@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC-mærke-id",
           "go_back": "Gå tilbage",
           "interval_anchor": "Intervalanker",
-          "reading_unit": "Aflæsningsenhed (til aflæsningsopgaver, f.eks. kWh)"
+          "reading_unit": "Aflæsningsenhed (til aflæsningsopgaver, f.eks. kWh)",
+          "season_months": "Saesonvindue (maaneder)",
+          "ends_count": "Slutter efter (antal gange)",
+          "ends_until": "Slutter paa dato"
         },
         "data_description": {
           "name": "Et beskrivende navn til denne opgave (f.eks. 'Filterrensning', 'Olieskift').",
@@ -694,7 +697,10 @@
           "custom_icon": "Valgfrit brugerdefineret ikon til denne opgave (f.eks. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Knyt et NFC-mærke til denne opgave. Scanning af mærket markerer automatisk opgaven som fuldført.",
           "go_back": "Vend tilbage til opgavehandlinger uden at gemme.",
-          "interval_anchor": "Hvordan den næste forfaldsdato beregnes efter fuldførelse. 'Planlagt' forhindrer tidsforskydning ved at forankre til den oprindelige forfaldsdato."
+          "interval_anchor": "Hvordan den næste forfaldsdato beregnes efter fuldførelse. 'Planlagt' forhindrer tidsforskydning ved at forankre til den oprindelige forfaldsdato.",
+          "season_months": "Kun forfalden i de valgte maaneder; datoer uden for saesonen rykkes til naeste aktive maaned. Tom = hele aaret.",
+          "ends_count": "Stop gentagelse efter dette antal gennemforelser (endelig serie). Tom = ingen graense.",
+          "ends_until": "Stop gentagelse, naar naeste forekomst ville falde efter denne dato. Ignoreres, hvis 'Slutter efter' er sat."
         }
       },
       "edit_checklist": {

@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC-tagg-ID",
           "go_back": "Tillbaka",
           "interval_anchor": "Intervallankare",
-          "reading_unit": "Avläsningsenhet (för avläsningsuppgifter, t.ex. kWh)"
+          "reading_unit": "Avläsningsenhet (för avläsningsuppgifter, t.ex. kWh)",
+          "season_months": "Sasongsfonster (manader)",
+          "ends_count": "Slutar efter (antal ganger)",
+          "ends_until": "Slutar pa datum"
         },
         "data_description": {
           "name": "Ett beskrivande namn för denna uppgift (t.ex. ”Filterbyte”, ”Oljebyte”).",
@@ -694,7 +697,10 @@
           "custom_icon": "Valfri anpassad ikon för denna uppgift (t.ex. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Koppla en NFC-tagg till denna uppgift. Att skanna taggen markerar automatiskt uppgiften som slutförd.",
           "go_back": "Återgå till uppgiftsåtgärder utan att spara.",
-          "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum."
+          "interval_anchor": "Hur nästa förfallodag beräknas efter slutförande. ”Planerad” förhindrar schemadrift genom att förankra till ursprungligt förfallodatum.",
+          "season_months": "Forfaller endast valda manader; datum utanfor sasongen flyttas till nasta aktiva manad. Tomt = hela aret.",
+          "ends_count": "Sluta upprepa efter sa har manga slutforanden (andlig serie). Tomt = ingen grans.",
+          "ends_until": "Sluta upprepa nar nasta tillfalle skulle infalla efter detta datum. Ignoreras om 'Slutar efter' ar satt."
         }
       },
       "edit_checklist": {

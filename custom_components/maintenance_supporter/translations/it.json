@@ -677,7 +677,10 @@
           "nfc_tag_id": "ID tag NFC",
           "go_back": "Indietro",
           "interval_anchor": "Ancoraggio intervallo",
-          "reading_unit": "Unità di lettura (per attività di lettura, es. kWh)"
+          "reading_unit": "Unità di lettura (per attività di lettura, es. kWh)",
+          "season_months": "Finestra stagionale (mesi)",
+          "ends_count": "Termina dopo (numero di volte)",
+          "ends_until": "Termina alla data"
         },
         "data_description": {
           "name": "Un nome descrittivo per questa attività (es. 'Pulizia filtro', 'Cambio olio').",
@@ -694,7 +697,10 @@
           "custom_icon": "Icona personalizzata opzionale per questa attività (es. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Collega un tag NFC a questa attività. La scansione del tag segnerà automaticamente l'attività come completata.",
           "go_back": "Torna alle azioni attività senza salvare.",
-          "interval_anchor": "Come viene calcolata la prossima data di scadenza dopo il completamento. 'Pianificato' previene lo slittamento ancorandosi alla data pianificata."
+          "interval_anchor": "Come viene calcolata la prossima data di scadenza dopo il completamento. 'Pianificato' previene lo slittamento ancorandosi alla data pianificata.",
+          "season_months": "Scade solo nei mesi selezionati; le date fuori stagione passano al mese attivo successivo. Vuoto = tutto l'anno.",
+          "ends_count": "Smetti di ripetere dopo questo numero di completamenti (serie finita). Vuoto = nessun limite.",
+          "ends_until": "Smetti di ripetere quando la prossima scadenza cadrebbe dopo questa data. Ignorato se 'Termina dopo' e impostato."
         }
       },
       "edit_checklist": {

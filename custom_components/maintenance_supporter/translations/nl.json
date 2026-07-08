@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC-tag-ID",
           "go_back": "Terug",
           "interval_anchor": "Interval-anker",
-          "reading_unit": "Meeteenheid (voor aflees-taken, bijv. kWh)"
+          "reading_unit": "Meeteenheid (voor aflees-taken, bijv. kWh)",
+          "season_months": "Seizoensvenster (maanden)",
+          "ends_count": "Eindigt na (aantal keer)",
+          "ends_until": "Eindigt op datum"
         },
         "data_description": {
           "name": "Een beschrijvende naam voor deze taak (bijv. 'Filterreiniging', 'Olieverversing').",
@@ -694,7 +697,10 @@
           "custom_icon": "Optioneel aangepast icoon voor deze taak (bijv. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Koppel een NFC-tag aan deze taak. Het scannen van de tag markeert de taak automatisch als voltooid.",
           "go_back": "Terug naar taakacties zonder opslaan.",
-          "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum."
+          "interval_anchor": "Hoe de volgende vervaldatum wordt berekend na voltooiing. 'Gepland' voorkomt tijdverschuiving door verankering aan de geplande datum.",
+          "season_months": "Alleen verschuldigd in de gekozen maanden; data buiten het seizoen schuiven naar de volgende actieve maand. Leeg = hele jaar.",
+          "ends_count": "Stop met herhalen na dit aantal voltooiingen (eindige reeks). Leeg = geen limiet.",
+          "ends_until": "Stop met herhalen zodra de volgende keer na deze datum zou vallen. Genegeerd als 'Eindigt na' is ingesteld."
         }
       },
       "edit_checklist": {
