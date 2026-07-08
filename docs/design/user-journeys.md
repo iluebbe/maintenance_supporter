@@ -60,7 +60,7 @@ especially across reload/restart.
 | C2 | Change recurrence: interval value/unit, time↔calendar↔sensor type switches | P, F, W | test_schedule*, #58/#59 regressions, test_journey_mutations (unit + time→calendar) | closed — test_journey_biographies (time → sensor → triggered → back to time; removed trigger no longer drives status) |
 | C3 | **Rename task** / entity_slug change | P, F, W | test_ws_objects, test_journey_mutations | ✔ closed 2026-07-05 |
 | C4 | **Rename object** | P, F (2 flows), W | test_object_rename_migration (NEW, after the bug) | ✔ closed 2026-07-05 |
-| C5 | Re-assign user; change rotation pool | P, W | test_ws_users, test_rotation | — |
+| C5 | Re-assign user; change rotation pool | P, W | test_ws_users, test_rotation, test_journey_rotation (round_robin advances a→b→c→a across completions AND persists the rotated pointer across restart — the "rotation never persisted" regression; completions spaced past the double-tap dedup window) | closed |
 | C6 | Move object: area change, device link, parent object | P, F, W | test_device_link, test_journey_lifecycle_complete (link → restart → unlink → restart, registry invariant) | closed |
 | C7 | Feature toggles off/on (data must survive hidden state) | P, F | test_ws_roundtrip settings, test_journey_mutations | ✔ closed 2026-07-05 |
 | C8 | Trigger entity replaced / renamed in HA | (registry) | test_entity_rename_rewrite, repairs | — |
@@ -82,7 +82,7 @@ especially across reload/restart.
 |---|---------|----------|---------------|-----|
 | E1 | Archive task → *Undo* toast → unarchive re-anchors | P, W | test_ws_archive | — |
 | E2 | Archive → restart (stays inert) → unarchive | P, W | test_ws_archive, test_journey_retirement, test_journey_lifecycle_complete (object cascade × restart × unarchive) | closed |
-| E3 | Delete task → all 6 per-task entities + store keys + group refs gone | P, F, W, S | test_entity_removal, test_services_crud | — |
+| E3 | Delete task → all 6 per-task entities + store keys + group refs gone | P, F, W, S | test_entity_removal, test_services_crud, test_journey_groups (grouped task deleted → its group task_ref pruned, sibling ref kept; object deleted → all its refs pruned; group survives member-less; pruning holds across restart) | closed |
 | E4 | Delete object → device, entities, documents (refcounted blobs), group refs gone | P, F, W | test_ws_objects, test_journey_retirement, test_journey_lifecycle_complete (blob freed, doc index empty) | closed |
 | E5 | Retention: auto-archive one-offs → auto-delete after N days | (time) | test_archive, test_journey_retention (complete → sweep auto-archives at N days → restart keeps archived → sweep auto-deletes at M days, no orphans; a MANUAL archive is never auto-deleted) | closed |
 | E6 | Uninstall: remove all entries → nothing left in registries/storage | F | test_journey_lifecycle_complete (remove all entries → no devices/entities left) | closed |
