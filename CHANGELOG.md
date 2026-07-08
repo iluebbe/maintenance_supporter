@@ -23,6 +23,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🔧 Internal
 
+- **Loop-safety regression coverage for #87** — new tests assert the Workday
+  holiday calendar is built off the event-loop thread, using the *real*
+  `holidays` package, for both the with-Workday and without-Workday paths
+  (the latter must not import holidays at all). CI now installs `holidays`
+  in the pytest job and the docker smoke test exercises the real builder in
+  the shipped HA image for both configs — so this class of blocking-import
+  bug can't regress unnoticed.
 - **Task detail is now a web component** — `<maintenance-task-detail-view>`
   wraps the previously extracted task-detail renderers behind a real
   element boundary (light-DOM rendering, so the panel's styles and dialog

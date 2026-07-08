@@ -221,6 +221,28 @@ async def test_setup_clears_provider_without_workday_entry(hass) -> None:
     assert is_business_day(date(2027, 7, 30)) is True  # Fri, plain rule again
 
 
+async def test_setup_without_workday_never_touches_holidays(hass, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The other half of #87: with NO Workday entry, setup must not build (and
+    therefore not import) a holiday calendar at all — the blocking import can
+    only happen on the Workday path, so the plain-rule path stays import-free."""
+    real_holidays = pytest.importorskip("holidays")
+    called = {"n": 0}
+    real_country_holidays = real_holidays.country_holidays
+
+    def spy(*args: object, **kwargs: object) -> object:
+        called["n"] += 1
+        return real_country_holidays(*args, **kwargs)
+
+    monkeypatch.setattr(real_holidays, "country_holidays", spy)
+
+    # No Workday config entry added to hass.
+    await async_setup_business_days(hass)
+
+    assert called["n"] == 0, "holidays.country_holidays was called without a Workday entry"
+    assert is_business_day(date(2027, 7, 30)) is True  # Fri, plain Mon-Fri rule
+    assert is_business_day(date(2027, 7, 31)) is False  # Sat
+
+
 async def test_setup_builds_calendar_off_the_event_loop(hass, monkeypatch: pytest.MonkeyPatch) -> None:
     """`holidays.country_holidays` lazily imports its country submodule, which
     HA flags as a blocking call on the loop (issue #87). Verify the build runs
@@ -250,6 +272,57 @@ async def test_setup_builds_calendar_off_the_event_loop(hass, monkeypatch: pytes
     await async_setup_business_days(hass)
     assert build_thread.get("id") is not None, "calendar was never built"
     assert build_thread["id"] != loop_thread, "calendar built on the event loop thread"
+
+
+async def test_real_holidays_calendar_built_off_loop(hass, monkeypatch: pytest.MonkeyPatch) -> None:
+    """End-to-end with the REAL ``holidays`` package (issue #87).
+
+    The fake-module test above proves the executor is used; this one proves it
+    against the actual dependency — ``holidays.country_holidays('CA')`` really
+    does lazily ``import_module('holidays.countries.canada')``. We wrap the real
+    ``country_holidays`` to record the thread it runs on (calling through to the
+    real implementation, so the real import fires) and assert two things: the
+    build happened off the event-loop thread, and the resulting provider filters
+    a real Canadian public holiday. This is the regression guard for the exact
+    blocking call the reporter hit.
+    """
+    real_holidays = pytest.importorskip("holidays")
+    import threading
+
+    loop_thread = threading.get_ident()
+    seen: dict[str, int] = {}
+    real_country_holidays = real_holidays.country_holidays
+
+    def spy(*args: object, **kwargs: object) -> object:
+        seen["thread"] = threading.get_ident()
+        return real_country_holidays(*args, **kwargs)  # real import happens here
+
+    monkeypatch.setattr(real_holidays, "country_holidays", spy)
+
+    entry = MockConfigEntry(
+        domain="workday",
+        title="Workday CA",
+        data={},
+        options={
+            "country": "CA",
+            "workdays": ["mon", "tue", "wed", "thu", "fri"],
+            "excludes": ["sat", "sun", "holiday"],
+        },
+    )
+    entry.add_to_hass(hass)
+
+    await async_setup_business_days(hass)
+
+    assert seen.get("thread") is not None, "real country_holidays was never called"
+    assert seen["thread"] != loop_thread, (
+        "holidays.country_holidays (which lazily import_module's the country "
+        "submodule) ran on the event-loop thread — HA flags that as a blocking call (#87)"
+    )
+    # The real calendar is wired up: Canada Day 2026-07-01 (a Wednesday) and
+    # Christmas 2026-12-25 (a Friday) are weekdays but public holidays.
+    assert is_business_day(date(2026, 7, 1)) is False  # Canada Day
+    assert is_business_day(date(2026, 12, 25)) is False  # Christmas Day
+    assert is_business_day(date(2026, 7, 2)) is True  # Thu, not a holiday
 
 
 def test_builder_survives_unknown_country(monkeypatch: pytest.MonkeyPatch) -> None:
