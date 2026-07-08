@@ -1396,6 +1396,38 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._resetTask(entryId, taskId, result.value || undefined);
   }
 
+  private async _postponeTask(entryId: string, taskId: string, until: string): Promise<void> {
+    this._actionLoading = true;
+    try {
+      await this.hass.connection.sendMessagePromise({
+        type: "maintenance_supporter/task/postpone",
+        entry_id: entryId,
+        task_id: taskId,
+        until,
+      });
+      this._showToast(t("postponed", this._lang));
+      await this._loadData();
+    } catch {
+      this._showToast(t("action_error", this._lang));
+    } finally {
+      this._actionLoading = false;
+    }
+  }
+
+  private async _promptPostponeTask(entryId: string, taskId: string): Promise<void> {
+    const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
+    if (!dlg) return;
+    const result = await dlg.prompt({
+      title: t("postpone", this._lang),
+      message: t("postpone_date_prompt", this._lang),
+      confirmText: t("postpone", this._lang),
+      inputLabel: t("postpone_date_label", this._lang),
+      inputType: "date",
+    });
+    if (!result.confirmed || !result.value) return;
+    this._postponeTask(entryId, taskId, result.value);
+  }
+
   private async _snoozeTask(entryId: string, taskId: string): Promise<void> {
     this._actionLoading = true;
     try {
@@ -2859,6 +2891,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       openQr: (taskName) => this._openQrForTask(entryId, taskId, obj?.object.name || "", taskName),
       duplicateTask: () => this._duplicateTask(entryId, taskId),
       promptReset: () => this._promptResetTask(entryId, taskId),
+      promptPostpone: () => this._promptPostponeTask(entryId, taskId),
       snoozeTask: () => this._snoozeTask(entryId, taskId),
       printWorksheet: () => this._printTaskWorksheet(entryId, taskId),
       deleteTask: () => this._deleteTask(entryId, taskId),

@@ -693,5 +693,10 @@
   "worksheet_pages": "पृष्ठ",
   "worksheet_printed": "मुद्रित",
   "worksheet_never": "कभी नहीं",
-  "card_all_caught_up": "सब पूरा — किसी चीज़ पर ध्यान देने की ज़रूरत नहीं"
+  "card_all_caught_up": "सब पूरा — किसी चीज़ पर ध्यान देने की ज़रूरत नहीं",
+  "postpone": "टालें",
+  "postpone_date_prompt": "इस बार को किस तारीख तक टालें?",
+  "postpone_date_label": "नई नियत तिथि",
+  "postponed": "टाल दिया गया",
+  "postponed_to": "तक टाला गया"
 }

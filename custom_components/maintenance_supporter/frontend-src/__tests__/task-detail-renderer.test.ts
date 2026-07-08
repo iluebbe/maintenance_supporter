@@ -105,6 +105,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     openQr: () => undefined,
     duplicateTask: () => undefined,
     promptReset: () => undefined,
+    promptPostpone: () => undefined,
     snoozeTask: () => undefined,
     printWorksheet: () => undefined,
     deleteTask: () => undefined,
@@ -162,21 +163,32 @@ describe("task-detail renderer", () => {
     expect(labels.some((l) => /archive/i.test(l))).to.be.false;
   });
 
-  it("open more-menu lists edit/duplicate/reset/snooze/worksheet/delete and fires callbacks", () => {
+  it("open more-menu lists edit/duplicate/reset/postpone/snooze/worksheet/delete and fires callbacks", () => {
     const calls: string[] = [];
     const host = mount(task(), ctx({
       moreMenuOpen: true,
       closeMoreMenu: () => calls.push("close"),
       deleteTask: () => calls.push("delete"),
+      promptPostpone: () => calls.push("postpone"),
       snoozeTask: () => calls.push("snooze"),
       printWorksheet: () => calls.push("worksheet"),
     }));
     const items = [...host.querySelectorAll(".popup-menu-item")];
-    expect(items.length).to.equal(6);
-    (items[3] as HTMLElement).click(); // snooze
-    (items[4] as HTMLElement).click(); // work sheet (v2.21)
-    (items[5] as HTMLElement).click(); // delete (danger)
-    expect(calls).to.deep.equal(["close", "snooze", "close", "worksheet", "close", "delete"]);
+    expect(items.length).to.equal(7);
+    (items[3] as HTMLElement).click(); // postpone
+    (items[4] as HTMLElement).click(); // snooze
+    (items[5] as HTMLElement).click(); // work sheet (v2.21)
+    (items[6] as HTMLElement).click(); // delete (danger)
+    expect(calls).to.deep.equal(["close", "postpone", "close", "snooze", "close", "worksheet", "close", "delete"]);
+  });
+
+  it("shows a postponed badge when the task has a due_override, and none otherwise", () => {
+    const plain = mount(task(), ctx());
+    expect(plain.querySelector(".postponed-badge")).to.be.null;
+    const postponed = mount(task({ due_override: "2026-06-20" }), ctx());
+    const badge = postponed.querySelector(".postponed-badge");
+    expect(badge, "postponed badge").to.exist;
+    expect(badge!.textContent).to.match(/2026|20/);
   });
 
   it("tab bar switches via setActiveTab; history tab renders the timeline", () => {

@@ -693,5 +693,10 @@
   "worksheet_pages": "sider",
   "worksheet_printed": "Skrevet ut",
   "worksheet_never": "Aldri",
-  "card_all_caught_up": "Alt er i orden — ingenting trenger oppmerksomhet"
+  "card_all_caught_up": "Alt er i orden — ingenting trenger oppmerksomhet",
+  "postpone": "Utsett",
+  "postpone_date_prompt": "Utsett denne forekomsten til hvilken dato?",
+  "postpone_date_label": "Ny forfallsdato",
+  "postponed": "Utsatt",
+  "postponed_to": "Utsatt til"
 }

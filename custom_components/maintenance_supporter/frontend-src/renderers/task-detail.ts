@@ -61,6 +61,7 @@ export interface TaskDetailContext {
   openQr: (taskName: string) => void;
   duplicateTask: () => void;
   promptReset: () => void;
+  promptPostpone: () => void;
   snoozeTask: () => void;
   /** v2.21: open the printable one-pager for this task. */
   printWorksheet: () => void;
@@ -104,6 +105,9 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         <span class="breadcrumb-separator">·</span>
         <span class="object-name-breadcrumb" @click=${() => ctx.showObject()}>${ctx.objectName}</span>
         <span class="status-chip ${statusClass}">${statusText}</span>
+        ${task.due_override ? html`<span class="postponed-badge" title="${t("postponed_to", L)}">
+          <ha-icon icon="mdi:calendar-arrow-right"></ha-icon>${formatDate(task.due_override, L)}
+        </span>` : nothing}
         ${renderUserBadge(task, ctx.getUserName)}
         ${task.nfc_tag_id
           ? html`<span class="nfc-badge" title="${t("nfc_tag_id", L)}: ${task.nfc_tag_id}"><ha-icon icon="mdi:nfc-variant"></ha-icon> NFC</span>`
@@ -131,6 +135,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.openEdit(task); }}>${t("edit", L)}</div>
                 <div class="popup-menu-item" @click=${() => ctx.duplicateTask()}>${t("duplicate", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptReset(); }}>${t("reset", L)}</div>
+                <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.promptPostpone(); }}>${t("postpone", L)}…</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.snoozeTask(); }}>${t("snooze", L)}</div>
                 <div class="popup-menu-item" @click=${() => { ctx.closeMoreMenu(); ctx.printWorksheet(); }}>${t("worksheet", L)}</div>
                 <div class="popup-menu-divider"></div>

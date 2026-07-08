@@ -693,5 +693,10 @@
   "worksheet_pages": "pagina's",
   "worksheet_printed": "Afgedrukt",
   "worksheet_never": "Nooit",
-  "card_all_caught_up": "Alles bijgewerkt — niets vraagt aandacht"
+  "card_all_caught_up": "Alles bijgewerkt — niets vraagt aandacht",
+  "postpone": "Uitstellen",
+  "postpone_date_prompt": "Deze keer uitstellen tot welke datum?",
+  "postpone_date_label": "Nieuwe vervaldatum",
+  "postponed": "Uitgesteld",
+  "postponed_to": "Uitgesteld tot"
 }

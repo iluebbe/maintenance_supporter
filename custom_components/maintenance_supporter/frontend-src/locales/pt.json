@@ -693,5 +693,10 @@
   "worksheet_pages": "páginas",
   "worksheet_printed": "Impresso",
   "worksheet_never": "Nunca",
-  "card_all_caught_up": "Tudo em dia — nada requer atenção"
+  "card_all_caught_up": "Tudo em dia — nada requer atenção",
+  "postpone": "Adiar",
+  "postpone_date_prompt": "Adiar esta ocorrência para qual data?",
+  "postpone_date_label": "Nova data de vencimento",
+  "postponed": "Adiado",
+  "postponed_to": "Adiado para"
 }

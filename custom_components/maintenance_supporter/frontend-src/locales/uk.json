@@ -693,5 +693,10 @@
   "worksheet_pages": "сторінки",
   "worksheet_printed": "Надруковано",
   "worksheet_never": "Ніколи",
-  "card_all_caught_up": "Усе виконано — ніщо не потребує уваги"
+  "card_all_caught_up": "Усе виконано — ніщо не потребує уваги",
+  "postpone": "Відкласти",
+  "postpone_date_prompt": "На яку дату відкласти цей раз?",
+  "postpone_date_label": "Новий термін",
+  "postponed": "Відкладено",
+  "postponed_to": "Відкладено до"
 }

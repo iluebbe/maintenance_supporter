@@ -693,5 +693,10 @@
   "worksheet_pages": "sider",
   "worksheet_printed": "Udskrevet",
   "worksheet_never": "Aldrig",
-  "card_all_caught_up": "Alt er klaret — intet kræver opmærksomhed"
+  "card_all_caught_up": "Alt er klaret — intet kræver opmærksomhed",
+  "postpone": "Udskyd",
+  "postpone_date_prompt": "Udskyd denne forekomst til hvilken dato?",
+  "postpone_date_label": "Ny forfaldsdato",
+  "postponed": "Udskudt",
+  "postponed_to": "Udskudt til"
 }

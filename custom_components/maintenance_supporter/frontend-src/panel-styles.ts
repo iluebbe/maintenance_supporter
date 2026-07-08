@@ -603,6 +603,19 @@ export const panelStyles = css`
   .priority-badge ha-icon {
     --mdc-icon-size: 16px;
   }
+  .postponed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    background: var(--secondary-background-color, #e8e8e8);
+    color: var(--secondary-text-color);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .postponed-badge ha-icon { --mdc-icon-size: 13px; }
   .priority-high {
     color: var(--error-color, #db4437);
   }

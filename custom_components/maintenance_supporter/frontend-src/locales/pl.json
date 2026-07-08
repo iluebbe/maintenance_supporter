@@ -693,5 +693,10 @@
   "worksheet_pages": "strony",
   "worksheet_printed": "Wydrukowano",
   "worksheet_never": "Nigdy",
-  "card_all_caught_up": "Wszystko zrobione — nic nie wymaga uwagi"
+  "card_all_caught_up": "Wszystko zrobione — nic nie wymaga uwagi",
+  "postpone": "Odłóż",
+  "postpone_date_prompt": "Przełożyć ten termin na jaką datę?",
+  "postpone_date_label": "Nowa data",
+  "postponed": "Odłożono",
+  "postponed_to": "Odłożono do"
 }

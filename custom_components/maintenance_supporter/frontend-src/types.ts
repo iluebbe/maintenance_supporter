@@ -182,6 +182,8 @@ export interface MaintenanceTask {
   archived_reason?: string | null;
   days_until_due?: number | null;
   next_due?: string | null;
+  /** Per-occurrence postpone: the ISO date the current cycle was deferred to. */
+  due_override?: string | null;
   trigger_active: boolean;
   trigger_current_value?: number | null;
   trigger_current_delta?: number | null;

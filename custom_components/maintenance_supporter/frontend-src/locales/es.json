@@ -693,5 +693,10 @@
   "worksheet_pages": "páginas",
   "worksheet_printed": "Impreso",
   "worksheet_never": "Nunca",
-  "card_all_caught_up": "Todo al día — nada requiere atención"
+  "card_all_caught_up": "Todo al día — nada requiere atención",
+  "postpone": "Posponer",
+  "postpone_date_prompt": "¿A qué fecha posponer esta vez?",
+  "postpone_date_label": "Nueva fecha de vencimiento",
+  "postponed": "Pospuesto",
+  "postponed_to": "Pospuesto hasta"
 }
