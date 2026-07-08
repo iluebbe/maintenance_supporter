@@ -2,6 +2,27 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ New (backend + API; panel UI to follow)
+
+- **Finite recurring series** — a schedule can now end on its own after a set
+  number of completions and/or once the next occurrence would fall after a
+  given date (`schedule.ends = {count?, until?}`). When the series ends the task
+  stops re-arming and reads as *done*, like a completed one-off. Round-trips
+  through JSON/YAML export/import.
+- **Seasonal active window** — a schedule can be restricted to certain months
+  (`schedule.season_months = [4..10]`); a due date computed outside the window
+  rolls forward to the 1st of the next active month, so the task pauses through
+  the off-season and resumes in season. Complements the existing seasonal
+  factors and manual pause.
+- **Postpone a single occurrence** — new WS command
+  `maintenance_supporter/task/postpone` (`entry_id`, `task_id`, `until`) defers
+  just the current cycle's due date via a one-shot `due_override`, distinct from
+  snooze (notifications only) and reset (re-anchors the whole recurrence). The
+  next completion consumes it and the cadence returns to normal; the active
+  override is exposed on the task's WS payload (`due_override`).
+
 ## [2.21.4] - 2026-07-08
 
 ### 🐛 Fixed

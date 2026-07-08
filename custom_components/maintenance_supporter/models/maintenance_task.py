@@ -49,6 +49,10 @@ class MaintenanceTask:
     last_planned_due: str | None = None  # ISO date: anchor for planned mode
     schedule_time: str | None = None  # "HH:MM" in HA's configured TZ; None = midnight (default)
     due_date: str | None = None  # ISO date: one-time task due date (ScheduleType.ONE_TIME)
+    # Per-occurrence postpone: an ISO date that overrides just the CURRENT
+    # cycle's due date (see Schedule.next_due). Cleared on completion so the
+    # next cycle returns to the normal cadence. Dynamic (lives in the Store).
+    due_override: str | None = None
     # Raw nested schedule dict (schedule-model v2). The source of truth for the
     # calendar kinds (weekdays/nth_weekday/day_of_month), which the flat fields
     # above can't represent. None for legacy/flat-only data.
@@ -127,6 +131,8 @@ class MaintenanceTask:
             created_at=parse_iso_date(self.created_at),
             last_planned_due=parse_iso_date(self.last_planned_due),
             today=dt_util.now().date(),
+            times_performed=self.times_performed,
+            due_override=parse_iso_date(self.due_override),
         )
 
     def _schedule(self) -> Schedule:
@@ -226,13 +232,19 @@ class MaintenanceTask:
 
     @property
     def is_done(self) -> bool:
-        """True for a completed one-time task (done; never re-arms).
+        """True for a completed one-time task, or a finite series that has ended.
 
         ("Done" is the terminal state of a one-off. It is distinct from
         "archived" — see ``archived`` — which is the retire-but-retain state
         added in v2.10.0 and reserved for that feature.)
         """
-        return self.schedule_type == ScheduleType.ONE_TIME and self.last_performed is not None
+        if self.schedule_type == ScheduleType.ONE_TIME and self.last_performed is not None:
+            return True
+        # A finite recurring series (repeat N times / recur until a date) is
+        # terminally done once it has been performed and no longer re-arms.
+        if self.last_performed is not None and self._schedule().is_finite() and self.next_due is None:
+            return True
+        return False
 
     @property
     def times_performed(self) -> int:
@@ -294,6 +306,9 @@ class MaintenanceTask:
         self.last_performed = now.date().isoformat()
         self._trigger_active = False
         self._trigger_current_value = None
+        # A postponed occurrence is consumed by completing it — the next cycle
+        # returns to the normal cadence.
+        self.due_override = None
 
         self.add_history_entry(
             entry_type=HistoryEntryType.COMPLETED,
@@ -458,6 +473,8 @@ class MaintenanceTask:
         data["schedule"] = self._schedule().to_dict()
         if self.last_planned_due is not None:
             data["last_planned_due"] = self.last_planned_due
+        if self.due_override is not None:
+            data["due_override"] = self.due_override
         if self.schedule_time is not None:
             data["schedule_time"] = self.schedule_time
         if self.last_performed is not None:
@@ -526,6 +543,7 @@ class MaintenanceTask:
             created_at=data.get("created_at"),
             interval_anchor=sched["interval_anchor"],
             last_planned_due=data.get("last_planned_due"),
+            due_override=data.get("due_override"),
             schedule_time=data.get("schedule_time"),
             trigger_config=data.get("trigger_config"),
             notes=data.get("notes"),

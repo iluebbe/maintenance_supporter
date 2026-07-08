@@ -131,7 +131,10 @@ meter readings. Builds on the nested `schedule` model (`helpers/schedule.py`,
 kinds weekdays / nth_weekday / day_of_month) — a natural `last_day` /
 `last_business_day` kind plus an `offset_days` field.
 
-### 💡 Finite recurring series (repeat N times / recur until a date)
+### 🛠️ Finite recurring series (repeat N times / recur until a date)
+**Backend + API shipped** (`schedule.ends = {count?, until?}`; the task auto-reads
+as *done* when the series ends; round-trips through export/import). Panel UI (the
+end-condition fields in the recurrence section) still to come.
 Today a task is either **one-time** or **recurs forever** — there is nothing in
 between. A **bounded series** would let a recurring task stop on its own: "oil
 it monthly, but only for the first 6 months after install", "quarterly checks
@@ -145,7 +148,10 @@ lifecycle rather than lingering as permanently overdue. Fits the nested
 projecting past the end. Distinct from the one-off type and from the
 seasonal-pause `until` (which only auto-resumes, never ends the series).
 
-### 💡 Seasonal active window (only due in certain months)
+### 🛠️ Seasonal active window (only due in certain months)
+**Backend + API shipped** (`schedule.season_months`; off-season due dates roll to
+the next active month; round-trips through export/import). Panel UI (a month
+picker in the recurrence section) still to come.
 Complements the existing **seasonal factors** (soft 12-month interval scaling)
 and **manual seasonal pause** (a hand-set date range) with a *declarative*
 month window: "only due April–October; occurrences that would fall outside the
@@ -157,7 +163,10 @@ year. A `season_months` set on the schedule (e.g. `[4..10]`) consulted in
 start of the next active period, so the task never sits "overdue" through the
 off-season. Pairs with, but is independent of, the seasonal factors.
 
-### 💡 Postpone a single occurrence (defer to a date, without completing)
+### 🛠️ Postpone a single occurrence (defer to a date, without completing)
+**Backend + API shipped** (WS `task/postpone` sets a one-shot `due_override`,
+cleared by the next completion; exposed on the task payload). Panel UI (a
+"Postpone…" item beside Skip/Snooze) still to come.
 A lightweight "not this week — push this one to next Tuesday" that moves **only
 the current due date**, not the whole schedule anchor. Distinct from the two
 things we already have: **snooze** silences notifications but leaves the task

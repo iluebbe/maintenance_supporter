@@ -180,6 +180,9 @@ def _build_task_summary(
         # local state for the action fields is empty (writes back null).
         "on_complete_action": task_data.get("on_complete_action"),
         "quick_complete_defaults": task_data.get("quick_complete_defaults"),
+        # Per-occurrence postpone: the active override date (or null) so the
+        # panel can badge "postponed to …" and offer to clear it.
+        "due_override": task_data.get("due_override"),
         # Computed fields from coordinator
         "status": ct.get("_status", "ok"),
         "is_done": ct.get("_is_done", False),
@@ -439,6 +442,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_delete_task,
         ws_duplicate_task,
         ws_list_tasks,
+        ws_postpone_task,
         ws_quick_complete_task,
         ws_reset_task,
         ws_skip_task,
@@ -481,6 +485,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_skip_task)
     websocket_api.async_register_command(hass, ws_reset_task)
     websocket_api.async_register_command(hass, ws_snooze_task)
+    websocket_api.async_register_command(hass, ws_postpone_task)
     websocket_api.async_register_command(hass, ws_update_history_entry)
     websocket_api.async_register_command(hass, ws_get_templates)
     websocket_api.async_register_command(hass, ws_export_data)
