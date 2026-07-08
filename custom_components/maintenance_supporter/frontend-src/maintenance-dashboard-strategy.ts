@@ -204,18 +204,32 @@ const SMALL_SCREEN_CONDITION: ViewColumnsCondition = {
 // documented sensor.maintenance_supporter_<key> ids are NOT guaranteed —
 // a user rename, a _2 collision suffix, or a pre-pinning install that
 // registered localized ids all made the hardcoded templates read "unknown".
-type SummaryEntityIds = Partial<Record<"overdue" | "triggered" | "due_soon" | "ok", string | null>>;
+type SummaryKey = "overdue" | "triggered" | "due_soon" | "ok";
+type SummaryEntityIds = Partial<Record<SummaryKey, string | null>>;
+type SummaryCounts = Partial<Record<SummaryKey, number>>;
 
-function kpiMarkdownCard(ids: SummaryEntityIds = {}): CardConfig {
-  const eid = (key: keyof SummaryEntityIds) => ids[key] || `sensor.maintenance_supporter_${key}`;
+// One chip's value: prefer the live summary sensor (reactive template) when its
+// entity exists, but fall back to the literal count from the statistics WS when
+// it doesn't. The summary sensors only exist while the global "Maintenance
+// Supporter" entry is set up; if it was deleted (orphan object entries — #86,
+// 2nd report) the templated `states()` reads "unknown". The count from the WS
+// is always authoritative, so the chips stay correct either way.
+function kpiValue(key: SummaryKey, ids: SummaryEntityIds, counts: SummaryCounts): string {
+  const id = ids[key];
+  if (id) return `{{ states('${id}') }}`;
+  const n = counts[key];
+  return n === undefined || n === null ? "—" : String(n);
+}
+
+export function kpiMarkdownCard(ids: SummaryEntityIds = {}, counts: SummaryCounts = {}): CardConfig {
   return {
     type: "markdown",
     text_only: true,
     content: [
-      `🔴 **{{ states('${eid("overdue")}') }}** overdue`,
-      `⚡ **{{ states('${eid("triggered")}') }}** triggered`,
-      `🟡 **{{ states('${eid("due_soon")}') }}** due soon`,
-      `🟢 **{{ states('${eid("ok")}') }}** ok`,
+      `🔴 **${kpiValue("overdue", ids, counts)}** overdue`,
+      `⚡ **${kpiValue("triggered", ids, counts)}** triggered`,
+      `🟡 **${kpiValue("due_soon", ids, counts)}** due soon`,
+      `🟢 **${kpiValue("ok", ids, counts)}** ok`,
     ].join(" · "),
   };
 }
@@ -270,8 +284,8 @@ function emptyStateView(): ViewConfig {
   };
 }
 
-function overviewView(summaryIds: SummaryEntityIds = {}): ViewConfig {
-  const kpiCard = kpiMarkdownCard(summaryIds);
+function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts = {}): ViewConfig {
+  const kpiCard = kpiMarkdownCard(summaryIds, counts);
   return {
     title: "Overview",
     icon: "mdi:wrench-clock",
@@ -621,19 +635,31 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
       calendar: () => viewsByCalendar(objects),
     };
 
-    // Registry-resolved summary-sensor ids (#86); tolerate older backends.
+    // Registry-resolved summary-sensor ids + live counts (#86); tolerate older
+    // backends. The counts are the fallback the chips render when the summary
+    // sensors don't exist (orphan object entries after the global entry was
+    // deleted), so they never read "unknown".
     let summaryIds: SummaryEntityIds = {};
+    let counts: SummaryCounts = {};
     try {
-      const stats = await hass.connection.sendMessagePromise<{ summary_entity_ids?: SummaryEntityIds }>({
+      const stats = await hass.connection.sendMessagePromise<
+        { summary_entity_ids?: SummaryEntityIds } & SummaryCounts
+      >({
         type: "maintenance_supporter/statistics",
       });
       summaryIds = stats.summary_entity_ids || {};
+      counts = {
+        overdue: stats.overdue,
+        triggered: stats.triggered,
+        due_soon: stats.due_soon,
+        ok: stats.ok,
+      };
     } catch { /* fall back to the documented default ids */ }
 
     return {
       title: "Maintenance",
       views: [
-        overviewView(summaryIds),
+        overviewView(summaryIds, counts),
         ...(viewBuilders[groupBy] ?? viewBuilders.area)(),
       ],
     };

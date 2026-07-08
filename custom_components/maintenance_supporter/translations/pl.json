@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Nie znaleziono usługi powiadomień `{service}`",
       "description": "Maintenance Supporter jest skonfigurowany do wysyłania powiadomień przez `{service}`, ale ta usługa obecnie nie istnieje w Home Assistant, więc przypomnienia zawodzą po cichu.\n\nZwykle oznacza to, że usługa została przemianowana lub że integracja stojąca za nią (aplikacja mobilna, grupa powiadomień, …) została usunięta. Aby to naprawić: przywróć tę usługę lub otwórz **Ustawienia → Urządzenia i usługi → Maintenance Supporter → Konfiguruj → Ustawienia ogólne** i wybierz prawidłową usługę `notify.*`.\n\nUwaga: sprawdzana jest tylko sama skonfigurowana usługa. Jeśli powiadomienia docierają do niektórych urządzeń, ale nie do innych, prawdopodobnie błędnie skonfigurowany jest członek *wewnątrz* Twojej grupy powiadomień — to nie jest tu widoczne; sprawdź **dziennik systemowy** Home Assistant (Ustawienia → System → Dzienniki)."
+    },
+    "missing_global_entry": {
+      "title": "Brak globalnej konfiguracji Maintenance Supporter",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Przywróć globalną konfigurację",
+            "description": "Twoje obiekty konserwacji nadal istnieją, ale globalny wpis \"Maintenance Supporter\" został usunięty — dlatego brakuje czujników podsumowania, panelu bocznego i liczników pulpitu, a wskaźniki KPI pokazują \"unknown\".\n\nKliknij **Wyślij**, aby ponownie utworzyć globalną konfigurację z ustawieniami domyślnymi. Twoje obiekty i zadania pozostają nienaruszone. Powiadomienia i wartości domyślne możesz dostosować później w Ustawienia → Urządzenia i usługi.\n\n(Aby niczego nie zmieniać, użyj przycisku **Ignoruj** w Home Assistant.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

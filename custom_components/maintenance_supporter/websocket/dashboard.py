@@ -267,6 +267,11 @@ async def ws_get_statistics(
             "overdue": counts["overdue"],
             "due_soon": counts["due_soon"],
             "triggered": counts["triggered"],
+            # (#86, 2nd report) `ok` lets the dashboard chips render the real
+            # count directly when the summary sensors don't exist (e.g. the
+            # global entry was deleted, leaving orphan object entries) instead
+            # of reading a non-existent entity and showing "unknown".
+            "ok": counts["ok"],
             "total_cost": counts["total_cost"],
         },
     )

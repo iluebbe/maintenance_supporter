@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Notification service `{service}` not found",
       "description": "Maintenance Supporter is configured to send notifications via `{service}`, but that service does not currently exist in Home Assistant, so reminders fail silently.\n\nThis usually means the service was renamed, or the integration behind it (a mobile app, a notify group, …) was removed. To fix it: restore that service, or open **Settings → Devices & Services → Maintenance Supporter → Configure → General settings** and pick a valid `notify.*` service.\n\nNote: this only checks the configured service itself. If notifications reach some devices but not others, a member *inside* your notify group is likely misconfigured — that is not visible here; check Home Assistant's **system log** (Settings → System → Logs)."
+    },
+    "missing_global_entry": {
+      "title": "Maintenance Supporter global configuration is missing",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Restore the global configuration",
+            "description": "Your maintenance objects still exist, but the global \"Maintenance Supporter\" entry was deleted — so the summary sensors, the sidebar panel and the dashboard counts are gone, and the KPI chips read \"unknown\".\n\nClick **Submit** to recreate the global configuration with default settings. Your objects and tasks are left untouched. You can adjust notifications and defaults afterwards under Settings → Devices & Services.\n\n(To leave things as they are, use Home Assistant's **Ignore** button.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

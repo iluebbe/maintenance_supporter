@@ -164,6 +164,25 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             errors=errors,
         )
 
+    async def async_step_import(self, import_data: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Programmatically (re)create the global entry with default settings.
+
+        Used by the missing-global-entry repair flow to restore the global
+        "Maintenance Supporter" configuration after it was deleted while object
+        entries remained (which strips the summary sensors + panel). Aborts if a
+        global entry already exists, so it's safe to trigger unconditionally.
+        """
+        await self.async_set_unique_id(GLOBAL_UNIQUE_ID)
+        self._abort_if_unique_id_configured()
+        return self.async_create_entry(
+            title="Maintenance Supporter",
+            data={
+                CONF_DEFAULT_WARNING_DAYS: DEFAULT_WARNING_DAYS,
+                CONF_NOTIFICATIONS_ENABLED: False,
+                CONF_NOTIFY_SERVICE: "",
+            },
+        )
+
     async def async_step_create_from_template(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 1: Select a template category."""
         if user_input is not None:
