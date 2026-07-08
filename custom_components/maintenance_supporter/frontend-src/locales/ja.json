@@ -693,5 +693,10 @@
   "worksheet_pages": "ページ",
   "worksheet_printed": "印刷日",
   "worksheet_never": "未実施",
-  "card_all_caught_up": "すべて完了 — 対応が必要なものはありません"
+  "card_all_caught_up": "すべて完了 — 対応が必要なものはありません",
+  "postpone": "延期",
+  "postpone_date_prompt": "この回をどの日付に延期しますか？",
+  "postpone_date_label": "新しい期日",
+  "postponed": "延期済み",
+  "postponed_to": "延期先"
 }

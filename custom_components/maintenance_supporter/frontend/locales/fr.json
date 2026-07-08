@@ -693,5 +693,10 @@
   "worksheet_pages": "pages",
   "worksheet_printed": "Imprimé",
   "worksheet_never": "Jamais",
-  "card_all_caught_up": "Tout est à jour — rien ne requiert d'attention"
+  "card_all_caught_up": "Tout est à jour — rien ne requiert d'attention",
+  "postpone": "Reporter",
+  "postpone_date_prompt": "Reporter cette échéance à quelle date ?",
+  "postpone_date_label": "Nouvelle date d’échéance",
+  "postponed": "Reporté",
+  "postponed_to": "Reporté au"
 }

@@ -693,5 +693,10 @@
   "worksheet_pages": "页",
   "worksheet_printed": "打印于",
   "worksheet_never": "从未",
-  "card_all_caught_up": "全部完成——没有需要处理的事项"
+  "card_all_caught_up": "全部完成——没有需要处理的事项",
+  "postpone": "推迟",
+  "postpone_date_prompt": "将此次推迟到哪一天？",
+  "postpone_date_label": "新的到期日",
+  "postponed": "已推迟",
+  "postponed_to": "推迟至"
 }

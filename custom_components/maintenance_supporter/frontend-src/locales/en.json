@@ -693,5 +693,10 @@
   "worksheet_pages": "pages",
   "worksheet_printed": "Printed",
   "worksheet_never": "Never",
-  "card_all_caught_up": "All caught up — nothing needs attention"
+  "card_all_caught_up": "All caught up — nothing needs attention",
+  "postpone": "Postpone",
+  "postpone_date_prompt": "Postpone this occurrence to which date?",
+  "postpone_date_label": "New due date",
+  "postponed": "Postponed",
+  "postponed_to": "Postponed to"
 }

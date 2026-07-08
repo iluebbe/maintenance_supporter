@@ -693,5 +693,10 @@
   "worksheet_pages": "strany",
   "worksheet_printed": "Vytištěno",
   "worksheet_never": "Nikdy",
-  "card_all_caught_up": "Vše hotovo — nic nevyžaduje pozornost"
+  "card_all_caught_up": "Vše hotovo — nic nevyžaduje pozornost",
+  "postpone": "Odložit",
+  "postpone_date_prompt": "Na jaké datum odložit tento termín?",
+  "postpone_date_label": "Nové datum",
+  "postponed": "Odloženo",
+  "postponed_to": "Odloženo na"
 }

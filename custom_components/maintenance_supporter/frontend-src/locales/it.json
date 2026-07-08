@@ -693,5 +693,10 @@
   "worksheet_pages": "pagine",
   "worksheet_printed": "Stampato",
   "worksheet_never": "Mai",
-  "card_all_caught_up": "Tutto in ordine — niente richiede attenzione"
+  "card_all_caught_up": "Tutto in ordine — niente richiede attenzione",
+  "postpone": "Posticipa",
+  "postpone_date_prompt": "A quale data posticipare questa scadenza?",
+  "postpone_date_label": "Nuova data di scadenza",
+  "postponed": "Posticipato",
+  "postponed_to": "Posticipato al"
 }

@@ -693,5 +693,10 @@
   "worksheet_pages": "sivut",
   "worksheet_printed": "Tulostettu",
   "worksheet_never": "Ei koskaan",
-  "card_all_caught_up": "Kaikki kunnossa — mikään ei vaadi huomiota"
+  "card_all_caught_up": "Kaikki kunnossa — mikään ei vaadi huomiota",
+  "postpone": "Lykkää",
+  "postpone_date_prompt": "Mihin päivään tämä kerta lykätään?",
+  "postpone_date_label": "Uusi eräpäivä",
+  "postponed": "Lykätty",
+  "postponed_to": "Lykätty päivään"
 }

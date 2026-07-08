@@ -693,5 +693,10 @@
   "worksheet_pages": "sidor",
   "worksheet_printed": "Utskriven",
   "worksheet_never": "Aldrig",
-  "card_all_caught_up": "Allt klart — inget behöver åtgärdas"
+  "card_all_caught_up": "Allt klart — inget behöver åtgärdas",
+  "postpone": "Skjut upp",
+  "postpone_date_prompt": "Skjut upp den här gången till vilket datum?",
+  "postpone_date_label": "Nytt förfallodatum",
+  "postponed": "Uppskjuten",
+  "postponed_to": "Uppskjuten till"
 }

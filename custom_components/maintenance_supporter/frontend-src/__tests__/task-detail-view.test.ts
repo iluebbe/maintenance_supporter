@@ -102,6 +102,7 @@ function ctx(overrides: Partial<TaskDetailContext> = {}): TaskDetailContext {
     openQr: () => undefined,
     duplicateTask: () => undefined,
     promptReset: () => undefined,
+    promptPostpone: () => undefined,
     snoozeTask: () => undefined,
     printWorksheet: () => undefined,
     deleteTask: () => undefined,
