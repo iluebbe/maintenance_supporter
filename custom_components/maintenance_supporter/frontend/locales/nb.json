@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Utsett denne forekomsten til hvilken dato?",
   "postpone_date_label": "Ny forfallsdato",
   "postponed": "Utsatt",
-  "postponed_to": "Utsatt til"
+  "postponed_to": "Utsatt til",
+  "season_window_label": "Sesongvindu (måneder)",
+  "season_window_hint": "Forfaller kun i valgte måneder; datoer utenfor sesongen flyttes til neste aktive måned. Ingen = hele året.",
+  "series_end_label": "Slutter",
+  "series_end_never": "Aldri (gjentas uendelig)",
+  "series_end_after_count": "Etter et antall ganger",
+  "series_end_until": "På en dato",
+  "series_end_count_label": "Antall ganger",
+  "series_end_until_label": "Sluttdato"
 }

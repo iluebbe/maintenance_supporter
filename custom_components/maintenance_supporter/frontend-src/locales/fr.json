@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Reporter cette échéance à quelle date ?",
   "postpone_date_label": "Nouvelle date d’échéance",
   "postponed": "Reporté",
-  "postponed_to": "Reporté au"
+  "postponed_to": "Reporté au",
+  "season_window_label": "Fenêtre saisonnière (mois)",
+  "season_window_hint": "Dû uniquement les mois sélectionnés ; les dates hors saison passent au mois actif suivant. Aucun = toute l’année.",
+  "series_end_label": "Se termine",
+  "series_end_never": "Jamais (répète indéfiniment)",
+  "series_end_after_count": "Après un nombre de fois",
+  "series_end_until": "À une date",
+  "series_end_count_label": "Nombre de fois",
+  "series_end_until_label": "Date de fin"
 }

@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Na jaké datum odložit tento termín?",
   "postpone_date_label": "Nové datum",
   "postponed": "Odloženo",
-  "postponed_to": "Odloženo na"
+  "postponed_to": "Odloženo na",
+  "season_window_label": "Sezónní okno (měsíce)",
+  "season_window_hint": "Termín jen ve vybraných měsících; data mimo sezónu se posunou na další aktivní měsíc. Žádné = celý rok.",
+  "series_end_label": "Končí",
+  "series_end_never": "Nikdy (opakuje se stále)",
+  "series_end_after_count": "Po počtu opakování",
+  "series_end_until": "K datu",
+  "series_end_count_label": "Počet opakování",
+  "series_end_until_label": "Datum konce"
 }

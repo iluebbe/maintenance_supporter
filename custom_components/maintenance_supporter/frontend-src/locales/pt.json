@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Adiar esta ocorrência para qual data?",
   "postpone_date_label": "Nova data de vencimento",
   "postponed": "Adiado",
-  "postponed_to": "Adiado para"
+  "postponed_to": "Adiado para",
+  "season_window_label": "Janela sazonal (meses)",
+  "season_window_hint": "Só vence nos meses selecionados; datas fora de época passam para o próximo mês ativo. Nenhum = todo o ano.",
+  "series_end_label": "Termina",
+  "series_end_never": "Nunca (repete indefinidamente)",
+  "series_end_after_count": "Após um número de vezes",
+  "series_end_until": "Numa data",
+  "series_end_count_label": "Número de vezes",
+  "series_end_until_label": "Data final"
 }

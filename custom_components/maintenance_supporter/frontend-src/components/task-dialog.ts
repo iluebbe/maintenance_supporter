@@ -88,6 +88,12 @@ function weekdayNames(lang?: string): string[] {
   return Array.from({ length: 7 }, (_, i) => weekdayName(i, lang, "short"));
 }
 
+/** Short localized month names, indexed 0=Jan … 11=Dec. */
+function monthNames(lang?: string): string[] {
+  const fmt = new Intl.DateTimeFormat(lang || "en", { month: "short" });
+  return Array.from({ length: 12 }, (_, i) => fmt.format(new Date(2021, i, 1)));
+}
+
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
@@ -122,6 +128,12 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _domLastDay = false;
   @state() private _domBusiness = false;
   @state() private _calOffset = "0";
+  // Recurrence extras (apply to interval + calendar kinds): a seasonal active
+  // window and a finite-series end condition.
+  @state() private _seasonMonths: number[] = [];
+  @state() private _endsMode: "never" | "count" | "until" = "never";
+  @state() private _endsCount = "";
+  @state() private _endsUntil = "";
   @state() private _notes = "";
   @state() private _documentationUrl = "";
   @state() private _customIcon = "";
@@ -245,6 +257,16 @@ export class MaintenanceTaskDialog extends LitElement {
     this._domLastDay = sched?.kind === "day_of_month" && sched.day === -1;
     this._domBusiness = sched?.kind === "day_of_month" && sched.business === true;
     this._calOffset = sched?.offset ? String(sched.offset) : "0";
+    // Recurrence extras — read from the nested schedule wherever it lives.
+    this._seasonMonths = Array.isArray(sched?.season_months) ? [...sched!.season_months] : [];
+    const ends = sched?.ends;
+    if (ends && typeof ends.count === "number") {
+      this._endsMode = "count"; this._endsCount = String(ends.count); this._endsUntil = "";
+    } else if (ends && typeof ends.until === "string") {
+      this._endsMode = "until"; this._endsUntil = ends.until; this._endsCount = "";
+    } else {
+      this._endsMode = "never"; this._endsCount = ""; this._endsUntil = "";
+    }
     this._warningDays = task.warning_days.toString();
     this._earliestCompletionDays =
       task.earliest_completion_days != null ? String(task.earliest_completion_days) : "";
@@ -345,6 +367,10 @@ export class MaintenanceTaskDialog extends LitElement {
     this._domLastDay = false;
     this._domBusiness = false;
     this._calOffset = "0";
+    this._seasonMonths = [];
+    this._endsMode = "never";
+    this._endsCount = "";
+    this._endsUntil = "";
     this._notes = "";
     this._documentationUrl = "";
     this._customIcon = "";
@@ -700,7 +726,7 @@ export class MaintenanceTaskDialog extends LitElement {
       } else if (CALENDAR_KINDS.includes(this._scheduleType)) {
         // Calendar kinds are sent as the nested schedule; the backend prefers
         // it over the flat fields and clears any stale interval/due_date.
-        data.schedule = this._buildSchedule();
+        data.schedule = { ...this._buildSchedule(), ...this._recurrenceExtras() };
         data.interval_days = null;
         if (this._taskId) data.due_date = null;
       } else {
@@ -710,6 +736,14 @@ export class MaintenanceTaskDialog extends LitElement {
           data.interval_days = parseInt(this._intervalDays, 10);
           data.interval_unit = this._intervalUnit;
           data.interval_anchor = this._intervalAnchor;
+          // Season / finite-series ride a minimal nested schedule alongside the
+          // flat interval fields; the backend carries them onto the interval it
+          // derives from the flat fields (they can't be expressed flatly).
+          // Always send an authoritative nested schedule for interval tasks so
+          // an edit that clears season/ends actually clears them.
+          if (this._scheduleType === "time_based") {
+            data.schedule = { kind: "interval", ...this._recurrenceExtras() };
+          }
         } else if (this._taskId) {
           data.interval_days = null;
           data.interval_anchor = "completion";
@@ -1133,6 +1167,72 @@ export class MaintenanceTaskDialog extends LitElement {
     return withOffset(schedule);
   }
 
+  /** The season/finite-series extras to attach to a recurring schedule. Empty
+   *  values are omitted, so a clean schedule stays clean (and, since the sent
+   *  schedule is authoritative, an omitted extra clears a previously-set one). */
+  private _recurrenceExtras(): { season_months?: number[]; ends?: { count?: number; until?: string } } {
+    const extras: { season_months?: number[]; ends?: { count?: number; until?: string } } = {};
+    if (this._seasonMonths.length) extras.season_months = [...this._seasonMonths].sort((a, b) => a - b);
+    if (this._endsMode === "count") {
+      const n = parseInt(this._endsCount, 10);
+      if (n >= 1) extras.ends = { count: n };
+    } else if (this._endsMode === "until" && this._endsUntil) {
+      extras.ends = { until: this._endsUntil };
+    }
+    return extras;
+  }
+
+  private _toggleSeasonMonth(m: number): void {
+    this._seasonMonths = this._seasonMonths.includes(m)
+      ? this._seasonMonths.filter((x) => x !== m)
+      : [...this._seasonMonths, m];
+  }
+
+  /** Seasonal window + finite-series end — shown for recurring (interval +
+   *  calendar) kinds, where both apply. */
+  private _renderRecurrenceExtras() {
+    const L = this._lang;
+    const recurring = this._scheduleType === "time_based" || CALENDAR_KINDS.includes(this._scheduleType);
+    if (!recurring) return nothing;
+    const months = monthNames(L);
+    return html`
+      <label class="field-label">${t("season_window_label", L)}</label>
+      <div class="field-help">${t("season_window_hint", L)}</div>
+      <div class="weekday-chips season-chips">
+        ${months.map((name, i) => html`
+          <button
+            type="button"
+            class="season-chip ${this._seasonMonths.includes(i + 1) ? "selected" : ""}"
+            @click=${() => this._toggleSeasonMonth(i + 1)}
+          >${name}</button>`)}
+      </div>
+
+      <label class="field-label">${t("series_end_label", L)}</label>
+      <div class="select-row">
+        <select .value=${this._endsMode}
+          @change=${(e: Event) => (this._endsMode = (e.target as HTMLSelectElement).value as "never" | "count" | "until")}>
+          <option value="never" ?selected=${this._endsMode === "never"}>${t("series_end_never", L)}</option>
+          <option value="count" ?selected=${this._endsMode === "count"}>${t("series_end_after_count", L)}</option>
+          <option value="until" ?selected=${this._endsMode === "until"}>${t("series_end_until", L)}</option>
+        </select>
+      </div>
+      ${this._endsMode === "count" ? html`
+        <ms-textfield
+          label="${t("series_end_count_label", L)}"
+          type="number" min="1"
+          .value=${this._endsCount}
+          @input=${(e: Event) => (this._endsCount = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>` : nothing}
+      ${this._endsMode === "until" ? html`
+        <ms-textfield
+          label="${t("series_end_until_label", L)}"
+          type="date"
+          .value=${this._endsUntil}
+          @input=${(e: Event) => (this._endsUntil = (e.target as HTMLInputElement).value)}
+        ></ms-textfield>` : nothing}
+    `;
+  }
+
   /** Per-kind field groups for the calendar recurrence kinds. */
   private _renderCalendarFields() {
     const L = this._lang;
@@ -1415,6 +1515,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 ></ms-textfield>
               `
             : nothing}
+          ${this._renderRecurrenceExtras()}
           <ms-textfield
             label="${t("warning_days", L)}"
             type="number"
@@ -1768,6 +1869,20 @@ export class MaintenanceTaskDialog extends LitElement {
       cursor: pointer;
     }
     .weekday-chip.selected {
+      background: var(--primary-color, #03a9f4);
+      color: var(--text-primary-color, #fff);
+      border-color: var(--primary-color, #03a9f4);
+    }
+    .season-chip {
+      padding: 6px 10px;
+      border: 1px solid var(--divider-color);
+      border-radius: 16px;
+      background: var(--card-background-color, #fff);
+      color: var(--primary-text-color);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .season-chip.selected {
       background: var(--primary-color, #03a9f4);
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color, #03a9f4);

@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Przełożyć ten termin na jaką datę?",
   "postpone_date_label": "Nowa data",
   "postponed": "Odłożono",
-  "postponed_to": "Odłożono do"
+  "postponed_to": "Odłożono do",
+  "season_window_label": "Okno sezonowe (miesiące)",
+  "season_window_hint": "Termin tylko w wybranych miesiącach; daty poza sezonem przechodzą na następny aktywny miesiąc. Brak = cały rok.",
+  "series_end_label": "Kończy się",
+  "series_end_never": "Nigdy (powtarza bez końca)",
+  "series_end_after_count": "Po liczbie razy",
+  "series_end_until": "W dniu",
+  "series_end_count_label": "Liczba razy",
+  "series_end_until_label": "Data końcowa"
 }

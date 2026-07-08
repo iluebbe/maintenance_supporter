@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Postpone this occurrence to which date?",
   "postpone_date_label": "New due date",
   "postponed": "Postponed",
-  "postponed_to": "Postponed to"
+  "postponed_to": "Postponed to",
+  "season_window_label": "Seasonal window (months)",
+  "season_window_hint": "Only due in the selected months; off-season dates roll to the next active month. None = all year.",
+  "series_end_label": "Ends",
+  "series_end_never": "Never (repeats indefinitely)",
+  "series_end_after_count": "After a number of times",
+  "series_end_until": "On a date",
+  "series_end_count_label": "Number of times",
+  "series_end_until_label": "End date"
 }

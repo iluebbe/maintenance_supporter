@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Deze keer uitstellen tot welke datum?",
   "postpone_date_label": "Nieuwe vervaldatum",
   "postponed": "Uitgesteld",
-  "postponed_to": "Uitgesteld tot"
+  "postponed_to": "Uitgesteld tot",
+  "season_window_label": "Seizoensvenster (maanden)",
+  "season_window_hint": "Alleen verschuldigd in de gekozen maanden; data buiten het seizoen schuiven naar de volgende actieve maand. Geen = hele jaar.",
+  "series_end_label": "Eindigt",
+  "series_end_never": "Nooit (herhaalt onbeperkt)",
+  "series_end_after_count": "Na een aantal keer",
+  "series_end_until": "Op een datum",
+  "series_end_count_label": "Aantal keer",
+  "series_end_until_label": "Einddatum"
 }

@@ -698,5 +698,13 @@
   "postpone_date_prompt": "この回をどの日付に延期しますか？",
   "postpone_date_label": "新しい期日",
   "postponed": "延期済み",
-  "postponed_to": "延期先"
+  "postponed_to": "延期先",
+  "season_window_label": "季節ウィンドウ（月）",
+  "season_window_hint": "選択した月のみ期限；シーズン外の日付は次の有効な月へ繰り越し。なし＝通年。",
+  "series_end_label": "終了",
+  "series_end_never": "なし（無期限に繰り返す）",
+  "series_end_after_count": "回数の後",
+  "series_end_until": "日付で",
+  "series_end_count_label": "回数",
+  "series_end_until_label": "終了日"
 }

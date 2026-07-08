@@ -698,5 +698,13 @@
   "postpone_date_prompt": "На какую дату отложить этот раз?",
   "postpone_date_label": "Новый срок",
   "postponed": "Отложено",
-  "postponed_to": "Отложено до"
+  "postponed_to": "Отложено до",
+  "season_window_label": "Сезонное окно (месяцы)",
+  "season_window_hint": "Срок только в выбранные месяцы; даты вне сезона переносятся на следующий активный месяц. Нет = весь год.",
+  "series_end_label": "Заканчивается",
+  "series_end_never": "Никогда (повторяется бесконечно)",
+  "series_end_after_count": "После числа раз",
+  "series_end_until": "В дату",
+  "series_end_count_label": "Число раз",
+  "series_end_until_label": "Дата окончания"
 }

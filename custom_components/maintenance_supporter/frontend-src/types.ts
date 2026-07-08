@@ -133,6 +133,10 @@ export interface TaskSchedule {
   business?: boolean;
   /** (#83) shift the computed occurrence by ±N days (clamped ±15). */
   offset?: number;
+  /** Seasonal active window — months (1..12) the task may be due in. */
+  season_months?: number[];
+  /** Finite-series end condition: after N completions and/or past a date. */
+  ends?: { count?: number; until?: string };
 }
 
 export interface MaintenanceTask {

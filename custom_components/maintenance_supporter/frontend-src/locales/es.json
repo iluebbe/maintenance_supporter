@@ -698,5 +698,13 @@
   "postpone_date_prompt": "¿A qué fecha posponer esta vez?",
   "postpone_date_label": "Nueva fecha de vencimiento",
   "postponed": "Pospuesto",
-  "postponed_to": "Pospuesto hasta"
+  "postponed_to": "Pospuesto hasta",
+  "season_window_label": "Ventana estacional (meses)",
+  "season_window_hint": "Solo vence en los meses seleccionados; las fechas fuera de temporada pasan al siguiente mes activo. Ninguno = todo el año.",
+  "series_end_label": "Termina",
+  "series_end_never": "Nunca (se repite indefinidamente)",
+  "series_end_after_count": "Tras un número de veces",
+  "series_end_until": "En una fecha",
+  "series_end_count_label": "Número de veces",
+  "series_end_until_label": "Fecha de fin"
 }

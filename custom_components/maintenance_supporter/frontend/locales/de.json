@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Diesen Termin auf welches Datum verschieben?",
   "postpone_date_label": "Neues Fälligkeitsdatum",
   "postponed": "Verschoben",
-  "postponed_to": "Verschoben auf"
+  "postponed_to": "Verschoben auf",
+  "season_window_label": "Saisonfenster (Monate)",
+  "season_window_hint": "Nur in den gewählten Monaten fällig; Termine außerhalb rollen in den nächsten aktiven Monat. Keine = ganzjährig.",
+  "series_end_label": "Endet",
+  "series_end_never": "Nie (wiederholt unbegrenzt)",
+  "series_end_after_count": "Nach Anzahl",
+  "series_end_until": "An einem Datum",
+  "series_end_count_label": "Anzahl",
+  "series_end_until_label": "Enddatum"
 }

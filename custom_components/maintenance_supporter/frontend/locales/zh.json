@@ -698,5 +698,13 @@
   "postpone_date_prompt": "将此次推迟到哪一天？",
   "postpone_date_label": "新的到期日",
   "postponed": "已推迟",
-  "postponed_to": "推迟至"
+  "postponed_to": "推迟至",
+  "season_window_label": "季节窗口（月份）",
+  "season_window_hint": "仅在所选月份到期；非当季日期顺延至下一个活动月份。无 = 全年。",
+  "series_end_label": "结束",
+  "series_end_never": "从不（无限重复）",
+  "series_end_after_count": "达到次数后",
+  "series_end_until": "在某日期",
+  "series_end_count_label": "次数",
+  "series_end_until_label": "结束日期"
 }
