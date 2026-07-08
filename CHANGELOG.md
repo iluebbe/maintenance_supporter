@@ -6,6 +6,13 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Blocking `import_module` in the event loop during setup** (#87) — when
+  the Workday integration is configured, business-day scheduling builds a
+  holiday calendar via `holidays.country_holidays(...)`, which lazily
+  imports the country submodule (e.g. `holidays.countries.canada`). That
+  import ran on the event loop and Home Assistant flagged it as a blocking
+  call. The calendar is now built in the executor. No behavioural change —
+  the log warning is gone and setup no longer stalls the loop.
 - **Dashboard rows: consistent bar width and badge spacing** — the
   trigger-progress bar (rows with a sensor trigger / sparkline) shrank to
   its label width and read shorter than the days-bar in neighboring rows;

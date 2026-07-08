@@ -146,15 +146,21 @@ def build_provider_from_workday_options(
     return provider
 
 
-def async_setup_business_days(hass: HomeAssistant) -> None:
+async def async_setup_business_days(hass: HomeAssistant) -> None:
     """Install the business-day provider from the first Workday config entry.
 
     Called during integration setup. Without a (loadable) Workday entry the
     provider is cleared and business-day rolling uses the plain Mon-Fri rule.
+
+    The build runs in the executor: ``holidays.country_holidays`` lazily
+    ``import_module``s the country submodule (e.g. ``holidays.countries.canada``),
+    which HA flags as a blocking call when done on the event loop (issue #87).
     """
     for entry in hass.config_entries.async_entries(WORKDAY_DOMAIN):
         options: dict[str, Any] = {**entry.data, **entry.options}
-        fn = build_provider_from_workday_options(options)
+        fn = await hass.async_add_executor_job(
+            build_provider_from_workday_options, options
+        )
         if fn is not None:
             set_business_day_provider(fn)
             _LOGGER.debug(

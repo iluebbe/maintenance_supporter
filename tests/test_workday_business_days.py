@@ -210,15 +210,46 @@ async def test_setup_installs_provider_from_workday_entry(hass, monkeypatch: pyt
     )
     entry.add_to_hass(hass)
 
-    async_setup_business_days(hass)
+    await async_setup_business_days(hass)
     assert is_business_day(_XMAS) is False  # Fri, but a holiday
     assert is_business_day(date(2027, 12, 23)) is True
 
 
 async def test_setup_clears_provider_without_workday_entry(hass) -> None:
     set_business_day_provider(lambda _d: False)  # stale provider from before
-    async_setup_business_days(hass)
+    await async_setup_business_days(hass)
     assert is_business_day(date(2027, 7, 30)) is True  # Fri, plain rule again
+
+
+async def test_setup_builds_calendar_off_the_event_loop(hass, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`holidays.country_holidays` lazily imports its country submodule, which
+    HA flags as a blocking call on the loop (issue #87). Verify the build runs
+    in the executor, not the event loop thread."""
+    import threading
+
+    loop_thread = threading.get_ident()
+    build_thread: dict[str, int] = {}
+
+    mod = ModuleType("holidays")
+
+    def country_holidays(country: str, subdiv: str | None = None) -> object:
+        build_thread["id"] = threading.get_ident()
+        return _FakeHolidayCalendar({_XMAS: "Christmas Eve"})
+
+    mod.country_holidays = country_holidays  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "holidays", mod)
+
+    entry = MockConfigEntry(
+        domain="workday",
+        title="Workday DE",
+        data={},
+        options={"country": "DE", "workdays": ["mon", "tue", "wed", "thu", "fri"], "excludes": ["sat", "sun", "holiday"]},
+    )
+    entry.add_to_hass(hass)
+
+    await async_setup_business_days(hass)
+    assert build_thread.get("id") is not None, "calendar was never built"
+    assert build_thread["id"] != loop_thread, "calendar built on the event loop thread"
 
 
 def test_builder_survives_unknown_country(monkeypatch: pytest.MonkeyPatch) -> None:
