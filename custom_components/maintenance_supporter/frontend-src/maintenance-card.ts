@@ -268,7 +268,16 @@ export class MaintenanceSupporterCard extends LitElement {
                          title="${t("open_task", L) || "Open task"}">
                       <div class="status-dot" style="background: ${STATUS_COLORS[task.status] || "#ccc"}"></div>
                       <div class="task-info">
-                        <div class="task-name">${task.name}</div>
+                        <div class="task-name">
+                          ${task.name}
+                          ${(task as any).due_override
+                            ? html`<ha-icon
+                                class="postponed-icon"
+                                icon="mdi:calendar-clock"
+                                title="${t("postponed", L) || "Postponed"}"
+                              ></ha-icon>`
+                            : nothing}
+                        </div>
                         ${!compact ? html`<div class="task-meta">${object_name} · ${t(task.type, L)}</div>` : nothing}
                       </div>
                       <div class="task-due">
@@ -394,6 +403,7 @@ export class MaintenanceSupporterCard extends LitElement {
       .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
       .task-info { flex: 1; min-width: 0; }
       .task-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .postponed-icon { --mdc-icon-size: 14px; color: var(--secondary-text-color); vertical-align: text-bottom; margin-inline-start: 4px; }
       .task-meta { font-size: 12px; color: var(--secondary-text-color); }
 
       .task-due { font-size: 13px; color: var(--secondary-text-color); min-width: 40px; text-align: right; }

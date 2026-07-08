@@ -3583,7 +3583,14 @@ ${h?`<div class="sub">${h}</div>`:""}
                          title="${r("open_task",e)||"Open task"}">
                       <div class="status-dot" style="background: ${ae[m.status]||"#ccc"}"></div>
                       <div class="task-info">
-                        <div class="task-name">${m.name}</div>
+                        <div class="task-name">
+                          ${m.name}
+                          ${m.due_override?o`<ha-icon
+                                class="postponed-icon"
+                                icon="mdi:calendar-clock"
+                                title="${r("postponed",e)||"Postponed"}"
+                              ></ha-icon>`:_}
+                        </div>
                         ${c?_:o`<div class="task-meta">${b} · ${r(m.type,e)}</div>`}
                       </div>
                       <div class="task-due">
@@ -3680,6 +3687,7 @@ ${h?`<div class="sub">${h}</div>`:""}
       .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
       .task-info { flex: 1; min-width: 0; }
       .task-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .postponed-icon { --mdc-icon-size: 14px; color: var(--secondary-text-color); vertical-align: text-bottom; margin-inline-start: 4px; }
       .task-meta { font-size: 12px; color: var(--secondary-text-color); }
 
       .task-due { font-size: 13px; color: var(--secondary-text-color); min-width: 40px; text-align: right; }
