@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC-Tag-ID",
           "go_back": "Zurück",
           "interval_anchor": "Intervall-Anker",
-          "reading_unit": "Ableseeinheit (für Ablese-Aufgaben, z. B. kWh)"
+          "reading_unit": "Ableseeinheit (für Ablese-Aufgaben, z. B. kWh)",
+          "season_months": "Saisonfenster (Monate)",
+          "ends_count": "Endet nach (Anzahl)",
+          "ends_until": "Endet am Datum"
         },
         "data_description": {
           "name": "Ein beschreibender Name für diese Aufgabe (z.B. 'Filterreinigung', 'Ölwechsel').",
@@ -694,7 +697,10 @@
           "custom_icon": "Optionales benutzerdefiniertes Icon für diese Aufgabe (z.B. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Verknüpfen Sie einen NFC-Tag mit dieser Aufgabe. Das Scannen des Tags markiert die Aufgabe automatisch als erledigt.",
           "go_back": "Zurück zu den Aufgabenaktionen ohne Speichern.",
-          "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum."
+          "interval_anchor": "Wie das nächste Fälligkeitsdatum nach Abschluss berechnet wird. 'Geplant' verhindert Zeitverschiebung durch Verankerung am geplanten Datum.",
+          "season_months": "Nur in den gewaehlten Monaten faellig; Termine ausserhalb rollen in den naechsten aktiven Monat. Leer = ganzjaehrig.",
+          "ends_count": "Wiederholung nach so vielen Abschluessen beenden (endliche Serie). Leer = kein Limit.",
+          "ends_until": "Wiederholung beenden, sobald der naechste Termin nach diesem Datum laege. Wird ignoriert, wenn 'Endet nach' gesetzt ist."
         }
       },
       "edit_checklist": {

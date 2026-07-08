@@ -677,7 +677,10 @@
           "nfc_tag_id": "ID de tag NFC",
           "go_back": "Retour",
           "interval_anchor": "Ancrage d'intervalle",
-          "reading_unit": "Unité de relevé (pour les tâches de relevé, p. ex. kWh)"
+          "reading_unit": "Unité de relevé (pour les tâches de relevé, p. ex. kWh)",
+          "season_months": "Fenetre saisonniere (mois)",
+          "ends_count": "Se termine apres (nombre de fois)",
+          "ends_until": "Se termine a la date"
         },
         "data_description": {
           "name": "Un nom descriptif pour cette tâche (ex. 'Nettoyage du filtre', 'Vidange').",
@@ -694,7 +697,10 @@
           "custom_icon": "Icône personnalisée optionnelle pour cette tâche (ex. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Associer un tag NFC à cette tâche. Scanner le tag marquera automatiquement la tâche comme terminée.",
           "go_back": "Retour aux actions de tâche sans enregistrer.",
-          "interval_anchor": "Comment la prochaine date d'échéance est calculée après l'achèvement. 'Planifié' empêche la dérive en s'ancrant à la date prévue."
+          "interval_anchor": "Comment la prochaine date d'échéance est calculée après l'achèvement. 'Planifié' empêche la dérive en s'ancrant à la date prévue.",
+          "season_months": "Du uniquement les mois selectionnes ; les dates hors saison passent au mois actif suivant. Vide = toute l'annee.",
+          "ends_count": "Arreter de repeter apres ce nombre d'executions (serie finie). Vide = sans limite.",
+          "ends_until": "Arreter de repeter des que la prochaine occurrence tomberait apres cette date. Ignore si 'Se termine apres' est defini."
         }
       },
       "edit_checklist": {

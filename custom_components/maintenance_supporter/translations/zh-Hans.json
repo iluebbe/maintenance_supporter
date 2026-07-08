@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC 标签 ID",
           "go_back": "返回",
           "interval_anchor": "计划锚点",
-          "reading_unit": "读数单位（用于读数任务，如 kWh）"
+          "reading_unit": "读数单位（用于读数任务，如 kWh）",
+          "season_months": "季节窗口（月份）",
+          "ends_count": "达到次数后结束",
+          "ends_until": "在日期结束"
         },
         "data_description": {
           "name": "此任务的描述性名称（例如：‘清洁过滤器’、‘更换机油’）。",
@@ -694,7 +697,10 @@
           "custom_icon": "此任务的可选自定义图标（例如：mdi:oil, mdi:filter-variant）。",
           "nfc_tag_id": "为此任务链接一个 NFC 标签。扫描标签将自动将任务标记为已完成。",
           "go_back": "返回任务动作且不保存。",
-          "interval_anchor": "完成后如何计算下次到期日。‘计划日期’ 通过锚定原始到期日来防止时间偏移。"
+          "interval_anchor": "完成后如何计算下次到期日。‘计划日期’ 通过锚定原始到期日来防止时间偏移。",
+          "season_months": "仅在所选月份到期；非当季日期顺延至下一个活动月份。留空 = 全年。",
+          "ends_count": "完成这么多次后停止重复（有限序列）。留空 = 无限制。",
+          "ends_until": "当下一次将晚于此日期时停止重复。"
         }
       },
       "edit_checklist": {

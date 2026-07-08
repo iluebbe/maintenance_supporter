@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC-tagg-ID",
           "go_back": "Gå tilbake",
           "interval_anchor": "Intervallanker",
-          "reading_unit": "Avlesningsenhet (for avlesningsoppgaver, f.eks. kWh)"
+          "reading_unit": "Avlesningsenhet (for avlesningsoppgaver, f.eks. kWh)",
+          "season_months": "Sesongvindu (maneder)",
+          "ends_count": "Slutter etter (antall ganger)",
+          "ends_until": "Slutter pa dato"
         },
         "data_description": {
           "name": "Et beskrivende navn for denne oppgaven (f.eks. «Filterrengjøring», «Oljeskift»).",
@@ -694,7 +697,10 @@
           "custom_icon": "Valgfritt egendefinert ikon for denne oppgaven (f.eks. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Koble en NFC-tagg til denne oppgaven. Skanning av taggen merker oppgaven som fullført automatisk.",
           "go_back": "Gå tilbake til oppgavehandlinger uten å lagre.",
-          "interval_anchor": "Hvordan neste forfallsdato beregnes etter fullføring. «Planlagt» hindrer at planen forskyves ved å forankre til den opprinnelige forfallsdatoen."
+          "interval_anchor": "Hvordan neste forfallsdato beregnes etter fullføring. «Planlagt» hindrer at planen forskyves ved å forankre til den opprinnelige forfallsdatoen.",
+          "season_months": "Forfaller kun i valgte maneder; datoer utenfor sesongen flyttes til neste aktive maned. Tom = hele aret.",
+          "ends_count": "Slutt a gjenta etter dette antallet fullforinger (endelig serie). Tom = ingen grense.",
+          "ends_until": "Slutt a gjenta nar neste forekomst ville falle etter denne datoen. Ignoreres hvis 'Slutter etter' er satt."
         }
       },
       "edit_checklist": {

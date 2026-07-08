@@ -677,7 +677,10 @@
           "nfc_tag_id": "NFC-tunnisteen tunnus",
           "go_back": "Palaa takaisin",
           "interval_anchor": "Aikavälin ankkuri",
-          "reading_unit": "Lukeman yksikkö (lukematehtäville, esim. kWh)"
+          "reading_unit": "Lukeman yksikkö (lukematehtäville, esim. kWh)",
+          "season_months": "Kausi-ikkuna (kuukaudet)",
+          "ends_count": "Paattyy (kertamaaran) jalkeen",
+          "ends_until": "Paattyy paivamaarana"
         },
         "data_description": {
           "name": "Kuvaava nimi tälle tehtävälle (esim. 'Suodattimen puhdistus', 'Öljynvaihto').",
@@ -694,7 +697,10 @@
           "custom_icon": "Valinnainen mukautettu kuvake tälle tehtävälle (esim. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Liitä NFC-tunniste tähän tehtävään. Tunnisteen skannaaminen merkitsee tehtävän automaattisesti suoritetuksi.",
           "go_back": "Palaa tehtävän toimintoihin tallentamatta.",
-          "interval_anchor": "Miten seuraava eräpäivä lasketaan suorituksen jälkeen. 'Suunniteltu' estää aikataulun liukumisen ankkuroimalla alkuperäiseen eräpäivään."
+          "interval_anchor": "Miten seuraava eräpäivä lasketaan suorituksen jälkeen. 'Suunniteltu' estää aikataulun liukumisen ankkuroimalla alkuperäiseen eräpäivään.",
+          "season_months": "Eraantyy vain valittuina kuukausina; kauden ulkopuoliset paivat siirtyvat seuraavaan aktiiviseen kuukauteen. Tyhja = koko vuosi.",
+          "ends_count": "Lopeta toistaminen taman suoritusmaaran jalkeen (aarellinen sarja). Tyhja = ei rajaa.",
+          "ends_until": "Lopeta toistaminen, kun seuraava kerta osuisi taman paivan jalkeen. Ohitetaan, jos 'Paattyy jalkeen' on asetettu."
         }
       },
       "edit_checklist": {

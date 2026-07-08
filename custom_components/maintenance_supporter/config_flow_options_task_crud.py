@@ -10,10 +10,12 @@ from homeassistant.helpers import selector
 
 from .config_flow_helpers import (
     CALENDAR_KIND_VALUES,
+    apply_season_ends,
     calendar_current,
     calendar_schema,
     interval_unit_selector,
     schedule_from_calendar_input,
+    season_ends_schema,
 )
 from .const import (
     CONF_ADVANCED_SCHEDULE_TIME,
@@ -169,6 +171,19 @@ class TaskCrudMixin:
                         for key in ("interval_days", "interval_unit", "interval_anchor", "due_date"):
                             updated_task.pop(key, None)
                         updated_task["schedule"] = schedule
+                # Seasonal window + finite-series end (recurring kinds). Calendar
+                # kinds carry them on their nested schedule; interval tasks get a
+                # minimal authoritative nested schedule only when extras are set
+                # (the backend carries them onto the flat-derived interval).
+                if edit_kind in CALENDAR_KIND_VALUES and isinstance(updated_task.get("schedule"), dict):
+                    apply_season_ends(updated_task["schedule"], user_input)
+                elif edit_kind == ScheduleType.TIME_BASED:
+                    extras: dict[str, Any] = {}
+                    apply_season_ends(extras, user_input)
+                    if extras:
+                        updated_task["schedule"] = {"kind": "interval", **extras}
+                    else:
+                        updated_task.pop("schedule", None)
                 # schedule_time only present when global advanced flag is on; clear by submitting "".
                 if CONF_TASK_SCHEDULE_TIME in user_input:
                     sched = (user_input.get(CONF_TASK_SCHEDULE_TIME) or "").strip()
@@ -371,6 +386,13 @@ class TaskCrudMixin:
                     **(
                         calendar_schema(sched["schedule_type"], calendar_current(task)).schema
                         if sched["schedule_type"] in CALENDAR_KIND_VALUES
+                        else dict[Any, Any]()
+                    ),
+                    # Seasonal window + finite-series end — recurring kinds only.
+                    **(
+                        season_ends_schema(task.get("schedule"))
+                        if sched["schedule_type"] == ScheduleType.TIME_BASED
+                        or sched["schedule_type"] in CALENDAR_KIND_VALUES
                         else dict[Any, Any]()
                     ),
                     vol.Optional(

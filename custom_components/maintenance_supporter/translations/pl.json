@@ -677,7 +677,10 @@
           "nfc_tag_id": "ID tagu NFC",
           "go_back": "Wróć",
           "interval_anchor": "Punkt odniesienia interwału",
-          "reading_unit": "Jednostka odczytu (dla zadań odczytu, np. kWh)"
+          "reading_unit": "Jednostka odczytu (dla zadań odczytu, np. kWh)",
+          "season_months": "Okno sezonowe (miesiace)",
+          "ends_count": "Konczy sie po (liczbie razy)",
+          "ends_until": "Konczy sie w dniu"
         },
         "data_description": {
           "name": "Opisowa nazwa tego zadania (np. „Czyszczenie filtra”, „Wymiana oleju”).",
@@ -694,7 +697,10 @@
           "custom_icon": "Opcjonalna niestandardowa ikona dla tego zadania (np. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Powiąż tag NFC z tym zadaniem. Zeskanowanie tagu automatycznie oznaczy zadanie jako ukończone.",
           "go_back": "Wróć do akcji zadania bez zapisywania.",
-          "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty."
+          "interval_anchor": "Sposób obliczania następnego terminu po ukończeniu. „Planowany” zapobiega odchyleniom harmonogramu, kotwicząc się do pierwotnej daty.",
+          "season_months": "Termin tylko w wybranych miesiacach; daty poza sezonem przechodza na nastepny aktywny miesiac. Puste = caly rok.",
+          "ends_count": "Przestan powtarzac po tylu wykonaniach (seria skonczona). Puste = bez limitu.",
+          "ends_until": "Przestan powtarzac, gdy nastepny termin wypadlby po tej dacie. Ignorowane, gdy ustawiono 'Konczy sie po'."
         }
       },
       "edit_checklist": {

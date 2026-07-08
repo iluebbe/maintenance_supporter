@@ -2963,3 +2963,46 @@ class TestAdaptiveMinMaxValidation:
         # The method should exist and include _adaptive_schema
         assert hasattr(MaintenanceOptionsFlow, "_adaptive_schema")
         assert hasattr(MaintenanceOptionsFlow, "async_step_adaptive_scheduling")
+
+
+async def test_edit_task_sets_season_and_finite_series(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """Editing a time-based task with season_months + ends_count persists them
+    onto the task's nested schedule (config-flow surface for the roadmap
+    scheduling features)."""
+    await setup_integration(hass, global_entry, object_entry)
+
+    result = await hass.config_entries.options.async_init(object_entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "manage_tasks"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"selected_task": TASK_ID_1, "go_back": False}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "edit_task"}
+    )
+    assert result["step_id"] == "edit_task"
+    # The recurrence-extras fields are offered for the time-based task.
+    schema_keys = {str(k.schema) for k in result["data_schema"].schema}
+    assert {"season_months", "ends_count", "ends_until"} <= schema_keys
+
+    await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_TASK_NAME: "Mow",
+            CONF_TASK_TYPE: MaintenanceTypeEnum.CLEANING,
+            CONF_TASK_INTERVAL_DAYS: 14,
+            "season_months": ["4", "5", "6", "7", "8", "9", "10"],
+            "ends_count": 6,
+        },
+    )
+    await hass.async_block_till_done()
+
+    entry = hass.config_entries.async_get_entry(object_entry.entry_id)
+    sched = entry.data[CONF_TASKS][TASK_ID_1]["schedule"]
+    assert sched.get("season_months") == [4, 5, 6, 7, 8, 9, 10]
+    assert sched.get("ends") == {"count": 6}

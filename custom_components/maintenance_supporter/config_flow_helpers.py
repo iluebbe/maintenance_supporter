@@ -10,7 +10,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 
-from .const import CONF_TASK_INTERVAL_UNIT
+from .const import (
+    CONF_TASK_ENDS_COUNT,
+    CONF_TASK_ENDS_UNTIL,
+    CONF_TASK_INTERVAL_UNIT,
+    CONF_TASK_SEASON_MONTHS,
+)
 from .helpers.dates import INTERVAL_UNITS
 from .helpers.entity_analyzer import EntityAnalyzer
 from .helpers.schedule import (
@@ -160,6 +165,74 @@ def apply_interval_unit(target: dict[str, Any], user_input: dict[str, Any]) -> N
     unit = user_input.get(CONF_TASK_INTERVAL_UNIT, "days")
     if unit != "days":
         target[CONF_TASK_INTERVAL_UNIT] = unit
+
+
+# Hardcoded English month labels for the seasonal-window multi-select — same
+# "keep the config-flow i18n surface small" choice as the weekday labels above.
+_MONTH_LABELS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def season_ends_schema(current_schedule: dict[str, Any] | None) -> dict[Any, Any]:
+    """Schema fragment for the seasonal window + finite-series end, prefilled
+    from the task's nested ``schedule``. Only meaningful for recurring kinds —
+    callers gate it on schedule_type accordingly."""
+    cur = current_schedule or {}
+    season_default = [str(m) for m in (cur.get("season_months") or [])]
+    ends_raw = cur.get("ends")
+    ends: dict[str, Any] = ends_raw if isinstance(ends_raw, dict) else {}
+    count = ends.get("count")
+    until = ends.get("until")
+
+    count_key = (
+        vol.Optional(CONF_TASK_ENDS_COUNT, default=int(count))
+        if isinstance(count, int) and count >= 1
+        else vol.Optional(CONF_TASK_ENDS_COUNT)
+    )
+    until_key = (
+        vol.Optional(CONF_TASK_ENDS_UNTIL, default=str(until))
+        if isinstance(until, str) and until
+        else vol.Optional(CONF_TASK_ENDS_UNTIL)
+    )
+    return {
+        vol.Optional(CONF_TASK_SEASON_MONTHS, default=season_default): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[selector.SelectOptionDict(value=str(i + 1), label=_MONTH_LABELS[i]) for i in range(12)],
+                multiple=True,
+                mode=selector.SelectSelectorMode.LIST,
+            )
+        ),
+        count_key: selector.NumberSelector(
+            selector.NumberSelectorConfig(min=1, max=9999, step=1, mode=selector.NumberSelectorMode.BOX)
+        ),
+        until_key: selector.DateSelector(),
+    }
+
+
+def apply_season_ends(schedule: dict[str, Any], user_input: dict[str, Any]) -> None:
+    """Inject the seasonal window + finite-series end from a flow step into a
+    (recurring) ``schedule`` dict in place — count wins over until; empties clear."""
+    season = sorted({int(m) for m in (user_input.get(CONF_TASK_SEASON_MONTHS) or []) if str(m).isdigit() and 1 <= int(m) <= 12})
+    if season:
+        schedule["season_months"] = season
+    else:
+        schedule.pop("season_months", None)
+
+    new_ends: dict[str, Any] = {}
+    count = user_input.get(CONF_TASK_ENDS_COUNT)
+    until = user_input.get(CONF_TASK_ENDS_UNTIL)
+    if isinstance(count, (int, float, str)) and str(count).strip() not in ("", "0"):
+        try:
+            n = int(float(count))  # NumberSelector may return a float
+            if n >= 1:
+                new_ends["count"] = n
+        except (ValueError, TypeError):
+            pass
+    elif until:
+        new_ends["until"] = str(until)
+    if new_ends:
+        schedule["ends"] = new_ends
+    else:
+        schedule.pop("ends", None)
 
 
 async def async_get_threshold_suggestions(

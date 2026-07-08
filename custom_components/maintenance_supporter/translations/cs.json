@@ -677,7 +677,10 @@
           "nfc_tag_id": "ID NFC tagu",
           "go_back": "Zpět",
           "interval_anchor": "Kotva intervalu",
-          "reading_unit": "Jednotka odečtu (pro odečtové úkoly, např. kWh)"
+          "reading_unit": "Jednotka odečtu (pro odečtové úkoly, např. kWh)",
+          "season_months": "Sezonni okno (mesice)",
+          "ends_count": "Konci po (pocet opakovani)",
+          "ends_until": "Konci k datu"
         },
         "data_description": {
           "name": "Popisný název tohoto úkolu (např. „Čištění filtru“, „Výměna oleje“).",
@@ -694,7 +697,10 @@
           "custom_icon": "Volitelná vlastní ikona pro tento úkol (např. mdi:oil, mdi:filter-variant).",
           "nfc_tag_id": "Spojte NFC tag s tímto úkolem. Naskenování tagu automaticky označí úkol jako dokončený.",
           "go_back": "Návrat k akcím úkolu bez uložení.",
-          "interval_anchor": "Jak se počítá další termín po dokončení. „Plánovaný“ zabraňuje posunu harmonogramu ukotvením k původnímu termínu."
+          "interval_anchor": "Jak se počítá další termín po dokončení. „Plánovaný“ zabraňuje posunu harmonogramu ukotvením k původnímu termínu.",
+          "season_months": "Termin jen ve vybranych mesicich; data mimo sezonu se posunou na dalsi aktivni mesic. Prazdne = cely rok.",
+          "ends_count": "Prestat opakovat po tomto poctu dokonceni (konecna serie). Prazdne = bez limitu.",
+          "ends_until": "Prestat opakovat, jakmile by dalsi termin pripadl po tomto datu. Ignorovano, pokud je nastaveno 'Konci po'."
         }
       },
       "edit_checklist": {
