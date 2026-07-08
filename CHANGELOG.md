@@ -4,7 +4,9 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
-### ✨ New (backend + API; panel UI to follow)
+## [2.22.0] - 2026-07-08
+
+### ✨ New — advanced scheduling
 
 - **Finite recurring series** — a schedule can now end on its own after a set
   number of completions and/or once the next occurrence would fall after a
@@ -16,12 +18,19 @@ All notable changes to Maintenance Supporter are documented in this file.
   rolls forward to the 1st of the next active month, so the task pauses through
   the off-season and resumes in season. Complements the existing seasonal
   factors and manual pause.
-- **Postpone a single occurrence** — new WS command
-  `maintenance_supporter/task/postpone` (`entry_id`, `task_id`, `until`) defers
-  just the current cycle's due date via a one-shot `due_override`, distinct from
-  snooze (notifications only) and reset (re-anchors the whole recurrence). The
-  next completion consumes it and the cadence returns to normal; the active
-  override is exposed on the task's WS payload (`due_override`).
+- **Postpone a single occurrence** — defer just the current cycle's due date
+  without touching the recurrence. In the panel, the task ⋮-menu gains a
+  **Postpone…** action (pick a date) and a *postponed to …* badge; the WS
+  command `maintenance_supporter/task/postpone` (`entry_id`, `task_id`, `until`)
+  backs it via a one-shot `due_override`. Distinct from snooze (notifications
+  only) and reset (re-anchors the whole recurrence): the next completion
+  consumes the override and the cadence returns to normal. The active override
+  is exposed on the task's WS payload (`due_override`).
+
+The seasonal window and finite-series end are editable on **every surface** —
+the panel task dialog (month picker + *Ends* selector) and the config-flow
+edit-task form — and localized across all 18 languages. Dashboard task rows
+show a small calendar-clock indicator when an occurrence has been postponed.
 
 ## [2.21.4] - 2026-07-08
 
