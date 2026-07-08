@@ -15,21 +15,55 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.maintenance_supporter import NOTIFICATION_MANAGER_KEY
 from custom_components.maintenance_supporter.const import CONF_TASKS, DOMAIN
 
 
 async def simulate_restart(hass: HomeAssistant, *entries: MockConfigEntry) -> None:
     """Unload every entry, then set them up again from persisted data.
 
-    Approximates an HA restart for everything the integration owns: entities
-    are re-created from storage (fresh unique_id computation — the class of
-    the object-rename bug), coordinators and stores are rebuilt. Call after
-    every interesting mutation.
+    Approximates a config-entry RELOAD for everything a per-entry setup owns:
+    entities are re-created from storage (fresh unique_id computation — the
+    class of the object-rename bug), coordinators and per-entry stores are
+    rebuilt. Call after every interesting mutation.
+
+    Note: the *shared* runtime (notification manager, document store, global
+    listeners) is NOT rebuilt here — it lives in ``hass.data[DOMAIN]`` and only
+    gets torn down when the last entry is *removed*, not merely unloaded. For
+    state that lives there (e.g. in-memory snooze), use
+    :func:`simulate_full_restart` to model a real process restart.
     """
     for entry in entries:
         if entry.state == ConfigEntryState.LOADED:
             await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
+    for entry in entries:
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+
+async def simulate_full_restart(hass: HomeAssistant, *entries: MockConfigEntry) -> None:
+    """Model a real HA process restart: rebuild the SHARED runtime too.
+
+    Unlike :func:`simulate_restart` (an entry reload), this drops
+    ``hass.data[DOMAIN]`` — the notification manager, document store and global
+    event listeners — the way a fresh boot would, so a fresh shared runtime is
+    reconstructed on setup. Use this to test that shared, in-memory-only state
+    does NOT survive a restart (e.g. the snooze contract).
+    """
+    for entry in entries:
+        if entry.state == ConfigEntryState.LOADED:
+            await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    # Tear the shared runtime down the way the last-entry removal would, then
+    # drop it so the next setup builds a brand-new one.
+    domain_data = hass.data.get(DOMAIN, {})
+    nm = domain_data.get(NOTIFICATION_MANAGER_KEY)
+    if nm is not None and hasattr(nm, "async_unload"):
+        await nm.async_unload()
+    for unsub in domain_data.get("_event_unsubs", []):
+        unsub()
+    hass.data.pop(DOMAIN, None)
     for entry in entries:
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -73,5 +107,6 @@ __all__ = [
     "assert_entry_fully_gone",
     "assert_no_orphans",
     "registry_snapshot",
+    "simulate_full_restart",
     "simulate_restart",
 ]
