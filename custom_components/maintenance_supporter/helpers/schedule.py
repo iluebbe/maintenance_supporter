@@ -69,6 +69,25 @@ def _sanitize_day(raw: object) -> int | None:
     return None
 
 
+def _sanitize_months(raw: object) -> tuple[int, ...]:
+    """A deduped, sorted tuple of valid month numbers (1..12); [] on garbage."""
+    if not isinstance(raw, (list, tuple)):
+        return ()
+    seen = {m for m in raw if isinstance(m, int) and not isinstance(m, bool) and 1 <= m <= 12}
+    return tuple(sorted(seen))
+
+
+def _parse_ends(raw: object) -> tuple[int | None, date | None]:
+    """Read a finite-series ``ends`` block: (count>=1 or None, until-date or None)."""
+    if not isinstance(raw, Mapping):
+        return None, None
+    count = raw.get("count")
+    valid_count = count if isinstance(count, int) and not isinstance(count, bool) and count >= 1 else None
+    until_raw = raw.get("until")
+    until = parse_iso_date(until_raw) if isinstance(until_raw, str) else None
+    return valid_count, until
+
+
 @dataclass(frozen=True)
 class Schedule:
     """A task's time recurrence. Triggers (sensors) are orthogonal and handled
@@ -87,6 +106,17 @@ class Schedule:
     # (#83) end-of-month scheduling extras — calendar kinds only:
     business: bool = False  # day_of_month: roll a weekend date back to Friday
     offset_days: int = 0  # shift the computed occurrence by ±N days
+    # Seasonal active window: months (1..12) the task may be due in. A computed
+    # due date outside the window rolls forward to the 1st of the next active
+    # month, so the task pauses through the off-season and resumes in season.
+    # Empty = active all year. Applies to interval + calendar kinds (not one_time).
+    season_months: tuple[int, ...] = ()
+    # Finite series: the recurrence ends after `ends_count` completions and/or
+    # once the next occurrence would fall after `ends_until`. Either, both, or
+    # neither. When the end is reached the task stops re-arming (next_due None)
+    # and reads as done, like a completed one-time task.
+    ends_count: int | None = None
+    ends_until: date | None = None
 
     @classmethod
     def from_legacy(
@@ -116,6 +146,10 @@ class Schedule:
             anchor=interval_anchor or "completion",
         )
 
+    def is_finite(self) -> bool:
+        """True when the recurrence has an end condition (count and/or until)."""
+        return self.ends_count is not None or self.ends_until is not None
+
     def next_due(
         self,
         *,
@@ -123,8 +157,64 @@ class Schedule:
         created_at: date | None,
         last_planned_due: date | None,
         today: date,
+        times_performed: int = 0,
+        due_override: date | None = None,
     ) -> date | None:
-        """The next due date, or None for manual / archived one-time tasks."""
+        """The next due date, or None for manual / archived one-time tasks.
+
+        Layers three per-task modifiers over the raw recurrence:
+        - ``due_override`` postpones just the current cycle (until completed);
+        - ``season_months`` rolls an off-season date to the next active month;
+        - the finite-series end (``ends_count`` / ``ends_until``) stops re-arming.
+        A one_time task keeps its fixed date and ignores season/finite.
+        """
+        # A postponed occurrence wins for the current cycle — until it's been
+        # completed past the override date (then fall through to normal cadence).
+        if due_override is not None and (last_performed is None or due_override > last_performed):
+            return due_override
+
+        # Finite series exhausted by completion count → terminally done.
+        if self.ends_count is not None and times_performed >= self.ends_count:
+            return None
+
+        result = self._compute_next_due(
+            last_performed=last_performed,
+            created_at=created_at,
+            last_planned_due=last_planned_due,
+            today=today,
+        )
+        if self.kind == KIND_ONE_TIME:
+            return result
+        result = self._roll_to_season(result)
+
+        # Finite series ends once the next occurrence would fall past until.
+        if self.ends_until is not None and result is not None and result > self.ends_until:
+            return None
+        return result
+
+    def _roll_to_season(self, d: date | None) -> date | None:
+        """Roll a due date outside the seasonal window to the 1st of the next
+        active month; a no-op when there's no window or the date is in season."""
+        if d is None or not self.season_months or d.month in self.season_months:
+            return d
+        year, month = d.year, d.month
+        for _ in range(12):
+            month += 1
+            if month > 12:
+                month, year = 1, year + 1
+            if month in self.season_months:
+                return date(year, month, 1)
+        return d  # season_months held only invalid values — leave the date as-is
+
+    def _compute_next_due(
+        self,
+        *,
+        last_performed: date | None,
+        created_at: date | None,
+        last_planned_due: date | None,
+        today: date,
+    ) -> date | None:
+        """The raw next due date before the seasonal window is applied."""
         if self.kind == KIND_ONE_TIME:
             # Due on the fixed date; archived (no re-arm) once completed.
             if last_performed is not None or self.due_date is None:
@@ -257,6 +347,18 @@ class Schedule:
                 d["business"] = True
         if self.kind in _CALENDAR_KINDS and self.offset_days:
             d["offset"] = self.offset_days
+        # Seasonal window applies to any recurring kind (not one_time/manual).
+        if self.season_months and self.kind not in (KIND_ONE_TIME, KIND_MANUAL):
+            d["season_months"] = list(self.season_months)
+        # Finite-series end condition (recurring kinds only).
+        if self.is_finite() and self.kind not in (KIND_ONE_TIME, KIND_MANUAL):
+            ends: dict[str, Any] = {}
+            if self.ends_count is not None:
+                ends["count"] = self.ends_count
+            if self.ends_until is not None:
+                ends["until"] = self.ends_until.isoformat()
+            if ends:
+                d["ends"] = ends
         return d
 
     @classmethod
@@ -265,18 +367,26 @@ class Schedule:
         kind = d.get("kind", KIND_MANUAL)
         if kind == KIND_ONE_TIME:
             return cls(kind=KIND_ONE_TIME, due_date=parse_iso_date(d.get("due_date")))
+        season = _sanitize_months(d.get("season_months"))
+        ends_count, ends_until = _parse_ends(d.get("ends"))
         if kind == KIND_INTERVAL:
             return cls(
                 kind=KIND_INTERVAL,
                 every=d.get("every"),
                 unit=d.get("unit") or "days",
                 anchor=d.get("anchor") or "completion",
+                season_months=season,
+                ends_count=ends_count,
+                ends_until=ends_until,
             )
         if kind == KIND_WEEKDAYS:
             return cls(
                 kind=KIND_WEEKDAYS,
                 weekdays=tuple(d.get("weekdays") or ()),
                 offset_days=_sanitize_offset(d.get("offset")),
+                season_months=season,
+                ends_count=ends_count,
+                ends_until=ends_until,
             )
         if kind == KIND_NTH_WEEKDAY:
             return cls(
@@ -285,6 +395,9 @@ class Schedule:
                 weekday=d.get("weekday"),
                 months=tuple(d.get("months") or ()),
                 offset_days=_sanitize_offset(d.get("offset")),
+                season_months=season,
+                ends_count=ends_count,
+                ends_until=ends_until,
             )
         if kind == KIND_DAY_OF_MONTH:
             return cls(
@@ -293,6 +406,9 @@ class Schedule:
                 months=tuple(d.get("months") or ()),
                 business=d.get("business") is True,
                 offset_days=_sanitize_offset(d.get("offset")),
+                season_months=season,
+                ends_count=ends_count,
+                ends_until=ends_until,
             )
         return cls(kind=KIND_MANUAL)
 
@@ -391,6 +507,16 @@ def normalize_task_storage(task: Mapping[str, Any]) -> dict[str, Any]:
         interval_anchor=merged["interval_anchor"],
         due_date=merged["due_date"],
     ).to_dict()
+
+    # The flat fields can't express the nested-only interval extras (seasonal
+    # window, finite-series end). When an edit overlays flat keys onto a task
+    # that had them, carry them over so they aren't silently dropped — same
+    # spirit as the #58 unit-preservation above. Only meaningful on recurring
+    # kinds (from_legacy never yields one of these for one_time/manual).
+    if has_nested and isinstance(nested, Mapping) and schedule.get("kind") not in (KIND_ONE_TIME, KIND_MANUAL):
+        for extra in ("season_months", "ends"):
+            if extra in nested and extra not in schedule:
+                schedule[extra] = nested[extra]
 
     for key in FLAT_RECURRENCE_KEYS:
         out.pop(key, None)

@@ -870,6 +870,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             state["last_planned_due"] = lpd
         elif "last_planned_due" in state:
             del state["last_planned_due"]
+        # Per-occurrence postpone (set by async_postpone_task, cleared on complete).
+        do = td.get("due_override")
+        if do is not None:
+            state["due_override"] = do
+        elif "due_override" in state:
+            del state["due_override"]
         self._store.set_history(task_id, td.get("history", []))
         if task.adaptive_config:
             self._store.set_adaptive_config(task_id, task.adaptive_config)
@@ -1119,6 +1125,19 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 reset_date=task.last_performed,
             ),
         )
+
+    async def async_postpone_task(self, task_id: str, until: date) -> None:
+        """Postpone just the current occurrence to ``until`` (per-occurrence
+        defer). Sets a one-shot ``due_override`` that the next completion clears;
+        the cadence is untouched."""
+        merged = self._get_merged_tasks_data()
+        if task_id not in merged:
+            _LOGGER.error("Task %s not found in entry %s", task_id, self.entry.title)
+            return
+        task = MaintenanceTask.from_dict(merged[task_id])
+        task.due_override = until.isoformat()
+        await self._persist_and_signal_task_change(task_id, task)
+        _LOGGER.debug("Occurrence postponed to %s: %s on %s", until, task.name, self.maintenance_object.name)
 
     async def skip_maintenance(
         self,

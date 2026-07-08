@@ -417,3 +417,117 @@ def test_normalize_task_storage_strips_flat_keys() -> None:
     for key in FLAT_RECURRENCE_KEYS:
         assert key not in out
     assert out.get("name") == "Test"
+
+
+# ─── Seasonal active window (season_months) ──────────────────────────────
+
+
+def test_season_window_rolls_off_season_due_to_next_active_month() -> None:
+    # Mow every 2 weeks, only Apr–Oct. A completion on Oct 25 would compute
+    # Nov 8 (off-season) → roll to Apr 1 of the next year.
+    s = Schedule(kind=KIND_INTERVAL, every=2, unit="weeks", season_months=(4, 5, 6, 7, 8, 9, 10))
+    assert _nd(s, last=date(2026, 10, 25)) == date(2027, 4, 1)
+
+
+def test_season_window_keeps_in_season_due_untouched() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=2, unit="weeks", season_months=(4, 5, 6, 7, 8, 9, 10))
+    # A June completion → mid-July, still in season, unchanged.
+    assert _nd(s, last=date(2026, 6, 20)) == date(2026, 7, 4)
+
+
+def test_season_window_applies_to_first_time_anchor() -> None:
+    # Created in December → first due rolls to the season start, not December.
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months", season_months=(4, 5, 6, 7, 8, 9, 10))
+    assert _nd(s, last=None, today=date(2026, 12, 5)) == date(2027, 4, 1)
+
+
+def test_season_window_does_not_touch_one_time() -> None:
+    s = Schedule(kind=KIND_ONE_TIME, due_date=date(2026, 1, 15), season_months=(6, 7))
+    assert _nd(s, last=None) == date(2026, 1, 15)
+
+
+def test_season_window_round_trips_through_serialization() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months", season_months=(4, 5, 6))
+    d = s.to_dict()
+    assert d["season_months"] == [4, 5, 6]
+    back = Schedule.from_dict(d)
+    assert back.season_months == (4, 5, 6)
+    assert _nd(back, last=date(2026, 8, 1)) == date(2027, 4, 1)
+
+
+def test_season_window_sanitizes_garbage_months() -> None:
+    back = Schedule.from_dict({"kind": KIND_INTERVAL, "every": 1, "season_months": [0, 13, "x", 5, 5, True]})
+    assert back.season_months == (5,)
+
+
+def test_season_window_omitted_when_empty_or_wrong_kind() -> None:
+    assert "season_months" not in Schedule(kind=KIND_INTERVAL, every=1).to_dict()
+    assert "season_months" not in Schedule(kind=KIND_ONE_TIME, due_date=date(2026, 1, 1)).to_dict()
+
+
+# ─── Finite series (ends: count / until) ─────────────────────────────────
+
+
+def test_finite_series_ends_after_count() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months", ends_count=3)
+    common = {"created_at": None, "last_planned_due": None, "today": date(2026, 1, 1)}
+    # 2 of 3 done → still re-arms.
+    assert s.next_due(last_performed=date(2026, 3, 1), times_performed=2, **common) == date(2026, 4, 1)
+    # 3 of 3 done → series exhausted, no next due.
+    assert s.next_due(last_performed=date(2026, 3, 1), times_performed=3, **common) is None
+
+
+def test_finite_series_ends_at_until_date() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months", ends_until=date(2026, 6, 30))
+    common = {"created_at": None, "last_planned_due": None, "today": date(2026, 1, 1), "times_performed": 5}
+    # Next occurrence June 1 ≤ until → due.
+    assert s.next_due(last_performed=date(2026, 5, 1), **common) == date(2026, 6, 1)
+    # Next occurrence July 1 > until → series over.
+    assert s.next_due(last_performed=date(2026, 6, 1), **common) is None
+
+
+def test_finite_series_is_finite_flag_and_serialization() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=2, unit="weeks", ends_count=6, ends_until=date(2027, 1, 1))
+    assert s.is_finite() is True
+    d = s.to_dict()
+    assert d["ends"] == {"count": 6, "until": "2027-01-01"}
+    back = Schedule.from_dict(d)
+    assert back.ends_count == 6 and back.ends_until == date(2027, 1, 1)
+    assert back.is_finite() is True
+
+
+def test_finite_series_sanitizes_bad_ends() -> None:
+    back = Schedule.from_dict({"kind": KIND_INTERVAL, "every": 1, "ends": {"count": 0, "until": "not-a-date"}})
+    assert back.ends_count is None and back.ends_until is None
+    assert back.is_finite() is False
+
+
+def test_infinite_series_omits_ends_and_is_not_finite() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1)
+    assert s.is_finite() is False
+    assert "ends" not in s.to_dict()
+
+
+# ─── Per-occurrence postpone (due_override) ──────────────────────────────
+
+
+def test_due_override_postpones_current_cycle() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months")
+    common = {"created_at": None, "last_planned_due": None, "today": date(2026, 5, 1)}
+    # Without an override the completion anchors the next due.
+    assert s.next_due(last_performed=date(2026, 5, 1), **common) == date(2026, 6, 1)
+    # With an override the current cycle is pushed to the chosen date.
+    assert s.next_due(last_performed=date(2026, 5, 1), due_override=date(2026, 5, 20), **common) == date(2026, 5, 20)
+
+
+def test_due_override_ignored_once_completed_past_it() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months")
+    common = {"created_at": None, "last_planned_due": None, "today": date(2026, 6, 1)}
+    # Completed on/after the override date → the override is stale, normal cadence.
+    assert s.next_due(last_performed=date(2026, 5, 25), due_override=date(2026, 5, 20), **common) == date(2026, 6, 25)
+
+
+def test_due_override_works_before_first_completion() -> None:
+    s = Schedule(kind=KIND_INTERVAL, every=1, unit="months")
+    common = {"created_at": date(2026, 5, 1), "last_planned_due": None, "today": date(2026, 5, 1)}
+    assert s.next_due(last_performed=None, due_override=date(2026, 5, 15), **common) == date(2026, 5, 15)

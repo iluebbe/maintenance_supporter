@@ -248,6 +248,43 @@ async def ws_reset_task(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/task/postpone",
+        vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
+        vol.Required("until"): vol.All(str, vol.Length(max=MAX_DATE_LENGTH)),
+    }
+)
+@websocket_api.async_response
+async def ws_postpone_task(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Postpone the current occurrence to a chosen date (per-occurrence defer)."""
+    from datetime import date as date_cls
+
+    rd = _get_runtime_data(hass, msg["entry_id"])
+    if rd is None or rd.coordinator is None:
+        connection.send_error(msg["id"], "not_found", "Coordinator not found")
+        return
+
+    entry = hass.config_entries.async_get_entry(msg["entry_id"])
+    if entry is None or msg["task_id"] not in entry.data.get(CONF_TASKS, {}):
+        connection.send_error(msg["id"], "not_found", "Task not found")
+        return
+
+    try:
+        until = date_cls.fromisoformat(msg["until"])
+    except ValueError:
+        connection.send_error(msg["id"], "invalid_date", "Invalid date format")
+        return
+
+    await rd.coordinator.async_postpone_task(msg["task_id"], until)
+    connection.send_result(msg["id"], {"success": True})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/task/snooze",
         vol.Required("entry_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
         vol.Required("task_id"): vol.All(str, vol.Length(max=MAX_ID_LENGTH)),
