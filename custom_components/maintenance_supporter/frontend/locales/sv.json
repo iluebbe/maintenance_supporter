@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Skjut upp den här gången till vilket datum?",
   "postpone_date_label": "Nytt förfallodatum",
   "postponed": "Uppskjuten",
-  "postponed_to": "Uppskjuten till"
+  "postponed_to": "Uppskjuten till",
+  "season_window_label": "Säsongsfönster (månader)",
+  "season_window_hint": "Förfaller endast valda månader; datum utanför säsongen flyttas till nästa aktiva månad. Inga = hela året.",
+  "series_end_label": "Slutar",
+  "series_end_never": "Aldrig (upprepas i oändlighet)",
+  "series_end_after_count": "Efter ett antal gånger",
+  "series_end_until": "På ett datum",
+  "series_end_count_label": "Antal gånger",
+  "series_end_until_label": "Slutdatum"
 }

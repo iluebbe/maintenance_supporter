@@ -698,5 +698,13 @@
   "postpone_date_prompt": "На яку дату відкласти цей раз?",
   "postpone_date_label": "Новий термін",
   "postponed": "Відкладено",
-  "postponed_to": "Відкладено до"
+  "postponed_to": "Відкладено до",
+  "season_window_label": "Сезонне вікно (місяці)",
+  "season_window_hint": "Термін лише у вибрані місяці; дати поза сезоном переносяться на наступний активний місяць. Немає = весь рік.",
+  "series_end_label": "Завершується",
+  "series_end_never": "Ніколи (повторюється безкінечно)",
+  "series_end_after_count": "Після кількості разів",
+  "series_end_until": "У дату",
+  "series_end_count_label": "Кількість разів",
+  "series_end_until_label": "Дата завершення"
 }

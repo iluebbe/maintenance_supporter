@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Udskyd denne forekomst til hvilken dato?",
   "postpone_date_label": "Ny forfaldsdato",
   "postponed": "Udskudt",
-  "postponed_to": "Udskudt til"
+  "postponed_to": "Udskudt til",
+  "season_window_label": "Sæsonvindue (måneder)",
+  "season_window_hint": "Kun forfalden i de valgte måneder; datoer uden for sæsonen rykkes til næste aktive måned. Ingen = hele året.",
+  "series_end_label": "Slutter",
+  "series_end_never": "Aldrig (gentages uendeligt)",
+  "series_end_after_count": "Efter et antal gange",
+  "series_end_until": "På en dato",
+  "series_end_count_label": "Antal gange",
+  "series_end_until_label": "Slutdato"
 }

@@ -698,5 +698,13 @@
   "postpone_date_prompt": "इस बार को किस तारीख तक टालें?",
   "postpone_date_label": "नई नियत तिथि",
   "postponed": "टाल दिया गया",
-  "postponed_to": "तक टाला गया"
+  "postponed_to": "तक टाला गया",
+  "season_window_label": "मौसमी अवधि (महीने)",
+  "season_window_hint": "केवल चुने गए महीनों में देय; ऑफ-सीज़न तिथियाँ अगले सक्रिय महीने में चली जाती हैं। कोई नहीं = पूरे वर्ष।",
+  "series_end_label": "समाप्त होता है",
+  "series_end_never": "कभी नहीं (अनिश्चित रूप से दोहराता है)",
+  "series_end_after_count": "कुछ बार के बाद",
+  "series_end_until": "एक तिथि पर",
+  "series_end_count_label": "कितनी बार",
+  "series_end_until_label": "समाप्ति तिथि"
 }

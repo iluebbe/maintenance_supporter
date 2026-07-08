@@ -698,5 +698,13 @@
   "postpone_date_prompt": "A quale data posticipare questa scadenza?",
   "postpone_date_label": "Nuova data di scadenza",
   "postponed": "Posticipato",
-  "postponed_to": "Posticipato al"
+  "postponed_to": "Posticipato al",
+  "season_window_label": "Finestra stagionale (mesi)",
+  "season_window_hint": "Scade solo nei mesi selezionati; le date fuori stagione passano al mese attivo successivo. Nessuno = tutto l’anno.",
+  "series_end_label": "Termina",
+  "series_end_never": "Mai (ripete all’infinito)",
+  "series_end_after_count": "Dopo un numero di volte",
+  "series_end_until": "In una data",
+  "series_end_count_label": "Numero di volte",
+  "series_end_until_label": "Data di fine"
 }

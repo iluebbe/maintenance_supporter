@@ -698,5 +698,13 @@
   "postpone_date_prompt": "Mihin päivään tämä kerta lykätään?",
   "postpone_date_label": "Uusi eräpäivä",
   "postponed": "Lykätty",
-  "postponed_to": "Lykätty päivään"
+  "postponed_to": "Lykätty päivään",
+  "season_window_label": "Kausi-ikkuna (kuukaudet)",
+  "season_window_hint": "Erääntyy vain valittuina kuukausina; kauden ulkopuoliset päivät siirtyvät seuraavaan aktiiviseen kuukauteen. Ei mitään = koko vuosi.",
+  "series_end_label": "Päättyy",
+  "series_end_never": "Ei koskaan (toistuu loputtomasti)",
+  "series_end_after_count": "Tietyn kertamäärän jälkeen",
+  "series_end_until": "Päivämääränä",
+  "series_end_count_label": "Kertojen määrä",
+  "series_end_until_label": "Päättymispäivä"
 }
