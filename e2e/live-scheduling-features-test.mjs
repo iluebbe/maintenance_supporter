@@ -97,19 +97,19 @@ async function makeTask(name, schedule) {
   if (t.next_due !== "2030-01-15") throw new Error("postpone did not move next_due: " + t.next_due);
   if (t.due_override !== "2030-01-15") throw new Error("due_override not exposed: " + t.due_override);
 
-  // Completing consumes the override — assert due_override is cleared. (The
-  // recomputed next_due settles on the next coordinator refresh; the exact
-  // cadence-restoration invariant is pinned deterministically in the
-  // test_journey_finite_and_postpone journey.)
+  // Completing consumes the override and restores the cadence. The coordinator
+  // processes the completion asynchronously (debounced refresh), so poll until
+  // times_performed increments — then the recomputed next_due has settled.
   await api.send({ type: "maintenance_supporter/task/complete", entry_id: entryId, task_id: taskId });
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 40; i++) {
     t = await taskOf(entryId);
-    if (!t.due_override) break;
-    await new Promise((r) => setTimeout(r, 300));
+    if ((t.times_performed || 0) >= 1) break;
+    await new Promise((r) => setTimeout(r, 500));
   }
-  log("after complete — due_override:", t.due_override);
+  log("after complete — next_due:", t.next_due, "due_override:", t.due_override, "times_performed:", t.times_performed);
   if (t.due_override) throw new Error("override not cleared on completion");
-  log("postpone OK (override set on postpone, cleared on complete)");
+  if (t.next_due === "2030-01-15") throw new Error("cadence not restored after the postponed cycle");
+  log("postpone OK (override set, cleared on complete, cadence restored)");
 }
 
 // Cleanup.
