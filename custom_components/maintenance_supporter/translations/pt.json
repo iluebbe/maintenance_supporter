@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Serviço de notificação `{service}` não encontrado",
       "description": "O Maintenance Supporter está configurado para enviar notificações através de `{service}`, mas esse serviço não existe atualmente no Home Assistant, por isso os lembretes falham silenciosamente.\n\nNormalmente isto significa que o serviço foi renomeado, ou que a integração por trás dele (uma aplicação móvel, um grupo de notificação, …) foi removida. Para corrigir: restaure esse serviço, ou abra **Definições → Dispositivos e serviços → Maintenance Supporter → Configurar → Definições gerais** e escolha um serviço `notify.*` válido.\n\nNota: isto verifica apenas o serviço configurado em si. Se as notificações chegam a alguns dispositivos mas não a outros, provavelmente um membro *dentro* do seu grupo de notificação está mal configurado — isso não é visível aqui; verifique o **registo do sistema** do Home Assistant (Definições → Sistema → Registos)."
+    },
+    "missing_global_entry": {
+      "title": "A configuração global do Maintenance Supporter está ausente",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Restaurar a configuração global",
+            "description": "Os seus objetos de manutenção ainda existem, mas a entrada global \"Maintenance Supporter\" foi eliminada — por isso os sensores de resumo, o painel lateral e os contadores do painel desapareceram, e os indicadores mostram \"unknown\".\n\nClique em **Enviar** para recriar a configuração global com as definições padrão. Os seus objetos e tarefas ficam intactos. Pode ajustar as notificações e os valores padrão depois em Definições → Dispositivos e serviços.\n\n(Para não alterar nada, use o botão **Ignorar** do Home Assistant.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

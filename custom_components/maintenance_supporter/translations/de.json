@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Benachrichtigungsdienst `{service}` nicht gefunden",
       "description": "Maintenance Supporter ist so konfiguriert, dass Benachrichtigungen über `{service}` gesendet werden, aber dieser Dienst existiert derzeit nicht in Home Assistant — Erinnerungen schlagen daher still fehl.\n\nMeist wurde der Dienst umbenannt oder die dahinterliegende Integration (eine Mobile-App, eine Notify-Gruppe, …) entfernt. Zum Beheben: den Dienst wiederherstellen, oder unter **Einstellungen → Geräte & Dienste → Maintenance Supporter → Konfigurieren → Allgemeine Einstellungen** einen gültigen `notify.*`-Dienst auswählen.\n\nHinweis: Geprüft wird nur der konfigurierte Dienst selbst. Wenn Benachrichtigungen einige Geräte erreichen, andere aber nicht, ist wahrscheinlich ein Mitglied *innerhalb* deiner Notify-Gruppe falsch konfiguriert — das ist hier nicht sichtbar; prüfe das Home-Assistant-**Systemprotokoll** (Einstellungen → System → Protokolle)."
+    },
+    "missing_global_entry": {
+      "title": "Globale Konfiguration von Maintenance Supporter fehlt",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Globale Konfiguration wiederherstellen",
+            "description": "Deine Wartungsobjekte existieren noch, aber der globale Eintrag \"Maintenance Supporter\" wurde gelöscht — dadurch fehlen die Zusammenfassungs-Sensoren, das Seitenleisten-Panel und die Dashboard-Zähler, und die KPI-Chips zeigen \"unknown\".\n\nKlicke auf **Absenden**, um die globale Konfiguration mit Standardeinstellungen neu anzulegen. Deine Objekte und Aufgaben bleiben unangetastet. Benachrichtigungen und Standardwerte kannst du danach unter Einstellungen → Geräte & Dienste anpassen.\n\n(Um nichts zu ändern, nutze die Schaltfläche **Ignorieren** von Home Assistant.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "找不到通知服务 `{service}`",
       "description": "Maintenance Supporter 配置为通过 `{service}` 发送通知，但该服务目前在 Home Assistant 中不存在，因此提醒会静默失败。\n\n这通常意味着该服务被重命名，或其背后的集成（移动应用、通知群组等）已被移除。要修复：恢复该服务，或打开 **设置 → 设备与服务 → Maintenance Supporter → 配置 → 常规设置** 并选择一个有效的 `notify.*` 服务。\n\n注意：此处仅检查所配置的服务本身。如果通知能到达部分设备但无法到达其他设备，则可能是通知群组*内部*的某个成员配置有误——这在此处不可见；请查看 Home Assistant 的**系统日志**（设置 → 系统 → 日志）。"
+    },
+    "missing_global_entry": {
+      "title": "缺少 Maintenance Supporter 全局配置",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "恢复全局配置",
+            "description": "您的维护对象仍然存在，但全局“Maintenance Supporter”条目已被删除——因此汇总传感器、侧边栏面板和仪表盘计数都消失了，KPI 芯片显示“unknown”。\n\n点击**提交**，使用默认设置重新创建全局配置。您的对象和任务保持不变。"
+          }
+        }
+      }
     }
   },
   "exceptions": {

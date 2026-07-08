@@ -894,6 +894,10 @@ async def _async_setup_shared(hass: HomeAssistant) -> bool:
         unsub_digest,
     ]
 
+    # Once HA has started (all entries loaded), flag object entries that were
+    # orphaned by a deleted global entry as a fixable repair issue (#86).
+    async_at_started(hass, _sync_missing_global_entry_issue)
+
     return True
 
 
@@ -1058,6 +1062,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # HA-started so the store has finished loading.
         entry.async_on_unload(async_at_started(hass, _check_document_storage_issues))
 
+        # A global entry now exists — clear the orphan repair issue immediately
+        # (e.g. right after the repair flow recreated it, when HA is already
+        # started and the async_at_started check above won't fire again).
+        _sync_missing_global_entry_issue(hass)
+
         _LOGGER.debug("Global config entry set up: %s", entry.entry_id)
     else:
         # Maintenance object entry: create Store + coordinator
@@ -1186,6 +1195,39 @@ async def _check_document_storage_issues(hass: HomeAssistant) -> None:
         )
     else:
         ir.async_delete_issue(hass, DOMAIN, _DOC_STORAGE_ISSUE_ID)
+
+
+_MISSING_GLOBAL_ISSUE_ID = "missing_global_entry"
+
+
+@callback
+def _sync_missing_global_entry_issue(hass: HomeAssistant) -> None:
+    """Surface "object entries exist but the global entry is gone" as a repair.
+
+    The config flow always creates the global "Maintenance Supporter" entry
+    before the first object, but a user can later delete just that entry from
+    Settings → Devices & Services, leaving orphan object entries behind. That
+    strips the summary sensors, the sidebar panel and the digests — and the
+    dashboard KPI chips read "unknown" (#86, 2nd report). The fixable issue's
+    flow recreates the global entry with default settings; it clears itself once
+    a global entry is present again.
+    """
+    from homeassistant.helpers import issue_registry as ir
+
+    entries = hass.config_entries.async_entries(DOMAIN)
+    has_global = any(e.unique_id == GLOBAL_UNIQUE_ID for e in entries)
+    has_objects = any(e.unique_id != GLOBAL_UNIQUE_ID for e in entries)
+    if has_objects and not has_global:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            _MISSING_GLOBAL_ISSUE_ID,
+            is_fixable=True,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key=_MISSING_GLOBAL_ISSUE_ID,
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, _MISSING_GLOBAL_ISSUE_ID)
 
 
 async def _async_global_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -1349,6 +1391,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Clean up store file when a config entry is permanently deleted."""
     if entry.unique_id == GLOBAL_UNIQUE_ID:
+        # Deleting the global entry while object entries remain is a broken
+        # state (no summary sensors / panel / digests) — surface it right away
+        # as a fixable repair issue so the user can restore it (#86).
+        _sync_missing_global_entry_issue(hass)
         return
     store = MaintenanceStore(hass, entry.entry_id)
     await store.async_remove()

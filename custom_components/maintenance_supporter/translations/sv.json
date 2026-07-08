@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Aviseringstjänsten `{service}` hittades inte",
       "description": "Maintenance Supporter är konfigurerad att skicka aviseringar via `{service}`, men den tjänsten finns inte i Home Assistant just nu, så påminnelser misslyckas tyst.\n\nDet betyder oftast att tjänsten har bytt namn, eller att integrationen bakom den (en mobilapp, en aviseringsgrupp, …) har tagits bort. För att åtgärda: återställ tjänsten, eller öppna **Inställningar → Enheter och tjänster → Maintenance Supporter → Konfigurera → Allmänna inställningar** och välj en giltig `notify.*`-tjänst.\n\nObs: detta kontrollerar bara själva den konfigurerade tjänsten. Om aviseringar når vissa enheter men inte andra är troligen en medlem *inuti* din aviseringsgrupp felkonfigurerad — det syns inte här; kontrollera Home Assistants **systemlogg** (Inställningar → System → Loggar)."
+    },
+    "missing_global_entry": {
+      "title": "Maintenance Supporters globala konfiguration saknas",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Återställ den globala konfigurationen",
+            "description": "Dina underhållsobjekt finns fortfarande, men den globala \"Maintenance Supporter\"-posten togs bort — därför saknas sammanfattningssensorerna, sidopanelen och instrumentpanelens räknare, och KPI-chipsen visar \"unknown\".\n\nKlicka på **Skicka** för att återskapa den globala konfigurationen med standardinställningar. Dina objekt och uppgifter lämnas orörda. Du kan justera aviseringar och standardvärden efteråt under Inställningar → Enheter och tjänster.\n\n(Använd Home Assistants **Ignorera**-knapp för att inte ändra något.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

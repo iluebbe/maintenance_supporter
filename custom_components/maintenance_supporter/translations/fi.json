@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Ilmoituspalvelua `{service}` ei löytynyt",
       "description": "Maintenance Supporter on määritetty lähettämään ilmoituksia palvelun `{service}` kautta, mutta kyseistä palvelua ei tällä hetkellä ole Home Assistantissa, joten muistutukset epäonnistuvat huomaamatta.\n\nYleensä tämä tarkoittaa, että palvelu on nimetty uudelleen tai sen taustalla oleva integraatio (mobiilisovellus, ilmoitusryhmä, …) on poistettu. Korjaaminen: palauta kyseinen palvelu tai avaa **Asetukset → Laitteet ja palvelut → Maintenance Supporter → Määritä → Yleiset asetukset** ja valitse kelvollinen `notify.*`-palvelu.\n\nHuomaa: tämä tarkistaa vain määritetyn palvelun itsensä. Jos ilmoitukset tavoittavat jotkin laitteet mutta eivät muita, jokin ilmoitusryhmäsi *sisällä* oleva jäsen on todennäköisesti väärin määritetty — se ei näy täällä; tarkista Home Assistantin **järjestelmäloki** (Asetukset → Järjestelmä → Lokit)."
+    },
+    "missing_global_entry": {
+      "title": "Maintenance Supporterin yleinen määritys puuttuu",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Palauta yleinen määritys",
+            "description": "Huoltokohteesi ovat yhä olemassa, mutta yleinen \"Maintenance Supporter\"-merkintä poistettiin — siksi yhteenvetoanturit, sivupalkki ja koontinäytön laskurit puuttuvat ja KPI-merkit näyttävät \"unknown\".\n\nNapsauta **Lähetä** luodaksesi yleisen määrityksen uudelleen oletusasetuksilla. Kohteesi ja tehtäväsi säilyvät ennallaan. Voit säätää ilmoituksia ja oletusarvoja myöhemmin kohdassa Asetukset → Laitteet ja palvelut.\n\n(Jos et halua muuttaa mitään, käytä Home Assistantin **Ohita**-painiketta.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

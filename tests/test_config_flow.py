@@ -132,6 +132,20 @@ async def test_global_setup_creates_entry(hass: HomeAssistant) -> None:
     assert result["data"][CONF_NOTIFY_SERVICE] == "notify.mobile"
 
 
+async def test_import_recreates_global_entry(hass: HomeAssistant) -> None:
+    """The import step (used by the missing-global-entry repair flow) recreates
+    the global entry with default settings, and aborts if one already exists."""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT})
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["title"] == "Maintenance Supporter"
+    assert result["result"].unique_id == GLOBAL_UNIQUE_ID
+    assert result["data"][CONF_NOTIFICATIONS_ENABLED] is False
+
+    # A second import is a no-op abort (single global entry guaranteed).
+    result2 = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT})
+    assert result2["type"] == FlowResultType.ABORT
+
+
 async def test_global_setup_notify_dropdown(hass: HomeAssistant) -> None:
     """The setup wizard offers a dropdown merging notify *services* (mobile_app +
     groups) and notify *entities* (newer model), excludes the generic

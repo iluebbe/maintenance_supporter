@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Varslingstjenesten `{service}` ble ikke funnet",
       "description": "Maintenance Supporter er konfigurert til å sende varsler via `{service}`, men den tjenesten finnes ikke i Home Assistant akkurat nå, så påminnelser feiler stille.\n\nDette betyr vanligvis at tjenesten har blitt omdøpt, eller at integrasjonen bak den (en mobilapp, en varslingsgruppe, …) har blitt fjernet. For å løse det: gjenopprett tjenesten, eller åpne **Innstillinger → Enheter og tjenester → Maintenance Supporter → Konfigurer → Generelle innstillinger** og velg en gyldig `notify.*`-tjeneste.\n\nMerk: dette sjekker bare selve den konfigurerte tjenesten. Hvis varsler når noen enheter, men ikke andre, er sannsynligvis et medlem *inne i* varslingsgruppen din feil konfigurert — det er ikke synlig her; sjekk Home Assistants **systemlogg** (Innstillinger → System → Logger)."
+    },
+    "missing_global_entry": {
+      "title": "Global konfigurasjon for Maintenance Supporter mangler",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Gjenopprett den globale konfigurasjonen",
+            "description": "Vedlikeholdsobjektene dine finnes fortsatt, men den globale \"Maintenance Supporter\"-oppføringen ble slettet — derfor mangler sammendragssensorene, sidepanelet og dashbordtellerne, og KPI-brikkene viser \"unknown\".\n\nKlikk **Send** for å gjenopprette den globale konfigurasjonen med standardinnstillinger. Objektene og oppgavene dine forblir urørt. Du kan justere varsler og standardverdier etterpå under Innstillinger → Enheter og tjenester.\n\n(Bruk Home Assistants **Ignorer**-knapp for å ikke endre noe.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

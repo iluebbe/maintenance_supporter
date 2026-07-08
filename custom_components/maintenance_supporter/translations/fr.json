@@ -1619,6 +1619,17 @@
     "notify_service_missing": {
       "title": "Service de notification `{service}` introuvable",
       "description": "Maintenance Supporter est configuré pour envoyer les notifications via `{service}`, mais ce service n'existe pas actuellement dans Home Assistant : les rappels échouent donc silencieusement.\n\nCela signifie généralement que le service a été renommé, ou que l'intégration associée (une application mobile, un groupe de notification, …) a été supprimée. Pour corriger : rétablissez ce service, ou ouvrez **Paramètres → Appareils et services → Maintenance Supporter → Configurer → Paramètres généraux** et choisissez un service `notify.*` valide.\n\nRemarque : seul le service configuré lui-même est vérifié. Si les notifications arrivent sur certains appareils mais pas d'autres, un membre *à l'intérieur* de votre groupe de notification est probablement mal configuré — ce n'est pas visible ici ; consultez le **journal système** de Home Assistant (Paramètres → Système → Journaux)."
+    },
+    "missing_global_entry": {
+      "title": "La configuration globale de Maintenance Supporter est manquante",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Restaurer la configuration globale",
+            "description": "Vos objets de maintenance existent toujours, mais l'entrée globale \"Maintenance Supporter\" a été supprimée — les capteurs de synthèse, le panneau latéral et les compteurs du tableau de bord ont donc disparu, et les indicateurs affichent \"unknown\".\n\nCliquez sur **Envoyer** pour recréer la configuration globale avec les paramètres par défaut. Vos objets et tâches restent intacts. Vous pourrez ajuster les notifications et les valeurs par défaut ensuite dans Paramètres → Appareils et services.\n\n(Pour ne rien changer, utilisez le bouton **Ignorer** de Home Assistant.)"
+          }
+        }
+      }
     }
   },
   "exceptions": {

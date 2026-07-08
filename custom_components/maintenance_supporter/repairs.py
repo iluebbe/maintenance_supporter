@@ -633,6 +633,28 @@ class DocumentStorageRepairFlow(RepairsFlow):
         return self.async_show_form(step_id="init", data_schema=vol.Schema({}))
 
 
+class MissingGlobalEntryRepairFlow(RepairsFlow):
+    """Recreate the global "Maintenance Supporter" entry after it was deleted.
+
+    When the global entry is removed but object entries remain, the summary
+    sensors, sidebar panel and digests all disappear and the dashboard KPI chips
+    read "unknown" (#86). Submitting this flow kicks off the config flow's import
+    step, which recreates the global entry with default settings (it aborts
+    harmlessly if one already exists). To leave things as they are, use HA's
+    built-in **Ignore** button.
+    """
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> data_entry_flow.FlowResult:
+        """Confirm, then recreate the global entry on submit."""
+        if user_input is not None:
+            from homeassistant.config_entries import SOURCE_IMPORT
+
+            await self.hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_IMPORT})
+            return self.async_create_entry(data={})
+
+        return self.async_show_form(step_id="init", data_schema=vol.Schema({}))
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -645,4 +667,6 @@ async def async_create_fix_flow(
         return StaleActionEntityRepairFlow()
     if issue_id == "document_storage_issues":
         return DocumentStorageRepairFlow()
+    if issue_id == "missing_global_entry":
+        return MissingGlobalEntryRepairFlow()
     return MissingTriggerEntityRepairFlow()
