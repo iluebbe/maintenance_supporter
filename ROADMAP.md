@@ -120,61 +120,44 @@ tasks to a fresh cycle, exactly like unarchive. Identified via the
 device-biography journey review (docs/design/user-journeys.md, N3).
 
 
-### 💡 End-of-month scheduling (last day / last business day / ±N offset)
-Requested in [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
-Extend the calendar schedule kinds with **last day of the month**, **last
-working/business day of the month**, and a general **±N-day offset** on
-calendar schedules — so cases like "the day before the last day of the month"
-or "two days before the last working day" work without bespoke UI special
-cases. Useful for monthly routines, reporting periods, billing cycles, and
-meter readings. Builds on the nested `schedule` model (`helpers/schedule.py`,
-kinds weekdays / nth_weekday / day_of_month) — a natural `last_day` /
-`last_business_day` kind plus an `offset_days` field.
+### ✅ End-of-month scheduling (last day / last business day / ±N offset)
+**Shipped** in v2.18.0 (requested in
+[Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83)).
+The day-of-month schedule gained **last day of the month** and **business days
+only** (roll back over the weekend — Workday-aware when HA's Workday
+integration is configured), and every calendar pattern accepts a **±N-day
+offset**. "Two days before the last working day of the month" is three
+clicks: last day ✓, business days ✓, offset −2.
 
-### 🛠️ Finite recurring series (repeat N times / recur until a date)
-**Backend + API shipped** (`schedule.ends = {count?, until?}`; the task auto-reads
-as *done* when the series ends; round-trips through export/import). Panel UI (the
-end-condition fields in the recurrence section) still to come.
-Today a task is either **one-time** or **recurs forever** — there is nothing in
-between. A **bounded series** would let a recurring task stop on its own: "oil
-it monthly, but only for the first 6 months after install", "quarterly checks
-until the warranty ends", "descale weekly, 8 times, done". Two end conditions,
-either or both: an **occurrence count** and/or an **until-date**. When the last
-occurrence is completed (or the until-date passes with the series satisfied)
-the task auto-archives instead of re-arming — reusing the existing archive
-lifecycle rather than lingering as permanently overdue. Fits the nested
-`schedule` model as an optional `ends` block (`{count?, until?}`) evaluated in
-`next_due`; the panel/dialogs show "3 of 6 done" and the calendar stops
-projecting past the end. Distinct from the one-off type and from the
-seasonal-pause `until` (which only auto-resumes, never ends the series).
+### ✅ Finite recurring series (repeat N times / recur until a date)
+**Shipped** in v2.22.0 on every surface. A recurring task can stop on its own:
+"descale weekly, 8 times, done" or "quarterly checks until the warranty ends".
+`schedule.ends = {count?, until?}` — either or both; when the series ends the
+task stops re-arming and reads as *done*, like a completed one-off. Editable in
+the panel task dialog (the **Ends** selector: never / after N times / on date)
+and the config-flow edit form; round-trips through JSON/YAML export/import.
+Distinct from the one-off type and from the seasonal-pause `until` (which only
+auto-resumes, never ends the series).
 
-### 🛠️ Seasonal active window (only due in certain months)
-**Backend + API shipped** (`schedule.season_months`; off-season due dates roll to
-the next active month; round-trips through export/import). Panel UI (a month
-picker in the recurrence section) still to come.
-Complements the existing **seasonal factors** (soft 12-month interval scaling)
-and **manual seasonal pause** (a hand-set date range) with a *declarative*
-month window: "only due April–October; occurrences that would fall outside the
-season are automatically shifted to the next in-season date". Natural for
-mower service, pool care, or pre-winter heating checks, where a hard on/off by
-month is more honest than a soft factor and less manual than pausing every
-year. A `season_months` set on the schedule (e.g. `[4..10]`) consulted in
-`next_due`: a computed due date outside the window rolls forward to the window
-start of the next active period, so the task never sits "overdue" through the
-off-season. Pairs with, but is independent of, the seasonal factors.
+### ✅ Seasonal active window (only due in certain months)
+**Shipped** in v2.22.0 on every surface. A *declarative* month window on the
+schedule: "only due April–October" — a computed due date outside
+`schedule.season_months` rolls forward to the start of the next active month,
+so the task never sits "overdue" through the off-season. Natural for mower
+service, pool care, or pre-winter heating checks. Editable via the month picker
+in the panel task dialog and the config-flow edit form; round-trips through
+export/import. Complements — and is independent of — the soft **seasonal
+factors** and the manual **object pause**.
 
-### 🛠️ Postpone a single occurrence (defer to a date, without completing)
-**Backend + API shipped** (WS `task/postpone` sets a one-shot `due_override`,
-cleared by the next completion; exposed on the task payload). Panel UI (a
-"Postpone…" item beside Skip/Snooze) still to come.
-A lightweight "not this week — push this one to next Tuesday" that moves **only
-the current due date**, not the whole schedule anchor. Distinct from the two
-things we already have: **snooze** silences notifications but leaves the task
-due, and **reset to a date** re-anchors the entire recurrence. A per-occurrence
-**defer** would set a one-shot `due_override` for the current cycle; the next
-cycle after completion returns to the normal cadence. Small UX win for the
-"I'll get to it, just not now" case; surfaces as a "Postpone…" action beside
-Skip/Snooze in the task menu.
+### ✅ Postpone a single occurrence (defer to a date, without completing)
+**Shipped** in v2.22.0. "Not this week — push this one to next Tuesday": the
+**Postpone…** action in the task ⋮-menu moves **only the current due date**
+(a one-shot `due_override` via WS `task/postpone`), not the schedule anchor;
+the next completion consumes it and the cadence returns to normal. A
+*postponed to …* badge shows on the task, and dashboard card rows carry a
+small calendar-clock indicator. Distinct from **snooze** (notifications only)
+and **reset to a date** (re-anchors the whole recurrence). Round-trips through
+export/import.
 
 ### ✅ "Meter reading" task type
 **Shipped** (enum value in 2.18; the reading-specific fields in v2.20.0). From [Discussion #83](https://github.com/iluebbe/maintenance_supporter/discussions/83).
