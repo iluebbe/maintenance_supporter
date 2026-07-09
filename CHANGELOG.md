@@ -4,6 +4,24 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+## [2.22.3] - 2026-07-09
+
+### 🐛 Fixed
+
+- **Time-based task loses its interval on save** (#88) — creating or editing a
+  time-based task dropped the interval: it saved with no interval (Next Due,
+  Days Until Due, Interval and the anchor reverted to defaults). A regression
+  from the 2.22.0 seasonal-window / finite-series work — the task dialog began
+  sending a bare recurrence carrier alongside the interval fields, and the save
+  path mistook it for a complete schedule and discarded the interval. Weekday
+  and other calendar schedules were unaffected. Interval tasks now save
+  correctly again. (If a time-based task was saved on 2.22.0–2.22.2 and lost its
+  interval, just re-open it and save once to restore it.)
+- **Blocking file read on the event loop for weekday tasks** (#88) — the
+  calendar built localized weekday names via babel, which lazily read locale
+  files on the event loop and logged a "blocking call" warning. Those names are
+  now cached and preloaded off the loop at setup.
+
 ## [2.22.2] - 2026-07-09
 
 ### 🐛 Fixed
