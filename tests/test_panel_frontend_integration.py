@@ -178,6 +178,38 @@ async def test_register_panel_survives_flag_desync(hass: HomeAssistant) -> None:
         assert hass.data[DOMAIN].get("_panel_registered") is True
 
 
+async def test_static_path_memo_survives_flag_desync(hass: HomeAssistant) -> None:
+    """Twin of the panel fix: the static-route memo must survive the
+    hass.data[DOMAIN] pop, so recreating the global entry does NOT re-add a
+    route Home Assistant still holds (aiohttp would raise "method GET is already
+    registered"). The memo is a top-level hass.data key, not under DOMAIN.
+    """
+    from custom_components.maintenance_supporter.panel import (
+        _PANEL_STATIC_URL_KEY,
+        async_register_panel,
+    )
+
+    # Isolate the static-path logic — mock the panel registration itself.
+    with patch(
+        "homeassistant.components.panel_custom.async_register_panel",
+        new_callable=AsyncMock,
+    ):
+        await async_register_panel(hass)
+        calls_after_first = hass.http.async_register_static_paths.call_count  # type: ignore[attr-defined]
+        assert calls_after_first >= 1
+        assert hass.data.get(_PANEL_STATIC_URL_KEY)  # top-level memo set
+
+        # Desync: the shared runtime dict is popped on last-entry unload. The
+        # top-level static-path memo must survive it.
+        hass.data.pop(DOMAIN, None)
+        assert hass.data.get(_PANEL_STATIC_URL_KEY)
+
+        # Recreating the global entry must NOT re-register the (process-long)
+        # static route — same versioned URL, so no extra register call.
+        await async_register_panel(hass)
+        assert hass.http.async_register_static_paths.call_count == calls_after_first  # type: ignore[attr-defined]
+
+
 async def test_panel_registered_when_enabled(hass: HomeAssistant) -> None:
     """Panel IS registered with correct args when CONF_PANEL_ENABLED is True."""
     entry = _make_global_entry(hass, panel_enabled=True)

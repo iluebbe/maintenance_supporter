@@ -15,6 +15,14 @@ from .helpers.global_options import get_panel_title
 
 _LOGGER = logging.getLogger(__name__)
 
+# Static routes live for the whole HA process (they are never removed on entry
+# unload), so their "already registered" memo must survive the pop of
+# hass.data[DOMAIN] on last-entry unload. Keep it as a TOP-LEVEL hass.data key —
+# same reasoning as the document-views guard (journey O1) — otherwise a repair-
+# recreate / reinstall re-adds a route HA still holds and aiohttp raises
+# "Added route will never be executed, method GET is already registered".
+_PANEL_STATIC_URL_KEY = f"{DOMAIN}_panel_static_url"
+
 
 async def _async_file_hash(hass: HomeAssistant, path: Path) -> str:
     """Return a short hash of a file for cache busting."""
@@ -55,9 +63,12 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
 
     # Static path is registered once per versioned URL; on a forced re-register
     # the URL is unchanged (same bundle hash), so guard against re-adding it.
-    if hass.data.get(DOMAIN, {}).get("_panel_static_url") != versioned_url:
+    # The memo is a top-level hass.data key (see _PANEL_STATIC_URL_KEY) so it
+    # survives the hass.data[DOMAIN] pop and can't desync from the process-long
+    # static route the way the old hass.data[DOMAIN] guard could.
+    if hass.data.get(_PANEL_STATIC_URL_KEY) != versioned_url:
         await hass.http.async_register_static_paths([StaticPathConfig(versioned_url, str(panel_path), False)])
-        hass.data.setdefault(DOMAIN, {})["_panel_static_url"] = versioned_url
+        hass.data[_PANEL_STATIC_URL_KEY] = versioned_url
 
     # Idempotency against HA's ACTUAL panel registry — our `_panel_registered`
     # flag lives in hass.data[DOMAIN], which is popped when the last entry
