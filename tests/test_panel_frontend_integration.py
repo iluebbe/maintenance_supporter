@@ -138,6 +138,46 @@ async def test_panel_not_registered_when_disabled(hass: HomeAssistant) -> None:
     assert not hass.data.get(DOMAIN, {}).get("_panel_registered")
 
 
+async def test_register_panel_survives_flag_desync(hass: HomeAssistant) -> None:
+    """#86 (2nd report): recreating the deleted global entry must not fail with
+    "Overwriting panel". The `_panel_registered` flag lives in hass.data[DOMAIN],
+    which is popped when the last entry unloads — so on a reinstall / repair-
+    recreate the flag is lost while HA's frontend still holds the panel, and the
+    unconditional re-register used to raise. It must now drop the stale panel
+    and re-register cleanly.
+    """
+    from homeassistant.components import frontend
+
+    from custom_components.maintenance_supporter.panel import async_register_panel
+
+    # Mimic HA's real panel registry: populate DATA_PANELS and raise
+    # "Overwriting panel" on a collision, exactly like frontend does. (The real
+    # panel_custom.async_register_panel needs a fully set-up frontend, which the
+    # test harness only fakes.)
+    async def fake_register(hass_arg: HomeAssistant, *, frontend_url_path: str, **_kw: object) -> None:
+        panels = hass_arg.data.setdefault(frontend.DATA_PANELS, {})
+        if frontend_url_path in panels:
+            raise ValueError(f"Overwriting panel {frontend_url_path}")
+        panels[frontend_url_path] = object()
+
+    with patch(
+        "homeassistant.components.panel_custom.async_register_panel",
+        side_effect=fake_register,
+    ):
+        await async_register_panel(hass)
+        assert PANEL_NAME in hass.data[frontend.DATA_PANELS]
+
+        # Desync: the shared runtime dict is popped on last-entry unload, losing
+        # the flag; HA still holds the panel.
+        hass.data.pop(DOMAIN, None)
+
+        # Recreating the global entry re-registers — must NOT raise "Overwriting
+        # panel", and the panel stays registered.
+        await async_register_panel(hass)
+        assert PANEL_NAME in hass.data[frontend.DATA_PANELS]
+        assert hass.data[DOMAIN].get("_panel_registered") is True
+
+
 async def test_panel_registered_when_enabled(hass: HomeAssistant) -> None:
     """Panel IS registered with correct args when CONF_PANEL_ENABLED is True."""
     entry = _make_global_entry(hass, panel_enabled=True)
@@ -251,7 +291,7 @@ async def test_panel_toggle_off_via_options_update(
         hass.config_entries.async_update_entry(entry, options={**entry.options, CONF_PANEL_ENABLED: False})
         await hass.async_block_till_done()
 
-        mock_remove.assert_called_once_with(hass, PANEL_NAME)
+        mock_remove.assert_called_once_with(hass, PANEL_NAME, warn_if_unknown=False)
 
 
 async def test_panel_not_reregistered_on_unrelated_options_change(
@@ -332,7 +372,7 @@ async def test_panel_unregistered_on_global_unload(
         await hass.config_entries.async_unload(entry.entry_id)
         await hass.async_block_till_done()
 
-        mock_remove.assert_called_once_with(hass, PANEL_NAME)
+        mock_remove.assert_called_once_with(hass, PANEL_NAME, warn_if_unknown=False)
 
 
 async def test_unload_without_panel_no_error(hass: HomeAssistant) -> None:

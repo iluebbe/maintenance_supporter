@@ -4,6 +4,22 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+## [2.22.2] - 2026-07-09
+
+### 🐛 Fixed
+
+- **"Overwriting panel" crash when recreating the global entry** (#86,
+  follow-up) — after restoring a deleted global entry (via the repair flow or
+  by re-adding the integration), its setup could fail with
+  `ValueError: Overwriting panel maintenance-supporter`, leaving the entry in a
+  "Failed to set up" state (no summary sensors / panel). The sidebar-panel
+  registration tracked its state in a flag that is lost when the integration's
+  shared data is torn down, so it re-registered over a panel Home Assistant
+  still held. Panel (un)registration is now reconciled against Home Assistant's
+  actual panel registry, so recreating the global entry always sets up cleanly.
+  Your existing maintenance objects are independent entries and are never
+  affected — they reconnect automatically, nothing needs to be recreated.
+
 ## [2.22.1] - 2026-07-08
 
 ### 🐛 Fixed
