@@ -59,6 +59,15 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
         await hass.http.async_register_static_paths([StaticPathConfig(versioned_url, str(panel_path), False)])
         hass.data.setdefault(DOMAIN, {})["_panel_static_url"] = versioned_url
 
+    # Idempotency against HA's ACTUAL panel registry — our `_panel_registered`
+    # flag lives in hass.data[DOMAIN], which is popped when the last entry
+    # unloads, so it desyncs from HA's frontend on a reinstall or a repair that
+    # recreates the deleted global entry. Registering over a panel HA still
+    # holds raises "Overwriting panel" and fails the whole global entry setup
+    # (#86, 2nd report). Drop any stale registration first so this can't happen.
+    if PANEL_NAME in hass.data.get(frontend.DATA_PANELS, {}):
+        frontend.async_remove_panel(hass, PANEL_NAME, warn_if_unknown=False)
+
     await panel_custom.async_register_panel(
         hass,
         frontend_url_path=PANEL_NAME,
@@ -81,9 +90,15 @@ async def async_register_panel(hass: HomeAssistant, *, force: bool = False) -> N
 
 async def async_unregister_panel(hass: HomeAssistant) -> None:
     """Remove the maintenance supporter sidebar panel."""
-    if not hass.data.get(DOMAIN, {}).get("_panel_registered"):
+    # Remove when EITHER our flag says so OR HA's actual registry still holds the
+    # panel. Reconciling with the real registry (not just the flag, which is lost
+    # when hass.data[DOMAIN] is popped on last-entry unload) means deleting the
+    # global entry can't leave a dead sidebar panel behind.
+    flagged = bool(hass.data.get(DOMAIN, {}).get("_panel_registered"))
+    in_registry = PANEL_NAME in hass.data.get(frontend.DATA_PANELS, {})
+    if not flagged and not in_registry:
         return
 
-    frontend.async_remove_panel(hass, PANEL_NAME)
+    frontend.async_remove_panel(hass, PANEL_NAME, warn_if_unknown=False)
     hass.data.setdefault(DOMAIN, {})["_panel_registered"] = False
     _LOGGER.debug("Maintenance Supporter sidebar panel removed")
