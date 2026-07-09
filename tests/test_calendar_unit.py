@@ -540,3 +540,22 @@ def test_create_event_calendar_kind_description_localized(
     event = calendar_entity._create_event_for_task(task, "Object", today, today + timedelta(days=90))
     assert event is not None
     assert "1. Samstag" in event.description
+
+
+async def test_warm_day_names_populates_cache_off_loop(hass) -> None:  # type: ignore[no-untyped-def]
+    """#88: babel day-name locale data is preloaded off the event loop at
+    calendar setup, so the synchronous _recurrence_text never reads locale
+    files on the loop. async_warm_day_names must fill the cache."""
+    from custom_components.maintenance_supporter.calendar import (
+        _DAY_NAMES_CACHE,
+        _day_names,
+        async_warm_day_names,
+    )
+
+    _DAY_NAMES_CACHE.pop(("abbreviated", "nb"), None)
+    _DAY_NAMES_CACHE.pop(("wide", "nb"), None)
+    await async_warm_day_names(hass, "nb")
+    assert ("abbreviated", "nb") in _DAY_NAMES_CACHE
+    assert ("wide", "nb") in _DAY_NAMES_CACHE
+    # Hot-path lookup returns the warmed data without touching disk.
+    assert _day_names("wide", "nb")[5]  # Saturday name, non-empty

@@ -43,6 +43,7 @@ from ..helpers.dates import INTERVAL_UNITS
 from ..helpers.permissions import require_write
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
+    KIND_INTERVAL,
     Schedule,
     normalize_task_storage,
 )
@@ -163,7 +164,21 @@ async def ws_create_task(
     # Recurrence: an explicit nested `schedule` (calendar kinds) takes
     # precedence; otherwise build from the flat v2.6.x fields.
     if msg.get("schedule"):
-        task_data["schedule"] = Schedule.from_dict(msg["schedule"]).to_dict()
+        incoming = Schedule.from_dict(msg["schedule"]).to_dict()
+        task_data["schedule"] = incoming
+        # A BARE interval schedule (kind=interval, no `every`) is only the
+        # carrier for the season/ends extras the panel always sends for a
+        # time-based task — the real interval still rides the flat
+        # interval_days / interval_unit / interval_anchor fields. Carry them
+        # over so normalize_task_storage merges them onto the schedule; without
+        # this the interval was dropped entirely (#88 regression).
+        if incoming.get("kind") == KIND_INTERVAL and incoming.get("every") is None:
+            if msg.get("interval_days") is not None:
+                task_data["interval_days"] = msg["interval_days"]
+            if msg.get("interval_unit", "days") != "days":
+                task_data["interval_unit"] = msg["interval_unit"]
+            if msg.get("interval_anchor", "completion") != "completion":
+                task_data["interval_anchor"] = msg["interval_anchor"]
     else:
         task_data["schedule_type"] = msg.get("schedule_type", "time_based")
         if msg.get("interval_days") is not None:
@@ -464,9 +479,20 @@ async def ws_update_task(
         or msg.get("schedule_type") in FLAT_SCHEDULE_TYPES
     )
     if msg.get("schedule"):
-        for key in FLAT_RECURRENCE_KEYS:
-            task.pop(key, None)
-        task["schedule"] = Schedule.from_dict(msg["schedule"]).to_dict()
+        incoming = Schedule.from_dict(msg["schedule"]).to_dict()
+        task["schedule"] = incoming
+        # A COMPLETE nested schedule is authoritative — drop the flat recurrence
+        # keys so it wins. But a BARE interval schedule (kind=interval with no
+        # `every`) is only the carrier for the season/ends extras the panel
+        # always sends for a time-based task; the real interval still rides the
+        # flat interval_days / interval_unit / interval_anchor fields, which
+        # normalize_task_storage merges onto it. Popping them for the bare
+        # interval dropped the interval entirely (#88 regression from the
+        # season/ends work). Keep them in that one case.
+        bare_interval = incoming.get("kind") == KIND_INTERVAL and incoming.get("every") is None
+        if not bare_interval:
+            for key in FLAT_RECURRENCE_KEYS:
+                task.pop(key, None)
     elif _flat_recurrence_edit:
         task.pop("schedule", None)
     elif "schedule_type" in msg:

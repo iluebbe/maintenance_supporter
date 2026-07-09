@@ -171,3 +171,77 @@ async def test_bug14_create_task_with_enabled(hass: HomeAssistant) -> None:
         error_msg = conn.send_error.call_args[0][2] if conn.send_error.call_args else ""
         assert False, f"BUG #14: {error_msg}"
     conn.send_result.assert_called_once()
+
+
+async def _global_and_object(hass: HomeAssistant, uid: str, tasks: dict) -> MockConfigEntry:
+    global_entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Maintenance Supporter",
+        data=build_global_entry_data(), source="user", unique_id=GLOBAL_UNIQUE_ID,
+    )
+    global_entry.add_to_hass(hass)
+    entry = MockConfigEntry(
+        version=1, minor_version=1, domain=DOMAIN, title="Obj",
+        data=build_object_entry_data(object_data=build_object_data(name="Obj"), tasks=tasks),
+        source="user", unique_id=uid,
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+    return entry
+
+
+async def test_issue88_create_time_based_bare_interval_persists(hass: HomeAssistant) -> None:
+    """#88: the panel sends a BARE nested schedule {kind:interval} (the carrier
+    for season/ends) alongside the flat interval_days/unit/anchor for a
+    time-based task. The WS create path treated the nested schedule as
+    authoritative and dropped the flat interval → every:null / next_due:null.
+    Both must persist. Regression from the v2.22 season/ends work; the season
+    e2e tests missed it because they sent a COMPLETE nested schedule (with
+    `every`), never the panel's bare one.
+    """
+    from custom_components.maintenance_supporter.helpers.schedule import read_legacy_fields
+    from custom_components.maintenance_supporter.websocket.tasks import ws_update_task
+
+    entry = await _global_and_object(hass, "maintenance_supporter_i88c", {})
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_create_task, hass, conn,
+        {
+            "id": 1, "type": "maintenance_supporter/task/create",
+            "entry_id": entry.entry_id, "name": "Recycling", "task_type": "cleaning",
+            "interval_days": 14, "interval_unit": "days", "interval_anchor": "planned",
+            "warning_days": 1, "last_performed": "2026-07-05",
+            "schedule": {"kind": "interval"},  # the panel's bare carrier payload
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    task_id = conn.send_result.call_args[0][1]["task_id"]
+    stored = hass.config_entries.async_get_entry(entry.entry_id).data["tasks"][task_id]
+    assert stored["schedule"].get("every") == 14, stored["schedule"]
+    flat = read_legacy_fields(stored)
+    assert flat["interval_days"] == 14
+    assert flat["interval_anchor"] == "planned"
+
+
+async def test_issue88_update_time_based_bare_interval_persists(hass: HomeAssistant) -> None:
+    """#88 edit path: same bare-interval payload through ws_update_task must
+    keep the interval instead of collapsing to every:null."""
+    from custom_components.maintenance_supporter.helpers.schedule import read_legacy_fields
+    from custom_components.maintenance_supporter.websocket.tasks import ws_update_task
+
+    task = build_task_data(schedule_type="time_based", interval_days=7, last_performed="2026-06-01")
+    entry = await _global_and_object(hass, "maintenance_supporter_i88u", {TASK_ID_1: task})
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_update_task, hass, conn,
+        {
+            "id": 1, "type": "maintenance_supporter/task/update",
+            "entry_id": entry.entry_id, "task_id": TASK_ID_1,
+            "name": "Recycling", "task_type": "cleaning",
+            "interval_days": 14, "interval_unit": "days", "interval_anchor": "planned",
+            "schedule": {"kind": "interval"},
+        },
+    )
+    assert not conn.send_error.called, conn.send_error.call_args
+    stored = hass.config_entries.async_get_entry(entry.entry_id).data["tasks"][TASK_ID_1]
+    assert stored["schedule"].get("every") == 14, stored["schedule"]
+    assert read_legacy_fields(stored)["interval_days"] == 14
