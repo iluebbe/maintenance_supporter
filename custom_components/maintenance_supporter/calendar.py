@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date, datetime, time, timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.core import HomeAssistant
@@ -233,6 +233,44 @@ def _cal_t(key: str, lang: str, **kwargs: str) -> str:
     return text
 
 
+# babel's get_day_names lazily reads locale data files from disk on first use
+# per locale — blocking I/O that must not run on the event loop (#88). Cache the
+# names per (width, locale) and warm the cache off-loop at calendar setup, so
+# the synchronous state/event computation never blocks the loop.
+_DAY_NAMES_CACHE: dict[tuple[str, str], Any] = {}
+
+
+def _day_names(width: str, locale: str) -> Any:
+    """Return babel day names for (width, locale) from the warmed cache.
+
+    Warmed off-loop by :func:`async_warm_day_names` at setup, so this is a pure
+    dict lookup on the hot path. A cold miss (a locale that was never warmed —
+    not reachable when the HA language is the only locale used) falls back to a
+    one-time synchronous load rather than crashing.
+    """
+    key = (width, locale)
+    cached = _DAY_NAMES_CACHE.get(key)
+    if cached is None:
+        from babel.dates import get_day_names
+
+        cached = get_day_names(width, locale=locale)  # type: ignore[arg-type]
+        _DAY_NAMES_CACHE[key] = cached
+    return cached
+
+
+async def async_warm_day_names(hass: HomeAssistant, locale: str) -> None:
+    """Preload babel day-name locale data off the event loop (#88)."""
+
+    def _load() -> None:
+        from babel.dates import get_day_names
+
+        for width in ("abbreviated", "wide"):
+            if (width, locale) not in _DAY_NAMES_CACHE:
+                _DAY_NAMES_CACHE[(width, locale)] = get_day_names(width, locale=locale)
+
+    await hass.async_add_executor_job(_load)
+
+
 def _recurrence_text(task: MaintenanceTask, lang: str) -> str:
     """Localized recurrence label for the calendar event description.
 
@@ -246,19 +284,18 @@ def _recurrence_text(task: MaintenanceTask, lang: str) -> str:
     if raw is not None and kind in ("weekdays", "nth_weekday", "day_of_month"):
         loc = lang or "en"
         try:
-            # babel (HA-provided) gives locale-correct weekday names; degrade
-            # gracefully (no label) if it is somehow absent, never crash.
-            from babel.dates import get_day_names
-
+            # babel (HA-provided) gives locale-correct weekday names, served
+            # from a cache warmed off-loop at setup (#88); degrade gracefully
+            # (no label) if it is somehow absent, never crash.
             if kind == "weekdays":
-                names = get_day_names("abbreviated", locale=loc)
+                names = _day_names("abbreviated", loc)
                 days = [d for d in raw.get("weekdays") or [] if isinstance(d, int) and 0 <= d <= 6]
                 return " & ".join(names[d] for d in days)
             if kind == "nth_weekday":
                 wd, nth = raw.get("weekday"), raw.get("nth")
                 if not isinstance(wd, int) or not isinstance(nth, int):
                     return ""
-                name = get_day_names("wide", locale=loc)[wd]
+                name = _day_names("wide", loc)[wd]
                 ordinal = _cal_t("cal_last", lang) if nth == -1 else f"{nth}."
                 return f"{ordinal} {name}"
             # day_of_month
@@ -289,6 +326,11 @@ async def async_setup_entry(
             if calendar:
                 runtime_data.coordinator.register_calendar_entity(calendar)
         return
+
+    # Warm babel's day-name locale cache off the event loop BEFORE adding the
+    # entity — HA computes the calendar state during async_add_entities, and
+    # _recurrence_text would otherwise read locale files on the loop (#88).
+    await async_warm_day_names(hass, normalize_language(hass))
 
     calendar = MaintenanceCalendar(hass)
     hass.data.setdefault(DOMAIN, {})["_calendar_entity"] = calendar
