@@ -4,8 +4,6 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
-## [2.22.2] - 2026-07-09
-
 ### 🐛 Fixed
 
 - **"Overwriting panel" crash when recreating the global entry** (#86,
