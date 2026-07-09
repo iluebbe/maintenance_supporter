@@ -3004,5 +3004,9 @@ async def test_edit_task_sets_season_and_finite_series(
 
     entry = hass.config_entries.async_get_entry(object_entry.entry_id)
     sched = entry.data[CONF_TASKS][TASK_ID_1]["schedule"]
+    # The interval itself must survive alongside the season/ends extras — the
+    # config-flow edit keeps the flat interval_days and lets normalize merge it
+    # onto the bare nested schedule (unlike the WS path's #88 regression).
+    assert sched.get("every") == 14, sched
     assert sched.get("season_months") == [4, 5, 6, 7, 8, 9, 10]
     assert sched.get("ends") == {"count": 6}
