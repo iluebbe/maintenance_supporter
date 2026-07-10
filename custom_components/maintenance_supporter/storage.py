@@ -105,6 +105,18 @@ class MaintenanceStore:
                     del state[key]
             clean[tid] = state
         data["tasks"] = clean
+        # Spare-part stock counts ({part_id: {"stock": int}}) — same shape
+        # discipline as tasks: a malformed section degrades to "untracked".
+        parts = data.get("parts")
+        if parts is not None and not isinstance(parts, dict):
+            _LOGGER.warning("Store 'parts' is %s, expected dict — resetting stock state", type(parts).__name__)
+            data["parts"] = {}
+        elif isinstance(parts, dict):
+            data["parts"] = {
+                pid: dict(state)
+                for pid, state in parts.items()
+                if isinstance(state, dict)
+            }
         return data
 
     def async_delay_save(self) -> None:
@@ -166,6 +178,38 @@ class MaintenanceStore:
         orphaned = [tid for tid in tasks if tid not in valid_task_ids]
         for tid in orphaned:
             del tasks[tid]
+        return len(orphaned)
+
+    # --- spare-part stock (mutable count; static part defs live in entry.data) ---
+
+    def get_part_stock(self, part_id: str) -> int | None:
+        """On-hand count for a part, or None when inventory isn't tracked."""
+        state = self._data.get("parts", {}).get(part_id, {})
+        stock = state.get("stock")
+        return int(stock) if isinstance(stock, int) else None
+
+    def all_part_stocks(self) -> dict[str, int | None]:
+        """{part_id: stock} for every tracked part."""
+        return {pid: self.get_part_stock(pid) for pid in self._data.get("parts", {})}
+
+    def set_part_stock(self, part_id: str, stock: int | None) -> None:
+        """Set (or untrack with None) a part's on-hand count, clamped at zero."""
+        parts: dict[str, Any] = self._data.setdefault("parts", {})
+        if stock is None:
+            parts.pop(part_id, None)
+        else:
+            parts.setdefault(part_id, {})["stock"] = max(0, int(stock))
+
+    def remove_part(self, part_id: str) -> None:
+        """Drop a deleted part's stock state."""
+        self._data.get("parts", {}).pop(part_id, None)
+
+    def prune_part_orphans(self, valid_part_ids: set[str]) -> int:
+        """Drop stock states whose part ids no longer exist (journey-I1 twin)."""
+        parts = self._data.get("parts", {})
+        orphaned = [pid for pid in parts if pid not in valid_part_ids]
+        for pid in orphaned:
+            del parts[pid]
         return len(orphaned)
 
     # --- last_performed ---

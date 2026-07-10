@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Следующий срок"
+      },
+      "parts_to_reorder": {
+        "name": "Детали к дозаказу"
       }
     },
     "calendar": {

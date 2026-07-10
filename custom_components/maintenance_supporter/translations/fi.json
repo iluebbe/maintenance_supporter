@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Seuraava eräpäivä"
+      },
+      "parts_to_reorder": {
+        "name": "Tilattavat osat"
       }
     },
     "calendar": {

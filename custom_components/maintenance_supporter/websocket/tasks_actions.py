@@ -67,6 +67,9 @@ def _completion_blocked(rd: Any, task_id: str) -> bool:
         # Meter readings (v2.20, #83): the recorded value for `reading` tasks.
         # Wide numeric bounds — meters count high, temperatures go negative.
         vol.Optional("reading_value"): vol.Any(vol.All(vol.Coerce(float), vol.Range(min=-1e12, max=1e12)), None),
+        # Spare parts: on an auto-created "buy" task, how many units were
+        # actually bought (dialog override of the part's restock_quantity).
+        vol.Optional("restock_quantity"): vol.Any(vol.All(int, vol.Range(min=1, max=9999)), None),
     }
 )
 @websocket_api.async_response
@@ -103,6 +106,7 @@ async def ws_complete_task(
         feedback=msg.get("feedback"),
         photo_doc_id=msg.get("photo_doc_id"),
         reading_value=msg.get("reading_value"),
+        restock_quantity=msg.get("restock_quantity"),
     )
     connection.send_result(msg["id"], {"success": True})
 

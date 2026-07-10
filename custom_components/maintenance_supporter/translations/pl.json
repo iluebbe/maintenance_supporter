@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Następny termin"
+      },
+      "parts_to_reorder": {
+        "name": "Części do zamówienia"
       }
     },
     "calendar": {

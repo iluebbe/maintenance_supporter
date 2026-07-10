@@ -476,13 +476,27 @@ class MaintenanceSupporterConfigFlow(TriggerConfigMixin, ConfigFlow, domain=DOMA
             # the CSV/JSON import chokepoint (schedule-model v2).
             tasks[task_id] = normalize_task_storage(new_td)
 
-        return self.async_create_entry(
-            title=object_name,
-            data={
-                CONF_OBJECT: obj_data,
-                CONF_TASKS: tasks,
-            },
-        )
+        # Spare parts: re-validate each imported definition through the same
+        # normalizer the WS CRUD uses (bad entries are dropped, not fatal).
+        parts_in = user_input.get("parts")
+        parts: dict[str, dict[str, Any]] = {}
+        if isinstance(parts_in, dict):
+            from .helpers.parts import PartValidationError, normalize_part
+
+            for pid, praw in parts_in.items():
+                try:
+                    part = normalize_part({**praw, "id": pid})
+                except (PartValidationError, TypeError):
+                    continue
+                parts[part["id"]] = part
+
+        data: dict[str, Any] = {
+            CONF_OBJECT: obj_data,
+            CONF_TASKS: tasks,
+        }
+        if parts:
+            data["parts"] = parts
+        return self.async_create_entry(title=object_name, data=data)
 
     async def async_step_create_object(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Create a new maintenance object."""

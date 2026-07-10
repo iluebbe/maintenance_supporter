@@ -115,6 +115,9 @@ def _build_export_object(
             "assignee_pool": tdata.get("assignee_pool") or [],
             "rotation_strategy": tdata.get("rotation_strategy"),
             "reading_unit": tdata.get("reading_unit"),
+            # Spare parts: consumption links + the auto-buy-task marker.
+            "consumes_parts": tdata.get("consumes_parts"),
+            "part_ref": tdata.get("part_ref"),
             "status": ct.get("_status", "ok"),
             "days_until_due": ct.get("_days_until_due"),
             "next_due": ct.get("_next_due"),
@@ -168,6 +171,12 @@ def _build_export_object(
         },
         "tasks": tasks,
         "documents": documents,
+        # Spare parts: full static definition + the tracked stock (dynamic,
+        # read from the Store) so a backup/restore keeps the shelf state.
+        "parts": [
+            {**part, "stock": store.get_part_stock(part["id"]) if store is not None else None}
+            for part in (entry.data.get("parts") or {}).values()
+        ],
     }
 
 

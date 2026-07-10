@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} 次回期日"
+      },
+      "parts_to_reorder": {
+        "name": "再注文が必要な部品"
       }
     },
     "calendar": {

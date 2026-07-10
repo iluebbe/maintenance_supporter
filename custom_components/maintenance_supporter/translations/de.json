@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Nächste Fälligkeit"
+      },
+      "parts_to_reorder": {
+        "name": "Nachzukaufende Teile"
       }
     },
     "calendar": {

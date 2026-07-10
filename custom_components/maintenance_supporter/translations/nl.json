@@ -1368,6 +1368,9 @@
       },
       "next_due": {
         "name": "{task_name} Volgende vervaldatum"
+      },
+      "parts_to_reorder": {
+        "name": "Onderdelen bij te bestellen"
       }
     },
     "calendar": {

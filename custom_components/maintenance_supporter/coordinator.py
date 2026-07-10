@@ -935,6 +935,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         completed_by: str | None = None,
         photo_doc_id: str | None = None,
         reading_value: float | None = None,
+        restock_quantity: int | None = None,
     ) -> None:
         """Mark a task as completed and persist."""
         merged = self._get_merged_tasks_data()
@@ -1029,6 +1030,21 @@ class MaintenanceCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Invalidate budget cache when a cost is recorded
         if cost is not None:
             self._recalculate_budget_cache()
+
+        # Spare parts: consume linked parts / restock a completed buy task.
+        # Best-effort side effect — a broken part link must never fail the
+        # completion. Runs AFTER persistence so a crash loses only stock math.
+        from .parts_runtime import async_handle_completion_parts
+
+        try:
+            await async_handle_completion_parts(
+                self.hass,
+                self.entry,
+                merged[task_id],
+                restock_quantity=restock_quantity,
+            )
+        except Exception:
+            _LOGGER.exception("Part consumption failed for task %s", task_id)
 
         _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 

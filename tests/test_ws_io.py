@@ -2589,3 +2589,81 @@ async def test_yaml_roundtrip_preserves_schedule_extras(
     ct = next(iter(copy.data[CONF_TASKS].values()))
     assert ct["schedule"].get("season_months") == [6, 7, 8]
     assert ct["schedule"].get("ends") == {"until": "2027-01-01"}
+
+
+async def test_json_roundtrip_preserves_parts_stock_and_links(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """Spare parts round-trip: definitions (every field), the tracked stock,
+    and the task-side consumption link — with part ids regenerated and the
+    links remapped to the new ids."""
+    part = {
+        "id": "p1",
+        "name": "HEPA-Filter H13",
+        "mpn": "00754869",
+        "gtin": "4006381333931",
+        "vendor": "Bosch",
+        "storage_location": "Keller Regal B",
+        "product_url": "https://example.com/filter",
+        "notes": "fits both units",
+        "unit": "pcs",
+        "cost": 24.9,
+        "reorder_threshold": 1,
+        "restock_quantity": 2,
+        "auto_buy_task": True,
+        "doc_id": None,
+    }
+    entry = _scheduled_object(
+        "Vacuum",
+        {"kind": "interval", "every": 30, "unit": "days"},
+        extra={"consumes_parts": [{"part_id": "p1", "quantity": 1}]},
+    )
+    data = dict(entry.data)
+    data["parts"] = {"p1": part}
+    entry = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Vacuum",
+        data=data,
+        source="user",
+        unique_id="maintenance_supporter_vacuum_parts",
+    )
+    entry.add_to_hass(hass)
+    await setup_integration(hass, global_entry, entry)
+    entry.runtime_data.store.set_part_stock("p1", 3)
+
+    # Export carries every part field + the tracked stock.
+    export = build_export_data(hass, include_history=False)
+    exported = next(e for e in export["objects"] if e["object"]["name"] == "Vacuum")
+    (epart,) = exported["parts"]
+    for key, expected in part.items():
+        if key == "id":
+            continue
+        assert epart.get(key) == expected, f"part field {key} lost on export"
+    assert epart["stock"] == 3, "tracked stock lost on export"
+    assert exported["tasks"][0]["consumes_parts"] == [{"part_id": "p1", "quantity": 1}]
+
+    # Re-import as a renamed copy: new part id, link remapped, stock restored.
+    exported["object"]["name"] = "Vacuum Copy"
+    conn = _mock_connection()
+    await call_ws_handler(
+        ws_import_json,
+        hass,
+        conn,
+        {"id": 1, "type": "maintenance_supporter/json/import", "json_content": json.dumps({"objects": [exported]})},
+    )
+    resp = conn.send_result.call_args[0][1]
+    assert resp["created"] == 1, resp
+    copy = next(e for e in hass.config_entries.async_entries(DOMAIN) if e.title == "Vacuum Copy")
+    (new_pid,) = copy.data["parts"].keys()
+    assert new_pid != "p1", "part id must be regenerated on import"
+    for key, expected in part.items():
+        if key == "id":
+            continue
+        assert copy.data["parts"][new_pid].get(key) == expected, f"part field {key} lost on import"
+    assert copy.runtime_data.store.get_part_stock(new_pid) == 3, "stock lost on import"
+    (tid,) = copy.data[CONF_TASKS].keys()
+    assert copy.data[CONF_TASKS][tid]["consumes_parts"] == [{"part_id": new_pid, "quantity": 1}], (
+        "consumes_parts link not remapped"
+    )
