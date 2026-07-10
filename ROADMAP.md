@@ -83,15 +83,18 @@ all along via `notify_overdue_interval_hours`.
 
 ---
 
-### 🛠️ Spare parts & consumables inventory (planned next)
-Maintenance consumes things — filters, seals, descaler, softener salt,
-mower blades. A per-object **parts list** tracks each part's name, product
-URL and current stock with a reorder threshold: dropping below it
-auto-creates a one-off "buy …" task, and completing a maintenance task that
-consumes a part optionally decrements its stock. Part datasheets/receipts
-attach through the existing document store; stock levels surface as sensor
-values for automations. Turns "the task is due" into "the task is due AND
-the filter is already on the shelf".
+### ✅ Spare parts & consumables inventory
+**Shipped** (2.23). Maintenance consumes things — filters, seals, descaler,
+softener salt, mower blades. A per-object **parts list** tracks each part's
+identifiers (manufacturer, MPN, GTIN/EAN), storage location, product URL,
+unit price and current stock with a reorder threshold: completing a task
+that consumes parts decrements the stock, dropping to the threshold
+auto-creates a one-off **"Buy {part}"** task (self-contained notes, product
+or shopping-search link), and completing it restocks — quantity and cost
+editable in the dialog. Datasheets/receipts attach through the document
+store; per-part stock sensors + a global "parts to reorder" counter feed
+automations (edge-triggered low/out/restocked events); the printable work
+sheet lists required parts; everything round-trips through export/import.
 
 ---
 

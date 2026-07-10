@@ -73,15 +73,12 @@ async def ws_create_part(
         connection.send_error(msg["id"], "limit_reached", f"At most {MAX_PARTS_PER_OBJECT} parts per object")
         return
     try:
-        part = normalize_part(msg)
+        # msg["id"] is the WS envelope's message id — NEVER the part id; force
+        # a fresh uuid (normalize_part generates one when id is falsy).
+        part = normalize_part({**msg, "id": None})
     except PartValidationError as err:
         connection.send_error(msg["id"], "invalid_input", str(err))
         return
-    part["id"] = part["id"] if part["id"] not in parts else ""
-    if not part["id"]:
-        from uuid import uuid4
-
-        part["id"] = uuid4().hex
     parts[part["id"]] = part
     _persist_parts(hass, entry, parts)
 

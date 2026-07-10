@@ -4,6 +4,23 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ## [Unreleased]
 
+### ✨ New
+
+- **Spare parts & consumables inventory** — a per-object parts list closes the
+  "is the filter on the shelf?" loop. Parts carry identifiers (manufacturer,
+  MPN, **GTIN/EAN** — validated against the worldwide GS1 GTIN family), a
+  **storage location**, product URL, unit, unit price, and an optional tracked
+  stock with a reorder threshold. Completing a task that **consumes parts**
+  (linked in the task dialog, quantity per part) decrements the stock; at the
+  threshold an opt-in **"Buy {part}" task creates itself** — self-contained
+  notes (identifiers, quantity, price, storage spot) and a link to the product
+  page or a configurable shopping search. Completing the buy task **restocks**
+  (quantity editable, cost prefilled) and the reminder retires itself;
+  restocking any other way clears it automatically. Per-part stock sensors on
+  the object device + a global *Parts to reorder* counter, edge-triggered
+  low/out/restocked events for automations, a required-parts block on the
+  printable work sheet, and full JSON export/import round-trip.
+
 ## [2.22.3] - 2026-07-09
 
 ### 🐛 Fixed

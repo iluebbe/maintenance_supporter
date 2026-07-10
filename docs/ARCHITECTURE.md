@@ -30,7 +30,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
                          |                   |    +-------------------+
 +-------------------+    | - history         |
 |   WebSocket API   |--->|                   |    +-------------------+
-| (63 commands)     |    +--------+----------+    |  Calendar Entity  |
+| (67 commands)     |    +--------+----------+    |  Calendar Entity  |
 | - CRUD objects    |             |               | (global, all tasks)|
 | - statistics      |             v               +-------------------+
 | - subscribe       |    +-------------------+
@@ -189,7 +189,7 @@ custom_components/maintenance_supporter/
 │       ├── runtime.py             (329 lines)  Accumulated operating hours trigger
 │       └── compound.py            (324 lines)  AND/OR compound trigger
 │
-├── websocket/                               63 WS commands, split by domain
+├── websocket/                               67 WS commands, split by domain
 │   ├── __init__.py              (297 lines)  Shared helpers + registration
 │   ├── objects.py                              Object CRUD + archive (8 handlers)
 │   ├── tasks.py                                Task CRUD + validation + actions, incl. quick_complete (1.3.0+) + archive (2.10.0+) (11 handlers)
@@ -508,7 +508,7 @@ Multi-channel notification with:
 
 ## WebSocket API
 
-63 commands organized by function:
+67 commands organized by function:
 
 | Category | Commands |
 |----------|----------|
@@ -517,6 +517,7 @@ Multi-channel notification with:
 | **Task CRUD** | `task/list`, `task/create`, `task/update`, `task/delete`, `task/duplicate` |
 | **Task Actions** | `task/complete`, `task/quick_complete`, `task/skip`, `task/reset`, `task/snooze`, `task/postpone` (2.22+), `task/archive`, `task/unarchive`, `task/history/update` |
 | **Group CRUD** | `group/create`, `group/update`, `group/delete` |
+| **Parts** (2.23) | `part/create`, `part/update`, `part/delete`, `part/restock` — spare-parts inventory; parts ride the objects payload |
 | **Global Settings** | `global/update` *(admin)*, `global/test_notification` *(admin)* |
 | **User Assignment** | `task/assign_user`, `users/list` |
 | **Analysis** | `task/analyze_interval`, `task/apply_suggestion`, `task/seasonal_overrides`, `task/set_environmental_entity` |
@@ -531,7 +532,7 @@ All write commands fire events for subscription updates.
 
 ### Frontend Coverage
 
-The backend exposes 63 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
+The backend exposes 67 WS commands; most are consumed by the Lit panel. A couple (`task/list`, `templates`) are genuinely obsolete for the panel but kept as public API.
 
 | Endpoint | Status | Linked Feature Flag | UI Location |
 |---|---|---|---|
